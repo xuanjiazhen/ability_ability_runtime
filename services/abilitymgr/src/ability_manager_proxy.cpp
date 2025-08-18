@@ -5993,7 +5993,7 @@ int32_t AbilityManagerProxy::PreStartMission(const std::string& bundleName, cons
 }
 
 ErrCode AbilityManagerProxy::OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
-    int32_t userId, int requestCode)
+    int32_t userId, int requestCode, const AAFwk::OpenLinkOptions &opt)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -6024,6 +6024,10 @@ ErrCode AbilityManagerProxy::OpenLink(const Want& want, sptr<IRemoteObject> call
     }
     if (!data.WriteInt32(requestCode)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "requestCode write fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteParcelable(&opt)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "opt write fail");
         return INNER_ERR;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::OPEN_LINK, data, reply, option);
