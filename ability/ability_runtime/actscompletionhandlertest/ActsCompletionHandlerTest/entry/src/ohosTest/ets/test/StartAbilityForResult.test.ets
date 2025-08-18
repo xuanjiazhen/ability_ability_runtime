@@ -23,7 +23,7 @@ import bundleManager from '@ohos.bundle.bundleManager';
 import { BusinessError } from '@ohos.base'
 
 const DOMAIN = 0x0000;
-const LOG_TAG = 'COMPLETION_HANDLER_TEST';
+let LOG_TAG = 'COMPLETION_HANDLER_TEST';
 const DELAY_TIME = 2000;
 
 let sleep = async (millis: number) => {
