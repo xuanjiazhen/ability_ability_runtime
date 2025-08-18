@@ -346,6 +346,7 @@ export default function geolocationTest_GeoErr() {
                 }
                 ).catch((error) => {
                     console.error('promise, addBeaconFence: error=' + JSON.stringify(error));
+                    expect(error.code).assertEqual("3501601");
                 });
 
             } catch (error) {
