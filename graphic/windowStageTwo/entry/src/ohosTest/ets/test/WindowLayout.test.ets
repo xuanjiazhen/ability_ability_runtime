@@ -3877,6 +3877,9 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
       console.log(caseName + 'begin.');
       let windowClass = await windowStage.createSubWindow('testGlobalDisplayToClientwithOutofRange')
       await sleep(200);
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      await sleep(200)
       await windowClass.moveWindowTo(-50, -50);
       await sleep(200);
       try {
