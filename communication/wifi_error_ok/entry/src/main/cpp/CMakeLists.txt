@@ -12,4 +12,4 @@ include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
 add_library(wifindk SHARED WifiTest.cpp)
-target_link_libraries(wifindk PUBLIC libace_napi.z.so libhilog_ndk.z.so libwifi_ndk.so)
+target_link_libraries(wifindk PUBLIC libace_napi.z.so libhilog_ndk.z.so libwifi_ndk.so libbluetooth_ndk.so)
