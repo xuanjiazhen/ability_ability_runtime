@@ -3740,14 +3740,14 @@ export default function audioFramework() {
         console.log(`${TagFrmwk}: Set Stream Mute: VOICE_ASSISTANT: Promise: TRUE`);
         let value = await audioManager.getVolume(audio.AudioVolumeType.VOICE_ASSISTANT);
         console.info("AudioFrameworkTest: value is " + value);
-        if (value == highVol) {
+        if (value == 0) {
           expect(true).assertTrue();
         } else {
           expect(false).assertTrue();
         }
         await audioManager.setVolume(audio.AudioVolumeType.VOICE_ASSISTANT, lowVol);
         let data = await audioManager.isMute(audio.AudioVolumeType.VOICE_ASSISTANT);
-        if (data == false) {
+        if (data == true) {
           console.log(`${TagFrmwk}: Promise: Is Stream Mute VOICE_ASSISTANT: SetVolume: PASS:${data}`);
           expect(true).assertTrue();
         }
@@ -3784,7 +3784,7 @@ export default function audioFramework() {
           console.log(`${TagFrmwk}: Set Stream Mute: VOICE_ASSISTANT: Callback : SetVolume`);
           try {
             let value = await audioManager.getVolume(audio.AudioVolumeType.VOICE_ASSISTANT);
-            if (value == highVol) {
+            if (value == 0) {
               console.info("AudioFrameworkTest: value is " + value);
               expect(true).assertTrue();
             } else {
@@ -3801,7 +3801,7 @@ export default function audioFramework() {
             if (err) {
               console.error(`${TagFrmwk}: Callback : SetVolume: VOICE_ASSISTANT : failed to get Mute Status ${err.message}`);
               expect().assertFail();
-            } else if (data == false) {
+            } else if (data == true) {
               console.log(`${TagFrmwk}: Callback : Is Stream Mute VOICE_ASSISTANT: SetVolume: PASS: ${data}`);
               expect(true).assertTrue();
             } else {
