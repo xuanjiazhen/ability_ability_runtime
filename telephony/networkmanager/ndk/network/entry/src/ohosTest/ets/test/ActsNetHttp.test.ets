@@ -1090,7 +1090,7 @@ export default function ActsNetHttpTest() {
    * @tc.size    : SmallTest
    * @tc.type    : Function
    */
-  /
+   
   it('testNetworkManagerHttpPerformanceTiming0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
     let caseName: string = 'testNetworkManagerHttpPerformanceTiming0100';
     try {
