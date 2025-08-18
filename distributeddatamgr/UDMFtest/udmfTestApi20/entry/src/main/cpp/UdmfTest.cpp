@@ -23,6 +23,9 @@
 #include <database/udmf/udmf_meta.h>
 #include <database/udmf/udmf_err_code.h>
 
+int g_invalidParamCode = 20400001;
+int g_err = 20400000;
+
 void addUdmfTest(std::vector<napi_property_descriptor> &descData)
 {
     descData.push_back({"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr,
@@ -90,7 +93,7 @@ napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_UdmfRecordProvider_Destroy(provider);
 
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode : 1, &result);
     
     return result;
 }
@@ -108,7 +111,7 @@ napi_value TestAddFileUriInvalidParam(napi_env env, napi_callback_info info)
 
     OH_UdsFileUri_Destroy(fileUri);
 
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode : 1, &result);
     return result;
 }
 
@@ -154,7 +157,7 @@ napi_value TestAddPixelMapInvalidParam(napi_env env, napi_callback_info info)
 
     OH_UdmfRecord *udmfRecord = OH_UdmfRecord_Create();
     int ret = OH_UdmfRecord_AddPixelMap(nullptr, pixelMap);
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode : 1, &result);
     return result;
 }
 
@@ -198,7 +201,7 @@ napi_value TestGetGeneralEntryInvalidParam(napi_env env, napi_callback_info info
     
     int ret = OH_UdmfRecord_GetGeneralEntry(record, typeId, &entry, &count);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode : 1, &result);
     return result;
 }
 
@@ -217,7 +220,7 @@ napi_value testGetPlainTextError(napi_env env, napi_callback_info info)
     
     int ret = OH_UdmfRecord_GetPlainText(record, plainText);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? 20400000 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? g_err : 1, &result);
     OH_UdmfRecord_Destroy(record);
     OH_UdsHyperlink_Destroy(hyperlink1);
     OH_UdsPlainText_Destroy(plainText);
@@ -239,7 +242,7 @@ napi_value TestGetHyperlinkError(napi_env env, napi_callback_info info)
     
     int ret = OH_UdmfRecord_GetHyperlink(record, hyperlink1);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? 20400000 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? g_err : 1, &result);
     OH_UdmfRecord_Destroy(record);
     OH_UdsHyperlink_Destroy(hyperlink1);
     OH_UdsPlainText_Destroy(plainText);
@@ -261,7 +264,7 @@ napi_value TestGetHtmlError(napi_env env, napi_callback_info info)
     
     int ret = OH_UdmfRecord_GetHtml(record, html1);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? 20400000 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? g_err : 1, &result);
     OH_UdmfRecord_Destroy(record);
     OH_UdsHtml_Destroy(html1);
     OH_UdsPlainText_Destroy(plainText);
@@ -282,7 +285,7 @@ napi_value TestGetAppItemInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_UdmfRecord_GetAppItem(nullptr, appItem2);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode : 1, &result);
     OH_UdmfRecord_Destroy(record1);
     OH_UdsAppItem_Destroy(appItem1);
     OH_UdsAppItem_Destroy(appItem2);
@@ -303,7 +306,7 @@ napi_value TestGetAppItemError(napi_env env, napi_callback_info info)
     
     int ret = OH_UdmfRecord_GetAppItem(record1, appItem2);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? 20400000 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? g_err : 1, &result);
     OH_UdmfRecord_Destroy(record1);
     OH_UdsPlainText_Destroy(plainText1);
     OH_UdsAppItem_Destroy(appItem2);
@@ -329,7 +332,7 @@ napi_value TestSetProviderInvalidParam(napi_env env, napi_callback_info info)
     int count = 3;
     int ret = OH_UdmfRecord_SetProvider(nullptr, types, count, provider);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode : 1, &result);
     OH_UdmfRecord_Destroy(record);
     OH_UdsPlainText_Destroy(plainText);
     OH_UdmfRecordProvider_Destroy(provider);
@@ -358,7 +361,7 @@ napi_value TestSetVisibilityInvalidParam(napi_env env, napi_callback_info info)
     Udmf_Visibility visibility = UDMF_ALL;
     int ret = OH_UdmfOptions_SetVisibility(pThis, visibility);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode : 1, &result);
     return result;
 }
 
@@ -390,7 +393,7 @@ napi_value TestGetUnifiedDataError(napi_env env, napi_callback_info info)
     OH_UdmfData *readUnifiedData = OH_UdmfData_Create();
     int ret = OH_Udmf_GetUnifiedData(key, intention, readUnifiedData);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? 20400000 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? g_err : 1, &result);
     OH_UdsPlainText_Destroy(plainText);
     OH_UdmfRecord_Destroy(record);
     OH_UdmfData_Destroy(udmfUnifiedData);
@@ -426,7 +429,7 @@ napi_value TestGetUnifiedDataByOptionsError(napi_env env, napi_callback_info inf
     OH_UdmfData* dataArray1 = nullptr;
     int ret = OH_Udmf_GetUnifiedDataByOptions(options1, &dataArray1, &dataSize);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? 20400000 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? g_err : 1, &result);
     OH_UdmfOptions_Destroy(options);
     OH_UdmfOptions_Destroy(options1);
     OH_UdsFileUri_Destroy(fileUri);
@@ -453,7 +456,7 @@ napi_value TestSetUnifiedDataError(napi_env env, napi_callback_info info)
     
     int ret = OH_Udmf_SetUnifiedData(intention, udmfData, key, 512);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? 20400000 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? g_err : 1, &result);
 
     OH_UdmfRecord_Destroy(record);
     OH_UdmfData_Destroy(udmfData);
@@ -496,7 +499,7 @@ napi_value TestUpdateUnifiedDataError(napi_env env, napi_callback_info info)
     
     int ret = OH_Udmf_UpdateUnifiedData(options2, udmfUnifiedData2);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? 20400000 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? g_err : 1, &result);
     OH_UdsFileUri_Destroy(fileUri);
     OH_UdmfRecord_Destroy(record);
     OH_UdmfData_Destroy(udmfUnifiedData);
@@ -538,7 +541,7 @@ napi_value TestDeleteUnifiedDataError(napi_env env, napi_callback_info info)
     OH_UdmfData* dataArray2 = nullptr;
     int ret = OH_Udmf_DeleteUnifiedData(options1, &dataArray2, &dataSize1);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? 20400000 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_ERR ? g_err : 1, &result);
     OH_UdmfOptions_Destroy(options);
     OH_UdmfOptions_Destroy(options1);
     OH_UdsFileUri_Destroy(fileUri);

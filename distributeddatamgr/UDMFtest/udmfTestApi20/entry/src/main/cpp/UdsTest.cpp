@@ -23,6 +23,8 @@
 
 # define MAX_GENERAL_ENTRY_SIZE (100 * 1024 * 1024)
 
+int g_invalidParamCode1 = 20400001;
+
 void addUdsTest(std::vector<napi_property_descriptor> &descData)
 {
     descData.push_back({"testSetPixelMapInvalidParam", nullptr, TestSetPixelMapInvalidParam, nullptr, nullptr, nullptr,
@@ -55,7 +57,7 @@ napi_value TestSetPixelMapInvalidParam(napi_env env, napi_callback_info info)
     OH_PixelmapNative_CreatePixelmap(data, dataSize, createOpts, &pixelmapNative);
 
     int ret = OH_UdsPixelMap_SetPixelMap(pixelMap, pixelmapNative);
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode1 : 1, &result);
     
     return result;
 }
@@ -65,7 +67,7 @@ napi_value TestArrBufferDestroyInvalidParam(napi_env env, napi_callback_info inf
     napi_value result;
     OH_UdsArrayBuffer* buffer = nullptr;
     int ret = OH_UdsArrayBuffer_Destroy(buffer);
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode1 : 1, &result);
     return result;
 }
 
@@ -84,7 +86,7 @@ napi_value TestGetDataInvalidParam(napi_env env, napi_callback_info info)
     unsigned int getLen;
     int ret = OH_UdsArrayBuffer_GetData(buffer, &getData, &getLen);
     
-    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? 20400001 : 1, &result);
+    napi_create_int32(env, ret == Udmf_ErrCode::UDMF_E_INVALID_PARAM ? g_invalidParamCode1 : 1, &result);
     
     OH_UdsArrayBuffer_Destroy(buffer);
     return result;
