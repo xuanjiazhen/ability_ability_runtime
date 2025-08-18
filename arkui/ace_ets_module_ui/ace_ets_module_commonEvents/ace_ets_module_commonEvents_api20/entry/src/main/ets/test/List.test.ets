@@ -39,6 +39,7 @@ export default function testsuite() {
   nodeRenderStateTest();
   BlockDescendantsTest();
   BlockHierarchyTest();
+  BackgroundOptionsTest();
   axisEventTest();
   clickEventTest();
   dragEventTest();
