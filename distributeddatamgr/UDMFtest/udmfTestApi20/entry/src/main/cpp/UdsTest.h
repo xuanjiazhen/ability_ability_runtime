@@ -23,7 +23,7 @@
 
 extern int g_invalidParamCode1;
 
-void addUdsTest(std::vector<napi_property_descriptor> &descData);
+void AddUdsTest(std::vector<napi_property_descriptor> &descData);
 
 napi_value TestSetPixelMapInvalidParam(napi_env env, napi_callback_info info);
 napi_value TestArrBufferDestroyInvalidParam(napi_env env, napi_callback_info info);
