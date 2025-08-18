@@ -12,6 +12,13 @@
 # limitations under the License.
 
 import("//test/xts/tools/build/suite.gni")
+ohos_app_assist_suite("ActsPasteboardErrorMainTest") {
+  testonly = true
+  certificate_profile = "./signature/openharmony_sx.p7b"
+  hap_name = "ActsPasteboardErrorMainTest"
+  part_name = "pasteboard"
+  subsystem_name = "distributeddatamgr"
+}
 
 ohos_js_app_suite("ActsPasteboardErrorTest") {
   test_hap = true
@@ -20,4 +27,5 @@ ohos_js_app_suite("ActsPasteboardErrorTest") {
   hap_name = "ActsPasteboardErrorTest"
   subsystem_name = "distributeddatamgr"
   part_name = "pasteboard"
+  deps = [ ":ActsPasteboardErrorMainTest" ]
 }
