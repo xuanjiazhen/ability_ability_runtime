@@ -288,11 +288,11 @@ export default function geolocationTest_GeoErr() {
                 });
 
                 geolocationm.addBeaconFence(fenceRequest).then((id) => {
-                    console.info("addBeaconFence Fail, fence id:" + id);
-                    expect(error.code).assertEqual("3501603");
+                    console.info("addBeaconFence success, fence id:" + id);
                 }
                 ).catch((error) => {
-                    console.error('promise, addBeaconFence: error=' + JSON.stringify(error));  
+                    console.error('promise, addBeaconFence: error=' + JSON.stringify(error));
+                    expect(error.code).assertEqual("3501603");  
                 });
 
             } catch (error) {
