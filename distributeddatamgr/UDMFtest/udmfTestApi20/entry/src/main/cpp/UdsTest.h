@@ -21,7 +21,9 @@
 #include <napi/native_api.h>
 #include <vector>
 
-void addUdsTest(std::vector<napi_property_descriptor> &descData);
+extern int g_invalidParamCode1;
+
+void AddUdsTest(std::vector<napi_property_descriptor> &descData);
 
 napi_value TestSetPixelMapInvalidParam(napi_env env, napi_callback_info info);
 napi_value TestArrBufferDestroyInvalidParam(napi_env env, napi_callback_info info);

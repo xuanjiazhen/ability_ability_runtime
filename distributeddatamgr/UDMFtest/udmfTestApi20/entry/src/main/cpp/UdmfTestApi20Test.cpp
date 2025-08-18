@@ -22,8 +22,8 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     std::vector<napi_property_descriptor> descData;
-    addUdmfTest(descData);
-    addUdsTest(descData);
+    AddUdmfTest(descData);
+    AddUdsTest(descData);
     
     napi_define_properties(env, exports, descData.size(), descData.data());
     return exports;
