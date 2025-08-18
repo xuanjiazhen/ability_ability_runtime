@@ -28,6 +28,7 @@ import promiseTest from './Promise/Promise.test';
 import mapTest from './Map/Map.test';
 import regExpTest from './RegExp/RegExp.test';
 import setTest from './Set/Set.test';
+import globalTest from './Global/Global.test';
 import typedArrayTest from './TypedArray/TypedArray.test';
 import errorTest from './Error/Error.test';
 import weakRefTest from './WeakRef/WeakRef.test';
@@ -76,4 +77,5 @@ export default function testsuite() {
   Uint16ArrayTest();
   Uint32ArrayTest();
   Float64ArrayTest();
+  globalTest();
 }
