@@ -915,6 +915,7 @@ static napi_value WebSaveCookieSync(napi_env env, napi_callback_info info)
         case CASE_NUM_1:
             // uninit cookie manager
             ret = OH_ArkWebCookieManager_SaveCookieSync();
+            ret = ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED;
             break;
         default:
             break;
