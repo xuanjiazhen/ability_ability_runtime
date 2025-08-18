@@ -13,6 +13,14 @@
 
 import("//test/xts/tools/build/suite.gni")
 
+ohos_app_assist_suite("ActsCommonEventErrorMainTest") {
+  testonly = true
+  certificate_profile = "./signature/openharmony_sx.p7b"
+  hap_name = "ActsCommonEventErrorMainTest"
+  subsystem_name = "notification"
+  part_name = "common_event_service"
+}
+
 ohos_js_app_suite("ActsCommonEventErrorTest") {
   test_hap = true
   testonly = true
@@ -20,4 +28,5 @@ ohos_js_app_suite("ActsCommonEventErrorTest") {
   hap_name = "ActsCommonEventErrorTest"
   subsystem_name = "notification"
   part_name = "common_event_service"
+    deps = [ ":ActsCommonEventErrorMainTest" ]
 }
