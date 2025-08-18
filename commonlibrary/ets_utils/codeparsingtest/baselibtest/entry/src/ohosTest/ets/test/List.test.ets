@@ -21,6 +21,7 @@ import processTest from './process/Process.test';
 import uriTest from './uri/Uri.test';
 import urlTest from './url/Url.test';
 import utilTest from './util/Util.test';
+import util2Test from './util/Util2.test';
 import timerTest from './timer/Timer.test';
 import jsonTest from './json/Json.test';
 import tresMapTest from './treemap/Treemap.test';
@@ -60,6 +61,7 @@ export default function testsuite() {
   uriTest();
   urlTest();
   utilTest();
+  util2Test();
   timerTest();
   jsonTest();
   tresMapTest();
