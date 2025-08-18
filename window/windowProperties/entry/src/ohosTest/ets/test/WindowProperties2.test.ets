@@ -58,6 +58,39 @@ async function terminateAbility(caseName: string) {
   await sleep(1000)
 }
 
+async function startAbility4(caseName: string, context: common.UIAbilityContext, options?: StartOptions) {
+  let want: Want = {
+    bundleName: AppStorage.get('bundleName'),
+    abilityName: 'StartTestAbility4'
+  };
+  if (options) {
+    await context.startAbility(want, options).then(() => {
+      console.info(`${caseName} Succeeded in starting ability.`);
+    }).catch((err: BusinessError) => {
+      console.info(`${caseName} Failed in starting ability. Cause code: ${err.code}, message: ${err.message}`);
+    });
+  } else {
+    await context.startAbility(want).then(() => {
+      console.info(`${caseName} Succeeded in starting ability.`);
+    }).catch((err: BusinessError) => {
+      console.info(`${caseName} Failed in starting ability. Cause code: ${err.code}, message: ${err.message}`);
+    });
+  }
+  await sleep(1000)
+  let windowStageStart = AppStorage.get('windowStageStartTest4') as ohosWindow.WindowStage;
+  return windowStageStart
+}
+
+async function terminateAbility4(caseName: string) {
+  let pageContext = AppStorage.get('contextTest4') as common.UIAbilityContext
+  await pageContext.terminateSelf().then(() => {
+    console.log(`${caseName} terminateSelf success`);
+  }).catch((err: BusinessError) => {
+    console.error(`${caseName} terminateSelf fail, err: ${JSON.stringify(err)}`);
+  });
+  await sleep(1000)
+}
+
 export default function windowPropertiesTest2() {
   describe('windowProperties_test2', () => {
     let sleep = (sleepMs: number) => new Promise<string>(resolve => setTimeout(resolve, sleepMs));
@@ -2237,6 +2270,91 @@ export default function windowPropertiesTest2() {
         await dialogWindowClass?.destroyWindow();
         await floatWindowClass?.destroyWindow();
         done()
+      }
+    });
+    
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_CONTAINER_COLOR_WITH_SUBWINDOW
+     * @tc.name      : testSetWindowContainerColorwithUnsupportedSubwindow
+     * @tc.desc      : 验证不支持的子窗调用setwindowcontainercolor接口抛1300004错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('testSetWindowContainerColorwithUnsupportedSubwindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testSetWindowContainerColorwithUnsupportedSubwindow ';
+      console.log(caseName + 'begin');
+      let subWindowClass = await windowStage.createSubWindow('testSetWindowContainerColorwithUnsupportedSubwindow');
+      await sleep(200)
+      try {
+        subWindowClass.setWindowContainerColor("#0099FF","#00000000");
+        console.log(caseName + 'success. ');
+        await subWindowClass.destroyWindow()
+        expect().assertFail()
+        done();
+      } catch (err) {
+        console.error(caseName + 'Failed. Cause: ' + JSON.stringify(err));
+        await subWindowClass.destroyWindow();
+        if (err.code == 801) {
+          done()
+        } else {
+          expect(err.code).assertEqual(1300004);
+          done();
+        }
+      }
+    });
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_CONTAINER_COLOR_WITH_DESTROYED_MAINWINDOW
+     * @tc.name      : testSetWindowContainerColorwithDestroyedMainWindow
+     * @tc.desc      : 验证销毁后的主窗调用setwindowcontainercolor接口抛1300002错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('testSetWindowContainerColorwithDestroyedMainWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testSetWindowContainerColorwithDestroyedMainWindow ';
+      console.log(caseName + 'begin');
+      let windowStageStart = await startAbility(caseName, context);
+      await sleep(200)
+      let windowClass = windowStageStart.getMainWindowSync();
+      await terminateAbility(caseName)
+      try {
+        windowClass.setWindowContainerColor("#0099FF","#00000000");
+        console.log(caseName + 'success. ');
+        expect().assertFail()
+        done();
+      } catch (err) {
+        console.error(caseName + 'Failed. Cause: ' + JSON.stringify(err));
+        expect(err.code).assertEqual(1300002);
+        done();
+      }
+    });
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_CONTAINER_COLOR_WITHOUT_LOADCONTENT
+     * @tc.name      : testSetWindowContainerColorwithoutLoadContent
+     * @tc.desc      : 验证主窗未loadcontent调用setwindowcontainercolor接口抛1300002错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('testSetWindowContainerColorwithoutLoadContent', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testSetWindowContainerColorwithoutLoadContent ';
+      console.log(caseName + 'begin');
+      let windowStageStart = await startAbility4(caseName, context);
+      await sleep(200)
+      let windowClass = windowStageStart.getMainWindowSync();
+      await terminateAbility4(caseName)
+      try {
+        windowClass.setWindowContainerColor("#0099FF","#00000000");
+        console.log(caseName + 'success. ');
+        expect().assertFail()
+        done();
+      } catch (err) {
+        console.error(caseName + 'Failed. Cause: ' + JSON.stringify(err));
+        expect(err.code).assertEqual(1300002);
+        done();
       }
     });
 
