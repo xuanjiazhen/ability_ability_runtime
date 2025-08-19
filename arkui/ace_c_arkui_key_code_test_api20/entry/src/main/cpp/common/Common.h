@@ -26,7 +26,6 @@
 #include <string>
 #include <cstdint>
 #include <js_native_api_types.h>
-#include <window_manager/oh_window.h>
 #include <multimodalinput/oh_input_manager.h>
 #include <random>
 #include <list>
@@ -61,6 +60,9 @@
 #define PARAM_18 18
 #define PARAM_19 19
 #define PARAM_20 20
+#define PARAM_21 21
+#define PARAM_30 30
+#define PARAM_33 33
 #define PARAM_80 80
 #define PARAM_50_POINT_5 50.5
 #define PARAM_80_POINT_5 80.5
@@ -68,9 +70,15 @@
 #define PARAM_90 90
 #define PARAM_96 96
 #define PARAM_100 100
+#define PARAM_101 101
 #define PARAM_200 200
 #define PARAM_255 255
+#define PARAM_501 501
+#define PARAM_1000 1000
+#define PARAM_1001 1001
+#define PARAM_3600 3600
 #define PARAM_10000 10000
+#define PARAM_4294967296 4294967296
 #define PARAM_NEGATIVE_1 (-1)
 #define PARAM_NEGATIVE_2 (-2)
 #define PARAM_NEGATIVE_9 (-9)

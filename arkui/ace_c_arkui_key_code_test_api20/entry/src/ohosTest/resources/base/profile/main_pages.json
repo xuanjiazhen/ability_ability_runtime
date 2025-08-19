@@ -9,7 +9,6 @@
     "MainAbility/pages/NativeXComponent/NativeXComponent",
     "MainAbility/pages/NativeXComponent/TouchNativeXComponent",
     "MainAbility/pages/NativeXComponent/MouseNativeXComponent",
-    "MainAbility/pages/NativeXComponent/NodeAttributeNativeXComponent",
     "MainAbility/pages/ArkUIKeyCodeTest/ArkUIKeyCodeTest1",
     "MainAbility/pages/ArkUIKeyCodeTest/ArkUIKeyCodeTest2",
     "MainAbility/pages/ArkUIKeyCodeTest/ArkUIKeyCodeTest3",

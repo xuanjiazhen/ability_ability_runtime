@@ -20,7 +20,7 @@ napi_value CheckNodeTextHalfLeading(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t flag = mt() % 2; // 生成随机参数
+    int32_t flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT);
@@ -54,7 +54,7 @@ napi_value CheckNodeTextOptimizeTrailingSpace(napi_env env, napi_callback_info i
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t flag = mt() % 2; // 生成随机参数
+    int32_t flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT);
@@ -75,17 +75,17 @@ napi_value CheckNodeTextLinearGradient(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float angle = mt() % 3600 / 10; // 生成随机参数
-    ArkUI_LinearGradientDirection direction = ArkUI_LinearGradientDirection(mt() % 10);
-    int32_t flag = mt() % 2; // 生成随机参数
-    int size = mt() % 4; // 生成随机参数
-    uint32_t color1 = mt() % 4294967296; // 生成随机参数
-    uint32_t color2 = mt() % 4294967296; // 生成随机参数
-    uint32_t color3 = mt() % 4294967296; // 生成随机参数
+    float angle = mt() % PARAM_3600 / 10; // 生成随机参数
+    ArkUI_LinearGradientDirection direction = ArkUI_LinearGradientDirection(mt() % PARAM_10);
+    int32_t flag = mt() % PARAM_2; // 生成随机参数
+    int size = mt() % PARAM_4; // 生成随机参数
+    uint32_t color1 = mt() % PARAM_4294967296; // 生成随机参数
+    uint32_t color2 = mt() % PARAM_4294967296; // 生成随机参数
+    uint32_t color3 = mt() % PARAM_4294967296; // 生成随机参数
     uint32_t colors[] = { color1, color2, color3 };
-    float stop1 = mt() % 3 / 10; // 生成随机参数
-    float stop2 = mt() % 4 / 10 + stop1; // 生成随机参数
-    float stop3 = mt() % 4 / 10 + stop2; // 生成随机参数
+    float stop1 = mt() % PARAM_3 / 10; // 生成随机参数
+    float stop2 = mt() % PARAM_4 / 10 + stop1; // 生成随机参数
+    float stop3 = mt() % PARAM_4 / 10 + stop2; // 生成随机参数
     float stops[] = { stop1, stop2, stop3 };
     ArkUI_ColorStop object = { .colors = colors, .stops = stops, .size = size };
     napi_value retValue = 0;
@@ -111,18 +111,18 @@ napi_value CheckNodeTextRadialGradient(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float x = mt() % 1000 / 10; // 生成随机参数
-    float y = mt() % 1000 / 10; // 生成随机参数
-    float radius = mt() % 3600 / 10; // 生成随机参数
-    int32_t flag = mt() % 2; // 生成随机参数
-    int size = mt() % 4; // 生成随机参数
-    uint32_t color1 = mt() % 4294967296; // 生成随机参数
-    uint32_t color2 = mt() % 4294967296; // 生成随机参数
-    uint32_t color3 = mt() % 4294967296; // 生成随机参数
+    float x = mt() % PARAM_1000 / 10; // 生成随机参数
+    float y = mt() % PARAM_1000 / 10; // 生成随机参数
+    float radius = mt() % PARAM_3600 / 10; // 生成随机参数
+    int32_t flag = mt() % PARAM_2; // 生成随机参数
+    int size = mt() % PARAM_4; // 生成随机参数
+    uint32_t color1 = mt() % PARAM_4294967296; // 生成随机参数
+    uint32_t color2 = mt() % PARAM_4294967296; // 生成随机参数
+    uint32_t color3 = mt() % PARAM_4294967296; // 生成随机参数
     uint32_t colors[] = { color1, color2, color3 };
-    float stop1 = mt() % 3 / 10; // 生成随机参数
-    float stop2 = mt() % 4 / 10 + stop1; // 生成随机参数
-    float stop3 = mt() % 4 / 10 + stop2; // 生成随机参数
+    float stop1 = mt() % PARAM_3 / 10; // 生成随机参数
+    float stop2 = mt() % PARAM_4 / 10 + stop1; // 生成随机参数
+    float stop3 = mt() % PARAM_4 / 10 + stop2; // 生成随机参数
     float stops[] = { stop1, stop2, stop3 };
     ArkUI_ColorStop object = { .colors = colors, .stops = stops, .size = size };
     napi_value retValue = 0;
@@ -148,7 +148,7 @@ napi_value CheckNodeTextVerticalAlign(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_TextVerticalAlignment TextVerticalAlignment = ArkUI_TextVerticalAlignment(mt() % 4); // 生成随机参数
+    ArkUI_TextVerticalAlignment TextVerticalAlignment = ArkUI_TextVerticalAlignment(mt() % PARAM_4); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT);
@@ -169,7 +169,7 @@ napi_value CheckNodeTextInputHalfLeading(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t flag = mt() % 2; // 生成随机参数
+    int32_t flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_INPUT);
@@ -190,7 +190,7 @@ napi_value CheckNodeTextInputKeyboardAppearance(napi_env env, napi_callback_info
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_KeyboardAppearance KeyboardAppearance = ArkUI_KeyboardAppearance(mt() % 4); // 生成随机参数
+    ArkUI_KeyboardAppearance KeyboardAppearance = ArkUI_KeyboardAppearance(mt() % PARAM_4); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_INPUT);
@@ -211,7 +211,7 @@ napi_value CheckNodeTextInputEnableFillAnimation(napi_env env, napi_callback_inf
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t flag = mt() % 2; // 生成随机参数
+    int32_t flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_INPUT);
@@ -232,7 +232,7 @@ napi_value CheckNodeTextInputLineHeight(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t lineHeight = mt() % 30; // 生成随机参数
+    int32_t lineHeight = mt() % PARAM_30; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_INPUT);
@@ -271,7 +271,7 @@ napi_value CheckNodeTextAreaContentType(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_TextInputContentType TextInputContentType = ArkUI_TextInputContentType(mt() % 33); // 生成随机参数
+    ArkUI_TextInputContentType TextInputContentType = ArkUI_TextInputContentType(mt() % PARAM_33); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
@@ -292,7 +292,7 @@ napi_value CheckNodeTextAreaHalfLeading(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t flag = mt() % 2; // 生成随机参数
+    int32_t flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
@@ -313,7 +313,7 @@ napi_value CheckNodeTextAreaKeyboardAppearance(napi_env env, napi_callback_info 
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_KeyboardAppearance KeyboardAppearance = ArkUI_KeyboardAppearance(mt() % 4); // 生成随机参数
+    ArkUI_KeyboardAppearance KeyboardAppearance = ArkUI_KeyboardAppearance(mt() % PARAM_4); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
@@ -348,7 +348,7 @@ napi_value CheckNodeTextAreaLineSpacing(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t lineSpacing = mt() % 10; // 生成随机参数
+    int32_t lineSpacing = mt() % PARAM_10; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
@@ -396,7 +396,7 @@ napi_value CheckNodeTextAreaLineHeight(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t lineHeight = mt() % 30; // 生成随机参数
+    int32_t lineHeight = mt() % PARAM_30; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
@@ -417,12 +417,12 @@ napi_value CheckNodeTextPickSelectedBackgroundStyle(napi_env env, napi_callback_
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t flag = mt() % 2;
-    uint32_t color = mt() % 4294967296; // 生成随机参数
-    float radius1 = mt() % 3600 / 10; // 生成随机参数
-    float radius2 = mt() % 3600 / 10; // 生成随机参数
-    float radius3 = mt() % 3600 / 10; // 生成随机参数
-    float radius4 = mt() % 3600 / 10; // 生成随机参数
+    int32_t flag = mt() % PARAM_2;
+    uint32_t color = mt() % PARAM_4294967296; // 生成随机参数
+    float radius1 = mt() % PARAM_3600 / 10; // 生成随机参数
+    float radius2 = mt() % PARAM_3600 / 10; // 生成随机参数
+    float radius3 = mt() % PARAM_3600 / 10; // 生成随机参数
+    float radius4 = mt() % PARAM_3600 / 10; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_PICKER);
@@ -462,11 +462,11 @@ napi_value CheckNodeBorderWidthPercent(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t flag = mt() % 2; // 生成随机参数
-    float percent1 = mt() % 101 / 100.0; // 生成随机参数
-    float percent2 = mt() % 101 / 100.0; // 生成随机参数
-    float percent3 = mt() % 101 / 100.0; // 生成随机参数
-    float percent4 = mt() % 101 / 100.0; // 生成随机参数
+    int32_t flag = mt() % PARAM_2; // 生成随机参数
+    float percent1 = mt() % PARAM_101 / 100.0; // 生成随机参数
+    float percent2 = mt() % PARAM_101 / 100.0; // 生成随机参数
+    float percent3 = mt() % PARAM_101 / 100.0; // 生成随机参数
+    float percent4 = mt() % PARAM_101 / 100.0; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_ROW);
@@ -513,9 +513,9 @@ napi_value CheckNodeFocusBox(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float distance = (mt() % 3 - 1); // 生成随机参数
-    float width = mt() % 101 / 100.0; // 生成随机参数
-    uint32_t color = mt() % 4294967296; // 生成随机参数
+    float distance = (mt() % PARAM_3 - 1); // 生成随机参数
+    float width = mt() % PARAM_101 / 100.0; // 生成随机参数
+    uint32_t color = mt() % PARAM_4294967296; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_ROW);
@@ -556,7 +556,7 @@ napi_value CheckNodeClickDistance(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float distance = (mt() % 21 - 10) / 10; // 生成随机参数
+    float distance = (mt() % PARAM_21 - 10) / 10; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_ROW);
@@ -587,7 +587,7 @@ napi_value CheckNodeTabStop(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t flag = mt() % 2; // 生成随机参数
+    int32_t flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_ROW);
@@ -612,10 +612,10 @@ napi_value CheckNodeBackgroundImageResizableWithSlice(napi_env env, napi_callbac
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float size1 = mt() % 101 / 2; // 生成随机参数
-    float size2 = mt() % 101 / 2; // 生成随机参数
-    float size3 = mt() % 101 / 2; // 生成随机参数
-    float size4 = mt() % 101 / 2; // 生成随机参数
+    float size1 = mt() % PARAM_101 / 2; // 生成随机参数
+    float size2 = mt() % PARAM_101 / 2; // 生成随机参数
+    float size3 = mt() % PARAM_101 / 2; // 生成随机参数
+    float size4 = mt() % PARAM_101 / 2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_ROW);
@@ -645,7 +645,7 @@ napi_value CheckNodeNextFocus(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_FocusMove focusMove = ArkUI_FocusMove(mt() % 6); // 生成随机参数
+    ArkUI_FocusMove focusMove = ArkUI_FocusMove(mt() % PARAM_6); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_ROW);
@@ -676,9 +676,9 @@ napi_value CheckNodeVisibleAreaApproximateChangeRatio(napi_env env, napi_callbac
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float value[] = { float(mt() % 11 / 10) }; // 生成随机参数
+    float value[] = { float(mt() % PARAM_11 / 10) }; // 生成随机参数
     int32_t size = 1;
-    int32_t interval = mt() % 501 + 500; // 生成随机参数
+    int32_t interval = mt() % PARAM_501 + 500; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_ROW);
@@ -718,11 +718,11 @@ napi_value CheckNodeTranslateWidthPercent(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float size1 = mt() % 11 / 10; // 生成随机参数
-    float size2 = mt() % 11 / 10; // 生成随机参数
-    float size3 = mt() % 11 / 10; // 生成随机参数
-    bool size4 = mt() % 2; // 生成随机参数
-    bool size5 = mt() % 2; // 生成随机参数
+    float size1 = mt() % PARAM_11 / 10; // 生成随机参数
+    float size2 = mt() % PARAM_11 / 10; // 生成随机参数
+    float size3 = mt() % PARAM_11 / 10; // 生成随机参数
+    bool size4 = mt() % PARAM_2; // 生成随机参数
+    bool size5 = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_ROW);
@@ -759,10 +759,10 @@ napi_value CheckNodeRotateAngle(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float setX = mt() % 101 / 10.0; // 生成随机参数
-    float setY = mt() % 101 / 10.0; // 生成随机参数
-    float setZ = mt() % 101 / 10.0; // 生成随机参数
-    float setDistance = mt() % 101 / 10.0; // 生成随机参数
+    float setX = mt() % PARAM_101 / 10.0; // 生成随机参数
+    float setY = mt() % PARAM_101 / 10.0; // 生成随机参数
+    float setZ = mt() % PARAM_101 / 10.0; // 生成随机参数
+    float setDistance = mt() % PARAM_101 / 10.0; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_ROW);
@@ -798,7 +798,7 @@ napi_value CheckNodeImmutableFontWeight(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_FontWeight fontWeight = ArkUI_FontWeight(mt() % 15); // 生成随机参数
+    ArkUI_FontWeight fontWeight = ArkUI_FontWeight(mt() % PARAM_15); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_TEXT);
@@ -823,7 +823,7 @@ napi_value CheckNodeImageSpanBaselineOffset(napi_env env, napi_callback_info inf
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float offset = mt() % 1001 / 100.0; // 生成随机参数
+    float offset = mt() % PARAM_1001 / 100.0; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_IMAGE_SPAN);
@@ -849,7 +849,7 @@ napi_value CheckNodeImageSyncLoad(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    bool flag = mt() % 2; // 生成随机参数
+    bool flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC ImageComponent = XC(ARKUI_NODE_IMAGE);
@@ -872,7 +872,7 @@ napi_value CheckNodeImageSyncLoad(napi_env env, napi_callback_info info)
     } else {
         result = 0;
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "setResult: %{public}d",
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "CheckNodeImageSyncLoad: %{public}d",
                  setResult);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -882,7 +882,7 @@ napi_value CheckNodeButtonMinFontScale(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float scale = mt() % 11 / 10 + 1; // 生成随机参数
+    float scale = (mt() % PARAM_11 / 10) + 1; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_BUTTON);
@@ -900,8 +900,12 @@ napi_value CheckNodeButtonMinFontScale(napi_env env, napi_callback_info info)
     } else {
         result = PARAM_NEGATIVE_9;
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "setResult: %{public}d",
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "CheckNodeButtonMinFontScale: %{public}d",
                  setResult);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "condition: %{public}f",
+                 itemptr->value[0].f32);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "condition: %{public}f",
+                 scale);
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -910,7 +914,7 @@ napi_value CheckNodeButtonMaxFontScale(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float scale = mt() % 1 / 10 + 1; // 生成随机参数
+    float scale = (mt() % PARAM_11 / 10) + 1; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_BUTTON);
@@ -928,73 +932,51 @@ napi_value CheckNodeButtonMaxFontScale(napi_env env, napi_callback_info info)
     } else {
         result = PARAM_NEGATIVE_9;
     }
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "CheckNodeButtonMaxFontScale: %{public}d",
+                 setResult);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "condition: %{public}f",
+                 itemptr->value[0].f32);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "condition: %{public}f",
+                 scale);
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
 
 napi_value CheckNodeXComponentSurfaceSize(napi_env env, napi_callback_info info)
 {
-    std::random_device randomNumber; // 随机数种子生成器
-    std::mt19937 mt(randomNumber()); // 随机数生成器
-    uint32_t width = mt() % 100; // 生成随机参数
-    uint32_t height = mt() % 100; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_XCOMPONENT);
     RowComponent.SetXComponentType(ARKUI_XCOMPONENT_TYPE_SURFACE);
     RowComponent.SetXComponentId("test");
-    ArkUI_NumberValue value[] = { { .u32 = width }, { .u32 = height } };
-    ArkUI_AttributeItem item = { .value = value, .size = PARAM_2 };
-    int32_t setResult = RowComponent.setAttribute(NODE_XCOMPONENT_SURFACE_SIZE, &item);
     const ArkUI_AttributeItem* itemptr = RowComponent.getAttribute(NODE_XCOMPONENT_SURFACE_SIZE);
-    bool condition = itemptr->value[0].u32 == width && itemptr->value[1].u32 == height;
-    if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    bool condition = itemptr->value[0].u32 == 0 && itemptr->value[1].u32 == 0;
+    if (condition) {
         result = 1;
-    } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
-        result = 0;
     } else {
-        result = PARAM_NEGATIVE_9;
+        result = 0;
     }
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_XCOMPONENT_SURFACE_SIZEsetResult: %{public}d",
-                 setResult);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_XCOMPONENT_SURFACE_SIZEsetResult: %{public}d",
                  itemptr->value[0].u32);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_XCOMPONENT_SURFACE_SIZEsetResult: %{public}d",
-                 width);
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
 
 napi_value CheckNodeXComponentSurfaceRect(napi_env env, napi_callback_info info)
 {
-    std::random_device randomNumber; // 随机数种子生成器
-    std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t setX = mt() % 100; // 生成随机参数
-    int32_t setY = mt() % 100; // 生成随机参数
-    int32_t width = mt() % 100; // 生成随机参数
-    int32_t height = mt() % 100; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_XCOMPONENT);
-    ArkUI_NumberValue value[] = { { .i32 = setX }, { .i32 = setY }, { .i32 = width }, { .i32 = height } };
-    ArkUI_AttributeItem item = { .value = value, .size = PARAM_4 };
-    int32_t setResult = RowComponent.setAttribute(NODE_XCOMPONENT_SURFACE_RECT, &item);
     const ArkUI_AttributeItem* itemptr = RowComponent.getAttribute(NODE_XCOMPONENT_SURFACE_RECT);
-    bool condition = itemptr->value[0].i32 == setX && itemptr->value[1].i32 == setY &&
-                     itemptr->value[2].i32 == width && itemptr->value[3].i32 == height;
-    if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    bool condition = itemptr->value[0].i32 == 0 && itemptr->value[1].i32 == 0 &&
+                     itemptr->value[2].i32 == 0 && itemptr->value[3].i32 == 0;
+    if (condition) {
         result = 1;
-    } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
-        result = 0;
     } else {
-        result = PARAM_NEGATIVE_9;
+        result = 0;
     }
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_XCOMPONENT_SURFACE_RECTsetResult: %{public}d",
-                 setResult);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_XCOMPONENT_SURFACE_RECTsetResult: %{public}d",
                  itemptr->value[0].i32);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_XCOMPONENT_SURFACE_RECTsetResult: %{public}d",
-                 setX);
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -1003,7 +985,7 @@ napi_value CheckNodeDatePickerCanLoop(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    bool flag = mt() % 2; // 生成随机参数
+    bool flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_DATE_PICKER);
@@ -1091,17 +1073,7 @@ napi_value CheckNodeSliderPrefix(napi_env env, napi_callback_info info)
     TextComponent.SetBackgroundColor(0xff23dcff);
     ArkUI_AttributeItem item = { .object = TextComponent.GetComponent() };
     int32_t setResult = SliderComponent.setAttribute(NODE_SLIDER_PREFIX, &item);
-    const ArkUI_AttributeItem* itemptr = SliderComponent.getAttribute(NODE_SLIDER_PREFIX);
-    if (itemptr != nullptr) {
-        bool condition = itemptr->object == TextComponent.GetComponent();
-        if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
-            result = 1;
-        } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
-            result = 0;
-        } else {
-            result = PARAM_NEGATIVE_9;
-        }
-    } else if (setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    if (setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = 0;
@@ -1123,17 +1095,7 @@ napi_value CheckNodeSliderSuffix(napi_env env, napi_callback_info info)
     TextComponent.SetBackgroundColor(0xff23dcff);
     ArkUI_AttributeItem item = { .object = TextComponent.GetComponent() };
     int32_t setResult = SliderComponent.setAttribute(NODE_SLIDER_SUFFIX, &item);
-    const ArkUI_AttributeItem* itemptr = SliderComponent.getAttribute(NODE_SLIDER_SUFFIX);
-    if (itemptr != nullptr) {
-        bool condition = itemptr->object == TextComponent.GetComponent();
-        if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
-            result = 1;
-        } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
-            result = 0;
-        } else {
-            result = PARAM_NEGATIVE_9;
-        }
-    } else if (setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    if (setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = 0;
@@ -1148,7 +1110,7 @@ napi_value CheckNodeCheckboxGroupSelectedColor(napi_env env, napi_callback_info 
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    uint32_t color = mt() % 4294967296; // 生成随机参数
+    uint32_t color = mt() % PARAM_4294967296; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC CheckboxGroupComponent = XC(ARKUI_NODE_CHECKBOX_GROUP);
@@ -1175,7 +1137,7 @@ napi_value CheckNodeCheckboxGroupUnselectedColor(napi_env env, napi_callback_inf
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    uint32_t color = mt() % 4294967296; // 生成随机参数
+    uint32_t color = mt() % PARAM_4294967296; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC CheckboxGroupComponent = XC(ARKUI_NODE_CHECKBOX_GROUP);
@@ -1202,9 +1164,9 @@ napi_value CheckNodeCheckboxGroupMark(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    uint32_t color = mt() % 4294967296; // 生成随机参数
-    float size = mt() % 101 / 10.0; // 生成随机参数
-    float weight = mt() % 101 / 10.0; // 生成随机参数
+    uint32_t color = mt() % PARAM_4294967296; // 生成随机参数
+    float size = mt() % PARAM_101 / 10.0; // 生成随机参数
+    float weight = mt() % PARAM_101 / 10.0; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC CheckboxGroupComponent = XC(ARKUI_NODE_CHECKBOX_GROUP);
@@ -1234,7 +1196,7 @@ napi_value CheckNodeCheckboxGroupShape(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_CheckboxShape shape = ArkUI_CheckboxShape(mt() % 2); // 生成随机参数
+    ArkUI_CheckboxShape shape = ArkUI_CheckboxShape(mt() % PARAM_2); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC CheckboxGroupComponent = XC(ARKUI_NODE_CHECKBOX_GROUP);
@@ -1261,7 +1223,7 @@ napi_value CheckNodeScrollFling(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float velocity = mt() % 101 / 10.0; // 生成随机参数
+    float velocity = mt() % PARAM_101 / 10.0; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC ScrollComponent = XC(ARKUI_NODE_SCROLL);
@@ -1283,8 +1245,8 @@ napi_value CheckNodeScrollFadingEdge(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    bool flag = mt() % 2; // 生成随机参数
-    float size = mt() % 101 / 10.0; // 生成随机参数
+    bool flag = mt() % PARAM_2; // 生成随机参数
+    float size = mt() % PARAM_101 / 10.0; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC ScrollComponent = XC(ARKUI_NODE_SCROLL);
@@ -1316,7 +1278,7 @@ napi_value CheckNodeScrollFlingSpeedLimit(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float velocity = mt() % 101 / 10.0; // 生成随机参数
+    float velocity = mt() % PARAM_101 / 10.0; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC ScrollComponent = XC(ARKUI_NODE_SCROLL);
@@ -1344,7 +1306,7 @@ napi_value CheckNodeScrollClipContent(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_ContentClipMode contentClipMode = ArkUI_ContentClipMode(mt() % 3); // 生成随机参数
+    ArkUI_ContentClipMode contentClipMode = ArkUI_ContentClipMode(mt() % PARAM_3); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC ScrollComponent = XC(ARKUI_NODE_SCROLL);
@@ -1372,8 +1334,8 @@ napi_value CheckNodeScrollBarMargin(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float marginStart = mt() % 101 / 10.0; // 生成随机参数
-    float marginEnd = mt() % 101 / 10.0; // 生成随机参数
+    float marginStart = mt() % PARAM_101 / 10.0; // 生成随机参数
+    float marginEnd = mt() % PARAM_101 / 10.0; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC ScrollComponent = XC(ARKUI_NODE_SCROLL);
@@ -1402,7 +1364,7 @@ napi_value CheckNodeListStackFromEnd(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    bool flag = mt() % 2; // 生成随机参数
+    bool flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC ListComponent = XC(ARKUI_NODE_LIST);
@@ -1429,7 +1391,7 @@ napi_value CheckNodeListFocusWrapMode(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_FocusWrapMode focusWrapMode = ArkUI_FocusWrapMode(mt() % 2); // 生成随机参数
+    ArkUI_FocusWrapMode focusWrapMode = ArkUI_FocusWrapMode(mt() % PARAM_2); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC ListComponent = XC(ARKUI_NODE_LIST);
@@ -1456,7 +1418,7 @@ napi_value CheckNodeListSyncLoad(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    bool flag = mt() % 2; // 生成随机参数
+    bool flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC ListComponent = XC(ARKUI_NODE_LIST);
@@ -1473,7 +1435,7 @@ napi_value CheckNodeListSyncLoad(napi_env env, napi_callback_info info)
     } else {
         result = PARAM_NEGATIVE_9;
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_TIME_PICKER_ENDsetResult: %{public}d",
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "CheckNodeListSyncLoad: %{public}d",
                  setResult);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -1483,7 +1445,7 @@ napi_value CheckNodeSwiperIndicatorInteractive(napi_env env, napi_callback_info 
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    bool flag = mt() % 2; // 生成随机参数
+    bool flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC SwiperComponent = XC(ARKUI_NODE_SWIPER);
@@ -1510,7 +1472,7 @@ napi_value CheckNodeSwiperPageFlipMode(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_PageFlipMode pageFlipMode = ArkUI_PageFlipMode(mt() % 2); // 生成随机参数
+    ArkUI_PageFlipMode pageFlipMode = ArkUI_PageFlipMode(mt() % PARAM_2); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC SwiperComponent = XC(ARKUI_NODE_SWIPER);
@@ -1537,8 +1499,8 @@ napi_value CheckNodeSwiperAutoFill(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float visionDistance = mt() % 101 / 0.5;
-    bool flag = mt() % 2; // 生成随机参数
+    float visionDistance = mt() % PARAM_101 / 0.5;
+    bool flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC SwiperComponent = XC(ARKUI_NODE_SWIPER);
@@ -1567,7 +1529,7 @@ napi_value CheckNodeSwiperMaintainVisibleContentPosition(napi_env env, napi_call
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    bool flag = mt() % 2; // 生成随机参数
+    bool flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC SwiperComponent = XC(ARKUI_NODE_SWIPER);
@@ -1594,7 +1556,7 @@ napi_value CheckNodeRefreshMaxPullDownDistance(napi_env env, napi_callback_info 
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    float refreshDistance = mt() % 101 / 0.5;
+    float refreshDistance = mt() % PARAM_101 / 0.5;
     napi_value retValue = 0;
     int32_t result = 0;
     XC RefreshComponent = XC(ARKUI_NODE_REFRESH);
@@ -1622,7 +1584,7 @@ napi_value CheckNodeWaterFlowLayoutMode(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    ArkUI_WaterFlowLayoutMode waterFlowLayoutMode = ArkUI_WaterFlowLayoutMode(mt() % 2); // 生成随机参数
+    ArkUI_WaterFlowLayoutMode waterFlowLayoutMode = ArkUI_WaterFlowLayoutMode(mt() % PARAM_2); // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC WaterFlowComponent = XC(ARKUI_NODE_WATER_FLOW);
@@ -1649,7 +1611,7 @@ napi_value CheckNodeWaterFlowSyncLoad(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    bool flag = mt() % 2; // 生成随机参数
+    bool flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC WaterFlowComponent = XC(ARKUI_NODE_WATER_FLOW);
@@ -1657,16 +1619,22 @@ napi_value CheckNodeWaterFlowSyncLoad(napi_env env, napi_callback_info info)
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = WaterFlowComponent.setAttribute(NODE_WATER_FLOW_SYNC_LOAD, &item);
     const ArkUI_AttributeItem* itemptr = WaterFlowComponent.getAttribute(NODE_WATER_FLOW_SYNC_LOAD);
-    bool condition = itemptr->value[0].i32 == flag;
-    condition = condition && WaterFlowComponent.resetAttribute(NODE_WATER_FLOW_SYNC_LOAD) == ARKUI_ERROR_CODE_NO_ERROR;
-    if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    if (itemptr != nullptr) {
+        bool condition = itemptr->value[0].i32 == flag;
+        condition = condition && WaterFlowComponent.resetAttribute(NODE_WATER_FLOW_SYNC_LOAD) == ARKUI_ERROR_CODE_NO_ERROR;
+        if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+            result = 1;
+        } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
+            result = 0;
+        } else {
+            result = PARAM_NEGATIVE_9;
+        }
+    } else if (setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
-    } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
-        result = 0;
     } else {
-        result = PARAM_NEGATIVE_9;
+        result = 0;
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_TIME_PICKER_ENDsetResult: %{public}d",
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "CheckNodeWaterFlowSyncLoad: %{public}d",
                  setResult);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -1674,13 +1642,10 @@ napi_value CheckNodeWaterFlowSyncLoad(napi_env env, napi_callback_info info)
 
 napi_value CheckNodeRelativeContainerGuideLine(napi_env env, napi_callback_info info)
 {
-    std::random_device randomNumber; // 随机数种子生成器
-    std::mt19937 mt(randomNumber()); // 随机数生成器
-    size_t size = mt() % 10; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RelativeContainerComponent = XC(ARKUI_NODE_RELATIVE_CONTAINER);
-    ArkUI_GuidelineOption* option = OH_ArkUI_GuidelineOption_Create(size);
+    ArkUI_GuidelineOption* option = OH_ArkUI_GuidelineOption_Create(0);
     ArkUI_AttributeItem item = { .object = option };
     int32_t setResult = RelativeContainerComponent.setAttribute(NODE_RELATIVE_CONTAINER_GUIDE_LINE, &item);
     const ArkUI_AttributeItem* itemptr = RelativeContainerComponent.getAttribute(NODE_RELATIVE_CONTAINER_GUIDE_LINE);
@@ -1693,7 +1658,7 @@ napi_value CheckNodeRelativeContainerGuideLine(napi_env env, napi_callback_info 
     } else {
         result = PARAM_NEGATIVE_9;
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_TIME_PICKER_ENDsetResult: %{public}d",
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "CheckNodeRelativeContainerGuideLine: %{public}d",
                  setResult);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -1703,7 +1668,7 @@ napi_value CheckNodeRelativeContainerBarrier(napi_env env, napi_callback_info in
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    size_t size = mt() % 10; // 生成随机参数
+    size_t size = mt() % PARAM_10; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RelativeContainerComponent = XC(ARKUI_NODE_RELATIVE_CONTAINER);
@@ -1730,7 +1695,7 @@ napi_value CheckNodeGridSyncLoad(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    bool flag = mt() % 2; // 生成随机参数
+    bool flag = mt() % PARAM_2; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC GridComponent = XC(ARKUI_NODE_GRID);
@@ -1738,16 +1703,22 @@ napi_value CheckNodeGridSyncLoad(napi_env env, napi_callback_info info)
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = GridComponent.setAttribute(NODE_GRID_SYNC_LOAD, &item);
     const ArkUI_AttributeItem* itemptr = GridComponent.getAttribute(NODE_GRID_SYNC_LOAD);
-    bool condition = itemptr->value[0].i32 == flag;
-    condition = condition && GridComponent.resetAttribute(NODE_GRID_SYNC_LOAD) == ARKUI_ERROR_CODE_NO_ERROR;
-    if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    if (itemptr != nullptr) {
+        bool condition = itemptr->value[0].i32 == flag;
+        condition = condition && GridComponent.resetAttribute(NODE_GRID_SYNC_LOAD) == ARKUI_ERROR_CODE_NO_ERROR;
+        if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+            result = 1;
+        } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
+            result = 0;
+        } else {
+            result = PARAM_NEGATIVE_9;
+        }
+    } else if (setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
-    } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
-        result = 0;
     } else {
-        result = PARAM_NEGATIVE_9;
+        result = 0;
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_TIME_PICKER_ENDsetResult: %{public}d",
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "CheckNodeGridSyncLoad: %{public}d",
                  setResult);
     napi_create_int32(env, result, &retValue);
     return retValue;
