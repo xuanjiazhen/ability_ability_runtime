@@ -187,7 +187,7 @@ napi_value OH_Print_RegisterPrinterChangeListener1(napi_env env, napi_callback_i
 napi_value OH_Print_QueryPrinterList1(napi_env env, napi_callback_info info)
 {
     Print_StringList *printerIdList;
-    Print_ErrorCode errorCode = OH_Print_QueryPrinterList(printerIdList);
+    Print_ErrorCode errorCode = OH_Print_QueryPrinterList(nullptr);
     napi_value result = nullptr;
     napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PARAMETER ? 0 : -1, &result);
     return result;
