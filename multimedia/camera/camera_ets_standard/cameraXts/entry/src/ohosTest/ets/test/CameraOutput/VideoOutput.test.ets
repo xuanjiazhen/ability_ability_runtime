@@ -16,7 +16,17 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import { camera } from '@kit.CameraKit';
 import { common } from '@kit.AbilityKit';
-import { cameraErrorCode, closeFd, driveFn, getFd, getPermission, isEmpty, resourceName } from '../common';
+import {
+  cameraErrorCode,
+  closeFd,
+  COMMON_WAIT_DURATION,
+  driveFn,
+  getFd,
+  getPermission,
+  isEmpty,
+  resourceName,
+  sleep
+} from '../common';
 import { indexSurfaceId } from '../../testability/pages/Index';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { media } from '@kit.MediaKit';
@@ -196,8 +206,12 @@ export default function VideoOutputTest() {
       console.info(TAG, 'beforeEach case.');
     });
 
-    afterEach(() => {
+    afterEach(async () => {
       console.info(TAG, 'afterEach case.');
+      if (!isEmpty(mAVRecorder)) {
+        await mAVRecorder.release();
+      }
+      await sleep(COMMON_WAIT_DURATION);
     });
 
     afterAll(async () => {

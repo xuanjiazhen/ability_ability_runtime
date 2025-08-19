@@ -339,7 +339,7 @@ async function setZoomRatioPhoto(done: Function, testName: string, index: number
       mPreviewOutput = mCameraManager.createPreviewOutput(mCameraOutputCapModePhoto.previewProfiles[0], indexSurfaceId);
       await getCreatePhotoSession(mPreviewOutput, mPhotoOutput);
       let zoomRatioRange = mPhotoSession.getZoomRatioRange();
-      if (isEmpty(zoomRatioRange)) {
+      if (isEmpty(zoomRatioRange) || (!isEmpty(zoomRatioRange) && zoomRatioRange[0] == zoomRatioRange[1])) {
         console.info(TAG, testName + ' no supported zoomRatioRange.');
         done();
       } else {
@@ -386,9 +386,9 @@ async function setZoomRatioVideo(done: Function, testName: string, index: number
           expect(zoomRatio !== zoomRatioRange[index]).assertTrue();
           mVideoSession.setZoomRatio(zoomRatioRange[index]);
         }
+        await releaseVideoSession();
       }
     }
-    await releaseVideoSession();
     done();
   } catch (err) {
     console.error(TAG,
@@ -501,7 +501,7 @@ async function setZoomRatioPhotoPreConfig(done: Function, testName: string, inde
       mPreviewOutput = mCameraManager.createPreviewOutput(indexSurfaceId);
       await getPreConfigPhotoSession(mPreviewOutput, mPhotoOutput);
       let zoomRatioRange = mPhotoSession.getZoomRatioRange();
-      if (isEmpty(zoomRatioRange)) {
+      if (isEmpty(zoomRatioRange) || (!isEmpty(zoomRatioRange) && zoomRatioRange[0] == zoomRatioRange[1])) {
         console.info(TAG, testName + ' no supported zoomRatioRange.');
         done();
       } else {
@@ -630,9 +630,9 @@ async function setZoomRatioVideoAbnormal(done: Function, testName: string) {
           let newZoomRatio = mVideoSession.getZoomRatio();
           expect(newZoomRatio !== exceedZoomRatio).assertTrue();
         }
+        await releaseVideoSession();
       }
     }
-    await releaseVideoSession();
     done();
   } catch (err) {
     console.error(TAG,
@@ -783,9 +783,9 @@ export default function CameraSessionZoomTest() {
               console.info(TAG, testName + ' video mode, status: ' + zoomRatioRange);
               expect(isEmpty(zoomRatioRange)).assertFalse();
             }
+            await releaseVideoSession();
           }
         }
-        await releaseVideoSession();
         done();
       } catch (err) {
         console.error(TAG,

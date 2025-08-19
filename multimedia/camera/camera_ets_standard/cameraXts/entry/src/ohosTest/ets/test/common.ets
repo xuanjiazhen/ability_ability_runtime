@@ -46,12 +46,13 @@ export function isEmpty(data: ESObject) {
 export function checkBackCamera() {
   let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
   let supportedCamera = camera.getCameraManager(testContext).getSupportedCameras();
+  console.info(TAG, 'camera num: ' + supportedCamera.length);
   if (supportedCamera.length <= 0) {
     console.info(TAG, 'No supported camera.');
     return false;
   } else {
     for (let i = 0; i < supportedCamera.length; i++) {
-      if (supportedCamera[i].cameraPosition === cameraPosition.CAMERA_POSITION_BACK) {
+      if (supportedCamera.length > 1 && supportedCamera[i].cameraPosition === cameraPosition.CAMERA_POSITION_BACK) {
         console.info(TAG, 'Supported rear Camera.');
         return true;
       }

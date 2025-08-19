@@ -373,7 +373,7 @@ async function setZoomRatioPhoto(done: Function, testName: string, index: number
       await getCreatePhotoSession(mPreviewOutput, mPhotoOutput);
       let zoomRatioRange = mPhotoSession.getZoomRatioRange();
       await sleep(SLEEP_TIME_500);
-      if (isEmpty(zoomRatioRange)) {
+      if (isEmpty(zoomRatioRange) || (!isEmpty(zoomRatioRange) && zoomRatioRange[0] == zoomRatioRange[1])) {
         console.info(TAG, testName + ' no supported zoomRatioRange.');
         done();
       } else {

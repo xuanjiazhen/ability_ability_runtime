@@ -43,12 +43,13 @@ function getSupportedCameraDeviceArray() {
   return true;
 }
 
-function createSessionOrAbnormal(done: Function, testName: string, sMode: camera.SceneMode | null | undefined) {
+async function createSessionOrAbnormal(done: Function, testName: string, sMode: camera.SceneMode | null | undefined) {
   console.info(TAG, testName + ' begin.');
   try {
     let session = mCameraManager.createSession(sMode);
     expect(isEmpty(session)).assertFalse();
     console.info(TAG, testName + ' pass.');
+    await session.release();
     done();
   } catch (error) {
     console.error(TAG, testName + ' failed. err: ' + error.code + ', msg: ' + error.message);

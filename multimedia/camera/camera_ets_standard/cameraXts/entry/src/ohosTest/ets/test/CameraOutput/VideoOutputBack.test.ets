@@ -20,11 +20,13 @@ import {
   cameraErrorCode,
   checkBackCamera,
   closeFd,
+  COMMON_WAIT_DURATION,
   driveFn,
   getFd,
   getPermission,
   isEmpty,
-  resourceName
+  resourceName,
+  sleep
 } from '../common';
 import { indexSurfaceId } from '../../testability/pages/Index';
 import { BusinessError } from '@kit.BasicServicesKit';
@@ -217,8 +219,12 @@ export default function VideoOutputBackTest() {
       console.info(TAG, 'beforeEach case.');
     });
 
-    afterEach(() => {
+    afterEach(async () => {
       console.info(TAG, 'afterEach case.');
+      if (!isEmpty(mAVRecorder)) {
+        await mAVRecorder.release();
+      }
+      await sleep(COMMON_WAIT_DURATION);
     });
 
     afterAll(async () => {
