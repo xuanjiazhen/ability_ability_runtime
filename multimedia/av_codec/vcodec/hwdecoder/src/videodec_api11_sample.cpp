@@ -31,6 +31,7 @@ namespace {
 constexpr int64_t NANOS_IN_SECOND = 1000000000L;
 constexpr int64_t MICRO_IN_SECOND = 1000000L;
 constexpr int64_t NANOS_IN_MICRO = 1000L;
+constexpr int32_t TWO = 2;
 constexpr int32_t THREE = 3;
 constexpr int32_t EIGHT = 8;
 constexpr int32_t TEN = 10;
@@ -1156,20 +1157,20 @@ void VDecAPI11Sample::CopyFrom10BitYuv(OH_AVBuffer *buffer, uint32_t index)
 {
     uint8_t *bufferAddr = OH_AVBuffer_GetAddr(buffer);
     int32_t size = OH_AVBuffer_GetCapacity(buffer);
-    uint32_t cropSize = (picWidth_ * 2 * picHeight_ * THREE) >> 1;
+    uint32_t cropSize = (picWidth_ * TWO * picHeight_ * THREE) >> 1;
     uint16_t *cropBuffer = new uint16_t[cropSize];
     uint16_t *copyPos = cropBuffer;
     if (size >= cropSize) {
         //copy y
         for (int32_t i = 0; i < picHeight_; i++) {
-            memcpy_s(copyPos, picWidth_ * 2, bufferAddr, picWidth_ * 2);
+            memcpy_s(copyPos, picWidth_ * TWO, bufferAddr, picWidth_ * TWO);
             bufferAddr += stride_;
             copyPos += picWidth_;
         }
         bufferAddr += (sliceHeight_ - picHeight_) * stride_;
         //copy uv
         for (int32_t i = 0; i < picHeight_ >> 1; i++) {
-            memcpy_s(copyPos, picWidth_ * 2, bufferAddr, picWidth_ * 2);
+            memcpy_s(copyPos, picWidth_ * TWO, bufferAddr, picWidth_ * TWO);
             bufferAddr += stride_;
             copyPos += picWidth_;
         }

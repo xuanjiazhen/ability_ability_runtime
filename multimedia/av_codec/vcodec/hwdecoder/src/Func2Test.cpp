@@ -783,7 +783,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_H266_BLANK_FRAME_0030, TestSize.Level0)
 
 /**
  * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0001
- * @tc.name      : config OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY 0, decoder h264, 8bit, buffer
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0001
  * @tc.desc      : function test
  */
 HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0001, TestSize.Level0)
@@ -805,12 +805,12 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0001, TestSize.Level0)
 
 /**
  * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0002
- * @tc.name      : config OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY 1, decoder h264, 8bit, buffer
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0002
  * @tc.desc      : function test
  */
 HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0002, TestSize.Level0)
 {
-    if (cap != nullptr ) {
+    if (cap != nullptr) {
         if (OH_AVCapability_IsFeatureSupported(cap, VIDEO_LOW_LATENCY)) {
             auto vDecSample = make_shared<VDecAPI11Sample>();
             vDecSample->INP_DIR = INP_DIR_IPB_264_8bit;
@@ -829,7 +829,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0002, TestSize.Level0)
 
 /**
  * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0003
- * @tc.name      : not config OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY, decoder h264, 8bit, buffer
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0003
  * @tc.desc      : function test
  */
 HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0003, TestSize.Level0)
@@ -849,7 +849,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0003, TestSize.Level0)
 
 /**
  * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0004
- * @tc.name      : config OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY 0, decoder h265, 8bit, buffer
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0004
  * @tc.desc      : function test
  */
 HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0004, TestSize.Level0)
@@ -871,7 +871,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0004, TestSize.Level0)
 
 /**
  * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0005
- * @tc.name      : config OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY 1, decoder h265, 8bit, buffer
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0005
  * @tc.desc      : function test
  */
 HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0005, TestSize.Level0)
@@ -895,7 +895,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0005, TestSize.Level0)
 
 /**
  * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0006
- * @tc.name      : not config OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY, decoder h265, 8bit, buffer
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0006
  * @tc.desc      : function test
  */
 HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0006, TestSize.Level0)
@@ -915,7 +915,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0006, TestSize.Level0)
 
 /**
  * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0007
- * @tc.name      : config OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY 0, decoder h265, 10bit, buffer
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0007
  * @tc.desc      : function test
  */
 HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0007, TestSize.Level0)
@@ -938,7 +938,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0007, TestSize.Level0)
 
 /**
  * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0008
- * @tc.name      : config OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY 1, decoder h265, 10bit, buffer
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0008
  * @tc.desc      : function test
  */
 HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0008, TestSize.Level0)
@@ -963,7 +963,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0008, TestSize.Level0)
 
 /**
  * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0009
- * @tc.name      : not config OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY, decoder h265, 10bit, buffer
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0009
  * @tc.desc      : function test
  */
 HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0009, TestSize.Level0)
