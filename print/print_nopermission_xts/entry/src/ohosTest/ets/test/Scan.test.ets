@@ -38,7 +38,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'init failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -58,7 +58,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'exit failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -78,7 +78,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'startScannerDiscovery failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -98,7 +98,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'openScanner failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -118,7 +118,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'closeScanner failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -138,7 +138,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'getScannerParameter failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -163,7 +163,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'setScannerParameter failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -183,7 +183,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'setScanAutoOption failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -203,7 +203,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'getScannerCurrentSetting failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -223,7 +223,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'startScan failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -243,7 +243,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'cancelScan failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -263,7 +263,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'getPictureScanProgress failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(err.code).assertEqual(201);
         done();
       });
     });
@@ -286,7 +286,7 @@ export default function scanTest() {
           done();
         }, 500);
       } catch (e) {
-        expect(e.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(e.code).assertEqual(201);
         done();
       }
     });
@@ -309,7 +309,7 @@ export default function scanTest() {
           done();
         }, 500);
       } catch (e) {
-        expect(e.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NO_PERMISSION);
+        expect(e.code).assertEqual(201);
         done();
       }
     });
