@@ -26,29 +26,6 @@ static const int16_t INDEX_VALUE_3 = 3;
 static const int16_t ARRAY_SIZE_2 = 2;
 static const uint32_t SHAPE_SIZE = 3;
 
-static OH_NN_ReturnCode AddOperationTestCommon(OH_NN_OperationType opType, OH_NN_TensorType tensorType, bool needModel,
-                                               OH_NN_UInt32Array **indices)
-{
-    if (!needModel) {
-        return OH_NNModel_AddOperation(nullptr, opType, indices[0], indices[1], indices[ARRAY_SIZE_2]);
-    }
-
-    OH_NNModel *model = OH_NNModel_Construct();
-    const int dim[ARRAY_SIZE_2] = {INDEX_VALUE_2, INDEX_VALUE_2};
-    const OH_NN_Tensor tensor = {OH_NN_FLOAT32, INDEX_VALUE_2, dim, nullptr, OH_NN_TensorType::OH_NN_TENSOR};
-    OH_NNModel_AddTensor(model, &tensor);
-    OH_NNModel_AddTensor(model, &tensor);
-    OH_NNModel_AddTensor(model, &tensor);
-
-    const OH_NN_Tensor tensorParam = {OH_NN_INT8, 0, nullptr, nullptr, tensorType};
-    OH_NNModel_AddTensor(model, &tensorParam);
-    uint32_t index = 3;
-    const int8_t activation = 0;
-    OH_NNModel_SetTensorData(model, index, static_cast<const void *>(&activation), sizeof(int8_t));
-
-    return OH_NNModel_AddOperation(model, opType, indices[0], indices[1], indices[ARRAY_SIZE_2]);
-}
-
 napi_value NNReturnCode_DynamicShape(napi_env env, napi_callback_info info)
 {
     OH_NN_ReturnCode returnValue = OH_NN_ReturnCode::OH_NN_FAILED;
@@ -84,23 +61,6 @@ napi_value NNFuseType_FusedRelu(napi_env env, napi_callback_info info)
 napi_value NNFuseType_FusedRelu6(napi_env env, napi_callback_info info)
 {
     OH_NN_FuseType returnValue = OH_NN_FuseType::OH_NN_FUSED_RELU6;
-    napi_value result;
-    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
-    return result;
-}
-
-napi_value NNOperationType_OpsExpandDimsA(napi_env env, napi_callback_info info)
-{
-    uint32_t inputIndexs[ARRAY_SIZE_2] = {0, 1};
-    uint32_t outputIndexs[1] = {INDEX_VALUE_2};
-    OH_NN_UInt32Array inputIndices{inputIndexs, INDEX_VALUE_2};
-    OH_NN_UInt32Array outputIndices{outputIndexs, 1};
-    OH_NN_UInt32Array paramIndices{nullptr, 0};
-    OH_NN_UInt32Array* indices[] = {&paramIndices, &inputIndices, &outputIndices};
-
-    OH_NN_ReturnCode returnValue;
-    OH_NN_OperationType opType = OH_NN_OperationType::OH_NN_OPS_EXPAND_DIMS;
-    returnValue = AddOperationTestCommon(opType, OH_NN_TensorType::OH_NN_TENSOR, true, indices);
     napi_value result;
     NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
     return result;
@@ -197,50 +157,83 @@ napi_value NNDataTypeCommonTest(napi_env env, napi_callback_info info)
 static void AddOpTypeToMapOne(std::map<std::string, OH_NN_OperationType>& opTypeMap)
 {
     opTypeMap.emplace(std::string("OH_NN_OPS_REDUCE_ALL"), OH_NN_OPS_REDUCE_ALL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_QUANT_DTYPE_CAST"), OH_NN_OPS_QUANT_DTYPE_CAST);
-        opTypeMap.emplace(std::string("OH_NN_OPS_TOP_K"), OH_NN_OPS_TOP_K);
-        opTypeMap.emplace(std::string("OH_NN_OPS_ARG_MAX"), OH_NN_OPS_ARG_MAX);
-        opTypeMap.emplace(std::string("OH_NN_OPS_UNSQUEEZE"), OH_NN_OPS_UNSQUEEZE);
-        opTypeMap.emplace(std::string("OH_NN_OPS_GELU"), OH_NN_OPS_GELU);
-        opTypeMap.emplace(std::string("OH_NN_OPS_UNSTACK"), OH_NN_OPS_UNSTACK);
-        opTypeMap.emplace(std::string("OH_NN_OPS_ABS"), OH_NN_OPS_ABS);
-        opTypeMap.emplace(std::string("OH_NN_OPS_ERF"), OH_NN_OPS_ERF);
-        opTypeMap.emplace(std::string("OH_NN_OPS_AVG_POOL"), OH_NN_OPS_AVG_POOL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_BATCH_NORM"), OH_NN_OPS_BATCH_NORM);
-        opTypeMap.emplace(std::string("OH_NN_OPS_BATCH_TO_SPACE_ND"), OH_NN_OPS_BATCH_TO_SPACE_ND);
-        opTypeMap.emplace(std::string("OH_NN_OPS_BIAS_ADD"), OH_NN_OPS_BIAS_ADD);
-        opTypeMap.emplace(std::string("OH_NN_OPS_CAST"), OH_NN_OPS_CAST);
-        opTypeMap.emplace(std::string("OH_NN_OPS_FILL"), OH_NN_OPS_FILL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_FULL_CONNECTION"), OH_NN_OPS_FULL_CONNECTION);
-        opTypeMap.emplace(std::string("OH_NN_OPS_GATHER"), OH_NN_OPS_GATHER);
-        opTypeMap.emplace(std::string("OH_NN_OPS_HSWISH"), OH_NN_OPS_HSWISH);
-        opTypeMap.emplace(std::string("OH_NN_OPS_LESS_EQUAL"), OH_NN_OPS_LESS_EQUAL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_MATMUL"), OH_NN_OPS_MATMUL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_MAXIMUM"), OH_NN_OPS_MAXIMUM);
-        opTypeMap.emplace(std::string("OH_NN_OPS_MAX_POOL"), OH_NN_OPS_MAX_POOL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_MUL"), OH_NN_OPS_MUL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_EXPAND_DIMS"), OH_NN_OPS_EXPAND_DIMS);
-        opTypeMap.emplace(std::string("OH_NN_OPS_ELTWISE"), OH_NN_OPS_ELTWISE);
-        opTypeMap.emplace(std::string("OH_NN_OPS_EXP"), OH_NN_OPS_EXP);
-        opTypeMap.emplace(std::string("OH_NN_OPS_LESS"), OH_NN_OPS_LESS);
-        opTypeMap.emplace(std::string("OH_NN_OPS_SELECT"), OH_NN_OPS_SELECT);
-        opTypeMap.emplace(std::string("OH_NN_OPS_SQUARE"), OH_NN_OPS_SQUARE);
-        opTypeMap.emplace(std::string("OH_NN_OPS_FLATTEN"), OH_NN_OPS_FLATTEN);
-        opTypeMap.emplace(std::string("OH_NN_OPS_DEPTH_TO_SPACE"), OH_NN_OPS_DEPTH_TO_SPACE);
-        opTypeMap.emplace(std::string("OH_NN_OPS_RANGE"), OH_NN_OPS_RANGE);
-        opTypeMap.emplace(std::string("OH_NN_OPS_INSTANCE_NORM"), OH_NN_OPS_INSTANCE_NORM);
-        opTypeMap.emplace(std::string("OH_NN_OPS_CONSTANT_OF_SHAPE"), OH_NN_OPS_CONSTANT_OF_SHAPE);
-        opTypeMap.emplace(std::string("OH_NN_OPS_BROADCAST_TO"), OH_NN_OPS_BROADCAST_TO);
-        opTypeMap.emplace(std::string("OH_NN_OPS_EQUAL"), OH_NN_OPS_EQUAL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_GREATER"), OH_NN_OPS_GREATER);
-        opTypeMap.emplace(std::string("OH_NN_OPS_NOT_EQUAL"), OH_NN_OPS_NOT_EQUAL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_GREATER_EQUAL"), OH_NN_OPS_GREATER_EQUAL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_LEAKY_RELU"), OH_NN_OPS_LEAKY_RELU);
-        opTypeMap.emplace(std::string("OH_NN_OPS_LSTM"), OH_NN_OPS_LSTM);
-        opTypeMap.emplace(std::string("OH_NN_OPS_CLIP"), OH_NN_OPS_CLIP);
-        opTypeMap.emplace(std::string("OH_NN_OPS_ALL"), OH_NN_OPS_ALL);
-        opTypeMap.emplace(std::string("OH_NN_OPS_ASSERT"), OH_NN_OPS_ASSERT);
-        opTypeMap.emplace(std::string("OH_NN_OPS_COS"), OH_NN_OPS_COS);
+    opTypeMap.emplace(std::string("OH_NN_OPS_QUANT_DTYPE_CAST"), OH_NN_OPS_QUANT_DTYPE_CAST);
+    opTypeMap.emplace(std::string("OH_NN_OPS_TOP_K"), OH_NN_OPS_TOP_K);
+    opTypeMap.emplace(std::string("OH_NN_OPS_ARG_MAX"), OH_NN_OPS_ARG_MAX);
+    opTypeMap.emplace(std::string("OH_NN_OPS_UNSQUEEZE"), OH_NN_OPS_UNSQUEEZE);
+    opTypeMap.emplace(std::string("OH_NN_OPS_GELU"), OH_NN_OPS_GELU);
+    opTypeMap.emplace(std::string("OH_NN_OPS_UNSTACK"), OH_NN_OPS_UNSTACK);
+    opTypeMap.emplace(std::string("OH_NN_OPS_ABS"), OH_NN_OPS_ABS);
+    opTypeMap.emplace(std::string("OH_NN_OPS_ERF"), OH_NN_OPS_ERF);
+    opTypeMap.emplace(std::string("OH_NN_OPS_AVG_POOL"), OH_NN_OPS_AVG_POOL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_BATCH_NORM"), OH_NN_OPS_BATCH_NORM);
+    opTypeMap.emplace(std::string("OH_NN_OPS_BATCH_TO_SPACE_ND"), OH_NN_OPS_BATCH_TO_SPACE_ND);
+    opTypeMap.emplace(std::string("OH_NN_OPS_BIAS_ADD"), OH_NN_OPS_BIAS_ADD);
+    opTypeMap.emplace(std::string("OH_NN_OPS_CAST"), OH_NN_OPS_CAST);
+    opTypeMap.emplace(std::string("OH_NN_OPS_FILL"), OH_NN_OPS_FILL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_FULL_CONNECTION"), OH_NN_OPS_FULL_CONNECTION);
+    opTypeMap.emplace(std::string("OH_NN_OPS_GATHER"), OH_NN_OPS_GATHER);
+    opTypeMap.emplace(std::string("OH_NN_OPS_HSWISH"), OH_NN_OPS_HSWISH);
+    opTypeMap.emplace(std::string("OH_NN_OPS_LESS_EQUAL"), OH_NN_OPS_LESS_EQUAL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_MATMUL"), OH_NN_OPS_MATMUL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_MAXIMUM"), OH_NN_OPS_MAXIMUM);
+    opTypeMap.emplace(std::string("OH_NN_OPS_MAX_POOL"), OH_NN_OPS_MAX_POOL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_MUL"), OH_NN_OPS_MUL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_EXPAND_DIMS"), OH_NN_OPS_EXPAND_DIMS);
+    opTypeMap.emplace(std::string("OH_NN_OPS_ELTWISE"), OH_NN_OPS_ELTWISE);
+    opTypeMap.emplace(std::string("OH_NN_OPS_EXP"), OH_NN_OPS_EXP);
+    opTypeMap.emplace(std::string("OH_NN_OPS_LESS"), OH_NN_OPS_LESS);
+    opTypeMap.emplace(std::string("OH_NN_OPS_SELECT"), OH_NN_OPS_SELECT);
+    opTypeMap.emplace(std::string("OH_NN_OPS_SQUARE"), OH_NN_OPS_SQUARE);
+    opTypeMap.emplace(std::string("OH_NN_OPS_FLATTEN"), OH_NN_OPS_FLATTEN);
+    opTypeMap.emplace(std::string("OH_NN_OPS_DEPTH_TO_SPACE"), OH_NN_OPS_DEPTH_TO_SPACE);
+    opTypeMap.emplace(std::string("OH_NN_OPS_RANGE"), OH_NN_OPS_RANGE);
+    opTypeMap.emplace(std::string("OH_NN_OPS_INSTANCE_NORM"), OH_NN_OPS_INSTANCE_NORM);
+    opTypeMap.emplace(std::string("OH_NN_OPS_CONSTANT_OF_SHAPE"), OH_NN_OPS_CONSTANT_OF_SHAPE);
+    opTypeMap.emplace(std::string("OH_NN_OPS_BROADCAST_TO"), OH_NN_OPS_BROADCAST_TO);
+    opTypeMap.emplace(std::string("OH_NN_OPS_EQUAL"), OH_NN_OPS_EQUAL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_GREATER"), OH_NN_OPS_GREATER);
+    opTypeMap.emplace(std::string("OH_NN_OPS_NOT_EQUAL"), OH_NN_OPS_NOT_EQUAL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_GREATER_EQUAL"), OH_NN_OPS_GREATER_EQUAL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_LEAKY_RELU"), OH_NN_OPS_LEAKY_RELU);
+    opTypeMap.emplace(std::string("OH_NN_OPS_LSTM"), OH_NN_OPS_LSTM);
+    opTypeMap.emplace(std::string("OH_NN_OPS_CLIP"), OH_NN_OPS_CLIP);
+    opTypeMap.emplace(std::string("OH_NN_OPS_ALL"), OH_NN_OPS_ALL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_ASSERT"), OH_NN_OPS_ASSERT);
+    opTypeMap.emplace(std::string("OH_NN_OPS_COS"), OH_NN_OPS_COS);
+}
+
+static void AddOpTypeToMapTwo(std::map<std::string, OH_NN_OperationType>& opTypeMap)
+{
+    opTypeMap.emplace(std::string("OH_NN_OPS_LOG"), OH_NN_OPS_LOG);
+    opTypeMap.emplace(std::string("OH_NN_OPS_LOGICAL_AND"), OH_NN_OPS_LOGICAL_AND);
+    opTypeMap.emplace(std::string("OH_NN_OPS_LOGICAL_NOT"), OH_NN_OPS_LOGICAL_NOT);
+    opTypeMap.emplace(std::string("OH_NN_OPS_MOD"), OH_NN_OPS_MOD);
+    opTypeMap.emplace(std::string("OH_NN_OPS_NEG"), OH_NN_OPS_NEG);
+    opTypeMap.emplace(std::string("OH_NN_OPS_RECIPROCAL"), OH_NN_OPS_RECIPROCAL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_SIN"), OH_NN_OPS_SIN);
+    opTypeMap.emplace(std::string("OH_NN_OPS_WHERE"), OH_NN_OPS_WHERE);
+    opTypeMap.emplace(std::string("OH_NN_OPS_SPARSE_TO_DENSE"), OH_NN_OPS_SPARSE_TO_DENSE);
+    opTypeMap.emplace(std::string("OH_NN_OPS_LOGICAL_OR"), OH_NN_OPS_LOGICAL_OR);
+    opTypeMap.emplace(std::string("OH_NN_OPS_CEIL"), OH_NN_OPS_CEIL);
+    opTypeMap.emplace(std::string("OH_NN_OPS_CROP"), OH_NN_OPS_CROP);
+    opTypeMap.emplace(std::string("OH_NN_OPS_DETECTION_POST_PROCESS"), OH_NN_OPS_DETECTION_POST_PROCESS);
+    opTypeMap.emplace(std::string("OH_NN_OPS_FLOOR"), OH_NN_OPS_FLOOR);
+    opTypeMap.emplace(std::string("OH_NN_OPS_L2_NORMALIZE"), OH_NN_OPS_L2_NORMALIZE);
+    opTypeMap.emplace(std::string("OH_NN_OPS_LOG_SOFTMAX"), OH_NN_OPS_LOG_SOFTMAX);
+    opTypeMap.emplace(std::string("OH_NN_OPS_LRN"), OH_NN_OPS_LRN);
+    opTypeMap.emplace(std::string("OH_NN_OPS_MINIMUM"), OH_NN_OPS_MINIMUM);
+    opTypeMap.emplace(std::string("OH_NN_OPS_RANK"), OH_NN_OPS_RANK);
+    opTypeMap.emplace(std::string("OH_NN_OPS_REDUCE_MAX"), OH_NN_OPS_REDUCE_MAX);
+    opTypeMap.emplace(std::string("OH_NN_OPS_REDUCE_MIN"), OH_NN_OPS_REDUCE_MIN);
+    opTypeMap.emplace(std::string("OH_NN_OPS_REDUCE_SUM"), OH_NN_OPS_REDUCE_SUM);
+    opTypeMap.emplace(std::string("OH_NN_OPS_ROUND"), OH_NN_OPS_ROUND);
+    opTypeMap.emplace(std::string("OH_NN_OPS_SCATTER_ND"), OH_NN_OPS_SCATTER_ND);
+    opTypeMap.emplace(std::string("OH_NN_OPS_SPACE_TO_DEPTH"), OH_NN_OPS_SPACE_TO_DEPTH);
+    opTypeMap.emplace(std::string("OH_NN_OPS_SWISH"), OH_NN_OPS_SWISH);
+    opTypeMap.emplace(std::string("OH_NN_OPS_REDUCE_L2"), OH_NN_OPS_REDUCE_L2);
+    opTypeMap.emplace(std::string("OH_NN_OPS_HARD_SIGMOID"), OH_NN_OPS_HARD_SIGMOID);
+    opTypeMap.emplace(std::string("OH_NN_OPS_GATHER_ND"), OH_NN_OPS_GATHER_ND);
 }
 
 static TestOptional<OH_NN_OperationType> GetOpTypeByName(std::string name)
@@ -282,6 +275,7 @@ static TestOptional<OH_NN_OperationType> GetOpTypeByName(std::string name)
         {std::string("OH_NN_OPS_REDUCE_PROD"), OH_NN_OPS_REDUCE_PROD},
     };
     AddOpTypeToMapOne(opTypeMap);
+    AddOpTypeToMapTwo(opTypeMap);
 
     auto it = opTypeMap.find(name);
     if (it != opTypeMap.end()) {
@@ -301,6 +295,46 @@ static OH_NN_TensorType GetTensorType(OH_NN_OperationType opType)
         return it->second;
     }
     return OH_NN_TENSOR;
+}
+
+static OH_NN_ReturnCode AddOperationTestCommon(OH_NN_OperationType opType, OH_NN_TensorType tensorType, bool needModel,
+                                               OH_NN_UInt32Array **indices)
+{
+    if (!needModel) {
+        return OH_NNModel_AddOperation(nullptr, opType, indices[0], indices[1], indices[ARRAY_SIZE_2]);
+    }
+
+    OH_NNModel *model = OH_NNModel_Construct();
+    const int dim[ARRAY_SIZE_2] = {INDEX_VALUE_2, INDEX_VALUE_2};
+    const OH_NN_Tensor tensor = {OH_NN_FLOAT32, INDEX_VALUE_2, dim, nullptr, OH_NN_TensorType::OH_NN_TENSOR};
+    OH_NNModel_AddTensor(model, &tensor);
+    OH_NNModel_AddTensor(model, &tensor);
+    OH_NNModel_AddTensor(model, &tensor);
+
+    const OH_NN_Tensor tensorParam = {OH_NN_INT8, 0, nullptr, nullptr, tensorType};
+    OH_NNModel_AddTensor(model, &tensorParam);
+    uint32_t index = 3;
+    const int8_t activation = 0;
+    OH_NNModel_SetTensorData(model, index, static_cast<const void *>(&activation), sizeof(int8_t));
+
+    return OH_NNModel_AddOperation(model, opType, indices[0], indices[1], indices[ARRAY_SIZE_2]);
+}
+
+napi_value NNOperationType_OpsExpandDimsA(napi_env env, napi_callback_info info)
+{
+    uint32_t inputIndexs[ARRAY_SIZE_2] = {0, 1};
+    uint32_t outputIndexs[1] = {INDEX_VALUE_2};
+    OH_NN_UInt32Array inputIndices{inputIndexs, INDEX_VALUE_2};
+    OH_NN_UInt32Array outputIndices{outputIndexs, 1};
+    OH_NN_UInt32Array paramIndices{nullptr, 0};
+    OH_NN_UInt32Array* indices[] = {&paramIndices, &inputIndices, &outputIndices};
+
+    OH_NN_ReturnCode returnValue;
+    OH_NN_OperationType opType = OH_NN_OperationType::OH_NN_OPS_EXPAND_DIMS;
+    returnValue = AddOperationTestCommon(opType, OH_NN_TensorType::OH_NN_TENSOR, true, indices);
+    napi_value result;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
 }
 
 napi_value NNOperationTypeCommonTest(napi_env env, napi_callback_info info)

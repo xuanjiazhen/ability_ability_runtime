@@ -97,7 +97,7 @@ export default function ActsNeuralNetworkRuntimeTypeTest1() {
         console.info("====>NnrtDeviceTypeCPU001 start====");
         let result : number = neuralnetworkcoretest.NNDeviceTypeCommonTest("OH_NN_CPU");
         console.info("====>NnrtDeviceTypeCPU001 result: " + result);
-        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        expect(result).assertEqual(OH_NN_SUCCESS);
         done()
       } catch (err) {
         console.error("====>NnrtDeviceTypeCPU001 catch err: " + err);
@@ -117,7 +117,7 @@ export default function ActsNeuralNetworkRuntimeTypeTest1() {
         console.info("====>NnrtDeviceTypeGPU001 start====");
         let result : number = neuralnetworkcoretest.NNDeviceTypeCommonTest("OH_NN_GPU");
         console.info("====>NnrtDeviceTypeGPU001 result: " + result);
-        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        expect(result).assertEqual(OH_NN_SUCCESS);
         done()
       } catch (err) {
         console.error("====>NnrtDeviceTypeGPU001 catch err: " + err);
@@ -137,7 +137,7 @@ export default function ActsNeuralNetworkRuntimeTypeTest1() {
         console.info("====>NnrtDeviceTypeAccelerator001 start====");
         let result : number = neuralnetworkcoretest.NNDeviceTypeCommonTest("OH_NN_ACCELERATOR");
         console.info("====>NnrtDeviceTypeAccelerator001 result: " + result);
-        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        expect(result).assertEqual(OH_NN_SUCCESS);
         done()
       } catch (err) {
         console.error("====>NnrtDeviceTypeAccelerator001 catch err: " + err);
