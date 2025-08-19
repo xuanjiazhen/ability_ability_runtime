@@ -810,7 +810,8 @@ int32_t HDRCodecNdkSample::RepeatCall()
 
 void HDRCodecNdkSample::InputFunc()
 {
-    while (true) {
+    bool isRunning = true;
+    while (isRunning) {
         if (!g_isRunning.load()) {
             break;
         }
