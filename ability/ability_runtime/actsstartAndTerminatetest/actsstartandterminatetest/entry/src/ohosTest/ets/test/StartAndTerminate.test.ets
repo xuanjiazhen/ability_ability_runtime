@@ -464,7 +464,7 @@ export default function startAndTerminateTest() {
               expect(uiAbility08OnCreate).assertEqual('uiAbility08OnCreateSuccess');
               expect(uiAbility08OnWindowStageCreate).assertEqual('uiAbility08OnWindowStageCreateSuccess');
               expect(uiAbility08OnForeground01).assertEqual('uiAbility08OnForeground01Success');
-              expect(uiAbility08OnForeground02).assertEqual('uiAbility08_onNewWant');
+              expect(uiAbility08OnForeground02).assertEqual('UiAbility08_onNewWant');
               expect(uiAbility08OnBackground).assertEqual('uiAbility08OnBackgroundSuccess');
               expect(abilityTest01OnCreate).assertEqual('abilityTest01OnCreateSuccess');
               expect(abilityTest01OnWindowStageCreate).assertEqual('abilityTest01OnWindowStageCreateSuccess');
@@ -488,8 +488,8 @@ export default function startAndTerminateTest() {
               uiAbility08OnForeground01 = 'uiAbility08OnForeground01Success';
             };
 
-            if (data.event === 'uiAbility08_onNewWant') {
-              uiAbility08OnForeground02 = 'uiAbility08_onNewWant';
+            if (data.event === 'UiAbility08_onNewWant') {
+              uiAbility08OnForeground02 = 'UiAbility08_onNewWant';
             };
 
             if (data.event === 'UiAbility08_onBackground') {
