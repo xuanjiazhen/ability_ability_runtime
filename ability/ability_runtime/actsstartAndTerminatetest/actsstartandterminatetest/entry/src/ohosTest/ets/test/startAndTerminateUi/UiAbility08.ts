@@ -29,6 +29,16 @@ export default class UiAbility08 extends UIAbility {
     globalThis.uiAbilityContext8 = this.context;
     hilog.info(0x0000, 'testTag', '%{public}s', `UiAbility08 want is, ${JSON.stringify(want)}`);
   }
+  onNewWant(want, launchParam) {
+    hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 onNewWant');
+    commonEventManager.publish('UiAbility08_onNewWant', function () {
+      hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 publish UiAbility08_onNewWant');
+    });
+    setTimeout(()=>{
+      // destroy
+      globalThis.uiAbilityContext8.terminateSelf();
+    }, 500);
+  }
 
   onDestroy(): void {
     hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 onDestroy');
