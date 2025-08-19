@@ -174,22 +174,18 @@ export default function relationalStoreBackupRestorePromiseTest() {
             try {
                 await RdbStore.backup("");
                 expect().assertFail();
-                done();
             } catch (err) {
                 console.log(TAG + "err:" + err.code + err.message);
                 expect("401").assertEqual(String(err.code))
-                done();
             }
             // RelationalStore backup function test, backup file name already exists
             //BackupTest(STORE_CONFIG.name)
             try {
                 await RdbStore.backup(STORE_CONFIG.name);
                 expect().assertFail();
-                done();
             } catch (err) {
                 console.log(TAG + "err:" + err.code + err.message);
                 expect("14800010").assertEqual(String(err.code))
-                done();
             }
             done()
             console.info(TAG + "************* RdbBackupRestoreTest_0020 end *************")
@@ -219,22 +215,18 @@ export default function relationalStoreBackupRestorePromiseTest() {
             try {
                 await RdbStore.restore("");
                 expect().assertFail();
-                done();
             } catch (err) {
                 console.log(TAG + "err:" + err.code + err.message);
                 expect("401").assertEqual(String(err.code))
-                done();
             }
             // RelationalStore restore function test, backup file is specified to database name
             //ReStoreTest(STORE_CONFIG.name)
             try {
                 await RdbStore.restore(STORE_CONFIG.name);
                 expect().assertFail();
-                done();
             } catch (err) {
                 console.log(TAG + "err:" + err.code + err.message);
                 expect("14800010").assertEqual(String(err.code))
-                done();
             }
             done()
             console.info(TAG + "************* RdbBackupRestoreTest_0030 end *************")
@@ -260,11 +252,9 @@ export default function relationalStoreBackupRestorePromiseTest() {
                 try {
                     await RdbStore.restore(dbName);
                     expect().assertFail();
-                    done();
                 } catch (err) {
                     console.log(TAG + "err:" + err.code + err.message);
                     expect("14800010").assertEqual(String(err.code))
-                    done();
                 }
             } catch(err) {
                 expect(false).assertTrue()
