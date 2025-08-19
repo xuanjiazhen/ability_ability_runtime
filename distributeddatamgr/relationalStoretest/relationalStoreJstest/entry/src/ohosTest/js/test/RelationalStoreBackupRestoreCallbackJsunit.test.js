@@ -428,7 +428,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         it('RdbBackupRestoreCallbackTest_0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0900 start *************")
             //BackupCallbackTest([DATABASE_BACKUP_NAME])
-            RdbStore.backup(DATABASE_BACKUP_NAME,async(err)=>{
+            RdbStore.backup([DATABASE_BACKUP_NAME],async(err)=>{
                 if(err)
                 {
                     console.log(TAG + "err" + err.code + err.message)
