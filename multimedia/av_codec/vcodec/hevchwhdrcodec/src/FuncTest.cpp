@@ -23,7 +23,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "hdrcodec_sample.h"
+#include "HdrCodecSample.h"
 #include "native_averrors.h"
 #include "native_avcodec_base.h"
 #include "avcodec_codec_name.h"

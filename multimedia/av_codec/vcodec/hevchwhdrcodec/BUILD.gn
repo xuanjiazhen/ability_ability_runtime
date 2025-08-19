@@ -55,8 +55,8 @@ ohos_moduletest_suite("ActsHevcHdrcodecTest") {
 
   if (av_codec_support_codec) {
     sources = [
-      "./src/func_test.cpp",
-      "./src/hdrcodec_ndk_sample.cpp",
+      "./src/FuncTest.cpp",
+      "./src/HdrCodecNdkSample.cpp",
     ]
   }
 
