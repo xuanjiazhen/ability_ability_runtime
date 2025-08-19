@@ -160,7 +160,7 @@ export default function ActsAceWebViewSdkSchemeHandlerThree() {
     /*
      *@tc.number SUB_ACE_WEB_SdkSchemeHandler_didFail_completeIfNoResponse_API_0700
      *@tc.name testSchemeHandlerDidFailCompleteIfNoResponse007
-     *@tc.desc test didFail completeIfNoResponse true errorCode 17100101
+     *@tc.desc test didFail completeIfNoResponse false errorCode 17100101
      *@tc.size MediumTest
      *@tc.type Function
      *@tc.level Level 2
