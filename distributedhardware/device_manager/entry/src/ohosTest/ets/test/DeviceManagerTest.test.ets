@@ -40,6 +40,7 @@ export default function DeviceManagerTest() {
         } catch (err) {
           console.error("====>testDistributedServiceKitGetLocalDeviceName0100 catch err: " + err);
           expect(false).assertEqual(KEY_CODE_EVENT_ERROR);
+          done()
         }
       })
   })
