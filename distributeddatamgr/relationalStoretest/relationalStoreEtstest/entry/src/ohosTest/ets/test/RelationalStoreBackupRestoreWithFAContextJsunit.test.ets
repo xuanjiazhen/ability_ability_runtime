@@ -366,17 +366,10 @@ export default function relationalStoreBackupRestorePromiseTest() {
       try {
         await RdbStore.backup([DATABASE_BACKUP_NAME]);
         console.log(TAG + "RdbBackupRestoreTest_0090");
-        // await RdbStore.executeSql("delete from test")
-        // let resultSet = await RdbStore.querySql("select * from test")
-        // console.log(TAG + "resultSet.rowCount" + resultSet.rowCount)
-        // expect(resultSet.rowCount).assertEqual(0)
-        // await RdbStore.restore(DATABASE_BACKUP_NAME)
-        // let resultSet1 = await RdbStore.querySql("select * from test")
-        // console.log(TAG + "resultSet1.rowCount" + resultSet1.rowCount)
-        // expect(resultSet1.rowCount).assertEqual(3)
+        expect().assertFail();
       } catch (err) {
         console.log(TAG + "err:" + err.code + err.message);
-        //expect().assertFail();
+        expect("401").assertEqual(String(err.code))
       }
       done();
       console.info(TAG + "************* RdbBackupRestoreTest_0090 end *************")
@@ -401,12 +394,10 @@ export default function relationalStoreBackupRestorePromiseTest() {
         expect(resultSet.rowCount).assertEqual(0)
       try {
         await RdbStore.restore([DATABASE_BACKUP_NAME])
-        let resultSet1 = await RdbStore.querySql("select * from test")
-        console.log(TAG + "resultSet1.rowCount" + resultSet1.rowCount)
-        //expect(resultSet1.rowCount).assertEqual(3)
+        expect().assertFail();
       } catch (err) {
         console.log(TAG + "err:" + err.code + err.message);
-        //expect().assertFail();
+        expect("401").assertEqual(String(err.code))
       }
       done();
       console.info(TAG + "************* RdbBackupRestoreTest_0100 end *************")
