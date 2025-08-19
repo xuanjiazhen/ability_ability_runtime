@@ -880,9 +880,7 @@ napi_value CheckNodeImageSyncLoad(napi_env env, napi_callback_info info)
 
 napi_value CheckNodeButtonMinFontScale(napi_env env, napi_callback_info info)
 {
-    std::random_device randomNumber; // 随机数种子生成器
-    std::mt19937 mt(randomNumber()); // 随机数生成器
-    float scale = (mt() % PARAM_11 / 10) + 1; // 生成随机参数
+    float scale = 1.0;
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_BUTTON);
@@ -912,9 +910,7 @@ napi_value CheckNodeButtonMinFontScale(napi_env env, napi_callback_info info)
 
 napi_value CheckNodeButtonMaxFontScale(napi_env env, napi_callback_info info)
 {
-    std::random_device randomNumber; // 随机数种子生成器
-    std::mt19937 mt(randomNumber()); // 随机数生成器
-    float scale = (mt() % PARAM_11 / 10) + 1; // 生成随机参数
+    float scale = 1.0;
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_BUTTON);
