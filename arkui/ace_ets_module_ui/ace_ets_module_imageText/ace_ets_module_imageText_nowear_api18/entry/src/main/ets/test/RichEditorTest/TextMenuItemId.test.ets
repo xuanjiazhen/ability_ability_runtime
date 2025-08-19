@@ -18,6 +18,9 @@ import router from '@ohos.router';
 import { Driver, ON } from '@ohos.UiTest';
 import CommonFunc from '../../MainAbility/common/Common';
 
+let translateSupport: string = "1";
+let flag: boolean = true;
+
 export default function TextMenuItemId() {
   describe('TextMenuItemId', () => {
     beforeEach(async (done: Function) => {
@@ -30,6 +33,14 @@ export default function TextMenuItemId() {
         let pages = router.getState();
         console.info("get TextMenuItemId state pages: " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
+        if(flag){
+          console.info("get translateSupport before: " + translateSupport);
+          translateSupport = await getContext().resourceManager
+            .getStringValue($r('sys.string.res_menu_translate_is_support').id)
+          console.info("get translateSupport after: " + translateSupport);
+          flag = false
+        }
         if (!("TextMenuItemId" == pages.name)) {
           console.info("get TextMenuItemId state pages.name: " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);
@@ -49,17 +60,23 @@ export default function TextMenuItemId() {
      */
     it('TextMenuItemId0001', Level.LEVEL0, async (done: Function) => {
       console.info("[TextMenuItemId0001] start");
-      let driver = Driver.create();
-      console.info('TextMenuItemId TextMenuItemId0001 START');
-      await CommonFunc.sleep(500);
-      let text = await driver.findComponent(ON.id('text'));
-      await CommonFunc.sleep(500);
-      let point = await text.getBoundsCenter();
-      await CommonFunc.sleep(500);
-      await driver.longClick(point.x, point.y);
-      await CommonFunc.sleep(500);
-      await driver.assertComponentExist(ON.text('翻译'));
-      await driver.assertComponentExist(ON.text('搜索'));
+      if(translateSupport === '1'){
+        let driver = Driver.create();
+        console.info('TextMenuItemId TextMenuItemId0001 START');
+        await CommonFunc.sleep(500);
+        let text = await driver.findComponent(ON.id('text'));
+        await CommonFunc.sleep(500);
+        let point = await text.getBoundsCenter();
+        await CommonFunc.sleep(500);
+        await driver.longClick(point.x, point.y);
+        await CommonFunc.sleep(500);
+        await driver.assertComponentExist(ON.text('翻译'));
+        await driver.assertComponentExist(ON.text('搜索'));
+      }else{
+        let strJson = getInspectorByKey('text');
+        console.log('TextMenuItemId0001 translateSupport: ', translateSupport)
+        expect(JSON.parse(strJson).$type).assertEqual("Text");
+      }
       console.info("[TextMenuItemId0001] end");
       done();
     });
@@ -71,17 +88,23 @@ export default function TextMenuItemId() {
      */
     it('TextMenuItemId0002', Level.LEVEL0, async (done: Function) => {
       console.info("[TextMenuItemId0002] start");
-      let driver = Driver.create();
-      console.info('TextMenuItemId TextMenuItemId0002 START');
-      await CommonFunc.sleep(500);
-      let textArea = await driver.findComponent(ON.id('textArea'));
-      await CommonFunc.sleep(500);
-      let point = await textArea.getBoundsCenter();
-      await CommonFunc.sleep(500);
-      await driver.longClick(point.x, point.y);
-      await CommonFunc.sleep(500);
-      await driver.assertComponentExist(ON.text('翻译'));
-      await driver.assertComponentExist(ON.text('搜索'));
+      if(translateSupport === '1'){
+        let driver = Driver.create();
+        console.info('TextMenuItemId TextMenuItemId0002 START');
+        await CommonFunc.sleep(500);
+        let textArea = await driver.findComponent(ON.id('textArea'));
+        await CommonFunc.sleep(500);
+        let point = await textArea.getBoundsCenter();
+        await CommonFunc.sleep(500);
+        await driver.longClick(point.x, point.y);
+        await CommonFunc.sleep(500);
+        await driver.assertComponentExist(ON.text('翻译'));
+        await driver.assertComponentExist(ON.text('搜索'));
+      }else{
+        let strJson = getInspectorByKey('text');
+        console.log('TextMenuItemId0002 translateSupport: ', translateSupport)
+        expect(JSON.parse(strJson).$type).assertEqual("Text");
+      }
       console.info("[TextMenuItemId0002] end");
       done();
     });
@@ -93,17 +116,23 @@ export default function TextMenuItemId() {
      */
     it('TextMenuItemId0003', Level.LEVEL0, async (done: Function) => {
       console.info("[TextMenuItemId0003] start");
-      let driver = Driver.create();
-      console.info('TextMenuItemId TextMenuItemId0003 START');
-      await CommonFunc.sleep(500);
-      let textInput = await driver.findComponent(ON.id('textInput'));
-      await CommonFunc.sleep(500);
-      let point = await textInput.getBoundsCenter();
-      await CommonFunc.sleep(500);
-      await driver.longClick(point.x, point.y);
-      await CommonFunc.sleep(500);
-      await driver.assertComponentExist(ON.text('翻译'));
-      await driver.assertComponentExist(ON.text('搜索'));
+      if(translateSupport === '1'){
+        let driver = Driver.create();
+        console.info('TextMenuItemId TextMenuItemId0003 START');
+        await CommonFunc.sleep(500);
+        let textInput = await driver.findComponent(ON.id('textInput'));
+        await CommonFunc.sleep(500);
+        let point = await textInput.getBoundsCenter();
+        await CommonFunc.sleep(500);
+        await driver.longClick(point.x, point.y);
+        await CommonFunc.sleep(500);
+        await driver.assertComponentExist(ON.text('翻译'));
+        await driver.assertComponentExist(ON.text('搜索'));
+      }else{
+        let strJson = getInspectorByKey('text');
+        console.log('TextMenuItemId0003translateSupport: ', translateSupport)
+        expect(JSON.parse(strJson).$type).assertEqual("Text");
+      }
       console.info("[TextMenuItemId0003] end");
       done();
     });
@@ -115,17 +144,23 @@ export default function TextMenuItemId() {
      */
     it('TextMenuItemId0004', Level.LEVEL0, async (done: Function) => {
       console.info("[TextMenuItemId0004] start");
-      let driver = Driver.create();
-      console.info('TextMenuItemId TextMenuItemId0004 START');
-      await CommonFunc.sleep(500);
-      let richEditor = await driver.findComponent(ON.id('richEditor'));
-      await CommonFunc.sleep(500);
-      let point = await richEditor.getBoundsCenter();
-      await CommonFunc.sleep(500);
-      await driver.longClick(point.x, point.y);
-      await CommonFunc.sleep(500);
-      await driver.assertComponentExist(ON.text('翻译'));
-      await driver.assertComponentExist(ON.text('搜索'));
+      if(translateSupport === '1'){
+        let driver = Driver.create();
+        console.info('TextMenuItemId TextMenuItemId0004 START');
+        await CommonFunc.sleep(500);
+        let richEditor = await driver.findComponent(ON.id('richEditor'));
+        await CommonFunc.sleep(500);
+        let point = await richEditor.getBoundsCenter();
+        await CommonFunc.sleep(500);
+        await driver.longClick(point.x, point.y);
+        await CommonFunc.sleep(500);
+        await driver.assertComponentExist(ON.text('翻译'));
+        await driver.assertComponentExist(ON.text('搜索'));
+      }else{
+        let strJson = getInspectorByKey('text');
+        console.log('TextMenuItemId0004translateSupport: ', translateSupport)
+        expect(JSON.parse(strJson).$type).assertEqual("Text");
+      }
       console.info("[TextMenuItemId0004] end");
       done();
     });
@@ -137,17 +172,23 @@ export default function TextMenuItemId() {
      */
     it('TextMenuItemId0005', Level.LEVEL0, async (done: Function) => {
       console.info("[TextMenuItemId0005] start");
-      let driver = Driver.create();
-      console.info('TextMenuItemId TextMenuItemId0005 START');
-      await CommonFunc.sleep(500);
-      let search = await driver.findComponent(ON.id('search'));
-      await CommonFunc.sleep(500);
-      let point = await search.getBoundsCenter();
-      await CommonFunc.sleep(500);
-      await driver.longClick(point.x, point.y);
-      await CommonFunc.sleep(500);
-      await driver.assertComponentExist(ON.text('翻译'));
-      await driver.assertComponentExist(ON.text('搜索'));
+      if(translateSupport === '1'){
+        let driver = Driver.create();
+        console.info('TextMenuItemId TextMenuItemId0005 START');
+        await CommonFunc.sleep(500);
+        let search = await driver.findComponent(ON.id('search'));
+        await CommonFunc.sleep(500);
+        let point = await search.getBoundsCenter();
+        await CommonFunc.sleep(500);
+        await driver.longClick(point.x, point.y);
+        await CommonFunc.sleep(500);
+        await driver.assertComponentExist(ON.text('翻译'));
+        await driver.assertComponentExist(ON.text('搜索'));
+      }else{
+        let strJson = getInspectorByKey('text');
+        console.log('TextMenuItemId0005translateSupport: ', translateSupport)
+        expect(JSON.parse(strJson).$type).assertEqual("Text");
+      }
       console.info("[TextMenuItemId0005] end");
       done();
     });
