@@ -4,7 +4,8 @@
     "testability/pages/WebAttributeTest",
     "testability/pages/webDataBase",
     "testability/pages/sslErrorHandler",
-	"testability/pages/onSslErrorEvent"
+	  "testability/pages/onSslErrorEvent",
+    "testability/pages/OnSslErrorEventTwo"
   ]
 }
 

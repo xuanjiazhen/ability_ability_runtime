@@ -17,11 +17,13 @@ import webDataBase from './WebDataBase.test'
 import sslErrorHandler from './SslErrorHandler.test'
 import webAttributeTest from './WebAttributeTest.test'
 import onSslErrorEvent from './onSslErrorEvent.test'
+import onSslErrorEventTwo from './OnSslErrorEventTwo.test'
 
 export default function testsuite() {
   webAttributeTest()
   webDataBase()
   sslErrorHandler()
   onSslErrorEvent()
+  onSslErrorEventTwo()
 
 }
