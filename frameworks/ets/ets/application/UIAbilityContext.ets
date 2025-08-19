@@ -31,6 +31,7 @@ import AbilityStartCallback from 'application.AbilityStartCallback';
 import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 import image from '@ohos.multimedia.image';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
+import dialogRequest from '@ohos.app.ability.dialogRequest';
 
 class Cleaner {
   public ptr: long = 0;
@@ -181,6 +182,9 @@ export default class UIAbilityContext extends Context {
     callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeRestoreWindowStage(localStorage: LocalStorage): void;
+  private native nativeRequestDialogService(want: Want,
+    result: AsyncCallbackWrapper<dialogRequest.RequestResult>): void;
+
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -824,5 +828,33 @@ hideAbility(): Promise<void> {
 
   restoreWindowStage(localStorage: LocalStorage): void {
     this.nativeRestoreWindowStage(localStorage);
+  }
+
+   requestDialogService(want: Want, result: AsyncCallback<dialogRequest.RequestResult>): void {
+    let syncCall = new AsyncCallbackWrapper<dialogRequest.RequestResult>(result);
+    taskpool.execute((): void => {
+      this.nativeRequestDialogService(want, syncCall);
+    }).catch((err: BusinessError): void => {
+      result(err, undefined);
+    });
+  }
+
+  requestDialogService(want: Want): Promise<dialogRequest.RequestResult> {
+    return new Promise<dialogRequest.RequestResult>((resolve: (data: dialogRequest.RequestResult) => void,
+      reject: (err: BusinessError<void>) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<dialogRequest.RequestResult>((err: BusinessError | null,
+        data: dialogRequest.RequestResult | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as dialogRequest.RequestResult);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeRequestDialogService(want, syncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
   }
 }
