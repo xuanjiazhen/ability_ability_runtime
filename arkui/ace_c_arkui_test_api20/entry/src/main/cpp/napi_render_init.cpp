@@ -25,6 +25,9 @@
 #include "uiInput/UiInputErrorCodeTest.h"
 #include "scope/RunTaskInScopeTest.h"
 #include "list/ListCrossLanguageTest.h"
+#include "grid/GridCrossLanguageTest.h"
+#include "swiper/SwiperCrossLanguageTest.h"
+#include "waterFlow/WaterFlowCrossLanguageTest.h"
 #include "BindController/BindControllerTest.h"
 
 namespace ArkUICapiTest
@@ -59,6 +62,12 @@ namespace ArkUICapiTest
             {"testRunTaskInScope", nullptr, RunTaskInScopeTest::testRunTaskInScope, nullptr, nullptr, nullptr,
                 napi_default, nullptr},
             {"createCrossLanguageListNode", nullptr, ListCrossLanguageTest::createCrossLanguageListNode,
+             nullptr, nullptr, nullptr, napi_default, nullptr},
+            {"createCrossLanguageGridNode", nullptr, GridCrossLanguageTest::createCrossLanguageGridNode,
+             nullptr, nullptr, nullptr, napi_default, nullptr},
+            {"createCrossLanguageSwiperNode", nullptr, SwiperCrossLanguageTest::createCrossLanguageSwiperNode,
+             nullptr, nullptr, nullptr, napi_default, nullptr},
+            {"createCrossLanguageWaterFlowNode", nullptr, WaterFlowCrossLanguageTest::createCrossLanguageWaterFlowNode,
              nullptr, nullptr, nullptr, napi_default, nullptr},
             {"testBindController001", nullptr, NodeBindControllerTest::testBindController001, nullptr, nullptr, nullptr,
                 napi_default, nullptr},
