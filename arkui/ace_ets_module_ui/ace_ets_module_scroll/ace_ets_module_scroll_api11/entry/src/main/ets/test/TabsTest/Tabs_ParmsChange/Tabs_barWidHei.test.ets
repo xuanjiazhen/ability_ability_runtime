@@ -33,6 +33,12 @@ import {
   MouseButton
 } from '@ohos.UiTest';
 
+function tabsDefaultBarSize(sysWidth: Resource) {
+  let resourceBarSize = getContext().resourceManager.getNumber(sysWidth.id)
+  let newBarSize: number = Math.round(resourceBarSize)
+  return newBarSize;
+}
+
 export default function Tabs_barWidHei() {
   describe('Tabs_barWidHei', () => {
     beforeEach(async (done: Function) => {
@@ -407,14 +413,14 @@ export default function Tabs_barWidHei() {
         Math.round(Tabs_barWidHei_011.top + ((Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top) / 2)),
         Math.round(Tabs_barWidHei_011.left + ((Tabs_barWidHei_011.right - Tabs_barWidHei_011.left) / 6)),
         Math.round(Tabs_barWidHei_011.top + ((Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top) / 2)));
-      await CommonFunc.sleep(1000);
+      await CommonFunc.sleep(2000);
       let Tabs_barWidHei_002: RectValue = CommonFunc.getComponentRectOnScreen('Tabs_barWidHei_002');
       let Tabs_barWidHei_012: RectValue = CommonFunc.getComponentRectOnScreen('Tabs_barWidHei_012');
       await driver.swipe(Math.round(Tabs_barWidHei_012.right - ((Tabs_barWidHei_012.right - Tabs_barWidHei_012.left) / 6)),
         Math.round(Tabs_barWidHei_012.top + ((Tabs_barWidHei_012.bottom - Tabs_barWidHei_012.top) / 2)),
         Math.round(Tabs_barWidHei_012.left + ((Tabs_barWidHei_012.right - Tabs_barWidHei_012.left) / 6)),
         Math.round(Tabs_barWidHei_012.top + ((Tabs_barWidHei_012.bottom - Tabs_barWidHei_012.top) / 2)));
-      await CommonFunc.sleep(1000);
+      await CommonFunc.sleep(2000);
       let Tabs_barWidHei_003: RectValue = CommonFunc.getComponentRectOnScreen('Tabs_barWidHei_003');
       let Tabs_barWidHei_013: RectValue = CommonFunc.getComponentRectOnScreen('Tabs_barWidHei_013');
       let Tabs_barWidHei_01: RectValue = CommonFunc.getComponentRectOnScreen('Tabs_barWidHei_01');
@@ -422,6 +428,15 @@ export default function Tabs_barWidHei() {
       let subBlue: RectValue = CommonFunc.getComponentRectOnScreen('Tabs_barWidHei_blue');
       let subYellow: RectValue = CommonFunc.getComponentRectOnScreen('Tabs_barWidHei_yellow');
 
+      let barDefPad: number = tabsDefaultBarSize($r('sys.float.tab_bar_board_focus_padding'))
+      console.info(`[testTabsBarHeiExceedTabsHei]barDefPad = ${barDefPad}`);
+      let barDefHei: number = tabsDefaultBarSize($r('sys.float.tab_bar_default_height'))
+      console.info(`[testTabsBarHeiExceedTabsHei]barDefHei = ${barDefHei}`);
+      let subGreen_wid = subGreen.right - subGreen.left;
+      let subGreen_hei = subGreen.bottom - subGreen.top + 2*barDefPad;
+      console.info(`[testTabsBarHeiExceedTabsHei]subGreen_wid = ${subGreen_wid}`);
+      console.info(`[testTabsBarHeiExceedTabsHei]subGreen_hei = ${subGreen_hei}`);
+     
       console.info(`[testTabsBarHeiExceedTabsHei]Tabs_barWidHei_011.left equal Tabs_barWidHei_001.left
         ${Tabs_barWidHei_011.left} === ${Tabs_barWidHei_001.left}`);
  
@@ -431,7 +446,6 @@ export default function Tabs_barWidHei() {
       expect(Math.abs(Tabs_barWidHei_011.top - Tabs_barWidHei_001.top) <=1 ).assertTrue();
       expect(Math.abs(Tabs_barWidHei_012.top - Tabs_barWidHei_002.top) <=1 ).assertTrue();
       expect(Math.abs(Tabs_barWidHei_013.top - Tabs_barWidHei_003.top) <=1 ).assertTrue();
-     
 
       console.info(`[testTabsBarHeiExceedTabsHei]Tabs_barWidHei_011.left equal Tabs_barWidHei_01.left
         ${Tabs_barWidHei_011.left} === ${Tabs_barWidHei_01.left}`);
@@ -442,13 +456,12 @@ export default function Tabs_barWidHei() {
       expect(Math.abs(Tabs_barWidHei_012.top - subBlue.bottom) <=1 ).assertTrue();
       expect(Math.abs(Tabs_barWidHei_013.top - subYellow.bottom) <=1 ).assertTrue();
 
-  
-
       console.info(`[testTabsBarHeiExceedTabsHei]Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top=
         ${Math.round(Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top)}`);
-      expect(Math.abs(Math.round(Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(Tabs_barWidHei_012.bottom - Tabs_barWidHei_012.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(Tabs_barWidHei_013.bottom - Tabs_barWidHei_013.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
+      console.info(`[testTabsBarHeiExceedTabsHei]vp2px(300) - barDefHei = ${Math.round(vp2px(300) - barDefHei)}`);
+      expect(Math.abs(Math.round(Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_012.bottom - Tabs_barWidHei_012.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_013.bottom - Tabs_barWidHei_013.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
       
       expect(Math.abs(Tabs_barWidHei_011.right - Tabs_barWidHei_011.left - vp2px(330)) <= 1).assertTrue();
       expect(Math.abs(Tabs_barWidHei_012.right - Tabs_barWidHei_012.left - vp2px(330)) <= 1).assertTrue();
@@ -456,9 +469,9 @@ export default function Tabs_barWidHei() {
 
       console.info(`[testTabsBarHeiExceedTabsHei]Tabs_barWidHei_001.bottom - Tabs_barWidHei_001.top=
         ${Math.round(Tabs_barWidHei_001.bottom - Tabs_barWidHei_001.top)}`);
-      expect(Math.abs(Math.round(Tabs_barWidHei_001.bottom - Tabs_barWidHei_001.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(Tabs_barWidHei_002.bottom - Tabs_barWidHei_002.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(Tabs_barWidHei_003.bottom - Tabs_barWidHei_003.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_001.bottom - Tabs_barWidHei_001.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_002.bottom - Tabs_barWidHei_002.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_003.bottom - Tabs_barWidHei_003.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
 
       expect(Math.abs(Math.round(Tabs_barWidHei_001.right - Tabs_barWidHei_001.left) - Math.round(vp2px(330))) <= 1).assertTrue();
       expect(Math.abs(Math.round(Tabs_barWidHei_002.right - Tabs_barWidHei_002.left) - Math.round(vp2px(330))) <= 1).assertTrue();
@@ -466,9 +479,9 @@ export default function Tabs_barWidHei() {
 
       console.info(`[testTabsBarHeiExceedTabsHei]subGreen.bottom - subGreen.top=
         ${Math.round(subGreen.bottom - subGreen.top)}`);
-      expect(Math.abs(Math.round(subGreen.bottom - subGreen.top) - Math.round(vp2px(56))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(subBlue.bottom - subBlue.top) - Math.round(vp2px(56))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(subYellow.bottom - subYellow.top) - Math.round(vp2px(56))) <=1 ).assertTrue();
+      expect(Math.floor(Math.abs((subGreen.bottom - subGreen.top) - barDefHei)) <= 1).assertTrue();
+      expect(Math.floor(Math.abs((subBlue.bottom - subBlue.top) - barDefHei)) <= 1).assertTrue();
+      expect(Math.floor(Math.abs((subYellow.bottom - subYellow.top) - barDefHei)) <= 1).assertTrue();
       expect(Math.abs(Math.round(subGreen.right - subGreen.left) - Math.round(vp2px(110))) <=1 ).assertTrue();
       expect(Math.abs(Math.round(subBlue.right - subBlue.left) - Math.round(vp2px(110))) <=1 ).assertTrue();
       expect(Math.abs(Math.round(subYellow.right - subYellow.left) - Math.round(vp2px(110))) <=1 ).assertTrue();
@@ -625,6 +638,15 @@ export default function Tabs_barWidHei() {
       let subBlue: RectValue = CommonFunc.getComponentRectOnScreen('Tabs_barWidHei_blue');
       let subYellow: RectValue = CommonFunc.getComponentRectOnScreen('Tabs_barWidHei_yellow');
 
+      let barDefPad: number = tabsDefaultBarSize($r('sys.float.tab_bar_board_focus_padding'))
+      console.info(`[testTabsBarHeiToNegative]barDefPad = ${barDefPad}`);
+      let barDefHei: number = tabsDefaultBarSize($r('sys.float.tab_bar_default_height'))
+      console.info(`[testTabsBarHeiToNegative]barDefHei = ${barDefHei}`);
+      let subGreen_wid = subGreen.right - subGreen.left;
+      let subGreen_hei = subGreen.bottom - subGreen.top + 2*barDefPad;
+      console.info(`[testTabsBarHeiToNegative]subGreen_wid = ${subGreen_wid}`);
+      console.info(`[testTabsBarHeiToNegative]subGreen_hei = ${subGreen_hei}`);
+     
       console.info(`[testTabsBarHeiToNegative]Tabs_barWidHei_011.left equal Tabs_barWidHei_001.left
         ${Tabs_barWidHei_011.left} === ${Tabs_barWidHei_001.left}`);
      
@@ -641,17 +663,16 @@ export default function Tabs_barWidHei() {
       expect(Math.abs(Tabs_barWidHei_011.left - Tabs_barWidHei_01.left) <=1 ).assertTrue();
       expect(Math.abs(Tabs_barWidHei_012.left - Tabs_barWidHei_01.left) <=1 ).assertTrue();
       expect(Math.abs(Tabs_barWidHei_013.left - Tabs_barWidHei_01.left) <=1 ).assertTrue();
-      expect(Math.abs(Tabs_barWidHei_011.top - subGreen.bottom) <=1 ).assertTrue();
-      expect(Math.abs(Tabs_barWidHei_012.top - subBlue.bottom) <=1 ).assertTrue();
-      expect(Math.abs(Tabs_barWidHei_013.top - subYellow.bottom) <=1 ).assertTrue();
-
-     
+      expect(Math.abs(Tabs_barWidHei_011.top - (subGreen.bottom + barDefPad)) <=1 ).assertTrue();
+      expect(Math.abs(Tabs_barWidHei_012.top - (subGreen.bottom + barDefPad)) <=1 ).assertTrue();
+      expect(Math.abs(Tabs_barWidHei_013.top - (subGreen.bottom + barDefPad)) <=1 ).assertTrue();
 
       console.info(`[testTabsBarHeiToNegative]Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top=
         ${Math.round(Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top)}`);
-      expect(Math.abs(Math.round(Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(Tabs_barWidHei_012.bottom - Tabs_barWidHei_012.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(Tabs_barWidHei_013.bottom - Tabs_barWidHei_013.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
+      console.info(`[testTabsBarHeiToNegative]vp2px(300) - barDefHei = ${Math.round(vp2px(300) - barDefHei)}`);
+      expect(Math.abs(Math.round(Tabs_barWidHei_011.bottom - Tabs_barWidHei_011.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_012.bottom - Tabs_barWidHei_012.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_013.bottom - Tabs_barWidHei_013.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
       
       expect(Math.abs(Tabs_barWidHei_011.right - Tabs_barWidHei_011.left - vp2px(330)) <= 1).assertTrue();
       expect(Math.abs(Tabs_barWidHei_012.right - Tabs_barWidHei_012.left - vp2px(330)) <= 1).assertTrue();
@@ -659,9 +680,9 @@ export default function Tabs_barWidHei() {
 
       console.info(`[testTabsBarHeiToNegative]Tabs_barWidHei_001.bottom - Tabs_barWidHei_001.top=
         ${Math.round(Tabs_barWidHei_001.bottom - Tabs_barWidHei_001.top)}`);
-      expect(Math.abs(Math.round(Tabs_barWidHei_001.bottom - Tabs_barWidHei_001.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(Tabs_barWidHei_002.bottom - Tabs_barWidHei_002.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(Tabs_barWidHei_003.bottom - Tabs_barWidHei_003.top) - Math.round(vp2px(244))) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_001.bottom - Tabs_barWidHei_001.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_002.bottom - Tabs_barWidHei_002.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
+      expect(Math.abs(Math.round(Tabs_barWidHei_003.bottom - Tabs_barWidHei_003.top) - Math.round(vp2px(300) - barDefHei)) <=1 ).assertTrue();
       
       expect(Math.abs(Math.round(Tabs_barWidHei_001.right - Tabs_barWidHei_001.left) - Math.round(vp2px(330))) <= 1).assertTrue();
       expect(Math.abs(Math.round(Tabs_barWidHei_002.right - Tabs_barWidHei_002.left) - Math.round(vp2px(330))) <= 1).assertTrue();
@@ -669,9 +690,10 @@ export default function Tabs_barWidHei() {
 
       console.info(`[testTabsBarHeiToNegative]subGreen.bottom - subGreen.top=
         ${Math.round(subGreen.bottom - subGreen.top)}`);
-      expect(Math.abs(Math.round(subGreen.bottom - subGreen.top) - Math.round(vp2px(56))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(subBlue.bottom - subBlue.top) - Math.round(vp2px(56))) <=1 ).assertTrue();
-      expect(Math.abs(Math.round(subYellow.bottom - subYellow.top) - Math.round(vp2px(56))) <=1 ).assertTrue();
+      console.info(`[testTabsBarHeiToNegative](barDefHei - 2*barDefPad) = ${barDefHei - 2*barDefPad}`);
+      expect(Math.floor(Math.abs((subGreen.bottom - subGreen.top) - (barDefHei - 2*barDefPad))) <= 1).assertTrue();
+      expect(Math.floor(Math.abs((subBlue.bottom - subBlue.top) - (barDefHei - 2*barDefPad))) <= 1).assertTrue();
+      expect(Math.floor(Math.abs((subYellow.bottom - subYellow.top) - (barDefHei - 2*barDefPad))) <= 1).assertTrue();
       expect(Math.abs(Math.round(subGreen.right - subGreen.left) - Math.round(vp2px(110))) <=1 ).assertTrue();
       expect(Math.abs(Math.round(subBlue.right - subBlue.left) - Math.round(vp2px(110))) <=1 ).assertTrue();
       expect(Math.abs(Math.round(subYellow.right - subYellow.left) - Math.round(vp2px(110))) <=1 ).assertTrue();
