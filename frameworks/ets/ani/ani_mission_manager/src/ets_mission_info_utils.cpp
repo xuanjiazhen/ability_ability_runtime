@@ -37,6 +37,7 @@ constexpr const char* KEY_CONTINUABLE = "continuable";
 constexpr const char* KEY_ABILITY_STATE = "abilityState";
 constexpr const char* KEY_UNCLEARABLE = "unclearable";
 constexpr const char* KEY_WANT = "want";
+constexpr const char *SET_OBJECT_VOID_SIGNATURE = "ILstd/core/Object;:V";
 }
 
 bool WrapWantInner(ani_env *env, ani_class cls, ani_object object, const AAFwk::Want &want)
@@ -120,6 +121,31 @@ ani_object CreateEtsMissionInfo(ani_env *env, const AAFwk::MissionInfo &missionI
     if (!WrapMissionInfo(env, cls, object, missionInfo)) {
         TAG_LOGE(AAFwkTag::MISSION, "WrapMissionInfo failed");
         return nullptr;
+    }
+    return object;
+}
+
+ani_object CreateEtsMissionInfos(ani_env *env, const std::vector<AAFwk::MissionInfo> &missionInfos)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::MISSION, "result or env is null");
+        return nullptr;
+    }
+    ani_class cls = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_object object = nullptr;
+    ani_object arrayObj = nullptr;   //注意这块，应该不对
+
+    for (size_t i = 0; i < missionInfos.size(); i++) {
+        if (!WrapMissionInfo(env, cls, object, missionInfos[i])) {       //调用某个函数  ----》mission的函数
+            TAG_LOGE(AAFwkTag::MISSION, "WrapMissionInfo failed");
+            return nullptr;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", SET_OBJECT_VOID_SIGNATURE, i, object);   //调用是否有问题
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::MISSION, "status : %{public}d", status);
+            return nullptr;
+        }
     }
     return object;
 }
