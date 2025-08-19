@@ -114,6 +114,15 @@ export default class AVRecorderCommon {
     }
   }
 
+  async unlinkFd(fdPath: string) {
+    console.info('case come in unlinkFd');
+    if (fdPath != null) {
+      fs.unlink(fdPath);
+    } else {
+      console.info('[fs.unlink] case fdPath is null');
+    }
+  }
+
   async saveVideo(asset: photoAccessHelper.PhotoAsset) {
     console.info('case saveVideo start');
     try {

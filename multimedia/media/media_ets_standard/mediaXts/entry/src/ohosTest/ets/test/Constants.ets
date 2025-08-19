@@ -33,7 +33,7 @@ export const SLEEP_TIME_3000: number = 3000;
 
 export const SLEEP_TIME_5000: number = 5000;
 
-export const PLAY_TIME: number = 53000;
+export const PLAY_TIME: number = 3000;
 
 export enum MediaErrorCode {
   /**

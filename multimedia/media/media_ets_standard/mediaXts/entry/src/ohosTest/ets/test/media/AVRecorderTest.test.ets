@@ -19,7 +19,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import MediaTestBase from './MediaTestBase';
 import { Permissions } from '@kit.AbilityKit';
 import Common from './AVRecorderCommon';
-import { LOG_TAG, MediaErrorCode, SLEEP_TIME_20, SLEEP_TIME_500 } from '../Constants';
+import { LOG_TAG, MediaErrorCode, SLEEP_TIME_20, SLEEP_TIME_200, SLEEP_TIME_500, SLEEP_TIME_2000 } from '../Constants';
 import { audio } from '@kit.AudioKit';
 import { sleep } from '../common';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
@@ -112,25 +112,29 @@ async function createAvRecorderCallback() {
   });
 }
 
-async function initConfigAndPreparedCallback(sourceType: media.AudioSourceType, done: Function) {
-  if (mAvRecord != null) {
+async function initConfigAndPreparedCallback(sourceType: media.AudioSourceType, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'initConfigAndPreparedCallback start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'initConfigAndPreparedCallback  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
     await initAvConfig(sourceType);
-    console.info(TAG, 'initConfigAndPreparedCallback url=' + avConfig.url + ',state =' + mAvRecord.state);
-    mAvRecord.prepare(avConfig, (err: BusinessError) => {
+    console.info(TAG, 'initConfigAndPreparedCallback url=' + avConfig.url + ',state =' + mAvRecord?.state);
+    mAvRecord?.prepare(avConfig, (err: BusinessError) => {
       if (err) {
         console.error(TAG, 'initConfigAndPreparedCallback Failed to prepare and error is ' + err?.message);
         expect().assertFail();
+        reject();
       } else {
         console.info(TAG, 'initConfigAndPreparedCallback  Succeeded in preparing');
         expect(true).assertTrue();
+        resolve();
       }
       done();
     });
-  } else {
-    console.error(TAG, 'initConfigAndPreparedCallback error.');
-    expect().assertFail();
-  }
-  done();
+  });
 }
 
 async function initConfigAndPreparedPromise(sourceType: media.AudioSourceType) {
@@ -167,22 +171,42 @@ async function initVideoConfigAndPreparedPromise(sourceType: media.VideoSourceTy
   }
 }
 
-function avRecorderStartCallbackNormal() {
-  if (mAvRecord != null) {
-    console.info(TAG, 'avRecorderStartCallbackNormal startState =' + mAvRecord.state);
-    mAvRecord.start((err: BusinessError) => {
-      if (err) {
-        console.error(TAG, 'Failed to start AVRecorder and error is ' + JSON);
-        expect().assertFail();
-      } else {
-        console.info(TAG, 'Succeeded in starting AVRecorder');
-        expect(mAvRecord?.state).assertEqual(STARTED);
+async function avRecorderStartCallbackNormal(sourceType: media.AudioSourceType): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecorderStartCallbackNormal start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecorderStartCallbackNormal  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    mAvRecord?.on('stateChange', async (state, reason) => {
+      console.info(TAG, 'avRecorderStartCallbackNormal stateChange state = ' + state);
+      switch (state) {
+        case PREPARED:
+          mAvRecord?.start((err: BusinessError) => {
+            if (err) {
+              console.error(TAG, 'avRecorderStartCallbackNormal Failed to start AVRecorder and error is ' + JSON);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'avRecorderStartCallbackNormal Succeeded in starting AVRecorder');
+              expect(mAvRecord?.state).assertEqual(STARTED);
+              resolve();
+            }
+          });
+          break;
+        case ERROR:
+          expect().assertFail();
+          await mAvRecord?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          reject();
+          break;
+        default:
+          break;
       }
     });
-  } else {
-    console.error(TAG, 'avRecorderStartCallbackNormal error.');
-    expect().assertFail();
-  }
+    await initConfigAndPreparedPromise(sourceType);
+  });
 }
 
 function avRecorderStartCallbackAbnormal(done: Function) {
@@ -259,23 +283,238 @@ async function avRecorderPauseCallbackNormal() {
   }
 }
 
-async function avRecorderStopCallbackNormal() {
-  if (mAvRecord != null) {
-    console.info(TAG, 'avRecorderStopCallbackNormal startState =' + mAvRecord.state);
-    mAvRecord.stop((err: BusinessError) => {
-      if (err) {
-        console.error(TAG,
-          'Failed to stop AVRecorder and error is ' + err + JSON.stringify(err) + ',sate =' + mAvRecord?.state);
-        expect().assertFail();
-      } else {
-        console.info(TAG, 'Succeeded in stopping AVRecorder.');
-        expect(mAvRecord?.state).assertEqual(STOPPED);
+async function avRecordStartAndStopCallback(sourceType: media.AudioSourceType): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecordStartAndStopCallback start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecordStartAndStopCallback  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    mAvRecord?.on('stateChange', async (state, reason) => {
+      console.info(TAG, 'avRecordStartAndStopCallback stateChange state = ' + state);
+      switch (state) {
+        case PREPARED:
+          await mAvRecord?.start();
+          break;
+        case STARTED:
+          await commonFun.msleepAsync(SLEEP_TIME_2000);
+          mAvRecord?.stop((err: BusinessError) => {
+            if (err) {
+              console.error(TAG,
+                'avRecordStartAndStopCallback Failed to stop AVRecorder and error is ' + err + JSON.stringify(err) + ',sate =' +
+                  mAvRecord?.state);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'avRecordStartAndStopCallback Succeeded in stopping AVRecorder.');
+              expect(mAvRecord?.state).assertEqual(STOPPED);
+              resolve();
+            }
+          });
+          break;
+        case ERROR:
+          expect().assertFail();
+          await mAvRecord?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          reject();
+          break;
+        default:
+          break;
       }
     });
-  } else {
-    console.error(TAG, 'avRecorderStopCallbackNormal error.');
-    expect().assertFail();
-  }
+    await initConfigAndPreparedPromise(sourceType);
+  });
+}
+
+async function avRecordStopCallbackAbnormal(sourceType: media.AudioSourceType): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecordStopCallbackAbnormal start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecordStopCallbackAbnormal  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    mAvRecord?.on('stateChange', async (state, reason) => {
+      console.info(TAG, 'avRecordStopCallbackAbnormal stateChange state = ' + state);
+      switch (state) {
+        case PREPARED:
+          mAvRecord?.stop((err: BusinessError) => {
+            if (err) {
+              console.error(TAG,
+                'avRecordStopCallbackAbnormal Failed to stop AVRecorder and error is ' + err + JSON.stringify(err) +
+                  ',sate =' + mAvRecord?.state);
+              expect(err?.code).assertEqual(MediaErrorCode.OPERATE_NOT_PERMIT);
+              resolve();
+            } else {
+              console.info(TAG,
+                'avRecordStopCallbackAbnormal Succeeded in stopping AVRecorder, state =' + mAvRecord?.state);
+              expect().assertFail();
+              reject();
+            }
+          });
+          break;
+        case ERROR:
+          expect().assertFail();
+          await mAvRecord?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          reject();
+          break;
+        default:
+          break;
+      }
+    });
+    await initConfigAndPreparedPromise(sourceType);
+  });
+}
+
+async function avRecordPauseAndStopCallback(sourceType: media.AudioSourceType): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecordPauseAndStopCallback start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecordPauseAndStopCallback  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    mAvRecord?.on('stateChange', async (state, reason) => {
+      console.info(TAG, 'avRecordPauseAndStopCallback stateChange state = ' + state);
+      switch (state) {
+        case PREPARED:
+          await mAvRecord?.start();
+          break;
+        case STARTED:
+          await commonFun.msleepAsync(SLEEP_TIME_2000);
+          await mAvRecord?.pause();
+          break;
+        case PAUSED:
+          mAvRecord?.stop((err: BusinessError) => {
+            if (err) {
+              console.error(TAG,
+                'avRecordPauseAndStopCallback Failed to stop AVRecorder and error is ' + err + JSON.stringify(err) +
+                  ',sate =' + mAvRecord?.state);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'avRecordPauseAndStopCallback Succeeded in stopping AVRecorder.');
+              expect(mAvRecord?.state).assertEqual(STOPPED);
+              resolve();
+            }
+          });
+          break;
+        case ERROR:
+          expect().assertFail();
+          await mAvRecord?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          reject();
+          break;
+        default:
+          break;
+      }
+    });
+    await initConfigAndPreparedPromise(sourceType);
+  });
+}
+
+async function avRecordResumeAndStopCallback(sourceType: media.AudioSourceType): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecordResumeAndStopCallback start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecordResumeAndStopCallback  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    let isFirstTime = true;
+    mAvRecord?.on('stateChange', async (state, reason) => {
+      console.info(TAG, 'avRecordResumeAndStopCallback stateChange state = ' + state);
+      switch (state) {
+        case PREPARED:
+          await mAvRecord?.start();
+          break;
+        case STARTED:
+          if (isFirstTime) {
+            await commonFun.msleepAsync(SLEEP_TIME_2000);
+            await mAvRecord?.pause();
+            isFirstTime = false;
+          } else {
+            mAvRecord?.stop((err: BusinessError) => {
+              if (err) {
+                console.error(TAG,
+                  'avRecordResumeAndStopCallback Failed to stop AVRecorder and error is ' + err + JSON.stringify(err) +
+                    ',sate =' +
+                    mAvRecord?.state);
+                expect().assertFail();
+                reject();
+              } else {
+                console.info(TAG, 'avRecordPauseAndStopCallback Succeeded in stopping AVRecorder.');
+                expect(mAvRecord?.state).assertEqual(STOPPED);
+                resolve();
+              }
+            });
+          }
+          break;
+        case PAUSED:
+          await mAvRecord?.resume();
+          break;
+        case ERROR:
+          expect().assertFail();
+          await mAvRecord?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          reject();
+          break;
+        default:
+          break;
+      }
+    });
+    await initConfigAndPreparedPromise(sourceType);
+  });
+}
+
+async function avRecordPauseAndResumeCallback(sourceType: media.AudioSourceType): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecordPauseAndResumeCallback start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecordPauseAndResumeCallback  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    mAvRecord?.on('stateChange', async (state, reason) => {
+      console.info(TAG, 'avRecordPauseAndResumeCallback stateChange state = ' + state);
+      switch (state) {
+        case PREPARED:
+          await mAvRecord?.start();
+          break;
+        case STARTED:
+          await commonFun.msleepAsync(SLEEP_TIME_2000);
+          await mAvRecord?.pause();
+          break;
+        case PAUSED:
+          mAvRecord?.resume((err: BusinessError) => {
+            if (err) {
+              console.error(TAG,
+                'avRecordPauseAndResumeCallback Failed to resume AVRecorder and error is ' + err + JSON.stringify(err) +
+                  ',sate =' + mAvRecord?.state);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG,
+                'avRecordPauseAndResumeCallback Succeeded in resuming AVRecorder, state =' + mAvRecord?.state);
+              expect(mAvRecord?.state).assertEqual(STARTED);
+              resolve();
+            }
+          });
+          break;
+        case ERROR:
+          expect().assertFail();
+          await mAvRecord?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          reject();
+          break;
+        default:
+          break;
+      }
+    });
+    await initConfigAndPreparedPromise(sourceType);
+  });
 }
 
 async function avRecorderPausePromiseNormal() {
@@ -294,42 +533,137 @@ async function avRecorderPausePromiseNormal() {
   }
 }
 
-function avRecorderResumeCallbackNormal() {
-  if (mAvRecord != null) {
-    console.info(TAG, 'avRecorderResumeCallbackNormal startState =' + mAvRecord.state);
-    mAvRecord.resume((err: BusinessError) => {
-      if (err) {
-        console.error(TAG, 'Failed to resume AVRecorder and error is ' + err + JSON.stringify(err) + ',sate =' +
-          mAvRecord?.state);
-        expect().assertFail();
-      } else {
-        console.info(TAG, 'Succeeded in resuming AVRecorder, state =' + mAvRecord?.state);
-        expect(mAvRecord?.state).assertEqual(STARTED);
+async function avRecordStartAndResetCallback(sourceType: media.AudioSourceType): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecordStartAndResetCallback start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecordStartAndResetCallback  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    mAvRecord?.on('stateChange', async (state, reason) => {
+      console.info(TAG, 'avRecordStartAndResetCallback stateChange state = ' + state);
+      switch (state) {
+        case PREPARED:
+          await mAvRecord?.start();
+          break;
+        case STARTED:
+          await commonFun.msleepAsync(SLEEP_TIME_2000);
+          mAvRecord?.reset((err: BusinessError) => {
+            if (err) {
+              console.error(TAG, 'Failed to reset AVRecorder and error is ' + err + JSON.stringify(err) + ',sate =' +
+                mAvRecord?.state);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'Succeeded in resetting AVRecorder, state =' + mAvRecord?.state);
+              expect(mAvRecord?.state).assertEqual(IDLE);
+              resolve();
+            }
+          });
+          break;
+        case ERROR:
+          expect().assertFail();
+          await mAvRecord?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          reject();
+          break;
+        default:
+          break;
       }
     });
-  } else {
-    console.error(TAG, 'avRecorderResumeCallbackNormal error.');
-    expect().assertFail();
-  }
+    await initConfigAndPreparedPromise(sourceType);
+  });
 }
 
-function avRecorderResetCallbackNormal() {
-  if (mAvRecord != null) {
-    console.info(TAG, 'avRecorderResetCallbackNormal startState =' + mAvRecord.state);
-    mAvRecord.reset((err: BusinessError) => {
-      if (err) {
-        console.error(TAG, 'Failed to reset AVRecorder and error is ' + err + JSON.stringify(err) + ',sate =' +
-          mAvRecord?.state);
-        expect().assertFail();
-      } else {
-        console.info(TAG, 'Succeeded in resetting AVRecorder, state =' + mAvRecord?.state);
-        expect(mAvRecord?.state).assertEqual(IDLE);
+async function avRecordStopAndResetCallback(sourceType: media.AudioSourceType): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecordStopAndResetCallback start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecordStopAndResetCallback  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    mAvRecord?.on('stateChange', async (state, reason) => {
+      console.info(TAG, 'avRecordStopAndResetCallback stateChange state = ' + state);
+      switch (state) {
+        case PREPARED:
+          await mAvRecord?.start();
+          break;
+        case STARTED:
+          await commonFun.msleepAsync(SLEEP_TIME_2000);
+          await mAvRecord?.stop();
+          break;
+        case STOPPED:
+          mAvRecord?.reset((err: BusinessError) => {
+            if (err) {
+              console.error(TAG,
+                'avRecordStopAndResetCallback Failed to reset AVRecorder and error is ' + err + JSON.stringify(err) +
+                  ',sate =' + mAvRecord?.state);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG,
+                'avRecordStopAndResetCallback Succeeded in resetting AVRecorder, state =' + mAvRecord?.state);
+              expect(mAvRecord?.state).assertEqual(IDLE);
+              resolve();
+            }
+          });
+          break;
+        case ERROR:
+          expect().assertFail();
+          await mAvRecord?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          reject();
+          break;
+        default:
+          break;
       }
     });
-  } else {
-    console.error(TAG, 'avRecorderResetCallbackNormal error.');
-    expect().assertFail();
-  }
+    await initConfigAndPreparedPromise(sourceType);
+  });
+}
+
+async function avRecordPrepareAndResetCallback(sourceType: media.AudioSourceType): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecordPrepareAndResetCallback start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecordPrepareAndResetCallback  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    mAvRecord?.on('stateChange', async (state, reason) => {
+      console.info(TAG, 'avRecordPrepareAndResetCallback stateChange state = ' + state);
+      switch (state) {
+        case PREPARED:
+          await commonFun.msleepAsync(SLEEP_TIME_2000);
+          mAvRecord?.reset((err: BusinessError) => {
+            if (err) {
+              console.error(TAG,
+                'avRecordPrepareAndResetCallback Failed to reset AVRecorder and error is ' + err + JSON.stringify(err) +
+                  ',sate =' + mAvRecord?.state);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG,
+                'avRecordPrepareAndResetCallback Succeeded in resetting AVRecorder, state =' + mAvRecord?.state);
+              expect(mAvRecord?.state).assertEqual(IDLE);
+              resolve();
+            }
+          });
+          break;
+        case ERROR:
+          expect().assertFail();
+          await mAvRecord?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          reject();
+          break;
+        default:
+          break;
+      }
+    });
+    await initConfigAndPreparedPromise(sourceType);
+  });
 }
 
 function avRecorderReleaseCallbackNormal() {
@@ -354,7 +688,7 @@ function avRecorderReleaseCallbackNormal() {
 async function avRecorderResumePromiseNormal() {
   if (mAvRecord != null) {
     console.info(TAG, 'avRecorderResumePromiseNormal startState =' + mAvRecord.state);
-    mAvRecord.resume().then(() => {
+    await mAvRecord.resume().then(() => {
       console.info(TAG, 'Succeeded in resuming AVRecorder');
       expect(mAvRecord?.state).assertEqual(STARTED);
     }).catch((err: BusinessError) => {
@@ -425,7 +759,7 @@ async function avRecorderReleasePromiseNormal() {
 
 async function avRecorderResumeCallbackAbnormal() {
   if (mAvRecord != null) {
-    console.info(TAG, 'avRecorderResumeCallbackNormal startState =' + mAvRecord.state);
+    console.info(TAG, 'avRecorderResumeCallbackAbnormal startState =' + mAvRecord.state);
     mAvRecord.resume((err: BusinessError) => {
       if (err) {
         console.error(TAG,
@@ -443,29 +777,35 @@ async function avRecorderResumeCallbackAbnormal() {
   }
 }
 
-async function avRecorderStopCallbackAbnormal() {
-  if (mAvRecord != null) {
-    console.info(TAG, 'avRecorderStopCallbackAbnormal startState =' + mAvRecord.state);
-    mAvRecord.stop((err: BusinessError) => {
+async function avRecorderStopCallbackAbnormal(): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    console.info(TAG, 'avRecorderStopCallbackAbnormal without prepare start.');
+    if (!mAvRecord) {
+      console.error(TAG, 'avRecorderStopCallbackAbnormal  mAvRecord is null.');
+      expect().assertFail();
+      reject();
+    }
+    mAvRecord?.stop((err: BusinessError) => {
       if (err) {
         console.error(TAG,
-          'Failed to stop AVRecorder and error is ' + err + JSON.stringify(err) + ',sate =' + mAvRecord?.state);
+          'avRecorderStopCallbackAbnormal Failed to stop AVRecorder and error is ' + err + JSON.stringify(err) +
+            ',sate =' + mAvRecord?.state);
         expect(err?.code).assertEqual(MediaErrorCode.OPERATE_NOT_PERMIT);
+        resolve();
       } else {
-        console.info(TAG, 'Succeeded in stopping AVRecorder, state =' + mAvRecord?.state);
+        console.info(TAG,
+          'avRecorderStopCallbackAbnormal Succeeded in stopping AVRecorder, state =' + mAvRecord?.state);
         expect().assertFail();
+        reject();
       }
     });
-  } else {
-    console.error(TAG, 'avRecorderStopCallbackAbnormal error.');
-    expect().assertFail();
-  }
+  });
 }
 
 async function avRecorderResumePromiseAbnormal() {
   if (mAvRecord != null) {
-    console.info(TAG, 'avRecorderResumeCallbackNormal startState =' + mAvRecord.state);
-    mAvRecord.resume().then(() => {
+    console.info(TAG, 'avRecorderResumePromiseAbnormal startState =' + mAvRecord.state);
+    await mAvRecord.resume().then(() => {
       console.info(TAG, 'Succeeded in resuming AVRecorder');
       expect().assertFail();
     }).catch((err: BusinessError) => {
@@ -483,7 +823,7 @@ async function avRecorderResumePromiseAbnormal() {
 async function avRecorderStopPromiseAbnormal() {
   if (mAvRecord != null) {
     console.info(TAG, 'avRecorderStopPromiseAbnormal startState =' + mAvRecord.state);
-    mAvRecord.stop().then(() => {
+    await mAvRecord.stop().then(() => {
       console.info(TAG, 'Succeeded in stopping AVRecorder');
       expect().assertFail();
     }).catch((err: BusinessError) => {
@@ -944,13 +1284,20 @@ export default function AVRecorderTest() {
 
     afterEach(async () => {
       console.info(TAG, 'afterEach start.');
+      await sleep(SLEEP_TIME_200);
       if (mAvRecord) {
         console.info(TAG, 'afterEach mAvRecord not null.');
+        mAvRecord?.off('stateChange');
         await mAvRecord.release().then(() => {
           console.info(TAG, 'afterEach case release avRecord success.');
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
       }
-      await sleep(SLEEP_TIME_20);
+      if (fdObject && fdObject.fdNumber !== null) {
+        console.info(TAG, 'afterEach case close file.');
+        await commonFun.closeFd(fdObject.fdNumber);
+        fdObject.fdNumber = null;
+        await commonFun.unlinkFd(fdPath);
+      }
       console.info(TAG, 'afterEach case');
     });
 
@@ -1822,8 +2169,7 @@ export default function AVRecorderTest() {
      */
     it('start_callback_normal_001', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      avRecorderStartCallbackNormal();
+      await avRecorderStartCallbackNormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
       done();
     })
 
@@ -1837,8 +2183,7 @@ export default function AVRecorderTest() {
      */
     it('start_callback_normal_002', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      avRecorderStartCallbackNormal();
+      await avRecorderStartCallbackNormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
       done();
     })
 
@@ -1852,8 +2197,7 @@ export default function AVRecorderTest() {
      */
     it('start_callback_normal_003', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      avRecorderStartCallbackNormal();
+      await avRecorderStartCallbackNormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
       done();
     })
 
@@ -1867,8 +2211,7 @@ export default function AVRecorderTest() {
      */
     it('start_callback_normal_004', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      avRecorderStartCallbackNormal();
+      await avRecorderStartCallbackNormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       done();
     })
 
@@ -1882,8 +2225,7 @@ export default function AVRecorderTest() {
      */
     it('start_callback_normal_005', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      avRecorderStartCallbackNormal();
+      await avRecorderStartCallbackNormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
       done();
     })
 
@@ -1897,8 +2239,7 @@ export default function AVRecorderTest() {
      */
     it('start_callback_normal_006', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      avRecorderStartCallbackNormal();
+      await avRecorderStartCallbackNormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
       done();
     })
 
@@ -2304,10 +2645,7 @@ export default function AVRecorderTest() {
      */
     it('resume_callback_normal_001', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderResumeCallbackNormal();
+      await avRecordPauseAndResumeCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
       done();
     })
 
@@ -2321,10 +2659,7 @@ export default function AVRecorderTest() {
      */
     it('resume_callback_normal_002', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderResumeCallbackNormal();
+      await avRecordPauseAndResumeCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
       done();
     })
 
@@ -2338,10 +2673,7 @@ export default function AVRecorderTest() {
      */
     it('resume_callback_normal_003', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderResumeCallbackNormal();
+      await avRecordPauseAndResumeCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
       done();
     })
 
@@ -2355,10 +2687,7 @@ export default function AVRecorderTest() {
      */
     it('resume_callback_normal_004', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderResumeCallbackNormal();
+      await avRecordPauseAndResumeCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       done();
     })
 
@@ -2372,10 +2701,7 @@ export default function AVRecorderTest() {
      */
     it('resume_callback_normal_005', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderResumeCallbackNormal();
+      await avRecordPauseAndResumeCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
       done();
     })
 
@@ -2389,10 +2715,7 @@ export default function AVRecorderTest() {
      */
     it('resume_callback_normal_006', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderResumeCallbackNormal();
+      await avRecordPauseAndResumeCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
       done();
     })
 
@@ -2698,9 +3021,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_001', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      await avRecorderStartPromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordStartAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
       done();
     })
 
@@ -2714,9 +3035,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_002', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      await avRecorderStartPromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordStartAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
       done();
     })
 
@@ -2730,9 +3049,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_003', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      await avRecorderStartPromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordStartAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
       done();
     })
 
@@ -2746,9 +3063,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_004', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      await avRecorderStartPromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordStartAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       done();
     })
 
@@ -2762,9 +3077,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_005', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      await avRecorderStartPromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordStartAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
       done();
     })
 
@@ -2778,9 +3091,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_006', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      await avRecorderStartPromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordStartAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
       done();
     })
 
@@ -2794,10 +3105,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_007', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordPauseAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT)
       done();
     })
 
@@ -2811,10 +3119,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_008', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordPauseAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
       done();
     })
 
@@ -2828,10 +3133,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_009', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordPauseAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
       done();
     })
 
@@ -2845,10 +3147,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_010', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordPauseAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       done();
     })
 
@@ -2862,10 +3161,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_011', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordPauseAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
       done();
     })
 
@@ -2879,10 +3175,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_012', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordPauseAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
       done();
     })
 
@@ -2896,11 +3189,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_013', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderResumePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordResumeAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
       done();
     })
 
@@ -2914,11 +3203,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_014', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderResumePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordResumeAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
       done();
     })
 
@@ -2932,11 +3217,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_015', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderResumePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordResumeAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
       done();
     })
 
@@ -2950,12 +3231,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_016', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderResumePromiseNormal();
-      await sleep(SLEEP_TIME_20);
-      avRecorderStopCallbackNormal();
+      await avRecordResumeAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       done();
     })
 
@@ -2969,11 +3245,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_017', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderResumePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordResumeAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
       done();
     })
 
@@ -2987,11 +3259,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_normal_018', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderResumePromiseNormal();
-      avRecorderStopCallbackNormal();
+      await avRecordResumeAndStopCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
       done();
     })
 
@@ -3204,8 +3472,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_abnormal_001', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      avRecorderStopCallbackAbnormal();
+      await avRecordStopCallbackAbnormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
       done();
     })
 
@@ -3219,8 +3486,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_abnormal_002', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      avRecorderStopCallbackAbnormal();
+      await avRecordStopCallbackAbnormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
       done();
     })
 
@@ -3234,8 +3500,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_abnormal_003', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      avRecorderStopCallbackAbnormal();
+      await avRecordStopCallbackAbnormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
       done();
     })
 
@@ -3249,8 +3514,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_abnormal_004', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      avRecorderStopCallbackAbnormal();
+      await avRecordStopCallbackAbnormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       done();
     })
 
@@ -3264,8 +3528,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_abnormal_005', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      avRecorderStopCallbackAbnormal();
+      await avRecordStopCallbackAbnormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
       done();
     })
 
@@ -3279,8 +3542,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_abnormal_006', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      avRecorderStopCallbackAbnormal();
+      await avRecordStopCallbackAbnormal(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
       done();
     })
 
@@ -3294,7 +3556,7 @@ export default function AVRecorderTest() {
      */
     it('stop_callback_abnormal_007', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      avRecorderStopCallbackAbnormal();
+      await avRecorderStopCallbackAbnormal();
       done();
     })
 
@@ -3412,9 +3674,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_001', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      await avRecorderStartPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStartAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
       done();
     })
 
@@ -3428,9 +3688,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_002', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      await avRecorderStartPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStartAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
       done();
     })
 
@@ -3444,9 +3702,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_003', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      await avRecorderStartPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStartAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
       done();
     })
 
@@ -3460,9 +3716,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_004', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      await avRecorderStartPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStartAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       done();
     })
 
@@ -3476,9 +3730,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_005', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      await avRecorderStartPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStartAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
       done();
     })
 
@@ -3492,9 +3744,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_006', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      await avRecorderStartPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStartAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
       done();
     })
 
@@ -3508,11 +3758,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_007', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderStopPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStopAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
       done();
     })
 
@@ -3526,11 +3772,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_008', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderStopPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStopAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
       done();
     })
 
@@ -3544,11 +3786,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_009', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderStopPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStopAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
       done();
     })
 
@@ -3562,11 +3800,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_010', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderStopPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStopAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       done();
     })
 
@@ -3580,11 +3814,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_011', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderStopPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStopAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
       done();
     })
 
@@ -3598,11 +3828,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_012', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      await avRecorderStartPromiseNormal();
-      await avRecorderPausePromiseNormal();
-      await avRecorderStopPromiseNormal();
-      avRecorderResetCallbackNormal();
+      await avRecordStopAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
       done();
     })
 
@@ -4228,8 +4454,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_013', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      avRecorderResetCallbackNormal();
+      await avRecordPrepareAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
       done();
     })
 
@@ -4243,8 +4468,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_014', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      avRecorderResetCallbackNormal();
+      await avRecordPrepareAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
       done();
     })
 
@@ -4258,8 +4482,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_015', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      avRecorderResetCallbackNormal();
+      await avRecordPrepareAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
       done();
     })
 
@@ -4273,8 +4496,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_016', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      avRecorderResetCallbackNormal();
+      await avRecordPrepareAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       done();
     })
 
@@ -4288,8 +4510,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_017', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      avRecorderResetCallbackNormal();
+      await avRecordPrepareAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
       done();
     })
 
@@ -4303,8 +4524,7 @@ export default function AVRecorderTest() {
      */
     it('reset_callback_normal_018', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
-      await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      avRecorderResetCallbackNormal();
+      await avRecordPrepareAndResetCallback(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
       done();
     })
 
@@ -4319,7 +4539,7 @@ export default function AVRecorderTest() {
     it('reset_promise_normal_013', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
       await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_DEFAULT);
-      await avRecorderResetCallbackNormal();
+      await avRecorderResetPromiseNormal();
       done();
     })
 
@@ -4334,7 +4554,7 @@ export default function AVRecorderTest() {
     it('reset_promise_normal_014', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
       await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC);
-      await avRecorderResetCallbackNormal();
+      await avRecorderResetPromiseNormal();
       done();
     })
 
@@ -4349,7 +4569,7 @@ export default function AVRecorderTest() {
     it('reset_promise_normal_015', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
       await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_RECOGNITION);
-      await avRecorderResetCallbackNormal();
+      await avRecorderResetPromiseNormal();
       done();
     })
 
@@ -4364,7 +4584,7 @@ export default function AVRecorderTest() {
     it('reset_promise_normal_016', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
       await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
-      await avRecorderResetCallbackNormal();
+      await avRecorderResetPromiseNormal();
       done();
     })
 
@@ -4379,7 +4599,7 @@ export default function AVRecorderTest() {
     it('reset_promise_normal_017', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
       await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_MESSAGE);
-      await avRecorderResetCallbackNormal();
+      await avRecorderResetPromiseNormal();
       done();
     })
 
@@ -4394,7 +4614,7 @@ export default function AVRecorderTest() {
     it('reset_promise_normal_018', Level.LEVEL2, async (done: Function) => {
       await createAvRecorderPromise();
       await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_CAMCORDER);
-      await avRecorderResetCallbackNormal();
+      await avRecorderResetPromiseNormal();
       done();
     })
 

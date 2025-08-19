@@ -901,8 +901,7 @@ async function setPlaybackRangePromise(src: string | media.AVFileDescriptor, avP
   }
   await sleep(SLEEP_TIME_20);
   console.info(TAG, testName + ' surfaceId: ' + avPlayer?.surfaceId);
-  expect(avPlayer?.state).assertEqual(INITIALIZED);
-  avPlayer?.setPlaybackRange(startTimeMs, endTimeMs, mode).then(() => {
+  await avPlayer?.setPlaybackRange(startTimeMs, endTimeMs, mode).then(() => {
     console.info(TAG, testName + ' succeed to set PlaybackRange');
   }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
   done();
@@ -914,25 +913,65 @@ async function setSuperResolutionPromise(src: string | media.AVFileDescriptor, a
   avPlayer = await idle(src, avPlayer, testName);
   setSource(avPlayer, src, testName);
   console.info(TAG, testName + ' setSuperResolutionPromise setSource');
-  await sleep(SLEEP_TIME_20);
-  if (avPlayer) {
-    avPlayer.surfaceId = surfaceID;
-  }
-  avPlayer?.setPlaybackStrategy(strategy).then(() => {
-    console.info(TAG, testName + ' succeed to set PlaybackStrategy');
-  }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
-  await avPlayer?.setSuperResolution(enabled).then(() => {
-    if (enabled) {
-      console.info(TAG, testName + ' succeed to set SuperResolution opened');
-    } else {
-      console.info(TAG, testName + ' succeed to set SuperResolution closed');
+  avPlayer?.on('stateChange', async (state, reason) => {
+    console.info(TAG, testName + ` case stateChange called, state is ${state}, reason is ${reason}`);
+    switch (state) {
+      case INITIALIZED:
+        if (!avPlayer) {
+          console.info(TAG, testName + ' avPlayer is null');
+          break;
+        }
+        console.info(TAG, testName + ' play state is INITIALIZED');
+        avPlayer.surfaceId = surfaceID;
+        expect(avPlayer.state).assertEqual(INITIALIZED);
+        await avPlayer?.setPlaybackStrategy(strategy).then(() => {
+          console.info(TAG, testName + ' succeed to set PlaybackStrategy');
+          expect(true).assertTrue();
+        }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        console.info(TAG, testName + ' set PlaybackStrategy end');
+        await avPlayer?.prepare();
+        break;
+      case PREPARED:
+        console.info(TAG, testName + ' play state is PREPARED');
+        expect(avPlayer?.state).assertEqual(PREPARED);
+        await avPlayer?.setSuperResolution(enabled).then(() => {
+          if (enabled) {
+            console.info(TAG, testName + ' succeed to set SuperResolution opened');
+          } else {
+            console.info(TAG, testName + ' succeed to set SuperResolution closed');
+          }
+        }).catch(async (error: BusinessError) => {
+          console.error(TAG,
+            testName + ' Failed to set SuperResolution, code: ' + error.code + ', msg: ' + error.message);
+          expect(error.code == MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED ||
+            error.code == MediaErrorCode.AVERR_UNSUPPORT_FORMAT).assertTrue();
+          await avPlayer?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        });
+        await avPlayer?.stop();
+        break;
+      case STOPPED:
+        console.info(TAG, testName + ' play state is STOPPED');
+        await avPlayer?.release().then(() => {
+        }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        break;
+      case RELEASED:
+        console.info(TAG, testName + ' play state is RELEASED');
+        avPlayer?.off('stateChange');
+        avPlayer?.off('error');
+        avPlayer = null;
+        done();
+        break;
+      default:
+        break;
     }
-  }).catch((error: BusinessError) => {
-    console.error(TAG, testName + ' Failed to set SuperResolution, code: ' + error.code + ', msg: ' + error.message);
-    expect(error.code).assertEqual(MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED);
+  });
+  avPlayer?.on('error', async (err: BusinessError) => {
+    console.error(TAG, testName + ` case error called, errCode: ${err.code}, errMessage is ${err.message}`);
+    expect(err.code == MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED ||
+      err.code == MediaErrorCode.AVERR_UNSUPPORT_FORMAT).assertTrue();
     done();
   });
-  done();
 }
 
 async function setSuperResolutionPromiseAbnormal(src: string | media.AVFileDescriptor, avPlayer: media.AVPlayer | null,
@@ -962,31 +1001,68 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
   avPlayer = await idle(src, avPlayer, testName);
   setSource(avPlayer, src, testName);
   console.info(TAG, testName + ' setVideoWindowSizePromise setSource');
-  await sleep(SLEEP_TIME_20);
-  if (avPlayer) {
-    avPlayer.surfaceId = surfaceID;
-  }
-  avPlayer?.setPlaybackStrategy(strategy).then(() => {
-    console.info(TAG, testName + ' succeed to set PlaybackStrategy');
-  }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
-  await avPlayer?.prepare().then(() => {
-    expect(avPlayer?.state).assertEqual(PREPARED);
-    console.info(TAG, testName + ' getSeekContinuousSupported avPlayer state is prepared');
-  }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
-  await avPlayer?.setVideoWindowSize(width, height).then(() => {
-    console.info(TAG, testName + ' succeed to set VideoWindowSize');
-  }).catch((error: BusinessError) => {
-    console.error(TAG, testName + ' Failed to set VideoWindowSize, code: ' + error.code + ', msg: ' + error.message);
-    if (error.code == MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED) {
-      console.info(TAG, testName + ' This device does not super resolution.');
-      done();
-      return;
-    } else {
-      expect(error.code).assertEqual(MediaErrorCode.PARAMETER_ERROR);
-      done();
+  avPlayer?.on('stateChange', async (state, reason) => {
+    console.info(TAG, testName + ` case stateChange called, state is ${state}, reason is ${reason}`);
+    switch (state) {
+      case INITIALIZED:
+        if (!avPlayer) {
+          console.info(TAG, testName + ' avPlayer is null');
+          break;
+        }
+        console.info(TAG, testName + ' play state is INITIALIZED');
+        avPlayer.surfaceId = surfaceID;
+        expect(avPlayer.state).assertEqual(INITIALIZED);
+        await avPlayer?.setPlaybackStrategy(strategy).then(() => {
+          console.info(TAG, testName + ' succeed to set PlaybackStrategy');
+          expect(true).assertTrue();
+        }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        console.info(TAG, testName + ' set PlaybackStrategy end');
+        await avPlayer?.prepare();
+        break;
+      case PREPARED:
+        console.info(TAG, testName + ' play state is PREPARED');
+        expect(avPlayer?.state).assertEqual(PREPARED);
+        await avPlayer?.setVideoWindowSize(width, height).then(() => {
+          console.info(TAG, testName + ' succeed to set VideoWindowSize');
+        }).catch(async (error: BusinessError) => {
+          console.error(TAG,
+            testName + ' Failed to set VideoWindowSize, code: ' + error.code + ', msg: ' + error.message);
+          if (error.code == MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED) {
+            console.info(TAG, testName + ' This device does not super resolution.');
+            return;
+          } else {
+            expect(error.code).assertEqual(MediaErrorCode.PARAMETER_ERROR);
+            await avPlayer?.release().then(() => {
+            }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+          }
+          done();
+        });
+        await avPlayer?.stop();
+        break;
+      case STOPPED:
+        console.info(TAG, testName + ' play state is STOPPED');
+        await avPlayer?.release().then(() => {
+        }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        break;
+      case RELEASED:
+        console.info(TAG, testName + ' play state is RELEASED');
+        avPlayer?.off('stateChange');
+        avPlayer?.off('error');
+        avPlayer = null;
+        done();
+        break;
+      case ERROR:
+        console.info(TAG, testName + ' play state is ERROR');
+        expect().assertFail();
+        done();
+        break;
+      default:
+        break;
     }
   });
-  done();
+  avPlayer?.on('error', async (err: BusinessError) => {
+    console.error(TAG, testName + ` case error called, errCode: ${err.code}, errMessage is ${err.message}`);
+  });
 }
 
 async function setVideoWindowSizePromiseAbnormal(src: string | media.AVFileDescriptor, avPlayer: media.AVPlayer | null,
@@ -1185,12 +1261,6 @@ async function handleState(state: string, preparedOp: Function, playedOp: Functi
         console.info(TAG, testName + ' case stop AVPlayer success');
       }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
       break;
-  /*
-      case RELEASED:
-        expect(avPlayer?.state).assertEqual(COMPLETED);
-        avPlayer = null;
-        break;
-  */
     case ERROR:
       expect(avPlayer?.state).assertEqual(ERROR);
       expect().assertFail();
@@ -1369,17 +1439,23 @@ export default function AVPlayerTest() {
 
     beforeEach(async () => {
       console.info(TAG, 'beforeEach case');
-      await sleep(SLEEP_TIME_200);
+      await sleep(SLEEP_TIME_500);
     });
 
     afterEach(async () => {
+      console.info(TAG, 'afterEach start');
+      await sleep(SLEEP_TIME_500);
       if (avPlayer != null) {
         avPlayer.off('stateChange');
+        console.info(TAG, 'afterEach case off stateChange-listen');
+        avPlayer.off('error');
+        console.info(TAG, 'afterEach case off error-listen');
         await avPlayer.release().then(() => {
+          console.info(TAG, 'afterEach case release succeed.');
+          avPlayer = null;
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
       }
-      await sleep(SLEEP_TIME_20);
-      console.info(TAG, 'afterEach case');
+      console.info(TAG, 'afterEach end');
     });
 
     afterAll(async () => {

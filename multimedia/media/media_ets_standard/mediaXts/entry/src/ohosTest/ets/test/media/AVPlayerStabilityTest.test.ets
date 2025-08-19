@@ -87,14 +87,18 @@ export default function AVPlayerStabilityTest() {
     });
 
     afterEach(async () => {
+      console.info(TAG, 'afterEach start');
       if (avPlayer != null) {
         avPlayer.off('stateChange');
+        console.info(TAG, 'afterEach case off stateChange-listen');
         await avPlayer.release().then(() => {
+          console.info(TAG, 'afterEach case release succeed.');
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
       }
+      console.info(TAG, 'afterEach case release end');
       await mediaTestBase.closeFdNumber(fdNumbers[0]);
       fdNumbers = [];
-      console.info(TAG, 'afterEach case');
+      console.info(TAG, 'afterEach end');
     });
 
     afterAll(async () => {
@@ -116,7 +120,7 @@ export default function AVPlayerStabilityTest() {
         fileDescriptor = res;
         fdNumbers.push(fileDescriptor.fd);
       });
-      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
+      await avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
