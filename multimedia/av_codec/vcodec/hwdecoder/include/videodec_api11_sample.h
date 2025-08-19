@@ -97,6 +97,7 @@ public:
     int32_t picHeight_ = 0;
     bool enableVRR = false;
     bool enableLowLatency = false;
+    int lowLatency = 1;
     bool getInputBufferIndexRepeat = false;
     int32_t enbleSyncMode = 0;
     int64_t syncInputWaitTime = -1;
@@ -134,6 +135,8 @@ public:
     int32_t CheckAndReturnBufferSize(OH_AVBuffer *buffer);
     uint32_t SendData(uint32_t bufferSize, uint32_t index, OH_AVBuffer *buffer);
     void ProcessOutputData(OH_AVBuffer *buffer, uint32_t index);
+    void CopyFrom10BitYuv(OH_AVBuffer *buffer, uint32_t index);
+    void CopyFrom8BitYuv(OH_AVBuffer *buffer, uint32_t index);
     int32_t CheckAttrFlag(OH_AVCodecBufferAttr attr);
     void GetStride();
     void InputFuncTest();
@@ -171,6 +174,7 @@ public:
     int32_t maxInputSize = 0;
     int64_t end_time = 0;
     bool autoSwitchSurface = false;
+    bool is8bitYuv = true;
     std::atomic<bool> isFlushing_ { false };
     int32_t switchSurfaceFlag = 0;
     std::atomic<bool> isRunning_ { false };
