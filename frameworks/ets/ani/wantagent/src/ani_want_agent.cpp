@@ -64,10 +64,6 @@ bool OnSendFinishedCallback(TriggerReceiveDataWorker *dataWorker)
         TAG_LOGI(AAFwkTag::WANTAGENT, "canceled");
         return false;
     }
-    if (dataWorker->resultData == "canceled") {
-        TAG_LOGI(AAFwkTag::WANTAGENT, "canceled");
-        return;
-    }
     ani_vm *etsVm = dataWorker->vm;
     if (etsVm == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null etsVm");
