@@ -46,7 +46,6 @@ async function getAllObjectsPromiseTest(done: Function, fetchOps: photoAccessHel
     let photoAssetList: Array<photoAccessHelper.PhotoAsset> = await fetchResult.getAllObjects();
     console.info(TAG, 'photoAssetList length: ', photoAssetList.length);
     await fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);
@@ -75,7 +74,6 @@ async function getAllObjectsCallbackTest(done: Function, fetchOps: photoAccessHe
       fetchResult.close();
       if (photoAssetList !== undefined) {
         console.info(TAG, 'photoAssetList length: ', photoAssetList.length);
-        expect(true).assertTrue();
       } else {
         console.error(TAG, `photoAssetList length failed with err: ${err.code}, ${err.message}`);
         expect().assertFail();

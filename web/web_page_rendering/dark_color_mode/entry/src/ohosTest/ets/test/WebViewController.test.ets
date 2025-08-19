@@ -34,7 +34,6 @@ export default function webViewController() {
         if (!("webViewController" == pages.name)) {
           console.info("get webViewController state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push webViewController page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -49,7 +48,6 @@ export default function webViewController() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("webViewController beforeEach start");
       done();
     })
@@ -63,9 +61,8 @@ export default function webViewController() {
     * @tc.level      : Level 0
     */
     it('testDarkMode001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent("testDarkMode001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testDarkMode001", "true", 31039, done);
+      Utils.emitEvent("testDarkMode001", 152250)
+      Utils.registerEvent("testDarkMode001", "true", 152260, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
 
@@ -78,9 +75,8 @@ export default function webViewController() {
     * @tc.level      : Level 1
     */
     it('testDarkMode002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testDarkMode002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testDarkMode002", true, 31040, done);
+      Utils.emitEvent("testDarkMode002", 152250)
+      Utils.registerEvent("testDarkMode002", true, 152270, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
 
@@ -93,9 +89,8 @@ export default function webViewController() {
     * @tc.level      : Level 1
     */
     it('testForceDarkAccess001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testForceDarkAccess001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testForceDarkAccess001", "false", 31041, done);
+      Utils.emitEvent("testForceDarkAccess001", 152250)
+      Utils.registerEvent("testForceDarkAccess001", "false", 152280, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
   })

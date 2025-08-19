@@ -27,6 +27,9 @@ import ShapeResourceTest from './Shape/ShapeResourceTest';
 
 import CanvasEllipseTest from './CanvasRenderingContext2D/CanvasEllipseTest';
 import Matrix2DMultiplyTest from './CanvasRenderingContext2D/Matrix2DMultiplyTest';
+import StartImageAnalyzerErrorCodeTest1 from './CanvasRenderingContext2D/StartImageAnalyzerErrorCodeTest1';
+import CanvasRoundRectErrorCodeTest from './CanvasRenderingContext2D/CanvasRoundRectErrorCodeTest';
+import AddColorStopErrorCodeTest from './CanvasRenderingContext2D/AddColorStopErrorCodeTest';
 
 export default function testsuite() {
   RoundRectTest(); 
@@ -44,5 +47,8 @@ export default function testsuite() {
 
   CanvasEllipseTest();
   Matrix2DMultiplyTest();
+  StartImageAnalyzerErrorCodeTest1();
+  CanvasRoundRectErrorCodeTest();
+  AddColorStopErrorCodeTest();
 
 }

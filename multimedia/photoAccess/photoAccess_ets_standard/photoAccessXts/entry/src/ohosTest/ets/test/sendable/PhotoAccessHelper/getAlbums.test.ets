@@ -33,7 +33,6 @@ async function getAlbumsPromiseWithOptionsTest(done: Function, type: sendablePho
       const count = fetchResult.getCount();
       console.info(TAG, `getAlbums success, count: ${count}`);
       fetchResult.close();
-      expect(true).assertTrue();
       done();
     }).catch((error: BusinessError) => {
       console.error(TAG, `getAlbums result failed; code: ${error?.code}, msg: ${error?.message}`);
@@ -59,7 +58,6 @@ async function getAlbumsPromiseWithOptionsAbnormalTest(done: Function,
       const count = fetchResult.getCount();
       console.info(TAG, `getAlbums success, count: ${count}`);
       fetchResult.close();
-      expect(true).assertTrue();
       done();
     }).catch((error: BusinessError) => {
       console.error(TAG, `getAlbums result failed; code: ${error?.code}, msg: ${error?.message}`);
@@ -82,7 +80,6 @@ async function getAlbumsPromiseTest(done: Function, type: sendablePhotoAccessHel
       const count = fetchResult.getCount();
       console.info(TAG, `getAlbums success, count: ${count}`);
       fetchResult.close();
-      expect(true).assertTrue();
       done();
     }).catch((error: BusinessError) => {
       console.error(TAG, `getAlbums result failed; code: ${error?.code}, msg: ${error?.message}`);
@@ -107,7 +104,6 @@ async function getAlbumsPromiseAbnormalTest(done: Function, type: sendablePhotoA
         const count = fetchResult.getCount();
         console.info(TAG, `getAlbums success, count: ${count}`);
         fetchResult.close();
-        expect(true).assertTrue();
         done();
       })
       .catch((error: BusinessError) => {
@@ -130,7 +126,6 @@ async function getAlbumsPromiseOnlyOptionsTest(done: Function, fetchOps: photoAc
       const count = fetchResult.getCount();
       console.info(TAG, `getAlbums success, count: ${count}`);
       fetchResult.close();
-      expect(true).assertTrue();
       done();
     }).catch((error: BusinessError) => {
       console.error(TAG, `getAlbums result failed; code: ${error?.code}, msg: ${error?.message}`);
@@ -154,7 +149,6 @@ async function getAlbumsPromiseOnlyOptionsAbnormalTest(done: Function,
         const count = fetchResult.getCount();
         console.info(TAG, `getAlbums success, count: ${count}`);
         fetchResult.close();
-        expect(true).assertTrue();
         done();
       })
       .catch((error: BusinessError) => {

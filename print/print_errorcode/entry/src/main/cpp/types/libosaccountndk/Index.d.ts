@@ -17,4 +17,8 @@ export const OHPrintInvalidParameter: () => Promise<number>;
 export const OHPrintGenericFailure: () => Promise<number>;
 export const OHPrintInvalidPrintJob: () => Promise<number>;
 export const OHPrintInvalidPrinter: () => Promise<number>;
+export const OHScanNoError: () => Promise<number>;
+export const OHScanInvalidParameter: () => Promise<number>;
+export const OHScanUnSupported: () => Promise<number>;
+export const OHPrintINVALID: () => Promise<number>;
 

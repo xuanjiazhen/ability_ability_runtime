@@ -28,7 +28,6 @@ async function releasePromiseTest(done: Function, testName: string, opts: image.
 
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.release();
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

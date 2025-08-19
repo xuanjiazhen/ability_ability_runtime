@@ -28,7 +28,6 @@ async function readPixelsToBufferPromiseTest(done: Function, testName: string,
     if (sendablePixelMap != undefined) {
       sendablePixelMap.readPixelsToBuffer(readBuffer).then(() => {
         console.info(TAG, 'Succeeded in reading image pixel data.');
-        expect(true).assertTrue();
         done();
       }).catch((error: BusinessError) => {
         console.error(TAG,

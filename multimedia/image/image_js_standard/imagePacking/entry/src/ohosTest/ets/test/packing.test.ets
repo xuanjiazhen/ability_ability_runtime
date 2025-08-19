@@ -278,7 +278,6 @@ export default function imagePacking() {
                 })
                 .catch((error: BusinessError) => {
                   console.log(`${testNum} error:` + error);
-                  expect(true).assertTrue();
                   done();
                 });
             }
@@ -1082,7 +1081,6 @@ export default function imagePacking() {
           } else {
             console.info("SUB_MULTIMEDIA_IMAGE_PACKING_CREATEIMAGEPACKER_0100 create image packer success");
             await imagePackerApi.release();
-            expect(true).assertTrue();
             done();
           }
           await imageSourceApi?.release();
@@ -1133,7 +1131,6 @@ export default function imagePacking() {
               .catch((error: BusinessError) => {
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_0200 error: " + error);
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_0200 success");
-                expect(true).assertTrue();
                 done();
               });
             await imageSourceApi?.release();
@@ -1186,7 +1183,6 @@ export default function imagePacking() {
               .catch((error: BusinessError) => {
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_0300 error: " + error);
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_0300 success");
-                expect(true).assertTrue();
                 done();
               });
             await imageSourceApi?.release();
@@ -1240,7 +1236,6 @@ export default function imagePacking() {
               }
               if (data != undefined) {
                 console.info("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_CALLBACK_0400 success");
-                expect(true).assertTrue();
                 done();
               } else {
                 expect(false).assertTrue();
@@ -1391,7 +1386,6 @@ export default function imagePacking() {
               .catch((error: BusinessError) => {
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_0700 error: " + error);
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_0700 success");
-                expect(true).assertTrue();
                 done();
               });
             await imageSourceApi?.release();
@@ -1492,7 +1486,6 @@ export default function imagePacking() {
               .catch((error: BusinessError) => {
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_0900 error: " + error);
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_0900 success");
-                expect(true).assertTrue();
                 done();
               });
             await imageSourceApi?.release();
@@ -1546,7 +1539,6 @@ export default function imagePacking() {
               .catch((error: BusinessError) => {
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_1000 error: " + error);
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_1000 success");
-                expect(true).assertTrue();
                 done();
               });
             await imageSourceApi?.release();
@@ -1599,7 +1591,6 @@ export default function imagePacking() {
               .catch((error: BusinessError) => {
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_1100 error: " + error);
                 console.log("SUB_MULTIMEDIA_IMAGE_PACKING_IMAGESOURCE_PROMISE_1100 success");
-                expect(true).assertTrue();
                 done();
               });
             await imageSourceApi?.release();
@@ -1683,7 +1674,6 @@ export default function imagePacking() {
           .release()
           .then(() => {
             console.info("SUB_MULTIMEDIA_IMAGE_PACKING_RELEASE_IMAGEPACKER_PROMISE_0100 success");
-            expect(true).assertTrue();
             done();
           })
           .catch((error: BusinessError) => {
@@ -1714,7 +1704,6 @@ export default function imagePacking() {
       } else {
         imagePackerApi.release(() => {
           console.info("SUB_MULTIMEDIA_IMAGE_PACKING_RELEASE_IMAGEPACKER_CALLBACK_0100 success");
-          expect(true).assertTrue();
           done();
         });
       }
@@ -1836,7 +1825,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_0100", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -1864,7 +1852,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_0200", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "test.png");
@@ -1893,7 +1880,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_0300", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -1918,7 +1904,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_0400", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "test.png");
@@ -1944,7 +1929,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_0500", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -1970,7 +1954,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_0600", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -1996,7 +1979,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_0700", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2022,7 +2004,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_0800", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2048,7 +2029,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_0900", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2074,7 +2054,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1000", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2100,7 +2079,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1100", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2126,7 +2104,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1200", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "test.bmp");
@@ -2155,7 +2132,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1300", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "test.jpg");
@@ -2184,7 +2160,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1400", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "test.ico");
@@ -2213,7 +2188,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1500", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "test.svg");
@@ -2242,7 +2216,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1600", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "test.dng");
@@ -2271,7 +2244,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1700", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "test.jpeg");
@@ -2300,7 +2272,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1800", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let pixelMapList = await createPixelMapList(done, "test.webp");
@@ -2329,13 +2300,11 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_1900", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let isSupportFormat = await isSupportImageFormat("HDRVividSingleLayer.heic", "image/heic");
 		if (!isSupportFormat) {
 	      console.info("device is not support imageformat heic");
-		  expect(true).assertTrue();
 		  done();
         } else {
           let pixelMapList = await createPixelMapList(done, "HDRVividSingleLayer.heic");
@@ -2365,7 +2334,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_ERROR_0100", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2391,7 +2359,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_ERROR_0200", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2417,7 +2384,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_ERROR_0300", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2443,7 +2409,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_ERROR_0400", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2469,7 +2434,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKINGFORSEQUENCE_ERROR_0500", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = await createPixelMapList(done, "moving_test.gif");
@@ -2495,7 +2459,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_PACKING_PIXELMAPLIST_ERROR_0100", Level.LEVEL0, async (done: Function) => {
         if (!isSupportGifEncode) {
           console.info("This device does not support GIF encoding.")
-          expect(true).assertTrue();
           done();
         } else {
           let pixelMapList = [];
@@ -2521,7 +2484,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_GIF_PACKINGTODATA_0100", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         await testPackGifToData(
@@ -2549,7 +2511,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_GIF_PACKINGTODATA_0200", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         await testPackGifToData(
@@ -2579,7 +2540,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_GIF_PACKINGTODATA_0300", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         await testPackGifToData(
@@ -2607,7 +2567,6 @@ export default function imagePacking() {
     it("SUB_MULTIMEDIA_IMAGE_GIF_PACKINGTODATA_0400", Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         await testPackGifToData(

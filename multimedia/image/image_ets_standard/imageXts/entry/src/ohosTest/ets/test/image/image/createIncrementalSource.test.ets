@@ -35,7 +35,6 @@ async function createImageSourcePromiseTest(done: Function, testName: string,
     imageSourceIncrementalSApi.updateData(splitBuff2, true, 0, splitBuff2.byteLength).then(() => {
       let pixelMap = imageSourceIncrementalSApi.createPixelMapSync();
       let imageInfo = pixelMap.getImageInfoSync();
-      expect(true).assertTrue();
       done();
       console.info('Succeeded in creating pixelMap');
     }).catch((error: BusinessError) => {

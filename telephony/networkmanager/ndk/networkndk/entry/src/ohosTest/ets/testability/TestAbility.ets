@@ -19,6 +19,7 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../test/List.test';
+import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
 
 export default class TestAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
@@ -47,6 +48,19 @@ export default class TestAbility extends UIAbility {
       hilog.info(0x0000, 'testTag', 'Succeeded in loading the content. Data: %{public}s',
         JSON.stringify(data) ?? '');
     });
+    let atManager = abilityAccessCtrl.createAtManager();
+    try {
+      console.info('requestPermissionsFromUser start');
+      atManager.requestPermissionsFromUser(this.context, ['ohos.permission.LOCATION', 'ohos.permission.APPROXIMATELY_LOCATION']).then((data) => {
+        console.info('requestPermissionsFromUser data:' + JSON.stringify(data));
+        console.info('requestPermissionsFromUser data permissions:' + data.permissions);
+        console.info('requestPermissionsFromUser data authResults:' + data.authResults);
+      }).catch((err: Error) => {
+        console.info('requestPermissionsFromUser Error:' + JSON.stringify(err));
+      })
+    } catch(err) {
+      console.log(`catch err->${JSON.stringify(err)}`);
+    }
   }
 
   onWindowStageDestroy() {

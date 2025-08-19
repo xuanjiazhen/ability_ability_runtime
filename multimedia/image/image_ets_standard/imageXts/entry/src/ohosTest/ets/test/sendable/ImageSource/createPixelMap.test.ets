@@ -28,7 +28,6 @@ async function createPixelMapPromiseTest(done: Function, testName: string, path:
     const sendableImageSourceApi: sendableImage.ImageSource = sendableImage.createImageSource(path);
     sendableImageSourceApi.createPixelMap(options as image.DecodingOptions).then((pixelMap: sendableImage.PixelMap) => {
       console.info(TAG, 'Succeeded in creating pixelMap object through image decoding parameters.');
-      expect(true).assertTrue();
       done();
     }).catch((error: BusinessError) => {
       console.error(TAG,

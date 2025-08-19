@@ -74,7 +74,6 @@ export default function commitModifyTest () {
         done();
       } catch (error) {
         console.info(`${testNum} failed; error: ${error}`);
-        expect(true).assertTrue();
         done();
       }
     }

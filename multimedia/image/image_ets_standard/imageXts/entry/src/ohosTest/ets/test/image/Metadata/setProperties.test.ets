@@ -37,7 +37,6 @@ async function setPropertiesPromiseTest(done: Function, testName: string, path: 
     let metaData: image.Metadata | null = await pictureObj.getMetadata(metadataType);
     if (metaData != null) {
       await metaData.setProperties(setkey);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -63,7 +62,6 @@ async function setPropertiesAbnormalPromiseTest(done: Function, testName: string
     let metaData: image.Metadata | null = await pictureObj.getMetadata(metadataType);
     if (metaData != null) {
       await metaData.setProperties(setkey);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

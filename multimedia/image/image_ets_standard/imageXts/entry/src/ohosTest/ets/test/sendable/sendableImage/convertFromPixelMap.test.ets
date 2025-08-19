@@ -38,7 +38,6 @@ async function convertFromPixelMapPromiseTest(done: Function, testName: string, 
 async function convertFromPixelMapAbnormalPromiseTest(done: Function, testName: string, pixelMap: ESObject) {
   try {
     let sendablePixelMap: sendableImage.PixelMap = await sendableImage.convertFromPixelMap(pixelMap);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);

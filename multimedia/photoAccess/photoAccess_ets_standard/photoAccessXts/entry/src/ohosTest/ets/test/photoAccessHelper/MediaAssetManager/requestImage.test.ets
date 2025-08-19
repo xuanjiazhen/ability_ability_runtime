@@ -43,7 +43,6 @@ async function requestImagePromiseTest(done: Function, testName: string, fetchOp
       let requestId =
         await photoAccessHelper.MediaAssetManager.requestImage(testContext, photoAsset, requestOptions, handler);
       console.info(TAG, 'requestImage successfully', requestId);
-      expect(true).assertTrue();
       done();
     });
   } catch (error) {

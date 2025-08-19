@@ -1145,7 +1145,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1171,7 +1170,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1197,7 +1195,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1222,7 +1219,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1248,7 +1244,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1273,7 +1268,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1299,7 +1293,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1325,7 +1318,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1351,7 +1343,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1377,7 +1368,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1403,7 +1393,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_1100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1429,7 +1418,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1455,7 +1443,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_1300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1481,7 +1468,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_1400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1507,7 +1493,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_1500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1533,7 +1518,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILEMULTIFRAMES_1600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1559,7 +1543,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILE_BAD_PARAMETER_IMAGEPACKER_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1587,7 +1570,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILE_BAD_PARAMETER_PACKINGOPTIONS_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1615,7 +1597,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTOFILE_BAD_PARAMETER_PIXELMAPS_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1641,7 +1622,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1666,7 +1646,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1691,7 +1670,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1715,7 +1693,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1740,7 +1717,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1764,7 +1740,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1789,7 +1764,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1814,7 +1788,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1839,7 +1812,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1864,7 +1836,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1889,7 +1860,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_1100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1914,7 +1884,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_ERROR_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1939,7 +1908,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_ERROR_1300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1964,7 +1932,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_ERROR_1400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -1989,7 +1956,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_ERROR_1500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2014,7 +1980,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATAMULTIFRAMES_ERROR_1600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2040,7 +2005,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATA_BAD_PARAMETER_IMAGEPACKER_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2067,7 +2031,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATA_BAD_PARAMETER_PACKINGOPTIONS_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2094,7 +2057,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATA_BAD_PARAMETER_PIXELMAPS_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2121,7 +2083,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACKTODATA_BAD_PARAMETER_OUTDATA_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2148,7 +2109,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACK_GIF_TO_FILE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2173,7 +2133,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACK_GIF_TO_FILE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2198,7 +2157,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACK_GIF_TO_DATA_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2223,7 +2181,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACK_GIF_TO_DATA_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packConfig: ESObject = {
@@ -2249,7 +2206,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACK_GIF_TO_FILE_ERROR_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packOpts: image.PackingOption = { format: "image/gif", quality: 123 };
@@ -2277,7 +2233,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACK_GIF_TO_FILE_ERROR_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packOpts: PackingOption_format = { format: "image/gif" };
@@ -2304,7 +2259,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACK_GIF_TO_DATA_ERROR_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packOpts: image.PackingOption = { format: "image/gif", quality: 123 };
@@ -2331,7 +2285,6 @@ export default function ImagePackingNDKTest() {
     it('SUB_MULTIMEDIA_IMAGE_PACKERNDK_PACK_GIF_TO_DATA_ERROR_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportGifEncode) {
         console.info("This device does not support GIF encoding.")
-        expect(true).assertTrue();
         done();
       } else {
         let packOpts: PackingOption_format = { format: "image/gif" };

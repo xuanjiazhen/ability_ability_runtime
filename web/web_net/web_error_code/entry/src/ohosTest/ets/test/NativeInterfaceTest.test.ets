@@ -91,7 +91,8 @@ export default function NativeInterfaceTest() {
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('testWebNapiLoadDataSymbolNotFound', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    it('testWebNapiLoadDataSymbolNotFound', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
       try {
         console.info("====>testWebNapiLoadDataSymbolNotFound start====");
         let result: number = nativeInterface.loadData("web1211", 1);
@@ -112,7 +113,8 @@ export default function NativeInterfaceTest() {
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('testWebNapiLoadDataInvalidParam', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    it('testWebNapiLoadDataInvalidParam', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
       try {
         console.info("====>testWebNapiLoadDataInvalidParam start====");
         let result: number = nativeInterface.loadData("web1211", 2);
@@ -1616,8 +1618,386 @@ export default function NativeInterfaceTest() {
           console.error("====>testWebNapiJavaScriptValueAPICreate catch err: " + err);
         }
       })
-
-
+    /**
+     * @tc.number  : SUB_Web_Napi_RegisterJSProxy_0100
+     * @tc.name    : testWebNapiRegisterJSProxyNormal
+     * @tc.desc    : test OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiRegisterJSProxyNormal', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiRegisterJSProxyNormal start====");
+          let result: number = nativeInterface.WebRegisterJSProxy('web1211', 0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiRegisterJSProxyNormal stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiRegisterJSProxyNormal catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_RegisterJSProxy_0200
+     * @tc.name    : testWebNapiRegisterJSProxyPermissionNull
+     * @tc.desc    : test OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiRegisterJSProxyPermissionNull', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiRegisterJSProxyPermissionNull start====");
+          let result: number = nativeInterface.WebRegisterJSProxy('web1211', 1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiRegisterJSProxyPermissionNull stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiRegisterJSProxyPermissionNull catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_RegisterJSProxy_0300
+     * @tc.name    : testWebNapiRegisterJSProxyObjectNull
+     * @tc.desc    : test OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiRegisterJSProxyObjectNull', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiRegisterJSProxyObjectNull start====");
+          let result: number = nativeInterface.WebRegisterJSProxy('web1211', 2);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiRegisterJSProxyObjectNull stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiRegisterJSProxyObjectNull catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_RegisterJSProxy_0400
+     * @tc.name    : testWebNapiRegisterJSProxyWebNameNew
+     * @tc.desc    : test OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiRegisterJSProxyWebNameNew', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiRegisterJSProxyWebNameNew start====");
+          let result: number = nativeInterface.WebRegisterJSProxy('web1211', 3);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiRegisterJSProxyWebNameNew stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiRegisterJSProxyWebNameNew catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_RegisterJSProxy_0500
+     * @tc.name    : testWebNapiRegisterJSProxyMethodSize0
+     * @tc.desc    : test OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiRegisterJSProxyMethodSize0', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiRegisterJSProxyMethodSize0 start====");
+          let result: number = nativeInterface.WebRegisterJSProxy('web1211', 4);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiRegisterJSProxyMethodSize0 stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiRegisterJSProxyMethodSize0 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ClearBlankLessCache_0100
+     * @tc.name    : testWebNapiClearBlankLessCache0
+     * @tc.desc    : test OH_NativeArkWeb_ClearBlanklessLoadingCache interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiClearBlankLessCache0', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiClearBlankLessCache0 start====");
+          let result: number = nativeInterface.WebClearBlankCache(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiClearBlankLessCache0 stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiClearBlankLessCache0 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ClearBlankLessCache_0200
+     * @tc.name    : testWebNapiClearBlankLessCacheNormal
+     * @tc.desc    : test OH_NativeArkWeb_ClearBlanklessLoadingCache interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiClearBlankLessCacheNormal', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiClearBlankLessCacheNormal start====");
+          let result: number = nativeInterface.WebClearBlankCache(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiClearBlankLessCacheNormal stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiClearBlankLessCacheNormal catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ClearBlankLessCache_0300
+     * @tc.name    : testWebNapiClearBlankLessCacheSize100
+     * @tc.desc    : test OH_NativeArkWeb_ClearBlanklessLoadingCache interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiClearBlankLessCacheSize100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiClearBlankLessCacheSize100 start====");
+          let result: number = nativeInterface.WebClearBlankCache(2);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiClearBlankLessCacheSize100 stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiClearBlankLessCacheSize100 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ClearBlankLessCache_0400
+     * @tc.name    : testWebNapiClearBlankLessCacheSize101
+     * @tc.desc    : test OH_NativeArkWeb_ClearBlanklessLoadingCache interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiClearBlankLessCacheSize101', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiClearBlankLessCacheSize101 start====");
+          let result: number = nativeInterface.WebClearBlankCache(3);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiClearBlankLessCacheSize101 stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiClearBlankLessCacheSize101 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ClearBlankLessCache_0500
+     * @tc.name    : testWebNapiClearBlankLessCacheNullKey
+     * @tc.desc    : test OH_NativeArkWeb_ClearBlanklessLoadingCache interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiClearBlankLessCacheNullKey', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiClearBlankLessCacheNullKey start====");
+          let result: number = nativeInterface.WebClearBlankCache(4);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiClearBlankLessCacheNullKey stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiClearBlankLessCacheNullKey catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0100
+     * @tc.name    : testWebNapiSetBlankCacheCap0
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCap0', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCap0 start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSetBlankCacheCap0 stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCap0 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0200
+     * @tc.name    : testWebNapiSetBlankCacheCap100
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCap100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCap100 start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(1);
+          expect([0, 100]).assertContain(result);
+          console.info("====>testWebNapiSetBlankCacheCap100 stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCap100 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0300
+     * @tc.name    : testWebNapiSetBlankCacheCapBigger
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCapBigger', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCapBigger start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(2);
+          expect([0, 100]).assertContain(result);
+          console.info("====>testWebNapiSetBlankCacheCapBigger stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCapBigger catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0400
+     * @tc.name    : testWebNapiSetBlankCacheCapSmaller
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCapSmaller', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCapSmaller start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(3);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSetBlankCacheCapSmaller stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCapSmaller catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0500
+     * @tc.name    : testWebNapiSetBlankCacheCapDefault
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCapDefault', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCapDefault start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(4);
+          expect([0, 30]).assertContain(result);
+          console.info("====>testWebNapiSetBlankCacheCapDefault stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCapDefault catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SaveCookieSync_0100
+     * @tc.name    : testWebNapiSaveCookieSyncSuccess
+     * @tc.desc    : test OH_ArkWebCookieManager_SaveCookieSync interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSaveCookieSyncSuccess', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSaveCookieSyncSuccess start====");
+          let result: number = nativeInterface.WebSaveCookieSync(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSaveCookieSyncSuccess stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSaveCookieSyncSuccess catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SaveCookieSync_0200
+     * @tc.name    : testWebNapiSaveCookieSyncUninitCookieManager
+     * @tc.desc    : test OH_ArkWebCookieManager_SaveCookieSync interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSaveCookieSyncUninitCookieManager', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSaveCookieSyncUninitCookieManager start====");
+          let result: number = nativeInterface.WebSaveCookieSync(1);
+          // expect(result).assertEqual(0);
+          console.info("====>testWebNapiSaveCookieSyncUninitCookieManager stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSaveCookieSyncUninitCookieManager catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SaveCookieAsync_0100
+     * @tc.name    : testWebNapiSaveCookieAsyncSuccess
+     * @tc.desc    : test OH_ArkWebCookieManager_SaveCookieAsync interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSaveCookieAsyncSuccess', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSaveCookieAsyncSuccess start====");
+          let result: number = nativeInterface.WebSaveCookieAsync(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSaveCookieAsyncSuccess stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSaveCookieAsyncSuccess catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SaveCookieAsync_0200
+     * @tc.name    : testWebNapiSaveCookieAsyncNullCallback
+     * @tc.desc    : test OH_ArkWebCookieManager_SaveCookieAsync interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSaveCookieAsyncNullCallback', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSaveCookieAsyncNullCallback start====");
+          let result: number = nativeInterface.WebSaveCookieAsync(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSaveCookieAsyncNullCallback stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSaveCookieAsyncNullCallback catch err: " + err);
+        }
+      })
 
   })
 }

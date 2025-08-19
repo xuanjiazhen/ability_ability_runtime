@@ -4389,7 +4389,6 @@ export default function imageModifyProperty() {
         } else {
           console.info(`SUB_MULTIMEDIA_IMAGE_SOURCENDK_GET_MODIFY_MAKERNOTE_PROPERTY_0200 device is not support heic encode`);
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd: number = getFdFilesDir("test_makernote_heic.heic");
@@ -4514,7 +4513,6 @@ export default function imageModifyProperty() {
         fs.closeSync(file.fd!!);
         await imageSourceApi.getImageProperty(image.PropertyKey.MAKER_NOTE).then((MakerNote: string) => {
           console.error(`SUB_MULTIMEDIA_IMAGE_SOURCENDK_GET_MAKERNOTE_PROPERTY_0700 getImageProperty MakerNote: ` + MakerNote);
-          expect(true).assertTrue();
           done();
         }).catch((error: BusinessError) => {
           console.error(`SUB_MULTIMEDIA_IMAGE_SOURCENDK_GET_MAKERNOTE_PROPERTY_0700 getImageProperty error: ` + error);

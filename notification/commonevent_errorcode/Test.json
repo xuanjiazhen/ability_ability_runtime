@@ -10,7 +10,8 @@
     },
     "kits": [{
         "test-file-name": [
-            "ActsCommonEventErrorTest.hap"
+            "ActsCommonEventErrorTest.hap",
+            "ActsCommonEventErrorMainTest.hap"
         ],
         "type": "AppInstallKit",
         "cleanup-apps": true

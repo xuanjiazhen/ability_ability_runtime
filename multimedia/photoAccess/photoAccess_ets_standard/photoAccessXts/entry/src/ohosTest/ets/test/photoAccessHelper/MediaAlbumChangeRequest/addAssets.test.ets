@@ -39,7 +39,6 @@ async function addAssetsPromiseTest(done: Function, testName: string, fetchOptio
       new photoAccessHelper.MediaAlbumChangeRequest(album);
     await albumChangeRequest.addAssets([asset]);
     await phAccessHelper.applyChanges(albumChangeRequest);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);

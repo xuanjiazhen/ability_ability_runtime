@@ -25,7 +25,6 @@ async function getReceivingSurfaceIdPromiseTest(done: Function, testName: string
     const receiver: image.ImageReceiver = await image.createImageReceiver(size, image.ImageFormat.JPEG, 8);
     await receiver.getReceivingSurfaceId().then((id: string) => {
       console.info(TAG, 'Succeeded in getting the ReceivingSurfaceId.');
-      expect(true).assertTrue();
     }).catch((error: BusinessError) => {
       console.error(TAG, `Failed to get the ReceivingSurfaceId.code ${error.code},message is ${error.message}`);
       expect().assertFail();
@@ -48,7 +47,6 @@ async function getReceivingSurfaceIdCallbackTest(done: Function, testName: strin
         expect().assertFail();
       } else {
         console.info(TAG, 'Succeeded in getting the ReceivingSurfaceId.');
-        expect(true).assertTrue();
       }
       receiver.release((err: BusinessError) => {
         if (err) {
@@ -56,7 +54,6 @@ async function getReceivingSurfaceIdCallbackTest(done: Function, testName: strin
           expect().assertFail();
         } else {
           console.info('Succeeded in releasing the receiver.');
-          expect(true).assertTrue();
         }
       })
       done();

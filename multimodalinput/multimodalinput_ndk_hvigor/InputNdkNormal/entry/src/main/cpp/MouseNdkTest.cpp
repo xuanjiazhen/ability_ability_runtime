@@ -36,7 +36,7 @@ static napi_value GetPointerLocation1(napi_env env, napi_callback_info info)
     Input_Result retResult = OH_Input_GetPointerLocation(&displayId, &displayX, &displayY);
     OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_GetPointerLocation_0100 retResult:%{public}d", retResult);
     napi_create_int32(env, (retResult == INPUT_SUCCESS || retResult == INPUT_SERVICE_EXCEPTION ||
-        retResult == INPUT_DEVICE_NOT_SUPPORTED) ? 1 : 0, &result);
+        retResult == INPUT_DEVICE_NO_POINTER || retResult == INPUT_APP_NOT_FOCUSED) ? 1 : 0, &result);
     return result;
 }
 

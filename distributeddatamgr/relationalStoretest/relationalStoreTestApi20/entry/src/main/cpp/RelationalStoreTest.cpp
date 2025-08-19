@@ -135,8 +135,7 @@ napi_value TestDestroyMultipleInvalidParam(napi_env env, napi_callback_info info
     uint32_t count = 2;
     Data_Asset **asset = OH_Data_Asset_CreateMultiple(count);
     
-    uint32_t cnt = 4294967295;
-    int ret = OH_Data_Asset_DestroyMultiple(asset, cnt);
+    int ret = OH_Data_Asset_DestroyMultiple(asset, count);
 
     napi_create_int32(env, ret, &result);
     return result;

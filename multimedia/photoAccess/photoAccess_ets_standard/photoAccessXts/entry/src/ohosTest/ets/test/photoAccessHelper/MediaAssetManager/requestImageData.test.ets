@@ -42,7 +42,6 @@ async function requestImageDataPromiseTest(done: Function, testName: string,
       let photoAsset: photoAccessHelper.PhotoAsset = await fetchResult.getFirstObject();
       await photoAccessHelper.MediaAssetManager.requestImageData(testContext, photoAsset, requestOptions, handler);
       console.info(TAG, 'requestImage successfully');
-      expect(true).assertTrue();
       done();
     });
   } catch (error) {

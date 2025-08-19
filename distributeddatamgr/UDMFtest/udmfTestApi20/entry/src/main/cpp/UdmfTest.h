@@ -21,7 +21,10 @@
 #include <napi/native_api.h>
 #include <vector>
 
-void addUdmfTest(std::vector<napi_property_descriptor> &descData);
+extern int g_invalidParamCode;
+extern int g_err;
+
+void AddUdmfTest(std::vector<napi_property_descriptor> &descData);
 
 napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info);
 napi_value TestAddFileUriInvalidParam(napi_env env, napi_callback_info info);

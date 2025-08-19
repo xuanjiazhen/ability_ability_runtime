@@ -37,7 +37,8 @@ import {
   SaveMode,
   ItemDisplayRatio
 } from '@ohos.file.PhotoPickerComponent';
-import { AlbumPickerComponent, AlbumPickerOptions, AlbumInfo } from '@ohos.file.AlbumPickerComponent';
+import { AlbumPickerComponent, AlbumPickerOptions, AlbumInfo,
+  AlbumPickerController } from '@ohos.file.AlbumPickerComponent';
 import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import { PhotoPickerResult } from '../MainAbility/common/PhotoPickerResult'
 import {
@@ -147,7 +148,6 @@ async function testCompleteButton(driver: Driver, options: router.RouterOptions,
   if (button !== undefined && chooostModeButton !== undefined) {
     await chooostModeButton.click();
     await button.click();
-    expect(true).assertTrue();
   } else {
     console.error("can not find button");
     expect(false).assertTrue();
@@ -1283,7 +1283,7 @@ export default function TextPicker() {
         phAccessHelper.requestPhotoUrisReadPermission(uris).then((result: Array<string>) => {
           console.info("requestPhotoUrisReadPermission, result = " + JSON.stringify(result));
           if (result) {
-            expect(true).assertTrue();
+            console.info('success');
           } else {
             console.error("testPicker23 empty result");
             expect(false).assertTrue();
@@ -1346,7 +1346,7 @@ export default function TextPicker() {
         phAccessHelper.createAssetWithShortTermPermission(photoCreationConfig).then((result) => {
           console.info("createAssetWithShortTermPermission, result=" + JSON.stringify(result));
           if (result) {
-            expect(true).assertTrue();
+            console.info('success');
           } else {
             console.error("testPicker25 empty result");
             expect(false).assertTrue();
@@ -1414,10 +1414,8 @@ export default function TextPicker() {
         console.info('testPicker27 state =:' + JSON.stringify(result));
         let vedioCallBackState: number = event?.data?.vedioCallBackState;
         if (vedioCallBackState === SEEK_START) {
-            expect(true).assertTrue();
             console.log('state is SEEK_START:' + vedioCallBackState);
         } else if (vedioCallBackState === SEEK_FINISH) {
-            expect(true).assertTrue();
             console.log('state is SEEK_FINISH:' + vedioCallBackState);
         } else {
             expect(true).assertFalse();
@@ -1485,7 +1483,6 @@ export default function TextPicker() {
                 expect(false).assertTrue();
               } else {
                 console.log("testPicker28 saveTrustedPhotoAssets success, save uris:" + arr);
-                expect(true).assertTrue();
               }
             }, undefined, SaveMode.SAVE_AS);
           }
@@ -1539,7 +1536,6 @@ export default function TextPicker() {
                 expect(false).assertTrue();
               } else {
                 console.log("testPicker29 saveTrustedPhotoAssets success, save uris:" + arr);
-                expect(true).assertTrue();
               }
             }, undefined, SaveMode.OVERWRITE);
           }
@@ -1606,7 +1602,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((photoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker31 PhotoViewPicker.select success, PhotoPickerResult uri: ' +
                 JSON.stringify(photoSelectResult));
-          expect(true).assertTrue();
         });
       } catch(error) {
         console.error("testPicker31 error: " + JSON.stringify(error) + error.code);
@@ -1647,7 +1642,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker32, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1685,7 +1679,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker33, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1722,7 +1715,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker34, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1758,7 +1750,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker35, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1794,7 +1785,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker36, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1831,7 +1821,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker37, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1868,7 +1857,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker38, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -2170,7 +2158,6 @@ export default function TextPicker() {
         phAccessHelper.getRecentPhotoInfo(options).then((result : RecentPhotoInfo) => {
           console.info('testPicker40, photoAccessHelper.getRecentPhotoInfo successfully, PhotoSelectResult uri: ' +
           JSON.stringify(result));
-          expect(true).assertTrue();
         })
       } catch(err) {
         console.error(`testPicker40, photoAccessHelper.getRecentPhotoInfo failed with err: ${err.code}, ${err.message}`);
@@ -2227,6 +2214,81 @@ export default function TextPicker() {
       router.back();
       console.info("testPicker47 finish");
       events_emitter.off(event.eventId);
+      done();
+    });
+
+    /**
+     * @tc.number    : testPicker48
+     * @tc.name      : testPicker48
+     * @tc.desc      : Testing PhotoPicker combinedMediaTypeFilter
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('testPicker48', Level.LEVEL0, async (done: Function) => {
+      if (!isExecutePicker) {
+        done();
+        return;
+      }
+      let code: number = EventType.PHOTO_PICKER_INFO;
+      let pickerOptions: PickerOptions = getDefaultPickerOptions();
+      pickerOptions.combinedMediaTypeFilter = ['image|(movingPhoto)|(image/gif)', 'video|*|video/mp4'];
+      let options: router.RouterOptions = {
+        url: 'MainAbility/pages/PickerComponent',
+        params: {
+          eventId: code,
+          pickerOptions: pickerOptions,
+        }
+      }
+      await routeToUrl(options);
+      let strJson: string = getInspectorByKey('PhotoPickerComponent');
+      console.info("testPicker48 JSON.parse(strJson) is" + strJson);
+      expect(JSON.parse(strJson).$attrs.visibility).assertEqual('Visibility.Visible');
+      await CommonFunc.sleep(2000);
+      router.back();
+      console.info("testPicker48 finish");
+      done();
+    });
+
+    /**
+     * @tc.number    : testPicker49
+     * @tc.name      : testPicker49
+     * @tc.desc      : Testing PhotoPicker combinedMediaTypeFilter
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('testPicker49', Level.LEVEL0, async (done: Function) => {
+      if (!isExecutePicker) {
+        done();
+        return;
+      }
+      let code: number = EventType.PHOTO_PICKER_INFO;
+      let pickerOptions: PickerOptions = getDefaultPickerOptions();
+      let fileSizeFilterArray: Array<photoAccessHelper.PhotoViewMimeTypeFileSizeFilter> = [];
+      let filter: photoAccessHelper.PhotoViewMimeTypeFileSizeFilter = {
+        photoViewMimeType: photoAccessHelper.PhotoViewMIMETypes.MOVING_PHOTO_IMAGE_TYPE,
+        sizeFilter: {
+          filterOperator: photoAccessHelper.FilterOperator.LESS_THAN,
+          fileSize: 8048576,
+        }
+      }
+      fileSizeFilterArray.push(filter);
+      pickerOptions.photoViewMimeTypeFileSizeFilters = fileSizeFilterArray;
+      let options: router.RouterOptions = {
+        url: 'MainAbility/pages/PickerComponent',
+        params: {
+          eventId: code,
+          pickerOptions: pickerOptions,
+        }
+      }
+      await routeToUrl(options);
+      let strJson: string = getInspectorByKey('PhotoPickerComponent');
+      console.info("testPicker49 JSON.parse(strJson) is" + strJson);
+      expect(JSON.parse(strJson).$attrs.visibility).assertEqual('Visibility.Visible');
+      await CommonFunc.sleep(2000);
+      router.back();
+      console.info("testPicker49 finish");
       done();
     });
   })

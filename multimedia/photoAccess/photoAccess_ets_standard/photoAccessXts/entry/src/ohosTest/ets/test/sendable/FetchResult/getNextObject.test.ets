@@ -36,7 +36,6 @@ async function getNextObjectPromiseTest(done: Function, testName: string, fetchO
       expect(photoAsset !== undefined).assertTrue();
     }
     fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `${testName} failed; error: ${error}`);

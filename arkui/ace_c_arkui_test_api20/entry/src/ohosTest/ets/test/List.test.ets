@@ -25,6 +25,7 @@ import TestInitModuleForArkTSEnv from "./arkTSEnv/TestInitModuleForArkTSEnv.test
 import RunTaskInScopeTest from "./scope/RunTaskInScopeTest.test"
 import ListTypeNodeTest from './list/ListTypeNodeTest.test'
 import ListCNodeTest from './list/ListCNodeTest.test'
+import BindControllerTest from './BindController/BindController.test'
 
 export default function testsuite() {
   PostOnIdleTest();
@@ -40,4 +41,5 @@ export default function testsuite() {
   RunTaskInScopeTest();
   ListTypeNodeTest();
   ListCNodeTest();
+  BindControllerTest();
 }

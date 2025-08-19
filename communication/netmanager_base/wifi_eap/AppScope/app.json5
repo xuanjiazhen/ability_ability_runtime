@@ -14,7 +14,7 @@
  */
 {
   "app": {
-    "bundleName": "ohos.acts.communication.netmanager.eap",
+    "bundleName": "ohos.acts.communication.net.manager.eap",
     "vendor": "example",
     "versionCode": 1000000,
     "versionName": "1.0.0",

@@ -40,7 +40,6 @@ async function removeAssetsPromiseTest(done: Function, testName: string, fetchOp
       new photoAccessHelper.MediaAlbumChangeRequest(album);
     await albumChangeRequest.removeAssets([asset]);
     await phAccessHelper.applyChanges(albumChangeRequest);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);

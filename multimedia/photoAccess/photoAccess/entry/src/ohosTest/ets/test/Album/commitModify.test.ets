@@ -244,7 +244,6 @@ export default function albumCommitModifyTest () {
         done();
       } catch (error) {
         console.info(`${testNum} failed; error: ${error}`);
-        expect(true).assertTrue();
         done();
       }
     })
@@ -281,7 +280,6 @@ export default function albumCommitModifyTest () {
         await sleep(50);
       } catch (error) {
         console.info(`${testNum} failed; error: ${error}`);
-        expect(true).assertTrue();
         done();
       }
     })

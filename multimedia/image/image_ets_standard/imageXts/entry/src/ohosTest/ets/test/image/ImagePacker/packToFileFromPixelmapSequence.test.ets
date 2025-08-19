@@ -35,7 +35,6 @@ async function packToFileFromPixelmapSequencePromiseTest(done: Function, testNam
     let file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
     let Packer = image.createImagePacker();
     let data = await Packer.packToFileFromPixelmapSequence(pixelMapList, file.fd, ops);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -57,7 +56,6 @@ async function packToFileFromPixelmapSequenceAbnormalPromiseTest(done: Function,
     let file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
     let Packer = image.createImagePacker();
     let data = await Packer.packToFileFromPixelmapSequence(pixelMapList, file.fd, ops);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);

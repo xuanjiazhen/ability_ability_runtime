@@ -68,7 +68,6 @@ export default function getAssetsTest () {
           try {
             if (err !== undefined) {
               console.info(`${testNum} getAssets failed; err: ${err}`);
-              expect(true).assertTrue();
             } else {
               console.info(`${testNum} getAssets suc; fetchResult: ${fetchResult.getCount()}`);
               fetchResult.close();

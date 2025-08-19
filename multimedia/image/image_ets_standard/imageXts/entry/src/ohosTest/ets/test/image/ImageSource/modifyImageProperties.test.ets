@@ -30,7 +30,6 @@ async function modifyImagePropertiesPromiseTest(done: Function, testName: string
     await imageSourceApi.modifyImageProperties(keyValues);
     await imageSourceApi.getImageProperties(checkKey);
     imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -48,7 +47,6 @@ async function modifyImagePropertiesAbnormalPromiseTest(done: Function, testName
     await imageSourceApi.modifyImageProperties(keyValues);
     await imageSourceApi.getImageProperties(checkKey);
     imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);

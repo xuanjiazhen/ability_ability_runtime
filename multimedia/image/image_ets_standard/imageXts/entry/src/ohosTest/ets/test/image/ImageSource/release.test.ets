@@ -29,7 +29,6 @@ async function releasePromiseTest(done: Function, testName: string, pathUri: str
     let file = await fs.access(path);
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     await imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -47,7 +46,7 @@ async function releaseCallbackTest(done: Function, testName: string, pathUri: st
       if (err) {
         expect().assertFail();
       } else {
-        expect(true).assertTrue();
+        console.info(`release success`);
       }
       done();
     });

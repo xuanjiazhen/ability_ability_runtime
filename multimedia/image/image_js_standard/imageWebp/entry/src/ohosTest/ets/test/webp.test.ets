@@ -82,7 +82,6 @@ export default function imageWebp() {
           globalImagesource = imageSourceApi;
           imageSourceApi.createPixelMap(arg, (err, pixelmap) => {
             if (pixelmap == undefined) {
-              expect(true).assertTrue();
               console.info(`${testNum} success `);
               done();
             } else {
@@ -146,7 +145,6 @@ export default function imageWebp() {
             })
             .catch((error: BusinessError) => {
               console.log(`${testNum} success `);
-              expect(true).assertTrue();
               done();
             });
         }
@@ -434,7 +432,6 @@ export default function imageWebp() {
                 })
                 .catch((error: BusinessError) => {
                   console.log(`${testNum} errors: ` + error);
-                  expect(true).assertTrue();
                   done();
                 });
             }
@@ -520,7 +517,6 @@ export default function imageWebp() {
           })
           .catch((error: BusinessError) => {
             console.log(`${testNum} error: ` + error);
-            expect(true).assertTrue();
             done();
           });
         console.info(`${testNum} leave`);
@@ -539,7 +535,6 @@ export default function imageWebp() {
             globalImagesource = imageSourceApi;
             imageSourceApi.getDelayTimeList().then((delayTimes) => {
               console.info(`${testNum} testGetDelayTimePromise getDelayTime success`);
-              expect(true).assertTrue();
               console.info(`${testNum} delayTimes show begin length: ${delayTimes.length} `);
               for (let i = 0; i < delayTimes.length; i++) {
                 console.info(`${testNum} delayTimes[ ${i} ]= ${delayTimes[i]}`);
@@ -630,7 +625,6 @@ export default function imageWebp() {
             console.log(`pixelmap ${pixelmap}`)
             if (pixelmap != undefined) {
               globalpixelmap = pixelmap;
-              expect(true).assertTrue();
               console.info("SUB_MULTIMEDIA_IMAGE_WEBP_CREATEPIXELMAP_PROMISE_0100 success ");
               done();
             } else {
@@ -688,7 +682,6 @@ export default function imageWebp() {
           imageSourceApi.createPixelMap(decodingOptions, (err, pixelmap) => {
             if (pixelmap != undefined) {
               globalpixelmap = pixelmap;
-              expect(true).assertTrue();
               console.info("SUB_MULTIMEDIA_IMAGE_WEBP_CREATEPIXELMAP_CALLBACK_0100 success ");
               done();
             } else {
@@ -1200,7 +1193,6 @@ export default function imageWebp() {
     it("SUB_MULTIMEDIA_IMAGE_WEBP_PACKING_PROMISE_ERROR_0200", Level.LEVEL0, async (done: Function) => {
       if (isSupportGifEncode) {
         console.info("SUB_MULTIMEDIA_IMAGE_COLORSPACE_ENCODE_PROMISE_0200 The device support gif encode")
-        expect(true).assertTrue();
         done();
       } else {
         let packOpts: ESObject = {
@@ -1256,7 +1248,6 @@ export default function imageWebp() {
      */
     it("SUB_MULTIMEDIA_IMAGE_WEBP_PACKING_CALLBACK_ERROR_0100", Level.LEVEL0, async (done: Function) => {
       if (isSupportGifEncode) {
-        expect(true).assertTrue();
         done();
       } else {
         let packOpts: ESObject = {

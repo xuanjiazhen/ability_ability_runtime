@@ -30,7 +30,6 @@ async function createVideoAssetRequestPromiseTest(done: Function, testName: stri
     let assetChangeRequest: photoAccessHelper.MediaAssetChangeRequest =
       await photoAccessHelper.MediaAssetChangeRequest.createVideoAssetRequest(testContext, uri);
     // await phAccessHelper.applyChanges(assetChangeRequest);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `createImageAssetRequestDemo failed with error: ${error},${error.code},${error.message}`,

@@ -113,7 +113,6 @@ export default function imageRaw() {
                     line++;
                   }
                   console.info(`${testNum} packing show end(line:` + line + `)`);
-                  expect(true).assertTrue();
                   done();
                 } else {
                   console.info(`${testNum} packing failed`);
@@ -225,7 +224,6 @@ export default function imageRaw() {
             console.info(`${testNum} createPixelMapPromise create imagesource success`);
             imageSourceApi.createPixelMap(decodeOpts, (err: BusinessError, pixelmap: ESObject) => {
               if (pixelmap == undefined) {
-                expect(true).assertTrue();
                 console.info(`${testNum} success: ` + err);
                 done();
               } else {
@@ -264,7 +262,6 @@ export default function imageRaw() {
               })
               .catch((error: BusinessError) => {
                 console.log(`${testNum} createPixelMap err: ` + error);
-                expect(true).assertTrue();
                 done();
               });
           }

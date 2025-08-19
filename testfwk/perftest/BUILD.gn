@@ -30,6 +30,5 @@ ohos_js_app_suite("ActsPerfTestTest") {
   hap_name = "ActsPerfTestTest"
   deps = [
     ":ActsPerfTest",
-    "../perftestScene:ActsPerfTestScene",
   ]
 }

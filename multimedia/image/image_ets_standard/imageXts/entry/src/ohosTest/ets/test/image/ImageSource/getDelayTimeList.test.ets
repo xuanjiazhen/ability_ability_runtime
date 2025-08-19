@@ -29,7 +29,6 @@ async function getDelayTimeListPromiseTest(done: Function, testName: string, pat
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let delayTimes: Array<number> = await imageSourceApi.getDelayTimeList();
     imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -45,7 +44,6 @@ async function getDelayTimeListAbnormalPromiseTest(done: Function, testName: str
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let delayTimes: Array<number> = await imageSourceApi.getDelayTimeList();
     imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -72,7 +70,6 @@ async function getDelayTimeListCallbackTest(done: Function, testName: string, pa
         expect().assertFail();
       } else {
         console.info(TAG, 'Succeeded in getting delayTimes object.');
-        expect(true).assertTrue();
       }
       done();
     })
@@ -96,7 +93,6 @@ async function getDelayTimeListCallbackAbnormalTest(done: Function, testName: st
           .assertTrue();
       } else {
         console.info(TAG, 'Succeeded in getting delayTimes object.');
-        expect(true).assertTrue();
       }
       done();
     })

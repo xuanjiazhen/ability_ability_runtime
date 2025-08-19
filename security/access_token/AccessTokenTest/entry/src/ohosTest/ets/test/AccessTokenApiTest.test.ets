@@ -109,12 +109,13 @@ export default function AccessTokenApiTest() {
       let context: Context = getContext(globalThis) as common.UIAbilityContext;
       let type = abilityAccessCtrl.SwitchType.CAMERA;
       try {
+        let flag = false;
         atManager.requestGlobalSwitch(context, type).then((data) => {
           console.info('Test_requestGlobalSwitch_003 data:' + data);
         }).catch((err: BusinessError) => {
           console.error('Test_requestGlobalSwitch_003 err.code:' + JSON.stringify(err));
-          if (err.code == 12100013 || err.code == 12100001) {
-            expect(true).assertTrue();
+          if (flag = err.code == 12100013 || err.code == 12100001) {
+            expect(flag).assertTrue();
             done();
           } else {
             expect(false).assertTrue();
@@ -142,12 +143,13 @@ export default function AccessTokenApiTest() {
       let context: Context = getContext(globalThis) as common.UIAbilityContext;
       let type = abilityAccessCtrl.SwitchType.MICROPHONE;
       try {
+        let flag = false;
         atManager.requestGlobalSwitch(context, type).then((data) => {
           console.info('Test_requestGlobalSwitch_004 data:' + data);
         }).catch((err: BusinessError) => {
           console.error('Test_requestGlobalSwitch_004 err.code:' + JSON.stringify(err));
-          if (err.code == 12100013 || err.code == 12100001) {
-            expect(true).assertTrue();
+          if (flag = err.code == 12100013 || err.code == 12100001) {
+            expect(flag).assertTrue();
             done();
           } else {
             expect(false).assertTrue();
@@ -175,14 +177,15 @@ export default function AccessTokenApiTest() {
       let context: Context = getContext(globalThis) as common.UIAbilityContext;
       let type = abilityAccessCtrl.SwitchType.LOCATION;
       try {
+        let flag = false;
         atManager.requestGlobalSwitch(context, type).then((data) => {
           console.info('Test_requestGlobalSwitch_005 data:' + data);
           expect(data).assertTrue();
           done();
         }).catch((err: BusinessError) => {
           console.error('Test_requestGlobalSwitch_005 err.code:' + JSON.stringify(err));
-          if (err.code == 12100013 || err.code == 12100001) {
-            expect(true).assertTrue();
+          if (flag = err.code == 12100013 || err.code == 12100001) {
+            expect(flag).assertTrue();
             done();
           } else {
             expect(false).assertTrue();

@@ -37,7 +37,6 @@ async function getAlbumPromiseTest(done: Function, testName: string) {
       new photoAccessHelper.MediaAlbumChangeRequest(album);
     let changeRequestAlbum: photoAccessHelper.Album = await albumChangeRequest.getAlbum();
     console.info(TAG, 'change request album uri: ' + changeRequestAlbum.albumUri);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);

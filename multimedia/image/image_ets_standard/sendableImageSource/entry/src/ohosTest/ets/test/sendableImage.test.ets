@@ -298,7 +298,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_URI_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -328,7 +327,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_URI_0200', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -359,7 +357,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_URI_0300', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -388,7 +385,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_FD_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -417,7 +413,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_FD_0200', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -446,7 +441,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_FD_0300', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -477,7 +471,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_FD_0400', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -506,7 +499,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_BUFFER_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -535,7 +527,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_BUFFER_0200', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -566,7 +557,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_SOURCE_BUFFER_0300', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -597,7 +587,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMAGE_SOURCE_CREATE_PIXEL_MAP_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -632,7 +621,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMAGE_SOURCE_CREATE_PIXEL_MAP_0200', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -686,7 +674,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMAGE_SOURCE_CREATE_PIXEL_MAP_0300', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -720,7 +707,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMAGE_SOURCE_CREATE_PIXEL_MAP_0400', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -768,7 +754,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMAGE_SOURCE_RELEASE_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -800,7 +785,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMAGE_SOURCE_RELEASE_0200', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -833,7 +817,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_RECEIVER_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -856,7 +839,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_RECEIVER_0200', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -887,7 +869,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_RECEIVER_0300', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -917,7 +898,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_RECEIVER_0400', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -947,7 +927,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_CREATE_IMAGE_RECEIVER_ON_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -976,7 +955,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_GET_RECEIVING_SURFACES_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1008,7 +986,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_RECEIVER_READ_NEXT_IMAGE_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1048,7 +1025,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMG_GET_COMPONENT_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1101,7 +1077,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMG_GET_COMPONENT_0200', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1141,7 +1116,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMG_GET_COMPONENT_0300', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1187,7 +1161,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMG_GET_COMPONENT_0400', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1229,7 +1202,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMG_RELEASE_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1268,7 +1240,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMG_RELEASE_0200', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1321,7 +1292,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_IMG_RELEASE_0300', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1375,7 +1345,6 @@ export default function sendableImageSource() {
     it('SUB_MULTIMEDIA_RECEIVER_READ_LATEST_IMAGE_0100', Level.LEVEL0, async (done: Function) => {
       if(!isSupportedCameras()){
         console.info('Failed to obtain the default camera object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return
       }
@@ -1470,7 +1439,6 @@ export default function sendableImageSource() {
       let sendablePixelMap : sendableImage.PixelMap = sendableImage.convertFromPixelMap(pixelMap)
       if (sendablePixelMap != undefined) {
         console.info(tag + " Succeeded in creating pixel map");
-        expect(true).assertTrue();
         done();
       } else {
         console.error(tag + ' Failed to create the pixel map.');
@@ -1500,7 +1468,6 @@ export default function sendableImageSource() {
         done();
       } catch (error) {
         console.info(tag + " Failed to convert from pixel map. ");
-        expect(true).assertTrue();
         done();
       }
       if (pixelMap != undefined) {
@@ -1527,7 +1494,6 @@ export default function sendableImageSource() {
         expect(pixelMap.isEditable).assertInstanceOf('Boolean');
         pixelMap.readPixelsToBuffer(readBuffer).then(() => {
           console.info(tag + ' Succeeded in reading image pixel data.');
-          expect(true).assertTrue();
           pixelMap.release();
           done();
         })
@@ -1592,7 +1558,6 @@ export default function sendableImageSource() {
         pixelMap.readPixels(area).then(() => {
           console.info(tag + ' Succeeded in reading the image data in the area.');
           pixelMap.release();
-          expect(true).assertTrue();
           done();
         }).catch((error: BusinessError) => {
           console.error(tag + ` Failed to read the image data in the area. error is ${error}`);
@@ -1629,7 +1594,6 @@ export default function sendableImageSource() {
           pixelMap.readPixelsSync(area);
           console.info(tag + ' Succeeded in reading the image data in the area.');
           pixelMap.release();
-          expect(true).assertTrue();
           done();
         } catch (error) {
           console.error(tag + ` Failed to read the image data in the area. error is ${error}`);
@@ -1672,7 +1636,6 @@ export default function sendableImageSource() {
         pixelMap.writePixels(area);
         console.info(tag + ' Succeeded to write pixelmap into the specified area.');
         await pixelMap.release();
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(tag + ` Failed to write pixelmap into the specified area. error is ${error}`);
@@ -1714,7 +1677,6 @@ export default function sendableImageSource() {
         pixelMap.writePixelsSync(area);
         console.info(tag + ' Succeeded to write pixelmap into the specified area.');
         await pixelMap.release();
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(tag + ` Failed to write pixelmap into the specified area. error is ${error}`);
@@ -1748,7 +1710,6 @@ export default function sendableImageSource() {
         pixelMap.writeBufferToPixelsSync(color);
         console.info(tag + ' Succeeded in writing data from a buffer to a PixelMap.');
         await pixelMap.release();
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(tag + ` Failed to write data from a buffer to a PixelMap. error is ${error}`);
@@ -1848,7 +1809,6 @@ export default function sendableImageSource() {
           let imageInfo = pixelMap.getImageInfoSync();
           console.info(tag + ' Succeeded in getting image info. imageInfo is ' + imageInfo);
           await pixelMap.release();
-          expect(true).assertTrue();
           done();
         } catch (error) {
           console.error(tag + ` Failed to get image info. error is ${error}`);
@@ -1885,7 +1845,6 @@ export default function sendableImageSource() {
           pixelMap.getBytesNumberPerRow();
           console.info(tag + ' Succeeded in obtaining the number of bytes in the row of the image pixel.');
           pixelMap.release();
-          expect(true).assertTrue();
           done();
         } catch (error) {
           console.error(tag + ` Failed to obtain the number of bytes in the row of the image pixel. error is ${error}`);
@@ -1922,7 +1881,6 @@ export default function sendableImageSource() {
           pixelMap.getPixelBytesNumber();
           console.info(tag + ' Succeeded in obtaining the total bytes of image pixels.');
           pixelMap.release();
-          expect(true).assertTrue();
           done();
         } catch (error) {
           console.error(tag + ` Failed to obtain the total number of bytes of image pixels. error is ${error}`);
@@ -1959,7 +1917,6 @@ export default function sendableImageSource() {
           let density = pixelMap.getDensity();
           console.info(tag + ' Obtaining the pixel density of the current image succeeded.');
           pixelMap.release();
-          expect(true).assertTrue();
           done();
         } catch (error) {
           console.error(tag + ` Failed to obtain the pixel density of the current image. error is ${error}`);
@@ -1990,7 +1947,6 @@ export default function sendableImageSource() {
       await pixelMap.opacity(rate).then(() => {
         console.info(tag + ' Succeeded in setting the transparent ratio.');
         pixelMap.release();
-        expect(true).assertTrue();
         done();
       }).catch((e: BusinessError) => {
         console.info(tag + ` Failed to set the transparent ratio. error is ` + e);
@@ -2021,7 +1977,6 @@ export default function sendableImageSource() {
       pixelMap.opacity(rate).then(() => {
         console.info(tag + ' Succeeded in setting the transparent ratio.')
         pixelMap.release();
-        expect(true).assertTrue();
         done();
       }).catch((e: BusinessError) => {
         console.error(tag + ` Failed to set the transparent ratio. error is ` + e);
@@ -2052,7 +2007,6 @@ export default function sendableImageSource() {
       pixelMap.opacity(rate).then(() => {
         console.info(tag + ' Succeeded in setting the transparent ratio.')
         pixelMap.release();
-        expect(true).assertTrue();
         done();
       }).catch((e: BusinessError) => {
         console.error(tag + ` Failed to set the transparent ratio. error is ` + e);
@@ -2084,7 +2038,6 @@ export default function sendableImageSource() {
       let alphaPixelmap = pixelMap.createAlphaPixelmap().then((alphaPixelMap: sendableImage.PixelMap) => {
         console.info(tag + ' Succeeded in creating alpha pixelmap. AlphaPixelmap is ' + alphaPixelmap);
         pixelMap.release();
-        expect(true).assertTrue();
         done();
       }).catch((error: BusinessError) => {
         console.error(tag + ` Failed to create alpha pixelmap. error is ` + error);
@@ -2118,7 +2071,6 @@ export default function sendableImageSource() {
         pixelMap.scaleSync(scaleX, scaleY);
         console.info(tag + ' The image is zoomed in or out.');
         await pixelMap.release();
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(tag + ` Failed to zoom in or out the image. error is ` + error);
@@ -2152,7 +2104,6 @@ export default function sendableImageSource() {
         pixelMap.scaleSync(scaleX, scaleY);
         console.info(tag + ' The image is zoomed in or out.');
         await pixelMap.release();
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(tag + ` Failed to zoom in or out the image. error is ` + error);
@@ -2183,7 +2134,6 @@ export default function sendableImageSource() {
       pixelMap.crop(region).then(() => {
         console.info(tag + ' Succeeded in cropping pixelmap.');
         pixelMap.release();
-        expect(true).assertTrue();
         done();
       }).catch((error: BusinessError) => {
         console.error(tag + ` Failed to crop pixelmap. error is ` + error);
@@ -2215,7 +2165,6 @@ export default function sendableImageSource() {
         pixelMap.cropSync(region);
         console.info(tag + ' Succeeded in cropping pixelmap.');
         await pixelMap.release();
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(tag + ` Failed to crop pixelmap. error is ` + error);
@@ -2243,7 +2192,6 @@ export default function sendableImageSource() {
         let csm = await pixelMap.getColorSpace();
         console.info(tag + ' Succeeded in getting ColorSpace. csm is ' + csm);
         await pixelMap.release();
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(tag + ` Failed to get ColorSpace. error is ` + error);
@@ -2304,7 +2252,6 @@ export default function sendableImageSource() {
         await pixelMap.setColorSpace(csm); 
         console.info(tag + ' Succeeded in Setting ColorSpace.');
         await pixelMap.release();
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(tag + ` Failed to set ColorSpace. error is ` + error);
@@ -2338,7 +2285,6 @@ export default function sendableImageSource() {
       } catch (error) {
         console.error(tag + ` Failed to set ColorSpace. error is ` + error);
         await pixelMap.release();
-        expect(true).assertTrue();
         done();
       }
       done();
@@ -2392,7 +2338,6 @@ export default function sendableImageSource() {
       pixelMap.applyColorSpace(targetColorSpace).then(() => {
         console.info(tag + ' Succeeded in applying color space for pixelmap object.');
         pixelMap.release();
-        expect(true).assertTrue();
         done();
       }).catch((error: BusinessError) => {
         console.error(tag + ` Failed to apply color space for pixelmap object. code is ${error.code}, message is ${error.message}`); 
@@ -2419,7 +2364,6 @@ export default function sendableImageSource() {
       let pixelMap = await imageSourceApi.createPixelMap();
       pixelMap.applyColorSpace(null!).then(() => {
         console.info(tag + ' Succeeded in applying color space for pixelmap object.');
-        expect(true).assertTrue();
         done();
       }).catch((error: BusinessError) => {
         console.error(tag + ` Failed to apply color space for pixelmap object. error is ${error}`); 
@@ -2449,7 +2393,6 @@ export default function sendableImageSource() {
       try {
         await sendableImage.createPixelMap(color, opts);
         console.info(tag + " Succeeded in creating pixel map");
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.info(tag + ' Failed to create the pixel map.' + error);
@@ -2478,7 +2421,6 @@ export default function sendableImageSource() {
       try {
         await sendableImage.createPixelMap(color, opts);
         console.info(tag + " Succeeded in creating pixel map");
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.info(tag + ' Failed to create the pixel map.' + error);
@@ -2514,7 +2456,6 @@ export default function sendableImageSource() {
         pixelMap.readPixels(area).then(() => {
           console.info(tag + ' Succeeded in reading the image data in the area.');
           pixelMap.release();
-          expect(true).assertTrue();
           done();
         }).catch((error: BusinessError) => {
           console.error(tag + ` Failed to read the image data in the area. error is ${error}`);
@@ -2551,7 +2492,6 @@ export default function sendableImageSource() {
         pixelMap.readPixels(area).then(() => {
           console.info(tag + ' Succeeded in reading the image data in the area.');
           pixelMap.release();
-          expect(true).assertTrue();
           done();
         }).catch((error: BusinessError) => {
           console.error(tag + ` Failed to read the image data in the area. error is ${error}`);
@@ -2612,7 +2552,6 @@ export default function sendableImageSource() {
       let pixelMap = await sendableImage.createPixelMap(color, opts);
       pixelMap.release().then(() => {
         console.info(tag + ' Succeeded in releasing pixelmap object.');
-        expect(true).assertTrue();
         done();
       }).catch((error: BusinessError) => {
         console.error(tag + `Failed to release pixelmap object. error is ${error}`);
@@ -2640,7 +2579,6 @@ export default function sendableImageSource() {
         done();
       } catch (error) {
         console.error(tag + ` Failed to create Receive. Due to Size. error is ` + error);
-        expect(true).assertTrue();
         done();
       }
     })
@@ -2663,7 +2601,6 @@ export default function sendableImageSource() {
         done();
       } catch (error) {
         console.error(tag + ` Failed to create Receive. Due to Format. error is ` + error);
-        expect(true).assertTrue();
         done();
       }
     })
@@ -2686,7 +2623,6 @@ export default function sendableImageSource() {
         done();
       } catch (error) {
         console.error(tag + ` Failed to create Receive. Due to Capacity. error is ` + error);
-        expect(true).assertTrue();
         done();
       }
     })
@@ -2708,7 +2644,6 @@ export default function sendableImageSource() {
       let receiver: sendableImage.ImageReceiver = sendableImage.createImageReceiver(size, image.ImageFormat.JPEG, 8);
       receiver.readLatestImage().then((img: image.Image) => {
           console.info(tag + ' readLatestImage succeeded.');
-          expect(true).assertTrue();
           done();
       }).catch((error: BusinessError) => {
         console.error(tag + ` readLatestImage failed. error is  ${error}`);
@@ -2735,7 +2670,6 @@ export default function sendableImageSource() {
       let receiver: sendableImage.ImageReceiver = sendableImage.createImageReceiver(size, image.ImageFormat.JPEG, 8);
       receiver.readNextImage().then((img: image.Image) => {
           console.info(tag + ' readNextImage  succeeded.');
-          expect(true).assertTrue();
           done();
       }).catch((error: BusinessError) => {
         console.error(tag + ` readNextImage  failed. error is  ${error}`);
@@ -2762,7 +2696,6 @@ export default function sendableImageSource() {
       let pixelMap = await imageSourceApi.createPixelMap();
       pixelMap.applyColorSpace(targetColorSpace).then(() => {
         console.info(tag + ' Succeeded in applying color space for pixelmap object.');
-        expect(true).assertTrue();
         done();
       }).catch((error: BusinessError) => {
         console.error(tag + ` Failed to apply color space for pixelmap object. error is ${error}`); 

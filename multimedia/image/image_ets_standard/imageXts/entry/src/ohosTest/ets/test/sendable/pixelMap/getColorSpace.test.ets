@@ -32,7 +32,6 @@ async function getColorSpacePromiseTest(done: Function, testName: string, opts: 
       let csm: colorSpaceManager.ColorSpaceManager = colorSpaceManager.create(colorSpaceName);
       await sendablePixelMap.setColorSpace(csm);
       await sendablePixelMap.getColorSpace();
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

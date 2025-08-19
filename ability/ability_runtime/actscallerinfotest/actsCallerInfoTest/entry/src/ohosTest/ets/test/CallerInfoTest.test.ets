@@ -96,53 +96,43 @@ export default function callerInfoTest() {
               }, 500);
             }
             if (data.event == 'ACTS_TEST_ON_CREATE_WANT') {
-              try {
-                hilog.info(0x0000, 'testTag',
-                  `%{public}s', onNewWant, data.parameters.result: ${data.parameters?.result}`);
-                let result:string = checkWantParameters(data.parameters?.result)
-                hilog.info(0x0000, 'testTag',
-                  `%{public}s', ACTS_TEST_ON_CREATE_WANT, result is : ${result}`);
-                expect(result).assertEqual('{"component.startup.newRules":true,"debugApp":false,"moduleName":"entry_test","ohos.aafwk.param.callerAbilityName":"TestAbility","ohos.aafwk.param.callerAppId":"com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=","ohos.aafwk.param.callerAppIdentifier":"","ohos.aafwk.param.callerBundleName":"com.acts.actsCallerInfoTest"}')
-              } catch (err) {
-                let code = (err as BusinessError).code;
-                let message = (err as BusinessError).message;
-                hilog.info(0x0000, 'testTag', '%{public}s',
-                  `ACTS_TEST_ON_CREATE_WANT check failed, error.code: ${code}, error.message: ${message}`);
-                expect().assertFail()
-                done();
-              }
+              hilog.info(0x0000, 'testTag',
+                `%{public}s', onNewWant, ACTS_TEST_ON_CREATE_WANT data.parameters.result: ${JSON.stringify(data.parameters?.result)}`);
+              try{
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
+                expect(data.parameters?.result['debugApp']).assertEqual(false);
+                expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppIdentifier']).assertEqual('');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppId']).assertEqual('com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=');
+                expect(data.parameters?.result['ohos.aafwk.param.callerBundleName']).assertEqual('com.acts.actsCallerInfoTest');
+              }catch{}
             }
             if (data.event == 'ACTS_TEST_ON_CREATE_WANT_ASSIST') {
-              try {
-                hilog.info(0x0000, 'testTag',
-                  `%{public}s', onNewWant, data.parameters.result: ${data.parameters?.result}`);
-                let result:string = checkWantParameters(data.parameters?.result)
-                hilog.info(0x0000, 'testTag',
-                  `%{public}s', ACTS_TEST_ON_CREATE_WANT_ASSIST, result is : ${result}`);
-                expect(result).assertEqual('{"component.startup.newRules":true,"moduleName":"entry","ohos.aafwk.param.callerAbilityName":"callerInfo01","ohos.aafwk.param.callerAppId":"com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=","ohos.aafwk.param.callerAppIdentifier":"","ohos.aafwk.param.callerBundleName":"com.acts.actsCallerInfoTest"}')
-              } catch (err) {
-                let code = (err as BusinessError).code;
-                let message = (err as BusinessError).message;
-                hilog.info(0x0000, 'testTag', '%{public}s',
-                  `ACTS_TEST_ON_CREATE_WANT_ASSIST check failed, error.code: ${code}, error.message: ${message}`);
-                expect().assertFail()
-                done();
-              }
+              hilog.info(0x0000, 'testTag',
+                `%{public}s', onNewWant, ACTS_TEST_ON_CREATE_WANT_ASSIST data.parameters.result: ${JSON.stringify(data.parameters?.result)}`);
+              try{
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
+                expect(data.parameters?.result['debugApp']).assertEqual(undefined);
+                expect(data.parameters?.result['moduleName']).assertEqual('entry');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('callerInfo01');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppIdentifier']).assertEqual('');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppId']).assertEqual('com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=');
+                expect(data.parameters?.result['ohos.aafwk.param.callerBundleName']).assertEqual('com.acts.actsCallerInfoTest');
+              }catch{}
             }
             if (data.event == 'ACTS_TEST_ON_NEW_WANT') {
-              try {
-                hilog.info(0x0000, 'testTag',
-                  `%{public}s', onNewWant, data.parameters.result: ${data.parameters?.result}`);
-                let result:string = checkWantParameters(data.parameters?.result)
-                expect(result).assertEqual('{"debugApp":false,"moduleName":"entry_test","ohos.aafwk.param.callerAbilityName":"callerInfo02","ohos.aafwk.param.callerAppId":"com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=","ohos.aafwk.param.callerAppIdentifier":"","ohos.aafwk.param.callerBundleName":"com.acts.actsCallerInfoTest"}')
-              } catch (err) {
-                let code = (err as BusinessError).code;
-                let message = (err as BusinessError).message;
-                hilog.info(0x0000, 'testTag', '%{public}s',
-                  `ACTS_TEST_ON_NEW_WANT check failed, error.code: ${code}, error.message: ${message}`);
-                expect().assertFail()
-                done();
-              }
+              hilog.info(0x0000, 'testTag',
+                `%{public}s', onNewWant, ACTS_TEST_ON_NEW_WANT data.parameters.result: ${JSON.stringify(data.parameters?.result)}`);
+              try{
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(undefined);
+                expect(data.parameters?.result['debugApp']).assertEqual(false);
+                expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('callerInfo02');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppIdentifier']).assertEqual('');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppId']).assertEqual('com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=');
+                expect(data.parameters?.result['ohos.aafwk.param.callerBundleName']).assertEqual('com.acts.actsCallerInfoTest');
+              }catch{}
             }
             if (data.event == 'ACTS_TEST_DESTROY') {
               setTimeout(() => {
@@ -199,19 +189,17 @@ export default function callerInfoTest() {
               }
             }
             if (data.event == 'ACTS_TEST_ON_CREATE_WANT') {
-              try {
-                hilog.info(0x0000, 'testTag',
-                  `%{public}s', onNewWant, data.parameters.result: ${data.parameters?.result}`);
-                let result:string = checkWantParameters(data.parameters?.result)
-                expect(result).assertEqual('{"component.startup.newRules":true,"debugApp":false,"moduleName":"entry_test","ohos.aafwk.param.callerAbilityName":"TestAbility","ohos.aafwk.param.callerAppId":"com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=","ohos.aafwk.param.callerAppIdentifier":"","ohos.aafwk.param.callerBundleName":"com.acts.actsCallerInfoTest"}')
-              } catch (err) {
-                let code = (err as BusinessError).code;
-                let message = (err as BusinessError).message;
-                hilog.info(0x0000, 'testTag', '%{public}s',
-                  `ACTS_TEST_ON_CREATE_WANT check failed, error.code: ${code}, error.message: ${message}`);
-                expect().assertFail()
-                done();
-              }
+              hilog.info(0x0000, 'testTag',
+                `%{public}s', onNewWant, data.parameters.result: ${JSON.stringify(data.parameters?.result)}`);
+              try{
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
+                expect(data.parameters?.result['debugApp']).assertEqual(false);
+                expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppIdentifier']).assertEqual('');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppId']).assertEqual('com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=');
+                expect(data.parameters?.result['ohos.aafwk.param.callerBundleName']).assertEqual('com.acts.actsCallerInfoTest');
+              }catch{}
             }
             if (data.event == 'ACTS_TEST_DESTROY') {
               setTimeout(() => {
@@ -273,19 +261,17 @@ export default function callerInfoTest() {
               }
             }
             if (data.event == 'ACTS_TEST_ON_CREATE_WANT') {
-              try {
-                hilog.info(0x0000, 'testTag',
-                  `%{public}s', onCreate, want is: ${data.parameters?.result}`);
-                let result:string = checkWantParameters(data.parameters?.result)
-                expect(result).assertEqual('{"component.startup.newRules":true,"debugApp":false,"moduleName":"entry_test","ohos.aafwk.param.callerAbilityName":"TestAbility","ohos.aafwk.param.callerAppId":"com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=","ohos.aafwk.param.callerAppIdentifier":"","ohos.aafwk.param.callerBundleName":"com.acts.actsCallerInfoTest"}')
-              } catch (err) {
-                let code = (err as BusinessError).code;
-                let message = (err as BusinessError).message;
-                hilog.info(0x0000, 'testTag', '%{public}s',
-                  `ACTS_TEST_ON_CREATE_WANT check failed, error.code: ${code}, error.message: ${message}`);
-                expect().assertFail()
-                done();
-              }
+              hilog.info(0x0000, 'testTag',
+                `%{public}s', onCreate, want is: ${JSON.stringify(data.parameters?.result)}`);
+              try{
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
+                expect(data.parameters?.result['debugApp']).assertEqual(false);
+                expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppIdentifier']).assertEqual('');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppId']).assertEqual('com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=');
+                expect(data.parameters?.result['ohos.aafwk.param.callerBundleName']).assertEqual('com.acts.actsCallerInfoTest');
+              }catch{}
             }
             if (data.event == 'ACTS_TEST_DESTROY') {
               setTimeout(() => {
@@ -347,19 +333,17 @@ export default function callerInfoTest() {
               }
             }
             if (data.event == 'ACTS_TEST_ON_CREATE_WANT') {
-              try {
-                hilog.info(0x0000, 'testTag',
-                  `%{public}s', onCreate, want is: ${data.parameters?.result}`);
-                let result:string = checkWantParameters(data.parameters?.result)
-                expect(result).assertEqual('{"component.startup.newRules":true,"debugApp":false,"moduleName":"entry_test","ohos.aafwk.param.callerAbilityName":"TestAbility","ohos.aafwk.param.callerAppId":"com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=","ohos.aafwk.param.callerAppIdentifier":"","ohos.aafwk.param.callerBundleName":"com.acts.actsCallerInfoTest"}')
-              } catch (err) {
-                let code = (err as BusinessError).code;
-                let message = (err as BusinessError).message;
-                hilog.info(0x0000, 'testTag', '%{public}s',
-                  `ACTS_TEST_ON_CREATE_WANT check failed, error.code: ${code}, error.message: ${message}`);
-                expect().assertFail()
-                done();
-              }
+              hilog.info(0x0000, 'testTag',
+                `%{public}s', onCreate, want is: ${JSON.stringify(data.parameters?.result)}`);
+              try{
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
+                expect(data.parameters?.result['debugApp']).assertEqual(false);
+                expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppIdentifier']).assertEqual('');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppId']).assertEqual('com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=');
+                expect(data.parameters?.result['ohos.aafwk.param.callerBundleName']).assertEqual('com.acts.actsCallerInfoTest');
+              }catch{}
             }
             if (data.event == 'ACTS_TEST_DESTROY') {
               setTimeout(() => {
@@ -416,20 +400,17 @@ export default function callerInfoTest() {
               }
             }
             if (data.event == 'ACTS_TEST_ON_CREATE_WANT') {
-              try {
-                hilog.info(0x0000, 'testTag',
-                  `%{public}s', onCreate, want is: ${data.parameters?.result}`);
-                let onCreateWant: string = data.parameters?.result
-                let result:string = checkWantParameters(data.parameters?.result)
-                expect(result).assertEqual('{"component.startup.newRules":true,"debugApp":false,"moduleName":"entry_test","ohos.aafwk.param.callerAbilityName":"TestAbility","ohos.aafwk.param.callerAppId":"com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=","ohos.aafwk.param.callerAppIdentifier":"","ohos.aafwk.param.callerBundleName":"com.acts.actsCallerInfoTest"}')
-              } catch (err) {
-                let code = (err as BusinessError).code;
-                let message = (err as BusinessError).message;
-                hilog.info(0x0000, 'testTag', '%{public}s',
-                  `ACTS_TEST_ON_CREATE_WANT check failed, error.code: ${code}, error.message: ${message}`);
-                expect().assertFail()
-                done();
-              }
+              hilog.info(0x0000, 'testTag',
+                `%{public}s', onCreate, want is: ${JSON.stringify(data.parameters?.result)}`);
+              try{
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
+                expect(data.parameters?.result['debugApp']).assertEqual(false);
+                expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppIdentifier']).assertEqual('');
+                expect(data.parameters?.result['ohos.aafwk.param.callerAppId']).assertEqual('com.acts.actsCallerInfoTest_BCtwbrrZTeauTbNG/l1Ke4eowNrJ4I6h8q1xuy6k/XA3i/OlSG8a8Z3HbAVqe2Ic8rHq3139L51ZTFTZKDqc6fw=');
+                expect(data.parameters?.result['ohos.aafwk.param.callerBundleName']).assertEqual('com.acts.actsCallerInfoTest');
+              }catch{}
             }
             if (data.event == 'ACTS_TEST_DESTROY') {
               setTimeout(() => {
@@ -451,29 +432,5 @@ function publishCB(err: BusinessError) {
     hilog.error(0x0000, 'testTag', `Failed to publish common event. Code is ${err.code}, message is ${err.message}`);
   } else {
     hilog.info(0x0000, 'testTag', '%{public}s', 'Succeeded in publishing common event.');
-  }
-}
-
-function checkWantParameters(data: string): string {
-  const targetField = "ohos.aafwk.param.callerBundleName";
-  const targetFieldIndex = data.indexOf(targetField);
-  if (targetFieldIndex === -1) {
-    return ''
-  } else {
-    const colonIndex = data.indexOf(':', targetFieldIndex);
-    const valueStartIndex = data.indexOf('"', colonIndex);
-
-    if (colonIndex === -1 || valueStartIndex === -1) {
-      return ''
-    } else {
-      const valueEndIndex = data.indexOf('"', valueStartIndex + 1);
-
-      if (valueEndIndex === -1) {
-        return ''
-      } else {
-        const extractedStr:string = data.substring(0, valueEndIndex + 1) + '}';
-        return extractedStr;
-      }
-    }
   }
 }

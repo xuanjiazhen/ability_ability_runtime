@@ -27,7 +27,6 @@ async function closePromiseTest(done: Function, fetchOps: photoAccessHelper.Fetc
     let fetchResult: photoAccessHelper.FetchResult<photoAccessHelper.PhotoAsset> =
       await phAccessHelper.getAssets(fetchOps);
     await fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);

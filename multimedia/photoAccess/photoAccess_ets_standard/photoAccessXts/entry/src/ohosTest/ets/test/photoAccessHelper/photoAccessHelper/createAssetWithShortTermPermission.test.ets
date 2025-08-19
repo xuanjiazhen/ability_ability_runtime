@@ -44,7 +44,6 @@ async function createAssetWithShortTermPermissionPromiseTest(done: Function, tes
     }
     fileIo.closeSync(srcFile);
     fileIo.closeSync(resultFile);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);

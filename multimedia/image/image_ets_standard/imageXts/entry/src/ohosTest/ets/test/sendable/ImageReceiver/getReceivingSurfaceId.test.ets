@@ -26,7 +26,6 @@ async function getReceivingSurfaceIdPromiseTest(done: Function, testName: string
       sendableImage.createImageReceiver(size, image.ImageFormat.JPEG, capacity);
     receiver.getReceivingSurfaceId().then((id: string) => {
       console.info('Succeeded in getting the ReceivingSurfaceId.');
-      expect(true).assertTrue();
       done();
     }).catch((error: BusinessError) => {
       console.error(`Failed to get the ReceivingSurfaceId.code ${error.code}, message is ${error.message}`);

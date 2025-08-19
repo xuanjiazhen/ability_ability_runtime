@@ -37,7 +37,6 @@ async function setAuxiliaryPictureInfoPromiseTest(done: Function, testName: stri
       await commodityPixelMap.getAuxiliaryPicture(AuxiliaryPictureType);
     if (auxPictureObj != null) {
       await auxPictureObj.setAuxiliaryPictureInfo(info);
-      expect(true).assertTrue();
       done();
     } else {
       console.error(TAG, 'AuxPictureObj is null.');

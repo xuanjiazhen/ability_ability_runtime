@@ -29,7 +29,6 @@ async function constructorPromiseTest(done: Function, testName: string, fetchOpt
     let photoAsset: photoAccessHelper.PhotoAsset = await fetchResult.getFirstObject();
     let albumChangeRequest: photoAccessHelper.MediaAssetChangeRequest =
       new photoAccessHelper.MediaAssetChangeRequest(photoAsset);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);

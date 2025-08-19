@@ -19,16 +19,20 @@ import { BusinessError, commonEventManager } from '@kit.BasicServicesKit';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import { common } from '@kit.AbilityKit';
 import { Driver, MatchPattern, ON } from '@kit.TestKit';
+import systemParameterEnhance from '@ohos.systemParameterEnhance';
 
 let abilityDelegator: AbilityDelegatorRegistry.AbilityDelegator;
 abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
-
+let deviceType:string;
 export default function actsApplicationStartAbilityTest2() {
 
   describe('actsApplicationStartAbilityTest2', () => {
     let context: common.UIAbilityContext;
     let driver = Driver.create();
     beforeAll(async (done: Function) => {
+      deviceType = systemParameterEnhance.getSync('persist.sys.abilityms.move_ui_ability_to_background_api_enable');
+      hilog.info(0x0000, 'testTag', '%{public}s',
+          `current device is ` + deviceType);
       setTimeout(() => {
         context = getContext() as common.UIAbilityContext;
         hilog.info(0x0000, 'testTag', '%{public}s',
@@ -258,6 +262,9 @@ export default function actsApplicationStartAbilityTest2() {
      */
     it('SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0100', Level.LEVEL0, async (done: Function) => {
       let TEST_CASE_NAME = 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0100';
+      if(deviceType == 'false'){
+        done();
+      }
       let subscriberInfo_startdebugapp: commonEventManager.CommonEventSubscribeInfo = {
         events: [`${TEST_CASE_NAME}_onForegroundHap_1`, `${TEST_CASE_NAME}_onForegroundHap_2`,
           `${TEST_CASE_NAME}_onDestroyHap_1`,
@@ -365,6 +372,9 @@ export default function actsApplicationStartAbilityTest2() {
      */
     it('SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0200', Level.LEVEL0, async (done: Function) => {
       let TEST_CASE_NAME = 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0200';
+      if(deviceType == 'false'){
+        done();
+      }
       let subscriberInfo_startdebugapp: commonEventManager.CommonEventSubscribeInfo = {
         events: [`${TEST_CASE_NAME}_onForegroundHap_1`, `${TEST_CASE_NAME}_onForegroundHap_2`,
           `${TEST_CASE_NAME}_onBackgroundHap_1`, `${TEST_CASE_NAME}_onDestroyHap_1`],
@@ -471,6 +481,9 @@ export default function actsApplicationStartAbilityTest2() {
      */
     it('SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0300', Level.LEVEL0, async (done: Function) => {
       let TEST_CASE_NAME = 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0300';
+      if(deviceType == 'false'){
+        done();
+      }
       let subscriberInfo_startdebugapp: commonEventManager.CommonEventSubscribeInfo = {
         events: [`${TEST_CASE_NAME}_onForegroundHap_1`, `${TEST_CASE_NAME}_onForegroundHap_2`,
           `${TEST_CASE_NAME}_onBackgroundHap_1`, `${TEST_CASE_NAME}_onDestroyHap_2`,
@@ -587,6 +600,9 @@ export default function actsApplicationStartAbilityTest2() {
      */
     it('SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_1100', Level.LEVEL0, async (done: Function) => {
       let TEST_CASE_NAME = 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_1100';
+      if(deviceType == 'false'){
+        done();
+      }
       let subscriberInfo_startdebugapp: commonEventManager.CommonEventSubscribeInfo = {
         events: [`${TEST_CASE_NAME}_onForegroundHap_1`, `${TEST_CASE_NAME}_onForegroundHap_2`,
           `${TEST_CASE_NAME}_onForegroundHap_3`, `${TEST_CASE_NAME}_onBackgroundHap_1`,
@@ -1067,6 +1083,9 @@ export default function actsApplicationStartAbilityTest2() {
      */
     it('SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_1400', Level.LEVEL0, async (done: Function) => {
       let TEST_CASE_NAME = 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_1400';
+      if(deviceType == 'false'){
+        done();
+      }
       let subscriberInfo_startdebugapp: commonEventManager.CommonEventSubscribeInfo = {
         events: [TEST_CASE_NAME, 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_1400_1'],
       };

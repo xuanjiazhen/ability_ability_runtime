@@ -76,7 +76,6 @@ async function commitModifyAbnormalCallback(done: Function, testName: string, fe
     asset.commitModify(async (err) => {
       if (err) {
         console.info(TAG, `commitModifyAbnormalCallback commitModify error, ${testName} ${err.code}, ${err.message}`);
-        expect(true).assertTrue();
       } else {
         expect().assertFail();
       }
@@ -85,7 +84,6 @@ async function commitModifyAbnormalCallback(done: Function, testName: string, fe
   } catch (error) {
     console.info(TAG,
       `commitModifyAbnormalCallback error, ${testName} failed; error: ${error?.code}, ${error?.message}`);
-    expect(true).assertTrue();
     done();
   }
 }
@@ -127,7 +125,6 @@ async function commitModifyAbnormalPromise(done: Function, testName: string, fet
     done();
   } catch (error) {
     console.error(TAG, `commitModifyAbnormalPromise ${testName} failed; error: ${error?.code}, ${error?.message}`);
-    expect(true).assertTrue();
     done();
   }
 }

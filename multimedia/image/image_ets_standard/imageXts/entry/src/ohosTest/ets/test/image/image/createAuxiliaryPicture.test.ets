@@ -33,7 +33,6 @@ async function createAuxiliaryPicturePromiseTest(done: Function, testName: strin
     if (auxPictureObj != null) {
       let type: image.AuxiliaryPictureType = auxPictureObj.getType();
       console.info(funcName, 'CreateAuxiliaryPicture succeeded this.Aux_picture.type.' + JSON.stringify(type));
-      expect(true).assertTrue();
       done();
     } else {
       console.error(funcName, 'CreateAuxiliaryPicture failed');
@@ -59,7 +58,6 @@ async function createAuxiliaryPictureAbnormalPromiseTest(done: Function, testNam
     if (auxPictureObj != null) {
       let type: image.AuxiliaryPictureType = auxPictureObj.getType();
       console.info(funcName, 'CreateAuxiliaryPicture succeeded this.Aux_picture.type.' + JSON.stringify(type));
-      expect(true).assertTrue();
       done();
     } else {
       console.error(funcName, 'CreateAuxiliaryPicture failed');

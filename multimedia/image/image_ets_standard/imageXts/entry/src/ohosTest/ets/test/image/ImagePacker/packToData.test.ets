@@ -29,7 +29,6 @@ async function packToDataPromiseTest(done: Function, testName: string, pathUri: 
     await imagePackerApi.packToData(imageSourceApi, packOpts);
     await imageSourceApi.release();
     await imagePackerApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -47,7 +46,6 @@ async function packToDataPixelMapPromiseTest(done: Function, testName: string,
     const imagePackerApi: image.ImagePacker = image.createImagePacker();
     await imagePackerApi.packToData(pixelMap, packOpts);
     await imagePackerApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);

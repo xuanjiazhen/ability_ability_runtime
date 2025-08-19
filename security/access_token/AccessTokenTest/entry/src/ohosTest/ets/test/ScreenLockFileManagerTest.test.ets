@@ -62,7 +62,7 @@ export default function ScreenLockFileManagerTest() {
             try {
                 let AccessStatus = screenLockFileManager.acquireAccess();
                 console.info('AcquireAccessJsTest001 AccessStatus is: ' + AccessStatus);
-                expect(true).assertTrue();
+                expect(AccessStatus).assertEqual(screenLockFileManager.AccessStatus.ACCESS_GRANTED);
                 done();
             } catch (err) {
                 if (err.code == 801) {
@@ -117,7 +117,7 @@ export default function ScreenLockFileManagerTest() {
             try {
                 let ReleaseStatus = screenLockFileManager.releaseAccess();
                 console.info('ReleaseAccessJsTest001 ReleaseStatus is: ' + ReleaseStatus);
-                expect(true).assertTrue();
+                expect(ReleaseStatus).assertEqual(screenLockFileManager.ReleaseStatus.RELEASE_GRANTED);
                 done();
             } catch (err) {
                 if (err.code == 801) {

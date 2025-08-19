@@ -75,7 +75,6 @@ export default function cloneAssetTest() {
           expect().assertFail();
         } else {
           console.info(TAG, `${testName} :: after clone, then query success.`);
-          expect(true).assertTrue();
         }
         done();
       } catch (error) {
@@ -114,7 +113,6 @@ export default function cloneAssetTest() {
           expect().assertFail();
         } else {
           console.info(TAG, `${testName} :: after clone, then query success.`);
-          expect(true).assertTrue();
         }
         done();
       } catch (error) {
@@ -123,49 +121,6 @@ export default function cloneAssetTest() {
         done();
       }
     })
-
-    /**
-     * @tc.number    : PHOTO_ASSET_CLONE_003
-     *  * @tc.name   : test_clone_long_title_001
-     * @tc.desc      : clone image with titile and suffix length <= 255 , expect success
-     * @tc.size      : MEDIUM
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    /*it("test_clone_long_title_001", Level.LEVEL0, async (done: Function) => {
-      let testName: string = "test_clone_long_title_001";
-      let title: string = "a".repeat(50);
-      try {
-        let fetchOps = fetchOption(testName, photoKeys.DISPLAY_NAME, IMAGE_TEST_FILE);
-        let photoAsset: photoAccessHelper.PhotoAsset | undefined = await getFileAsset(context, testName, fetchOps);
-        if (photoAsset === undefined) {
-          console.error(TAG, `${testName} :: getFileAsset cloneTest.jpg failed !`);
-          expect().assertFail();
-          done();
-        }
-        console.log(TAG, `${testName} :: title len is ${title.length}`);
-        let newPhotoAsset: photoAccessHelper.PhotoAsset | undefined = await photoAsset?.clone(title);
-        if (newPhotoAsset === undefined) {
-          console.error(TAG, `${testName} :: clone failed !`);
-          expect().assertFail();
-          done();
-        }
-        let fetchCloneOps = fetchOption(testName, photoKeys.DISPLAY_NAME, (title + ".jpg"));
-        let cloneAsset: photoAccessHelper.PhotoAsset | undefined = await getFileAsset(context, testName, fetchCloneOps);
-        if (cloneAsset === undefined) {
-          console.error(TAG, `${testName} :: after clone, then query, is undefined !`);
-          expect().assertFail();
-        } else {
-          console.info(TAG, `${testName} :: after clone, then query success.`);
-          expect(true).assertTrue();
-        }
-        done();
-      } catch (error) {
-        console.error(`${testName} :: test failed ,error is ${error}`);
-        expect().assertFail();
-        done();
-      }
-    })*/
 
     /**
      * @tc.number    : PHOTO_ASSET_CLONE_004
@@ -302,47 +257,5 @@ export default function cloneAssetTest() {
       }
     })
 
-    /**
-     * @tc.number    : PHOTO_ASSET_CLONE_08
-     * @tc.name      : test_clone_moving_photo_001
-     * @tc.desc      : clone moving photo, expect success
-     * @tc.size      : MEDIUM
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    /*    it("test_clone_moving_photo_001", Level.LEVEL0, async (done: Function) => {
-          let testName = "test_clone_moving_photo_001";
-          let cloneTitle: string = "";
-          try {
-            let title = "cloneMovingPhoto"
-            let movingPhotoAsset = await createMovingPhoto(testName, context, title);
-            if (movingPhotoAsset === undefined) {
-              console.error(TAG, `${testName} :: create moving Photo failed !`);
-              expect().assertFail();
-              done();
-            }
-            await sleep(3000);
-            cloneTitle = systemDateTime.getTime().toString();
-            console.log(TAG, `${testName} :: title is ${title}`);
-            let newPhotoAsset: photoAccessHelper.PhotoAsset | undefined = await movingPhotoAsset?.clone(cloneTitle);
-            if (newPhotoAsset === undefined) {
-              console.error(TAG, `${testName} :: clone failed !`);
-              expect().assertFail();
-              done();
-            }
-            let fetchCloneOps = fetchOption(testName, photoKeys.DISPLAY_NAME, (cloneTitle + ".jpg"));
-            let cloneAsset: photoAccessHelper.PhotoAsset | undefined = await getFileAsset(context, testName, fetchCloneOps);
-            if (cloneAsset === undefined) {
-              console.error(TAG, `${testName} :: after clone, then query, is undefined !`);
-              expect().assertFail();
-              done();
-            }
-            done();
-          } catch (error) {
-            console.error(`${testName} :: test failed ,error is ${error}`);
-            expect().assertFail();
-            done();
-          }
-        })*/
   });
 }

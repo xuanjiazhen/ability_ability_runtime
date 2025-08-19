@@ -553,7 +553,6 @@ export default function imageJsTest() {
             };
             image.createPixelMap(Color, opts, (err, pixelmap) => {
                 if (err) {
-                    expect(true).assertTrue();
                     console.info('SUB_MULTIMEDIA_IMAGE_CREATEPIXELMAP_CALLBACK_1000 success' + err);
                     done();
                     return;
@@ -642,7 +641,6 @@ export default function imageJsTest() {
                         }
                         if (res) {
                             console.info('SUB_MULTIMEDIA_IMAGE_READPIXELSTOBUFFER_PROMISE_0100 success');
-                            expect(true).assertTrue();
                             done();
                         }
                     }).catch((error: BusinessError) => {
@@ -700,7 +698,6 @@ export default function imageJsTest() {
             }
             if (res) {
                 console.info('SUB_MULTIMEDIA_IMAGE_READPIXELSTOBUFFER_SYNC_0100 success');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -749,7 +746,6 @@ export default function imageJsTest() {
                         }
                         if (res) {
                             console.info('SUB_MULTIMEDIA_IMAGE_READPIXELSTOBUFFER_CALLBACK_0100 success');
-                            expect(true).assertTrue();
                             done();
                         }
                     });
@@ -801,7 +797,6 @@ export default function imageJsTest() {
                         }
                         if (res) {
                             console.info('SUB_MULTIMEDIA_IMAGE_READPIXELSTOBUFFER_CALLBACK_0200 success');
-                            expect(true).assertTrue();
                             done();
                         }
                     });
@@ -862,7 +857,6 @@ export default function imageJsTest() {
                         }
                         if (res) {
                             console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_PROMISE_0100 success');
-                            expect(true).assertTrue();
                             done();
                         }
                     });
@@ -927,7 +921,6 @@ export default function imageJsTest() {
                         }
                         if (res) {
                             console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_CALLBACK_0100 success');
-                            expect(true).assertTrue();
                             done();
                         }
                     });
@@ -978,7 +971,6 @@ export default function imageJsTest() {
                         expect(false).assertTrue();
                         done();
                     }).catch(() => {
-                        expect(true).assertTrue();
                         console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_CALLBACK_0200 success');
                         done();
                     });
@@ -1029,7 +1021,6 @@ export default function imageJsTest() {
                         expect(false).assertTrue();
                         done();
                     }).catch(() => {
-                        expect(true).assertTrue();
                         console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_PROMISE_0200 success');
                         done();
                     });
@@ -1080,7 +1071,6 @@ export default function imageJsTest() {
                     expect(false).assertTrue();
                     done();
                 }).catch(() => {
-                    expect(true).assertTrue();
                     console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_PROMISE_0300 success');
                     done();
                 });
@@ -1130,7 +1120,6 @@ export default function imageJsTest() {
                     expect(false).assertTrue();
                     done();
                 }).catch(() => {
-                    expect(true).assertTrue();
                     console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_PROMISE_0400 success');
                     done();
                 });
@@ -1188,7 +1177,6 @@ export default function imageJsTest() {
             }
             if (res) {
                 console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_SYNC_0100 success');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -1238,7 +1226,6 @@ export default function imageJsTest() {
                     expect(false).assertTrue();
                     done();
                 } else {
-                    expect(true).assertTrue();
                     console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_SYNC_0200 success');
                     done();
                 }
@@ -1290,7 +1277,6 @@ export default function imageJsTest() {
                 expect(false).assertTrue();
                 done();
             } else {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_SYNC_0300 success');
                 done();
             }
@@ -1341,7 +1327,6 @@ export default function imageJsTest() {
                 expect(false).assertTrue();
                 done();
             } else {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_READPIXELS_SYNC_0400 success');
                 done();
             }
@@ -1413,7 +1398,6 @@ export default function imageJsTest() {
                             }
                             if (res) {
                                 console.info('SUB_MULTIMEDIA_IMAGE_WRITEPIXELS_PROMISE_0100 success');
-                                expect(true).assertTrue();
                                 done();
                             }
                         });
@@ -1490,7 +1474,6 @@ export default function imageJsTest() {
             }
             if (res) {
                 console.info('SUB_MULTIMEDIA_IMAGE_WRITEPIXELS_SYNC_0100 success');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -1559,7 +1542,6 @@ export default function imageJsTest() {
                             }
                             if (res) {
                                 console.info('SUB_MULTIMEDIA_IMAGE_WRITEPIXELS_CALLBACK_0100 success');
-                                expect(true).assertTrue();
                                 done();
                             }
                         });
@@ -1618,7 +1600,6 @@ export default function imageJsTest() {
                             }
                             if (res) {
                                 console.info('SUB_MULTIMEDIA_IMAGE_WRITEBUFFERTOPIXELS_PROMISE_0100 success');
-                                expect(true).assertTrue();
                                 done();
                             }
                         });
@@ -1670,7 +1651,6 @@ export default function imageJsTest() {
                                 if (bufferArr[i] == 0) {
                                     res = false;
                                     console.info('SUB_MULTIMEDIA_IMAGE_WRITEBUFFERTOPIXELS_CALLBACK_0100 Success');
-                                    expect(true).assertTrue();
                                     done();
                                     break;
                                 }
@@ -1729,7 +1709,6 @@ export default function imageJsTest() {
             }
             if (res) {
                 console.info('SUB_MULTIMEDIA_IMAGE_WRITEBUFFERTOPIXELS_SYNC_0100 success');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -1767,7 +1746,6 @@ export default function imageJsTest() {
                         }
                         if (imageInfo.size.height == 6 && imageInfo.size.width == 8) {
                             console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_PIXELMAP_PROMISE_0100 success ');
-                            expect(true).assertTrue();
                             done();
                         }
                         done();
@@ -1816,7 +1794,6 @@ export default function imageJsTest() {
             }
             if (imageInfo.size.height == 6 && imageInfo.size.width == 8) {
                 console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_PIXELMAP_SYNC_0100 success ');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -1853,7 +1830,6 @@ export default function imageJsTest() {
                     }
                     if (imageInfo.size.height == 4 && imageInfo.size.width == 6) {
                         console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_PIXELMAP_CALLBACK_0100 imageInfo success');
-                        expect(true).assertTrue();
                         done();
                     }
                     done();
@@ -1965,7 +1941,6 @@ export default function imageJsTest() {
                 }
                 pixelmap.release().then(() => {
                     console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_PIXELMAP_PROMISE_0100 success');
-                    expect(true).assertTrue();
                     done();
                 }).catch((error: BusinessError) => {
                     console.log('SUB_MULTIMEDIA_IMAGE_RELEASE_PIXELMAP_PROMISE_0100 error: ' + error);
@@ -2004,7 +1979,6 @@ export default function imageJsTest() {
                     done();
                 }
                 pixelmap.release(() => {
-                    expect(true).assertTrue();
                     console.log('SUB_MULTIMEDIA_IMAGE_RELEASE_PIXELMAP_CALLBACK_0100 success');
                     done();
                 });
@@ -2198,7 +2172,6 @@ export default function imageJsTest() {
                             return;
                         }
                         if (imageInfo != undefined) {
-                            expect(true).assertTrue();
                             fs.closeSync(fdNumber);
                             done();
                         } else {
@@ -2297,7 +2270,6 @@ export default function imageJsTest() {
                     globalimageSource = imageSourceApi;
                     imageSourceApi.release().then(() => {
                         console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_PROMISE_JPG_0100 success');
-                        expect(true).assertTrue();
                         done();
                     }).catch((error:BusinessError) => {
                         console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_PROMISE_JPG_0100 error');
@@ -2333,7 +2305,6 @@ export default function imageJsTest() {
                     globalimageSource = imageSourceApi;
                     imageSourceApi.release(() => {
                         console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_CALLBACK_JPG_0100 Success');
-                        expect(true).assertTrue();
                         done();
                     });
                 }
@@ -2375,7 +2346,6 @@ export default function imageJsTest() {
                             imageInfo.size.height);
                             console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_CALLBACK_0100 imageInfo.size.width:' +
                             imageInfo.size.width);
-                            expect(true).assertTrue();
                             fs.closeSync(fdNumber);
                             done();
                         } else {
@@ -2489,7 +2459,6 @@ export default function imageJsTest() {
                             return;
                         }
                         if (imageInfo != undefined && imageInfo != null) {
-                            expect(true).assertTrue();
                             console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_CALLBACK_0400 imageInfo.size.height:' +
                             imageInfo.size.height);
                             console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_CALLBACK_0400 imageInfo.size.width:' +
@@ -2642,7 +2611,6 @@ export default function imageJsTest() {
                             return;
                         }
                         if (imageInfo != undefined && imageInfo != null) {
-                            expect(true).assertTrue();
                             console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_CALLBACK_0800 imageInfo.size.height:' +
                             imageInfo.size.height);
                             console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_CALLBACK_0800 imageInfo.size.width:' +
@@ -2684,7 +2652,6 @@ export default function imageJsTest() {
                     globalimageSource = imageSourceApi;
                     imageSourceApi.getImageInfo(1, (err, imageInfo) => {
                         if (imageInfo == undefined) {
-                            expect(true).assertTrue();
                             done();
                         } else {
                             expect(false).assertTrue();
@@ -2869,7 +2836,6 @@ export default function imageJsTest() {
                     imageSourceApi.getImageInfo(0)
                         .then(imageInfo => {
                             if (imageInfo != undefined && imageInfo != null) {
-                                expect(true).assertTrue();
                                 console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_PROMISE_0400 imageInfo.size.height:' +
                                 imageInfo.size.height);
                                 console.info('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_PROMISE_0400 imageInfo.size.width:' +
@@ -2919,7 +2885,6 @@ export default function imageJsTest() {
                             done();
                         }).catch((error: BusinessError) => {
                         console.log('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_INDEX_PROMISE_GIF_0100 success');
-                        expect(true).assertTrue();
                         done();
                     });
                 }
@@ -2956,7 +2921,6 @@ export default function imageJsTest() {
                             done();
                         }).catch((error: BusinessError) => {
                         console.log('SUB_MULTIMEDIA_IMAGE_GETIMAGEINFO_INDEX_PROMISE_GIF_0200 success');
-                        expect(true).assertTrue();
                         done();
                     });
                 }
@@ -3146,7 +3110,6 @@ export default function imageJsTest() {
             const receiver = image.createImageReceiver({ width: 640, height: 480 }, 4, 8);
             if (receiver !== undefined) {
                 console.log(`${logger} true.`);
-                expect(true).assertTrue();
             } else {
                 console.log(`${logger} failed.`);
                 expect(false).assertTrue();
@@ -3168,7 +3131,6 @@ export default function imageJsTest() {
             const receiver = image.createImageReceiver({ width: 640, height: 480 }, image.ImageFormat.JPEG, 8);
             if (receiver !== undefined) {
                 console.log(`${logger} true.`);
-                expect(true).assertTrue();
             } else {
                 console.log(`${logger} failed.`);
                 expect(false).assertTrue();
@@ -3190,7 +3152,6 @@ export default function imageJsTest() {
             const creator = image.createImageCreator({width: 640, height: 480 }, image.ImageFormat.JPEG, 8);
             if (creator !== undefined) {
                 console.log(`${logger} true.`);
-                expect(true).assertTrue();
             } else {
                 console.log(`${logger} failed.`);
                 expect(false).assertTrue();
@@ -3216,7 +3177,6 @@ export default function imageJsTest() {
         let picture: image.Picture = image.createPicture(pixelMap);
         if (picture !== undefined) {
             console.log(`${logger} true.`);
-            expect(true).assertTrue();
         } else {
             console.log(`${logger} failed.`);
             expect(false).assertTrue();
@@ -3355,7 +3315,6 @@ export default function imageJsTest() {
                     globalimageSource = imageSourceApi;
                     imageSourceApi.release().then(() => {
                         console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_PROMISE_0100 success');
-                        expect(true).assertTrue();
                         done();
                     }).catch((error: BusinessError) => {
                         console.log('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_PROMISE_0100 error: ' + error);
@@ -3397,8 +3356,6 @@ export default function imageJsTest() {
                             return;
                         }
                         console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_CALLBACK_0100 Success');
-                        expect(true).assertTrue();
-                        expect(true).assertTrue();
                         done();
                     });
                 }
@@ -3430,7 +3387,6 @@ export default function imageJsTest() {
                     globalimageSource = imageSourceApi;
                     imageSourceApi.release().then(() => {
                         console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_PROMISE_0200 success');
-                        expect(true).assertTrue();
                         done();
                     }).catch((error: BusinessError) => {
                         console.log('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_PROMISE_0200 error: ' + error);
@@ -3466,7 +3422,6 @@ export default function imageJsTest() {
                     globalimageSource = imageSourceApi;
                     imageSourceApi.release(async () => {
                         console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_CALLBACK_0200 Success');
-                        expect(true).assertTrue();
                         done();
                     });
                 }
@@ -3498,7 +3453,6 @@ export default function imageJsTest() {
                     globalimageSource = imageSourceApi;
                     imageSourceApi.release().then(() => {
                         console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_PROMISE_0300 success');
-                        expect(true).assertTrue();
                         done();
                     }).catch((error: BusinessError) => {
                         console.log('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_PROMISE_0300 error: ' + error);
@@ -3534,7 +3488,6 @@ export default function imageJsTest() {
                     globalimageSource = imageSourceApi;
                     imageSourceApi.release(() => {
                         console.info('SUB_MULTIMEDIA_IMAGE_RELEASE_IMAGESOURCE_CALLBACK_0300 Success');
-                        expect(true).assertTrue();
                         done();
                     });
                 }
@@ -4661,7 +4614,6 @@ export default function imageJsTest() {
                 try {
                     pixelMap.scaleSync(scaleX, scaleY);
                     console.log(msg + ' Succeed in calling pixelMap.scaleSync');
-                    expect(true).assertTrue();
                     done();
                 } catch (err) {
                     console.error(msg + ' Failed in calling pixelMap.scaleSync ' + JSON.stringify(err));
@@ -4695,7 +4647,6 @@ export default function imageJsTest() {
                 try {
                     pixelMap.getImageInfoSync();
                     console.log(msg + ' Succeed in calling pixelMap.getImageInfoSync');
-                    expect(true).assertTrue();
                     done();
                 } catch (err) {
                     console.log(msg + ' Failed in calling pixelMap.getImageInfoSync ' + JSON.stringify(err));
@@ -4726,7 +4677,6 @@ export default function imageJsTest() {
             try {
                 let pixelmap = image.createPixelMapSync(color, opts);
                 console.log(msg + ' Succeed in calling image.createPixelMapSync ' + pixelmap);
-                expect(true).assertTrue();
                 done();
             } catch (err) {
                 console.log(msg + ' Failed in calling image.createPixelMapSync ' + JSON.stringify(err));
@@ -4756,7 +4706,6 @@ export default function imageJsTest() {
             try {
                 let pixelmap = image.createPixelMapSync(color, initializationOptions);
                 console.log(msg + ' Succeed in calling image.createPixelMapSync ' + pixelmap);
-                expect(true).assertTrue();
                 done();
             } catch (err) {
                 console.log(msg + ' Failed in calling image.createPixelMapSync' + JSON.stringify(err));
@@ -4792,7 +4741,6 @@ export default function imageJsTest() {
                     let readPixelsToBufferSyncA = pixelMap.readPixelsToBufferSync(readBuffer);
                     console.log(msg + ' Succeed in calling pixelMap.readPixelsToBufferSync ' +
                     JSON.stringify(readPixelsToBufferSyncA));
-                    expect(true).assertTrue();
                     done();
                 } catch (err) {
                     console.log(msg + ' Failed in calling pixelMap.readPixelsToBufferSync ' + JSON.stringify(err));
@@ -4841,7 +4789,6 @@ export default function imageJsTest() {
                     let writePixelsSyncA = pixelMap.writePixelsSync(PositionArea);
                     console.log(msg + ' Succeed in calling pixelMap.writePixelsSync ' +
                     JSON.stringify(writePixelsSyncA));
-                    expect(true).assertTrue();
                     done();
                 } catch (err) {
                     console.log(msg + ' Failed in calling pixelMap.readPixelsToBufferSync ' + JSON.stringify(err));
@@ -5050,7 +4997,6 @@ export default function imageJsTest() {
                                         done();
                                         break;
                                     } else {
-                                        expect(true).assertTrue();
                                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0100 success');
                                         done();
                                     }
@@ -5137,17 +5083,14 @@ export default function imageJsTest() {
                                     }
                                 }
                             }).catch((error: BusinessError) => {
-                            expect(true).assertTrue();
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0200 success');
                             done();
                         });
                     }).catch((error: BusinessError) => {
-                        expect(true).assertTrue();
                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0200 success');
                         done();
                     });
                 }).catch((error: BusinessError) => {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0200 success');
                 done();
             });
@@ -5212,7 +5155,6 @@ export default function imageJsTest() {
                                         done();
                                         break;
                                     } else {
-                                        expect(true).assertTrue();
                                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0300 success');
                                         done();
                                     }
@@ -5293,7 +5235,6 @@ export default function imageJsTest() {
                                         done();
                                         break;
                                     } else {
-                                        expect(true).assertTrue();
                                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0400 success');
                                         done();
                                     }
@@ -5380,17 +5321,14 @@ export default function imageJsTest() {
                                     }
                                 }
                             }).catch((error: BusinessError) => {
-                            expect(true).assertTrue();
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0500 success');
                             done();
                         });
                     }).catch((error: BusinessError) => {
-                        expect(true).assertTrue();
                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0500 success');
                         done();
                     });
                 }).catch((error: BusinessError) => {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0500 success');
                 done();
             });
@@ -5461,17 +5399,14 @@ export default function imageJsTest() {
                                     }
                                 }
                             }).catch((error: BusinessError) => {
-                            expect(true).assertTrue();
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0600 success');
                             done();
                         });
                     }).catch((error: BusinessError) => {
-                        expect(true).assertTrue();
                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0600 success');
                         done();
                     });
                 }).catch((error: BusinessError) => {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0600 success');
                 done();
             });
@@ -5542,17 +5477,14 @@ export default function imageJsTest() {
                                     }
                                 }
                             }).catch((error: BusinessError) => {
-                            expect(true).assertTrue();
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0700 success');
                             done();
                         });
                     }).catch((error: BusinessError) => {
-                        expect(true).assertTrue();
                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0700 success');
                         done();
                     });
                 }).catch((error: BusinessError) => {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATEPREMULTIPLIEDPIXELMAP_PROMISE_0700 success');
                 done();
             });
@@ -6080,7 +6012,6 @@ export default function imageJsTest() {
                                         done();
                                         break;
                                     } else {
-                                        expect(true).assertTrue();
                                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0100 success');
                                         done();
                                     }
@@ -6167,17 +6098,14 @@ export default function imageJsTest() {
                                     }
                                 }
                             }).catch((error: BusinessError) => {
-                            expect(true).assertTrue();
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0200 success');
                             done();
                         });
                     }).catch((error: BusinessError) => {
-                        expect(true).assertTrue();
                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0200 success');
                         done();
                     });
                 }).catch((error: BusinessError) => {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0100 success');
                 done();
             });
@@ -6242,7 +6170,6 @@ export default function imageJsTest() {
                                         done();
                                         break;
                                     } else {
-                                        expect(true).assertTrue();
                                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0300 success');
                                         done();
                                     }
@@ -6323,7 +6250,6 @@ export default function imageJsTest() {
                                         done();
                                         break;
                                     } else {
-                                        expect(true).assertTrue();
                                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0400 success');
                                         done();
                                     }
@@ -6410,17 +6336,14 @@ export default function imageJsTest() {
                                     }
                                 }
                             }).catch((error: Function) => {
-                            expect(true).assertTrue();
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0500 success');
                             done();
                         });
                     }).catch((error: Function) => {
-                        expect(true).assertTrue();
                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0500 success');
                         done();
                     });
                 }).catch((error: Function) => {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0500 success');
                 done();
             });
@@ -6485,7 +6408,6 @@ export default function imageJsTest() {
                                         done();
                                         break;
                                     } else {
-                                        expect(true).assertTrue();
                                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0600 success');
                                         done();
                                     }
@@ -6572,17 +6494,14 @@ export default function imageJsTest() {
                                     }
                                 }
                             }).catch((error: BusinessError) => {
-                            expect(true).assertTrue();
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0700 success');
                             done();
                         });
                     }).catch((error: BusinessError) => {
-                        expect(true).assertTrue();
                         console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0700 success');
                         done();
                     });
                 }).catch((error: BusinessError) => {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_PROMISE_0700 success');
                 done();
             });
@@ -6784,7 +6703,6 @@ export default function imageJsTest() {
             });
             await sleep(300);
             if (res) {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_CALLBACK_0300 success');
             } else {
                 expect(false).assertTrue();
@@ -6989,7 +6907,6 @@ export default function imageJsTest() {
             });
             await sleep(300);
             if (res) {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATEUNPREMULTIPLIEDPIXELMAP_CALLBACK_0600 success');
             } else {
                 expect(false).assertTrue();
