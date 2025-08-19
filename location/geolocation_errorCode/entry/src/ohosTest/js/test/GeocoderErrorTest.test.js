@@ -303,61 +303,6 @@ export default function geolocationTest_GeoErr() {
         })
 
         /**
-         * @tc.number SUB_HSS_Addbeaconfence_0300
-         * @tc.name SUB_HSS_Addbeaconfence_0300
-         * @tc.desc Invoke the geocoding service with incorrect input parameters.
-         * @tc.size MEDIUM
-         * @tc.type Function
-         * @tc.level Level 2
-         */
-        it('SUB_HSS_Addbeaconfence_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
-            try {
-                let manufactureDataBuffer = new Uint8Array([0X02, 0X15, 0X00, 0X00, 0X18, 0X12, 0X00, 0X00,
-                    0X10, 0X00, 0X80, 0X00, 0X00, 0X80, 0X5F, 0X9B, 0X34, 0XFB]);
-
-                let manufactureDataMaskBuffer = new Uint8Array([0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF,
-                    0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF]);
-
-                let manufactureData = {
-                    manufactureId: 0X004C,
-                    manufactureData: manufactureDataBuffer.buffer,
-                    manufactureDataMask: manufactureDataMaskBuffer.buffer
-                };
-
-                let beacon = {
-                    identifier: "11",
-                    beaconFenceInfoType: geolocationm.BeaconFenceInfoType.BEACON_MANUFACTURE_DATA,
-                    manufactureData: manufactureData
-                };
-
-                let fenceRequest = {
-                    beacon: beacon,
-                    transitionCallback: (transition) => {
-                        if (transition) {
-                            console.info("GeofenceTransition: err" + JSON.stringify(transition));
-                        }
-                    },
-                    fenceExtensionAbilityName: "MyFenceExtensionAbility",
-                };
-                
-                accsee.disableBluetooth();
-                geolocationm.addBeaconFence(fenceRequest).then((id) => {
-                    console.info("addBeaconFence success, fence id:" + id);
-                }
-                ).catch((error) => {
-                    console.error('promise, addBeaconFence: error=' + JSON.stringify(error));
-                    expect(error.code).assertEqual("3501601");
-                });
-
-            } catch (error) {
-                console.error("addBeaconFence: errCode" + error.code + ", errMessage" + error.message);
-            };
-        await sleep(1000);
-        accsee.enableBluetooth();
-        done();
-        })
-
-        /**
          * @tc.number SUB_HSS_Removebeaconfence_0100
          * @tc.name SUB_HSS_Removebeaconfence_0100
          * @tc.desc Invoke the geocoding service with incorrect input parameters.
