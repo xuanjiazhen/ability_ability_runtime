@@ -21,6 +21,7 @@
     "MainAbility/pages/promptAction/DialogOptions",
     "MainAbility/pages/buttonType/minFontScale",
     "MainAbility/pages/buttonType/maxFontScale",
-    "MainAbility/pages/promptAction/ToastExample"
+    "MainAbility/pages/promptAction/ToastExample",
+    "MainAbility/pages/promptAction/openToastTest"
   ]
 }
