@@ -112,7 +112,7 @@ __attribute__((optnone)) static napi_value StackBufferOverflow(napi_env env, nap
     bool findAsanLog = CheckAsanLog("AddressSanitizer: stack-buffer-overflow", bufferLog) &&
         CheckAsanLog("WRITE of size 4", bufferLog) &&
         CheckAsanLog("thread T0", bufferLog) &&
-        CheckAsanLog("'a' (line 108)", bufferLog) &&
+        CheckAsanLog("'a' (line 109)", bufferLog) &&
         CheckAsanLog("[f2]", bufferLog);
     int checkRes = findAsanLog ? 1 : 0;
     napi_value result = nullptr;
@@ -128,7 +128,7 @@ __attribute__((optnone)) static napi_value StackBufferUnderflow(napi_env env, na
     bool findAsanLog = CheckAsanLog("AddressSanitizer: stack-buffer-underflow", bufferLog) &&
         CheckAsanLog("WRITE of size 4", bufferLog) &&
         CheckAsanLog("thread T0", bufferLog) &&
-        CheckAsanLog("'a' (line 124)", bufferLog) &&
+        CheckAsanLog("'a' (line 125)", bufferLog) &&
         CheckAsanLog("[f1]", bufferLog);
     int checkRes = findAsanLog ? 1 : 0;
     napi_value result = nullptr;
@@ -199,7 +199,7 @@ __attribute__((optnone)) static napi_value StackUseAfterScope(napi_env env, napi
     bool findAsanLog = CheckAsanLog("AddressSanitizer: stack-use-after-scope", bufferLog) &&
         CheckAsanLog("WRITE of size 4", bufferLog) &&
         CheckAsanLog("thread T0", bufferLog) &&
-        CheckAsanLog("'x' (line 193)", bufferLog) &&
+        CheckAsanLog("'x' (line 194)", bufferLog) &&
         CheckAsanLog("[f8]", bufferLog);
     int checkRes = findAsanLog ? 1 : 0;
     napi_value result = nullptr;
@@ -221,7 +221,7 @@ __attribute__((optnone)) static napi_value StackUseAfterReturn(napi_env env, nap
     bool findAsanLog = CheckAsanLog("AddressSanitizer: stack-use-after-return", bufferLog) &&
         CheckAsanLog("READ of size 4", bufferLog) &&
         CheckAsanLog("thread T0", bufferLog) &&
-        CheckAsanLog("'a' (line 211)", bufferLog) &&
+        CheckAsanLog("'a' (line 212)", bufferLog) &&
         CheckAsanLog("[f5]", bufferLog);
     int checkRes = findAsanLog ? 1 : 0;
     napi_value result = nullptr;

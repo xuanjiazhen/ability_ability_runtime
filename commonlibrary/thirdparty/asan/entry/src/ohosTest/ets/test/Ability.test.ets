@@ -15,7 +15,7 @@
 
 import asan from 'libentry.so'
 import Utils from './Utils'
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect , TestType, Size, Level } from "@ohos/hypium";
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect , TestType, Size, Level } from '@ohos/hypium';
 
 export default function abilityTest() {
 
@@ -23,13 +23,13 @@ export default function abilityTest() {
     beforeAll(async () => {
       // Presets an action, which is performed only once before all test cases of the test suite start.
       // This API supports only one parameter: preset action function.
-      await Utils.sleep(100)
+      await Utils.sleep(1000)
     })
     beforeEach(async () => {
       // Presets an action, which is performed before each unit test case starts.
       // The number of execution times is the same as the number of test cases defined by **it**.
       // This API supports only one parameter: preset action function.
-      await Utils.sleep(100)
+      await Utils.sleep(1000)
     })
 
     /**
