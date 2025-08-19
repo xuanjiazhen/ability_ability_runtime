@@ -34,6 +34,7 @@ export default function DeviceManagerTest() {
         try {
           console.info("====>testDistributedServiceKitGetLocalDeviceName0100 start====");
           let result: number = devicemanagerndktest.GetLocalDeviceNameErrorCodeOK();
+          console.info("====>testDistributedServiceKitGetLocalDeviceName0100 result====" + result);
           expect(KEY_CODE_EVENT_OK).assertEqual(result);
           done()
         } catch (err) {
