@@ -17,8 +17,11 @@ import { afterEach, beforeAll, beforeEach, describe, it , TestType, Size, Level 
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
+const EVENT_ID_SET_EIMIT_KEY = 142017;
+const driver = Driver.create();
 
 export default function webOnInterceptRequestTest() {
 
@@ -34,7 +37,6 @@ export default function webOnInterceptRequestTest() {
         if (!("WebOnInterceptRequest" == pages.name)) {
           console.info("get WebOnInterceptRequest state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebOnInterceptRequest page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -48,18 +50,9 @@ export default function webOnInterceptRequestTest() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
       done();
     })
-
-    afterEach(async (done: Function) => {
-      console.info("WebOnInterceptRequestTest afterEach start");
-      await Utils.sleep(1000);
-      console.info("WebOnInterceptRequestTest afterEach end");
-      done();
-    })
-
 
     /*
     * @tc.number      : SUB_WEB_ONINTERCEPTREQUEST_0100
@@ -70,10 +63,12 @@ export default function webOnInterceptRequestTest() {
     * @tc.level       : Level 1
     */
     it('testOnInterceptRequest001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("emitOnInterceptRequest001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testOnInterceptRequest001", "intercept test", 60406, done);
-      sendEventByKey('OnInterceptRequestTestButton', 10, '');
+      Utils.emitEvent("emitOnInterceptRequest001", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("testOnInterceptRequest001", "intercept test", 142027, ()=>{isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "OnInterceptRequestTestButton");
+      await Utils.waitForExist(()=>isReturn, "testOnInterceptRequest001", 1);
+      done();
     })
 
     /*
@@ -85,10 +80,12 @@ export default function webOnInterceptRequestTest() {
     * @tc.level       : Level 2
     */
     it('testOnInterceptRequest002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
-      Utils.emitEvent("emitOnInterceptRequest002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testOnInterceptRequest002", 404, 60407, done);
-      sendEventByKey('OnInterceptRequestTestButton', 10, '');
+      Utils.emitEvent("emitOnInterceptRequest002", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("testOnInterceptRequest002", 404, 142037, ()=>{isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "OnInterceptRequestTestButton");
+      await Utils.waitForExist(()=>isReturn, "testOnInterceptRequest002", 1);
+      done();
     })
   })
 }

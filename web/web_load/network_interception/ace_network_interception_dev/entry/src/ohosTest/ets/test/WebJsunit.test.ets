@@ -16,9 +16,12 @@ import { afterEach, beforeEach, describe, it , TestType, Size, Level } from '@oh
 import events_emitter from '@ohos.events.emitter';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 let emitKey = "emitOnErrorReceive";
+const EVENT_ID_SET_EIMIT_KEY = 142001;
+const driver = Driver.create();
 
 export default function webJsunit() {
   describe('ActsAceWebDevTest', () => {
@@ -28,39 +31,20 @@ export default function webJsunit() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
       done();
     })
-    afterEach(async (done: Function) => {
-      console.info("web afterEach start:" + emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
-      done();
-    })
+
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEB_DEV_API_043
      *tc.name onErrorReceive
      *tc.desic Triggered when the web page receives a web resource loading error
      */
     it('onErrorReceive', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitOnHttpErrorReceive";
-      Utils.registerEvent("onErrorReceive", "http://bianixnbo.com/", 65, done);
-      sendEventByKey('webcomponent', 10, '');
+      emitKey = "emitOnErrorReceive";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("onErrorReceive", "http://bianixnbo.com/", 142010, done);
+      Utils.waitAndClickComponent(driver, "webcomponent");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEB_DEV_API_044
@@ -69,8 +53,9 @@ export default function webJsunit() {
      */
     it('onHttpErrorReceive', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitOnHttpErrorReceive";
-      Utils.registerEvent("onHttpErrorReceive", true, 66, done);
-      sendEventByKey('webcomponent', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("onHttpErrorReceive", true, 142020, done);
+      Utils.waitAndClickComponent(driver, "webcomponent");
     })
   })
 }

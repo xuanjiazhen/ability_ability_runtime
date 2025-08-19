@@ -17,8 +17,11 @@ import { afterEach, beforeAll, beforeEach, describe, it , TestType, Size, Level 
 import Utils from './Utils';
 import router from '@ohos.router';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
+const EVENT_ID_SET_EIMIT_KEY = 142018;
+const  driver = Driver.create();
 
 export default function webOnLoadIntercept() {
   describe('WebOnLoadInterceptTest', () => {
@@ -33,7 +36,6 @@ export default function webOnLoadIntercept() {
         if (!("WebOnLoadIntercept" == pages.name)) {
           console.info("get WebOnLoadIntercept state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebOnLoadIntercept page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -47,15 +49,7 @@ export default function webOnLoadIntercept() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
-      done();
-    })
-
-    afterEach(async (done: Function) => {
-      console.info("WebOnLoadInterceptTest afterEach start");
-      await Utils.sleep(1000);
-      console.info("WebOnLoadInterceptTest afterEach end");
       done();
     })
 
@@ -68,11 +62,15 @@ export default function webOnLoadIntercept() {
     * @tc.level       : Level 1
     */
     it('testOnLoadIntercept001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("emitOnLoadIntercept001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testOnLoadIntercept001", 'https://www.openharmony.cn/', 60540, done);
-      Utils.registerEvent("testOnLoadIntercept001", 'OpenAtom OpenHarmony', 60542, done);
-      sendEventByKey('WebOnLoadInterceptTestButton', 10, '');
+      Utils.emitEvent("emitOnLoadIntercept001", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn1 = 0;
+      let isReturn2 = 0;
+      Utils.registerEvent("testOnLoadIntercept001", 'https://www.openharmony.cn/', 142028, () => {isReturn1 = 1});
+      Utils.registerEvent("testOnLoadIntercept001", 'OpenAtom OpenHarmony', 142038, () => {isReturn2 = 1});
+      await Utils.waitAndClickComponent(driver, "WebOnLoadInterceptTestButton");
+      await Utils.waitForExist(() => isReturn1, 'emitOnLoadIntercept001_checkReturn1', 1);
+      await Utils.waitForExist(() => isReturn2, 'emitOnLoadIntercept001_checkReturn2', 1);
+      done();
     })
 
     /*
@@ -84,11 +82,15 @@ export default function webOnLoadIntercept() {
     * @tc.level       : Level 1
     */
     it('testOnLoadIntercept002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("emitOnLoadIntercept002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testOnLoadIntercept002", 'https://www.openharmony.cn/', 60544, done);
-      Utils.registerEvent("testOnLoadIntercept002", 'index', 60546, done);
-      sendEventByKey('WebOnLoadInterceptTestButton', 10, '');
+      Utils.emitEvent("emitOnLoadIntercept002", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn1 = 0;
+      let isReturn2 = 0;
+      Utils.registerEvent("testOnLoadIntercept002", 'https://www.openharmony.cn/', 142048, () => {isReturn1 = 1})
+      Utils.registerEvent("testOnLoadIntercept002", 'index', 142058, () => {isReturn2 = 1});
+      await Utils.waitAndClickComponent(driver, "WebOnLoadInterceptTestButton");
+      await Utils.waitForExist(() => isReturn1, 'emitOnLoadIntercept002_checkReturn1', 1);
+      await Utils.waitForExist(() => isReturn2, 'emitOnLoadIntercept002_checkReturn2', 1);
+      done();
     })
   })
 }

@@ -21,6 +21,7 @@ import { JsProxyObject } from '../../test/Interfaces';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
+const EVENT_ID_SET_EIMIT_KEY = 142300;
 
 @Entry
 @Component
@@ -46,17 +47,19 @@ struct WebViewControllerPart3 {
   @State onMessageEventCallBack: boolean = false
   @State ports: webView.WebMessagePort[] = [];
   @State userAgentPC:string = "";
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EIMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(EVENT_ID_SET_EIMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -68,6 +71,7 @@ struct WebViewControllerPart3 {
         if (this.controller) {
           this.controller.loadUrl("resource://rawfile/index.html");
           this.controller.clearHistory()
+          this.isReceive = 1;
         }
       }
     }
@@ -98,14 +102,17 @@ struct WebViewControllerPart3 {
     Column() {
       Row() {
         Button("WebViewController click").key('WebViewControllerTestButton').onClick(async () => {
+          await Utils.waitForExist(()=>this.isReceive, this.str, 1);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
 
             case "testSetNetworkAvailable001": {
               try {
+                this.isPageEnd = -1;
                 this.controller.loadUrl($rawfile('indexCopy.html'))
                 this.controller.setNetworkAvailable(false);
-                await Utils.sleep(3000)
+                await Utils.waitForExist(() => this.isPageEnd, this.str, 1);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -117,7 +124,7 @@ struct WebViewControllerPart3 {
                 if (result) {
                   console.log("result:" + result + JSON.stringify(result))
                   console.log("the status of navigator.onLine: " + result);
-                  Utils.emitEvent(result, 100055)
+                  Utils.emitEvent(result, 142310)
                 }
               })
               break;
@@ -125,9 +132,10 @@ struct WebViewControllerPart3 {
 
             case "testSetNetworkAvailable002": {
               try {
+                this.isPageEnd = -1;
                 this.controller.loadUrl($rawfile('indexCopy.html'))
                 this.controller.setNetworkAvailable(true);
-                await Utils.sleep(3000)
+                await Utils.waitForExist(() => this.isPageEnd, this.str, 1);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -139,7 +147,7 @@ struct WebViewControllerPart3 {
                 if (result) {
                   console.log("result:" + result + JSON.stringify(result))
                   console.log("the status of navigator.onLine: " + result);
-                  Utils.emitEvent(result, 100056)
+                  Utils.emitEvent(result, 142320)
                 }
               })
               break;
@@ -193,6 +201,7 @@ struct WebViewControllerPart3 {
             }
             console.log('url:' + event.url)
           }
+          this.isPageEnd = 1
         })
       Web({ src: $rawfile('indexTwo.html'), controller: this.controllerTwo })
         .id('2')

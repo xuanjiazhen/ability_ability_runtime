@@ -16,6 +16,7 @@
 import events_emitter from '@ohos.events.emitter';
 import Utils from '../../test/Utils';
 import webView from '@ohos.web.webview';
+const EVENT_ID_SET_EIMIT_KEY = 142018;
 
 @Entry
 @Component
@@ -33,17 +34,20 @@ struct WebOnLoadIntercept {
   @State interceptLoad: boolean = false;
   @State interceptUrl: string = ''
   @State title: string = ''
+  @State isReceive: number = -1;
+  @State isEnd:number = -1;
+  @State isTitle:number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EIMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(EVENT_ID_SET_EIMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -52,6 +56,7 @@ struct WebOnLoadIntercept {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 1;
       }
     }
   }
@@ -60,14 +65,19 @@ struct WebOnLoadIntercept {
     Column() {
       Row() {
         Button("audioStateTest").key('WebOnLoadInterceptTestButton').onClick(async () => {
+          await Utils.waitForExist(()=>this.isReceive, this.str, 1);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
             case "emitOnLoadIntercept001": {
               try {
+                this.isEnd = -1;
+                this.isTitle = -1;
                 this.controller.loadUrl('https://www.openharmony.cn/')
-                await Utils.sleep(3000)
-                Utils.emitEvent(this.interceptUrl, 60540)
-                Utils.emitEvent(this.title, 60542)
+                await Utils.waitForExist(()=>this.isEnd, this.str, 1);
+                Utils.emitEvent(this.interceptUrl, 142028)
+                await Utils.waitForExist(()=>this.isTitle, this.str, 1);
+                Utils.emitEvent(this.title, 142038)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -75,14 +85,15 @@ struct WebOnLoadIntercept {
             }
             case "emitOnLoadIntercept002": {
               try {
+                this.isTitle = -1;
                 this.controller.loadUrl("resource://rawfile/index.html");
-                await Utils.sleep(2000)
+                await Utils.waitForExist(()=>this.isTitle, this.str, 1);
+                Utils.emitEvent(this.title, 142058)
+                this.isEnd = -1;
                 this.interceptLoad = true
-                await Utils.sleep(1000)
                 this.controller.loadUrl('https://www.openharmony.cn/')
-                await Utils.sleep(3000)
-                Utils.emitEvent(this.interceptUrl, 60544)
-                Utils.emitEvent(this.title, 60546)
+                await Utils.waitForExist(()=>this.isEnd, this.str, 1);
+                Utils.emitEvent(this.interceptUrl, 142048)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -107,13 +118,16 @@ struct WebOnLoadIntercept {
             console.log('isMainFrame:' + event.data.isMainFrame())
             console.log('isRedirect:' + event.data.isRedirect())
             console.log('isRequestGesture:' + event.data.isRequestGesture())
+            this.isEnd = 1;
           }
+
           return this.interceptLoad
         })
         .onTitleReceive((event) => {
           if (event) {
             console.log('title:' + event.title);
             this.title = event.title
+            this.isTitle = 1;
           }
         })
     }

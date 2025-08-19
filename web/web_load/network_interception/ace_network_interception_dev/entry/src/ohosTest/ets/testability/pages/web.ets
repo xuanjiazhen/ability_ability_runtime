@@ -17,20 +17,20 @@ import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
+import { webview } from '@kit.ArkWeb';
 
 let loadedUrl: string;
 
 @Entry
 @Component
 struct Index {
-  controller: WebController = new WebController();
+  controller: webview.WebviewController = new webview.WebviewController();
   @State str: string = "emitOnErrorReceive";
   @State loadedResource: string = "";
   @State progress: string = "";
   @State newUrl: string = "";
   @State pageBegin: string = "";
   @State pageEnd: string = "";
-  @State console: string = "";
   @State confirm: string = "";
   @State alert: string = "";
   @State errorReceive: string = "";
@@ -58,14 +58,23 @@ struct Index {
   @State isProgressFinish: boolean = false;
   @State isHttpErrorReceive: boolean = false;
   @State isLargeThan: boolean = false;
+  @State isPageEnd: number = -1;
+  @State isReceive:number = -1;
+  @State isEnd:number = -1;
+  @State isError:number =-1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 142001,
       priority: events_emitter.EventPriority.LOW
     };
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack);
   }
+
+  onPageHide(){
+    events_emitter.off(142001);
+  }
+
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
     console.info("web page valueChangeCallBack");
@@ -73,6 +82,7 @@ struct Index {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0
       }
     }
   }
@@ -100,22 +110,21 @@ struct Index {
     Column() {
       Row() {
         Button("web click").key('webcomponent').onClick(async () => {
+          await Utils.waitForExist(()=>this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str);
           switch (this.str) {
             case "emitOnErrorReceive": {
-              this.controller.loadUrl({ url: 'http://bianixnbo.com' });
-              setTimeout(() => {
-                this.controller.loadUrl({ url: 'http://bianixnbo.com' });
-                setTimeout(() => {
-                  Utils.emitEvent(this.errorReceive, 65);
-                }, 4000);
-              }, 4000);
+                this.controller.loadUrl('http://bianixnbo.com' );
+                await Utils.waitForExist(()=>this.isPageEnd, this.str, 0);
+                Utils.emitEvent(this.errorReceive, 142010);
+
               break;
             }
             case "emitOnHttpErrorReceive": {
               this.isHttpErrorReceive = true;
-              await Utils.sleep(1000);
-              this.controller.loadUrl({ url: 'http://1.1.1.123/index.html' });
+              this.controller.loadUrl('http://1.1.1.123/index.html');
+              await Utils.waitForExist(()=>this.isEnd, this.str, 0);
               break;
             }
             default:
@@ -155,6 +164,7 @@ struct Index {
         .initialScale(this.initialScale)
         .mixedMode(this.mixedMode)
         .onErrorReceive((event) => {
+          this.isPageEnd = 0
           this.errorReceive = event.request.getRequestUrl();
           console.log("onErrorReceive==>");
           if (this.cacheError) {
@@ -168,13 +178,18 @@ struct Index {
             this.httpErrorReceive = event.response.getResponseCode();
             if (this.httpErrorReceive > 400) {
               this.isLargeThan = true;
-              Utils.emitEvent(this.isLargeThan, 66);
+              Utils.emitEvent(this.isLargeThan, 142020);
             }
             this.isLargeThan = false;
             this.isHttpErrorReceive = false;
           }
         })
-
+        .onPageEnd(()=>{
+          this.isEnd = 0
+        })
+        .onPageBegin(()=>{
+          this.isEnd = -1
+        })
     }
   }
 }

@@ -17,8 +17,11 @@ import { afterEach, beforeAll, beforeEach, describe, it , TestType, Size, Level 
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
+const EVENT_ID_SET_EIMIT_KEY = 142301;
+const driver = Driver.create();
 
 export default function WebViewEnumAndFontLibrary() {
 
@@ -35,7 +38,6 @@ export default function WebViewEnumAndFontLibrary() {
         if (!("WebViewEnumAndFontLibrary" == pages.name)) {
           console.info("get WebViewEnumAndFontLibrary state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebViewEnumAndFontLibrary page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -50,18 +52,9 @@ export default function WebViewEnumAndFontLibrary() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
       done();
     })
-
-    afterEach(async (done: Function) => {
-      console.info("WebViewControllerDownloadTest afterEach start");
-      await Utils.sleep(2000);
-      console.info("WebViewControllerDownloadTest afterEach end");
-      done();
-    })
-
 
     /*
     * @tc.number     : SUB_WEB_HASIMAGE_0100
@@ -72,12 +65,10 @@ export default function WebViewEnumAndFontLibrary() {
     * @tc.level      : Level 1
     */
     it('testHasImage001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("emitHasImage", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHasImage001", true, 1251, done);
-      sendEventByKey('buttonEnumAndFontLibrary', 10, '');
+      Utils.emitEvent("emitHasImage", EVENT_ID_SET_EIMIT_KEY);
+      // await Utils.sleep(2000);
+      Utils.registerEvent("testHasImage001", true, 142311, done);
+      Utils.waitAndClickComponent(driver, "buttonEnumAndFontLibrary");
     })
-
-
   })
 }

@@ -17,8 +17,11 @@ import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@oh
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
+const EVENT_ID_SET_EIMIT_KEY = 142300;
+const driver = Driver.create();
 
 export default function webViewControllerPart3Test() {
 
@@ -35,7 +38,6 @@ export default function webViewControllerPart3Test() {
         if (!("WebViewControllerPart3" == pages.name)) {
           console.info("get WebViewControllerPart3 state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebViewControllerPart3 page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -50,7 +52,6 @@ export default function webViewControllerPart3Test() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("WebViewControllerPart3 beforeEach start");
       done();
     })
@@ -65,10 +66,9 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 0
     */
     it('testSetNetworkAvailable001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent("testSetNetworkAvailable001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetNetworkAvailable001", 'false', 100055, done);
-      sendEventByKey('WebViewControllerTestButton', 10, '');
+      Utils.emitEvent("testSetNetworkAvailable001", EVENT_ID_SET_EIMIT_KEY)
+      Utils.registerEvent("testSetNetworkAvailable001", 'false', 142310, done);
+      Utils.waitAndClickComponent(driver, "WebViewControllerTestButton");
     })
 
     /*
@@ -80,10 +80,9 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testSetNetworkAvailable002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testSetNetworkAvailable002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetNetworkAvailable002", 'true', 100056, done);
-      sendEventByKey('WebViewControllerTestButton', 10, '');
+      Utils.emitEvent("testSetNetworkAvailable002", EVENT_ID_SET_EIMIT_KEY)
+      Utils.registerEvent("testSetNetworkAvailable002", 'true', 142320, done);
+      Utils.waitAndClickComponent(driver, "WebViewControllerTestButton");
     })
 
 
