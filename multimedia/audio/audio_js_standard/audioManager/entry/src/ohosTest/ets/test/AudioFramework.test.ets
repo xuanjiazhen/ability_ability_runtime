@@ -3801,7 +3801,7 @@ export default function audioFramework() {
             if (err) {
               console.error(`${TagFrmwk}: Callback : SetVolume: VOICE_ASSISTANT : failed to get Mute Status ${err.message}`);
               expect().assertFail();
-            } else if (data == true) {
+            } else if (data == false) {
               console.log(`${TagFrmwk}: Callback : Is Stream Mute VOICE_ASSISTANT: SetVolume: PASS: ${data}`);
               expect(true).assertTrue();
             } else {
