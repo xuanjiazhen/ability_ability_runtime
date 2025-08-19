@@ -249,7 +249,7 @@ struct webViewSdkSchemeHandlerThree {
                       }
                       break;
                     }
-                    case 'emitSchemeHandlerDidFailCompleteIfNoResponse007': {
+                    case 'emitSchemeHandlerDidFailCompleteIfNoResponse008': {
                       try {
                         this.schemeHandler.onRequestStart((
                           request: webview.WebSchemeHandlerRequest, resourceHandler: webview.WebResourceHandler) => {
