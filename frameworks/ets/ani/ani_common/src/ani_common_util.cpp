@@ -1533,5 +1533,37 @@ ani_object CreateIntAniArray(ani_env *env, const std::vector<int32_t> &dataArry)
     }
     return arrayObj;
 }
+
+ani_env* AttachAniEnv(ani_vm *etsVm)
+{
+    if (etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "etsVm nullptr");
+        return nullptr;
+    }
+    ani_status status = ANI_ERROR;
+    ani_env *env = nullptr;
+    if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) == ANI_OK || env != nullptr) {
+        return env;
+    }
+    ani_option interopEnabled { "--interop=disable", nullptr };
+    ani_options aniArgs { 1, &interopEnabled };
+    if ((status = (etsVm->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env))) != ANI_OK || env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "AttachCurrentThread status: %{public}d, or null env", status);
+        return nullptr;
+    }
+    return env;
+}
+
+void DetachAniEnv(ani_vm *etsVm)
+{
+    if (etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "etsVm nullptr");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    if ((status = etsVm->DetachCurrentThread()) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "DetachCurrentThread status: %{public}d", status);
+    }
+}
 } // namespace AppExecFwk
 } // namespace OHOS
