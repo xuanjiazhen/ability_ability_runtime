@@ -41,7 +41,7 @@ void FilePermissionManagerTest::TearDown()
  * Feature: CheckUriPersistentPermission
  * Function: CheckUriPersistentPermission
  * SubFunction: NA
- * FunctionPoints: UPMSUtils CheckUriPersistentPermission
+ * FunctionPoints: FUDUtils CheckUriPersistentPermission
  */
 HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_001, TestSize.Level1)
 {
@@ -61,7 +61,7 @@ HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_001, TestSize.L
  * Feature: CheckUriPersistentPermission
  * Function: CheckUriPersistentPermission
  * SubFunction: NA
- * FunctionPoints: UPMSUtils CheckUriPersistentPermission
+ * FunctionPoints: FUDUtils CheckUriPersistentPermission
  */
 HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_002, TestSize.Level1)
 {
