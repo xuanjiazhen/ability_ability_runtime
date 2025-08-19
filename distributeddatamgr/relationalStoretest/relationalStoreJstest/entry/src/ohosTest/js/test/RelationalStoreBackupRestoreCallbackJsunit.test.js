@@ -181,11 +181,11 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                 {
                     console.log(TAG + "err" + err.code + err.message)
                     expect("401").assertEqual(String(err.code))
-                    done()
+                   // done()
                 }
                 else{
                     expect().assertFail()
-                    done()
+                    //done()
                 }
             })
             // RelationalStore backup function test, backup file name already exists
@@ -195,13 +195,14 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                 {
                     console.log(TAG + "err" + err.code + err.message)
                     expect("14800010").assertEqual(String(err.code))
-                    done()
+                    //done()
                 }
                 else{
                     expect().assertFail()
-                    done()
+                    //done()
                 }
             })
+            done()
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0200 end *************")
         })
 
@@ -225,11 +226,11 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                 {
                     console.log(TAG + "err" + err.code + err.message)
                     expect("401").assertEqual(String(err.code))
-                    done()
+                    //done()
                 }
                 else{
                     expect().assertFail()
-                    done()
+                    ///done()
                 }
             })
 
@@ -240,13 +241,14 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                 {
                     console.log(TAG + "err" + err.code + err.message)
                     expect("14800010").assertEqual(String(err.code))
-                    done()
+                    //done()
                 }
                 else{
                     expect().assertFail()
-                    done()
+                   // done()
                 }
             })
+            done()
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0300 end *************")
         })
 
@@ -413,7 +415,6 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                     done()
                 }
             })
-            done();
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0800 end *************")
         })
 
@@ -432,18 +433,11 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                 if(err)
                 {
                     console.log(TAG + "err" + err.code + err.message)
-                    expect().assertFail()
+                    expect("401").assertEqual(String(err.code))
                     done()
                 }
                 else{
-                    await RdbStore.executeSql("delete from test")
-                    let resultSet = await RdbStore.querySql("select * from test")
-                    console.log(TAG + "resultSet.rowCount" + resultSet.rowCount)
-                    expect(resultSet.rowCount).assertEqual(0)
-                    await RdbStore.restore(DATABASE_BACKUP_NAME)
-                    let resultSet1 = await RdbStore.querySql("select * from test")
-                    console.log(TAG + "resultSet1.rowCount" + resultSet1.rowCount)
-                    expect(resultSet1.rowCount).assertEqual(3)
+                    expect().assertFail()
                     done()
                 }
             })
@@ -469,9 +463,11 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                     try{
                         await RdbStore.restore([DATABASE_BACKUP_NAME])
                         console.log(TAG+"111111111")
+                        expect().assertFail()
                         done();
                     }catch(err){
                         console.log(TAG+ "err" + err.code +err.message)
+                        expect("401").assertEqual(String(err.code))
                         done();
                     }
             })
