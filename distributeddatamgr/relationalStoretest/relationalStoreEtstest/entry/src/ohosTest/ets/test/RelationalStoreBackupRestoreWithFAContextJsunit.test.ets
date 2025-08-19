@@ -170,7 +170,7 @@ export default function relationalStoreBackupRestorePromiseTest() {
      * @tc.type Function
      * @tc.level Level 1
      */
-    it('RdbBackupRestoreTest0020', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function () {
+    it('RdbBackupRestoreTest0020', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
       console.info(TAG + "************* RdbBackupRestoreTest_0020 start *************")
       // RelationalStore backup function test, backup file name empty
       //BackupTest("")
@@ -203,7 +203,7 @@ export default function relationalStoreBackupRestorePromiseTest() {
      * @tc.type Function
      * @tc.level Level 1
      */
-    it('RdbBackupRestoreTest0030', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function () {
+    it('RdbBackupRestoreTest0030', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
       console.info(TAG + "************* RdbBackupRestoreTest_0030 start *************")
       let backupName = "BackupTest003.db"
       try {
@@ -276,7 +276,7 @@ export default function relationalStoreBackupRestorePromiseTest() {
      * @tc.type Function
      * @tc.level Level 1
      */
-    it('RdbBackupRestoreTest0050', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function () {
+    it('RdbBackupRestoreTest0050', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
       console.info(TAG + "************* RdbBackupRestoreTest_0050 start *************")
 
       try {
@@ -451,7 +451,7 @@ export default function relationalStoreBackupRestorePromiseTest() {
      * @tc.type Function
      * @tc.level Level 1
      */
-    it('RdbBackupRestoreTest0130', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function () {
+    it('RdbBackupRestoreTest0130', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
       console.info(TAG + "************* RdbBackupRestoreTest_0130 start *************")
       try {
         await RdbStore.backup(DATABASE_BACKUP_NAME)
