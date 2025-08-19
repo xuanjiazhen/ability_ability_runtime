@@ -158,6 +158,7 @@ static napi_value OHAVMuxerStart(napi_env env, napi_callback_info info)
     OH_AVFormat_SetStringValue(trackFormat, OH_MD_KEY_CODEC_MIME, OH_AVCODEC_MIMETYPE_AUDIO_AAC);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_SAMPLE_RATE, BIGVAL);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_CHANNEL_COUNT, TWOVAL);
+    OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_ENABLE_MOOV_FRONT, 1);
     OH_AVMuxer_AddTrack(muxer, &audioTrackId, trackFormat);
     OH_AVErrCode backInfo = OH_AVMuxer_Start(muxer);
     OH_AVMuxer_WriteSample(muxer, trackId, sample, attrInfo);
@@ -198,6 +199,7 @@ static napi_value OHAVMuxerStop(napi_env env, napi_callback_info info)
     OH_AVFormat_SetStringValue(trackFormat, OH_MD_KEY_CODEC_MIME, OH_AVCODEC_MIMETYPE_AUDIO_AAC);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_SAMPLE_RATE, BIGVAL);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_CHANNEL_COUNT, TWOVAL);
+    OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_ENABLE_MOOV_FRONT, 1);
     OH_AVMuxer_AddTrack(muxer, &audioTrackId, trackFormat);
     OH_AVMuxer_Start(muxer);
     OH_AVMuxer_WriteSample(muxer, trackId, sample, attrInfo);
@@ -238,6 +240,7 @@ static napi_value OHAVMuxerWriteSample(napi_env env, napi_callback_info info)
     OH_AVFormat_SetStringValue(trackFormat, OH_MD_KEY_CODEC_MIME, OH_AVCODEC_MIMETYPE_AUDIO_AAC);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_SAMPLE_RATE, BIGVAL);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_CHANNEL_COUNT, TWOVAL);
+    OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_ENABLE_MOOV_FRONT, 1);
     OH_AVMuxer_AddTrack(muxer, &trackId, trackFormat);
     OH_AVMuxer_Start(muxer);
     int backInfo = OH_AVMuxer_WriteSample(muxer, trackId, sample, attrInfo);
@@ -278,6 +281,7 @@ static napi_value OHAVMuxerWriteSampleBuffer(napi_env env, napi_callback_info in
     OH_AVFormat_SetStringValue(trackFormat, OH_MD_KEY_CODEC_MIME, OH_AVCODEC_MIMETYPE_AUDIO_AAC);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_SAMPLE_RATE, BIGVAL);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_CHANNEL_COUNT, TWOVAL);
+    OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_ENABLE_MOOV_FRONT, 0);
     OH_AVMuxer_AddTrack(muxer, &trackId, trackFormat);
     OH_AVMuxer_Start(muxer);
     int backInfo = OH_AVMuxer_WriteSampleBuffer(muxer, trackId, sample);
@@ -318,6 +322,7 @@ static napi_value OHAVMuxerAddTrack(napi_env env, napi_callback_info info)
     OH_AVFormat_SetStringValue(trackFormat, OH_MD_KEY_CODEC_MIME, OH_AVCODEC_MIMETYPE_AUDIO_AAC);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_SAMPLE_RATE, BIGVAL);
     OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_AUD_CHANNEL_COUNT, TWOVAL);
+    OH_AVFormat_SetIntValue(trackFormat, OH_MD_KEY_ENABLE_MOOV_FRONT, 1);
     int ret = OH_AVMuxer_AddTrack(muxer, &audioTrackId, trackFormat);
     OH_AVMuxer_Start(muxer);
     OH_AVMuxer_WriteSample(muxer, trackId, sample, attrInfo);
