@@ -2458,7 +2458,7 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_Application
     applicationContext->SetLaunchParameter(want);
     code = OH_AbilityRuntime_ApplicationContextGetLaunchParameter(buffer, BUFFER_SIZE, &writeLength);
     ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    ASSERT_EQ(want.ToFullString(), buffer);
+    ASSERT_EQ(want.ToString(), buffer);
     ASSERT_GT(writeLength, 0);
     ASSERT_LT(writeLength, BUFFER_SIZE);
 }
@@ -2528,7 +2528,7 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_Application
     applicationContext->SetLatestParameter(want);
     code = OH_AbilityRuntime_ApplicationContextGetLatestParameter(buffer, BUFFER_SIZE, &writeLength);
     ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    ASSERT_EQ(want.ToFullString(), buffer);
+    ASSERT_EQ(want.ToString(), buffer);
     ASSERT_GT(writeLength, 0);
     ASSERT_LT(writeLength, BUFFER_SIZE);
 }

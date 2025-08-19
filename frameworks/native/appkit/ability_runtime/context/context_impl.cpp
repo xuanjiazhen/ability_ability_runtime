@@ -1718,6 +1718,7 @@ int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleNam
     UpdateResConfig(GetResourceManager(), resourceManager);
     return ERR_OK;
 }
+
 bool ContextImpl::UpdateDisplayConfiguration(std::shared_ptr<ContextImpl> &contextImpl, uint64_t displayId,
     float density, std::string direction)
 {
@@ -1774,7 +1775,7 @@ std::string ContextImpl::GetLaunchParameter() const
         return launchParameter_->ToString();
     }
     TAG_LOGW(AAFwkTag::APPKIT, "launchParameter_ is null");
-    return Constants::EMPTY_STRING;
+    return "";
 }
 
 void ContextImpl::SetLatestParameter(const AAFwk::Want& want)
@@ -1788,7 +1789,7 @@ std::string ContextImpl::GetLatestParameter() const
         return latestParameter_->ToString();
     }
     TAG_LOGW(AAFwkTag::APPKIT, "latestParameter_ is null");
-    return Constants::EMPTY_STRING;
+    return "";
 }
 
 #ifdef SUPPORT_GRAPHICS
