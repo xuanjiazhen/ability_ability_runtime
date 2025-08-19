@@ -29,6 +29,7 @@
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
 
+#include "native_engine/native_engine.h"
 namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::AbilityBase::Constants;
