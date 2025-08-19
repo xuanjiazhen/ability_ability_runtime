@@ -547,7 +547,6 @@ napi_value CheckNodeFocusBox(napi_env env, napi_callback_info info)
     } else {
         result = 0;
     }
-    //ColumnComponent.RemoveAll();
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -629,7 +628,8 @@ napi_value CheckNodeBackgroundImageResizableWithSlice(napi_env env, napi_callbac
                      itemptr->value[1].f32 - size2 >= -exp && itemptr->value[1].f32 - size2 <= exp &&
                      itemptr->value[2].f32 - size3 >= -exp && itemptr->value[2].f32 - size3 <= exp &&
                      itemptr->value[3].f32 - size4 >= -exp && itemptr->value[3].f32 - size4 <= exp;
-    condition = condition && RowComponent.resetAttribute(NODE_BACKGROUND_IMAGE_RESIZABLE_WITH_SLICE) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && RowComponent.resetAttribute(NODE_BACKGROUND_IMAGE_RESIZABLE_WITH_SLICE) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -952,7 +952,8 @@ napi_value CheckNodeXComponentSurfaceSize(napi_env env, napi_callback_info info)
     } else {
         result = 0;
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_XCOMPONENT_SURFACE_SIZEsetResult: %{public}d",
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN,
+                 "CheckAttribute", "NODE_XCOMPONENT_SURFACE_SIZEsetResult: %{public}d",
                  itemptr->value[0].u32);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -971,7 +972,8 @@ napi_value CheckNodeXComponentSurfaceRect(napi_env env, napi_callback_info info)
     } else {
         result = 0;
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "NODE_XCOMPONENT_SURFACE_RECTsetResult: %{public}d",
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "NODE_XCOMPONENT_SURFACE_RECTsetResult: %{public}d",
                  itemptr->value[0].i32);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -1115,7 +1117,8 @@ napi_value CheckNodeCheckboxGroupSelectedColor(napi_env env, napi_callback_info 
     int32_t setResult = CheckboxGroupComponent.setAttribute(NODE_CHECKBOX_GROUP_SELECTED_COLOR, &item);
     const ArkUI_AttributeItem* itemptr = CheckboxGroupComponent.getAttribute(NODE_CHECKBOX_GROUP_SELECTED_COLOR);
     bool condition = itemptr->value[0].u32 == color;
-    condition = condition && CheckboxGroupComponent.resetAttribute(NODE_CHECKBOX_GROUP_SELECTED_COLOR) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && CheckboxGroupComponent.resetAttribute(NODE_CHECKBOX_GROUP_SELECTED_COLOR) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1142,7 +1145,8 @@ napi_value CheckNodeCheckboxGroupUnselectedColor(napi_env env, napi_callback_inf
     int32_t setResult = CheckboxGroupComponent.setAttribute(NODE_CHECKBOX_GROUP_UNSELECTED_COLOR, &item);
     const ArkUI_AttributeItem* itemptr = CheckboxGroupComponent.getAttribute(NODE_CHECKBOX_GROUP_UNSELECTED_COLOR);
     bool condition = itemptr->value[0].u32 == color;
-    condition = condition && CheckboxGroupComponent.resetAttribute(NODE_CHECKBOX_GROUP_UNSELECTED_COLOR) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && CheckboxGroupComponent.resetAttribute(NODE_CHECKBOX_GROUP_UNSELECTED_COLOR) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1174,7 +1178,8 @@ napi_value CheckNodeCheckboxGroupMark(napi_env env, napi_callback_info info)
     bool condition = itemptr->value[0].u32 == color &&
                      itemptr->value[1].f32 - size >= -exp && itemptr->value[1].f32 - size <= exp &&
                      itemptr->value[2].f32 - weight >= -exp && itemptr->value[2].f32 - weight <= exp;
-    condition = condition && CheckboxGroupComponent.resetAttribute(NODE_CHECKBOX_GROUP_MARK) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && CheckboxGroupComponent.resetAttribute(NODE_CHECKBOX_GROUP_MARK) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1201,7 +1206,8 @@ napi_value CheckNodeCheckboxGroupShape(napi_env env, napi_callback_info info)
     int32_t setResult = CheckboxGroupComponent.setAttribute(NODE_CHECKBOX_GROUP_SHAPE, &item);
     const ArkUI_AttributeItem* itemptr = CheckboxGroupComponent.getAttribute(NODE_CHECKBOX_GROUP_SHAPE);
     bool condition = itemptr->value[0].i32 == shape;
-    condition = condition && CheckboxGroupComponent.resetAttribute(NODE_CHECKBOX_GROUP_SHAPE) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && CheckboxGroupComponent.resetAttribute(NODE_CHECKBOX_GROUP_SHAPE) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1450,7 +1456,8 @@ napi_value CheckNodeSwiperIndicatorInteractive(napi_env env, napi_callback_info 
     int32_t setResult = SwiperComponent.setAttribute(NODE_SWIPER_INDICATOR_INTERACTIVE, &item);
     const ArkUI_AttributeItem* itemptr = SwiperComponent.getAttribute(NODE_SWIPER_INDICATOR_INTERACTIVE);
     bool condition = itemptr->value[0].i32 == flag;
-    condition = condition && SwiperComponent.resetAttribute(NODE_SWIPER_INDICATOR_INTERACTIVE) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && SwiperComponent.resetAttribute(NODE_SWIPER_INDICATOR_INTERACTIVE) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1534,7 +1541,8 @@ napi_value CheckNodeSwiperMaintainVisibleContentPosition(napi_env env, napi_call
     int32_t setResult = SwiperComponent.setAttribute(NODE_SWIPER_MAINTAIN_VISIBLE_CONTENT_POSITION, &item);
     const ArkUI_AttributeItem* itemptr = SwiperComponent.getAttribute(NODE_SWIPER_MAINTAIN_VISIBLE_CONTENT_POSITION);
     bool condition = itemptr->value[0].i32 == flag;
-    condition = condition && SwiperComponent.resetAttribute(NODE_SWIPER_MAINTAIN_VISIBLE_CONTENT_POSITION) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && SwiperComponent.resetAttribute(NODE_SWIPER_MAINTAIN_VISIBLE_CONTENT_POSITION) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1562,7 +1570,8 @@ napi_value CheckNodeRefreshMaxPullDownDistance(napi_env env, napi_callback_info 
     const ArkUI_AttributeItem* itemptr = RefreshComponent.getAttribute(NODE_REFRESH_MAX_PULL_DOWN_DISTANCE);
     float exp = 0.000001;
     bool condition = itemptr->value[0].f32 - refreshDistance >= -exp && itemptr->value[0].f32 - refreshDistance <= exp;
-    condition = condition && RefreshComponent.resetAttribute(NODE_REFRESH_MAX_PULL_DOWN_DISTANCE) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && RefreshComponent.resetAttribute(NODE_REFRESH_MAX_PULL_DOWN_DISTANCE) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1589,7 +1598,8 @@ napi_value CheckNodeWaterFlowLayoutMode(napi_env env, napi_callback_info info)
     int32_t setResult = WaterFlowComponent.setAttribute(NODE_WATER_FLOW_LAYOUT_MODE, &item);
     const ArkUI_AttributeItem* itemptr = WaterFlowComponent.getAttribute(NODE_WATER_FLOW_LAYOUT_MODE);
     bool condition = itemptr->value[0].i32 == waterFlowLayoutMode;
-    condition = condition && WaterFlowComponent.resetAttribute(NODE_WATER_FLOW_LAYOUT_MODE) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && WaterFlowComponent.resetAttribute(NODE_WATER_FLOW_LAYOUT_MODE) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1617,7 +1627,8 @@ napi_value CheckNodeWaterFlowSyncLoad(napi_env env, napi_callback_info info)
     const ArkUI_AttributeItem* itemptr = WaterFlowComponent.getAttribute(NODE_WATER_FLOW_SYNC_LOAD);
     if (itemptr != nullptr) {
         bool condition = itemptr->value[0].i32 == flag;
-        condition = condition && WaterFlowComponent.resetAttribute(NODE_WATER_FLOW_SYNC_LOAD) == ARKUI_ERROR_CODE_NO_ERROR;
+        condition = condition && WaterFlowComponent.resetAttribute(NODE_WATER_FLOW_SYNC_LOAD) ==
+                    ARKUI_ERROR_CODE_NO_ERROR;
         if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
             result = 1;
         } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1646,7 +1657,8 @@ napi_value CheckNodeRelativeContainerGuideLine(napi_env env, napi_callback_info 
     int32_t setResult = RelativeContainerComponent.setAttribute(NODE_RELATIVE_CONTAINER_GUIDE_LINE, &item);
     const ArkUI_AttributeItem* itemptr = RelativeContainerComponent.getAttribute(NODE_RELATIVE_CONTAINER_GUIDE_LINE);
     bool condition = itemptr->object == option;
-    condition = condition && RelativeContainerComponent.resetAttribute(NODE_RELATIVE_CONTAINER_GUIDE_LINE) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && RelativeContainerComponent.resetAttribute(NODE_RELATIVE_CONTAINER_GUIDE_LINE) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1654,7 +1666,8 @@ napi_value CheckNodeRelativeContainerGuideLine(napi_env env, napi_callback_info 
     } else {
         result = PARAM_NEGATIVE_9;
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute", "CheckNodeRelativeContainerGuideLine: %{public}d",
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "CheckNodeRelativeContainerGuideLine: %{public}d",
                  setResult);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -1673,7 +1686,8 @@ napi_value CheckNodeRelativeContainerBarrier(napi_env env, napi_callback_info in
     int32_t setResult = RelativeContainerComponent.setAttribute(NODE_RELATIVE_CONTAINER_BARRIER, &item);
     const ArkUI_AttributeItem* itemptr = RelativeContainerComponent.getAttribute(NODE_RELATIVE_CONTAINER_BARRIER);
     bool condition = itemptr->object == option;
-    condition = condition && RelativeContainerComponent.resetAttribute(NODE_RELATIVE_CONTAINER_BARRIER) == ARKUI_ERROR_CODE_NO_ERROR;
+    condition = condition && RelativeContainerComponent.resetAttribute(NODE_RELATIVE_CONTAINER_BARRIER) ==
+                ARKUI_ERROR_CODE_NO_ERROR;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
@@ -1725,8 +1739,12 @@ napi_value CheckNodeEmbeddedComponentWant(napi_env env, napi_callback_info info)
     napi_value retValue = 0;
     int32_t result = 0;
     XC EmbeddedComponentComponent = XC(ARKUI_NODE_EMBEDDED_COMPONENT);
-    AbilityBase_Element Element = {.bundleName = "com.example.embeddeddemo", .abilityName = "EmbeddedUIExtensionAbility", .moduleName = ""};// 由元能力提供接口
-    AbilityBase_Want* want = OH_AbilityBase_CreateWant(Element); // 由元能力提供接口
+    AbilityBase_Element Element = {
+        .bundleName = "com.example.embeddeddemo",
+        .abilityName = "EmbeddedUIExtensionAbility",
+        .moduleName = ""
+    };
+    AbilityBase_Want* want = OH_AbilityBase_CreateWant(Element);
     ArkUI_AttributeItem itemobjwant = { .object = want };
     int32_t setResult = EmbeddedComponentComponent.setAttribute(NODE_EMBEDDED_COMPONENT_WANT, &itemobjwant);
     if (setResult == ARKUI_ERROR_CODE_NO_ERROR) {

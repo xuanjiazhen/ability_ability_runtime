@@ -653,27 +653,6 @@ export default function NodeAttribute() {
         done()
       }
     })
-    // /**
-    //  * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMAGE_SYNC_LOAD_0100
-    //  * @tc.name    : testCheckNodeImageSyncLoad
-    //  * @tc.desc    : Test get CheckNodeImageSyncLoad's result.
-    //  * @tc.level   : LEVEL1
-    //  * @tc.size    : MediumTest
-    //  * @tc.type    : Function
-    //  */
-    // it('testCheckNodeImageSyncLoad', TestType.FUNCTION |
-    // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-    //   try {
-    //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMAGE_SYNC_LOAD_0100 start<====`);
-    //     let Result: number = nativexcomponent.CheckNodeImageSyncLoad();
-    //     expect(1).assertEqual(Result);
-    //     done()
-    //   } catch (err) {
-    //     console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMAGE_SYNC_LOAD_0100 catch err: ` + err);
-    //     expect(false).assertEqual(err);
-    //     done()
-    //   }
-    // })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BUTTON_MIN_FONT_SCALE_0100
      * @tc.name    : testCheckNodeButtonMinFontScale
@@ -753,7 +732,8 @@ export default function NodeAttribute() {
         expect(1).assertEqual(Result);
         done()
       } catch (err) {
-        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_SURFACE_RECT_0100 catch err: ` + err);
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_` +
+                      `SURFACE_RECT_0100 catch err: ` + err);
         expect(false).assertEqual(err);
         done()
       }
@@ -779,48 +759,6 @@ export default function NodeAttribute() {
         done()
       }
     })
-    // /**
-    //  * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_START_0100
-    //  * @tc.name    : testCheckNodeTimePickerStart
-    //  * @tc.desc    : Test get CheckNodeTimePickerStart's result.
-    //  * @tc.level   : LEVEL1
-    //  * @tc.size    : MediumTest
-    //  * @tc.type    : Function
-    //  */
-    // it('testCheckNodeTimePickerStart', TestType.FUNCTION |
-    // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-    //   try {
-    //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_START_0100 start<====`);
-    //     let Result: number = nativexcomponent.CheckNodeTimePickerStart();
-    //     expect(1).assertEqual(Result);
-    //     done()
-    //   } catch (err) {
-    //     console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_START_0100 catch err: ` + err);
-    //     expect(false).assertEqual(err);
-    //     done()
-    //   }
-    // })
-    // /**
-    //  * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_END_0100
-    //  * @tc.name    : testCheckNodeTimePickerEnd
-    //  * @tc.desc    : Test get CheckNodeTimePickerEnd's result.
-    //  * @tc.level   : LEVEL1
-    //  * @tc.size    : MediumTest
-    //  * @tc.type    : Function
-    //  */
-    // it('testCheckNodeTimePickerEnd', TestType.FUNCTION |
-    // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-    //   try {
-    //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_END_0100 start<====`);
-    //     let Result: number = nativexcomponent.CheckNodeTimePickerEnd();
-    //     expect(1).assertEqual(Result);
-    //     done()
-    //   } catch (err) {
-    //     console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_END_0100 catch err: ` + err);
-    //     expect(false).assertEqual(err);
-    //     done()
-    //   }
-    // })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SLIDER_PREFIX_0100
      * @tc.name    : testCheckNodeSliderPrefix
@@ -1094,27 +1032,6 @@ export default function NodeAttribute() {
         done()
       }
     })
-    // /**
-    //  * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_SYNC_LOAD_0100
-    //  * @tc.name    : testCheckNodeListSyncLoad
-    //  * @tc.desc    : Test get CheckNodeListSyncLoad's result.
-    //  * @tc.level   : LEVEL1
-    //  * @tc.size    : MediumTest
-    //  * @tc.type    : Function
-    //  */
-    // it('testCheckNodeListSyncLoad', TestType.FUNCTION |
-    // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-    //   try {
-    //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_SYNC_LOAD_0100 start<====`);
-    //     let Result: number = nativexcomponent.CheckNodeListSyncLoad();
-    //     expect(1).assertEqual(Result);
-    //     done()
-    //   } catch (err) {
-    //     console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_SYNC_LOAD_0100 catch err: ` + err);
-    //     expect(false).assertEqual(err);
-    //     done()
-    //   }
-    // })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_INDICATOR_INTERACTIVE_0100
      * @tc.name    : testCheckNodeSwiperIndicatorInteractive
@@ -1241,27 +1158,6 @@ export default function NodeAttribute() {
         done()
       }
     })
-    // /**
-    //  * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_WATER_FLOW_SYNC_LOAD_0100
-    //  * @tc.name    : testCheckNodeWaterFlowSyncLoad
-    //  * @tc.desc    : Test get CheckNodeWaterFlowSyncLoad's result.
-    //  * @tc.level   : LEVEL1
-    //  * @tc.size    : MediumTest
-    //  * @tc.type    : Function
-    //  */
-    // it('testCheckNodeWaterFlowSyncLoad', TestType.FUNCTION |
-    // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-    //   try {
-    //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_WATER_FLOW_SYNC_LOAD_0100 start<====`);
-    //     let Result: number = nativexcomponent.CheckNodeWaterFlowSyncLoad();
-    //     expect(1).assertEqual(Result);
-    //     done()
-    //   } catch (err) {
-    //     console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_WATER_FLOW_SYNC_LOAD_0100 catch err: ` + err);
-    //     expect(false).assertEqual(err);
-    //     done()
-    //   }
-    // })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_RELATIVE_CONTAINER_GUIDE_LINE_0100
      * @tc.name    : testCheckNodeRelativeContainerGuideLine
@@ -1304,27 +1200,6 @@ export default function NodeAttribute() {
         done()
       }
     })
-    // /**
-    //  * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_GRID_SYNC_LOAD_0100
-    //  * @tc.name    : testCheckNodeGridSyncLoad
-    //  * @tc.desc    : Test get CheckNodeGridSyncLoad's result.
-    //  * @tc.level   : LEVEL1
-    //  * @tc.size    : MediumTest
-    //  * @tc.type    : Function
-    //  */
-    // it('testCheckNodeGridSyncLoad', TestType.FUNCTION |
-    // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-    //   try {
-    //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_GRID_SYNC_LOAD_0100 start<====`);
-    //     let Result: number = nativexcomponent.CheckNodeGridSyncLoad();
-    //     expect(1).assertEqual(Result);
-    //     done()
-    //   } catch (err) {
-    //     console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_GRID_SYNC_LOAD_0100 catch err: ` + err);
-    //     expect(false).assertEqual(err);
-    //     done()
-    //   }
-    // })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_EMBEDDED_COMPONENT_WANT_0100
      * @tc.name    : testCheckNodeEmbeddedComponentWant

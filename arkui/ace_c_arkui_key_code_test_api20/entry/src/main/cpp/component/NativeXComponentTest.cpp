@@ -181,6 +181,16 @@ static void InitPushNodeAttribute(napi_property_descriptor* desc)
         XL("CheckNodeImageSyncLoad", NodeAttribute::CheckNodeImageSyncLoad),
         XL("CheckNodeButtonMinFontScale", NodeAttribute::CheckNodeButtonMinFontScale),
         XL("CheckNodeButtonMaxFontScale", NodeAttribute::CheckNodeButtonMaxFontScale),
+    };
+    for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
+        desc[index + offset] = descTemp[index];
+    }
+}
+
+static void InitPushNodeAttribute2(napi_property_descriptor* desc)
+{
+    int offset = 118;
+    napi_property_descriptor descTemp[] = {
         XL("CheckNodeXComponentSurfaceSize", NodeAttribute::CheckNodeXComponentSurfaceSize),
         XL("CheckNodeXComponentSurfaceRect", NodeAttribute::CheckNodeXComponentSurfaceRect),
         XL("CheckNodeDatePickerCanLoop", NodeAttribute::CheckNodeDatePickerCanLoop),
@@ -203,7 +213,8 @@ static void InitPushNodeAttribute(napi_property_descriptor* desc)
         XL("CheckNodeSwiperIndicatorInteractive", NodeAttribute::CheckNodeSwiperIndicatorInteractive),
         XL("CheckNodeSwiperPageFlipMode", NodeAttribute::CheckNodeSwiperPageFlipMode),
         XL("CheckNodeSwiperAutoFill", NodeAttribute::CheckNodeSwiperAutoFill),
-        XL("CheckNodeSwiperMaintainVisibleContentPosition", NodeAttribute::CheckNodeSwiperMaintainVisibleContentPosition),
+        XL("CheckNodeSwiperMaintainVisibleContentPosition",
+           NodeAttribute::CheckNodeSwiperMaintainVisibleContentPosition),
         XL("CheckNodeRefreshMaxPullDownDistance", NodeAttribute::CheckNodeRefreshMaxPullDownDistance),
         XL("CheckNodeWaterFlowLayoutMode", NodeAttribute::CheckNodeWaterFlowLayoutMode),
         XL("CheckNodeWaterFlowSyncLoad", NodeAttribute::CheckNodeWaterFlowSyncLoad),
@@ -230,6 +241,7 @@ static napi_value Init(napi_env env, napi_value exports)
     InitPushTouchPoint(desc);
     InitPushXComponentMouse(desc);
     InitPushNodeAttribute(desc);
+    InitPushNodeAttribute2(desc);
     if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init", "napi_define_properties failed");
         return nullptr;
