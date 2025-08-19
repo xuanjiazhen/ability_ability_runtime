@@ -115,7 +115,7 @@ public:
      */
     static ErrCode TriggerWantAgent(std::shared_ptr<WantAgent> agent,
         const std::shared_ptr<CompletedCallback> &callback,
-        const TriggerInfo &paramsInfo, sptr<CompletedDispatcher> &data, sptr<IRemoteObject> callerToken);
+        TriggerInfo &paramsInfo, sptr<CompletedDispatcher> &data, sptr<IRemoteObject> callerToken);
 
     /**
      * Cancels an WantAgent.

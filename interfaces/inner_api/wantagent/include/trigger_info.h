@@ -18,6 +18,7 @@
 
 #include <string>
 #include <memory>
+#include "completed_dispatcher.h"
 #include "want.h"
 #include "want_params.h"
 #include "start_options.h"
@@ -123,6 +124,8 @@ public:
      * @return Returns the result code provided for the target of the {@link WantAgent}.
      */
     int GetResultCode() const;
+
+    sptr<CompletedDispatcher> dispatcher = nullptr;
 
     /**
      * A builder class for {@link TriggerInfo} objects.
