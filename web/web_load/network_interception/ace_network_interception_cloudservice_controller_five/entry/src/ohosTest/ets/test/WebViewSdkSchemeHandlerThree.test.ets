@@ -160,7 +160,7 @@ export default function ActsAceWebViewSdkSchemeHandlerThree() {
     /*
      *@tc.number SUB_ACE_WEB_SdkSchemeHandler_didFail_completeIfNoResponse_API_0700
      *@tc.name testSchemeHandlerDidFailCompleteIfNoResponse007
-     *@tc.desc test didFail completeIfNoResponse false errorCode 17100101
+     *@tc.desc test didFail completeIfNoResponse true errorCode 17100101
      *@tc.size MediumTest
      *@tc.type Function
      *@tc.level Level 2
@@ -168,6 +168,22 @@ export default function ActsAceWebViewSdkSchemeHandlerThree() {
     it('testSchemeHandlerDidFailCompleteIfNoResponse007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       Utils.emitEvent('emitSchemeHandlerDidFailCompleteIfNoResponse007', 123);
       Utils.registerBaseEvent('testSchemeHandlerDidFailCompleteIfNoResponse007', 17100101, 2025081901, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected);
+        });
+      sendEventByKey('webViewSdkSchemeHandlerThreeButton', 10, '');
+    })
+    /*
+     *@tc.number SUB_ACE_WEB_SdkSchemeHandler_didFail_completeIfNoResponse_API_0800
+     *@tc.name testSchemeHandlerDidFailCompleteIfNoResponse008
+     *@tc.desc test didFail completeIfNoResponse false errorCode 17100101
+     *@tc.size MediumTest
+     *@tc.type Function
+     *@tc.level Level 2
+     */
+    it('testSchemeHandlerDidFailCompleteIfNoResponse008', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      Utils.emitEvent('emitSchemeHandlerDidFailCompleteIfNoResponse008', 123);
+      Utils.registerBaseEvent('testSchemeHandlerDidFailCompleteIfNoResponse008', 17100101, 2025081902, done,
         (backData: events_emitter.EventData, expected: Object) => {
           expect(backData?.data?.ACTION).assertEqual(expected);
         });
