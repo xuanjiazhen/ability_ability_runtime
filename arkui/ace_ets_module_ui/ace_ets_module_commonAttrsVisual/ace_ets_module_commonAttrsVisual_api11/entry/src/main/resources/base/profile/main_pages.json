@@ -18,6 +18,7 @@
         "MainAbility/pages/imageEffects/hoverEffect",
         "MainAbility/pages/imageEffects/transformPointPage",
         "MainAbility/pages/imageEffects/rotatePage",
-        "MainAbility/pages/imageEffects/shapePage"
+        "MainAbility/pages/imageEffects/shapePage",
+        "MainAbility/pages/EdgeOutlineWidthsPage"
     ]
 }
