@@ -63,42 +63,6 @@ async function CreatRdbStore(context, STORE_CONFIG) {
     return RdbStore
 }
 
-function BackupCallbackTest(backupName) {
-    try {
-        RdbStore.backup(backupName, (err, data) => {
-            if(err != null){
-                console.info(TAG + "Backup error: " + err)
-                expect(true).assertTrue()
-            }else{
-                expect(false).assertTrue();
-            }
-        })
-    } catch(errInfo){
-        console.info(TAG + "BackupCallbackTest error: " + errInfo)
-        expect(true).assertTrue()
-    }
-
-    RdbStore = null
-}
-
-function ReStoreCallbackTest(restoreName) {
-    try {
-        RdbStore.restore(restoreName, (err, data) => {
-            if(err != null){
-                console.info(TAG + "Restore error: " + err)
-                expect(true).assertTrue()
-            }else{
-                expect(false).assertTrue();
-            }
-        })
-    } catch(errInfo) {
-        console.info(TAG + "ReStoreCallbackTest error: " + errInfo)
-        expect(true).assertTrue()
-    }
-
-    RdbStore = null
-}
-
 export default function relationalStoreBackupRestoreCallbackTest() {
     describe('relationalStoreBackupRestoreCallbackTest', function () {
 
@@ -211,12 +175,33 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         it('RdbBackupRestoreCallbackTest_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, function (done) {
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0200 start *************")
             // RelationalStore backup function test, backup file name empty
-            BackupCallbackTest("")
-
+            //BackupCallbackTest("")
+            RdbStore.backup("",async(err)=>{
+                if(err)
+                {
+                    console.log(TAG + "err" + err.code + err.message)
+                    expect("401").assertEqual(String(err.code))
+                    done()
+                }
+                else{
+                    expect().assertFail()
+                    done()
+                }
+            })
             // RelationalStore backup function test, backup file name already exists
-            BackupCallbackTest(STORE_CONFIG.name)
-            
-            done()
+            //BackupCallbackTest(STORE_CONFIG.name)
+            RdbStore.backup(STORE_CONFIG.name,async(err)=>{
+                if(err)
+                {
+                    console.log(TAG + "err" + err.code + err.message)
+                    expect("14800010").assertEqual(String(err.code))
+                    done()
+                }
+                else{
+                    expect().assertFail()
+                    done()
+                }
+            })
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0200 end *************")
         })
 
@@ -234,12 +219,34 @@ export default function relationalStoreBackupRestoreCallbackTest() {
             await RdbStore.backup(backupName)
 
             // RelationalStore restore function test, backup file name empty
-            ReStoreCallbackTest("")
+            //ReStoreCallbackTest("")
+            RdbStore.restore("",async(err)=>{
+                if(err)
+                {
+                    console.log(TAG + "err" + err.code + err.message)
+                    expect("401").assertEqual(String(err.code))
+                    done()
+                }
+                else{
+                    expect().assertFail()
+                    done()
+                }
+            })
 
             // RelationalStore restore function test, backup file is specified to database name
-            ReStoreCallbackTest(STORE_CONFIG.name)
-
-            done()
+            //ReStoreCallbackTest(STORE_CONFIG.name)
+            RdbStore.restore(STORE_CONFIG.name,async(err)=>{
+                if(err)
+                {
+                    console.log(TAG + "err" + err.code + err.message)
+                    expect("14800010").assertEqual(String(err.code))
+                    done()
+                }
+                else{
+                    expect().assertFail()
+                    done()
+                }
+            })
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0300 end *************")
         })
 
@@ -259,11 +266,22 @@ export default function relationalStoreBackupRestoreCallbackTest() {
             try {
                 fileio.accessSync(DATABASE_DIR + dbName)
                 expect(false).assertTrue()
+                done();
             } catch {
-                ReStoreCallbackTest(dbName)
+                //ReStoreCallbackTest(dbName)
+                RdbStore.restore(dbName,async(err)=>{
+                    if(err)
+                    {
+                        console.log(TAG + "err" + err.code + err.message)
+                        expect("14800010").assertEqual(String(err.code))
+                        done()
+                    }
+                    else{
+                        expect().assertFail()
+                        done()
+                    }
+                })
             }
-
-            done()
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0400 end *************")
         })
 
@@ -382,7 +400,19 @@ export default function relationalStoreBackupRestoreCallbackTest() {
          */
         it('RdbBackupRestoreCallbackTest_0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0800 start *************")
-            BackupCallbackTest()
+            //BackupCallbackTest()
+            RdbStore.backup(null,async(err)=>{
+                if(err)
+                {
+                    console.log(TAG + "err" + err.code + err.message)
+                    expect("401").assertEqual(String(err.code))
+                    done()
+                }
+                else{
+                    expect().assertFail()
+                    done()
+                }
+            })
             done();
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0800 end *************")
         })
@@ -397,8 +427,26 @@ export default function relationalStoreBackupRestoreCallbackTest() {
          */
         it('RdbBackupRestoreCallbackTest_0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0900 start *************")
-            BackupCallbackTest([DATABASE_BACKUP_NAME])
-            done();
+            //BackupCallbackTest([DATABASE_BACKUP_NAME])
+            RdbStore.backup(DATABASE_BACKUP_NAME,async(err)=>{
+                if(err)
+                {
+                    console.log(TAG + "err" + err.code + err.message)
+                    expect().assertFail()
+                    done()
+                }
+                else{
+                    await RdbStore.executeSql("delete from test")
+                    let resultSet = await RdbStore.querySql("select * from test")
+                    console.log(TAG + "resultSet.rowCount" + resultSet.rowCount)
+                    expect(resultSet.rowCount).assertEqual(0)
+                    await RdbStore.restore(DATABASE_BACKUP_NAME)
+                    let resultSet1 = await RdbStore.querySql("select * from test")
+                    console.log(TAG + "resultSet1.rowCount" + resultSet1.rowCount)
+                    expect(resultSet1.rowCount).assertEqual(3)
+                    done()
+                }
+            })
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0900 end *************")
         })
 
@@ -412,12 +460,20 @@ export default function relationalStoreBackupRestoreCallbackTest() {
          */
         it('RdbBackupRestoreCallbackTest_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_1000 start *************")
-            RdbStore.backup(DATABASE_BACKUP_NAME, (err, data) => {
+            RdbStore.backup(DATABASE_BACKUP_NAME, async(err, data) => {
                 if(err != null){
                     expect(false).assertTrue()
+                    done()
                 }
-                ReStoreCallbackTest([DATABASE_BACKUP_NAME])
-                done();
+                //ReStoreCallbackTest([DATABASE_BACKUP_NAME])
+                    try{
+                        await RdbStore.restore([DATABASE_BACKUP_NAME])
+                        console.log(TAG+"111111111")
+                        done();
+                    }catch(err){
+                        console.log(TAG+ "err" + err.code +err.message)
+                        done();
+                    }
             })
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_1000 end *************")
         })
