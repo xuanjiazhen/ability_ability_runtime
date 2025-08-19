@@ -573,23 +573,6 @@ public:
     int32_t StartNativeProcessForDebugger(const AAFwk::Want &want);
 
     /**
-     * Set the current userId of appMgr.
-     *
-     * @param userId the user id.
-     *
-     * @return
-     */
-    void SetCurrentUserId(const int32_t userId);
-
-    /**
-     * Set enable start process flag by userId
-     * @param userId the user id.
-     * @param enableStartProcess enable start process.
-     * @return
-     */
-    void SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess);
-
-    /**
      * Get bundleName by pid.
      *
      * @param pid process id.

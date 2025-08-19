@@ -735,10 +735,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, JudgeMultiUserConcurrency_001, TestSize
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_->JudgeMultiUserConcurrency(0));
 
-    auto temp = abilityMs_->userController_;
-    abilityMs_->userController_ = nullptr;
     EXPECT_FALSE(abilityMs_->JudgeMultiUserConcurrency(100));
-    abilityMs_->userController_ = temp;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest JudgeMultiUserConcurrency_001 end");
 }
 

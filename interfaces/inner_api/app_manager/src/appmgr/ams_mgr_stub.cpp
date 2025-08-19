@@ -139,10 +139,6 @@ int32_t AmsMgrStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &dat
             return HandleNotifyAppMgrRecordExitReason(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::UPDATE_APPLICATION_INFO_INSTALLED):
             return HandleUpdateApplicationInfoInstalled(data, reply);
-        case static_cast<uint32_t>(IAmsMgr::Message::SET_CURRENT_USER_ID):
-            return HandleSetCurrentUserId(data, reply);
-        case static_cast<uint32_t>(IAmsMgr::Message::ENABLE_START_PROCESS_FLAG_BY_USER_ID):
-            return HandleSetEnableStartProcessFlagByUserId(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::Get_BUNDLE_NAME_BY_PID):
             return HandleGetBundleNameByPid(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::REGISTER_APP_DEBUG_LISTENER):
@@ -622,21 +618,6 @@ int32_t AmsMgrStub::HandleUpdateApplicationInfoInstalled(MessageParcel &data, Me
     std::string moduleName = data.ReadString();
     int32_t result = UpdateApplicationInfoInstalled(bundleName, uid, moduleName, data.ReadBool());
     reply.WriteInt32(result);
-    return NO_ERROR;
-}
-
-int32_t AmsMgrStub::HandleSetCurrentUserId(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t userId = data.ReadInt32();
-    SetCurrentUserId(userId);
-    return NO_ERROR;
-}
-
-int32_t AmsMgrStub::HandleSetEnableStartProcessFlagByUserId(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t userId = data.ReadInt32();
-    bool enableStartProcess = data.ReadBool();
-    SetEnableStartProcessFlagByUserId(userId, enableStartProcess);
     return NO_ERROR;
 }
 

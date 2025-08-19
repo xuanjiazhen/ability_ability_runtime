@@ -125,9 +125,6 @@ HWTEST_F(AbilityManagerServiceSecondTest, StartSwitchUserDialog_001, TestSize.Le
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     abilityMs_->StartSwitchUserDialog();
-
-    abilityMs_->userController_ = nullptr;
-    abilityMs_->StartSwitchUserDialog();
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest StartSwitchUserDialog_001 end");
 }
 
@@ -158,9 +155,6 @@ HWTEST_F(AbilityManagerServiceSecondTest, StopSwitchUserDialog_001, TestSize.Lev
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest StopSwitchUserDialog_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
-    abilityMs_->StopSwitchUserDialog();
-
-    abilityMs_->userController_ = nullptr;
     abilityMs_->StopSwitchUserDialog();
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest StopSwitchUserDialog_001 end");
 }
@@ -1670,20 +1664,6 @@ HWTEST_F(AbilityManagerServiceSecondTest, GetEventHandler_001, TestSize.Level1)
     ASSERT_NE(abilityMs_, nullptr);
     EXPECT_EQ(abilityMs_->GetEventHandler(), nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetEventHandler_001 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Function: GetUserId
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService GetUserId
- */
-HWTEST_F(AbilityManagerServiceSecondTest, GetUserId_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetUserId_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs_->GetUserId(), 100);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetUserId_001 end");
 }
 
 /*

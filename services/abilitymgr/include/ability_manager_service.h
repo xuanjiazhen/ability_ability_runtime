@@ -65,7 +65,6 @@
 #include "system_ability.h"
 #include "task_handler_wrap.h"
 #include "uri.h"
-#include "user_controller.h"
 #include "intent_exemption_info.h"
 #ifdef SUPPORT_GRAPHICS
 #include "implicit_start_processor.h"
@@ -1220,7 +1219,8 @@ public:
      */
     sptr<IRemoteObject> GetAbilityTokenByMissionId(int32_t missionId);
 
-    virtual int StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery = false) override;
+    virtual int StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback,
+        bool isAppRecovery = false) override;
 
     virtual int StopUser(int userId, const sptr<IUserCallback> &callback) override;
 
@@ -1588,12 +1588,6 @@ public:
      * @return nullptr or IAbilityManagerCollaborator stpr.
     */
     sptr<IAbilityManagerCollaborator> GetCollaborator(int32_t type);
-
-    /**
-     * get the user id.
-     *
-     */
-    int32_t GetUserId() const;
 
     virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
 
@@ -2153,8 +2147,6 @@ public:
         TERMINATE_ABILITY_CODE
     };
 
-    friend class UserController;
-
 protected:
     void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state) override;
     int GetUidByBundleName(std::string bundleName);
@@ -2218,7 +2210,7 @@ private:
      * start highest priority ability.
      *
      */
-    int StartHighestPriorityAbility(int32_t userId, bool isBoot, bool isAppRecovery = false);
+    int StartHighestPriorityAbility(int32_t userId, uint64_t displayId, bool isBoot, bool isAppRecovery = false);
 #endif
     /**
      * connect bms.
@@ -2290,7 +2282,7 @@ private:
     void DumpMissionListInner(const std::string &args, std::vector<std::string> &info);
     void DumpMissionInfosInner(const std::string &args, std::vector<std::string> &info);
 
-    bool JudgeMultiUserConcurrency(const int32_t userId);
+    bool JudgeMultiUserConcurrency(int32_t userId);
     bool CheckCrossUser(const int32_t userId, AppExecFwk::ExtensionAbilityType extensionType);
     void SendExtensionReport(EventInfo &eventInfo, int32_t errCode, bool isService = false);
     void SendIntentReport(EventInfo &eventInfo, int32_t errCode, const std::string &intentName);
@@ -2327,7 +2319,7 @@ private:
     void StartFreezingScreen();
     void StopFreezingScreen();
     void UserStarted(int32_t userId);
-    int SwitchToUser(int32_t oldUserId, int32_t userId, sptr<IUserCallback> callback,
+    int SwitchToUser(int32_t oldUserId, int32_t userId, uint64_t displayId, sptr<IUserCallback> callback,
         bool isAppRecovery = false);
     void SwitchManagers(int32_t userId, bool switchUser = true);
     void StartUserApps();
@@ -2359,7 +2351,7 @@ private:
     bool JudgeSelfCalled(const std::shared_ptr<AbilityRecord> &abilityRecord);
     bool IsAppSelfCalled(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
-    int32_t GetValidUserId(const int32_t userId);
+    int32_t GetValidUserId(int32_t userId);
 
     int DelegatorMoveMissionToFront(int32_t missionId);
 
@@ -2740,7 +2732,6 @@ private:
 
     std::shared_ptr<FreeInstallManager> freeInstallManager_;
     std::shared_ptr<SubManagersHelper> subManagersHelper_;
-    std::shared_ptr<UserController> userController_;
     sptr<AppExecFwk::IAbilityController> abilityController_ = nullptr;
 
     std::multimap<std::string, std::string> timeoutMap_;
@@ -2808,6 +2799,7 @@ private:
     int32_t OpenLinkInner(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode,
         bool removeInsightIntentFlag);
     int32_t KillProcessWithReasonInner(int32_t pid, const ExitReason &reason, bool isKillPrecedeStart);
+    int32_t UpdateApplicationKeepAlive(int32_t userId) const;
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
 #endif
