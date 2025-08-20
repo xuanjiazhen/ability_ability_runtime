@@ -159,14 +159,6 @@
 #define PARAM_NEGATIVE_5 (-5)
 #define COLUMN_WIDTH_AND_HEIGHT 210
 
-#define DECLARE_KEYCODE_EVENT(name)                                                 \
-static napi_value GetKeyCodeEvent##name(napi_env env, napi_callback_info info)      \
-{                                                                                   \
-    napi_value retValue = 0;                                                        \
-    if (g_key##name##IsTrue) {                                                      \
-        napi_create_int32(env, g_key##name##IsTrue, &retValue);                     \
-    }
-
 /**
  * Log print domain.
  */

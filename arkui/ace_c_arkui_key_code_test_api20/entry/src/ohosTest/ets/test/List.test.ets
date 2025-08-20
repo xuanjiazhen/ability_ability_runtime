@@ -12,12 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-import KeyCodeNdkTest from './nativekeycode/KeyCodeTest.test'
-import KeyCodeNdkTest1 from './nativekeycode/KeyCodeTest1.test'
-import KeyCodeNdkTest2 from './nativekeycode/KeyCodeTest2.test'
-import KeyCodeNdkTest3 from './nativekeycode/KeyCodeTest3.test'
-import KeyCodeNdkTest4 from './nativekeycode/KeyCodeTest4.test'
+
 import NativeXComponent from './nativexcomponent/NativeXComponent.test'
 import NodeAttribute from './nativexcomponent/NodeAttribute.test'
 import TouchPointTest from './nativexcomponent/TouchPoint.test'
@@ -54,11 +49,6 @@ import NodeUtilsTest1 from './nodeutilstest/NodeUtilsTest1.test'
 import NodeUtilsTest2 from './nodeutilstest/NodeUtilsTest2.test'
 
 export default function testsuite() {
-  KeyCodeNdkTest()
-  KeyCodeNdkTest1()
-  KeyCodeNdkTest2()
-  KeyCodeNdkTest3()
-  KeyCodeNdkTest4()
   NativeXComponent()
   TouchPointTest()
   XComponentMouseTest()

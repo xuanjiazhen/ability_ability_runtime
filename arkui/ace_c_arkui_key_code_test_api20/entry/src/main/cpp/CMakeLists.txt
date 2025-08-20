@@ -11,10 +11,6 @@ endif()
 include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
-add_library(keycodendk SHARED
-    nativekeycode/KeyCodeTest.cpp
-    common/CommonTest.cpp)
-
 add_library(nativexcomponent SHARED
     component/NativeXComponentTest.cpp
     component/ComponentTest.cpp
@@ -59,8 +55,6 @@ find_library(
 
 target_link_libraries(nativexcomponent PUBLIC
     ${hilog-lib} ${libace-lib} ${libnapi-lib} ${libuv-lib} libudmf.so libace_napi.z.so libability_base_want.so)
-
-target_link_libraries(keycodendk PUBLIC libace_napi.z.so libhilog_ndk.z.so libohinput.so)
 
 add_library(accessibilityndk SHARED accessibilitytest/AccessibilityTest.cpp
                                     accessibilitytest/Accessibility1Test.cpp

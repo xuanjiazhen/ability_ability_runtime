@@ -393,7 +393,7 @@ export default class Utils {
           let com = await Utils.driver.findComponent(ON.id("KeyCodeTest1"));
           await com.click();
           await com.click();
-        } else if (key == 2674) {
+        } else if ((key > 23 && key < 2054) || (key > 23 && key < 2054) || [2626, 2627].includes(key)) {
           await Utils.driver.triggerKey(1);
           await Utils.simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
         }
