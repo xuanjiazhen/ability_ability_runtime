@@ -192,15 +192,17 @@ export default function relationalStoreBackupRestoreCallbackTest() {
             await sleep(1000);
             // RelationalStore backup function test, backup file name already exists
             //BackupCallbackTest(STORE_CONFIG.name)
-            try{
-                RdbStore.backup(STORE_CONFIG.name,async(err)=>{
-                    console.log(TAG + "RdbBackupRestoreCallbackTest_0200 backup()")
+            RdbStore.backup(STORE_CONFIG.name,async(err)=>{
+                if(err != null)
+                {
+                    console.log(TAG + "err" + err.code + err.message)
+                    expect("14800010").assertEqual(String(err.code))
+
+                }else{
+                    console.log(TAG + "RdbBackupRestoreCallbackTest_0200 STORE_CONFIG.dbName")
                     expect().assertFail()
-                })
-            }catch(err){
-                console.log(TAG + "err" + err.code + err.message)
-                expect("14800010").assertEqual(String(err.code))
-            }
+                }
+            })
             done()
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0200 end *************")
         })
