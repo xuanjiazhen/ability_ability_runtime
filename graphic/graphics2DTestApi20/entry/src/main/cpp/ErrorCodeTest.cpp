@@ -76,7 +76,7 @@ void addErrorCodeTest(std::vector<napi_property_descriptor>& descData)
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHDrawingErrorCodeSuccess", nullptr, OH_Drawing_DrawingErrorCodeSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHDrawingLineTypographyGetLineBreakInvalue", nullptr, 
+    descData.push_back({"OHDrawingLineTypographyGetLineBreakInvalue", nullptr,
         OH_Drawing_LineTypographyGetLineBreakInvalue, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"EffectTileModeREPEATSuccess", nullptr, EffectTileModeREPEATSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr});
@@ -319,7 +319,7 @@ napi_value EffectTileModeREPEATSuccess(napi_env env, napi_callback_info info)
 
     uint8_t* data = new uint8_t[100 * 100 * 4];
     size_t dataLength = 100 * 100 * 4;
-    for(int i = 0;i < dataLength; i++) {
+    for(int i = 0; i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
@@ -348,7 +348,7 @@ napi_value EffectTileModeMIRRORSuccess(napi_env env, napi_callback_info info)
 
     uint8_t* data = new uint8_t[100 * 100 * 4];
     size_t dataLength = 100 * 100 * 4;
-    for(int i = 0;i < dataLength; i++) {
+    for(int i = 0; i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
@@ -377,7 +377,7 @@ napi_value EffectTileModeDECALSuccess(napi_env env, napi_callback_info info)
 
     uint8_t* data = new uint8_t[100 * 100 * 4];
     size_t dataLength = 100 * 100 * 4;
-    for(int i = 0;i < dataLength; i++) {
+    for(int i = 0; i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;

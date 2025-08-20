@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "BufferTextTest.h"
-
 #include <native_buffer/native_buffer.h>
 #include <native_drawing/drawing_text_blob.h>
 #include <native_drawing/drawing_rect.h>
@@ -29,7 +28,7 @@
 #include <GLES3/gl3.h>
 #include <native_image/native_image.h>
 
-void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
+void addBufferTextTest1(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"getColorSpaceSuccess", nullptr, OH_NativeBuffer_GetColorSpaceSuccess,
             nullptr, nullptr, nullptr, napi_default, nullptr});
@@ -53,6 +52,10 @@ void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"systemFontTypeSuccess", nullptr, OH_Drawing_SystemFontTypeSuccess,
             nullptr, nullptr, nullptr, napi_default, nullptr});
+}
+void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
+{
+    addBufferTextTest1(descData);
     descData.push_back({"textUndefinedGlyphDisplayDEFAULT", nullptr, OH_Drawing_TextUndefinedGlyphDisplayDEFAULT,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"textUndefinedGlyphDisplayTOFU", nullptr, OH_Drawing_TextUndefinedGlyphDisplayTOFU,
@@ -71,7 +74,7 @@ void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"BufferHandleKey", nullptr, BufferHandleKey, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"BufferHandlePhyAddr", nullptr, BufferHandlePhyAddr,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"BufferHandleReserveFds", nullptr, BufferHandleReserveFds,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"BufferHandleReserveInts", nullptr, BufferHandleReserveInts,
@@ -556,10 +559,9 @@ napi_value OH_NativeBuffer_PlanesSuccess2(napi_env env, napi_callback_info info)
     OH_NativeBuffer_Config config;
     config.width = 100; // 100 pixels
     config.height = 100; // 100 pixels
-    config.format = 12;
+    config.format = 12; // format 12
     config.usage = (1ULL << 0);
     
-    // test
     OH_NativeBuffer* buffer = OH_NativeBuffer_Alloc(&config);
     int32_t err0 = OH_NativeBuffer_GetSeqNum(buffer);
     
