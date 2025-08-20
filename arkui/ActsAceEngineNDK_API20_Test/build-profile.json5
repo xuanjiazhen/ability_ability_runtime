@@ -1,0 +1,42 @@
+{
+  "app": {
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compileSdkVersion": 20,
+        "compatibleSdkVersion": 20,
+        "targetSdkVersion": 20,
+        "runtimeOS": "OpenHarmony"
+      }
+    ],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "material": {
+          "storeFile": "D:/911/xts_acts_key/arkui/ActsAceEngineNDK_API20_Test/ActsNativeXcomponentKeyCodeTest/signature/OpenHarmony.p12",
+          "storePassword": "00000016AC9AF21AF6AAD81F99045CFD3E8440B65B9E5F4E3803F0E700C7AD1C9120F803046E",
+          "keyAlias": "OpenHarmony Application Profile Release",
+          "keyPassword": "000000160470FA99FC539505EF1C576FD1444614FC7E759BF704EB3A7ED215B10899DB6FF62F",
+          "signAlg": "SHA256withECDSA",
+          "profile": "D:/911/xts_acts_key/arkui/ActsAceEngineNDK_API20_Test/ActsNativeXcomponentKeyCodeTest/signature/openharmony_sx.p7b",
+          "certpath": "D:/911/xts_acts_key/arkui/ActsAceEngineNDK_API20_Test/ActsNativeXcomponentKeyCodeTest/signature/OpenHarmonyApplication.cer"
+        }
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}
