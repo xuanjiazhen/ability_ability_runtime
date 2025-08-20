@@ -3735,6 +3735,8 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
       await subWindowClass.showWindow();
       await sleep(300)
       try {
+        let globalRect = subWindowClass.getWindowProperties().globalDisplayRect;
+        console.log(caseName + ' globalRect: ' + JSON.stringify(globalRect));
         let position = subWindowClass.clientToGlobalDisplay(100, 100);
         console.log(caseName + ' position: ' + JSON.stringify(position));
         let position2 = subWindowClass.globalDisplayToClient(position.x, position.y);

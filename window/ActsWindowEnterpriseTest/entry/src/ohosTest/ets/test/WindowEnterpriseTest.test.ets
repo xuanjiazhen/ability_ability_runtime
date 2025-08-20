@@ -222,7 +222,6 @@ export default function WindowEnterpriseTest() {
         let windowClass = WindowStart.getMainWindowSync();
         await sleep(300);
         try {
-          await windowClass.moveWindowTo(100, 100)
           await sleep(200);
           let windowClassProperties = windowClass.getWindowProperties();
           console.log(`${caseName} : windowClassProperties: ${JSON.stringify(windowClassProperties)}`);
