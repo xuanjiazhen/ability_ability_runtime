@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BusinessError, AsyncCallback } from '@ohos.base';
+import { BusinessError, AsyncCallback, RecordData } from '@ohos.base';
 import Want from '@ohos.app.ability.Want';
 import { WantAgentInfo as _WantAgentInfo } from 'wantAgent.wantAgentInfo';
 import { TriggerInfo as _TriggerInfo } from 'wantAgent.triggerInfo';
@@ -198,7 +198,7 @@ namespace wantAgent {
         try {
           nativeTrigger(agent, triggerInfo, call);
         } catch (err: BusinessError) {
-          callback(err, {} as CompleteData);
+          callback(err, {info: new Object(), want: new Want(), finalCode: 0, finalData: 'undefined'} as CompleteData);
         }
       }
     });
@@ -323,7 +323,7 @@ namespace wantAgent {
     want: Want;
     finalCode: int;
     finalData: string;
-    extraInfo?: Record<string, Object>;
+    extraInfo?: RecordData;
   }
 
   class CompleteDataImpl implements CompleteData {
@@ -331,7 +331,7 @@ namespace wantAgent {
     public want: Want;
     public finalCode: int;
     public finalData: string;
-    public extraInfo?: Record<string, Object>;
+    public extraInfo?: RecordData;
   }
 
   export type TriggerInfo = _TriggerInfo;

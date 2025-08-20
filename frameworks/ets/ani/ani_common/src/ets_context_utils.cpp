@@ -24,6 +24,7 @@
 #include "ets_application_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_native_reference.h"
+#include "event_hub.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
 #include "resourceManager.h"
@@ -140,7 +141,7 @@ void Clean(ani_env *env, ani_object object)
         return;
     }
     if (ptr != 0) {
-        delete reinterpret_cast<Context *>(ptr);
+        delete reinterpret_cast<std::weak_ptr<Context> *>(ptr);
     }
 }
 
@@ -342,6 +343,21 @@ void CreateEtsBaseContext(ani_env *aniEnv, ani_class contextClass, ani_object co
     }
     BindParentProperty(aniEnv, contextClass, contextObj, context);
     BindNativeFunction(aniEnv);
+    // set eventHub context
+    ani_ref eventHubRef = nullptr;
+    ani_status status = ANI_OK;
+    if ((status = aniEnv->Object_GetFieldByName_Ref(contextObj, "eventHub", &eventHubRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_GetFieldByName_Ref failed status: %{public}d", status);
+        return;
+    }
+
+    auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::Context>(context);
+    if (workContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "workContext null");
+        return;
+    }
+    ani_long nativeContextLong = (ani_long)workContext;
+    AbilityRuntime::EventHub::SetEventHubContext(aniEnv, eventHubRef, nativeContextLong);
 }
 
 std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
@@ -370,12 +386,6 @@ std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
     return weakContext != nullptr ? weakContext->lock() : nullptr;
 }
 
-bool CheckCallerIsSystemApp()
-{
-    auto selfToken = IPCSkeleton::GetSelfTokenID();
-    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken);
-}
-
 ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
     ani_string bundleName, ani_string moduleName)
 {
@@ -393,7 +403,7 @@ ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return nullptr;
     }
-    if (!CheckCallerIsSystemApp()) {
+    if (!AppExecFwk::CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::APPKIT, "not system-app");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
         return nullptr;
@@ -455,12 +465,12 @@ ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long 
     auto context = GetBaseContext(env, aniObj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return reinterpret_cast<ani_object>(undefRef);
     }
     if (displayId < 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "displayId is invalid, less than 0");
-        EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return reinterpret_cast<ani_object>(undefRef);
     }
     uint64_t validDisplayId = static_cast<uint64_t>(displayId);
@@ -646,9 +656,9 @@ ani_object GetApplicationContextSync(ani_env *env, ani_object aniObj)
     }
     if (!applicationContext->GetApplicationInfoUpdateFlag()) {
         auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
-        if (appContextObj != nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "appContextObj is not nullptr");
-            return appContextObj->aniObj;
+        if (appContextObj != nullptr && appContextObj->aniRef != nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "appContextObj is not nullptr");
+            return reinterpret_cast<ani_object>(appContextObj->aniRef);
         }
     }
     return GetApplicationContext(env, applicationContext);

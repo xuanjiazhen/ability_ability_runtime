@@ -17,9 +17,11 @@
 #include <array>
 
 #include "ability_manager_client.h"
+#include "accesstoken_kit.h"
 #include "ani_common_util.h"
 #include "ani_common_want.h"
 #include "ani_extension_window.h"
+#include "ani_task.h"
 #include "ets_error_utils.h"
 #include "ets_ui_extension_callback.h"
 #include "ets_ui_extension_context.h"
@@ -47,6 +49,12 @@ const std::string FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermis
 constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE =
     "Lstd/core/String;Lescompat/Record;Lapplication/AbilityStartCallback/AbilityStartCallback;:L@ohos/base/"
     "BusinessError;";
+constexpr const char *SIGNATURE_GET_UI_EXTENSION_HOST_WINDOW_PROXY =
+    ":L@ohos/uiExtensionHost/uiExtensionHost/UIExtensionHostWindowProxy;";
+constexpr const char *SIGNATURE_GET_UI_EXTENSION_WINDOW_PROXY =
+    ":L@ohos/arkui/uiExtension/uiExtension/WindowProxy;";
+constexpr const char *SIGNATURE_SET_WINDOW_PRIVACY_MODE = "ZLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr const char* PERMISSION_PRIVACY_WINDOW = "ohos.permission.PRIVACY_WINDOW";
 } // namespace
 
 EtsUIExtensionContentSession* EtsUIExtensionContentSession::GetEtsContentSession(ani_env *env, ani_object obj)
@@ -170,22 +178,41 @@ void EtsUIExtensionContentSession::NativeSetWindowBackgroundColor(ani_env *env, 
 ani_object EtsUIExtensionContentSession::NativeGetUIExtensionHostWindowProxy(ani_env *env, ani_object obj)
 {
     auto etsContentSession = EtsUIExtensionContentSession::GetEtsContentSession(env, obj);
-    ani_object object = nullptr;
-    if (etsContentSession != nullptr) {
-        object = etsContentSession->GetUIExtensionHostWindowProxy(env, obj);
+    if (etsContentSession == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsContentSession");
+        return nullptr;
     }
-    return object;
+    return etsContentSession->GetUIExtensionHostWindowProxy(env, obj);
+}
+
+ani_object EtsUIExtensionContentSession::NativeGetUIExtensionWindowProxy(ani_env *env, ani_object obj)
+{
+    auto etsContentSession = EtsUIExtensionContentSession::GetEtsContentSession(env, obj);
+    if (etsContentSession == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsContentSession");
+        return nullptr;
+    }
+    return etsContentSession->GetUIExtensionWindowProxy(env, obj);
 }
 
 ani_object EtsUIExtensionContentSession::NativeStartAbilityByTypeSync(
     ani_env *env, ani_object obj, ani_string type, ani_ref wantParam, ani_object startCallback)
 {
     auto etsContentSession = EtsUIExtensionContentSession::GetEtsContentSession(env, obj);
-    ani_object object = nullptr;
-    if (etsContentSession != nullptr) {
-        object = etsContentSession->StartAbilityByTypeSync(env, type, wantParam, startCallback);
+    if (etsContentSession == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsContentSession");
+        return nullptr;
     }
-    return object;
+    return etsContentSession->StartAbilityByTypeSync(env, type, wantParam, startCallback);
+}
+
+void EtsUIExtensionContentSession::NativeSetWindowPrivacyMode(
+    ani_env *env, ani_object obj, ani_boolean isPrivacyMode, ani_object callbackObj)
+{
+    auto etsContentSession = EtsUIExtensionContentSession::GetEtsContentSession(env, obj);
+    if (etsContentSession != nullptr) {
+        etsContentSession->SetWindowPrivacyMode(env, obj, isPrivacyMode, callbackObj);
+    }
 }
 
 EtsUIExtensionContentSession::EtsUIExtensionContentSession(
@@ -242,6 +269,40 @@ bool EtsUIExtensionContentSession::BindNativePtrCleaner(ani_env *env)
     return true;
 }
 
+ani_status EtsUIExtensionContentSession::BindNativeMethod(ani_env *env, ani_class cls)
+{
+    std::array methods = {
+        ani_native_function {"terminateSelfSync", nullptr,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeTerminateSelf)},
+        ani_native_function {"nativeSendData", nullptr,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSendData)},
+        ani_native_function {"loadContent", nullptr,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeLoadContent)},
+        ani_native_function {"terminateSelfWithResultSync", nullptr,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeTerminateSelfWithResult)},
+        ani_native_function {"setWindowBackgroundColor", nullptr,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetWindowBackgroundColor)},
+        ani_native_function {"getUIExtensionHostWindowProxy", SIGNATURE_GET_UI_EXTENSION_HOST_WINDOW_PROXY,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeGetUIExtensionHostWindowProxy)},
+        ani_native_function {"getUIExtensionWindowProxy", SIGNATURE_GET_UI_EXTENSION_WINDOW_PROXY,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeGetUIExtensionWindowProxy)},
+        ani_native_function {"nativeSetReceiveDataCallback", nullptr,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataCallback)},
+        ani_native_function {"nativeSetReceiveDataForResultCallback", nullptr,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataForResultCallback)},
+        ani_native_function {"nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeStartAbilityByTypeSync)},
+        ani_native_function {"nativeSetWindowPrivacyMode", SIGNATURE_SET_WINDOW_PRIVACY_MODE,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetWindowPrivacyMode)}
+    };
+    ani_status status = ANI_ERROR;
+    if ((status = env->Class_BindNativeMethods(cls, methods.data(), methods.size())) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        return status;
+    }
+    return ANI_OK;
+}
+
 ani_object EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(ani_env *env,
     sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
     std::weak_ptr<AbilityRuntime::Context> context,
@@ -266,28 +327,7 @@ ani_object EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(ani_
     if ((status != ANI_OK) || (object == nullptr)) {
         return nullptr;
     }
-    std::array methods = {
-        ani_native_function {"terminateSelfSync", nullptr,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeTerminateSelf)},
-        ani_native_function {"nativeSendData", nullptr,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSendData)},
-        ani_native_function {"loadContent", nullptr,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeLoadContent)},
-        ani_native_function {"terminateSelfWithResultSync", nullptr,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeTerminateSelfWithResult)},
-        ani_native_function {"setWindowBackgroundColor", nullptr,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetWindowBackgroundColor)},
-        ani_native_function {"getUIExtensionHostWindowProxy", nullptr,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeGetUIExtensionHostWindowProxy)},
-        ani_native_function {"nativeSetReceiveDataCallback", nullptr,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataCallback)},
-        ani_native_function {"nativeSetReceiveDataForResultCallback", nullptr,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataForResultCallback)},
-        ani_native_function {"nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeStartAbilityByTypeSync)}
-    };
-    status = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
-    if (status != ANI_OK) {
+    if ((status = BindNativeMethod(env, cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
@@ -387,25 +427,43 @@ void EtsUIExtensionContentSession::SetWindowBackgroundColor(ani_env *env, ani_st
 
 ani_object EtsUIExtensionContentSession::GetUIExtensionHostWindowProxy(ani_env *env, ani_object object)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "GetUIExtensionHostWindowProxy called");
+    if (!AppExecFwk::CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "This application is not system-app, can not use system-api");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return nullptr;
+    }
     if (sessionInfo_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo_");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return nullptr;
     }
-    ani_object etsExtensionWindow = nullptr;
-    etsExtensionWindow =
+    ani_object etsExtensionWindow =
         Rosen::AniExtensionWindow::CreateAniExtensionWindow(env, uiWindow_, sessionInfo_->hostWindowId);
     if (etsExtensionWindow == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsExtensionWindow");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return nullptr;
     }
-    ani_ref resultRef = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = env->GlobalReference_Create(etsExtensionWindow, &resultRef)) != ANI_OK) {
+    return etsExtensionWindow;
+}
+
+ani_object EtsUIExtensionContentSession::GetUIExtensionWindowProxy(ani_env *env, ani_object object)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "GetUIExtensionWindowProxy called");
+    if (sessionInfo_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo_");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return nullptr;
     }
-    return reinterpret_cast<ani_object>(resultRef);
+    ani_object etsExtensionWindow =
+        Rosen::AniExtensionWindow::CreateAniExtensionWindow(env, uiWindow_, sessionInfo_->hostWindowId);
+    if (etsExtensionWindow == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsExtensionWindow");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return nullptr;
+    }
+    return etsExtensionWindow;
 }
 
 void EtsUIExtensionContentSession::SetReceiveDataCallback(ani_env *env, ani_object functionObj)
@@ -637,6 +695,80 @@ ani_object EtsUIExtensionContentSession::StartAbilityByTypeSync(
     }
 #endif // SUPPORT_SCREEN
     return aniObject;
+}
+
+void EtsUIExtensionContentSession::SetWindowPrivacyMode(
+    ani_env *env, ani_object obj, ani_boolean isPrivacyMode, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "SetWindowPrivacyMode");
+    ani_object errorObj = nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        return;
+    }
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    int ret = Security::AccessToken::AccessTokenKit::VerifyAccessToken(selfToken, PERMISSION_PRIVACY_WINDOW);
+    if (ret != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
+        errorObj = EtsErrorUtil::CreateNoPermissionError(env, PERMISSION_PRIVACY_WINDOW);
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        return;
+    }
+    ani_ref callbackRef = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GlobalReference_Create(callbackObj, &callbackRef)) != ANI_OK || callbackRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        return;
+    }
+    ani_vm *etsVm = nullptr;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        return;
+    }
+    SetWindowPrivacyModeInner(env, isPrivacyMode, callbackObj, etsVm, callbackRef);
+}
+
+void EtsUIExtensionContentSession::SetWindowPrivacyModeInner(ani_env *env, ani_boolean isPrivacyMode,
+    ani_object callbackObj, ani_vm *etsVm, ani_ref callbackRef)
+{
+    ani_object errorObj = nullptr;
+    auto task = [uiWindow = uiWindow_, isPrivacyMode, etsVm, callbackRef]() {
+        ani_status status = ANI_ERROR;
+        ani_env *env = nullptr;
+        if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+            return;
+        }
+        ani_object errorObj = nullptr;
+        if (uiWindow == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
+            errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
+            env->GlobalReference_Delete(callbackRef);
+            return;
+        }
+        auto ret = uiWindow->SetPrivacyMode(isPrivacyMode);
+        if (ret == Rosen::WMError::WM_OK) {
+            errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
+            env->GlobalReference_Delete(callbackRef);
+        } else {
+            errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
+            env->GlobalReference_Delete(callbackRef);
+        }
+    };
+    if (AniTask::AniSendEvent(task) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Failed to sendEvent");
+        errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        env->GlobalReference_Delete(callbackRef);
+    }
 }
 
 bool EtsUIExtensionContentSession::CheckStartAbilityByTypeParam(

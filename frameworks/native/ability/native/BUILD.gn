@@ -919,6 +919,9 @@ ohos_shared_library("ui_ability_ani") {
     "ability_base:base",
     "ability_base:configuration",
     "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_callback_sdk",
+    "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:bms_ani_common",
     "c_utils:utils",
@@ -928,6 +931,8 @@ ohos_shared_library("ui_ability_ani") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "image_framework:image",
+    "image_framework:image_taihe",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:rpc_ani",
@@ -936,6 +941,7 @@ ohos_shared_library("ui_ability_ani") {
     "runtime_core:ani_helpers",
     "samgr:samgr_proxy",
     "window_manager:windowstageani_kit",
+    "window_manager:window_native_kit",
   ]
   public_external_deps = [
     "bundle_framework:appexecfwk_core",

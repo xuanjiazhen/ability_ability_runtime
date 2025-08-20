@@ -14,6 +14,7 @@
  */
 
 import AbilityLifecycleCallback from '../@ohos.app.ability.AbilityLifecycleCallback';
+import InteropAbilityLifecycleCallback from '../@ohos.app.ability.InteropAbilityLifecycleCallback';
 import Context from 'application.Context'
 import { BusinessError, AsyncCallback } from '@ohos.base'
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
@@ -64,7 +65,7 @@ export default class ApplicationContext extends Context {
     destroyRegister.unregister(unregisterToken);
   }
 
-  public native nativeOnLifecycleCallbackSync(type: string, callback: Object): int;
+  public native nativeOnLifecycleCallbackSync(type: string, callback: AbilityLifecycleCallback): int;
   public native nativeOffLifecycleCallbackSync(type: string, callbackId: int,
     callback: AsyncCallbackWrapper<void>): void;
   public native nativekillAllProcessesSync(clearPageStack: boolean, callback: AsyncCallbackWrapper<void>): void;
@@ -307,4 +308,12 @@ export default class ApplicationContext extends Context {
     return this.nativeOnLifecycleCallbackSync(type, callback);
   }
 
+  public native nativeOnInteropLifecycleCallbackSync(type: string, callback: InteropAbilityLifecycleCallback): void;
+  public native nativeOffInteropLifecycleCallbackSync(type: string, callback?: InteropAbilityLifecycleCallback): void;
+  on(type: 'interopAbilityLifecycle', callback: InteropAbilityLifecycleCallback): void {
+    this.nativeOnInteropLifecycleCallbackSync(type, callback);
+  }
+  off(type: 'interopAbilityLifecycle', callback?: InteropAbilityLifecycleCallback): void {
+    this.nativeOffInteropLifecycleCallbackSync(type, callback);
+  }
 }
