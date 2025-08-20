@@ -455,6 +455,9 @@ export default function sceneResourcesTest() {
           materialOrg = subMeshes[0].material;
           expect(material != null).assertTrue();
           console.info(msg + " Succeed in createMaterial ");
+          let ab = subMeshes[0].aabb;
+          expect(ab != null).assertTrue();
+          console.info(msg + "  ab != null ");
           if (material) {
             material.colorShader = shader as Shader;
           }
