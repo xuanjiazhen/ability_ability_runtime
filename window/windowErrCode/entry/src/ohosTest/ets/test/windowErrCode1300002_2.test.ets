@@ -1204,7 +1204,7 @@ export default function windowErrCode1300002_2() {
     /**
      * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_SYSTEMBAR_ENABLE_WITH_DESTROYED_SUBWINDOW
      * @tc.name      : testSetWindowSystemBarEnablewithDestroyedSubwindow
-     * @tc.desc      : ÑéÖ¤×Ó´°Ïú»Ùºóµ÷ÓÃsetWindowSystemBarEnable½Ó¿ÚÅ×1300002´íÎóÂë
+     * @tc.desc      : éªŒè¯å­çª—é”€æ¯åè°ƒç”¨setWindowSystemBarEnableæ¥å£æŠ›1300002é”™è¯¯ç 
      * @tc.size      : MediumTest
      * @tc.type      : Function
      * @tc.level     : Level2
@@ -1215,16 +1215,18 @@ export default function windowErrCode1300002_2() {
       await sleep(200);
       await subWindow.destroyWindow();
       try {
-        let promise = subWindow.setWindowSystemBarEnable(['status']);
-        promise.then(()=>{
-          console.log(CaseName + ' setWindowSystemBarEnable success ');
-          expect(false).assertTrue();
-          done();
-        }).catch((err:BusinessError)=>{
-          console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
-          expect(err.code).assertEqual(1300002);
-          done();
-        })
+        subWindow.setWindowSystemBarEnable(['status'], async (err: BusinessError) => {
+          const errCode: number = err.code;
+          if (errCode) {
+            console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
+            expect(err.code).assertEqual(1300002);
+            done();
+          } else {
+            console.log(CaseName + ' setWindowSystemBarEnable success ');
+            expect().assertFail();
+            done();
+          }
+        });
       }catch (err) {
         console.error(CaseName + ' failed, err: ' + JSON.stringify(err));
         expect(false).assertTrue();
@@ -1235,7 +1237,7 @@ export default function windowErrCode1300002_2() {
     /**
      * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_PRIVACY_MODE_WITH_DESTROYED_SUBWINDOW
      * @tc.name      : testSetWindowPrivacyModewithDestroyedSubwindow
-     * @tc.desc      : ÑéÖ¤setWindowPrivacyMode½Ó¿ÚÅ×1300002´íÎóÂë
+     * @tc.desc      : éªŒè¯setWindowPrivacyModeæ¥å£æŠ›1300002é”™è¯¯ç 
      * @tc.size      : MediumTest
      * @tc.type      : Function
      * @tc.level     : Level2
@@ -1246,16 +1248,18 @@ export default function windowErrCode1300002_2() {
       await sleep(200);
       await subWindow.destroyWindow();
       try {
-        let promise = subWindow.setWindowPrivacyMode(false);
-        promise.then(()=>{
-          console.log(CaseName + ' setWindowPrivacyMode success ');
-          expect(false).assertTrue();
-          done();
-        }).catch((err:BusinessError)=>{
-          console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
-          expect(err.code).assertEqual(1300002);
-          done();
-        })
+        subWindow.setWindowPrivacyMode(false, async (err: BusinessError) => {
+          const errCode: number = err.code;
+          if (errCode) {
+            console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
+            expect(err.code).assertEqual(1300002);
+            done();
+          } else {
+            console.log(CaseName + ' setWindowPrivacyMode success ');
+            expect().assertFail();
+            done();
+          }
+        });
       }catch (err) {
         console.error(CaseName + ' failed, err: ' + JSON.stringify(err));
         expect(false).assertTrue();
@@ -1266,7 +1270,7 @@ export default function windowErrCode1300002_2() {
     /**
      * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_SHADOW_ENABLED_WITH_DESTROYED_SUBWINDOW
      * @tc.name      : testSetWindowShadowEnabledwithDestroyedSubwindow
-     * @tc.desc      : ÑéÖ¤setWindowShadowEnabled½Ó¿ÚÅ×1300002´íÎóÂë
+     * @tc.desc      : éªŒè¯setWindowShadowEnabledæ¥å£æŠ›1300002é”™è¯¯ç 
      * @tc.size      : MediumTest
      * @tc.type      : Function
      * @tc.level     : Level2
