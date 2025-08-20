@@ -684,7 +684,7 @@ export default function settingUiJsunit() {
     });
 
     it('settings_get_value_041',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,async (done: Function) => {
-      let str ="settings.display.font_scale"
+      let str ="font_scale";
       expect(str).assertEqual(settings.display.FONT_SCALE);
       done();
     });
