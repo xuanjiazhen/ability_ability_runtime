@@ -51,7 +51,7 @@ napi_value CreateNativeNode(napi_env env, napi_callback_info info)
     g_columnComponent.SetPercentHeight(PARAM_0_POINT_6);
     g_columnComponent.SetBackgroundColor(0xffff0000);
     g_textComponent.SetPercentWidth(PARAM_1);
-    g_textComponent.SetHeight(200);
+    g_textComponent.SetHeight(PARAM_200);
     g_textComponent.SetBackgroundColor(0xff00ff00);
     ArkUI_AttributeItem item = { .string = "init" };
     g_textComponent.setAttribute(NODE_TEXT_CONTENT, &item);
@@ -130,7 +130,8 @@ void OnBlurEvent(OH_NativeXComponent* component, void* window)
 void OnKeyEvent(ArkUI_NodeEvent* event)
 {
     OH_NativeXComponent_KeyCode keyCode = OH_NativeXComponent_KeyCode(-2);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "OnKeyEvent", "OH_NativeXComponent_KeyCode keyCode: %{public}d", keyCode);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "OnKeyEvent",
+                 "OH_NativeXComponent_KeyCode keyCode: %{public}d", keyCode);
     OH_NativeXComponent_KeyEvent* keyEvent;
     OH_NativeXComponent* triggerObject = static_cast<OH_NativeXComponent*>(OH_ArkUI_NodeEvent_GetUserData(event));
     // 对比XComopnet指针确定是否为目标组件触发

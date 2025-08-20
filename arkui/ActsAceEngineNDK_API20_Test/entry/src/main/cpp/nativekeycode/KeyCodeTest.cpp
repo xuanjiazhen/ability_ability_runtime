@@ -46,4 +46,6 @@ static napi_module nativexcomopnentkeycodeModule = {
     .reserved = {0}
 };
 
-extern "C" __attribute__((constructor)) void RegisterModule(void) { napi_module_register(&nativexcomopnentkeycodeModule); }
+extern "C" __attribute__((constructor)) void RegisterModule(void) {
+    napi_module_register(&nativexcomopnentkeycodeModule);
+}

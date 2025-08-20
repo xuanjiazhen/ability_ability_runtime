@@ -11,7 +11,8 @@
                     "SystemCapability.Ability.AbilityRuntime.Core",
                     "SystemCapability.Notification.Emitter",
                     "SystemCapability.MiscServices.Time",
-                    "SystemCapability.FileManagement.File.FileIO"
+                    "SystemCapability.FileManagement.File.FileIO",
+                    "SystemCapability.MultimodalInput.Input.Core"
                 ]
             }
         ]

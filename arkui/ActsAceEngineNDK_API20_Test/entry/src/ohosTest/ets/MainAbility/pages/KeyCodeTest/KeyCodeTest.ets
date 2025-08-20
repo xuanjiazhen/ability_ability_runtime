@@ -50,7 +50,7 @@ struct KeyCodeTest {
           };
           sendKeyEvent(keyEvent); // 发送按键事件
         })
-        .id("send")
+        .id('send')
     }
     .width('100%')
     .height('100%')
