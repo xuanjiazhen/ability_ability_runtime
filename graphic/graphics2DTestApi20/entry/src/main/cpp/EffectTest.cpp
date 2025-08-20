@@ -60,7 +60,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
  napi_value OH_Filter_ReleaseFail(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Filter* filter;
+    OH_Filter* filter = nullptr;
     EffectErrorCode errCode = OH_Filter_Release(filter);
     napi_create_int32(env,  errCode == EFFECT_BAD_PARAMETER, &result);
     return result;
