@@ -794,7 +794,6 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0001, TestSize.Level0)
         vDecSample->DEFAULT_WIDTH = 720;
         vDecSample->DEFAULT_HEIGHT = 1280;
         vDecSample->DEFAULT_FRAME_RATE = 30;
-        vDecSample->outputYuvFlag = true;
         vDecSample->enableLowLatency = true;
         vDecSample->lowLatency = 0;
         ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecName));
@@ -817,7 +816,6 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0002, TestSize.Level0)
             vDecSample->DEFAULT_WIDTH = 720;
             vDecSample->DEFAULT_HEIGHT = 1280;
             vDecSample->DEFAULT_FRAME_RATE = 30;
-            vDecSample->outputYuvFlag = true;
             vDecSample->enableLowLatency = true;
             vDecSample->lowLatency = 1;
             ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecName));
@@ -840,7 +838,6 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0003, TestSize.Level0)
         vDecSample->DEFAULT_WIDTH = 720;
         vDecSample->DEFAULT_HEIGHT = 1280;
         vDecSample->DEFAULT_FRAME_RATE = 30;
-        vDecSample->outputYuvFlag = true;
         ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecName));
         vDecSample->WaitForEOS();
         ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
@@ -860,7 +857,6 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0004, TestSize.Level0)
         vDecSample->DEFAULT_WIDTH = 720;
         vDecSample->DEFAULT_HEIGHT = 1280;
         vDecSample->DEFAULT_FRAME_RATE = 30;
-        vDecSample->outputYuvFlag = true;
         vDecSample->enableLowLatency = true;
         vDecSample->lowLatency = 0;
         ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHEVC));
@@ -883,7 +879,6 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0005, TestSize.Level0)
             vDecSample->DEFAULT_WIDTH = 720;
             vDecSample->DEFAULT_HEIGHT = 1280;
             vDecSample->DEFAULT_FRAME_RATE = 30;
-            vDecSample->outputYuvFlag = true;
             vDecSample->enableLowLatency = true;
             vDecSample->lowLatency = 1;
             ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHEVC));
@@ -906,7 +901,6 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0006, TestSize.Level0)
         vDecSample->DEFAULT_WIDTH = 720;
         vDecSample->DEFAULT_HEIGHT = 1280;
         vDecSample->DEFAULT_FRAME_RATE = 30;
-        vDecSample->outputYuvFlag = true;
         ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHEVC));
         vDecSample->WaitForEOS();
         ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);

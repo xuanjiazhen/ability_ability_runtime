@@ -134,9 +134,9 @@ public:
     int32_t PushData(uint32_t index, OH_AVBuffer *buffer);
     int32_t CheckAndReturnBufferSize(OH_AVBuffer *buffer);
     uint32_t SendData(uint32_t bufferSize, uint32_t index, OH_AVBuffer *buffer);
-    void ProcessOutputData(OH_AVBuffer *buffer, uint32_t index, FILE *outFile);
-    void CopyFrom10BitYuv(OH_AVBuffer *buffer, uint32_t index, FILE *outFile);
-    void CopyFrom8BitYuv(OH_AVBuffer *buffer, uint32_t index, FILE *outFile);
+    void ProcessOutputData(OH_AVBuffer *buffer, uint32_t index);
+    void CopyFrom10BitYuv(OH_AVBuffer *buffer, uint32_t index);
+    void CopyFrom8BitYuv(OH_AVBuffer *buffer, uint32_t index);
     int32_t CheckAttrFlag(OH_AVCodecBufferAttr attr);
     void GetStride();
     void InputFuncTest();
