@@ -365,7 +365,7 @@ export default function relationalStoreBackupRestorePromiseTest() {
                 expect().assertFail();
             } catch (err) {
                 console.log(TAG + "err:" + err.code + err.message);
-                expect("401").assertFail(String(err.code));
+                expect("401").assertEqual(String(err.code));
             }
             done();
             console.info(TAG + "************* RdbBackupRestoreTest_0080 end *************")
@@ -388,7 +388,7 @@ export default function relationalStoreBackupRestorePromiseTest() {
                 expect().assertFail()
             } catch (err) {
                 console.log(TAG + "err:" + err.code + err.message);
-                expect("401").assertFail(String(err.code));
+                expect("401").assertEqual(String(err.code));
             }
             done();
             console.info(TAG + "************* RdbBackupRestoreTest_0090 end *************")
@@ -414,12 +414,11 @@ export default function relationalStoreBackupRestorePromiseTest() {
                 expect(resultSet.rowCount).assertEqual(0)
             try {
                 await RdbStore.restore([DATABASE_BACKUP_NAME])
-                let resultSet1 = await RdbStore.querySql("select * from test")
-                console.log(TAG + "resultSet1.rowCount" + resultSet1.rowCount)
-                //expect(resultSet1.rowCount).assertEqual(3)
+                console.log(TAG + "RdbBackupRestoreTest_0100");
+                expect().assertFail();
             } catch (err) {
                 console.log(TAG + "err:" + err.code + err.message);
-               // expect().assertFail();
+                expect("401").assertEqual(String(err.code));
             }
             done();
             console.info(TAG + "************* RdbBackupRestoreTest_0100 end *************")
@@ -437,8 +436,8 @@ export default function relationalStoreBackupRestorePromiseTest() {
             console.info(TAG + "************* RdbBackupRestoreTest_0110 start *************")
             //await RdbStore.backup(DATABASE_BACKUP_NAME)
             //await ReStoreTest()
+            await RdbStore.backup(DATABASE_BACKUP_NAME)
             try {
-                await RdbStore.backup(DATABASE_BACKUP_NAME)
                 await RdbStore.restore()
                 expect().assertFail()
             } catch(err) {
