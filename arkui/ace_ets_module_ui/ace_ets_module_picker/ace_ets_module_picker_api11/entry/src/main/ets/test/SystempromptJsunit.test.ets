@@ -12,9 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
+import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level,Size, TestType } from '@ohos/hypium';
 import router from '@ohos.router';
 import Utils from './Utils';
+import {
+  UiComponent,
+  Driver,
+  Component,
+  UiWindow,
+  ON,
+  BY
+} from '@ohos.UiTest';
 
 export default function systempromptJsunit() {
   describe('systempromptJsunit', () => {
@@ -43,25 +51,52 @@ export default function systempromptJsunit() {
       await Utils.sleep(1000);
       console.info("prompt each called");
     });
-    it('promptTest_0100', Level.LEVEL1, async (done: Function) => {
+    /* *
+    * @tc.number: promptTest_0100
+    * @tc.name  : promptTest_0100
+    * @tc.desc  : To test the mode of sheet how to avoid keyboard
+    * @tc.level : Level 1
+    */
+    it('promptTest_0100', TestType.Function | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       console.info('promptTest_0100 is start');
+      let driver = await Driver.create()
+      await Utils.sleep(1000);
+      let button = await driver.findComponent(ON.id('button1'));
+      await button.click();
       await Utils.sleep(1500);
+
+      let strJson = getInspectorByKey('color');
+      let obj: ESObject = JSON.parse(strJson);
+      expect(obj.$attrs.content).assertEqual('#fffc0909');
+
       console.info("promptTest_0100 click result is: " + JSON.stringify(sendEventByKey('button1',10,"")));
       await Utils.sleep(1500);
       console.info('promptTest_0100 END');
       done();
     });
-    it('promptTest_0200', Level.LEVEL1, async (done: Function) => {
-      console.info('promptTest_0200 is start');
+
+     /* *
+    * @tc.number: promptTest_0200
+    * @tc.name  : promptTest_0200
+    * @tc.desc  : To test the mode of sheet how to avoid keyboard
+    * @tc.level : Level 1
+    */
+    it('promptTest_0200', TestType.Function | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+       console.info('promptTest_0200 is start');
+      let driver = await Driver.create()
+      await Utils.sleep(1000);
+      let button = await driver.findComponent(ON.id('button1'));
+      await button.click();
       await Utils.sleep(1500);
-      console.info("promptTest_0200 click result is: " + JSON.stringify(sendEventByKey('button2',10,"")));
+
+      let strJson = getInspectorByKey('text');
+      let obj: ESObject = JSON.parse(strJson);
+      expect(obj.$attrs.content).assertEqual('item1');
+
+      console.info("promptTest_0200 click result is: " + JSON.stringify(sendEventByKey('button1',10,"")));
       await Utils.sleep(1500);
       console.info('promptTest_0200 END');
       done();
     });
   })
 }
-
-
-
-
