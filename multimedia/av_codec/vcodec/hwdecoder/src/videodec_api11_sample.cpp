@@ -31,6 +31,7 @@ namespace {
 constexpr int64_t NANOS_IN_SECOND = 1000000000L;
 constexpr int64_t MICRO_IN_SECOND = 1000000L;
 constexpr int64_t NANOS_IN_MICRO = 1000L;
+constexpr int32_t TWO = 2;
 constexpr int32_t THREE = 3;
 constexpr int32_t EIGHT = 8;
 constexpr int32_t TEN = 10;
@@ -260,7 +261,12 @@ std::vector<uint8_t> VDecAPI11Sample::LoadHashFile()
     if (f) {
         json data = json::parse(f);
         filesystem::path filePath = INP_DIR;
-        std::string pixFmt = defualtPixelFormat == AV_PIXEL_FORMAT_NV12 ? "nv12" : "nv21";
+        std::string pixFmt = "";
+        if (isChecklowLatency) {
+            pixFmt = "nv12_lowlatency";
+        } else {
+            pixFmt = defualtPixelFormat == AV_PIXEL_FORMAT_NV12 ? "nv12" : "nv21";
+        }
         std::string fileName = filePath.filename();
         std::string hashValue = data[fileName.c_str()][pixFmt];
         std::stringstream ss(hashValue);
@@ -355,7 +361,7 @@ int32_t VDecAPI11Sample::ConfigureVideoDecoder()
         (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_VIDEO_DECODER_OUTPUT_ENABLE_VRR, 1);
     }
     if (enableLowLatency) {
-        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY, 1);
+        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_VIDEO_ENABLE_LOW_LATENCY, lowLatency);
     }
     (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_ENABLE_SYNC_MODE, enbleSyncMode);
     (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_VIDEO_DECODER_BLANK_FRAME_ON_SHUTDOWN, enbleBlankFrame);
@@ -1117,34 +1123,74 @@ int32_t VDecAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFr
     return AV_ERR_OK;
 }
 
+void VDecAPI11Sample::CopyFrom8BitYuv(OH_AVBuffer *buffer, uint32_t index)
+{
+    uint8_t *bufferAddr = OH_AVBuffer_GetAddr(buffer);
+    int32_t size = OH_AVBuffer_GetCapacity(buffer);
+    uint32_t cropSize = (picWidth_ * picHeight_ * THREE) >> 1;
+    uint8_t *cropBuffer = new uint8_t[cropSize];
+    uint8_t *copyPos = cropBuffer;
+    if (size >= cropSize) {
+        //copy y
+        for (int32_t i = 0; i < picHeight_; i++) {
+            memcpy_s(copyPos, picWidth_, bufferAddr, picWidth_);
+            bufferAddr += stride_;
+            copyPos += picWidth_;
+        }
+        bufferAddr += (sliceHeight_ - picHeight_) * stride_;
+        //copy uv
+        for (int32_t i = 0; i < picHeight_ >> 1; i++) {
+            memcpy_s(copyPos, picWidth_, bufferAddr, picWidth_);
+            bufferAddr += stride_;
+            copyPos += picWidth_;
+        }
+        SHA512_Update(&g_c, cropBuffer, cropSize);
+        delete[] cropBuffer;
+    }
+    if (OH_VideoDecoder_FreeOutputBuffer(vdec_, index) != AV_ERR_OK) {
+        cout << "Fatal: ReleaseOutputBuffer fail" << endl;
+        errCount = errCount + 1;
+    }
+}
+
+void VDecAPI11Sample::CopyFrom10BitYuv(OH_AVBuffer *buffer, uint32_t index)
+{
+    uint8_t *bufferAddr = OH_AVBuffer_GetAddr(buffer);
+    int32_t size = OH_AVBuffer_GetCapacity(buffer);
+    uint32_t cropSize = (picWidth_ * TWO * picHeight_ * THREE) >> 1;
+    uint16_t *cropBuffer = new uint16_t[cropSize];
+    uint16_t *copyPos = cropBuffer;
+    if (size >= cropSize) {
+        //copy y
+        for (int32_t i = 0; i < picHeight_; i++) {
+            memcpy_s(copyPos, picWidth_ * TWO, bufferAddr, picWidth_ * TWO);
+            bufferAddr += stride_;
+            copyPos += picWidth_;
+        }
+        bufferAddr += (sliceHeight_ - picHeight_) * stride_;
+        //copy uv
+        for (int32_t i = 0; i < picHeight_ >> 1; i++) {
+            memcpy_s(copyPos, picWidth_ * TWO, bufferAddr, picWidth_ * TWO);
+            bufferAddr += stride_;
+            copyPos += picWidth_;
+        }
+        SHA512_Update(&g_c, cropBuffer, cropSize);
+        delete[] cropBuffer;
+    }
+    if (OH_VideoDecoder_FreeOutputBuffer(vdec_, index) != AV_ERR_OK) {
+        cout << "Fatal: ReleaseOutputBuffer fail" << endl;
+        errCount = errCount + 1;
+    }
+}
+
 void VDecAPI11Sample::ProcessOutputData(OH_AVBuffer *buffer, uint32_t index)
 {
     if (!SF_OUTPUT) {
-        uint8_t *bufferAddr = OH_AVBuffer_GetAddr(buffer);
-        int32_t size = OH_AVBuffer_GetCapacity(buffer);
-        uint32_t cropSize = (picWidth_ * picHeight_ * THREE) >> 1;
-        uint8_t *cropBuffer = new uint8_t[cropSize];
-        uint8_t *copyPos = cropBuffer;
-        if (size >= cropSize) {
-            //copy y
-            for (int32_t i = 0; i < picHeight_; i++) {
-                memcpy_s(copyPos, picWidth_, bufferAddr, picWidth_);
-                bufferAddr += stride_;
-                copyPos += picWidth_;
-            }
-            bufferAddr += (sliceHeight_ - picHeight_) * stride_;
-            //copy uv
-            for (int32_t i = 0; i < picHeight_ >> 1; i++) {
-                memcpy_s(copyPos, picWidth_, bufferAddr, picWidth_);
-                bufferAddr += stride_;
-                copyPos += picWidth_;
-            }
-            SHA512_Update(&g_c, cropBuffer, cropSize);
-            delete[] cropBuffer;
-        }
-        if (OH_VideoDecoder_FreeOutputBuffer(vdec_, index) != AV_ERR_OK) {
-            cout << "Fatal: ReleaseOutputBuffer fail" << endl;
-            errCount = errCount + 1;
+        GetStride();
+        if (is8bitYuv) {
+            CopyFrom8BitYuv(buffer, index);
+        } else {
+            CopyFrom10BitYuv(buffer, index);
         }
     } else {
         if (rsAtTime) {
