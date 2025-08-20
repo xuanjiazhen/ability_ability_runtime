@@ -2695,6 +2695,92 @@ static napi_value GetWhiteBalanceTest(napi_env env, napi_callback_info info)
     return jsValue;
 }
 
+static napi_value getPreviewProfiles(napi_env env, napi_callback_info info)
+{
+    napi_value previewProfile = nullptr;
+    napi_value previewProfiles = nullptr;
+    napi_value jsValue = nullptr;
+
+    napi_status status = napi_create_array(env, &previewProfiles);
+    
+    for (uint32_t i = 0; i < ndkCamera_->cameraOutputCapability_->previewProfilesSize; i++) {
+        napi_create_object(env, &previewProfile);
+        napi_create_int32(env, ndkCamera_->cameraOutputCapability_->previewProfiles[i]->format, &jsValue);
+        napi_set_named_property(env, previewProfile, "format", jsValue);
+
+        napi_create_int32(env, ndkCamera_->cameraOutputCapability_->previewProfiles[i]->size.height, &jsValue);
+        napi_set_named_property(env, previewProfile, "height", jsValue);
+
+        napi_create_int32(env, ndkCamera_->cameraOutputCapability_->previewProfiles[i]->size.width, &jsValue);
+        napi_set_named_property(env, previewProfile, "width", jsValue);
+
+        napi_set_element(env, previewProfiles, i, previewProfile);
+    }
+    return previewProfiles;
+}
+
+static napi_value getVideoProfiles(napi_env env, napi_callback_info info)
+{
+    napi_value videoProfile = nullptr;
+    napi_value videoProfiles = nullptr;
+    napi_value jsValue = nullptr;
+
+    napi_status status = napi_create_array(env, &videoProfiles);
+    
+    for (uint32_t i = 0; i < ndkCamera_->cameraOutputCapability_->videoProfilesSize; i++) {
+        napi_create_object(env, &videoProfile);
+        napi_create_int32(env, ndkCamera_->cameraOutputCapability_->videoProfiles[i]->format, &jsValue);
+        napi_set_named_property(env, videoProfile, "format", jsValue);
+
+        napi_create_int32(env, ndkCamera_->cameraOutputCapability_->videoProfiles[i]->size.height, &jsValue);
+        napi_set_named_property(env, videoProfile, "height", jsValue);
+
+        napi_create_int32(env, ndkCamera_->cameraOutputCapability_->videoProfiles[i]->size.width, &jsValue);
+        napi_set_named_property(env, videoProfile, "width", jsValue);
+
+        napi_create_int32(env, ndkCamera_->cameraOutputCapability_->videoProfiles[i]->range.min, &jsValue);
+        napi_set_named_property(env, videoProfile, "min", jsValue);
+
+        napi_create_int32(env, ndkCamera_->cameraOutputCapability_->videoProfiles[i]->range.max, &jsValue);
+        napi_set_named_property(env, videoProfile, "max", jsValue);
+
+        napi_set_element(env, videoProfiles, i, videoProfile);
+    }
+    return videoProfiles;
+}
+
+static napi_value createVideoOutputByIndex(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2] = {nullptr};
+    napi_value result;
+
+    size_t videoIdLen = 0;
+    char* videoId = nullptr;
+    napi_get_cb_info(env, info, &argc, args , nullptr, nullptr);
+    napi_get_value_string_utf8(env, args[0], nullptr, 0, &videoIdLen);
+    videoId = new char[videoIdLen + 1];
+    napi_get_value_string_utf8(env, args[0], videoId, videoIdLen + 1, &videoIdLen);
+    int32_t index;
+    napi_get_value_int32(env, args[1], &index);
+    Camera_ErrorCode ret = ndkCamera_->CreateVideoOutputByIndex(videoId, index);
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+
+static napi_value createPreviewOutputByIndex(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_value result;
+    napi_get_cb_info(env, info, &argc, args , nullptr, nullptr);
+    int32_t index;
+    napi_get_value_int32(env, args[0], &index);
+    Camera_ErrorCode ret = ndkCamera_->CreatePreviewOutputByIndex(index);
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -2827,6 +2913,14 @@ static napi_value Init(napi_env env, napi_value exports)
         { "sessionIsMacroSupported", nullptr, SessionIsMacroSupported, nullptr, nullptr, nullptr,
             napi_default, nullptr },
         { "sessionEnableMacro", nullptr, SessionEnableMacro, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "getPreviewProfiles", nullptr, getPreviewProfiles, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "getVideoProfiles", nullptr, getVideoProfiles, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "createVideoOutputByIndex", nullptr, createVideoOutputByIndex, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "createPreviewOutputByIndex", nullptr, createPreviewOutputByIndex, nullptr, nullptr, nullptr,
             napi_default, nullptr },
     };
     napi_property_descriptor desc1[] = {
