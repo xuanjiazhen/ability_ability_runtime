@@ -795,15 +795,15 @@ export default function windowErrCode1300002_2() {
       }
     })
     /**
-     * @tc.number     : testLoadContentByNameCallbackErrCode1300002_0100
-     * @tc.name       : testLoadContentByNameCallbackErrCode1300002_0100
-     * @tc.desc       : testLoadContentByNameCallbackErrCode1300002_0100
+     * @tc.number     : testLoadContentByNameCallbackErrCode1300002_0200
+     * @tc.name       : testLoadContentByNameCallbackErrCode1300002_0200
+     * @tc.desc       : testLoadContentByNameCallbackErrCode1300002_0200
      * @tc.size       : MediumTest
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testLoadContentByNameCallbackErrCode1300002_0100', Level.LEVEL3, async (done: Function) => {
-      let caseName = "testLoadContentByNameCallbackErrCode1300002_0100";
+    it('testLoadContentByNameCallbackErrCode1300002_0200', Level.LEVEL3, async (done: Function) => {
+      let caseName = "testLoadContentByNameCallbackErrCode1300002_0200";
       let msgStr = 'jsunittest ' + caseName + ' ';
       console.log(msgStr + 'begin.');
       let windowStageStart = await startAbility(caseName, context);
@@ -829,15 +829,15 @@ export default function windowErrCode1300002_2() {
       }
     })
     /**
-     * @tc.number     : testLoadContentByNameCallbackErrCode1300002_0200
-     * @tc.name       : testLoadContentByNameCallbackErrCode1300002_0200
-     * @tc.desc       : testLoadContentByNameCallbackErrCode1300002_0200
+     * @tc.number     : testLoadContentByNameCallbackErrCode1300002_0300
+     * @tc.name       : testLoadContentByNameCallbackErrCode1300002_0300
+     * @tc.desc       : testLoadContentByNameCallbackErrCode1300002_0300
      * @tc.size       : MediumTest
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testLoadContentByNameCallbackErrCode1300002_0200', Level.LEVEL3, async (done: Function) => {
-      let caseName = "testLoadContentByNameCallbackErrCode1300002_0200";
+    it('testLoadContentByNameCallbackErrCode1300002_0300', Level.LEVEL3, async (done: Function) => {
+      let caseName = "testLoadContentByNameCallbackErrCode1300002_0300";
       let msgStr = 'jsunittest ' + caseName + ' ';
       console.log(msgStr + 'begin.');
       let windowStageStart = await startAbility(caseName, context);
@@ -862,15 +862,15 @@ export default function windowErrCode1300002_2() {
       }
     })
     /**
-     * @tc.number     : testLoadContentByNamePromiseErrCode1300002_0100
-     * @tc.name       : testLoadContentByNamePromiseErrCode1300002_0100
-     * @tc.desc       : testLoadContentByNamePromiseErrCode1300002_0100
+     * @tc.number     : testLoadContentByNamePromiseErrCode1300002_0200
+     * @tc.name       : testLoadContentByNamePromiseErrCode1300002_0200
+     * @tc.desc       : testLoadContentByNamePromiseErrCode1300002_0200
      * @tc.size       : MediumTest
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testLoadContentByNamePromiseErrCode1300002_0100', Level.LEVEL3, async (done: Function) => {
-      let caseName = "testLoadContentByNamePromiseErrCode1300002_0100";
+    it('testLoadContentByNamePromiseErrCode1300002_0200', Level.LEVEL3, async (done: Function) => {
+      let caseName = "testLoadContentByNamePromiseErrCode1300002_0200";
       let msgStr = 'jsunittest ' + caseName + ' ';
       console.log(msgStr + 'begin.');
       let windowStageStart = await startAbility(caseName, context);
@@ -893,7 +893,7 @@ export default function windowErrCode1300002_2() {
     })
     /**
      * @tc.number     : testOn_windowStageEventErrCode1300002_0100
-     * @tc.name       : testOn_windowStageEventErrCode1300002_0100
+     * @tc.name       : testOnWindowStageEventErrCode1300002_0100
      * @tc.desc       : testOn_windowStageEventErrCode1300002_0100
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -920,7 +920,7 @@ export default function windowErrCode1300002_2() {
     })
     /**
      * @tc.number     : testOff_windowStageEventErrCode1300002_0100
-     * @tc.name       : testOff_windowStageEventErrCode1300002_0100
+     * @tc.name       : testOffWindowStageEventErrCode1300002_0100
      * @tc.desc       : testOff_windowStageEventErrCode1300002_0100
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -947,7 +947,7 @@ export default function windowErrCode1300002_2() {
     })
     /**
      * @tc.number     : testOn_windowStageCloseErrCode1300002_0100
-     * @tc.name       : testOn_windowStageCloseErrCode1300002_0100
+     * @tc.name       : testOnWindowStageCloseErrCode1300002_0100
      * @tc.desc       : testOn_windowStageCloseErrCode1300002_0100
      * @tc.size       : MediumTest
      * @tc.type       : Function
