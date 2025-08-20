@@ -48,7 +48,7 @@ set(src_sec
 
 if(DEFINED PACKAGE_FIND_FILE)
     include(${PACKAGE_FIND_FILE})
-elseif()
+endif()
 
 include_directories(${OPENHARMONY_ROOT_PATH}/third_party/bounds_checking_function/include
                     ${OPENHARMONY_ROOT_PATH}/third_party/bounds_checking_function/src
