@@ -153,7 +153,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'getAddedScanners failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NOT_SYSTEM_APPLICATION);
+        expect(err.code).assertEqual(202);
         done();
       });
     });
@@ -321,7 +321,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'addScanner failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NOT_SYSTEM_APPLICATION);
+        expect(err.code).assertEqual(202);
         done();
       });
     });
@@ -340,7 +340,7 @@ export default function scanTest() {
         done();
       }).catch((err: BusinessError) => {
         hilog.error(DOMAIN, TAG, 'deleteScanner failed, code = ' + err.code);
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NOT_SYSTEM_APPLICATION);
+        expect(err.code).assertEqual(202);
         done();
       });
     });
@@ -487,7 +487,7 @@ export default function scanTest() {
         }, 500);
       } catch (err) {
         hilog.error(DOMAIN, TAG, 'scanDeviceAdd test failed: ' + JSON.stringify(err));
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NOT_SYSTEM_APPLICATION);
+        expect(err.code).assertEqual(202);
         done();
       }
     });
@@ -512,7 +512,7 @@ export default function scanTest() {
         }, 500);
       } catch (err) {
         hilog.error(DOMAIN, TAG, 'scanDeviceDel test failed: ' + JSON.stringify(err));
-        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_NOT_SYSTEM_APPLICATION);
+        expect(err.code).assertEqual(202);
         done();
       }
     });
@@ -672,6 +672,35 @@ export default function scanTest() {
         });
       } catch (e) {
         hilog.error(DOMAIN, TAG, 'on scanDeviceFound failed');
+        expect().assertFail();
+      }
+      try {
+        setTimeout(() => {
+          scan.off('scanDeviceSync');
+          done();
+        }, 500);
+      } catch (e) {
+        expect().assertFail();
+        done();
+      }
+    });
+
+    /**
+     * @tc.number scan_function_2500
+     * @tc.name scan_function_2500
+     * @tc.desc Test ScannerSyncDevice
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('scan_function_2500', Level.LEVEL1, async (done: Function) => {
+      try {
+        scan.on('scanDeviceSync', (device: scan.ScannerSyncDevice) => {
+          hilog.info(DOMAIN, TAG, 'uniqueId: ' + device.uniqueId);
+          hilog.info(DOMAIN, TAG, 'syncMode: ' + device.syncMode);
+        });
+      } catch (e) {
+        hilog.error(DOMAIN, TAG, 'on scanDeviceSync failed');
         expect().assertFail();
       }
       try {
