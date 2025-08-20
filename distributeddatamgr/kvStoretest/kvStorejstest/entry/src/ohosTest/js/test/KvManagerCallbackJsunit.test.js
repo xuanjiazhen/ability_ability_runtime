@@ -551,8 +551,8 @@ describe('kvManagerCallbackTest', function () {
         }
         try {
             await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
-                console.info('testKVManagerGetKVStore115 getKVStore success');
-                expect(true).assertTrue();
+                console.info('testKVManagerGetKVStore115 getKVStore err=' + err);
+                expect(err !== undefined).assertTrue();
                 done();
             });
         } catch (e) {
@@ -583,8 +583,8 @@ describe('kvManagerCallbackTest', function () {
         }
         try {
             await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
-                console.info('testKVManagerGetKVStore116 getKVStore success');
-                expect(true).assertTrue();
+                console.info('testKVManagerGetKVStore116 getKVStore err=' + err);
+                expect(err !== undefined).assertTrue();
                 done();
             });
         } catch (e) {
@@ -615,8 +615,8 @@ describe('kvManagerCallbackTest', function () {
         }
         try {
             await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
-                console.info('testKVManagerGetKVStore117 getKVStore success');
-                expect(true).assertTrue();
+                console.info('testKVManagerGetKVStore117 getKVStore err=' + err);
+                expect(err !== undefined).assertTrue();
                 done();
             });
         } catch (e) {
@@ -647,8 +647,8 @@ describe('kvManagerCallbackTest', function () {
         }
         try {
             await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
-                console.info('testKVManagerGetKVStore118 getKVStore success');
-                expect(true).assertTrue();
+                console.info('testKVManagerGetKVStore118 getKVStore err=' + err);
+                expect(err !== undefined).assertTrue();
                 done();
             });
         } catch (e) {
@@ -679,8 +679,8 @@ describe('kvManagerCallbackTest', function () {
         }
         try {
             await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
-                console.info('testKVManagerGetKVStore119 getKVStore success');
-                expect(true).assertTrue();
+                console.info('testKVManagerGetKVStore119 getKVStore err=' + err);
+                expect(err !== undefined).assertTrue();
                 done();
             });
         } catch (e) {
@@ -711,8 +711,8 @@ describe('kvManagerCallbackTest', function () {
         }
         try {
             await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
-                console.info('testKVManagerGetKVStore120 getKVStore success');
-                expect(true).assertTrue();
+                console.info('testKVManagerGetKVStore120 getKVStore err=' + err);
+                expect(err !== undefined).assertTrue();
                 done();
             });
         } catch (e) {
@@ -1023,7 +1023,7 @@ describe('kvManagerCallbackTest', function () {
                             expect(null).assertFail();
                         } else {
                             console.info('testKVStorePut100 put callback success');
-                            expect(true).assertTrue();
+                            expect(err === undefined).assertTrue();
                         }
                         done();
                     });

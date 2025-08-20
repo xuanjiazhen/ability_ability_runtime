@@ -491,7 +491,7 @@ describe('kvManagerPromiseTest', function () {
             expect(null).assertFail();
         }).catch((err) => {
             console.info('testKVManagerGetKVStore014 getKVStore err ' + err);
-            expect(true).assertTrue();
+            expect(err !== undefined).assertTrue();
         });
         done();
     })
@@ -520,7 +520,7 @@ describe('kvManagerPromiseTest', function () {
             expect(null).assertFail();
         }).catch((err) => {
             console.info('testKVManagerGetKVStore015 getKVStore err ' + err);
-            expect(true).assertTrue();
+            expect(err !== undefined).assertTrue();
         });
         done();
     })
@@ -549,7 +549,7 @@ describe('kvManagerPromiseTest', function () {
             expect(null).assertFail();
         }).catch((err) => {
             console.info('testKVManagerGetKVStore016 getKVStore err ' + err);
-            expect(true).assertTrue();
+            expect(err !== undefined).assertTrue();
         });
         done();
     })
@@ -578,7 +578,7 @@ describe('kvManagerPromiseTest', function () {
             expect(null).assertFail();
         }).catch((err) => {
             console.info('testKVManagerGetKVStore017 getKVStore err ' + err);
-            expect(true).assertTrue();
+            expect(err !== undefined).assertTrue();
         });
         done();
     })
@@ -607,7 +607,7 @@ describe('kvManagerPromiseTest', function () {
             expect(null).assertFail();
         }).catch((err) => {
             console.info('testKVManagerGetKVStore018 getKVStore err ' + err);
-            expect(true).assertTrue();
+            expect(err !== undefined).assertTrue();
         });
         done();
     })
@@ -636,7 +636,7 @@ describe('kvManagerPromiseTest', function () {
             expect(null).assertFail();
         }).catch((err) => {
             console.info('testKVManagerGetKVStore019 getKVStore err ' + err);
-            expect(true).assertTrue();
+            expect(err !== undefined).assertTrue();
         });
         done();
     })
