@@ -69,18 +69,19 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
  napi_value OH_Filter_BlurWithTileModeSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
+    uint32_t width = 100;
+    uint32_t height = 100;
     OH_Filter* filter = nullptr;
     float radius = 10;
     uint8_t* data = new uint8_t[100 * 100 * 4];
-    size_t dataLength = 100*100*4;
-    for(int i = 0; i < dataLength; i++)
-    {
+    size_t dataLength = 100 * 100 * 4;
+    for(int i = 0;i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
     OH_PixelmapInitializationOptions_Create(&options);
-    OH_PixelmapInitializationOptions_SetWidth(options, 100);
-    OH_PixelmapInitializationOptions_SetHeight(options, 100);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
     OH_PixelmapInitializationOptions_SetPixelFormat(options, NATIVEBUFFER_PIXEL_FMT_BGRA_8888);
     OH_PixelmapNative *pixelMapNative = nullptr;
     OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMapNative);

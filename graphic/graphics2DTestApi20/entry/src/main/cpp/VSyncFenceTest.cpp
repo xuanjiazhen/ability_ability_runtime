@@ -187,7 +187,7 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
 {
     napi_value result;
     int32_t fenceFd = -1;
-    OH_NativeVSync* nativeVsync = nullptr; 
+    OH_NativeVSync* nativeVsync = nullptr;
     OH_NativeVSync_ExpectedRateRange* range = nullptr;
     int res = OH_NativeVSync_SetExpectedFrameRateRange(nativeVsync, range);
     napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);

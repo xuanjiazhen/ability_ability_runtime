@@ -24,33 +24,36 @@
 
 void addEffectShareTest(std::vector<napi_property_descriptor>& descData)
 {
-    descData.push_back({"shaderEffectCreatePixelMapShaderSuccess", nullptr, OH_Drawing_ShaderEffectCreatePixelMapShaderSuccess,
-        nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"shaderEffectCreatePixelMapShaderInvalue", nullptr, OH_Drawing_ShaderEffectCreatePixelMapShaderInvalue,
-        nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"shaderEffectCreatePixelMapShaderSuccess", nullptr,
+        OH_Drawing_ShaderEffectCreatePixelMapShaderSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"shaderEffectCreatePixelMapShaderInvalue", nullptr,
+        OH_Drawing_ShaderEffectCreatePixelMapShaderInvalue, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
 napi_value OH_Drawing_ShaderEffectCreatePixelMapShaderSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
+    uint32_t width = 100;
+    uint32_t height = 100;
     uint8_t* data = new uint8_t[100 * 100 * 4];
-    size_t dataLength = 100*100*4;
-    for(int i = 0; i < dataLength; i++)
-    {
+    size_t dataLength = 100 * 100 * 4;
+    for(int i = 0;i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
     OH_PixelmapInitializationOptions_Create(&options);
-    OH_PixelmapInitializationOptions_SetWidth(options, 100);
-    OH_PixelmapInitializationOptions_SetHeight(options, 100);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
     OH_PixelmapInitializationOptions_SetPixelFormat(options, NATIVEBUFFER_PIXEL_FMT_BGRA_8888);
     OH_PixelmapNative *pixelMapNative = nullptr;
     OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMapNative);
 
     OH_Drawing_PixelMap *pixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMapNative);
-    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(FILTER_MODE_LINEAR, MIPMAP_MODE_LINEAR);
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(FILTER_MODE_LINEAR,
+        MIPMAP_MODE_LINEAR);
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
-    OH_Drawing_ShaderEffect* peffect = OH_Drawing_ShaderEffectCreatePixelMapShader(pixelMap, CLAMP, CLAMP, samplingOptions, matrix);
+    OH_Drawing_ShaderEffect* peffect = OH_Drawing_ShaderEffectCreatePixelMapShader(pixelMap, CLAMP, CLAMP,
+        samplingOptions, matrix);
     napi_create_int32(env,  peffect != nullptr, &result);
     return result;
 }
@@ -59,10 +62,12 @@ napi_value OH_Drawing_ShaderEffectCreatePixelMapShaderInvalue(napi_env env, napi
 {
     napi_value result;
     OH_Drawing_PixelMap* pixelMap = nullptr;
-    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(FILTER_MODE_LINEAR, MIPMAP_MODE_LINEAR);
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(FILTER_MODE_LINEAR,
+        MIPMAP_MODE_LINEAR);
     OH_Drawing_Matrix* matrix = nullptr;
     OH_Drawing_TileMode tileMode;
-    OH_Drawing_ShaderEffect* peffect = OH_Drawing_ShaderEffectCreatePixelMapShader(nullptr, tileMode, tileMode, nullptr, nullptr);
+    OH_Drawing_ShaderEffect* peffect = OH_Drawing_ShaderEffectCreatePixelMapShader(nullptr, tileMode, tileMode,
+        nullptr, nullptr);
     napi_create_int32(env, peffect == nullptr, &result);
     return result;
 }

@@ -76,10 +76,10 @@ void addErrorCodeTest(std::vector<napi_property_descriptor>& descData)
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHDrawingErrorCodeSuccess", nullptr, OH_Drawing_DrawingErrorCodeSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHDrawingLineTypographyGetLineBreakInvalue", nullptr, OH_Drawing_LineTypographyGetLineBreakInvalue,
-        nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHDrawingLineTypographyGetLineBreakInvalue", nullptr, 
+        OH_Drawing_LineTypographyGetLineBreakInvalue, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"EffectTileModeREPEATSuccess", nullptr, EffectTileModeREPEATSuccess,
-        nullptr, nullptr, nullptr, napi_default, nullptr});    
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"EffectTileModeMIRRORSuccess", nullptr, EffectTileModeMIRRORSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"EffectTileModeDECALSuccess", nullptr, EffectTileModeDECALSuccess,
@@ -252,7 +252,6 @@ napi_value OH_NativeErrorCodeWindowUNKNOW(napi_env env, napi_callback_info info)
 {
     napi_value result;
     GLuint textureId = 0;
-    // glGenTextures(1, &textureId);
     OH_NativeImage *nativeImage = OH_NativeImage_Create(textureId, GL_TEXTURE_BINDING_2D);
     OH_NativeImage_AttachContext(nativeImage, textureId);
     OHNativeWindow *nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
@@ -261,7 +260,6 @@ napi_value OH_NativeErrorCodeWindowUNKNOW(napi_env env, napi_callback_info info)
     int fd;
     float matrix[16] = {0};
     OH_NativeBuffer *nativebuffer = nullptr;
-    // OH_NativeWindow_GetLastFlushedBufferV2(nativeWindow, &windowBuffer, &fd, matrix);
     int32_t err0 = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &windowBuffer, &fd);
     napi_create_int32(env, err0 == NATIVE_ERROR_UNKNOWN, &result);
     return result;
@@ -280,16 +278,15 @@ napi_value OH_Drawing_DrawingErrorCodeSuccess(napi_env env, napi_callback_info i
 napi_value OH_Drawing_LineTypographyGetLineBreakInvalue(napi_env env, napi_callback_info info)
 {
     napi_value result;
+    int lineNumber = 3;
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_CENTER);
-    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 3);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, lineNumber);
     OH_Drawing_FontCollection* fc = OH_Drawing_CreateSharedFontCollection();
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
     OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(handler);
     size_t startIndex = 0;
     double width = 0;
-    //OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, width);
-    //size_t size = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, width);
     napi_create_int32(env, 1, &result);
     return result;
 }
@@ -297,9 +294,10 @@ napi_value OH_Drawing_LineTypographyGetLineBreakInvalue(napi_env env, napi_callb
 napi_value OH_Drawing_LineTypographyCreateLineInvalue(napi_env env, napi_callback_info info)
 {
     napi_value result;
+    int lineNumber = 3;
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_CENTER);
-    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 3);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, lineNumber);
     OH_Drawing_FontCollection* fc = OH_Drawing_CreateSharedFontCollection();
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
     OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(handler);
@@ -315,19 +313,21 @@ napi_value EffectTileModeREPEATSuccess(napi_env env, napi_callback_info info)
     napi_value result;
     OH_Filter* filter = nullptr;
     float radius = 10;
+    uint32_t width = 100;
+    uint32_t height = 100;
     OH_PixelmapNative* pixelmap = nullptr;
 
     uint8_t* data = new uint8_t[100 * 100 * 4];
-    size_t dataLength = 100*100*4;
-    for(int i = 0; i < dataLength; i++)
-    {
+    size_t dataLength = 100 * 100 * 4;
+    for(int i = 0;i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
     OH_PixelmapInitializationOptions_Create(&options);
-    OH_PixelmapInitializationOptions_SetWidth(options, 100);
-    OH_PixelmapInitializationOptions_SetHeight(options, 100);
-    Image_ErrorCode imgErrCode = OH_PixelmapInitializationOptions_SetPixelFormat(options, NATIVEBUFFER_PIXEL_FMT_BGRA_8888);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
+    Image_ErrorCode imgErrCode = OH_PixelmapInitializationOptions_SetPixelFormat(options,
+        NATIVEBUFFER_PIXEL_FMT_BGRA_8888);
     OH_PixelmapNative *pixelMapNative = nullptr;
     Image_ErrorCode errCode0 = OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMapNative);
     OH_Filter_CreateEffect(pixelMapNative, &filter);
@@ -342,19 +342,21 @@ napi_value EffectTileModeMIRRORSuccess(napi_env env, napi_callback_info info)
     napi_value result;
     OH_Filter* filter = nullptr;
     float radius = 10;
+    uint32_t width = 100;
+    uint32_t height = 100;
     OH_PixelmapNative* pixelmap = nullptr;
 
     uint8_t* data = new uint8_t[100 * 100 * 4];
-    size_t dataLength = 100*100*4;
-    for(int i = 0; i < dataLength; i++)
-    {
+    size_t dataLength = 100 * 100 * 4;
+    for(int i = 0;i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
     OH_PixelmapInitializationOptions_Create(&options);
-    OH_PixelmapInitializationOptions_SetWidth(options, 100);
-    OH_PixelmapInitializationOptions_SetHeight(options, 100);
-    Image_ErrorCode imgErrCode = OH_PixelmapInitializationOptions_SetPixelFormat(options, NATIVEBUFFER_PIXEL_FMT_BGRA_8888);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
+    Image_ErrorCode imgErrCode = OH_PixelmapInitializationOptions_SetPixelFormat(options,
+        NATIVEBUFFER_PIXEL_FMT_BGRA_8888);
     OH_PixelmapNative *pixelMapNative = nullptr;
     Image_ErrorCode errCode0 = OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMapNative);
     OH_Filter_CreateEffect(pixelMapNative, &filter);
@@ -369,19 +371,21 @@ napi_value EffectTileModeDECALSuccess(napi_env env, napi_callback_info info)
     napi_value result;
     OH_Filter* filter = nullptr;
     float radius = 10;
+    uint32_t width = 100;
+    uint32_t height = 100;
     OH_PixelmapNative* pixelmap = nullptr;
 
     uint8_t* data = new uint8_t[100 * 100 * 4];
-    size_t dataLength = 100*100*4;
-    for(int i = 0; i < dataLength; i++)
-    {
+    size_t dataLength = 100 * 100 * 4;
+    for(int i = 0;i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
     OH_PixelmapInitializationOptions_Create(&options);
-    OH_PixelmapInitializationOptions_SetWidth(options, 100);
-    OH_PixelmapInitializationOptions_SetHeight(options, 100);
-    Image_ErrorCode imgErrCode = OH_PixelmapInitializationOptions_SetPixelFormat(options, NATIVEBUFFER_PIXEL_FMT_BGRA_8888);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
+    Image_ErrorCode imgErrCode = OH_PixelmapInitializationOptions_SetPixelFormat(options,
+        NATIVEBUFFER_PIXEL_FMT_BGRA_8888);
     OH_PixelmapNative *pixelMapNative = nullptr;
     Image_ErrorCode errCode0 = OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMapNative);
     OH_Filter_CreateEffect(pixelMapNative, &filter);
@@ -394,9 +398,9 @@ napi_value EffectTileModeDECALSuccess(napi_env env, napi_callback_info info)
 napi_value OH_Drawing_SamplingOptionsCopySuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(FILTER_MODE_LINEAR, MIPMAP_MODE_LINEAR);
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(FILTER_MODE_LINEAR,
+        MIPMAP_MODE_LINEAR);
     OH_Drawing_SamplingOptions* amp2 = OH_Drawing_SamplingOptionsCopy(samplingOptions);
-    
     napi_create_int32(env,  amp2 != nullptr, &result);
     return result;
 }
