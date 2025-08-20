@@ -176,7 +176,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
          * @tc.type Function
          * @tc.level Level 1
          */
-        it('RdbBackupRestoreCallbackTest_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, function (done) {
+        it('RdbBackupRestoreCallbackTest_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0200 start *************")
             // RelationalStore backup function test, backup file name empty
             //BackupCallbackTest("")
