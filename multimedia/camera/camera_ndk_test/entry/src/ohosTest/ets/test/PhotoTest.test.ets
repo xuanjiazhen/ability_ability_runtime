@@ -47,8 +47,8 @@ let videoConfig: media.AVRecorderConfig = {
     fileFormat : media.ContainerFormatType.CFT_MPEG_4,
     videoBitrate : 512000,
     videoCodec : media.CodecMimeType.VIDEO_AVC,
-    videoFrameWidth : 1920,
-    videoFrameHeight : 1080,
+    videoFrameWidth : 640,
+    videoFrameHeight : 480,
     videoFrameRate : 30
     },
   url : 'fd://',
@@ -136,12 +136,53 @@ function getActiveFrameRate() {
   return ret;
 }
 
-function createVideoOutput() {
-  let ret = cameraObj.createVideoOutput(videoSurfaceId);
-  if (ret != 0) {
-    console.error(TAG + "createVideoOutput FAILED");
+async function createVideoOutput() {
+  cameraObj.getSupportedOutputCapability();
+
+  let videoProfiles = cameraObj.getVideoProfiles();
+  console.info("videoProfiles is "+ JSON.stringify(videoProfiles));
+  let videoProfileIndex = 0;
+  let videoProfileHeigth = 1080;
+  let videoProfileWidth = 1920;
+  let FrameRate = 30;
+  //View the videoProfile with an aspect ratio of 4:3
+  for (let i = 0; i < videoProfiles.length; i++) {
+    if (Math.abs((videoProfiles[i].width / videoProfiles[i].height) -(4 / 3)) < 0.1) {
+      videoProfileWidth = videoProfiles[i].width;
+      videoProfileHeigth = videoProfiles[i].height;
+      FrameRate = videoProfiles[i].min;
+      videoProfileIndex = i;
+      break;
+    }
+  }
+
+  videoConfig = {
+    audioSourceType : media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC,
+    videoSourceType : media.VideoSourceType.VIDEO_SOURCE_TYPE_SURFACE_ES,
+    profile : {
+      audioBitrate : 48000,
+      audioChannels : 2,
+      audioCodec : media.CodecMimeType.AUDIO_AAC,
+      audioSampleRate : 48000,
+      fileFormat : media.ContainerFormatType.CFT_MPEG_4,
+      videoBitrate : 512000,
+      videoCodec : media.CodecMimeType.VIDEO_AVC,
+      videoFrameWidth : videoProfileWidth,
+      videoFrameHeight : videoProfileHeigth,
+      videoFrameRate : FrameRate
+    },
+    url : 'fd://',
+    rotation : 0,
+  }
+
+  console.log("videoConfig is "+JSON.stringify(videoConfig));
+  
+  await getVideoSurfaceId();
+  if (cameraObj.createVideoOutputByIndex(videoSurfaceId, videoProfileIndex)) {
+    console.info(TAG + "createVideoOutput FAILED");
     expect().assertFail();
   }
+  console.info(TAG + 'Exit createVideoOutput');
 }
 
 function getVideoOutputSupportedFrameRates() {
@@ -353,7 +394,7 @@ function addPhotoOutput() {
   }
 }
 
-function videoOutputFrameRate() {
+async function videoOutputFrameRate() {
   getCameraManagerInstance();
   createCaptureSession();
   getSupportedCamerasInstance();
@@ -365,7 +406,7 @@ function videoOutputFrameRate() {
   sessionFlow();
   createPhotoOutput();
   addPhotoOutput();
-  createVideoOutput();
+  await createVideoOutput();
   sessionCommitConfig();
 }
 
@@ -391,8 +432,24 @@ function nativeBufferColorSpace() {
 }
 
 function createPreviewOutput() {
-  let ret = cameraObj.createPreviewOutput();
-  if (ret != 0) {
+
+  cameraObj.getSupportedOutputCapability();
+
+  let previewProfiles = cameraObj.getPreviewProfiles();
+  console.info("previewProfiles is "+ JSON.stringify(previewProfiles));
+  let previewProfileIndex = 0;
+  let previewProfileHeigth = 1080;
+  let previewProfileWidth = 1920;
+  //View the previewprofile with an aspect ratio of 4:3
+  for (let i = 0; i < previewProfiles.length; i++) {
+    if (Math.abs((previewProfiles[i].width / previewProfiles[i].height) -(4 / 3)) < 0.1) {
+      previewProfileWidth = previewProfiles[i].width;
+      previewProfileHeigth = previewProfiles[i].height;
+      previewProfileIndex = i;
+      break;
+    }
+  }
+  if (cameraObj.createPreviewOutputByIndex(previewProfileIndex)) {
     console.info(TAG + "createPreviewOutput FAILED");
     expect().assertFail();
   }
@@ -556,7 +613,6 @@ export default function PhotoTest() {
       await getPermissions2();
       await driveFn();
       await getPhotoReceiverSurface();
-      await getVideoSurfaceId();
       await sleep(10000);
       done();
     })
@@ -1569,8 +1625,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputGetSupportedFrameRates0100', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputGetSupportedFrameRates0100', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       let ret = cameraObj.oHVideoOutputGetSupportedFrameRates(Parameter_Setting.ALL_PARAMETER_OK).errorCode;
       console.info(TAG+"testOHVideoOutputGetSupportedFrameRates0100:"+ret);
       expect(ret).assertEqual(CAMERA_OK);
@@ -1584,8 +1640,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputGetSupportedFrameRates0200', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputGetSupportedFrameRates0200', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       let ret = cameraObj.oHVideoOutputGetSupportedFrameRates(Parameter_Setting.FIRST_PARAMETER_ERROR).errorCode;
       console.info(TAG+"testOHVideoOutputGetSupportedFrameRates0200:"+ret);
       expect(ret).assertEqual(CAMERA_INVALID_ARGUMENT);
@@ -1599,8 +1655,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputGetSupportedFrameRates0300', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputGetSupportedFrameRates0300', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       let ret = cameraObj.oHVideoOutputGetSupportedFrameRates(Parameter_Setting.SECOND_PARAMETER_ERROR).errorCode;
       console.info(TAG+"testOHVideoOutputGetSupportedFrameRates0300:"+ret);
       expect(ret).assertEqual(CAMERA_INVALID_ARGUMENT);
@@ -1613,8 +1669,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputDeleteFrameRates0100', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputDeleteFrameRates0100', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       if (getVideoOutputSupportedFrameRates() != 0) {
         let ret = cameraObj.oHVideoOutputDeleteFrameRates(Parameter_Setting.ALL_PARAMETER_OK);
         console.info(TAG+"testOHVideoOutputDeleteFrameRates0100:"+ret);
@@ -1632,8 +1688,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputDeleteFrameRates0200', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputDeleteFrameRates0200', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       getVideoOutputSupportedFrameRates();
       let ret = cameraObj.oHVideoOutputDeleteFrameRates(Parameter_Setting.FIRST_PARAMETER_ERROR);
       console.info(TAG+"testOHVideoOutputDeleteFrameRates0200:"+ret);
@@ -1648,9 +1704,9 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputDeleteFrameRates0300', Level.LEVEL0, () => {
+    it('testOHVideoOutputDeleteFrameRates0300', Level.LEVEL0, async () => {
 
-      videoOutputFrameRate();
+      await videoOutputFrameRate();
       getVideoOutputSupportedFrameRates();
       let ret = cameraObj.oHVideoOutputDeleteFrameRates(Parameter_Setting.SECOND_PARAMETER_ERROR);
       console.info(TAG+"testOHVideoOutputDeleteFrameRates0300:"+ret);
@@ -1664,8 +1720,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputGetActiveFrameRate0100', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputGetActiveFrameRate0100', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       if (getVideoOutputSupportedFrameRates() != 0) {
         let ret = cameraObj.oHVideoOutputGetActiveFrameRate(Parameter_Setting.ALL_PARAMETER_OK).errorCode;
         console.info(TAG+"testOHVideoOutputGetActiveFrameRate0100:"+ret);
@@ -1681,8 +1737,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputGetActiveFrameRate0200', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputGetActiveFrameRate0200', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       getVideoOutputSupportedFrameRates();
       let ret = cameraObj.oHVideoOutputGetActiveFrameRate(Parameter_Setting.FIRST_PARAMETER_ERROR).errorCode;
       console.info(TAG+"testOHVideoOutputGetActiveFrameRate0200:"+ret);
@@ -1697,8 +1753,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputGetActiveFrameRate0300', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputGetActiveFrameRate0300', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       getVideoOutputSupportedFrameRates();
       let ret = cameraObj.oHVideoOutputGetActiveFrameRate(Parameter_Setting.SECOND_PARAMETER_ERROR).errorCode;
       console.info(TAG+"testOHVideoOutputGetActiveFrameRate0300:"+ret);
@@ -1712,8 +1768,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputSetFrameRate0100', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputSetFrameRate0100', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       if (getVideoOutputSupportedFrameRates() != 0) {
         if (getVideoOutputActiveFrameRate().min != 0 && getVideoOutputActiveFrameRate().max != 0) {
           let ret = cameraObj.oHVideoOutputSetFrameRate(Parameter_Setting.ALL_PARAMETER_OK);
@@ -1731,8 +1787,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputSetFrameRate0200', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputSetFrameRate0200', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       getVideoOutputSupportedFrameRates();
       getVideoOutputActiveFrameRate();
       let ret = cameraObj.oHVideoOutputSetFrameRate(Parameter_Setting.FIRST_PARAMETER_ERROR);
@@ -1748,8 +1804,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputSetFrameRate0300', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputSetFrameRate0300', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       if (getVideoOutputSupportedFrameRates() == 0) {
         if (getVideoOutputActiveFrameRate().min != 0 && getVideoOutputActiveFrameRate().max != 0) {
           let ret = cameraObj.oHVideoOutputSetFrameRate(Parameter_Setting.ALL_PARAMETER_OK);
@@ -1767,8 +1823,8 @@ export default function PhotoTest() {
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testOHVideoOutputSetFrameRate0400', Level.LEVEL0, () => {
-      videoOutputFrameRate();
+    it('testOHVideoOutputSetFrameRate0400', Level.LEVEL0, async () => {
+      await videoOutputFrameRate();
       if (getVideoOutputSupportedFrameRates() != 0) {
           getVideoOutputActiveFrameRate();
           let ret = cameraObj.oHVideoOutputSetFrameRate(Parameter_Setting.SECOND_PARAMETER_ERROR);
