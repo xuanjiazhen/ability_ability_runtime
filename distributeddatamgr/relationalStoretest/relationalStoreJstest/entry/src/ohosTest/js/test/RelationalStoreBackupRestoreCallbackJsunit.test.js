@@ -233,15 +233,17 @@ export default function relationalStoreBackupRestoreCallbackTest() {
             await sleep(1000);
             // RelationalStore restore function test, backup file is specified to database name
             //ReStoreCallbackTest(STORE_CONFIG.name)
-            try{
-                RdbStore.restore(STORE_CONFIG.name,async(err)=>{
+            RdbStore.restore(STORE_CONFIG.name,async(err)=>{
+                if(err != null)
+                {
+                    console.log(TAG + "err" + err.code + err.message)
+                    expect("14800010").assertEqual(String(err.code))
+
+                }else{
                     console.log(TAG + "RdbBackupRestoreCallbackTest_0300 STORE_CONFIG.dbName")
                     expect().assertFail()
-                })
-            }catch(err){
-                console.log(TAG + "err" + err.code + err.message)
-                expect("14800010").assertEqual(String(err.code))
-            }
+                }
+            })
             done()
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_0300 end *************")
         })
