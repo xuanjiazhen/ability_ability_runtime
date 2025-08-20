@@ -146,6 +146,20 @@ interface MacroSupportedinfo {
   isMacroSupported: boolean;
 }
 
+interface profile {
+  format: number;
+  height: number;
+  width: number;
+}
+
+interface videoProfile {
+  format: number;
+  height: number;
+  width: number;
+  min: number;
+  max: number;
+}
+
 export const initCamera: (surfaceId: string) => number;
 
 export const getSupportedCameras: () => cameraInfo;
@@ -481,3 +495,11 @@ export const oHCameraInputOpenConcurrentCameras: (index:number) => number;
 export const sessionIsMacroSupported: (a: number) => MacroSupportedinfo;
 
 export const sessionEnableMacro: (index: number, enable: boolean) => number;
+
+export const getPreviewProfiles: () => Array<profile>;
+
+export const getVideoProfiles: () => Array<videoProfile>;
+
+export const createVideoOutputByIndex: (surfaceId: string, index: number) => number;
+
+export const createPreviewOutputByIndex: (index: number) => number;
