@@ -1026,10 +1026,10 @@ void VDecAPI11Sample::OutputFuncTest()
             flag = false;
             break;
         }
-        if (outFile != nullptr) {
-            fwrite(OH_AVBuffer_GetAddr(buffer), 1, attr.size, outFile);
-        }
-        ProcessOutputData(buffer, index);
+        // if (outFile != nullptr) {
+        //     fwrite(OH_AVBuffer_GetAddr(buffer), 1, attr.size, outFile);
+        // }
+        ProcessOutputData(buffer, index, outFile);
         lock.unlock();
         if (errCount > 0) {
             flag = false;
@@ -1072,10 +1072,10 @@ void VDecAPI11Sample::SyncOutputFunc()
             isRunning_.store(false);
             break;
         }
-        if (outFile != nullptr) {
-            fwrite(OH_AVBuffer_GetAddr(buffer), 1, attr.size, outFile);
-        }
-        ProcessOutputData(buffer, index);
+        // if (outFile != nullptr) {
+        //     fwrite(OH_AVBuffer_GetAddr(buffer), 1, attr.size, outFile);
+        // }
+        ProcessOutputData(buffer, index, outFile);
         outFrames = outFrames + 1;
         if (errCount > 0) {
             isRunning_.store(false);
@@ -1123,7 +1123,7 @@ int32_t VDecAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFr
     return AV_ERR_OK;
 }
 
-void VDecAPI11Sample::CopyFrom8BitYuv(OH_AVBuffer *buffer, uint32_t index)
+void VDecAPI11Sample::CopyFrom8BitYuv(OH_AVBuffer *buffer, uint32_t index, FILE *outFile)
 {
     uint8_t *bufferAddr = OH_AVBuffer_GetAddr(buffer);
     int32_t size = OH_AVBuffer_GetCapacity(buffer);
@@ -1144,6 +1144,9 @@ void VDecAPI11Sample::CopyFrom8BitYuv(OH_AVBuffer *buffer, uint32_t index)
             bufferAddr += stride_;
             copyPos += picWidth_;
         }
+        if (outFile != nullptr) {
+            fwrite(cropBuffer, 1, cropSize, outFile);
+        }
         SHA512_Update(&g_c, cropBuffer, cropSize);
         delete[] cropBuffer;
     }
@@ -1153,7 +1156,7 @@ void VDecAPI11Sample::CopyFrom8BitYuv(OH_AVBuffer *buffer, uint32_t index)
     }
 }
 
-void VDecAPI11Sample::CopyFrom10BitYuv(OH_AVBuffer *buffer, uint32_t index)
+void VDecAPI11Sample::CopyFrom10BitYuv(OH_AVBuffer *buffer, uint32_t index, FILE *outFile)
 {
     uint8_t *bufferAddr = OH_AVBuffer_GetAddr(buffer);
     int32_t size = OH_AVBuffer_GetCapacity(buffer);
@@ -1174,6 +1177,9 @@ void VDecAPI11Sample::CopyFrom10BitYuv(OH_AVBuffer *buffer, uint32_t index)
             bufferAddr += stride_;
             copyPos += picWidth_;
         }
+        if (outFile != nullptr) {
+            fwrite(cropBuffer, 1, cropSize, outFile);
+        }
         SHA512_Update(&g_c, cropBuffer, cropSize);
         delete[] cropBuffer;
     }
@@ -1183,14 +1189,14 @@ void VDecAPI11Sample::CopyFrom10BitYuv(OH_AVBuffer *buffer, uint32_t index)
     }
 }
 
-void VDecAPI11Sample::ProcessOutputData(OH_AVBuffer *buffer, uint32_t index)
+void VDecAPI11Sample::ProcessOutputData(OH_AVBuffer *buffer, uint32_t index, FILE *outFile)
 {
     if (!SF_OUTPUT) {
         GetStride();
         if (is8bitYuv) {
-            CopyFrom8BitYuv(buffer, index);
+            CopyFrom8BitYuv(buffer, index, outFile);
         } else {
-            CopyFrom10BitYuv(buffer, index);
+            CopyFrom10BitYuv(buffer, index, outFile);
         }
     } else {
         if (rsAtTime) {
