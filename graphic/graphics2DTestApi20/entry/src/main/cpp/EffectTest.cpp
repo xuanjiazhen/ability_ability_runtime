@@ -75,7 +75,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     float radius = 10;
     uint8_t* data = new uint8_t[100 * 100 * 4];
     size_t dataLength = 100 * 100 * 4;
-    for(int i = 0; i < dataLength; i++) {
+    for (int i = 0; i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;

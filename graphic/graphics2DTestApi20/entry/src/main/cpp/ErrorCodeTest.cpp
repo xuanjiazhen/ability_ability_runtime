@@ -319,7 +319,7 @@ napi_value EffectTileModeREPEATSuccess(napi_env env, napi_callback_info info)
 
     uint8_t* data = new uint8_t[100 * 100 * 4];
     size_t dataLength = 100 * 100 * 4;
-    for(int i = 0; i < dataLength; i++) {
+    for (int i = 0; i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
@@ -348,7 +348,7 @@ napi_value EffectTileModeMIRRORSuccess(napi_env env, napi_callback_info info)
 
     uint8_t* data = new uint8_t[100 * 100 * 4];
     size_t dataLength = 100 * 100 * 4;
-    for(int i = 0; i < dataLength; i++) {
+    for (int i = 0; i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
@@ -377,7 +377,7 @@ napi_value EffectTileModeDECALSuccess(napi_env env, napi_callback_info info)
 
     uint8_t* data = new uint8_t[100 * 100 * 4];
     size_t dataLength = 100 * 100 * 4;
-    for(int i = 0; i < dataLength; i++) {
+    for (int i = 0; i < dataLength; i++) {
         data[i] = 0xFF;
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
@@ -412,5 +412,3 @@ napi_value OH_Drawing_SamplingOptionsCopyInvalue(napi_env env, napi_callback_inf
     napi_create_int32(env,  amp2 == nullptr, &result);
     return result;
 }
-
-
