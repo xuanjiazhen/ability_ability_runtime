@@ -1611,6 +1611,28 @@ export default function MultimodalInputPointerTest() {
     });
 
      /**
+     * @tc.number: SUB_MMI_Input_Api_Pointer_Style_0200
+     * @tc.name: SUB_MMI_Input_Api_Pointer_Style_0200
+     * @tc.desc: Test Pointer interface PointerStyle SCREENRECORDER_CURSOR
+     * @tc.level 2
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it("SUB_MMI_Input_Api_Pointer_Style_0200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function)=> {
+      let caseName = "SUB_MMI_Input_Api_Pointer_Style_0200";
+      try {
+        let SCREENRECORDER_CURSOR = pointer.PointerStyle.SCREENRECORDER_CURSOR;
+        console.info(`${caseName} SCREENRECORDER_CURSOR: ${JSON.stringify(SCREENRECORDER_CURSOR)}`);
+        ExpectTrue(SCREENRECORDER_CURSOR == 48);
+        done();
+      } catch (error) {
+        console.info(`${caseName} failed, error: ${JSON.stringify(error, [`code`, `message`])}`);
+        ExpectFalse(true);
+        done();
+      }
+    });    
+
+     /**
      * @tc.number: SUB_MMI_Input_Api_Pointer_RightClickType_0100
      * @tc.name: SUB_MMI_Input_Api_Pointer_RightClickType_0100
      * @tc.desc: Test Pointer interface RightClickType TOUCHPAD_TWO_FINGER_TAP_OR_RIGHT_BUTTON 
