@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#include "node/NodeCreator.h"
+#include "node/NodeCreatorTest.h"
 
 #include <cstdint>
 #include <map>
 #include <napi/native_api.h>
 #include <arkui/native_node_napi.h>
 #include "TypedArkUINode.h"
-#include "card/CardCreator.h"
+#include "card/CardCreatorTest.h"
 #include "data/MockData.h"
 
 namespace NativeModule {

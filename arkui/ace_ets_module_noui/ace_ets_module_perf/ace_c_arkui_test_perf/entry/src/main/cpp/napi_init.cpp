@@ -14,7 +14,7 @@
  */
 
 #include "napi/native_api.h"
-#include "node/NodeCreator.h"
+#include "node/NodeCreatorTest.h"
 
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "CardCreator.h"
+#include "CardCreatorTest.h"
 #include "node/TypedArkUINode.h"
 
 namespace NativeModule {

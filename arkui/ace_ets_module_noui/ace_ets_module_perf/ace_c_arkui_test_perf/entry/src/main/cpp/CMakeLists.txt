@@ -13,7 +13,7 @@ include_directories(${NATIVERENDER_ROOT_PATH}
 
 add_library(entry SHARED
     napi_init.cpp
-    node/NodeCreator.cpp
-    card/CardCreator.cpp
+    node/NodeCreatorTest.cpp
+    card/CardCreatorTest.cpp
     )
 target_link_libraries(entry PUBLIC libace_napi.z.so ace_ndk.z.so hilog_ndk.z.so)

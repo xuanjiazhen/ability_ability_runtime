@@ -15,7 +15,7 @@
 
 #ifndef MYAPPLICATION_MOCKDATA_H
 #define MYAPPLICATION_MOCKDATA_H
-#include "card/CardCreator.h"
+#include "card/CardCreatorTest.h"
 
 namespace NativeModule {
 
