@@ -17,6 +17,10 @@ import data_Rdb from '@ohos.data.relationalStore'
 import ability_featureAbility from '@ohos.ability.featureAbility'
 import fileio from '@ohos.fileio'
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const TAG = "[RelationalStore_JSKITS_TEST]"
 const CREATE_TABLE_TEST = "CREATE TABLE IF NOT EXISTS backupTest (" + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
 + "name TEXT NOT NULL, " + "age INTEGER, " + "salary REAL, " + "blobType BLOB)"
@@ -188,6 +192,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                     //done()
                 }
             })
+            await sleep(1000);
             // RelationalStore backup function test, backup file name already exists
             //BackupCallbackTest(STORE_CONFIG.name)
             RdbStore.backup(STORE_CONFIG.name,async(err)=>{
@@ -233,7 +238,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                     ///done()
                 }
             })
-
+            await sleep(1000);
             // RelationalStore restore function test, backup file is specified to database name
             //ReStoreCallbackTest(STORE_CONFIG.name)
             RdbStore.restore(STORE_CONFIG.name,async(err)=>{
@@ -269,7 +274,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
                 fileio.accessSync(DATABASE_DIR + dbName)
                 expect(false).assertTrue()
                 done();
-            } catch {
+            } catch(err){
                 //ReStoreCallbackTest(dbName)
                 RdbStore.restore(dbName,async(err)=>{
                     if(err)
