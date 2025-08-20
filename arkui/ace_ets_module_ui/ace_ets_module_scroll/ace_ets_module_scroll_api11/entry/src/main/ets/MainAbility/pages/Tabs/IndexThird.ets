@@ -491,19 +491,19 @@ struct TabsExampleThird {
             }
 
             Button("Top")
-                .width($r('sys.float.ohos_id_subtab_top_padding'))
+                .width($r('sys.float.tab_subtab_item_top_padding'))
                 .key("subTabBarDefaultTestTopJudge")
 
             Button("Right")
-                .width($r('sys.float.ohos_id_subtab_horizontal_padding'))
+                .width($r('sys.float.tab_subbar_item_horizontal_padding'))
                 .key("subTabBarDefaultTestRightJudge")
 
             Button("Bottom")
-                .width($r('sys.float.ohos_id_subtab_bottom_padding'))
+                .width($r('sys.float.tab_subtab_item_bottom_padding'))
                 .key("subTabBarDefaultTestBottomJudge")
 
             Button("Left")
-                .width($r('sys.float.ohos_id_subtab_horizontal_padding'))
+                .width($r('sys.float.tab_subbar_item_horizontal_padding'))
                 .key("subTabBarDefaultTestLeftJudge")
 
         }
