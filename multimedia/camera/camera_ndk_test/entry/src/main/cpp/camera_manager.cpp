@@ -22,9 +22,9 @@
 #define LOG(fmt, ...) (void)OH_LOG_Print(LOG_APP, LOG_INFO, CAMERA_LOG_DOMAIN, CAMERA_LOG_TAG, fmt, ##__VA_ARGS__)
 CameraCallbackCode NDKCamera::cameraCallbackCode_ = NoReceived;
 
-const Camera_Profile DEFAULT_PREVIEW_PROFILE = { CAMERA_FORMAT_YUV_420_SP, { 1920, 1080 } };
+const Camera_Profile DEFAULT_PREVIEW_PROFILE = { CAMERA_FORMAT_YUV_420_SP, { 640, 480 } };
 const Camera_Profile DEFAULT_PHOTO_PROFILE = { CAMERA_FORMAT_JPEG, { 640, 480 } };
-const Camera_VideoProfile DEFAULT_VIDEO_PROFILE = { CAMERA_FORMAT_YUV_420_SP, { 1920, 1080 }, {30, 30} };
+const Camera_VideoProfile DEFAULT_VIDEO_PROFILE = { CAMERA_FORMAT_YUV_420_SP, { 640, 480 }, {30, 30} };
 
 Camera_Size SecureSize = {640, 480};
 Camera_Profile PhotoOutputWithoutSurface = {CAMERA_FORMAT_JPEG, {1920, 1080}};
@@ -3096,5 +3096,58 @@ Camera_ErrorCode NDKCamera::WhiteBalanceTest(void)
         captureSession_, Camera_WhiteBalanceMode::CAMERA_WHITE_BALANCE_MODE_CLOUDY);
     Camera_WhiteBalanceMode mode = Camera_WhiteBalanceMode::CAMERA_WHITE_BALANCE_MODE_AUTO;
     ret_ = OH_CaptureSession_GetWhiteBalanceMode(captureSession_, &mode);
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::CreatePreviewOutputByIndex(int index)
+{
+    profile_ = cameraOutputCapability_->previewProfiles[index];
+    if (sceneMode_ == SECURE_PHOTO) {
+        for (decltype(cameraOutputCapability_ -> previewProfilesSize) i = 0;
+             i< cameraOutputCapability_ -> previewProfilesSize; i++) {
+            if (cameraOutputCapability_->previewProfiles[i]->size.width == SecureSize.width &&
+                cameraOutputCapability_->previewProfiles[i]->size.height == SecureSize.height) {
+                profile_ = cameraOutputCapability_->previewProfiles[i];
+                break;
+            }
+        }
+    } else if (isCreatePhotoOutputWithoutSurface_) {
+        for (decltype(cameraOutputCapability_ -> previewProfilesSize) i = 0;
+             i< cameraOutputCapability_ -> previewProfilesSize; i++) {
+            if (cameraOutputCapability_->previewProfiles[i]->size.width == PreviewOutputSample.size.width &&
+                cameraOutputCapability_->previewProfiles[i]->size.height == PreviewOutputSample.size.height &&
+                cameraOutputCapability_->previewProfiles[i]->format == PreviewOutputSample.format) {
+                profile_ = cameraOutputCapability_->previewProfiles[i];
+                break;
+            }
+        }
+    }
+    if (profile_ == nullptr) {
+        LOG("ndkXTS Get previewProfiles failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    ret_ = OH_CameraManager_CreatePreviewOutput(cameraManager_, profile_, previewSurfaceId_, &previewOutput_);
+    if (previewSurfaceId_ == nullptr || previewOutput_ == nullptr || ret_ != CAMERA_OK) {
+        LOG("ndkXTS CreatePreviewOutput failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    PreviewOutputRegisterCallback();
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::CreateVideoOutputByIndex(char* videoId, int index)
+{
+    LOG("ndkXTS CreateVideoOutput start.");
+    videoProfile_ = cameraOutputCapability_->videoProfiles[index];
+    LOG("ndkXTS CreateVideoOutput videoProfiles start.");
+    if (videoProfile_ == nullptr) {
+        LOG("ndkXTS Get videoProfiles failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    ret_ = OH_CameraManager_CreateVideoOutput(cameraManager_, videoProfile_, videoId, &videoOutput_);
+    if (videoId == nullptr || videoOutput_ == nullptr || ret_ != CAMERA_OK) {
+        LOG("ndkXTS CreateVideoOutput failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
     return ret_;
 }
