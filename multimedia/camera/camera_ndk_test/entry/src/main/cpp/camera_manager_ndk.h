@@ -355,6 +355,8 @@ public:
     Camera_ErrorCode SessionIsMacroSupported(int useCaseCode);
     Camera_ErrorCode SessionEnableMacro(int useCaseCode, bool enable);
     Camera_ErrorCode WhiteBalanceTest(void);
+    Camera_ErrorCode CreatePreviewOutputByIndex(int index);
+    Camera_ErrorCode CreateVideoOutputByIndex(char* videoId, int index);
 
     // test aid
     Camera_ErrorCode SetSceneMode(int useCaseCode);
