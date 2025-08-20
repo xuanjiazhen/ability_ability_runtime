@@ -436,13 +436,13 @@ export default function relationalStoreBackupRestorePromiseTest() {
             console.info(TAG + "************* RdbBackupRestoreTest_0110 start *************")
             //await RdbStore.backup(DATABASE_BACKUP_NAME)
             //await ReStoreTest()
-            await RdbStore.backup(DATABASE_BACKUP_NAME)
             try {
+                await RdbStore.backup(DATABASE_BACKUP_NAME)
                 await RdbStore.restore()
                 expect().assertFail()
             } catch(err) {
                 console.log(TAG + "err" + err.code + err.message)
-                expect("401").assertEqual(String(err.code))
+                expect("14800010").assertEqual(String(err.code))
             }
             done();
             console.info(TAG + "************* RdbBackupRestoreTest_0110 end *************")
