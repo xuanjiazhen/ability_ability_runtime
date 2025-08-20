@@ -166,6 +166,7 @@ public:
     uint32_t outCount = 0;
     int64_t renderTimestampNs = 0;
     bool rsAtTime = false;
+    bool isChecklowLatency = false;
     int64_t outTimeArray[2000] = {};
     bool sleepOnFPS = false;
     bool repeatRun = false;

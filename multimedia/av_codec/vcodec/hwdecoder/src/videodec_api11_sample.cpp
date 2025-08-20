@@ -262,7 +262,7 @@ std::vector<uint8_t> VDecAPI11Sample::LoadHashFile()
         json data = json::parse(f);
         filesystem::path filePath = INP_DIR;
         std::string pixFmt = "";
-        if (enableLowLatency && lowLatency) {
+        if (isChecklowLatency) {
             pixFmt = "nv12_lowlatency";
         } else {
             pixFmt = defualtPixelFormat == AV_PIXEL_FORMAT_NV12 ? "nv12" : "nv21";
