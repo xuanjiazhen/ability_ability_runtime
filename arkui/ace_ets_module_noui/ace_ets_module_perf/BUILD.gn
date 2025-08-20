@@ -17,5 +17,6 @@ group("ActsAceEtsModulePerfTest") {
   testonly = true
   deps = [
     "ace_ets_module_perf_api12:ActsAceEtsModulePerfApi12Test",
+    "ace_c_arkui_test_perf:ActsAceCPerf20Test",
   ]
 }
