@@ -43,8 +43,8 @@ let videoConfig: media.AVRecorderConfig = {
     fileFormat : media.ContainerFormatType.CFT_MPEG_4,
     videoBitrate : 512000,
     videoCodec : media.CodecMimeType.VIDEO_AVC,
-    videoFrameWidth : 1920,
-    videoFrameHeight : 1080,
+    videoFrameWidth : 640,
+    videoFrameHeight : 480,
     videoFrameRate : 30
   },
   url : 'fd://',
