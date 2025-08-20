@@ -95,6 +95,7 @@ public:
     float maxExposureBias_;
     float exposureBias_;
     bool isFocusSupported_;
+    bool isContolCenterSupported_;
     float minZoom_;
     float maxZoom_;
     float zoom_;
@@ -135,6 +136,8 @@ public:
     Camera_FrameRateRange videoActiveFrameRateRange_;
     Camera_ImageRotation imageRotation_;
     Camera_ImageRotation previewRotation_;
+    uint32_t effectTypeSize_;
+    Camera_ControlCenterEffectType* controlCenterEffectType_;
     bool isCreatePhotoOutputWithoutSurface_;
     bool isMacroSupported_;
     bool isEnableMacro_;
@@ -226,6 +229,13 @@ public:
     Camera_ErrorCode SessionSetFocusMode(uint32_t mode);
     Camera_ErrorCode SessionSetFocusPoint(double point_x, double point_y);
     Camera_ErrorCode SessionGetFocusPoint(void);
+
+    Camera_ErrorCode SessionIsControlCenterSupported(void);
+    Camera_ErrorCode SessionGetSupportedEffectTypes(int useCaseCode);
+    Camera_ErrorCode SessionDeleteSupportedEffectTypes(int useCaseCode);
+    Camera_ErrorCode SessionEnableControlCenter(bool enabled);
+    Camera_ErrorCode RegisterControlCenterEffectStatusChange(int useCaseCode);
+    Camera_ErrorCode UnregisterControlCenterEffectStatusChange(int useCaseCode);
 
     Camera_ErrorCode SessionGetZoomRatioRange(void);
     Camera_ErrorCode SessionGetZoomRatio(void);

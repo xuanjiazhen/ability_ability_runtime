@@ -881,6 +881,99 @@ static napi_value SessionGetExposureBias(napi_env env, napi_callback_info info)
     return result;
 }
 
+static napi_value SessionIsControlCenterSupported(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    ndkCamera_->SessionIsControlCenterSupported();
+    napi_get_boolean(env, ndkCamera_->isContolCenterSupported_, &result);
+    return result;
+}
+
+static napi_value SessionGetSupportedEffectTypes(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t index;
+    napi_get_value_int32(env, args[0], &index);
+    Camera_ErrorCode code = ndkCamera_->SessionGetSupportedEffectTypes(index);
+
+    napi_value effectTypeSize = nullptr;
+    napi_create_object(env, &effectTypeSize);
+    napi_value jsValue = nullptr;
+
+    napi_create_int32(env, ndkCamera_->effectTypeSize_, &jsValue);
+    napi_set_named_property(env, effectTypeSize, "effectTypeSize", jsValue);
+
+    napi_create_int32(env, code, &jsValue);
+    napi_set_named_property(env, effectTypeSize, "errorCode", jsValue);
+    return effectTypeSize;
+}
+
+static napi_value SessionDeleteSupportedEffectTypes(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_value result;
+
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    int32_t index;
+    napi_get_value_int32(env, args[0], &index);
+    Camera_ErrorCode code = ndkCamera_->SessionDeleteSupportedEffectTypes(index);
+
+    napi_create_int32(env, code, &result);
+    return result;
+}
+
+static napi_value SessionEnableControlCenter(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_value result;
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    bool isEnable;
+    napi_get_value_bool(env, args[0], &isEnable);
+    Camera_ErrorCode code = ndkCamera_->SessionEnableControlCenter(isEnable);
+    napi_create_int32(env, code, &result);
+    return result;
+}
+
+static napi_value SessionRegisterControlCenterEffectStatusChange(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_value result;
+ 
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+ 
+    int32_t index;
+    napi_get_value_int32(env, args[0], &index);
+ 
+    Camera_ErrorCode code = ndkCamera_->RegisterControlCenterEffectStatusChange(index);
+ 
+    napi_create_int32(env, code, &result);
+    return result;
+}
+
+static napi_value SessionUnregisterControlCenterEffectStatusChange(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_value result;
+ 
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+ 
+    int32_t index;
+    napi_get_value_int32(env, args[0], &index);
+ 
+    Camera_ErrorCode code = ndkCamera_->UnregisterControlCenterEffectStatusChange(index);
+ 
+    napi_create_int32(env, code, &result);
+    return result;
+}
+
 static napi_value SessionIsFocusModeSupported(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
@@ -2781,6 +2874,18 @@ static napi_value Init(napi_env env, napi_value exports)
         { "sessionGetExposureBias", nullptr, SessionGetExposureBias, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "sessionIsFocusModeSupported", nullptr, SessionIsFocusModeSupported, nullptr, nullptr, nullptr,
             napi_default, nullptr },
+        { "sessionIsControlCenterSupported", nullptr, SessionIsControlCenterSupported, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "sessionGetSupportedEffectTypes", nullptr, SessionGetSupportedEffectTypes, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "sessionDeleteSupportedEffectTypes", nullptr, SessionDeleteSupportedEffectTypes, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "sessionEnableControlCenter", nullptr, SessionEnableControlCenter, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "sessionRegisterControlCenterEffectStatusChange", nullptr, SessionRegisterControlCenterEffectStatusChange,
+            nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "sessionUnregisterControlCenterEffectStatusChange", nullptr, SessionUnregisterControlCenterEffectStatusChange,
+            nullptr, nullptr, nullptr, napi_default, nullptr },
         { "sessionGetFocusMode", nullptr, SessionGetFocusMode, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "sessionSetFocusMode", nullptr, SessionSetFocusMode, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "sessionSetFocusPoint", nullptr, SessionSetFocusPoint, nullptr, nullptr, nullptr, napi_default, nullptr },
