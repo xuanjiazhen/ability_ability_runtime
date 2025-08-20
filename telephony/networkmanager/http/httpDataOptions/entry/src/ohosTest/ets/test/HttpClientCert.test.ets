@@ -37,7 +37,7 @@ const ExpectTrue = (n: boolean) => {
   }
 }
 
-export const ADDR_TEST_DOMAIN_HTTPS: string = "https://httpbin.org/anything";
+export const ADDR_TEST_DOMAIN_HTTPS: string = "https://www.baidu.com/";
 
 export default function HttpClientCertTest() {
   describe("HttpClientCertTest", () => {

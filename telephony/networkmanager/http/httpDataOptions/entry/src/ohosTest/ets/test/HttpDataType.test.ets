@@ -17,7 +17,7 @@ import http from '@ohos.net.http';
 import { describe, expect, it, Level, Size, TestType } from '@ohos/hypium';
 import connection from '@ohos.net.connection';
 
-export const ADDR_TEST_DOMAIN_HTTPS: string = "https://httpbin.org/anything";
+export const ADDR_TEST_DOMAIN_HTTPS: string = "https://www.baidu.com/";
 const ExpectFail = () => {
   try {
     expect().assertFail();

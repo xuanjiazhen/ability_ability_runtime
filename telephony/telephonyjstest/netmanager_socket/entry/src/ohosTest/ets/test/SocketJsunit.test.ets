@@ -42,7 +42,7 @@ export default function socketJsunit() {
       port: 32123
     };
     let multicastAddress_invalid: socket.NetAddress= {
-      address: '1.1.1.1',
+      address: '223.5.5.5',
       family: 1,
       port: 32123
     };
