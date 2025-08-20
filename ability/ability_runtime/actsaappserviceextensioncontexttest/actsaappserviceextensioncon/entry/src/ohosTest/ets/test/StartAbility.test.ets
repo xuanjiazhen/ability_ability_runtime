@@ -23,7 +23,7 @@ let context: common.UIAbilityContext;
 export default function abilityTest() {
   describe('startAppServiceExtensionAbility', () => {
     beforeAll(() =>{
-      context = AppStorage.get<common.UIAbilityContext>("abilityContext") as common.UIAbilityContext;
+      context = AppStorage.get<common.UIAbilityContext>('abilityContext') as common.UIAbilityContext;
     })
 
     /**
@@ -35,8 +35,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_1400`;
       hilog.info(0x0000, 'testTag', '%{public}s', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextensionrely",
-        abilityName: "AppServiceExtAbility2",
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'AppServiceExtAbility2',
       }
       try {
         context.startAppServiceExtensionAbility(wantInfo)
@@ -66,8 +66,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_1500`;
       hilog.info(0x0000, 'testTag', '%{public}s', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "MyUIAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'MyUIAbility',
       }
       try {
         context.startAppServiceExtensionAbility(wantInfo).then(() => {
@@ -96,8 +96,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_1600`;
       hilog.info(0x0000, 'testTag', '%{public}s', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility',
         parameters: {
           'keyFd': { 'type': 'FD', 'value': -1 }
         }
@@ -129,8 +129,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_1700`;
       hilog.info(0x0000, 'testTag', '%{public}s', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextensionrely",
-        abilityName: "AppServiceExtAbility3",
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'AppServiceExtAbility3',
       }
       try {
         context.startAppServiceExtensionAbility(wantInfo).then(() => {
@@ -140,6 +140,36 @@ export default function abilityTest() {
         }).catch((err: BusinessError) => {
           hilog.info(0x0000, 'testTag', '%{public}s', `startAppServiceExtensionAbility error: ${JSON.stringify(err)}`);
           let result: boolean = err.code === 801 || err.code === 16000005;
+          expect(result).assertTrue();
+          done();
+        });
+      } catch (err) {
+        hilog.info(0x0000, 'testTag', '%{public}s', `startAppServiceExtensionAbility failed: ${JSON.stringify(err)}`);
+        expect().assertFail();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number: SUB_AA_ABILITY_NewRule_AppServiceExtension_1800
+     * @tc.name: SUB_AA_ABILITY_NewRule_AppServiceExtension_1800
+     * @tc.desc: UIAbilityContext startAppServiceExtensionAbility 16000019.
+     */
+    it('SUB_AA_ABILITY_NewRule_AppServiceExtension_1800', Level.LEVEL0, (done: Function) => {
+      const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_1800`;
+      hilog.info(0x0000, 'testTag', '%{public}s', `${tcNumber} Begin`);
+      let wantInfo: Want = {
+        action: 'action',
+        entities: ['entity'],
+      }
+      try {
+        context.startAppServiceExtensionAbility(wantInfo).then(() => {
+          hilog.info(0x0000, 'testTag', '%{public}s', `startAppServiceExtensionAbility succeed`);
+          expect().assertFail();
+          done();
+        }).catch((err: BusinessError) => {
+          hilog.info(0x0000, 'testTag', '%{public}s', `startAppServiceExtensionAbility error: ${JSON.stringify(err)}`);
+          let result: boolean = err.code === 801 || err.code === 16000019 || err.code === 201;
           expect(result).assertTrue();
           done();
         });

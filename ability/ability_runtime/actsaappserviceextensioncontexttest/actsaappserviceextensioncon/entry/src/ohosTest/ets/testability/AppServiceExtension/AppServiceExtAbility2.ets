@@ -12,13 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Want } from '@kit.AbilityKit';
+import { wantConstant, Want } from '@kit.AbilityKit';
 import AppServiceExtensionAbility from '@ohos.app.ability.AppServiceExtensionAbility'
 import { rpc } from '@kit.IPCKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { BusinessError, commonEventManager } from '@kit.BasicServicesKit';
 
 const TAG: string = 'testTag';
+
+function sleep(time: number) {
+  return new Promise<string>((resolve: (value: string) => void) => {
+    setTimeout(() => {
+      resolve('ok')
+    }, time)
+  }).then(() => {
+    console.info(`sleep ${time} over...`)
+  })
+}
 
 class StubTest extends rpc.RemoteObject{
   constructor(des: string) {
@@ -175,6 +185,155 @@ export default class AppService2 extends AppServiceExtensionAbility {
         });
       } catch (error) {
         errorReturn('startAppServiceForbidden', 'AppServiceExtension_2600', error);
+      }
+    } else if(want.parameters?.TestFlag === 'startAbilityMultiInstance') {
+      let wantInfo: Want = {
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'EntryAbility',
+        parameters:{
+          [wantConstant.Params.CREATE_APP_INSTANCE_KEY] : true
+        }
+      };
+      try {
+        this.context.startAbility(wantInfo).then(() => {
+          successReturn('startAbilityMultiInstance', 'AppServiceExtension_3500');
+        }).catch((error: BusinessError) => {
+          errorReturn('startAbilityMultiInstance', 'AppServiceExtension_3500', error);
+        });
+      } catch (error) {
+        errorReturn('startAbilityMultiInstance', 'AppServiceExtension_3500', error);
+      }
+    } else if(want.parameters?.TestFlag === 'startAbilityAppInstanceKeyError') {
+      let wantInfo: Want = {
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'MainAbility',
+        parameters:{
+          [wantConstant.Params.APP_INSTANCE_KEY]: 'app_instance_100',
+          [wantConstant.Params.CREATE_APP_INSTANCE_KEY]: true,
+        }
+      };
+      try {
+        this.context.startAbility(wantInfo).then(() => {
+          successReturn('startAbilityAppInstanceKeyError', 'AppServiceExtension_3600');
+        }).catch((error: BusinessError) => {
+          errorReturn('startAbilityAppInstanceKeyError', 'AppServiceExtension_3600', error);
+        });
+      } catch (error) {
+        errorReturn('startAbilityAppInstanceKeyError', 'AppServiceExtension_3600', error);
+      }
+    } else if(want.parameters?.TestFlag === 'startAbilityMultiAppModeTypeError') {
+      let wantInfo: Want = {
+        bundleName: 'com.acts.context.aappserviceextensionrely2',
+        abilityName: 'MainAbility',
+        parameters:{
+          [wantConstant.Params.APP_INSTANCE_KEY]: 'app_instance_0',
+        }
+      };
+      try {
+        this.context.startAbility(wantInfo).then(() => {
+          successReturn('startAbilityMultiAppModeTypeError', 'AppServiceExtension_3700');
+        }).catch((error: BusinessError) => {
+          errorReturn('startAbilityMultiAppModeTypeError', 'AppServiceExtension_3700', error);
+        });
+      } catch (error) {
+        errorReturn('startAbilityMultiAppModeTypeError', 'AppServiceExtension_3700', error);
+      }
+    } else if(want.parameters?.TestFlag === 'startAbilityInstancesReachLimitError') {
+      let wantInfo: Want = {
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'MainAbility',
+        parameters:{
+          [wantConstant.Params.CREATE_APP_INSTANCE_KEY] : true
+        }
+      };
+      for ( let i = 0; i < 2; i++ ) {
+        try {
+          this.context.startAbility(wantInfo).then(() => {
+            hilog.info(0x0000, TAG, `startAbilityInstancesReachLimitError ${i + 1} success`);
+          }).catch((error: BusinessError) => {
+            hilog.info(0x0000, TAG, `startAbilityInstancesReachLimitError ${i + 1} error: ${JSON.stringify(error)}`);
+          });
+        } catch (error) {
+            hilog.info(0x0000, TAG, `startAbilityInstancesReachLimitError ${i + 1} failed: ${JSON.stringify(error)}`);
+        }
+        await sleep(1000);
+      }
+      try {
+        this.context.startAbility(wantInfo).then(() => {
+          successReturn('startAbilityInstancesReachLimitError', 'AppServiceExtension_3800');
+        }).catch((error: BusinessError) => {
+          errorReturn('startAbilityInstancesReachLimitError', 'AppServiceExtension_3800', error);
+        });
+      } catch (error) {
+        errorReturn('startAbilityInstancesReachLimitError', 'AppServiceExtension_3800', error);
+      }
+    } else if(want.parameters?.TestFlag === 'startAbilityAppInstanceKeyInvalid') {
+      let wantInfo: Want = {
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'MainAbility',
+        parameters:{
+          [wantConstant.Params.APP_INSTANCE_KEY]: 'app_instance_100',
+        }
+      };
+      try {
+        this.context.startAbility(wantInfo).then(() => {
+          successReturn('startAbilityAppInstanceKeyInvalid', 'AppServiceExtension_3900');
+        }).catch((error: BusinessError) => {
+          errorReturn('startAbilityAppInstanceKeyInvalid', 'AppServiceExtension_3900', error);
+        });
+      } catch (error) {
+        errorReturn('startAbilityAppInstanceKeyInvalid', 'AppServiceExtension_3900', error);
+      }
+    } else if(want.parameters?.TestFlag === 'startAbilityAppCloneIndexInvalid') {
+      let wantInfo: Want = {
+        bundleName: 'com.acts.context.aappserviceextensionrely2',
+        abilityName: 'MainAbility',
+        parameters:{
+          [wantConstant.Params.APP_CLONE_INDEX_KEY]: 1001,
+        }
+      };
+      try {
+        this.context.startAbility(wantInfo).then(() => {
+          successReturn('startAbilityAppCloneIndexInvalid', 'AppServiceExtension_4000');
+        }).catch((error: BusinessError) => {
+          errorReturn('startAbilityAppCloneIndexInvalid', 'AppServiceExtension_4000', error);
+        });
+      } catch (error) {
+        errorReturn('startAbilityAppCloneIndexInvalid', 'AppServiceExtension_4000', error);
+      }
+    } else if(want.parameters?.TestFlag === 'startAbilityMultiInstanceNotSupported') {
+      let wantInfo: Want = {
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'EntryAbility',
+        parameters:{
+          [wantConstant.Params.APP_INSTANCE_KEY]: 'app_instance_0',
+        }
+      };
+      try {
+        this.context.startAbility(wantInfo).then(() => {
+          successReturn('startAbilityMultiInstanceNotSupported', 'AppServiceExtension_4100');
+        }).catch((error: BusinessError) => {
+          errorReturn('startAbilityMultiInstanceNotSupported', 'AppServiceExtension_4100', error);
+        });
+      } catch (error) {
+        errorReturn('startAbilityMultiInstanceNotSupported', 'AppServiceExtension_4100', error);
+      }
+    } else if(want.parameters?.TestFlag === 'startAbilityAppCloneNotSupported') {
+      let wantInfo: Want = {
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'EntryAbility',
+        parameters:{
+          [wantConstant.Params.APP_CLONE_INDEX_KEY]: 1,
+        }
+      };
+      try {
+        this.context.startAbility(wantInfo).then(() => {
+          successReturn('startAbilityAppCloneNotSupported', 'AppServiceExtension_4200');
+        }).catch((error: BusinessError) => {
+          errorReturn('startAbilityAppCloneNotSupported', 'AppServiceExtension_4200', error);
+        });
+      } catch (error) {
+        errorReturn('startAbilityAppCloneNotSupported', 'AppServiceExtension_4200', error);
       }
     }
   }

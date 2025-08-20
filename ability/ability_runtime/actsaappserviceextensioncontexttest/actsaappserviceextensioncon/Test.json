@@ -11,7 +11,8 @@
         {
             "test-file-name": [
                 "ActsAAppServiceExtensionConTest.hap",
-                "ActsAAppServiceExtensionContextRelyTest.hap"
+                "ActsAAppServiceExtensionContextRelyTest.hap",
+                "ActsAAppServiceExtensionContextRelyTest2.hap"
             ],
             "type": "AppInstallKit",
             "cleanup-apps": true

@@ -19,6 +19,7 @@ group("ActsAAppServiceExtensionContextTest") {
     deps = [
       "actsaappserviceextensioncon:ActsAAppServiceExtensionConTest",
       "actsactsaappserviceextensionrely:ActsAAppServiceExtensionContextRelyTest",
+      "actsactsaappserviceextensionrely2:ActsAAppServiceExtensionContextRelyTest2",
     ]
   }
 }

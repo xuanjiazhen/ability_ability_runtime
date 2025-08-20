@@ -23,7 +23,7 @@ let context: common.UIAbilityContext;
 export default function abilityTest() {
   describe('stopAppServiceExtensionAbility', () => {
     beforeAll(() =>{
-      context = AppStorage.get<common.UIAbilityContext>("abilityContext") as common.UIAbilityContext;
+      context = AppStorage.get<common.UIAbilityContext>('abilityContext') as common.UIAbilityContext;
     })
 
     /**
@@ -35,8 +35,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_2700`;
       hilog.info(0x0000, 'testTag', '%{public}s', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextensionrely",
-        abilityName: "AppServiceExtAbility2",
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'AppServiceExtAbility2',
       }
       try {
         context.stopAppServiceExtensionAbility(wantInfo)
@@ -66,8 +66,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_2800`;
       hilog.info(0x0000, 'testTag', '%{public}s', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "MyUIAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'MyUIAbility',
       }
       try {
         context.stopAppServiceExtensionAbility(wantInfo).then(() => {
@@ -96,8 +96,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_2900`;
       hilog.info(0x0000, 'testTag', '%{public}s', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility',
         parameters: {
           'keyFd': { 'type': 'FD', 'value': -1 }
         }
@@ -129,8 +129,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_3000`;
       hilog.info(0x0000, 'testTag', '%{public}s', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextensionrely",
-        abilityName: "AppServiceExtAbility3",
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'AppServiceExtAbility3',
       }
       try {
         context.stopAppServiceExtensionAbility(wantInfo).then(() => {
