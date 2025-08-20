@@ -19,6 +19,11 @@
 #include <native_image/native_image.h>
 #include <native_window/graphic_error_code.h>
 #include <native_buffer/native_buffer.h>
+#include <native_image/native_image.h>
+#include <native_drawing/drawing_matrix.h>
+#include <native_drawing/drawing_pixel_map.h>
+#include <multimedia/image_framework/image/pixelmap_native.h>
+#include <native_drawing/drawing_sampling_options.h>
 
 void addEffectTest(std::vector<napi_property_descriptor>& descData)
 {
@@ -27,6 +32,8 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"releaseFail", nullptr, OH_Filter_ReleaseFail,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"blurWithTileModeSuccess", nullptr, OH_Filter_BlurWithTileModeSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"blurWithTileModeFail", nullptr, OH_Filter_BlurWithTileModeFail,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"getEffectPixelMapFail", nullptr, OH_Filter_GetEffectPixelMapFail,
             nullptr, nullptr, nullptr, napi_default, nullptr});
@@ -39,7 +46,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"releaseNativeWindowBufferFail", nullptr, OH_NativeImage_ReleaseNativeWindowBufferFail,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"setDropBufferModeSuccess", nullptr, OH_NativeImage_SetDropBufferModeSuccess,
-                       nullptr, nullptr, nullptr, napi_default, nullptr});
+            nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
  napi_value OH_Filter_CreateEffectFail(napi_env env, napi_callback_info info)
@@ -60,6 +67,31 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
 }
 
  napi_value OH_Filter_BlurWithTileModeSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    OH_Filter* filter = nullptr;
+    float radius = 10;
+    uint8_t* data = new uint8_t[100 * 100 * 4];
+    size_t dataLength = 100*100*4;
+    for(int i = 0; i < dataLength; i++)
+    {
+        data[i] = 0xFF;
+    }
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapInitializationOptions_Create(&options);
+    OH_PixelmapInitializationOptions_SetWidth(options, 100);
+    OH_PixelmapInitializationOptions_SetHeight(options, 100);
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, NATIVEBUFFER_PIXEL_FMT_BGRA_8888);
+    OH_PixelmapNative *pixelMapNative = nullptr;
+    OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMapNative);
+    OH_Filter_CreateEffect(pixelMapNative, &filter);
+    EffectErrorCode errCode = OH_Filter_BlurWithTileMode(filter, radius, REPEAT);
+
+    napi_create_int32(env,  errCode == EFFECT_SUCCESS, &result);
+    return result;
+}
+
+ napi_value OH_Filter_BlurWithTileModeFail(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Filter* filter = nullptr;

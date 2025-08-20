@@ -35,7 +35,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCode_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -57,7 +56,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCode_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -79,7 +77,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_BufferErrorCodeOK_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -101,7 +98,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCodeBuffer_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -123,7 +119,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCodeBufferSupport_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -146,7 +141,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_BufferHDIError_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -168,7 +162,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCodeBufferImage_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -190,7 +183,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCodeImageNoBuffer_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -212,7 +204,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCodeVSync_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -234,7 +225,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCodeVSync_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -256,7 +246,6 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCodeWindow_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -278,7 +267,27 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_OHNativeErrorCodeWindowInvalid_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_NativeErrorCodeWindowUNKNOW_0100
+     * @tc.name    : SUB_OH_NativeErrorCodeWindowUNKNOW_0100
+     * @tc.desc    : test SUB_OH_NativeErrorCodeWindowUNKNOW Invalid Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeErrorCodeWindowUNKNOW_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_NativeErrorCodeWindowUNKNOW_0100 start====");
+          let result: number = libGraphics2DApi20.OHNativeErrorCodeWindowUNKNOW();
+          console.info("====>SUB_OH_NativeErrorCodeWindowUNKNOW_0100 result====", result);
+          expect(result).assertEqual(1);
           done();
+        } catch (err) {
+          console.error("====>SUB_OH_NativeErrorCodeWindowUNKNOW_0100 catch err: " + err);
         }
       })
 
@@ -300,29 +309,133 @@ export default function ErrorCodeTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_DrawingErrorCode_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_Drawing_LineTypographyGetLineBreak_0100
+     * @tc.name    : SUB_OH_Drawing_LineTypographyGetLineBreak_0100
+     * @tc.desc    : test SUB_OH_Drawing_LineTypographyGetLineBreak invalue Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_Drawing_LineTypographyGetLineBreak_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_Drawing_LineTypographyGetLineBreak_0100 start====");
+          let result: number = libGraphics2DApi20.OHDrawingLineTypographyGetLineBreakInvalue();
+          console.info("====>SUB_OH_Drawing_LineTypographyGetLineBreak_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_Drawing_LineTypographyGetLineBreak_0100 catch err: " + err);
           done();
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_Drawing_BufferPlane_0100
-     * @tc.name    : SUB_OH_Drawing_BufferPlane_0100
-     * @tc.desc    : test SUB_OH_Drawing_BufferPlane Scene
+     * @tc.number  : SUB_OH_EffectTileModeREPEATSuccess_0100
+     * @tc.name    : SUB_OH_EffectTileModeREPEATSuccess_0100
+     * @tc.desc    : test SUB_OH_EffectTileModeREPEAT Success Scene
      * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Drawing_BufferPlane_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+    it('SUB_OH_EffectTileModeREPEATSuccess_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_Drawing_BufferPlane_0100 start====");
-          let result: number = libGraphics2DApi20.OHDrawingBufferPlane();
-          console.info("====>SUB_OH_Drawing_BufferPlane_0100 result====", result);
+          console.info("====>SUB_OH_EffectTileModeREPEATSuccess_0100 start====");
+          let result: number = libGraphics2DApi20.EffectTileModeREPEATSuccess();
+          console.info("====>SUB_OH_EffectTileModeREPEATSuccess_0100 result====", result);
           expect(result).assertEqual(1);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_Drawing_BufferPlane_0100 catch err: " + err);
+          console.error("====>SUB_OH_EffectTileModeREPEATSuccess_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_EffectTileModeMIRROR_0100
+     * @tc.name    : SUB_OH_EffectTileModeMIRROR_0100
+     * @tc.desc    : test SUB_OH_EffectTileModeMIRROR Success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_EffectTileModeMIRROR_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_EffectTileModeMIRROR_0100 start====");
+          let result: number = libGraphics2DApi20.EffectTileModeMIRRORSuccess();
+          console.info("====>SUB_OH_EffectTileModeMIRROR_0100 result====", result);
+          expect(result).assertEqual(1);
           done();
+        } catch (err) {
+          console.error("====>SUB_OH_EffectTileModeMIRROR_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_EffectTileModeDECAL_0100
+     * @tc.name    : SUB_OH_EffectTileModeDECAL_0100
+     * @tc.desc    : test SUB_OH_EffectTileModeDECAL Success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_EffectTileModeDECAL_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_EffectTileModeDECAL_0100 start====");
+          let result: number = libGraphics2DApi20.EffectTileModeDECALSuccess();
+          console.info("====>SUB_OH_EffectTileModeDECAL_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_EffectTileModeDECAL_0100 catch err: " + err);
+        }
+      })
+
+
+    /**
+     * @tc.number  : SUB_OH_Drawing_SamplingOptionsCopy_0100
+     * @tc.name    : SUB_OH_Drawing_SamplingOptionsCopy_0100
+     * @tc.desc    : test SUB_OH_Drawing_SamplingOptionsCopy Success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_Drawing_SamplingOptionsCopy_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_Drawing_SamplingOptionsCopy_0100 start====");
+          let result: number = libGraphics2DApi20.samplingOptionsCopySuccess();
+          console.info("====>SUB_OH_Drawing_SamplingOptionsCopy_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_Drawing_SamplingOptionsCopy_0100 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_OH_Drawing_SamplingOptionsCopy_0200
+     * @tc.name    : SUB_OH_Drawing_SamplingOptionsCopy_0200
+     * @tc.desc    : test SUB_OH_Drawing_SamplingOptionsCopy Fail Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_Drawing_SamplingOptionsCopy_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_Drawing_SamplingOptionsCopy_0200 start====");
+          let result: number = libGraphics2DApi20.samplingOptionsCopyInvalue();
+          console.info("====>SUB_OH_Drawing_SamplingOptionsCopy_0200 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_Drawing_SamplingOptionsCopy_0200 catch err: " + err);
         }
       })
   })

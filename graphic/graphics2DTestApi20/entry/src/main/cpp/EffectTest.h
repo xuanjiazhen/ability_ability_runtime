@@ -25,6 +25,7 @@ void addEffectTest(std::vector<napi_property_descriptor> &descData);
 napi_value OH_Filter_CreateEffectFail(napi_env env, napi_callback_info info);
 napi_value OH_Filter_ReleaseFail(napi_env env, napi_callback_info info);
 napi_value OH_Filter_BlurWithTileModeSuccess(napi_env env, napi_callback_info info);
+napi_value OH_Filter_BlurWithTileModeFail(napi_env env, napi_callback_info info);
 napi_value OH_Filter_GetEffectPixelMapFail(napi_env env, napi_callback_info info);
 napi_value OH_NativeImage_GetTransformMatrixV2Success(napi_env env, napi_callback_info info);
 napi_value OH_NativeImage_AcquireNativeWindowBufferSuccess(napi_env env, napi_callback_info info);

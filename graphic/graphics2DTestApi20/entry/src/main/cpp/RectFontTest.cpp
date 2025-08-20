@@ -237,7 +237,7 @@ napi_value OH_Drawing_FontMeasureTextFail(napi_env env, napi_callback_info info)
     OH_Drawing_Rect* bounds = OH_Drawing_RectCreate(left, top, right, bottom);
     float tWidth = 10;
     OH_Drawing_ErrorCode errCode = OH_Drawing_FontMeasureText(font, str, byteLth, TEXT_ENCODING_UTF8, bounds, &tWidth);
-    napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
+    napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 }
 

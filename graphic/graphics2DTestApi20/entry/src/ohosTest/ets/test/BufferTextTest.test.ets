@@ -37,7 +37,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeBuffer_GetColorSpace_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -59,7 +58,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeBuffer_GetColorSpace_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -81,7 +79,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeBuffer_SetMetadataValue_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -103,7 +100,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeBuffer_SetMetadataValue_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -125,7 +121,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeBuffer_GetMetadataValue_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -147,7 +142,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeBuffer_GetMetadataValueFail_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -169,7 +163,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_RunBufferGlyphs_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -191,7 +184,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_RunBufferPos_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -213,7 +205,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_RunBufferUtf8text_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -235,7 +226,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_RunBufferClusters_0100 catch err: " + err);
-          done();
         }
       })
     /**
@@ -256,7 +246,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_SystemFontType_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -278,7 +267,6 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_TextUndefinedGlyphDisplayDEFAULT_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -300,7 +288,257 @@ export default function BufferTextTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Drawing_TextUndefinedGlyphDisplayTOFU_0100 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_OH_BufferHandle_0100
+     * @tc.name    : SUB_OH_BufferHandle_0100
+     * @tc.desc    : test SUB_OH_BufferHandle_0100 success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandle_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandle_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandle();
+          console.info("====>SUB_OH_BufferHandle_0100 result====", result);
+          expect(result).assertEqual(1);
           done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandle_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandleWidth_0100
+     * @tc.name    : SUB_OH_BufferHandleWidth_0100
+     * @tc.desc    : test SUB_OH_BufferHandleWidth success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandleWidth_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandleWidth_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandleWidth();
+          console.info("====>SUB_OH_BufferHandleWidth_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandleWidth_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandleStride_0100
+     * @tc.name    : SUB_OH_BufferHandleStride_0100
+     * @tc.desc    : test SUB_OH_BufferHandleStride success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandleStride_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandleStride_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandleStride();
+          console.info("====>SUB_OH_BufferHandleStride_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandleStride_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandleHeight_0100
+     * @tc.name    : SUB_OH_BufferHandleHeight_0100
+     * @tc.desc    : test SUB_OH_BufferHandleHeight success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandleHeight_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandleHeight_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandleHeight();
+          console.info("====>SUB_OH_BufferHandleHeight_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandleHeight_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandleFormat_0100
+     * @tc.name    : SUB_OH_BufferHandleFormat_0100
+     * @tc.desc    : test SUB_OH_BufferHandleFormat success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandleFormat_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandleFormat_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandleFormat();
+          console.info("====>SUB_OH_BufferHandleFormat_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandleFormat_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandleUsage_0100
+     * @tc.name    : SUB_OH_BufferHandleUsage_0100
+     * @tc.desc    : test SUB_OH_BufferHandleUsage success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandleUsage_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandleUsage_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandleUsage();
+          console.info("====>SUB_OH_BufferHandleUsage_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandleUsage_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandleKey_0100
+     * @tc.name    : SUB_OH_BufferHandleKey_0100
+     * @tc.desc    : test SUB_OH_BufferHandleKey success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandleKey_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandleKey_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandleKey();
+          console.info("====>SUB_OH_BufferHandleKey_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandleKey_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandlePhyAddr_0100
+     * @tc.name    : SUB_OH_BufferHandlePhyAddr_0100
+     * @tc.desc    : test SUB_OH_BufferHandlePhyAddr success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandlePhyAddr_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandlePhyAddr_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandlePhyAddr();
+          console.info("====>SUB_OH_BufferHandlePhyAddr_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandlePhyAddr_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandleReserveFds_0100
+     * @tc.name    : SUB_OH_BufferHandleReserveFds_0100
+     * @tc.desc    : test SUB_OH_BufferHandleReserveFds success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandleReserveFds_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandleReserveFds_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandleReserveFds();
+          console.info("====>SUB_OH_BufferHandleReserveFds_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandleReserveFds_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandleReserveInts_0100
+     * @tc.name    : SUB_OH_BufferHandleReserveInts_0100
+     * @tc.desc    : test SUB_OH_BufferHandleReserveInts success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandleReserveInts_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandleReserveInts_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandleReserveInts();
+          console.info("====>SUB_OH_BufferHandleReserveInts_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandleReserveInts_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_BufferHandleReserve_0100
+     * @tc.name    : SUB_OH_BufferHandleReserve_0100
+     * @tc.desc    : test SUB_OH_BufferHandleReserve success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BufferHandleReserve_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_BufferHandleReserve_0100 start====");
+          let result: number = libGraphics2DApi20.BufferHandleReserve();
+          console.info("====>SUB_OH_BufferHandleReserve_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_BufferHandleReserve_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_NativeBuffer_PlanesSuccess_0100
+     * @tc.name    : SUB_OH_NativeBuffer_PlanesSuccess_0100
+     * @tc.desc    : test SUB_OH_NativeBuffer_PlanesSuccess success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeBuffer_PlanesSuccess_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_NativeBuffer_PlanesSuccess_0100 start====");
+          let result: number = libGraphics2DApi20.nativeBufferPlanesSuccess();
+          console.info("====>SUB_OH_NativeBuffer_PlanesSuccess_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_NativeBuffer_PlanesSuccess_0100 catch err: " + err);
         }
       })
   })
