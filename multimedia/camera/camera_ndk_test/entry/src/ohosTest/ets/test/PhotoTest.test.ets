@@ -147,7 +147,7 @@ async function createVideoOutput() {
   let FrameRate = 30;
   //View the videoProfile with an aspect ratio of 4:3
   for (let i = 0; i < videoProfiles.length; i++) {
-    if (Math.abs((videoProfiles[i].width / videoProfiles[i].height) -(4 / 3)) < 0.1) {
+    if (Math.abs((videoProfiles[i].width / videoProfiles[i].height) - (4 / 3)) < 0.1) {
       videoProfileWidth = videoProfiles[i].width;
       videoProfileHeigth = videoProfiles[i].height;
       FrameRate = videoProfiles[i].min;
@@ -442,7 +442,7 @@ function createPreviewOutput() {
   let previewProfileWidth = 1920;
   //View the previewprofile with an aspect ratio of 4:3
   for (let i = 0; i < previewProfiles.length; i++) {
-    if (Math.abs((previewProfiles[i].width / previewProfiles[i].height) -(4 / 3)) < 0.1) {
+    if (Math.abs((previewProfiles[i].width / previewProfiles[i].height) - (4 / 3)) < 0.1) {
       previewProfileWidth = previewProfiles[i].width;
       previewProfileHeigth = previewProfiles[i].height;
       previewProfileIndex = i;
