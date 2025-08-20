@@ -157,7 +157,10 @@ static napi_value GetBlanklessInfo(napi_env env, napi_callback_info info)
             retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "newkey");
             break;
         case CASE_NUM_2:
-            retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(nullptr, nullptr);
+            retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "");
+            break;
+        case CASE_NUM_3:
+            retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey("", "0731");
             break;
         default:
             break;
@@ -177,24 +180,28 @@ static napi_value SetBlanklessInfo(napi_env env, napi_callback_info info)
     GetTestCase(env, info, webName, caseNum);
 
     ArkWeb_BlanklessErrorCode retInfo = ARKWEB_BLANKLESS_SUCCESS;
+    ArkWeb_BlanklessInfo blankInfo = {ARKWEB_BLANKLESS_SUCCESS, 0, 0};
     switch (caseNum) {
         case CASE_NUM_0:
             retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey("new", "xxxx", false);
             break;
         case CASE_NUM_1:
+            blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
             retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "0731", false);
             break;
         case CASE_NUM_2:
+            blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
             retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "xxxxx", false);
             break;
         case CASE_NUM_3:
+            blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
             retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "0731", true);
             break;
         case CASE_NUM_4:
-            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(nullptr, "0731", false);
+            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey("", "0731", false);
             break;
         case CASE_NUM_5:
-            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, nullptr, false);
+            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "", false);
             break;
         default:
             break;

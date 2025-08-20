@@ -129,6 +129,87 @@ export default function NativeInterfaceTest() {
 
     /**
      * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0100
+     * @tc.name    : testWebNapiGetBlanklessInfoSuccess
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiGetBlanklessInfoSuccess', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiGetBlanklessInfoSuccess start====");
+          let result: number = nativeInterface.GetBlanklessInfo('web1211', 0);
+          expect([0, 801]).assertContain(result);
+          console.info("====>testWebNapiGetBlanklessInfoSuccess stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiGetBlanklessInfoSuccess catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0200
+     * @tc.name    : testWebNapiGetBlanklessInfoNewkey
+     * @tc.desc    : test OH_NativeArkWeb_GetBlanklessInfoWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiGetBlanklessInfoNewkey', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiGetBlanklessInfoNewkey start====");
+          let result: number = nativeInterface.GetBlanklessInfo('web1211', 1);
+          expect([0, 801]).assertContain(result);
+          console.info("====>testWebNapiGetBlanklessInfoNewkey stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiGetBlanklessInfoNewkey catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0300
+     * @tc.name    : testWebNapiGetBlanklessInfoNullkey
+     * @tc.desc    : test OH_NativeArkWeb_GetBlanklessInfoWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiGetBlanklessInfoNullkey', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiGetBlanklessInfoNullkey start====");
+          let result: number = nativeInterface.GetBlanklessInfo('web1211', 2);
+          expect([-2, 801]).assertContain(result);
+          console.info("====>testWebNapiGetBlanklessInfoNullkey stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiGetBlanklessInfoNullkey catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0400
+     * @tc.name    : testWebNapiGetBlanklessInfoNullWeb
+     * @tc.desc    : test OH_NativeArkWeb_GetBlanklessInfoWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiGetBlanklessInfoNullWeb', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiGetBlanklessInfoNullWeb start====");
+          let result: number = nativeInterface.GetBlanklessInfo('web1211', 3);
+          expect([-2, 801]).assertContain(result);
+          console.info("====>testWebNapiGetBlanklessInfoNullWeb stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiGetBlanklessInfoNullWeb catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0500
      * @tc.name    : testWebNapiSetBlanklessInfoNotInit
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
@@ -149,7 +230,7 @@ export default function NativeInterfaceTest() {
       })
 
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0200
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0600
      * @tc.name    : testWebNapiSetBlanklessInfoSuccess
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
@@ -162,7 +243,7 @@ export default function NativeInterfaceTest() {
           console.info("====>testWebNapiSetBlanklessInfoSuccess start====");
           let result: number = nativeInterface.SetBlanklessInfo('web1211', 1);
           // timeout -1?
-          expect([0, -1, 801]).assertContain(result);
+          expect([0, 801]).assertContain(result);
           console.info("====>testWebNapiSetBlanklessInfoSuccess stop====", result);
           done();
         } catch (err) {
@@ -171,7 +252,7 @@ export default function NativeInterfaceTest() {
       })
 
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0300
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0700
      * @tc.name    : testWebNapiSetBlanklessInfoNokey
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
@@ -190,70 +271,29 @@ export default function NativeInterfaceTest() {
           console.error("====>testWebNapiSetBlanklessInfoNokey catch err: " + err);
         }
       })
-
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0400
-     * @tc.name    : testWebNapiGetBlanklessInfoSuccess
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0800
+     * @tc.name    : testWebNapiSetBlanklessInfoTrue
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('testWebNapiGetBlanklessInfoSuccess', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiSetBlanklessInfoTrue', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>testWebNapiGetBlanklessInfoSuccess start====");
-          nativeInterface.SetBlanklessInfo('web1211', 1);
-          let result: number = nativeInterface.GetBlanklessInfo('web1211', 0);
+          console.info("====>testWebNapiSetBlanklessInfoTrue start====");
+          let result: number = nativeInterface.SetBlanklessInfo('web1211', 3);
           expect([0, 801]).assertContain(result);
-          console.info("====>testWebNapiGetBlanklessInfoSuccess stop====", result);
+          console.info("====>testWebNapiSetBlanklessInfoTrue stop====", result);
           done();
         } catch (err) {
-          console.error("====>testWebNapiGetBlanklessInfoSuccess catch err: " + err);
+          console.error("====>testWebNapiSetBlanklessInfoTrue catch err: " + err);
         }
       })
+
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0500
-     * @tc.name    : testWebNapiGetBlanklessInfoNokey
-     * @tc.desc    : test OH_NativeArkWeb_GetBlanklessInfoWithKey()
-     * @tc.level   : Level2
-     * @tc.size    : SMALLTEST
-     * @tc.type    : Function
-     */
-    it('testWebNapiGetBlanklessInfoNokey', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
-      async (done: Function) => {
-        try {
-          console.info("====>testWebNapiGetBlanklessInfoNokey start====");
-          let result: number = nativeInterface.GetBlanklessInfo('web1211', 1);
-          expect([-4, 801]).assertContain(result);
-          console.info("====>testWebNapiGetBlanklessInfoNokey stop====", result);
-          done();
-        } catch (err) {
-          console.error("====>testWebNapiGetBlanklessInfoNokey catch err: " + err);
-        }
-      })
-    /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0600
-     * @tc.name    : testWebNapiGetBlanklessInfoNull
-     * @tc.desc    : test OH_NativeArkWeb_GetBlanklessInfoWithKey()
-     * @tc.level   : Level2
-     * @tc.size    : SMALLTEST
-     * @tc.type    : Function
-     */
-    it('testWebNapiGetBlanklessInfoNull', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
-      async (done: Function) => {
-        try {
-          console.info("====>testWebNapiGetBlanklessInfoNull start====");
-          let result: number = nativeInterface.GetBlanklessInfo('web1211', 2);
-          expect([-2, 801]).assertContain(result);
-          console.info("====>testWebNapiGetBlanklessInfoNull stop====", result);
-          done();
-        } catch (err) {
-          console.error("====>testWebNapiGetBlanklessInfoNull catch err: " + err);
-        }
-      })
-    /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0700
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0900
      * @tc.name    : testWebNapiSetBlanklessInfoNullWeb
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
@@ -273,7 +313,7 @@ export default function NativeInterfaceTest() {
         }
       })
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0800
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_1000
      * @tc.name    : testWebNapiSetBlanklessInfoNullKey
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
@@ -292,6 +332,7 @@ export default function NativeInterfaceTest() {
           console.error("====>testWebNapiSetBlanklessInfoNullKey catch err: " + err);
         }
       })
+
     /**
      * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeData_0100
      * @tc.name    : testWebNapiJSBridgeDataCallback
