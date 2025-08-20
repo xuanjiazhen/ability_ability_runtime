@@ -140,7 +140,11 @@ export default function SensorJsStaticTest() {
           gamma: 2.0,
           alpha: 3.0,
         };
-        expect(true).assertTrue();
+        expect(accUnreliable).assertEqual(0);
+        expect(accLow).assertEqual(1);
+        expect(accMedium).assertEqual(2);
+        expect(accHigh).assertEqual(3);
+        expect(typeof(orientationResponseParam)).assertEqual('object');
         done();
       })
   })
