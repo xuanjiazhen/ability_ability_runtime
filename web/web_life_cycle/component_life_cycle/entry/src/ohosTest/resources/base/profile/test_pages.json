@@ -3,7 +3,7 @@
     "testability/pages/WebInitTest",
     "testability/pages/componentLifeCycleTestOne",
 	  "testability/pages/webViewSharedRenderProcessToken",
-    "testability/pages/webViewSetWebDestroyMode"
+    "testability/pages/WebViewSetWebDestroyMode"
   ]
 }
 
