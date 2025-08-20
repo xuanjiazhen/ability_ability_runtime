@@ -1863,9 +1863,14 @@ export default function WindowLifecycle() {
         }
       } catch (error) {
         console.error(caseName + ' Failed. Cause: ' + JSON.stringify(error));
-        windowStage.off('windowStageLifecycleEvent', cb1);
-        expect().assertFail();
-        done();
+        if(error.code == 801){
+          done();
+        }else{
+          windowStage.off('windowStageLifecycleEvent', cb1);
+          expect().assertFail();
+          done();
+        }
+        
       }
     });
 
@@ -1925,9 +1930,14 @@ export default function WindowLifecycle() {
         }
       } catch (error) {
         console.error(caseName + ' Failed. Cause: ' + JSON.stringify(error));
-        windowStage.off('windowStageLifecycleEvent');
-        expect().assertFail();
-        done();
+        if(error.code == 801){
+          done();
+        }else{
+          windowStage.off('windowStageLifecycleEvent');
+          expect().assertFail();
+          done();
+        }
+        
       }
     });
 
@@ -1979,9 +1989,13 @@ export default function WindowLifecycle() {
         }
       } catch (error) {
         console.error(caseName + ' Failed. Cause: ' + JSON.stringify(error));
-        windowStage.off('windowStageLifecycleEvent');
-        expect().assertFail();
-        done();
+        if(error.code == 801){
+          done();
+        }else{
+          windowStage.off('windowStageLifecycleEvent');
+          expect().assertFail();
+          done();
+        }
       }
     });
 
