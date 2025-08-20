@@ -786,7 +786,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_H266_BLANK_FRAME_0030, TestSize.Level0)
  * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0001
  * @tc.desc      : function test
  */
-HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0001, TestSize.Level0)
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0001, TestSize.Level2)
 {
     if (cap != nullptr) {
         auto vDecSample = make_shared<VDecAPI11Sample>();
@@ -830,7 +830,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0002, TestSize.Level0)
  * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0003
  * @tc.desc      : function test
  */
-HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0003, TestSize.Level0)
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0003, TestSize.Level2)
 {
     if (cap != nullptr) {
         auto vDecSample = make_shared<VDecAPI11Sample>();
@@ -849,7 +849,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0003, TestSize.Level0)
  * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0004
  * @tc.desc      : function test
  */
-HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0004, TestSize.Level0)
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0004, TestSize.Level2)
 {
     if (cap_hevc != nullptr) {
         auto vDecSample = make_shared<VDecAPI11Sample>();
@@ -870,7 +870,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0004, TestSize.Level0)
  * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0005
  * @tc.desc      : function test
  */
-HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0005, TestSize.Level0)
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0005, TestSize.Level2)
 {
     if (cap_hevc != nullptr) {
         if (OH_AVCapability_IsFeatureSupported(cap_hevc, VIDEO_LOW_LATENCY)) {
@@ -893,7 +893,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0005, TestSize.Level0)
  * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0006
  * @tc.desc      : function test
  */
-HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0006, TestSize.Level0)
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0006, TestSize.Level2)
 {
     if (cap_hevc != nullptr) {
         auto vDecSample = make_shared<VDecAPI11Sample>();
@@ -912,7 +912,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0006, TestSize.Level0)
  * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0007
  * @tc.desc      : function test
  */
-HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0007, TestSize.Level0)
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0007, TestSize.Level2)
 {
     if (cap_hevc != nullptr && !access("/system/lib64/media/", 0)) {
         auto vDecSample = make_shared<VDecAPI11Sample>();
@@ -934,7 +934,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0007, TestSize.Level0)
  * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0008
  * @tc.desc      : function test
  */
-HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0008, TestSize.Level0)
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0008, TestSize.Level2)
 {
     if (cap_hevc != nullptr && !access("/system/lib64/media/", 0)) {
         if (OH_AVCapability_IsFeatureSupported(cap_hevc, VIDEO_LOW_LATENCY)) {
@@ -958,7 +958,7 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0008, TestSize.Level0)
  * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0009
  * @tc.desc      : function test
  */
-HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0009, TestSize.Level0)
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0009, TestSize.Level2)
 {
     if (cap_hevc != nullptr && !access("/system/lib64/media/", 0)) {
         auto vDecSample = make_shared<VDecAPI11Sample>();
