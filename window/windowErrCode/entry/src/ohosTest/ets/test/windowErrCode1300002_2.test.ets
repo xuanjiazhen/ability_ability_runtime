@@ -795,15 +795,15 @@ export default function windowErrCode1300002_2() {
       }
     })
     /**
-     * @tc.number     : testLoadContentByNameCallbackErrCode1300002_0100
-     * @tc.name       : testLoadContentByNameCallbackErrCode1300002_0100
-     * @tc.desc       : testLoadContentByNameCallbackErrCode1300002_0100
+     * @tc.number     : testLoadContentByNameCallbackErrCode1300002_0200
+     * @tc.name       : testLoadContentByNameCallbackErrCode1300002_0200
+     * @tc.desc       : testLoadContentByNameCallbackErrCode1300002_0200
      * @tc.size       : MediumTest
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testLoadContentByNameCallbackErrCode1300002_0100', Level.LEVEL3, async (done: Function) => {
-      let caseName = "testLoadContentByNameCallbackErrCode1300002_0100";
+    it('testLoadContentByNameCallbackErrCode1300002_0200', Level.LEVEL3, async (done: Function) => {
+      let caseName = "testLoadContentByNameCallbackErrCode1300002_0200";
       let msgStr = 'jsunittest ' + caseName + ' ';
       console.log(msgStr + 'begin.');
       let windowStageStart = await startAbility(caseName, context);
@@ -829,15 +829,15 @@ export default function windowErrCode1300002_2() {
       }
     })
     /**
-     * @tc.number     : testLoadContentByNameCallbackErrCode1300002_0200
-     * @tc.name       : testLoadContentByNameCallbackErrCode1300002_0200
-     * @tc.desc       : testLoadContentByNameCallbackErrCode1300002_0200
+     * @tc.number     : testLoadContentByNameCallbackErrCode1300002_0300
+     * @tc.name       : testLoadContentByNameCallbackErrCode1300002_0300
+     * @tc.desc       : testLoadContentByNameCallbackErrCode1300002_0300
      * @tc.size       : MediumTest
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testLoadContentByNameCallbackErrCode1300002_0200', Level.LEVEL3, async (done: Function) => {
-      let caseName = "testLoadContentByNameCallbackErrCode1300002_0200";
+    it('testLoadContentByNameCallbackErrCode1300002_0300', Level.LEVEL3, async (done: Function) => {
+      let caseName = "testLoadContentByNameCallbackErrCode1300002_0300";
       let msgStr = 'jsunittest ' + caseName + ' ';
       console.log(msgStr + 'begin.');
       let windowStageStart = await startAbility(caseName, context);
@@ -862,15 +862,15 @@ export default function windowErrCode1300002_2() {
       }
     })
     /**
-     * @tc.number     : testLoadContentByNamePromiseErrCode1300002_0100
-     * @tc.name       : testLoadContentByNamePromiseErrCode1300002_0100
-     * @tc.desc       : testLoadContentByNamePromiseErrCode1300002_0100
+     * @tc.number     : testLoadContentByNamePromiseErrCode1300002_0200
+     * @tc.name       : testLoadContentByNamePromiseErrCode1300002_0200
+     * @tc.desc       : testLoadContentByNamePromiseErrCode1300002_0200
      * @tc.size       : MediumTest
      * @tc.type       : Function
      * @tc.level      : Level 3
      */
-    it('testLoadContentByNamePromiseErrCode1300002_0100', Level.LEVEL3, async (done: Function) => {
-      let caseName = "testLoadContentByNamePromiseErrCode1300002_0100";
+    it('testLoadContentByNamePromiseErrCode1300002_0200', Level.LEVEL3, async (done: Function) => {
+      let caseName = "testLoadContentByNamePromiseErrCode1300002_0200";
       let msgStr = 'jsunittest ' + caseName + ' ';
       console.log(msgStr + 'begin.');
       let windowStageStart = await startAbility(caseName, context);
@@ -893,7 +893,7 @@ export default function windowErrCode1300002_2() {
     })
     /**
      * @tc.number     : testOn_windowStageEventErrCode1300002_0100
-     * @tc.name       : testOn_windowStageEventErrCode1300002_0100
+     * @tc.name       : testOnWindowStageEventErrCode1300002_0100
      * @tc.desc       : testOn_windowStageEventErrCode1300002_0100
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -920,7 +920,7 @@ export default function windowErrCode1300002_2() {
     })
     /**
      * @tc.number     : testOff_windowStageEventErrCode1300002_0100
-     * @tc.name       : testOff_windowStageEventErrCode1300002_0100
+     * @tc.name       : testOffWindowStageEventErrCode1300002_0100
      * @tc.desc       : testOff_windowStageEventErrCode1300002_0100
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -947,7 +947,7 @@ export default function windowErrCode1300002_2() {
     })
     /**
      * @tc.number     : testOn_windowStageCloseErrCode1300002_0100
-     * @tc.name       : testOn_windowStageCloseErrCode1300002_0100
+     * @tc.name       : testOnWindowStageCloseErrCode1300002_0100
      * @tc.desc       : testOn_windowStageCloseErrCode1300002_0100
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -1204,7 +1204,7 @@ export default function windowErrCode1300002_2() {
     /**
      * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_SYSTEMBAR_ENABLE_WITH_DESTROYED_SUBWINDOW
      * @tc.name      : testSetWindowSystemBarEnablewithDestroyedSubwindow
-     * @tc.desc      : ÑéÖ¤×Ó´°Ïú»Ùºóµ÷ÓÃsetWindowSystemBarEnable½Ó¿ÚÅ×1300002´íÎóÂë
+     * @tc.desc      : éªŒè¯å­çª—é”€æ¯åè°ƒç”¨setWindowSystemBarEnableæ¥å£æŠ›1300002é”™è¯¯ç 
      * @tc.size      : MediumTest
      * @tc.type      : Function
      * @tc.level     : Level2
@@ -1215,16 +1215,18 @@ export default function windowErrCode1300002_2() {
       await sleep(200);
       await subWindow.destroyWindow();
       try {
-        let promise = subWindow.setWindowSystemBarEnable(['status']);
-        promise.then(()=>{
-          console.log(CaseName + ' setWindowSystemBarEnable success ');
-          expect(false).assertTrue();
-          done();
-        }).catch((err:BusinessError)=>{
-          console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
-          expect(err.code).assertEqual(1300002);
-          done();
-        })
+        subWindow.setWindowSystemBarEnable(['status'], async (err: BusinessError) => {
+          const errCode: number = err.code;
+          if (errCode) {
+            console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
+            expect(err.code).assertEqual(1300002);
+            done();
+          } else {
+            console.log(CaseName + ' setWindowSystemBarEnable success ');
+            expect().assertFail();
+            done();
+          }
+        });
       }catch (err) {
         console.error(CaseName + ' failed, err: ' + JSON.stringify(err));
         expect(false).assertTrue();
@@ -1235,7 +1237,7 @@ export default function windowErrCode1300002_2() {
     /**
      * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_PRIVACY_MODE_WITH_DESTROYED_SUBWINDOW
      * @tc.name      : testSetWindowPrivacyModewithDestroyedSubwindow
-     * @tc.desc      : ÑéÖ¤setWindowPrivacyMode½Ó¿ÚÅ×1300002´íÎóÂë
+     * @tc.desc      : éªŒè¯setWindowPrivacyModeæ¥å£æŠ›1300002é”™è¯¯ç 
      * @tc.size      : MediumTest
      * @tc.type      : Function
      * @tc.level     : Level2
@@ -1246,16 +1248,18 @@ export default function windowErrCode1300002_2() {
       await sleep(200);
       await subWindow.destroyWindow();
       try {
-        let promise = subWindow.setWindowPrivacyMode(false);
-        promise.then(()=>{
-          console.log(CaseName + ' setWindowPrivacyMode success ');
-          expect(false).assertTrue();
-          done();
-        }).catch((err:BusinessError)=>{
-          console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
-          expect(err.code).assertEqual(1300002);
-          done();
-        })
+        subWindow.setWindowPrivacyMode(false, async (err: BusinessError) => {
+          const errCode: number = err.code;
+          if (errCode) {
+            console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
+            expect(err.code).assertEqual(1300002);
+            done();
+          } else {
+            console.log(CaseName + ' setWindowPrivacyMode success ');
+            expect().assertFail();
+            done();
+          }
+        });
       }catch (err) {
         console.error(CaseName + ' failed, err: ' + JSON.stringify(err));
         expect(false).assertTrue();
@@ -1266,7 +1270,7 @@ export default function windowErrCode1300002_2() {
     /**
      * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_SHADOW_ENABLED_WITH_DESTROYED_SUBWINDOW
      * @tc.name      : testSetWindowShadowEnabledwithDestroyedSubwindow
-     * @tc.desc      : ÑéÖ¤setWindowShadowEnabled½Ó¿ÚÅ×1300002´íÎóÂë
+     * @tc.desc      : éªŒè¯setWindowShadowEnabledæ¥å£æŠ›1300002é”™è¯¯ç 
      * @tc.size      : MediumTest
      * @tc.type      : Function
      * @tc.level     : Level2

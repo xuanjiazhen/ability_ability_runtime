@@ -530,20 +530,23 @@ export default function windowErrCode1300004() {
       let subWin: ohosWindow.Window | undefined = undefined;
       subWin = await windowStage.createSubWindow('testSetAspectRatiowithUnsupportedSubwindow')
       try {
-        await (subWin! as ohosWindow.Window).setAspectRatio(0).then(async () => {
-          console.info(msgStr + 'Succeeded in calling setAspectRatio.');
-          expect().assertFail();
-          await (subWin! as ohosWindow.Window).destroyWindow();
-          done()
-        }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setAspectRatio. Cause: ' + JSON.stringify(err));
-          await (subWin! as ohosWindow.Window).destroyWindow();
-          if (err.code == 801) {
-            console.info(msgStr + '此设备不支持 setAspectRatio 能力.');
+        subWin.setAspectRatio(0, async (err: BusinessError) => {
+          const errCode: number = err.code;
+          if (errCode) {
+            console.error(msgStr + 'Failed to call setAspectRatio. Cause: ' + JSON.stringify(err));
+            await (subWin! as ohosWindow.Window).destroyWindow();
+            if (err.code == 801) {
+              console.info(msgStr + '此设备不支持 setAspectRatio 能力.');
+            } else {
+              expect().assertFail();
+            }
+            done();
           } else {
+            console.info(msgStr + 'Succeeded in calling setAspectRatio.');
+            await (subWin! as ohosWindow.Window).destroyWindow();
             expect().assertFail();
+            done();
           }
-          done()
         });
       } catch (exception) {
         console.error(msgStr + 'Failed to set the call setAspectRatio. Cause:' +
@@ -569,16 +572,23 @@ export default function windowErrCode1300004() {
       let subWin: ohosWindow.Window | undefined = undefined;
       subWin = await windowStage.createSubWindow('testResetAspectRatiowithUnsupportedSubwindow')
       try {
-        await (subWin! as ohosWindow.Window).resetAspectRatio().then(async () => {
-          console.info(msgStr + 'Succeeded in calling resetAspectRatio.');
-          expect().assertFail();
-          await (subWin! as ohosWindow.Window).destroyWindow();
-          done()
-        }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call resetAspectRatio. Cause: ' + JSON.stringify(err));
-          await (subWin! as ohosWindow.Window).destroyWindow();
-          expect().assertFail();
-          done()
+        subWin.resetAspectRatio(async (err: BusinessError) => {
+          const errCode: number = err.code;
+          if (errCode) {
+            console.error(msgStr + 'Failed to call resetAspectRatio. Cause: ' + JSON.stringify(err));
+            await (subWin! as ohosWindow.Window).destroyWindow();
+            if (err.code == 801) {
+              console.info(msgStr + '此设备不支持 resetAspectRatio 能力.');
+            } else {
+              expect().assertFail();
+            }
+            done();
+          } else {
+            console.info(msgStr + 'Succeeded in calling resetAspectRatio.');
+            await (subWin! as ohosWindow.Window).destroyWindow();
+            expect().assertFail();
+            done();
+          }
         });
       } catch (exception) {
         console.error(msgStr + 'Failed to set the call resetAspectRatio. Cause:' +

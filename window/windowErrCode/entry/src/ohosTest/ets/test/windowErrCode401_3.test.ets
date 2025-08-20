@@ -1181,15 +1181,17 @@ export default function windowErrCode401_3() {
       let caseName: string = 'testLoadContentwithInvalidParameters';
       try {
         let windowClass = windowStage.getMainWindowSync();
-        let promise = windowClass.loadContent(null, null);
-        promise.then(() => {
-          console.log(caseName + ' loadContent success');
-          expect().assertFail();
-          done();
-        }).catch((err:BusinessError) => {
-          console.error(caseName + ' failed, err: ' + JSON.stringify(err));
-          expect().assertFail();
-          done();
+        windowClass.loadContent(null, null, async (err: BusinessError) => {
+          const errCode: number = err.code;
+          if (errCode) {
+            console.error(caseName + ' failed, err: ' + JSON.stringify(err));
+            expect().assertFail();
+            done();
+          } else {
+            console.log(caseName + ' loadContent success');
+            expect().assertFail();
+            done();
+          }
         });
       } catch (err) {
         console.error(caseName + ' failed. Caused: err.code '+ err.code +' ,err.message: '+err.message);
@@ -1210,15 +1212,17 @@ export default function windowErrCode401_3() {
       let caseName: string = 'testSetWindowColorSpacewithInvalidParameters';
       try {
         let windowClass = windowStage.getMainWindowSync();
-        let promise = windowClass.setWindowColorSpace(null);
-        promise.then(() => {
-          console.log(caseName + ' setWindowColorSpace success');
-          expect().assertFail();
-          done();
-        }).catch((err:BusinessError) => {
-          console.error(caseName + ' failed, err: ' + JSON.stringify(err));
-          expect().assertFail();
-          done();
+        windowClass.setWindowColorSpace(null, async (err: BusinessError) => {
+          const errCode: number = err.code;
+          if (errCode) {
+            console.error(caseName + ' failed, err: ' + JSON.stringify(err));
+            expect().assertFail();
+            done();
+          } else {
+            console.log(caseName + ' setWindowColorSpace success');
+            expect().assertFail();
+            done();
+          }
         });
       } catch (err) {
         console.error(caseName + ' failed. Caused: err.code '+ err.code +' ,err.message: '+err.message);
