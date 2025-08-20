@@ -548,7 +548,7 @@ export default function kvManagerCallbackStageTest(){
       try {
         await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
           console.info('testKVManagerGetKVStore115 getKVStore success');
-          expect(true).assertTrue();
+          expect((err === undefined) && (store !== undefined)).assertTrue();
           done();
         });
       } catch (e) {
@@ -580,7 +580,7 @@ export default function kvManagerCallbackStageTest(){
       try {
         await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
           console.info('testKVManagerGetKVStore116 getKVStore success');
-          expect(true).assertTrue();
+          expect((err === undefined) && (store !== undefined)).assertTrue();
           done();
         });
       } catch (e) {
@@ -612,7 +612,7 @@ export default function kvManagerCallbackStageTest(){
       try {
         await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
           console.info('testKVManagerGetKVStore117 getKVStore success');
-          expect(true).assertTrue();
+          expect((err === undefined) && (store !== undefined)).assertTrue();
           done();
         });
       } catch (e) {
@@ -644,7 +644,7 @@ export default function kvManagerCallbackStageTest(){
       try {
         await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
           console.info('testKVManagerGetKVStore118 getKVStore success');
-          expect(true).assertTrue();
+          expect((err === undefined) && (store !== undefined)).assertTrue();
           done();
         });
       } catch (e) {
@@ -676,7 +676,7 @@ export default function kvManagerCallbackStageTest(){
       try {
         await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
           console.info('testKVManagerGetKVStore119 getKVStore success');
-          expect(true).assertTrue();
+          expect((err === undefined) && (store !== undefined)).assertTrue();
           done();
         });
       } catch (e) {
@@ -708,7 +708,7 @@ export default function kvManagerCallbackStageTest(){
       try {
         await kvManager.getKVStore(TEST_STORE_ID, optionsInfo, function (err, store) {
           console.info('testKVManagerGetKVStore120 getKVStore success');
-          expect(true).assertTrue();
+          expect((err === undefined) && (store !== undefined)).assertTrue();
           done();
         });
       } catch (e) {
