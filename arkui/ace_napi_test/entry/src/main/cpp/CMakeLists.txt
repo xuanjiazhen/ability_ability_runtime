@@ -12,6 +12,9 @@ include_directories(
 aux_source_directory(${OPENHARMONY_ROOT_PATH}/third_party/bounds_checking_function/src/ SECUREC_SRCS)
 add_library(securec SHARED ${SECUREC_SRCS})
 
-add_library(napitest SHARED ./napi/napi_test.cpp)
+add_library(napitest SHARED
+    ./napi/napi_test.cpp
+    ./napi/NapiBufferTest.cpp
+    ./napi/NapiInitTest.cpp)
 
 target_link_libraries(napitest PUBLIC securec libace_napi.z.so libuv.so libhilog_ndk.z.so libc++.a)
