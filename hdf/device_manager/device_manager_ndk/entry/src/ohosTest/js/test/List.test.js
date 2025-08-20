@@ -14,8 +14,13 @@
  */
 
 import DeviceManagerJsTest from './DeviceManagerJsTest.test.js'
+import DeviceManagerCanIUseTest from './DeviceManagerCanIUseTest.test.js'
 
 /* host test case */
 export default function testsuite() {
-DeviceManagerJsTest()
+  if (canIUse("SystemCapability.Driver.HID.Extension")){
+    DeviceManagerJsTest()
+    } else {
+        DeviceManagerCanIUseTest()
+    }
 }
