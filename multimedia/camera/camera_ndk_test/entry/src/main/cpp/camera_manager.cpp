@@ -3102,26 +3102,6 @@ Camera_ErrorCode NDKCamera::WhiteBalanceTest(void)
 Camera_ErrorCode NDKCamera::CreatePreviewOutputByIndex(int index)
 {
     profile_ = cameraOutputCapability_->previewProfiles[index];
-    if (sceneMode_ == SECURE_PHOTO) {
-        for (decltype(cameraOutputCapability_ -> previewProfilesSize) i = 0;
-             i< cameraOutputCapability_ -> previewProfilesSize; i++) {
-            if (cameraOutputCapability_->previewProfiles[i]->size.width == SecureSize.width &&
-                cameraOutputCapability_->previewProfiles[i]->size.height == SecureSize.height) {
-                profile_ = cameraOutputCapability_->previewProfiles[i];
-                break;
-            }
-        }
-    } else if (isCreatePhotoOutputWithoutSurface_) {
-        for (decltype(cameraOutputCapability_ -> previewProfilesSize) i = 0;
-             i< cameraOutputCapability_ -> previewProfilesSize; i++) {
-            if (cameraOutputCapability_->previewProfiles[i]->size.width == PreviewOutputSample.size.width &&
-                cameraOutputCapability_->previewProfiles[i]->size.height == PreviewOutputSample.size.height &&
-                cameraOutputCapability_->previewProfiles[i]->format == PreviewOutputSample.format) {
-                profile_ = cameraOutputCapability_->previewProfiles[i];
-                break;
-            }
-        }
-    }
     if (profile_ == nullptr) {
         LOG("ndkXTS Get previewProfiles failed.");
         return CAMERA_INVALID_ARGUMENT;
