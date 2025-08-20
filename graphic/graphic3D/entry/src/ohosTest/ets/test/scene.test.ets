@@ -61,6 +61,11 @@ export default function sceneTest() {
         let node = scene?.getNodeByPath('rootNode_/Scene/node_damagedHelmet_-6514');
         console.info(msg + " succeed in getNodeByPath " + JSON.stringify(node));
         expect(node != null).assertTrue();
+        let node1 = scene?.getNodeByPath('rootNode_/Scene/node_damagedHelmet_-6514', scene3d.NodeType.GEOMETRY);
+        console.info(msg + " scene?.getNodeByPath node1: " + JSON.stringify(node1));
+        expect(node1 != null).assertTrue();
+        console.info(msg + " node1 != null ");
+        expect(node1?.nodeType).assertEqual(scene3d.NodeType.GEOMETRY);
         done();
       } catch (err) {
         console.info(msg + " Failed in scene.getNodeByPath('rootNode_/Scene/node_damagedHelmet_-6514') " +
