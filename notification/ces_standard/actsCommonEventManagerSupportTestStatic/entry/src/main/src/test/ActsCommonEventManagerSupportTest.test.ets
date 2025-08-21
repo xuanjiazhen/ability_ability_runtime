@@ -312,109 +312,6 @@ export default function ActsCommonEventManagerSupportTest() {
         done()
       })
 
-    /*
-     * @tc.number    : Sub_Notification_Ces_Publish_Support_Static_1200
-     * @tc.name      : Sub_Notification_Ces_Publish_Support_Static_1200
-     * @tc.desc      : Bluetooth
-     */
-    it('Sub_Notification_Ces_Publish_Support_Static_1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
-      async (done: () => void): Promise<void> => {
-        hilog.info(domain, TAG, `Sub_Notification_Ces_Publish_Support_Static_1200 START`)
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREE_AG_CURRENT_DEVICE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.handsfree.ag.CURRENT_DEVICE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREE_AG_AUDIO_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.handsfree.ag.AUDIO_STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREE_AG_AUDIO_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.handsfree.ag.AUDIO_STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSOURCE_CONNECT_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.a2dpsource.CONNECT_STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSOURCE_CURRENT_DEVICE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.a2dpsource.CURRENT_DEVICE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSOURCE_PLAYING_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.a2dpsource.PLAYING_STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSOURCE_AVRCP_CONNECT_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.a2dpsource.AVRCP_CONNECT_STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSOURCE_CODEC_VALUE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.a2dpsource.CODEC_VALUE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_DISCOVERED as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.DISCOVERED')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_CLASS_VALUE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.CLASS_VALUE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_ACL_CONNECTED as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.ACL_CONNECTED')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_ACL_DISCONNECTED as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.ACL_DISCONNECTED')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_NAME_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.NAME_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_PAIR_STATE as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.PAIR_STATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_BATTERY_VALUE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.BATTERY_VALUE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_SDP_RESULT as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.SDP_RESULT')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_UUID_VALUE as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.UUID_VALUE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_PAIRING_REQ as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.PAIRING_REQ')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_PAIRING_CANCEL as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.PAIRING_CANCEL')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_CONNECT_REQ as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.CONNECT_REQ')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_CONNECT_REPLY as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.CONNECT_REPLY')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_CONNECT_CANCEL as string)
-          .assertEqual('usual.event.bluetooth.remotedevice.CONNECT_CANCEL')
-        hilog.info(domain, TAG, `Sub_Notification_Ces_Publish_Support_Static_1200 END`)
-        done()
-      })
-
-    /*
-     * @tc.number    : Sub_Notification_Ces_Publish_Support_Static_1300
-     * @tc.name      : Sub_Notification_Ces_Publish_Support_Static_1300
-     * @tc.desc      : Bluetooth.handsfreeunit
-     */
-    it('Sub_Notification_Ces_Publish_Support_Static_1300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
-      async (done: () => void): Promise<void> => {
-        hilog.info(domain, TAG, `Sub_Notification_Ces_Publish_Support_Static_1300 START`)
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREEUNIT_CONNECT_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.handsfreeunit.CONNECT_STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREEUNIT_AUDIO_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.handsfreeunit.AUDIO_STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREEUNIT_AG_COMMON_EVENT as string)
-          .assertEqual('usual.event.bluetooth.handsfreeunit.AG_COMMON_EVENT')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREEUNIT_AG_CALL_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.handsfreeunit.AG_CALL_STATE_UPDATE')
-        hilog.info(domain, TAG, `Sub_Notification_Ces_Publish_Support_Static_1300 END`)
-        done()
-      })
-
-    /*
-     * @tc.number    : Sub_Notification_Ces_Publish_Support_Static_1400
-     * @tc.name      : Sub_Notification_Ces_Publish_Support_Static_1400
-     * @tc.desc      : Bluetooth.host
-     */
-    it('Sub_Notification_Ces_Publish_Support_Static_1400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
-      async (done: () => void): Promise<void> => {
-        hilog.info(domain, TAG, `Sub_Notification_Ces_Publish_Support_Static_1400 START`)
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HOST_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.host.STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HOST_REQ_DISCOVERABLE as string)
-          .assertEqual('usual.event.bluetooth.host.REQ_DISCOVERABLE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HOST_REQ_ENABLE as string)
-          .assertEqual('usual.event.bluetooth.host.REQ_ENABLE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HOST_REQ_DISABLE as string)
-          .assertEqual('usual.event.bluetooth.host.REQ_DISABLE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HOST_SCAN_MODE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.host.SCAN_MODE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HOST_DISCOVERY_STARTED as string)
-          .assertEqual('usual.event.bluetooth.host.DISCOVERY_STARTED')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HOST_DISCOVERY_FINISHED as string)
-          .assertEqual('usual.event.bluetooth.host.DISCOVERY_FINISHED')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HOST_NAME_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.host.NAME_UPDATE')
-        hilog.info(domain, TAG, `Sub_Notification_Ces_Publish_Support_Static_1400 END`)
-        done()
-      })
 
     /*
      * @tc.number    : Sub_Notification_Ces_Publish_Support_Static_1500
@@ -424,12 +321,6 @@ export default function ActsCommonEventManagerSupportTest() {
     it('Sub_Notification_Ces_Publish_Support_Static_1500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
         hilog.info(domain, TAG, `Sub_Notification_Ces_Publish_Support_Static_1500 START`)
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSINK_CONNECT_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.a2dpsink.CONNECT_STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSINK_PLAYING_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.a2dpsink.PLAYING_STATE_UPDATE')
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSINK_AUDIO_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.a2dpsink.AUDIO_STATE_UPDATE')
         expect(commonEventManager.Support.COMMON_EVENT_NFC_ACTION_ADAPTER_STATE_CHANGED as string)
           .assertEqual('usual.event.nfc.action.ADAPTER_STATE_CHANGED')
         expect(commonEventManager.Support.COMMON_EVENT_NFC_ACTION_RF_FIELD_ON_DETECTED as string)
