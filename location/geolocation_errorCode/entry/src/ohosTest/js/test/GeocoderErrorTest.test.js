@@ -228,18 +228,18 @@ export default function geolocationTest_GeoErr() {
                     },
                     fenceExtensionAbilityName: "MyFenceExtensionAbility",
                 };
-                geolocationm.disableLocation();
+                await geolocationm.disableLocation();
                 geolocationm.addBeaconFence(fenceRequest).then((id) => {
                     console.info("addBeaconFence success, fence id:" + id);
                 }).catch((error) => {
                     console.error('promise, addBeaconFence: error=' + JSON.stringify(error));
-                    expect(error.code).assertEqual("3501100");
+                    expect(error.code).assertEqual(3501100);
                 });
             } catch (error) {
                 console.error("addBeaconFence: errCode" + error.code + ", errMessage" + error.message);
             };
         await sleep(1000);
-        geolocationm.enablelocation();
+        await geolocationm.enablelocation();
         done();
         })
 
@@ -282,19 +282,16 @@ export default function geolocationTest_GeoErr() {
                 };
                 geolocationm.addBeaconFence(fenceRequest).then((id) => {
                     console.info("addBeaconFence success, fence id:" + id);
-                }
-                ).catch((error) => {
+                }).catch((error) => {
                     console.error('promise, addBeaconFence: error=' + JSON.stringify(error));
                 });
 
                 geolocationm.addBeaconFence(fenceRequest).then((id) => {
                     console.info("addBeaconFence success, fence id:" + id);
-                }
-                ).catch((error) => {
+                }).catch((error) => {
                     console.error('promise, addBeaconFence: error=' + JSON.stringify(error));
-                    expect(error.code).assertEqual("3501603");  
+                    expect(error.code).assertEqual(3501603);
                 });
-
             } catch (error) {
                 console.error("addBeaconFence: errCode" + error.code + ", errMessage" + error.message);
             };
@@ -334,7 +331,7 @@ export default function geolocationTest_GeoErr() {
                     console.info("promise,removeBeaconFence success");
                 }).catch((error)=>{
                     console.error("promise,removeBeaconFence:error="+JSON.stringify(error));
-                    expect(error.code).assertEqual("3501602");
+                    expect(error.code).assertEqual(3501602);
                 });
             } catch (error) {
                 console.error("removeBeaconFence: errCode" + error.code + ", errMessage" + error.message);
