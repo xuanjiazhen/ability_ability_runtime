@@ -19,6 +19,7 @@
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "app_utils.h"
+#include "file_uri_distribution_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
@@ -36,7 +37,6 @@
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
-#include "uri_permission_utils.h"
 #include "upms_udmf_utils.h"
 #include "want.h"
 
@@ -71,7 +71,7 @@ ErrCode UriPermissionManagerStubImpl::VerifyUriPermission(const Uri& uri, uint32
     // verify if tokenId have uri permission record
     TAG_LOGI(AAFwkTag::URIPERMMGR, "uri:%{private}s, flag:%{public}u, tokenId:%{public}u",
         uri.ToString().c_str(), flag, tokenId);
-    if (!UPMSUtils::IsSAOrSystemAppCall()) {
+    if (!FUDUtils::IsSAOrSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not SA/SystemApp");
         funcResult = false;
         return ERR_OK;
@@ -182,7 +182,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermission(const Uri& uri, uint32_
 {
     TAG_LOGI(AAFwkTag::URIPERMMGR, "Uri:%{private}s", uri.ToString().c_str());
     std::vector<Uri> uriVec = { uri };
-    if (UPMSUtils::IsSystemAppCall() && uriVec[0].GetScheme() != "file") {
+    if (FUDUtils::IsSystemAppCall() && uriVec[0].GetScheme() != "file") {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Only support file uri");
         funcResult = ERR_CODE_INVALID_URI_TYPE;
         return ERR_OK;
@@ -201,7 +201,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermission(const std::vector<std::
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, appIndex:%{public}d, flag:%{public}u, uris:%{public}zu",
         targetBundleName.c_str(), appIndex, flag, uriVec.size());
-    if (!UPMSUtils::IsSAOrSystemAppCall()) {
+    if (!FUDUtils::IsSAOrSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not SA/SystemApp");
         funcResult = CHECK_PERMISSION_FAILED;
         return ERR_OK;
@@ -222,14 +222,14 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermission(const std::vector<std::
         return ERR_OK;
     }
     uint32_t targetTokenId = 0;
-    auto ret = UPMSUtils::GetTokenIdByBundleName(targetBundleName, appIndex, targetTokenId);
+    auto ret = FUDUtils::GetTokenIdByBundleName(targetBundleName, appIndex, targetTokenId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "get tokenId by bundle name failed");
         funcResult = ret;
         return ERR_OK;
     }
     uint32_t callerTokenId = initiatorTokenId;
-    if (!UPMSUtils::IsFoundationCall()) {
+    if (!FUDUtils::IsFoundationCall()) {
         callerTokenId = IPCSkeleton::GetCallingTokenID();
     }
     funcResult = GrantUriPermissionInner(uriVec, flag, callerTokenId, targetTokenId, targetBundleName);
@@ -283,7 +283,7 @@ int32_t UriPermissionManagerStubImpl::GrantUriPermissionInner(const std::vector<
     }
     // some uri is no permission
     if (permissionedUriCount != uriVec.size()) {
-        UPMSUtils::SendShareUnPrivilegeUriEvent(callerTokenId, targetTokenId);
+        FUDUtils::SendShareUnPrivilegeUriEvent(callerTokenId, targetTokenId);
     }
     if (permissionedUriCount == 0) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "all uri invalid or no permission");
@@ -297,7 +297,7 @@ int32_t UriPermissionManagerStubImpl::GrantUriPermissionInner(const std::vector<
     if (GrantBatchMediaUriPermissionImpl(permissionedMediaUris, flag, callerTokenId, targetTokenId, 0) == ERR_OK) {
         grantRet = ERR_OK;
     }
-    UPMSUtils::SendSystemAppGrantUriPermissionEvent(callerTokenId, targetTokenId, uriVec, checkResult);
+    FUDUtils::SendSystemAppGrantUriPermissionEvent(callerTokenId, targetTokenId, uriVec, checkResult);
     return grantRet;
 }
 
@@ -517,20 +517,20 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermissionPrivileged(const std::ve
         return ERR_OK;
     }
     uint32_t targetTokenId = 0;
-    auto ret = UPMSUtils::GetTokenIdByBundleName(targetBundleName, appIndex, targetTokenId);
+    auto ret = FUDUtils::GetTokenIdByBundleName(targetBundleName, appIndex, targetTokenId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "get tokenId failed, bundleName:%{public}s", targetBundleName.c_str());
         funcResult = ret;
         return ERR_OK;
     }
-    if (UPMSUtils::IsFoundationCall()) {
+    if (FUDUtils::IsFoundationCall()) {
         callerTokenId = initiatorTokenId;
     } else {
         // hideSensitiveType is only support for foundation
         hideSensitiveType = 0;
     }
     std::string targetAlterBundleName = "";
-    UPMSUtils::GetDirByBundleNameAndAppIndex(targetBundleName, appIndex, targetAlterBundleName);
+    FUDUtils::GetDirByBundleNameAndAppIndex(targetBundleName, appIndex, targetAlterBundleName);
     std::vector<Uri> uriVecInner;
     for (auto& uri : uriVec) {
         uriVecInner.emplace_back(uri);
@@ -574,7 +574,7 @@ int32_t UriPermissionManagerStubImpl::GrantUriPermissionPrivilegedInner(const st
     int32_t grantRet = INNER_ERR;
     for (auto &uri : uriVec) {
         auto uriInner = uri;
-        if (!UPMSUtils::CheckUriTypeIsValid(uriInner)) {
+        if (!FUDUtils::CheckUriTypeIsValid(uriInner)) {
             continue;
         }
         validUriCount++;
@@ -583,7 +583,7 @@ int32_t UriPermissionManagerStubImpl::GrantUriPermissionPrivilegedInner(const st
             batchUris.contentUris.emplace_back(uriInner.ToString());
             continue;
         }
-        if (UPMSUtils::IsDocsCloudUri(uriInner)) {
+        if (FUDUtils::IsDocsCloudUri(uriInner)) {
             batchUris.uriStrVec.emplace_back(uriInner.ToString());
             continue;
         }
@@ -707,7 +707,7 @@ int32_t UriPermissionManagerStubImpl::CheckGrantUriPermissionByKeyAsCaller()
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not support grant uri permission");
         return ERR_CAPABILITY_NOT_SUPPORT;
     }
-    if (!UPMSUtils::IsSystemAppCall()) {
+    if (!FUDUtils::IsSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "caller not system");
         return ERR_NOT_SYSTEM_APP;
     }
@@ -731,7 +731,7 @@ int32_t UriPermissionManagerStubImpl::CheckGrantUriPermissionByKey()
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not support grant uri permission");
         return ERR_CAPABILITY_NOT_SUPPORT;
     }
-    if (!UPMSUtils::IsSystemAppCall()) {
+    if (!FUDUtils::IsSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "caller not system");
         return ERR_NOT_SYSTEM_APP;
     }
@@ -754,11 +754,11 @@ int32_t UriPermissionManagerStubImpl::CheckGrantUriPermissionByKeyParams(const s
         TAG_LOGE(AAFwkTag::URIPERMMGR, "caller equal to target");
         return ERR_UPMS_INVALID_TARGET_TOKENID;
     }
-    if (!UPMSUtils::GetAlterableBundleNameByTokenId(callerAppInfo.tokenId, callerAppInfo.alterBundleName)) {
+    if (!FUDUtils::GetAlterableBundleNameByTokenId(callerAppInfo.tokenId, callerAppInfo.alterBundleName)) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "callerTokenId invalid");
         return ERR_UPMS_INVALID_CALLER_TOKENID;
     }
-    if (!UPMSUtils::GetAlterableBundleNameByTokenId(targetAppInfo.tokenId, targetAppInfo.alterBundleName)) {
+    if (!FUDUtils::GetAlterableBundleNameByTokenId(targetAppInfo.tokenId, targetAppInfo.alterBundleName)) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "targetTokenId invalid");
         return ERR_UPMS_INVALID_TARGET_TOKENID;
     }
@@ -782,7 +782,7 @@ ErrCode UriPermissionManagerStubImpl::CheckUriAuthorization(const std::vector<st
             MAX_URI_COUNT, uriStrVec.size());
         return ERR_URI_LIST_OUT_OF_RANGE;
     }
-    if (!UPMSUtils::IsSAOrSystemAppCall()) {
+    if (!FUDUtils::IsSAOrSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not SA/SystemApp");
         return ERR_OK;
     }
@@ -833,7 +833,7 @@ std::vector<bool> UriPermissionManagerStubImpl::CheckUriPermission(TokenIdPermis
     std::vector<std::string> mediaUris;
     std::vector<int32_t> mediaUriIndexs;
     std::string callerAlterableBundleName;
-    UPMSUtils::GetAlterableBundleNameByTokenId(tokenId, callerAlterableBundleName);
+    FUDUtils::GetAlterableBundleNameByTokenId(tokenId, callerAlterableBundleName);
     for (size_t i = 0; i < uriVec.size(); i++) {
         auto uri = Uri(uriVec[i]);
         auto &&scheme = uri.GetScheme();
@@ -933,7 +933,7 @@ void UriPermissionManagerStubImpl::RevokeMapUriPermission(uint32_t tokenId)
 ErrCode UriPermissionManagerStubImpl::RevokeAllUriPermissions(uint32_t tokenId, int32_t& funcResult)
 {
     TAG_LOGI(AAFwkTag::URIPERMMGR, "RevokeAllUriPermissions, tokenId:%{public}u", tokenId);
-    if (!UPMSUtils::IsFoundationCall()) {
+    if (!FUDUtils::IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "No permission to revoke all uri permission");
         funcResult = CHECK_PERMISSION_FAILED;
         return ERR_OK;
@@ -947,7 +947,7 @@ ErrCode UriPermissionManagerStubImpl::RevokeAllUriPermissions(uint32_t tokenId, 
 int32_t UriPermissionManagerStubImpl::RevokeAllMapUriPermissions(uint32_t tokenId)
 {
     std::string callerAuthority = "";
-    UPMSUtils::GetAlterableBundleNameByTokenId(tokenId, callerAuthority);
+    FUDUtils::GetAlterableBundleNameByTokenId(tokenId, callerAuthority);
     std::map<uint32_t, std::vector<std::string>> uriLists;
     {
         std::lock_guard<std::mutex> guard(mutex_);
@@ -993,19 +993,19 @@ ErrCode UriPermissionManagerStubImpl::RevokeUriPermissionManually(const Uri& uri
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::URIPERMMGR, "uri:%{private}s, bundleName:%{public}s, appIndex:%{public}d",
         uri.ToString().c_str(), bundleName.c_str(), appIndex);
-    if (!UPMSUtils::IsSAOrSystemAppCall()) {
+    if (!FUDUtils::IsSAOrSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not SA/SystemApp");
         funcResult = CHECK_PERMISSION_FAILED;
         return ERR_OK;
     }
     auto uriInner = uri;
-    if (!UPMSUtils::CheckUriTypeIsValid(uriInner)) {
+    if (!FUDUtils::CheckUriTypeIsValid(uriInner)) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "CheckUriType failed, uri:%{private}s", uri.ToString().c_str());
         funcResult = ERR_CODE_INVALID_URI_TYPE;
         return ERR_OK;
     }
     uint32_t targetTokenId = 0;
-    auto ret = UPMSUtils::GetTokenIdByBundleName(bundleName, appIndex, targetTokenId);
+    auto ret = FUDUtils::GetTokenIdByBundleName(bundleName, appIndex, targetTokenId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "get tokenId by bundleName fail");
         funcResult = ret;
@@ -1022,7 +1022,7 @@ int32_t UriPermissionManagerStubImpl::RevokeUriPermissionManuallyInner(Uri &uri,
     TAG_LOGI(AAFwkTag::URIPERMMGR, "callerTokenId: %{public}u, targetTokenId:%{public}u",
         callerTokenId, targetTokenId);
 
-    if (UPMSUtils::IsDocsCloudUri(uri)) {
+    if (FUDUtils::IsDocsCloudUri(uri)) {
         return RevokeMapUriPermissionManually(callerTokenId, targetTokenId, uri);
     }
     if (uri.GetAuthority() == "media") {
@@ -1039,7 +1039,7 @@ int32_t UriPermissionManagerStubImpl::RevokeMapUriPermissionManually(uint32_t ca
     auto uriAuthority = uri.GetAuthority();
     // uri belong to caller or caller is target.
     std::string callerAuthority = "";
-    UPMSUtils::GetAlterableBundleNameByTokenId(callerTokenId, callerAuthority);
+    FUDUtils::GetAlterableBundleNameByTokenId(callerTokenId, callerAuthority);
     bool isRevokeSelfUri = (callerTokenId == targetTokenId || callerAuthority == uriAuthority);
     std::vector<std::string> uriList;
     {

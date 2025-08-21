@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "uri_permission_utils.h"
+#include "file_uri_distribution_utils.h"
 
 #include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
@@ -35,7 +35,7 @@ constexpr int32_t FOUNDATION_UID = 5523;
 constexpr const char* NET_WORK_ID_MARK = "?networkid=";
 }
 
-std::shared_ptr<AppExecFwk::BundleMgrHelper> UPMSUtils::ConnectManagerHelper()
+std::shared_ptr<AppExecFwk::BundleMgrHelper> FUDUtils::ConnectManagerHelper()
 {
     if (bundleMgrHelper_ == nullptr) {
         bundleMgrHelper_ = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
@@ -43,7 +43,7 @@ std::shared_ptr<AppExecFwk::BundleMgrHelper> UPMSUtils::ConnectManagerHelper()
     return bundleMgrHelper_;
 }
 
-bool UPMSUtils::SendShareUnPrivilegeUriEvent(uint32_t callerTokenId, uint32_t targetTokenId)
+bool FUDUtils::SendShareUnPrivilegeUriEvent(uint32_t callerTokenId, uint32_t targetTokenId)
 {
     std::string callerBundleName;
     if (!GetBundleNameByTokenId(callerTokenId, callerBundleName)) {
@@ -61,7 +61,7 @@ bool UPMSUtils::SendShareUnPrivilegeUriEvent(uint32_t callerTokenId, uint32_t ta
     return true;
 }
 
-bool UPMSUtils::SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
+bool FUDUtils::SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
     const std::vector<std::string> &uriVec, const std::vector<bool> &resVec)
 {
     TAG_LOGD(AAFwkTag::URIPERMMGR, "send grant uri permission event start.");
@@ -81,7 +81,7 @@ bool UPMSUtils::SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uin
     return false;
 }
 
-bool UPMSUtils::CheckAndCreateEventInfo(uint32_t callerTokenId, uint32_t targetTokenId,
+bool FUDUtils::CheckAndCreateEventInfo(uint32_t callerTokenId, uint32_t targetTokenId,
     EventInfo &eventInfo)
 {
     std::string callerBundleName;
@@ -107,7 +107,7 @@ bool UPMSUtils::CheckAndCreateEventInfo(uint32_t callerTokenId, uint32_t targetT
     return true;
 }
 
-int32_t UPMSUtils::GetCurrentAccountId()
+int32_t FUDUtils::GetCurrentAccountId()
 {
     std::vector<int32_t> osActiveAccountIds;
     auto ret = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
@@ -124,23 +124,23 @@ int32_t UPMSUtils::GetCurrentAccountId()
     return osActiveAccountIds.front();
 }
 
-bool UPMSUtils::IsFoundationCall()
+bool FUDUtils::IsFoundationCall()
 {
     return IPCSkeleton::GetCallingUid() == FOUNDATION_UID;
 }
 
-bool UPMSUtils::IsSAOrSystemAppCall()
+bool FUDUtils::IsSAOrSystemAppCall()
 {
     return PermissionVerification::GetInstance()->IsSystemAppCall() ||
         PermissionVerification::GetInstance()->IsSACall();
 }
 
-bool UPMSUtils::IsSystemAppCall()
+bool FUDUtils::IsSystemAppCall()
 {
     return PermissionVerification::GetInstance()->IsSystemAppCall();
 }
 
-bool UPMSUtils::CheckIsSystemAppByBundleName(std::string &bundleName)
+bool FUDUtils::CheckIsSystemAppByBundleName(std::string &bundleName)
 {
     auto bundleMgrHelper = ConnectManagerHelper();
     if (bundleMgrHelper == nullptr) {
@@ -159,7 +159,7 @@ bool UPMSUtils::CheckIsSystemAppByBundleName(std::string &bundleName)
     return isSystemApp;
 }
 
-bool UPMSUtils::GetBundleApiTargetVersion(const std::string &bundleName, int32_t &targetApiVersion)
+bool FUDUtils::GetBundleApiTargetVersion(const std::string &bundleName, int32_t &targetApiVersion)
 {
     auto bundleMgrHelper = ConnectManagerHelper();
     if (bundleMgrHelper == nullptr) {
@@ -176,7 +176,7 @@ bool UPMSUtils::GetBundleApiTargetVersion(const std::string &bundleName, int32_t
     return true;
 }
 
-bool UPMSUtils::CheckIsSystemAppByTokenId(uint32_t tokenId)
+bool FUDUtils::CheckIsSystemAppByTokenId(uint32_t tokenId)
 {
     std::string bundleName;
     if (GetBundleNameByTokenId(tokenId, bundleName)) {
@@ -185,7 +185,7 @@ bool UPMSUtils::CheckIsSystemAppByTokenId(uint32_t tokenId)
     return false;
 }
 
-bool UPMSUtils::GetDirByBundleNameAndAppIndex(const std::string &bundleName, int32_t appIndex, std::string &dirName)
+bool FUDUtils::GetDirByBundleNameAndAppIndex(const std::string &bundleName, int32_t appIndex, std::string &dirName)
 {
     auto bmsClient = DelayedSingleton<AppExecFwk::BundleMgrClient>::GetInstance();
     if (bmsClient == nullptr) {
@@ -200,7 +200,7 @@ bool UPMSUtils::GetDirByBundleNameAndAppIndex(const std::string &bundleName, int
     return true;
 }
 
-bool UPMSUtils::GetAlterableBundleNameByTokenId(uint32_t tokenId, std::string &bundleName)
+bool FUDUtils::GetAlterableBundleNameByTokenId(uint32_t tokenId, std::string &bundleName)
 {
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
     if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
@@ -215,7 +215,7 @@ bool UPMSUtils::GetAlterableBundleNameByTokenId(uint32_t tokenId, std::string &b
     return false;
 }
 
-bool UPMSUtils::GetBundleNameByTokenId(uint32_t tokenId, std::string &bundleName)
+bool FUDUtils::GetBundleNameByTokenId(uint32_t tokenId, std::string &bundleName)
 {
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
     if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
@@ -231,7 +231,7 @@ bool UPMSUtils::GetBundleNameByTokenId(uint32_t tokenId, std::string &bundleName
     return false;
 }
 
-int32_t UPMSUtils::GetAppIdByBundleName(const std::string &bundleName, std::string &appId)
+int32_t FUDUtils::GetAppIdByBundleName(const std::string &bundleName, std::string &appId)
 {
     TAG_LOGD(AAFwkTag::URIPERMMGR, "BundleName is %{public}s.", bundleName.c_str());
     auto bms = ConnectManagerHelper();
@@ -248,7 +248,7 @@ int32_t UPMSUtils::GetAppIdByBundleName(const std::string &bundleName, std::stri
     return ERR_OK;
 }
 
-int32_t UPMSUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t appIndex, uint32_t &tokenId)
+int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t appIndex, uint32_t &tokenId)
 {
     TAG_LOGD(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, appIndex:%{public}d", bundleName.c_str(), appIndex);
     auto bms = ConnectManagerHelper();
@@ -284,7 +284,7 @@ int32_t UPMSUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t
     return ERR_OK;
 }
 
-bool UPMSUtils::CheckUriTypeIsValid(Uri &uri)
+bool FUDUtils::CheckUriTypeIsValid(Uri &uri)
 {
     auto &&scheme = uri.GetScheme();
     if (scheme != "file" && scheme != "content") {
@@ -294,11 +294,11 @@ bool UPMSUtils::CheckUriTypeIsValid(Uri &uri)
     return true;
 }
 
-bool UPMSUtils::IsDocsCloudUri(Uri &uri)
+bool FUDUtils::IsDocsCloudUri(Uri &uri)
 {
     return (uri.GetAuthority() == "docs" && uri.ToString().find(NET_WORK_ID_MARK) != std::string::npos);
 }
 
-std::shared_ptr<AppExecFwk::BundleMgrHelper> UPMSUtils::bundleMgrHelper_ = nullptr;
+std::shared_ptr<AppExecFwk::BundleMgrHelper> FUDUtils::bundleMgrHelper_ = nullptr;
 }  // namespace AAFwk
 }  // namespace OHOS
