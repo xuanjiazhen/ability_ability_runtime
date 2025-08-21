@@ -29,7 +29,7 @@ export default function ActsAcewebViewSetWebDestroyMode() {
       
     beforeAll(async (done: Function) => {
         let options : router.RouterOptions = {
-            url: 'testability/pages/webViewSetWebDestroyMode',
+            url: 'testability/pages/WebViewSetWebDestroyMode',
         }
         
         try {
