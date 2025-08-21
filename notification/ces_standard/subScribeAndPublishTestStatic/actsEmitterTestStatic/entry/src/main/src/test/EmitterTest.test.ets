@@ -675,7 +675,7 @@ export default function EmitterTest() {
      * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_Static_1600
      * @tc.desc      : emitter.on(''),emitter.emit(''),emitter.off('')
      */
-    //问题单号：DTS2025060627133
+    
     // it('SUB_NOTIFICATION_CES_EMITTER_TEST_Static_1600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
     //   async (done: () => void): Promise<void> => {
     //     let TAG: string = 'SUB_NOTIFICATION_CES_EMITTER_TEST_Static_1600'
@@ -904,7 +904,7 @@ export default function EmitterTest() {
      * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2200
      * @tc.desc      : emitter.getListenerCount('23')
      */
-     //问题单号：DTS2025060711369
+     
     it('SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
         let TAG: string = 'SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2200'
@@ -929,7 +929,7 @@ export default function EmitterTest() {
      * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2300
      * @tc.desc      : emitter.EventPriority.IMMEDIATE
      */
-     //问题单号：DTS2025060711369
+     
     it('SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
         let TAG: string = 'SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2300'
@@ -1009,7 +1009,7 @@ export default function EmitterTest() {
      * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2600
      * @tc.desc      : Register three identical string ID
      */
-     //问题单号：DTS2025060711369
+     
     it('SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
         let TAG: string = 'SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2600'
@@ -1039,7 +1039,7 @@ export default function EmitterTest() {
      * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2700
      * @tc.desc      : Register three different string ID
      */
-     //问题单号：DTS2025060711369
+     
     it('SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
         let TAG: string = 'SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2700'
@@ -1069,7 +1069,7 @@ export default function EmitterTest() {
      * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2800
      * @tc.desc      : emitter.EventPriority.IMMEDIATE
      */
-     //问题单号：DTS2025060711369
+     
     it('SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
 
@@ -1133,7 +1133,7 @@ export default function EmitterTest() {
      * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2900
      * @tc.desc      : emitter.EventPriority.IMMEDIATE
      */
-     //问题单号：DTS2025060711369
+     
     it('SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
         console.info(` SUB_NOTIFICATION_CES_EMITTER_TEST_Static_2900 START`)
@@ -1211,7 +1211,7 @@ export default function EmitterTest() {
     //  * @tc.name      : verify on : getListenerCount(eventId: number|string): number
     //  * @tc.desc      : priority: emitter.EventPriority.HIGH
     //  */
-    //问题单号：DTS2025060627133
+    
     // it('SUB_NOTIFICATION_CES_EMITTER_TEST_3000', Level.LEVEL2, async function (done) {
     //   console.info(`${TAG} SUB_NOTIFICATION_CES_EMITTER_TEST_3100 START`)
     //   let options = {
@@ -1231,7 +1231,7 @@ export default function EmitterTest() {
     //  * @tc.name      : verify on : getListenerCount(eventId: number|string): number
     //  * @tc.desc      : priority: emitter.EventPriority.HIGH
     //  */
-    //问题单号：DTS2025060627133
+    
     // it('SUB_NOTIFICATION_CES_EMITTER_TEST_3100', Level.LEVEL2, async function (done) {
     //   console.info(`${TAG} SUB_NOTIFICATION_CES_EMITTER_TEST_3100 START`)
     //   let options = {
@@ -1251,7 +1251,7 @@ export default function EmitterTest() {
     //  * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_3200
     //  * @tc.desc      : The parameter op in Emit is empty
     //  */
-    //问题单号：DTS2025060627133
+    
     // it('SUB_NOTIFICATION_CES_EMITTER_TEST_3200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: () => void): Promise<void> =>  {
     //   console.info(`${TAG} SUB_NOTIFICATION_CES_EMITTER_TEST_3200 START`)
     //   eventData.data.id = '32'
@@ -1299,7 +1299,7 @@ export default function EmitterTest() {
      * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_Static_3400
      * @tc.desc      : Emit and GetListenerCount type is string
      */
-     //问题单号：DTS2025060711369
+     
     it('SUB_NOTIFICATION_CES_EMITTER_TEST_Static_3400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
         console.info(`SUB_NOTIFICATION_CES_EMITTER_TEST_Static_3400 START`)
@@ -1326,7 +1326,7 @@ export default function EmitterTest() {
      * @tc.name      : SUB_NOTIFICATION_CES_EMITTER_TEST_Static_3500
      * @tc.desc      : emitter.EventPriority.IMMEDIATE
      */
-     //问题单号：DTS2025060711369
+     
     it('SUB_NOTIFICATION_CES_EMITTER_TEST_Static_3500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
         console.info(`${tag} SUB_NOTIFICATION_CES_EMITTER_TEST_Static_3500 START`)
@@ -1410,7 +1410,7 @@ export default function EmitterTest() {
     //  * @tc.name      : verify on : emit(eventId: string, options: Options, data?: EventData): void
     //  * @tc.desc      : emitter.EventPriority.IMMEDIATE
     //  */
-    //问题单号：DTS2025060627133
+    
     // it('SUB_NOTIFICATION_CES_EMITTER_TEST_3700', Level.LEVEL2, async function (done) {
     //   console.info(`${TAG} SUB_NOTIFICATION_CES_EMITTER_TEST_3700 START`)
     //   innerEvent.eventId = 37

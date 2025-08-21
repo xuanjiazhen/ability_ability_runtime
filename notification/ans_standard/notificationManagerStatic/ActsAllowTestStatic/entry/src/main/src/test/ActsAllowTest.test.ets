@@ -126,7 +126,6 @@ export default function ActsAllowTest() {
     * @tc.type      : Function test
     * @tc.level     : Level 0
     */
-    //需求编号：SR20250614428652
     it('Sub_Notification_Ans_Publish_updateOnly_Static_0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
         let TAG: string ='Sub_Notification_Ans_Publish_updateOnly_Static_0003'

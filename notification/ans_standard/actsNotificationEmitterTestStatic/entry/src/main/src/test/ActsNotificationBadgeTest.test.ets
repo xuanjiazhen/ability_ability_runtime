@@ -315,7 +315,7 @@ export default function ActsNotificationEmitterTest() {
      * @tc.type   : Interface
      * @tc.level  : Level 3
      */
-    //问题单号：DTS2025060711369
+    
     it('Sub_Notification_Emitter_Subscribe_Capabilities_Static_7300',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: () => void): Promise<void> => {
         const TEST_CASE_NAME: string = 'Sub_Notification_Emitter_Subscribe_Capabilities_Static_7300';
@@ -532,7 +532,7 @@ export default function ActsNotificationEmitterTest() {
      * @tc.type   : Interface
      * @tc.level  : Level 3
      */
-    //问题单号：DTS2025060711369
+    
     it('Sub_Notification_Emitter_Subscribe_Capabilities_Static_8700',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: () => void): Promise<void> => {
         const TEST_CASE_NAME: string = 'Sub_Notification_Emitter_Subscribe_Capabilities_Static_8700';
@@ -1254,7 +1254,7 @@ export default function ActsNotificationEmitterTest() {
         done();
       })
 
-    //DTS2025060627133
+    
     /*
      * @tc.number : Sub_Notification_Emitter_Subscribe_Capabilities_Static_0800
      * @tc.name   : Sub_Notification_Emitter_Subscribe_Capabilities_Static_0800
@@ -1465,7 +1465,7 @@ export default function ActsNotificationEmitterTest() {
         done();
       })
 
-    //DTS2025060627133
+    
     /*
      * @tc.number : Sub_Notification_Emitter_Subscribe_Capabilities_Static_3200
      * @tc.name   : Sub_Notification_Emitter_Subscribe_Capabilities_Static_3200
@@ -2462,7 +2462,7 @@ export default function ActsNotificationEmitterTest() {
         done();
       })
 
-    //DTS2025060627133
+    
     /*
      * @tc.number : Sub_Notification_Emitter_Subscribe_Capabilities_Static_6700
      * @tc.name   : Sub_Notification_Emitter_Subscribe_Capabilities_Static_6700
