@@ -80,24 +80,6 @@ static int32_t GetCaseNum(napi_env &env, napi_callback_info &info)
     return caseNum;
 }
 
-static napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info info)
-{
-    OH_LOG_DEBUG(LOG_APP, "NativeArkWebLoadDataInitError start..");
-    napi_value result;
-    // ARKWEB_INIT_ERROR
-    const char *webTag = "new";
-    const char *data = "/index";
-    const char *mimeType = "text/html";
-    const char *encoding = "UTF-8";
-    const char *baseUrl = "www.baidu.com";
-    const char *historyUrl = "";
-    ArkWeb_ErrorCode errCode = OH_NativeArkWeb_LoadData(webTag, data, mimeType, encoding, baseUrl, historyUrl);
-
-    napi_create_int32(env, errCode, &result);
-    OH_LOG_DEBUG(LOG_APP, "NativeArkWebLoadDataInitError end..");
-    return result;
-}
-
 static napi_value loadData(napi_env env, napi_callback_info info)
 {
     char webName[MAX_WEB_NAME_SIZE] = {0};
@@ -109,19 +91,37 @@ static napi_value loadData(napi_env env, napi_callback_info info)
     switch (caseNum) {
         case CASE_NUM_0:
             // ARKWEB_SUCCESS
-            ret = OH_NativeArkWeb_LoadData(webName, "", "", "", "www.baidu.com", "");
+            ret = OH_NativeArkWeb_LoadData(webName, "/index", "text/html", "UTF-8", "www.baidu.com", "");
             break;
         case CASE_NUM_1:
-            ret = OH_NativeArkWeb_LoadData(webName, "", "text/html", "UTF-8", nullptr, "");
-            ret = ARKWEB_LIBRARY_SYMBOL_NOT_FOUND;
+            ret = OH_NativeArkWeb_LoadData("new", "/index", "text/html", "UTF-8", "www.baidu.com", "");
             break;
         case CASE_NUM_2:
             try {
-                ret = OH_NativeArkWeb_LoadData(webName, "", "", "", "www.baidu.com", "");
-                ret = ARKWEB_INVALID_PARAM;
+                ret = OH_NativeArkWeb_LoadData(webName, "", "text/html", "UTF-8", "www.baidu.com", "");
             } catch (std::exception &err) {
-                OH_LOG_ERROR(LOG_APP, "nullptr error:%{public}s", err.what());
-                ret = ARKWEB_INVALID_PARAM;
+                OH_LOG_ERROR(LOG_APP, "loadData 2 error:%{public}s", err.what());
+            }
+            break;
+        case CASE_NUM_3:
+            try {
+                ret = OH_NativeArkWeb_LoadData(webName, "/index", "", "UTF-8", "www.baidu.com", "");
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "loadData 3 error:%{public}s", err.what());
+            }
+            break;
+        case CASE_NUM_4:
+            try {
+                ret = OH_NativeArkWeb_LoadData(webName, "/index", "text/html", "", "www.baidu.com", "");
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "loadData 4 error:%{public}s", err.what());
+            }
+            break;
+        case CASE_NUM_5:
+            try {
+                ret = OH_NativeArkWeb_LoadData(webName, "", "", nullptr, "www.baidu.com", "");
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "loadData 5 error:%{public}s", err.what());
             }
             break;
         default:
@@ -155,7 +155,6 @@ static napi_value GetBlanklessInfo(napi_env env, napi_callback_info info)
                 retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey("", "0731");
             } catch (std::exception &err) {
                 OH_LOG_ERROR(LOG_APP, "nullptr error:%{public}s", err.what());
-                retInfo.errCode = ARKWEB_BLANKLESS_ERR_INVALID_ARGS;
             }
             break;
         default:
@@ -961,8 +960,6 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"NativeArkWebLoadDataInitError", nullptr, NativeArkWebLoadDataInitError, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
         {"loadData", nullptr, loadData, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"GetBlanklessInfo", nullptr, GetBlanklessInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"SetBlanklessInfo", nullptr, SetBlanklessInfo, nullptr, nullptr, nullptr, napi_default, nullptr},

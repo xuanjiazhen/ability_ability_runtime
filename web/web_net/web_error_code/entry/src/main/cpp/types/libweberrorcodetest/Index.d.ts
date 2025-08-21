@@ -39,7 +39,6 @@ export const webNativeCookieManger: () => number;
 export const webNativeJavaScriptValue: () => number;
 export const webArkWebNetError: (errName: string) => number;
 export const webRegisterCustomSchemes: (errName: string) => number;
-export const NativeArkWebLoadDataInitError: () => number;
 export const loadData: (webName: string, caseNum: number) => number;
 export const GetBlanklessInfo: (webName: string, caseNum: number) => number;
 export const SetBlanklessInfo: (webName: string, caseNum: number) => number;

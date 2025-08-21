@@ -44,26 +44,6 @@ export default function NativeInterfaceTest() {
 
     /**
      * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0100
-     * @tc.name    : testWebNapiLoadDataNotInit
-     * @tc.desc    : test OH_NativeArkWeb_LoadData() not init
-     * @tc.level   : Level2
-     * @tc.size    : SMALLTEST
-     * @tc.type    : Function
-     */
-    it('testWebNapiLoadDataNotInit', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>testWebNapiLoadDataNotInit start====");
-        let result: number = nativeInterface.NativeArkWebLoadDataInitError();
-        console.info("====>testWebNapiLoadDataNotInit result====", result);
-        expect(result).assertEqual(TEST_ARKWEB_INIT_ERROR);
-        done();
-      } catch (err) {
-        console.error("====>testWebNapiLoadDataNotInit catch err: " + err);
-      }
-    })
-
-    /**
-     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0200
      * @tc.name    : testWebNapiLoadDataSuccess
      * @tc.desc    : test OH_NativeArkWeb_LoadData() SUCCESS
      * @tc.level   : Level2
@@ -84,48 +64,90 @@ export default function NativeInterfaceTest() {
     })
 
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0300
-     * @tc.name    : testWebNapiLoadDataSymbolNotFound
-     * @tc.desc    : test OH_NativeArkWeb_LoadData() ARKWEB_LIBRARY_SYMBOL_NOT_FOUND
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0200
+     * @tc.name    : testWebNapiLoadDataNotInit
+     * @tc.desc    : test OH_NativeArkWeb_LoadData() not init
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('testWebNapiLoadDataSymbolNotFound', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
-      async (done: Function) => {
+    it('testWebNapiLoadDataNotInit', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
       try {
-        console.info("====>testWebNapiLoadDataSymbolNotFound start====");
+        console.info("====>testWebNapiLoadDataNotInit start====");
         let result: number = nativeInterface.loadData("web1211", 1);
-        console.info("====>testWebNapiLoadDataSymbolNotFound result====", result);
-        // expect(result).assertEqual(TEST_ARKWEB_LIBRARY_SYMBOL_NOT_FOUND);
-        console.info("====>testWebNapiLoadDataSymbolNotFound stop====");
+        console.info("====>testWebNapiLoadDataNotInit result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_INIT_ERROR);
         done();
       } catch (err) {
-        console.error("====>testWebNapiLoadDataSymbolNotFound catch err: " + err);
+        console.error("====>testWebNapiLoadDataNotInit catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0300
+     * @tc.name    : testWebNapiLoadDataNoData
+     * @tc.desc    : test OH_NativeArkWeb_LoadData()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiLoadDataNoData', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+      try {
+        console.info("====>testWebNapiLoadDataNoData start====");
+        let result: number = nativeInterface.loadData("web1211", 2);
+        console.info("====>testWebNapiLoadDataNoData result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_SUCCESS);
+        console.info("====>testWebNapiLoadDataNoData stop====");
+        done();
+      } catch (err) {
+        console.error("====>testWebNapiLoadDataNoData catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0400
-     * @tc.name    : testWebNapiLoadDataInvalidParam
-     * @tc.desc    : test OH_NativeArkWeb_LoadData() ARKWEB_INVALID_PARAM
+     * @tc.name    : testWebNapiLoadDataNoType
+     * @tc.desc    : test OH_NativeArkWeb_LoadData()
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('testWebNapiLoadDataInvalidParam', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiLoadDataNoType', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
-      try {
-        console.info("====>testWebNapiLoadDataInvalidParam start====");
-        let result: number = nativeInterface.loadData("web1211", 2);
-        console.info("====>testWebNapiLoadDataInvalidParam result====", result);
-        expect(result).assertEqual(TEST_ARKWEB_INVALID_PARAM);
-        console.info("====>testWebNapiLoadDataInvalidParam stop====");
-        done();
-      } catch (err) {
-        console.error("====>testWebNapiLoadDataInvalidParam catch err: " + err);
-      }
-    })
+        try {
+          console.info("====>testWebNapiLoadDataNoType start====");
+          let result: number = nativeInterface.loadData("web1211", 3);
+          console.info("====>testWebNapiLoadDataNoType result====", result);
+          expect(result).assertEqual(TEST_ARKWEB_SUCCESS);
+          console.info("====>testWebNapiLoadDataNoType stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiLoadDataNoType catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0500
+     * @tc.name    : testWebNapiLoadDataNoEncode
+     * @tc.desc    : test OH_NativeArkWeb_LoadData()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiLoadDataNoEncode', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiLoadDataNoEncode start====");
+          let result: number = nativeInterface.loadData("web1211", 4);
+          console.info("====>testWebNapiLoadDataNoEncode result====", result);
+          expect(result).assertEqual(TEST_ARKWEB_SUCCESS);
+          console.info("====>testWebNapiLoadDataNoEncode stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiLoadDataNoType catch err: " + err);
+        }
+      })
 
     /**
      * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0100
