@@ -46,4 +46,6 @@ napi_value Smpte2086MaxLum(napi_env env, napi_callback_info info);
 napi_value Smpte2086MinLum(napi_env env, napi_callback_info info);
 napi_value Cta861MaxContentLightLevel(napi_env env, napi_callback_info info);
 napi_value Cta861MaxFrameAverageLightLevel(napi_env env, napi_callback_info info);
+napi_value smpte2086(napi_env env, napi_callback_info info);
+napi_value cta861(napi_env env, napi_callback_info info);
 #endif //GRAPHICS2DTESTAPI20_NATIVEBUFFERCOLORSPACETEST_H

@@ -28,6 +28,10 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"requestFrameInvalue", nullptr, OH_NativeVSync_RequestFrameInvalue,
         nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"NativeVSyncDVSyncSwitchSuccess", nullptr, OH_NativeVSync_DVSyncSwitchSuccess,
+        nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"NativeVSyncDVSyncSwitchInvalue", nullptr, OH_NativeVSync_DVSyncSwitchInvalue,
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceIsValidTrue", nullptr, OH_NativeFence_IsValidTrue,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceIsValidFalse", nullptr, OH_NativeFence_IsValidFalse,
@@ -43,6 +47,10 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"fenceCloseTrue", nullptr, OH_NativeFence_CloseTrue,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceCloseFalse", nullptr, OH_NativeFence_CloseFalse,
+        nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"setExpectedFrameRateRangeSuccess", nullptr, OH_NativeVSync_SetExpectedFrameRateRangeSuccess,
+        nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"setExpectedFrameRateRangeNull", nullptr, OH_NativeVSync_SetExpectedFrameRateRangeNull,
         nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
@@ -64,6 +72,25 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     OH_NativeVSync_FrameCallback callback = [](long long timestamp, void *data) {};
     void* data = nullptr;
     int32_t res = OH_NativeVSync_RequestFrame(nativeVsync, callback, data);
+    napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
+    return result;
+}
+
+ napi_value OH_NativeVSync_DVSyncSwitchSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    OH_NativeVSync* nativeVsync = OH_NativeVSync_Create("Test", 4);
+    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void *data) {};
+    void* data = nullptr;
+    int32_t res = OH_NativeVSync_DVSyncSwitch(nativeVsync, true);
+    napi_create_int32(env, res == NATIVE_ERROR_OK, &result);
+    return result;
+}
+ napi_value OH_NativeVSync_DVSyncSwitchInvalue(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    OH_NativeVSync* nativeVsync = nullptr;
+    int32_t res = OH_NativeVSync_DVSyncSwitch(nativeVsync, true);
     napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
 }
@@ -143,5 +170,26 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     uint32_t TIMEOUT_MS = 1000;
     OH_NativeFence_Close(fenceFd);
     napi_create_int32(env, true, &result);
+    return result;
+}
+ napi_value OH_NativeVSync_SetExpectedFrameRateRangeSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    int32_t fenceFd = -1;
+    char name[] = "test";
+    OH_NativeVSync* nativeVsync = OH_NativeVSync_Create(name, sizeof(name));
+    OH_NativeVSync_ExpectedRateRange range = {30, 60, 30};
+    int res = OH_NativeVSync_SetExpectedFrameRateRange(nativeVsync, &range);
+    napi_create_int32(env, res == NATIVE_ERROR_OK, &result);
+    return result;
+}
+ napi_value OH_NativeVSync_SetExpectedFrameRateRangeNull(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    int32_t fenceFd = -1;
+    OH_NativeVSync* nativeVsync = nullptr;
+    OH_NativeVSync_ExpectedRateRange* range = nullptr;
+    int res = OH_NativeVSync_SetExpectedFrameRateRange(nativeVsync, range);
+    napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
 }

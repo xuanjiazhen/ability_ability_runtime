@@ -35,7 +35,6 @@ export default function EffectTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Filter_CreateEffect_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -57,7 +56,6 @@ export default function EffectTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Filter_Release_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -79,10 +77,28 @@ export default function EffectTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Filter_BlurWithTileMode_0100 catch err: " + err);
-          done();
         }
       })
-
+    /**
+     * @tc.number  : SUB_OH_Filter_BlurWithTileMode_0200
+     * @tc.name    : SUB_OH_Filter_BlurWithTileMode_0200
+     * @tc.desc    : test SUB_OH_Filter_BlurWithTileMode fail Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_Filter_BlurWithTileMode_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_Filter_BlurWithTileMode_0200 start====");
+          let result: number = libGraphics2DApi20.blurWithTileModeFail();
+          console.info("====>SUB_OH_Filter_BlurWithTileMode_0200 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_Filter_BlurWithTileMode_0200 catch err: " + err);
+        }
+      })
     /**
      * @tc.number  : SUB_OH_Filter_GetEffectPixelMap_0200
      * @tc.name    : SUB_OH_Filter_GetEffectPixelMap_0200
@@ -101,7 +117,6 @@ export default function EffectTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_Filter_GetEffectPixelMap_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -123,7 +138,6 @@ export default function EffectTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeImage_GetTransformMatrixV2_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -145,7 +159,6 @@ export default function EffectTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeImage_AcquireNativeWindowBuffer_0100 catch err: " + err);
-          done();
         }
       })
     /**
@@ -166,7 +179,6 @@ export default function EffectTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeImage_AcquireNativeWindowBuffer_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -188,7 +200,6 @@ export default function EffectTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeImage_ReleaseNativeWindowBuffer_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -210,7 +221,6 @@ export default function EffectTest() {
           done();
         } catch (err) {
           console.error("====>SUB_OH_NativeImage_SetDropBufferMode_0100 catch err: " + err);
-          done();
         }
       })
   })

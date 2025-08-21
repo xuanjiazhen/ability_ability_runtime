@@ -34,5 +34,17 @@ napi_value OH_Drawing_RunBufferClustersSuccess(napi_env env, napi_callback_info 
 napi_value OH_Drawing_SystemFontTypeSuccess(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_TextUndefinedGlyphDisplayDEFAULT(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_TextUndefinedGlyphDisplayTOFU(napi_env env, napi_callback_info info);
-
+napi_value BufferHandleSuccess(napi_env env, napi_callback_info info);
+napi_value BufferHandleWidth(napi_env env, napi_callback_info info);
+napi_value BufferHandleStride(napi_env env, napi_callback_info info);
+napi_value BufferHandleHeight(napi_env env, napi_callback_info info);
+napi_value BufferHandleFormat(napi_env env, napi_callback_info info);
+napi_value BufferHandleUsage(napi_env env, napi_callback_info info);
+napi_value BufferHandleKey(napi_env env, napi_callback_info info);
+napi_value BufferHandlePhyAddr(napi_env env, napi_callback_info info);
+napi_value BufferHandleReserveFds(napi_env env, napi_callback_info info);
+napi_value BufferHandleReserveInts(napi_env env, napi_callback_info info);
+napi_value BufferHandleReserve(napi_env env, napi_callback_info info);
+napi_value OH_NativeBuffer_PlanesSuccess(napi_env env, napi_callback_info info);
+napi_value OH_NativeBuffer_PlanesSuccess2(napi_env env, napi_callback_info info);
 #endif //BUFFER_TEXT_TEST_H

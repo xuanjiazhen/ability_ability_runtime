@@ -47,6 +47,10 @@ void addNativeBufferTest1(std::vector<napi_property_descriptor>& descData)
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeBufferDISPLAYP3SRGB", nullptr, testNativeBufferDISPLAYP3SRGB,
             nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"smpte2086", nullptr, smpte2086,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"cta861", nullptr, cta861,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 void addNativeBufferTest(std::vector<napi_property_descriptor>& descData)
 {

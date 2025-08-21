@@ -23,6 +23,7 @@ import NativeBufferColorSpaceTest from './NativeBufferTest.test'
 import ExternalWindowTest from './ExternalWindowTest.test'
 import ErrorCodeTest from './ErrorCodeTest.test.ets'
 import VSyncFenceTest from './VSyncFenceTest.test.ets'
+import EffectShareTest from './EffectShareTest.test.ets'
 export default function testsuite() {
   BrushPointRecordTest()
   CanvasPenTest()
@@ -34,4 +35,5 @@ export default function testsuite() {
   ExternalWindowTest()
   ErrorCodeTest()
   VSyncFenceTest()
+  EffectShareTest()
 }

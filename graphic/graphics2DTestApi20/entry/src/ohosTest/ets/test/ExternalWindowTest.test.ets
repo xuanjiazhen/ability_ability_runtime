@@ -12,20 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 import { describe, it, expect, TestType, Size, Level } from '@ohos/hypium'
 import libGraphics2DApi20 from 'libgraphicsApiNdk.so'
 const Success = 0;
@@ -51,7 +37,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_ScalingModeToWindow_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -73,7 +58,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_ScalingModeCrop_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -95,7 +79,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_ScalingModeNoCrop_0300 catch err: " + err);
-          done();
         }
       })
 
@@ -117,7 +100,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyRedPrimaryY_0400 catch err: " + err);
-          done();
         }
       })
 
@@ -139,7 +121,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyGreenPrimaryX_0500 catch err: " + err);
-          done();
         }
       })
 
@@ -161,7 +142,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyGreenPrimary_0600 catch err: " + err);
-          done();
         }
       })
 
@@ -183,7 +163,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyBluePrimaryX_0700 catch err: " + err);
-          done();
         }
       })
 
@@ -205,7 +184,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyBluePrimaryY_0800 catch err: " + err);
-          done();
         }
       })
 
@@ -227,7 +205,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyWhitePrimaryX_0900 catch err: " + err);
-          done();
         }
       })
 
@@ -249,7 +226,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyWhitePrimaryY_1000 catch err: " + err);
-          done();
         }
       })
 
@@ -271,7 +247,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyMaxLuminance_1100 catch err: " + err);
-          done();
         }
       })
 
@@ -293,7 +268,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyMinLuminance_1200 catch err: " + err);
-          done();
         }
       })
 
@@ -315,7 +289,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyMaxContentLightLevel_1300 catch err: " + err);
-          done();
         }
       })
 
@@ -337,7 +310,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyMaxFrameAverageLightLevel_1400 catch err: " + err);
-          done();
         }
       })
 
@@ -359,7 +331,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_MetakeyHdrVivid_1500 catch err: " + err);
-          done();
         }
       })
 
@@ -381,7 +352,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_NativeWindowWTParcelSuccess_1600 catch err: " + err);
-          done();
         }
       })
 
@@ -403,7 +373,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_NativeWindowWTParcelInvalidArguments_1700 catch err: " + err);
-          done();
         }
       })
 
@@ -425,7 +394,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_NativeWindowRFParcelSuccess_1800 catch err: " + err);
-          done();
         }
       })
 
@@ -447,7 +415,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_NativeWindowRFParcelInvalidArguments_1900 catch err: " + err);
-          done();
         }
       })
 
@@ -469,7 +436,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_NativeWindowWindowHandleOptSetTimeOut_2000 catch err: " + err);
-          done();
         }
       })
 
@@ -491,7 +457,6 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_NativeWindowWindowHandleOptGetTimeOut_2100 catch err: " + err);
-          done();
         }
       })
   })
