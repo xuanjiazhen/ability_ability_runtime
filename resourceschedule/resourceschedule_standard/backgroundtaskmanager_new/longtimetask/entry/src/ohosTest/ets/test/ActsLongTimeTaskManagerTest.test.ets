@@ -1345,6 +1345,85 @@ export default function LongTimeTaskManagerTest() {
         hilog.info(DOMAIN, TAG, '%{public}s', '---SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_038 end---');
       })
 
+    /*
+     * @tc.number:SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039
+     * @tc.name:SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039
+     * @tc.desc:Test that the getAllTransientTasks function normal call
+     * @tc.level:Level 3
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+    it('SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        hilog.info(DOMAIN, TAG, '%{public}s', '---SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 begin---');
+
+        try {
+          wantAgent.getWantAgent(wantAgentInfo).then((want: WantAgent) => {
+            let delegator: abilityDelegatorRegistry.AbilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
+            delegator.getCurrentTopAbility().then((ability: UIAbility) => {
+              let bgModeList = ["location"]
+              let includeSuspended = true
+              
+              backgroundTaskManager.startBackgroundRunning(ability.context, bgModeList, want).then((res) => {
+                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 startBackgroundRunning promise run success.');
+                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 startBackgroundRunning promise res: %{public}s', JSON.stringify(res));
+                backgroundTaskManager.getAllContinuousTasks(ability.context, includeSuspended).then((res: backgroundTaskManager.ContinuousTaskInfo[]) => {
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. data: ` + JSON.stringify(res));
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. abilityName: ` + JSON.stringify(res[0].abilityName));
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. uid: ` + JSON.stringify(res[0].uid));
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. pid: ` + JSON.stringify(res[0].pid));
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. isFromWebView: ` + JSON.stringify(res[0].isFromWebView));
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. backgroundModes: ` + JSON.stringify(res[0].backgroundModes[0]));
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. backgroundSubModes: ` + JSON.stringify(res[0].backgroundSubModes.length));
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. wantAgentBundleName: ` + JSON.stringify(res[0].wantAgentBundleName));
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. wantAgentAbilityName: ` + JSON.stringify(res[0].wantAgentAbilityName));
+                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 succeeded. suspendState: ` + JSON.stringify(res[0].suspendState));
+
+                    let type: string = "location"
+                    expect(res[0].abilityName == "TestAbility").assertTrue();
+                    expect(res[0].uid).assertLarger(0);
+                    expect(res[0].pid).assertLarger(0);
+                    expect(res[0].isFromWebView == false).assertTrue();
+                    expect(res[0].backgroundModes[0] == type).assertTrue();
+                    expect(res[0].backgroundSubModes.length == 0).assertTrue();
+                    expect(res[0].notificationId).assertLarger(0);
+                    expect(res[0].continuousTaskId).assertLarger(0);
+                    expect(res[0].abilityId).assertLarger(0);
+                    expect(res[0].wantAgentBundleName == "com.acts.actslongtimetasktest").assertTrue();
+                    expect(res[0].wantAgentAbilityName == "com.acts.actslongtimetasktest.TestAbility").assertTrue();
+                    expect(res[0].suspendState).assertInstanceOf('Boolean');
+                }).catch((error: BusinessError) => {
+                    console.error(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation getAllContinuousTasks2 failed. code is ${error.code} message is ${error.message}`);
+                });
+                backgroundTaskManager.stopBackgroundRunning(ability.context).then(() => {
+                  console.info("SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 stopBackgroundRunning promise run success");
+                }).catch((error: BusinessError) => {
+                  console.error(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 Operation stopBackgroundRunning failed. code is ${error.code} message is ${error.message}`);
+                });
+                done();
+              }).catch((error: BusinessError) => {
+                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 startBackgroundRunning promise error: %{public}s', JSON.stringify(error));
+              })
+            }).catch((error: BusinessError) => {
+              hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 getCurrentTopAbility error: %{public}s', JSON.stringify(error));
+              expect(false).assertTrue();
+              done();
+            });
+          }).catch((error: BusinessError) => {
+            hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 getWantAgent error: %{public}s', JSON.stringify(error));
+            expect(false).assertTrue();
+            done();
+          })
+        } catch (error) {
+          let e: BusinessError = error as BusinessError;
+          hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 aa error: %{public}s', JSON.stringify(error));
+          expect(false).assertTrue();
+          done();
+        }
+
+        hilog.info(DOMAIN, TAG, '%{public}s', '---SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_039 end---');
+      })
+
   })
 }
 
