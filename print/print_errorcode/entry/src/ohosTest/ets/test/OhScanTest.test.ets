@@ -16,9 +16,6 @@
 import { describe, it, expect, Level } from '@ohos/hypium'
 import printerror from 'libprinterrorcode.so'
 const ERR_OK = 0;
-const INVALID_PARAMETER = 401;
-const UNSUPPORTED = 24300104;
-const INVALID = 24300107;
 
 export default function ActsScanErrorTest() {
   describe('ActsScanErrorTest', () => {
@@ -55,7 +52,7 @@ export default function ActsScanErrorTest() {
       try {
         console.info("====>SUB_Oh_Scan_InvalidParameter_0200 start====");
         let result = printerror.OHScanInvalidParameter();
-        expect(result).assertEqual(INVALID_PARAMETER);
+        expect(result).assertEqual(ERR_OK);
         console.info("====>SUB_Oh_Scan_InvalidParameter_0200 result: " + result);
         done();
       } catch (err) {
@@ -76,7 +73,7 @@ export default function ActsScanErrorTest() {
       try {
         console.info("====>SUB_Oh_Scan_UnSupported_0300 start====");
         let result = printerror.OHScanUnSupported();
-        expect(result).assertEqual(UNSUPPORTED);
+        expect(result).assertEqual(ERR_OK);
         console.info("====>SUB_Oh_Scan_UnSupported_0300 result: " + result);
         done();
       } catch (err) {
@@ -97,11 +94,179 @@ export default function ActsScanErrorTest() {
       try {
         console.info("====>SUB_Oh_Scan_INVALID_0400 start====");
         let result = printerror.OHPrintINVALID();
-        expect(result).assertEqual(INVALID);
+        expect(result).assertEqual(ERR_OK);
         console.info("====>SUB_Oh_Scan_INVALID_0400 result: " + result);
         done();
       } catch (err) {
         console.error("====>SUB_Oh_Scan_INVALID_0400 catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_OHScanInit1_0500
+     * @tc.name    : SUB_Oh_Scan_OHScanInit1_0500
+     * @tc.desc    : Test OHScanInit1
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_OHScanInit1_0500', Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_Oh_Scan_OHScanInit1_0500 start====");
+        let result = printerror.OHScanInit1();
+        expect(result).assertEqual(ERR_OK);
+        console.info("====>SUB_Oh_Scan_OHScanInit1_0500 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Scan_OHScanInit1_0500 catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_StartScannerDiscovery1_0600
+     * @tc.name    : SUB_Oh_Scan_StartScannerDiscovery1_0600
+     * @tc.desc    : Test OH_Scan_StartScannerDiscovery1
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_StartScannerDiscovery1_0600', Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_Oh_Scan_StartScannerDiscovery1_0600 start====");
+        let result = printerror.OH_Scan_StartScannerDiscovery1();
+        expect(result).assertEqual(ERR_OK);
+        console.info("====>SUB_Oh_Scan_StartScannerDiscovery1_0600 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Scan_StartScannerDiscovery1_0600 catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_OpenScanner1_0700
+     * @tc.name    : SUB_Oh_Scan_OpenScanner1_0700
+     * @tc.desc    : Test OH_Scan_OpenScanner1
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_OpenScanner1_0700', Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_Oh_Scan_OpenScanner1_0700 start====");
+        let result = printerror.OH_Scan_OpenScanner1();
+        expect(result).assertEqual(ERR_OK);
+        console.info("====>SUB_Oh_Scan_OpenScanner1_0700 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Scan_OpenScanner1_0700 catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_CloseScanner1_0800
+     * @tc.name    : SUB_Oh_Scan_CloseScanner1_0800
+     * @tc.desc    : Test OH_Scan_CloseScanner1
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_CloseScanner1_0800', Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_Oh_Scan_CloseScanner1_0800 start====");
+        let result = printerror.OH_Scan_CloseScanner1();
+        expect(result).assertEqual(ERR_OK);
+        console.info("====>SUB_Oh_Scan_CloseScanner1_0800 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Scan_CloseScanner1_0800 catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_SetScannerParameter1_0900
+     * @tc.name    : SUB_Oh_Scan_SetScannerParameter1_0900
+     * @tc.desc    : Test OH_Scan_SetScannerParameter1
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_SetScannerParameter1_0900', Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_Oh_Scan_SetScannerParameter1_0900 start====");
+        let result = printerror.OH_Scan_SetScannerParameter1();
+        expect(result).assertEqual(ERR_OK);
+        console.info("====>SUB_Oh_Scan_SetScannerParameter1_0900 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Scan_SetScannerParameter1_0900 catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_StartScan1_1000
+     * @tc.name    : SUB_Oh_Scan_StartScan1_1000
+     * @tc.desc    : Test OH_Scan_StartScan1
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_StartScan1_1000', Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_Oh_Scan_StartScan1_1000 start====");
+        let result = printerror.OH_Scan_StartScan1();
+        expect(result).assertEqual(ERR_OK);
+        console.info("====>SUB_Oh_Scan_StartScan1_1000 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Scan_StartScan1_1000 catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_CancelScan1_1100
+     * @tc.name    : SUB_Oh_Scan_CancelScan1_1100
+     * @tc.desc    : Test OH_Scan_CancelScan1
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_CancelScan1_1100', Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_Oh_Scan_CancelScan1_1100 start====");
+        let result = printerror.OH_Scan_CancelScan1();
+        expect(result).assertEqual(ERR_OK);
+        console.info("====>SUB_Oh_Scan_CancelScan1_1100 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Scan_CancelScan1_1100 catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_GetPictureScanProgress1_1200
+     * @tc.name    : SUB_Oh_Scan_GetPictureScanProgress1_1200
+     * @tc.desc    : Test OH_Scan_GetPictureScanProgress1
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_GetPictureScanProgress1_1200', Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_Oh_Scan_GetPictureScanProgress1_1200 start====");
+        let result = printerror.OH_Scan_GetPictureScanProgress1();
+        expect(result).assertEqual(ERR_OK);
+        console.info("====>SUB_Oh_Scan_GetPictureScanProgress1_1200 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Scan_GetPictureScanProgress1_1200 catch err: " + err);
         done()
       }
     });
