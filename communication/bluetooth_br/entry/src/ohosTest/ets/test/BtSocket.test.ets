@@ -552,5 +552,80 @@ describe('btSocketTest', () =>  {
         }
         done();
     })
+
+    /**
+     * @tc.number SUB_COMMUNICATION_BLUETOOTHSOCKET_SPP_1400
+     * @tc.name SUB_COMMUNICATION_BLUETOOTHSOCKET_SPP_1400
+     * @tc.desc Test getL2capPsm api20
+     * @tc.type Function
+     * @tc.size MediumTest
+     * @tc.level Level 0
+     */
+    it('SUB_COMMUNICATION_BLUETOOTHSOCKET_SPP_1400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done : Function) =>  {
+        try {
+            let psm = bluetooth.getL2capPsm(0);
+            console.info('[bluetooth_js]:getL2capPsm success, result:' + JSON.stringify(psm));
+            expect().assertFail();
+        } catch (err) {
+            console.error("getL2capPsm: errCode:" + err.code + ",errMessage:" + err.message);
+            expect(Number(err.code)).assertEqual(401);
+        }
+        done();
+    })
+
+    /**
+     * @tc.number SUB_COMMUNICATION_BLUETOOTHSOCKET_SPP_1500
+     * @tc.name SUB_COMMUNICATION_BLUETOOTHSOCKET_SPP_1500
+     * @tc.desc Test SppType api20
+     * @tc.type Function
+     * @tc.size MediumTest
+     * @tc.level Level 0
+     */
+    it('SUB_COMMUNICATION_BLUETOOTHSOCKET_SPP_1500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done : Function) =>  {
+        try {
+            let SPP_RFCOMM = bluetooth.SppType.SPP_RFCOMM;
+            console.info('[bluetooth_js]:SppType.SPP_RFCOMM:' + JSON.stringify(SPP_RFCOMM));
+            expect(SPP_RFCOMM).assertEqual(0);
+            let SPP_L2CAP = bluetooth.SppType.SPP_L2CAP;
+            console.info('[bluetooth_js]:SppType.SPP_L2CAP:' + JSON.stringify(SPP_L2CAP));
+            expect(SPP_L2CAP).assertEqual(1);
+            let SPP_L2CAP_BLE = bluetooth.SppType.SPP_L2CAP_BLE;
+            console.info('[bluetooth_js]:SppType.SPP_L2CAP_BLE:' + JSON.stringify(SPP_L2CAP_BLE));
+            expect(SPP_L2CAP_BLE).assertEqual(2);
+        } catch (err) {
+            console.error("SppType get: errCode:" + err.code + ",errMessage:" + err.message);
+            expect().assertFail();
+        }
+        done();
+    })
+
+    /**
+     * @tc.number SUB_COMMUNICATION_BLUETOOTHSOCKET_SPP_1600
+     * @tc.name SUB_COMMUNICATION_BLUETOOTHSOCKET_SPP_1600
+     * @tc.desc Test psm api20
+     * @tc.type Function
+     * @tc.size MediumTest
+     * @tc.level Level 0
+     */
+    it('SUB_COMMUNICATION_BLUETOOTHSOCKET_SPP_1600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done : Function) =>  {
+        let options : bluetooth.SppOptions = {
+            uuid: '00001810-0000-1000-8000-00805F9B34FB',
+            secure: false,
+            type: bluetooth.SppType.SPP_L2CAP,
+            psm: 241
+        };
+    try {
+        bluetooth.sppListen('serverTest', options, serverSocket);
+    } catch (error) {
+        console.error(`[bluetooth_js]SPPListen error, code is ${error.code},message is ${error.message}`);
+        if (error.code == 801 || error.code == 2900004) {
+            console.info('[bluetooth_js]sppListen is not support or profile not support');
+            expect(true).assertTrue();
+        } else {
+            expect().assertFail();
+        }
+    }
+        done();
+    })
 })
 }
