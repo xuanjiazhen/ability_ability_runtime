@@ -1236,7 +1236,8 @@ Camera_ErrorCode NDKCamera::SessionEnableControlCenter(bool enabled)
     return ret_;
 }
 
-void ControlCenterEffectStatusChange(Camera_CaptureSession* session, Camera_ControlCenterStatusInfo* controlCenterStatusInfo)
+void ControlCenterEffectStatusChange(Camera_CaptureSession* session,
+    Camera_ControlCenterStatusInfo* controlCenterStatusInfo)
 {
     LOG("ControlCenterEffectStatusChange is called.");
 }
@@ -1244,13 +1245,13 @@ void ControlCenterEffectStatusChange(Camera_CaptureSession* session, Camera_Cont
 Camera_ErrorCode NDKCamera::RegisterControlCenterEffectStatusChange(int useCaseCode)
 {
     if (useCaseCode == PARAMETER_OK) {
-        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(captureSession_, 
+        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(captureSession_,
             ControlCenterEffectStatusChange);
     } else if (useCaseCode == PARAMETER1_ERROR) {
-        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(nullptr, 
+        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(nullptr,
             ControlCenterEffectStatusChange);
     } else if (useCaseCode == PARAMETER2_ERROR) {
-        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(captureSession_, 
+        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(captureSession_,
             nullptr);
     }
     if (ret_ != CAMERA_OK) {
@@ -1262,13 +1263,13 @@ Camera_ErrorCode NDKCamera::RegisterControlCenterEffectStatusChange(int useCaseC
 Camera_ErrorCode NDKCamera::UnregisterControlCenterEffectStatusChange(int useCaseCode)
 {
     if (useCaseCode == PARAMETER_OK) {
-        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(captureSession_, 
+        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(captureSession_,
             ControlCenterEffectStatusChange);
     } else if (useCaseCode == PARAMETER1_ERROR) {
-        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(nullptr, 
+        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(nullptr,
             ControlCenterEffectStatusChange);
     } else if (useCaseCode == PARAMETER2_ERROR) {
-        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(captureSession_, 
+        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(captureSession_,
             nullptr);
     }
     if (ret_ != CAMERA_OK) {
