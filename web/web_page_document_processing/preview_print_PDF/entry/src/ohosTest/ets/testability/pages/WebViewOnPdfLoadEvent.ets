@@ -29,6 +29,8 @@ struct WebComponent {
   @State isReceive: number = -1;
   @State isPageEnd: number = -1;
   @State url: string = '';
+  @State ScrollUrl:string = '';
+  @State Scrollresult:number = 0;
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
       eventId: 10,
@@ -69,6 +71,14 @@ struct WebComponent {
                 Utils.emitEvent(this.result,20250823)
                 break;
               }
+
+              case 'emitwebViewWebViewOnPdfLoadEvent003': {
+                this.controller.loadUrl("resource://rawfile/small.pdf");
+                await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
+                console.log('result' + this.ScrollUrl)
+                Utils.emitEvent(this.ScrollUrl,20250824)
+                break;
+              }
             }
           })
       }
@@ -77,6 +87,10 @@ struct WebComponent {
           console.info(`Load event callback called. url: ${eventInfo.url}, result: ${eventInfo.result}`)
           this.eventInfoUrl = eventInfo.url;
           this.result = eventInfo.result;
+        })
+        .onPdfScrollAtBottom((eventInfo: OnPdfScrollEvent) => {
+          console.error(`arkwebpdfdebug: scroll at bottom cb called! url: ${eventInfo.url}`)
+          this.ScrollUrl = eventInfo.url;
         })
         .onPageEnd((event) => {
           console.log('onPageEnd url：' + event.url);

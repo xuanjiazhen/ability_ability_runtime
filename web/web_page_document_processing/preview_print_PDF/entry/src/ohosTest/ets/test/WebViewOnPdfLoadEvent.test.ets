@@ -111,5 +111,21 @@ export default function ActsAceWebViewOnPdfLoadEvent() {
       Utils.registerEvent("emitwebViewWebViewOnPdfLoadEvent002", 0, 20250823, done);
       sendEventByKey('WebViewOnPdfLoadEventKey', 10, '');
     })
+
+    /*
+   * @tc.number      : SUB_ACE_WEB_WEBVIEWWEBVIEWONPDFLOADEVENT_API_0003
+   * @tc.name        : emitwebViewWebViewOnPdfLoadEvent003
+   * @tc.desc        : emitwebViewWebViewOnPdfLoadEvent003
+   * @tc.size        : MediumTest
+   * @tc.type        : Function
+   * @tc.level       : Level 0
+   */
+    it('emitwebViewWebViewOnPdfLoadEvent003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      Utils.emitEvent("emitwebViewWebViewOnPdfLoadEvent003", 10)
+      await Utils.sleep(2000);
+      Utils.registerEvent("emitwebViewWebViewOnPdfLoadEvent003", "resource://rawfile/small.pdf", 20250824, done);
+      sendEventByKey('WebViewOnPdfLoadEventKey', 10, '');
+    })
+
   })
 }
