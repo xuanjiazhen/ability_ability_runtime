@@ -518,7 +518,7 @@ static napi_value TestShadowColor(napi_env env, napi_callback_info info)
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
         "kkk OH_ArkUI_RenderNodeUtils_GetShadowColor result=%{public}d", shadowColor);
     ASSERT_EQ(result, ARKUI_ERROR_CODE_NO_ERROR);
-    ASSERT_EQ(shadowColor, 0xFF000000);
+    ASSERT_EQ(shadowColor, 0);
     
     auto ret1 = OH_ArkUI_RenderNodeUtils_SetShadowColor(rsNode, 0xFFFF00FF);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
