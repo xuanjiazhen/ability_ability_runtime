@@ -30,28 +30,7 @@ export default function webJsunit() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
-      done();
-    })
-    afterEach(async (done: Function) => {
-      console.info("web afterEach start:" + emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        };
-        let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        };
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
       done();
     })
     /* 
@@ -60,8 +39,9 @@ export default function webJsunit() {
      *tc.desic return whether the cookie is allowed
      */
     it('isCookieAllowed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSaveCookieAsync";
-      Utils.registerEvent("isCookieAllowed", false, 408, done);
+      emitKey = "emitIsCookieAllowed";
+      Utils.emitEvent(emitKey, 14045)
+      Utils.registerEvent("isCookieAllowed", false, 14046, done);
       sendEventByKey('webcomponent', 10, '');
     })
     /* 
@@ -70,8 +50,9 @@ export default function webJsunit() {
      *tc.desic return whether the cookie is allowed
      */
     it('saveCookieAsync', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitIsThirdPartyCookieAllowed";
-      Utils.registerEvent("saveCookieAsync", "result", 410, done);
+      emitKey = "emitSaveCookieAsync";
+      Utils.emitEvent(emitKey, 14045)
+      Utils.registerEvent("saveCookieAsync", "result", 14048, done);
       sendEventByKey('webcomponent', 10, '');
     })
     /* 
@@ -81,7 +62,8 @@ export default function webJsunit() {
      */
     it('isThirdPartyCookieAllowed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitIsThirdPartyCookieAllowed";
-      Utils.registerEvent("isThirdPartyCookieAllowed", false, 412, done);
+      Utils.emitEvent(emitKey, 14045)
+      Utils.registerEvent("isThirdPartyCookieAllowed", false, 14049, done);
       sendEventByKey('webcomponent', 10, '');
     })
   })

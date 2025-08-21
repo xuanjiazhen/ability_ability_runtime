@@ -21,6 +21,8 @@ import { JsProxyObject } from '../../test/Interfaces';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
+import {waitForExist} from '../../test/WaitTest.test';
+
 
 @Entry
 @Component
@@ -46,17 +48,19 @@ struct WebViewControllerPart3 {
   @State onMessageEventCallBack: boolean = false
   @State ports: webView.WebMessagePort[] = [];
   @State userAgentPC:string = "";
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 14058,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(14058)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -65,6 +69,7 @@ struct WebViewControllerPart3 {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
         if (this.controller) {
           this.controller.loadUrl("resource://rawfile/index.html");
           this.controller.clearHistory()
@@ -99,28 +104,32 @@ struct WebViewControllerPart3 {
       Row() {
         Button("WebViewController click").key('WebViewControllerTestButton').onClick(async () => {
           console.info("key==>" + this.str)
+          await waitForExist(()=>this.isReceive, this.str, 0);
+          await waitForExist(()=>this.isPageEnd, this.str, 0);
+          this.isReceive = -1;
+          this.isPageEnd = -1;
           switch (this.str) {
             case "testHasImage001": {
               try {
                 this.controller.loadUrl("resource://rawfile/hasImageOne.html");
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 this.controller.hasImage().then((data) => {
                   console.info('HasImagePm: ' + data);
-                  Utils.emitEvent(data, 100049);
+                  Utils.emitEvent(data, 14059);
                 })
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 100049)
+                Utils.emitEvent(error.code, 14059)
               }
               break;
             }
             case "testHasImage002": {
               this.controller.loadUrl($rawfile('hasImageTwo.html'))
-              await Utils.sleep(2000)
+              await waitForExist(()=>this.isPageEnd, this.str, 0);
               try {
                 this.controller.hasImage().then((data) => {
                   console.info('HasImagePmSvg: ' + data);
-                  Utils.emitEvent(data, 100050);
+                  Utils.emitEvent(data, 14060);
                 })
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
@@ -131,10 +140,10 @@ struct WebViewControllerPart3 {
             case "testHasImage003": {
               try {
                 this.controller.loadUrl($rawfile('onlineImageAccess.html'))
-                await Utils.sleep(6000)
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 this.controller.hasImage().then((data) => {
                   console.info('HasImagePmOnline: ' + data);
-                  Utils.emitEvent(data, 100051);
+                  Utils.emitEvent(data, 14061);
                 })
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
@@ -145,14 +154,14 @@ struct WebViewControllerPart3 {
             case "testHasImage004": {
               try {
                 this.controller.loadUrl($rawfile('hasImageOne.html'))
-                await Utils.sleep(6000)
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 this.controller.hasImage((error, data) => {
                   if (error) {
                     console.info(`hasImageCb error: ` + JSON.stringify(error))
                     return
                   }
                   console.info("hasImageCb: " + data);
-                  Utils.emitEvent(data, 100052);
+                  Utils.emitEvent(data, 14062);
                 });
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -162,7 +171,7 @@ struct WebViewControllerPart3 {
 
             case "testHasImage005": {
               this.controller.loadUrl($rawfile('hasImageTwo.html'))
-              await Utils.sleep(2000)
+              await waitForExist(()=>this.isPageEnd, this.str, 0);
               try {
                 this.controller.hasImage((error, data) => {
                   if (error) {
@@ -170,7 +179,7 @@ struct WebViewControllerPart3 {
                     return;
                   }
                   console.info("hasImageCbSvg: " + data);
-                  Utils.emitEvent(data, 100053);
+                  Utils.emitEvent(data, 14063);
                 });
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -180,7 +189,7 @@ struct WebViewControllerPart3 {
 
             case "testHasImage006": {
               this.controller.loadUrl($rawfile('onlineImageAccess.html'))
-              await Utils.sleep(2000)
+              await waitForExist(()=>this.isPageEnd, this.str, 0);
               try {
                 this.controller.hasImage((error, data) => {
                   if (error) {
@@ -188,7 +197,7 @@ struct WebViewControllerPart3 {
                     return;
                   }
                   console.info("hasImageCbOnline: " + data);
-                  Utils.emitEvent(data, 100054);
+                  Utils.emitEvent(data, 14064);
                 });
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -199,7 +208,7 @@ struct WebViewControllerPart3 {
             case "testGetFavicon001": {
               try {
                 this.controller.loadUrl($rawfile('indexCopy.html'))
-                await Utils.sleep(3000)
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 this.pixelMap = this.controller.getFavicon();
                 this.pixelMap.getImageInfo().then(imageInfo => {
                   if (imageInfo == undefined) {
@@ -207,11 +216,11 @@ struct WebViewControllerPart3 {
                   }
                   let resut = imageInfo.size.height + '_' + imageInfo.size.width
                   console.log("the result of pixelMap: " + JSON.stringify(imageInfo));
-                  Utils.emitEvent(resut, 100057)
+                  Utils.emitEvent(resut, 14065)
                 })
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(false, 100057)
+                Utils.emitEvent(false, 14065)
               }
               break;
             }
@@ -219,7 +228,7 @@ struct WebViewControllerPart3 {
             case "testGetFavicon002": {
               try {
                 this.controller.loadUrl($rawfile('secondCopy.html'))
-                await Utils.sleep(3000)
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 this.pixelMap = this.controller.getFavicon();
                 this.pixelMap.getImageInfo().then(imageInfo => {
                   if (imageInfo == undefined) {
@@ -227,11 +236,11 @@ struct WebViewControllerPart3 {
                   }
                   let result = imageInfo.size.height + '_' + imageInfo.size.width
                   console.log("the result of pixelMap: " + JSON.stringify(imageInfo));
-                  Utils.emitEvent(result, 100058)
+                  Utils.emitEvent(result, 14066)
                 })
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 100058)
+                Utils.emitEvent(error.code, 14066)
               }
               break;
             }
@@ -239,13 +248,13 @@ struct WebViewControllerPart3 {
             case "testGetOriginalUrl001": {
               try {
                 this.controller.loadUrl($rawfile('secondCopy.html'))
-                await Utils.sleep(6000)
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 let indexUrl = this.controller.getOriginalUrl();
                 console.log("original url: " + indexUrl);
-                Utils.emitEvent(indexUrl, 100059)
+                Utils.emitEvent(indexUrl, 14067)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 100059)
+                Utils.emitEvent(error.code, 14067)
               }
               break;
             }
@@ -253,20 +262,21 @@ struct WebViewControllerPart3 {
             case "testGetOriginalUrl002": {
               try {
                 this.controller.loadUrl($rawfile('secondCopy.html'))
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 this.controllerTwo.loadUrl($rawfile('secondCopy.html'))
-                await Utils.sleep(6000)
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 let indexUrl = this.controller.getOriginalUrl();
                 let indexUrlTwo = this.controllerTwo.getOriginalUrl();
                 console.log("original url: " + indexUrl);
                 if (indexUrl + indexUrlTwo == 'resource://rawfile/secondCopy.htmlresource://rawfile/secondCopy.html') {
-                  Utils.emitEvent(true, 100060)
+                  Utils.emitEvent(true, 14067)
                 }
                 else {
-                  Utils.emitEvent(false, 100060)
+                  Utils.emitEvent(false, 14067)
                 }
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 100059)
+                Utils.emitEvent(error.code, 14067)
               }
               break;
             }
@@ -274,13 +284,13 @@ struct WebViewControllerPart3 {
             case "testGetUrl001": {
               try {
                 this.controller.loadUrl($rawfile('secondCopy.html'))
-                await Utils.sleep(3000)
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 let Url = this.controller.getUrl();
                 console.log("original url: " + Url);
-                Utils.emitEvent(Url, 100061)
+                Utils.emitEvent(Url, 14068)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 100061)
+                Utils.emitEvent(error.code, 14068)
               }
               break;
             }
@@ -288,13 +298,13 @@ struct WebViewControllerPart3 {
             case "testGetUrl002": {
               try {
                 this.controller.loadUrl('https://www.example.com/')
-                await Utils.sleep(3000)
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 let Url = this.controller.getUrl();
                 console.log("original url: " + Url);
-                Utils.emitEvent(Url, 100062)
+                Utils.emitEvent(Url, 14069)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 100062)
+                Utils.emitEvent(error.code, 14069)
               }
               break;
             }
@@ -304,9 +314,9 @@ struct WebViewControllerPart3 {
                 let height = -1
                 height = this.controller.getPageHeight()
                 if (height > 0) {
-                  Utils.emitEvent(true, 100074)
+                  Utils.emitEvent(true, 14070)
                 } else {
-                  Utils.emitEvent(false, 100074)
+                  Utils.emitEvent(false, 14070)
                 }
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -360,6 +370,7 @@ struct WebViewControllerPart3 {
                 }
               });
             }
+            this.isPageEnd = 0;
             console.log('url:' + event.url)
           }
         })

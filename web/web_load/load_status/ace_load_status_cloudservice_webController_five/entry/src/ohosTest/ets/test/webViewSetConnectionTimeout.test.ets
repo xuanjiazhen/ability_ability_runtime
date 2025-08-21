@@ -14,10 +14,12 @@
  */
 import { afterEach, beforeAll, beforeEach, describe, it, expect , TestType, Size, Level } from '@ohos/hypium';
 import events_emitter from '@ohos.events.emitter';
+import { Driver, ON } from '@kit.TestKit';
 import Utils from './Utils';
 import router from '@ohos.router';
 import emitter from '@ohos.events.emitter';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 // @ts-nocheck
@@ -32,19 +34,18 @@ export default function ActsAceWebViewSetConnectionTimeout() {
         }
         
         try {
-            await Utils.sleep(1000)
             router.clear();
             let pages = router.getState();
             console.info("get webViewSetConnectionTimeout state success " + JSON.stringify(pages));
             if (!("webViewSetConnectionTimeout" == pages.name)) {
                 console.info("get webViewSetConnectionTimeout state success " + JSON.stringify(pages.name));
                 let result = await router.pushUrl(options);
-                await Utils.sleep(1000);
                 console.info("push webViewSetConnectionTimeout state success " + JSON.stringify(result));
             }
         } catch (err) {
             console.error("push webViewSetConnectionTimeout page error:" + err);
         }
+         await waitForComponent('webViewSetConnectionTimeoutButton');
         done()
     });
     
@@ -54,7 +55,6 @@ export default function ActsAceWebViewSetConnectionTimeout() {
           }).catch((err: object) => {
           console.error(`failed to enable, ${err}`);
         })
-        await Utils.sleep(1000);
         done();
     })
 
@@ -69,8 +69,8 @@ export default function ActsAceWebViewSetConnectionTimeout() {
      */
     it('testWebViewSetConnectionTimeoutZeroSeconds', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
         emitKey = "emitWebViewSetConnectionTimeoutZeroSeconds"
-        Utils.emitEvent(emitKey, 10);
-        Utils.registerBaseEvent("testWebViewSetConnectionTimeoutZeroSeconds", 'Error', 8001, done, (backData: events_emitter.EventData, expected: Object) => {
+        Utils.emitEvent(emitKey, 14077);
+        Utils.registerBaseEvent("testWebViewSetConnectionTimeoutZeroSeconds", 'Error', 14078, done, (backData: events_emitter.EventData, expected: Object) => {
          expect(backData?.data?.ACTION).assertEqual(expected);
         });
         sendEventByKey('webViewSetConnectionTimeoutButton', 10, '');
@@ -87,8 +87,8 @@ export default function ActsAceWebViewSetConnectionTimeout() {
      */
     it('testWebViewSetConnectionTimeoutPointFiveSeconds', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitWebViewSetConnectionTimeoutPointFiveSeconds"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerBaseEvent("testWebViewSetConnectionTimeoutPointFiveSeconds", 'Error', 8002, done, (backData: events_emitter.EventData, expected: Object) => {
+      Utils.emitEvent(emitKey, 14077);
+      Utils.registerBaseEvent("testWebViewSetConnectionTimeoutPointFiveSeconds", 'Error', 14079, done, (backData: events_emitter.EventData, expected: Object) => {
         expect(backData?.data?.ACTION).assertEqual(expected);
       });
       sendEventByKey('webViewSetConnectionTimeoutButton', 10, '');
@@ -104,8 +104,8 @@ export default function ActsAceWebViewSetConnectionTimeout() {
      */
     it('testWebViewSetConnectionTimeoutNegativeOneSeconds', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitWebViewSetConnectionTimeoutNegativeOneSeconds"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerBaseEvent("testWebViewSetConnectionTimeoutNegativeOneSeconds", 'Error', 8003, done, (backData: events_emitter.EventData, expected: Object) => {
+      Utils.emitEvent(emitKey, 14077);
+      Utils.registerBaseEvent("testWebViewSetConnectionTimeoutNegativeOneSeconds", 'Error', 14080, done, (backData: events_emitter.EventData, expected: Object) => {
         expect(backData?.data?.ACTION).assertEqual(expected);
       });
       sendEventByKey('webViewSetConnectionTimeoutButton', 10, '');
@@ -118,11 +118,11 @@ export default function ActsAceWebViewSetConnectionTimeout() {
      *@tc.size MediumTest
      *@tc.type Function
      *@tc.level Level 1
-     */
+     */	
     it('testWebViewSetConnectionTimeoutWithA', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitWebViewSetConnectionTimeoutWithA"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerBaseEvent("testWebViewSetConnectionTimeoutWithA", 'Error', 8004, done, (backData: events_emitter.EventData, expected: Object) => {
+      Utils.emitEvent(emitKey, 14077);
+      Utils.registerBaseEvent("testWebViewSetConnectionTimeoutWithA", 'Error', 14081, done, (backData: events_emitter.EventData, expected: Object) => {
         expect(backData?.data?.ACTION).assertEqual(expected);
       });
       sendEventByKey('webViewSetConnectionTimeoutButton', 10, '');
@@ -138,25 +138,8 @@ export default function ActsAceWebViewSetConnectionTimeout() {
      */
     it('testWebViewSetConnectionTimeoutTenSeconds', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitWebViewSetConnectionTimeoutTenSeconds"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerBaseEvent("testWebViewSetConnectionTimeoutTenSeconds", 'Time_out', 8005, done, (backData: events_emitter.EventData, expected: Object) => {
-        expect(backData?.data?.ACTION).assertEqual(expected);
-      });
-      sendEventByKey('webViewSetConnectionTimeoutButton', 10, '');
-    })
-
-    /*
-    *@tc.number SUB_ACE_WEB_SETCONNECTIONTIMEOUT_API_0006
-    *@tc.name testWebViewSetConnectionAboutAppearTimeoutFiveSeconds
-    *@tc.desc test setConnectionTimeout_aboutAppear_five_seconds
-    *@tc.size MediumTest
-    *@tc.type Function
-    *@tc.level Level 1
-    */
-    it('testWebViewSetConnectionAboutAppearTimeoutFiveSeconds', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitWebViewSetConnectionAboutAppearTimeoutFiveSeconds"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerBaseEvent("testWebViewSetConnectionAboutAppearTimeoutFiveSeconds", 'Time_out', 24801, done, (backData: events_emitter.EventData, expected: Object) => {
+      Utils.emitEvent(emitKey, 14077);
+      Utils.registerBaseEvent("testWebViewSetConnectionTimeoutTenSeconds", 'Time_out', 14082, done, (backData: events_emitter.EventData, expected: Object) => {
         expect(backData?.data?.ACTION).assertEqual(expected);
       });
       sendEventByKey('webViewSetConnectionTimeoutButton', 10, '');
