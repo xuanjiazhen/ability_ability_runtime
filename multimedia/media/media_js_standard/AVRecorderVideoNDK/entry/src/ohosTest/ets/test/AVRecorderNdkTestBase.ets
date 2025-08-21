@@ -313,7 +313,7 @@ export default class AVRecorderNdkTestBase {
     let driver = await UiDriver.create()
     console.info(`case come in driveFn 222`)
     console.info(`driver is ${JSON.stringify(driver)}`)
-    await this.msleepAsync(200)
+    await this.msleepAsync(2000)
     console.info(`UiDriver start`)
     for (let i = 0; i < num; i++) {
       let button = await driver.findComponent(BY.text('允许'))
@@ -323,13 +323,13 @@ export default class AVRecorderNdkTestBase {
         continue;
       }
       console.info(`button is ${JSON.stringify(button)}`)
-      await this.msleepAsync(200)
+      await this.msleepAsync(1000)
       if (await driver.findComponent(BY.text('允许')) != null) {
         await button.click()
       }
-      await this.msleepAsync(200)
+      await this.msleepAsync(1000)
     }
-    await this.msleepAsync(200)
+    await this.msleepAsync(2000)
   }
 
   // wait asynchronously
