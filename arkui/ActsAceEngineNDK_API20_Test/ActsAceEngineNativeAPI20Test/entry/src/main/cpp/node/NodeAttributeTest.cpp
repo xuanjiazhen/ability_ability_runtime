@@ -963,10 +963,10 @@ napi_value CheckNodeXComponentSurfaceRect(napi_env env, napi_callback_info info)
 {
     std::random_device randomNumber; // 随机数种子生成器
     std::mt19937 mt(randomNumber()); // 随机数生成器
-    int32_t setX = mt() % 100; // 生成随机参数
-    int32_t setY = mt() % 100; // 生成随机参数
-    int32_t width = mt() % 100; // 生成随机参数
-    int32_t height = mt() % 100; // 生成随机参数
+    int32_t setX = mt() % PARAM_100; // 生成随机参数
+    int32_t setY = mt() % PARAM_100; // 生成随机参数
+    int32_t width = mt() % PARAM_100; // 生成随机参数
+    int32_t height = mt() % PARAM_100; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_XCOMPONENT);
@@ -990,28 +990,16 @@ napi_value CheckNodeXComponentSurfaceRect(napi_env env, napi_callback_info info)
                  setResult == ARKUI_ERROR_CODE_NO_ERROR ? "设置成功" : "设置失败", setResult);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
                  "CheckNodeXComponentSurfaceRect: %{public}d",
-                 itemptr->value[0].i32);
+                 itemptr->value[PARAM_0].i32);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
                  "CheckNodeXComponentSurfaceRect: %{public}d",
-                 setX);
+                 itemptr->value[PARAM_1].i32);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
                  "CheckNodeXComponentSurfaceRect: %{public}d",
-                 itemptr->value[1].i32);
+                 itemptr->value[PARAM_2].i32);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
                  "CheckNodeXComponentSurfaceRect: %{public}d",
-                 setY);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
-                 "CheckNodeXComponentSurfaceRect: %{public}d",
-                 itemptr->value[2].i32);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
-                 "CheckNodeXComponentSurfaceRect: %{public}d",
-                 width);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
-                 "CheckNodeXComponentSurfaceRect: %{public}d",
-                 itemptr->value[3].i32);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
-                 "CheckNodeXComponentSurfaceRect: %{public}d",
-                 height);
+                 itemptr->value[PARAM_3].i32);
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
