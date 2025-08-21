@@ -28,13 +28,19 @@ struct Index {
   @State console: string = '';
   @State javaScriptAccess: boolean = true;
   @State isComplete: number = -1;
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 171250,
       priority: events_emitter.EventPriority.LOW
     };
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack);
+  }
+
+  onPageHide() {
+    events_emitter.off(171250)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -43,12 +49,13 @@ struct Index {
       console.info('valueChangeCallBack:' + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
   private jsObj: ESObject = {
     test: (res: ESObject) => {
-      Utils.emitEvent(res, 102);
+      Utils.emitEvent(res, 171260);
     },
     toString: (str: ESObject) => {
       console.info('ets toString:' + String(str));
@@ -70,59 +77,58 @@ struct Index {
     Column() {
       Row() {
         Button('web click').key('webcomponent').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info('key==>' + this.str);
           switch (this.str) {
             case 'emitJavaScriptProxy': {
-              await waitForExist(()=>this.isComplete, 'emitJavaScriptProxy', 0, 1000)
-              this.isComplete = -1
               this.controller.runJavaScript({ script: 'test()' });
               break;
             }
             case 'emitRunJavaScript': {
+              this.isPageEnd = -1;
               this.controller.loadUrl({ url: 'resource://rawfile/index.html' });
-              setTimeout(() => {
+              await waitForExist(() => this.isPageEnd, this.str, 0);
                 this.controller.runJavaScript({
                   script: 'testRunJavaScript()', callback: (res) => {
-                    Utils.emitEvent(res, 112);
+                    Utils.emitEvent(res, 171270);
                   }
                 })
-              }, 3000)
               break;
             }
             case 'emitOnConsole': {
               this.controller.runJavaScript({ script: 'consoleTest()' });
-              setTimeout(() => {
-                Utils.emitEvent(this.console, 62);
-              }, 3000);
+              await waitForExist(() => this.console, this.str, "console test");
+                Utils.emitEvent(this.console, 171280);
               break;
             }
             case 'emitJavaScriptAccess': {
               this.javaScriptAccess = false;
-              setTimeout(() => {
                 this.controller.runJavaScript({ script: 'jsAccess()' });
-                setTimeout(() => {
                   if (this.console !== 'web111') {
                     let javaScriptAccessCalled = true;
-                    Utils.emitEvent(javaScriptAccessCalled, 88);
+                    Utils.emitEvent(javaScriptAccessCalled, 171290);
                   }
-                }, 3000);
-              }, 3000);
               break;
             }
             case 'testRunJavaScript001': {
               try {
                 this.javaScriptAccess = true;
-                await Utils.sleep(2000);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.isPageEnd = -1;
                 this.controller.loadUrl({ url: 'resource://rawfile/webPart1index.html' });
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 this.controller.runJavaScript({ script: 'testRunJavaScript()', callback: (res) => {
-                  Utils.emitEvent(String(res), 31004)
+                  Utils.emitEvent(String(res), 171300)
                 } })
               }
               catch (error) {
                 let e: business_error.BusinessError = error as business_error.BusinessError;
                 console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                Utils.emitEvent(e.code, 31004)
+                Utils.emitEvent(e.code, 171300)
               }
               break;
             }
@@ -151,8 +157,8 @@ struct Index {
           console.log('onPageBegin ==>' + event.url);
         })
         .onPageEnd((event) => {
+          this.isPageEnd = 0;
           console.log('onPageEnd ==>' + event.url);
-          this.isComplete = 0
         })
     }
   }

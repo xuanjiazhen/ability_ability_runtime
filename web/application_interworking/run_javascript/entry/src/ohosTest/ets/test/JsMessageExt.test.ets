@@ -17,6 +17,7 @@ import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@oh
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 
@@ -35,12 +36,12 @@ export default function jsMessageExt() {
         if (!("jsMessageExt" == pages.name)) {
           console.info("get jsMessageExt state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push jsMessageExt page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push jsMessageExt page error: " + err);
       }
+      await waitForComponent("JsMessageExtButton");
       done()
     });
 
@@ -50,7 +51,6 @@ export default function jsMessageExt() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("jsMessageExt beforeEach start");
       done();
     })
@@ -64,9 +64,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetType001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetType001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetType001", 1, 30200, done);
+      Utils.emitEvent("testJsMessageExtGetType001", 171010)
+      Utils.registerEvent("testJsMessageExtGetType001", 1, 171020, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -79,9 +78,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetType002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetType002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetType002", 2, 30201, done);
+      Utils.emitEvent("testJsMessageExtGetType002", 171010)
+      Utils.registerEvent("testJsMessageExtGetType002", 2, 171030, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -94,9 +92,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetType003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetType003", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetType003", 3, 30202, done);
+      Utils.emitEvent("testJsMessageExtGetType003", 171010)
+      Utils.registerEvent("testJsMessageExtGetType003", 3, 171040, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -109,9 +106,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetType004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetType004", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetType004", 4, 30203, done);
+      Utils.emitEvent("testJsMessageExtGetType004", 171010)
+      Utils.registerEvent("testJsMessageExtGetType004", 4, 171050, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -124,9 +120,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetType005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetType005", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetType005", 5, 30204, done);
+      Utils.emitEvent("testJsMessageExtGetType005", 171010)
+      Utils.registerEvent("testJsMessageExtGetType005", 5, 171060, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -139,9 +134,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtJsMessageType001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtJsMessageType001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtJsMessageType001", 0, 30205, done);
+      Utils.emitEvent("testJsMessageExtJsMessageType001", 171010)
+      Utils.registerEvent("testJsMessageExtJsMessageType001", 0, 171070, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -154,9 +148,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtJsMessageType002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtJsMessageType002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtJsMessageType002", 1, 30206, done);
+      Utils.emitEvent("testJsMessageExtJsMessageType002", 171010)
+      Utils.registerEvent("testJsMessageExtJsMessageType002", 1, 171080, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -169,9 +162,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtJsMessageType003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtJsMessageType003", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtJsMessageType003", 2, 30207, done);
+      Utils.emitEvent("testJsMessageExtJsMessageType003", 171010)
+      Utils.registerEvent("testJsMessageExtJsMessageType003", 2, 171090, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -184,9 +176,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtJsMessageType004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtJsMessageType004", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtJsMessageType004", 3, 30208, done);
+      Utils.emitEvent("testJsMessageExtJsMessageType004", 171010)
+      Utils.registerEvent("testJsMessageExtJsMessageType004", 3, 171100, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -199,9 +190,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtJsMessageType005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtJsMessageType005", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtJsMessageType005", 4, 30209, done);
+      Utils.emitEvent("testJsMessageExtJsMessageType005", 171010)
+      Utils.registerEvent("testJsMessageExtJsMessageType005", 4, 171110, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -214,9 +204,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtJsMessageType006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtJsMessageType006", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtJsMessageType006", 5, 30210, done);
+      Utils.emitEvent("testJsMessageExtJsMessageType006", 171010)
+      Utils.registerEvent("testJsMessageExtJsMessageType006", 5, 171120, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -229,9 +218,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetString001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetString001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetString001", '"hello, world"', 100013, done);
+      Utils.emitEvent("testJsMessageExtGetString001", 171010)
+      Utils.registerEvent("testJsMessageExtGetString001", '"hello, world"', 171130, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -244,9 +232,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetNumber001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetNumber001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetNumber001", 1, 100014, done);
+      Utils.emitEvent("testJsMessageExtGetNumber001", 171010)
+      Utils.registerEvent("testJsMessageExtGetNumber001", 1, 171140, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -259,9 +246,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetBoolean001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetBoolean001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetBoolean001", true, 100015, done);
+      Utils.emitEvent("testJsMessageExtGetBoolean001", 171010)
+      Utils.registerEvent("testJsMessageExtGetBoolean001", true, 171150, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -274,9 +260,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetBoolean002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetBoolean002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetBoolean002", false, 100016, done);
+      Utils.emitEvent("testJsMessageExtGetBoolean002", 171010)
+      Utils.registerEvent("testJsMessageExtGetBoolean002", false, 171160, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -289,9 +274,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetArrayBuffer001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetArrayBuffer001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetArrayBuffer001", 'result type:object', 100017, done);
+      Utils.emitEvent("testJsMessageExtGetArrayBuffer001", 171010)
+      Utils.registerEvent("testJsMessageExtGetArrayBuffer001", 'result type:object', 171170, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
 
@@ -304,9 +288,8 @@ export default function jsMessageExt() {
     * @tc.level      : Level 1
     */
     it('testJsMessageExtGetArray001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testJsMessageExtGetArray001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testJsMessageExtGetArray001", true, 100018, done);
+      Utils.emitEvent("testJsMessageExtGetArray001", 171010)
+      Utils.registerEvent("testJsMessageExtGetArray001", true, 171180, done);
       sendEventByKey('JsMessageExtButton', 10, '');
     })
   })

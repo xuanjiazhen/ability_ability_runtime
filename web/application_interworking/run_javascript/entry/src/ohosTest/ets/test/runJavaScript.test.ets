@@ -18,6 +18,7 @@ import Utils from './Utils';
 // import router from '@system.router';
 import router from '@ohos.router';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 let emitKey = "emitRunJsCallback";
@@ -34,13 +35,12 @@ export default function runJavaScript() {
         if (!("runJavaScript" == pages.name)) {
           console.info("get runJavaScript state success " + JSON.stringify(pages.name));
           let result = await router.push(options);
-          await Utils.sleep(2000);
           console.info("push runJavaScript page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push runJavaScript page error: " + err);
       }
-      await Utils.sleep(2000);
+      await waitForComponent("webcomponent01");
       done()
     });
     beforeEach(async (done: Function) => {
@@ -54,23 +54,6 @@ export default function runJavaScript() {
     })
     afterEach(async (done: Function) => {
       console.info("ActsAceWebControllerTest afterEach start:"+emitKey);
-      try {
-            let backData: events_emitter.EventData = {
-                data: {
-                    "ACTION": emitKey
-                }
-            }
-            let backEvent: events_emitter.InnerEvent = {
-                eventId:10,
-                priority:events_emitter.EventPriority.LOW
-            }
-            console.info("start send emitKey");
-            events_emitter.emit(backEvent, backData);
-      } catch (err) {
-            console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
-      console.info("ActsAceWebControllerTest afterEach end");
       done();
     })
     /*
@@ -79,8 +62,8 @@ export default function runJavaScript() {
      *tc.desic test RunJavascrit interface when choose callback mode.
      */
     it('RunJsCallback',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,async (done: Function) =>{
-      emitKey="emitRunJsPromise";
-      Utils.registerEvent("testRunJsCallback",'testRunJavaScript',126,done);
+      Utils.emitEvent("emitRunJsCallback", 171190)
+      Utils.registerEvent("testRunJsCallback",'testRunJavaScript',171200,done);
       sendEventByKey('webcomponent01',10,'');
     })
 
@@ -90,7 +73,8 @@ export default function runJavaScript() {
      *tc.desic test RunJavascrit interface when choose promise mode.
      */
     it('RunJsPromise',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,async  (done: Function) =>{
-      Utils.registerEvent("testRunJsPromise",'\"testRunJavaScript\"',128,done);
+      Utils.emitEvent("emitRunJsPromise", 171190)
+      Utils.registerEvent("testRunJsPromise",'\"testRunJavaScript\"',171210,done);
       sendEventByKey('webcomponent01',10,'');
     })
   })

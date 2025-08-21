@@ -16,6 +16,7 @@ import events_emitter from '@ohos.events.emitter';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
 import { BusinessError } from '@ohos.base';
+import {waitForAssert, waitForExist} from '../../test/WaitTest.test';
 
 
 @Entry
@@ -38,13 +39,19 @@ struct Index {
   @State imageAccess: boolean = true
   @State onlineImageAccess: boolean = true
   @State databaseAccess: boolean = true
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 171190,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(171190)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -53,6 +60,7 @@ struct Index {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -61,6 +69,9 @@ struct Index {
     Column() {
       Row() {
         Button("web test").key('webcomponent01').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str)
           switch (this.str) {
             case "emitRunJsCallback": {
@@ -75,7 +86,7 @@ struct Index {
                     }
                     if (result) {
                       this.webResult = 'testRunJavaScript'
-                      Utils.emitEvent(this.webResult, 126)
+                      Utils.emitEvent(this.webResult, 171200)
                       console.info(`The test() return value is: ${result}`)
                     }
                   });
@@ -87,7 +98,7 @@ struct Index {
               try {
                 this.controller.runJavaScript('testRunJavaScript()')
                   .then((proResult) => {
-                    Utils.emitEvent(proResult, 128)
+                    Utils.emitEvent(proResult, 171210)
                     console.log('proResult: ' + proResult);
                   })
                   .catch((error:BusinessError) => {
@@ -109,6 +120,12 @@ struct Index {
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
+        .onPageEnd((event) => {
+          if (event) {
+            this.isPageEnd = 0;
+            console.log(' onPageEnd url:' + event.url);
+           }
+        })
     }
   }
 }
