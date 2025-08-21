@@ -178,7 +178,7 @@ export default function ActsNotificationPublishTest() {
     //      * @tc.name      : SUB_NOTIFICATION_ANS_REQUEST_ENABLE_TEST_Static_0300
     //      * @tc.desc      : OperationType.UNKNOWN_TYPE & WantAgentFlags.ONE_TIME_FLAG
     //      */
-    //      //问题单号：DTS2025060627133
+    //      
     // it('SUB_NOTIFICATION_ANS_REQUEST_ENABLE_TEST_Static_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
     //   async (done: () => void): Promise<void> => {
     //   let TAG:string = 'SUB_NOTIFICATION_ANS_REQUEST_ENABLE_TEST_Static_0300'
@@ -881,7 +881,7 @@ export default function ActsNotificationPublishTest() {
     //      * @tc.name      : SUB_NOTIFICATION_ANS_CANCEL_TEST_Static_0700
     //      * @tc.desc      : Cancels a notification with the ID
     //      */
-    //     //问题单号：DTS2025060627133
+    //     
     // it('SUB_NOTIFICATION_ANS_CANCEL_TEST_Static_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
     //   async (done: () => void): Promise<void> => {
     //   let TAG:string = 'SUB_NOTIFICATION_ANS_CANCEL_TEST_Static_0700'
@@ -948,7 +948,7 @@ export default function ActsNotificationPublishTest() {
     //      * @tc.name      : SUB_NOTIFICATION_ANS_CANCELAll_TEST_Static_0300
     //      * @tc.desc      : Cancels all notifications of the current application
     //      */
-    //     //问题单号：DTS2025060627133
+    //     
     // it('SUB_NOTIFICATION_ANS_CANCELAll_TEST_Static_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
     //   async (done: () => void): Promise<void> => {
     //   let TAG:string = 'SUB_NOTIFICATION_ANS_CANCELAll_TEST_Static_0300'
@@ -1039,7 +1039,7 @@ export default function ActsNotificationPublishTest() {
     //      * @tc.name      : SUB_NOTIFICATION_ANS_COUNT_TEST_Static_0500
     //      * @tc.desc      : Obtains the number of all active notifications
     //      */
-    //     //问题单号：DTS2025060627133
+    //     
     // it('SUB_NOTIFICATION_ANS_COUNT_TEST_Static_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
     //   async (done: () => void): Promise<void> => {
     //     let TAG:string = 'SUB_NOTIFICATION_ANS_COUNT_TEST_Static_0500'
@@ -1061,7 +1061,7 @@ export default function ActsNotificationPublishTest() {
     //  * @tc.name      : SUB_NOTIFICATION_ANS_COUNT_TEST_Static_0600
     //  * @tc.desc      : Obtains an array of active notifications
     //  */
-    //  //问题单号：DTS2025060627133
+    //  
     // it('SUB_NOTIFICATION_ANS_COUNT_TEST_Static_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
     //   async (done: () => void): Promise<void> => {
     //     let TAG:string = 'SUB_NOTIFICATION_ANS_COUNT_TEST_Static_0600'

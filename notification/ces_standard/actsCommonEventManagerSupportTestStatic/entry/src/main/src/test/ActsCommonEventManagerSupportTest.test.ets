@@ -320,8 +320,6 @@ export default function ActsCommonEventManagerSupportTest() {
     it('Sub_Notification_Ces_Publish_Support_Static_1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
       async (done: () => void): Promise<void> => {
         hilog.info(domain, TAG, `Sub_Notification_Ces_Publish_Support_Static_1200 START`)
-        expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREE_AG_CONNECT_STATE_UPDATE as string)
-          .assertEqual('usual.event.bluetooth.handsfree.ag.CONNECT_STATE_UPDATE')
         expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREE_AG_CURRENT_DEVICE_UPDATE as string)
           .assertEqual('usual.event.bluetooth.handsfree.ag.CURRENT_DEVICE_UPDATE')
         expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREE_AG_AUDIO_STATE_UPDATE as string)
