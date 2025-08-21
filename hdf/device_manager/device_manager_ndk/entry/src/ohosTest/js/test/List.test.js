@@ -18,7 +18,7 @@ import DeviceManagerCanIUseTest from './DeviceManagerCanIUseTest.test.js'
 
 /* host test case */
 export default function testsuite() {
-    if (canIUse("SystemCapability.Driver.ExternalDevice")){
+    if (canIUse("SystemCapability.Driver.ExternalDevice")) {
         DeviceManagerJsTest()
     } else {
         DeviceManagerCanIUseTest()
