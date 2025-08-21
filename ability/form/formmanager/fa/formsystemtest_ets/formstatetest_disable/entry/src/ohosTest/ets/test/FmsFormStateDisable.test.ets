@@ -19,6 +19,7 @@ import { beforeAll, afterAll, beforeEach, afterEach, describe, expect, it, TestT
 import backgroundTaskManager from '@ohos.backgroundTaskManager';
 import CommonEventManager from '@ohos.commonEventManager';
 import { BusinessError } from '@ohos.base';
+import emitter from '@ohos.events.emitter';
 
 interface onFormEvent {
     events: string[];
@@ -43,6 +44,8 @@ let onSupplyEvent: onFormEvent = {
 const unsubscribeCallback = (tcNumber: string) => {
     console.info(`====>${tcNumber} unsubscribeCallback====>`);
 }
+
+const EVENT_ID_FORM_ON_STATE = 1100;
 
 let options:CommonEventManager.CommonEventPublishData = {
     code: 1,
@@ -95,6 +98,7 @@ export default function test() {
             commonEvent.unsubscribe(subscriberDel, () => unsubscribeCallback("afterEach unsubscribe subscriberDel"));
             commonEvent.unsubscribe(subscriberOnState, () => unsubscribeCallback("afterEach unsubscribe subscriberOnState"));
             commonEvent.unsubscribe(subscriberSupply, () => unsubscribeCallback("afterEach unsubscribe subscriberSupply"));
+            emitter.off(EVENT_ID_FORM_ON_STATE);
             await sleep(1000);
         })
 
@@ -753,12 +757,35 @@ export default function test() {
                     commonEvent.unsubscribe(subscriberSupply, () => unsubscribeSupplyCallback("FMS_disableFormsUpdate_1100"));
 
                     commonEvent.publish(deleteForm_Event, data, () => {
-                        console.info('FMS_disableFormsUpdate_1100 publish 要这个执行 ');
+                        console.info('FMS_disableFormsUpdate_1100 publish deleteForm_Event');
                         done()
                     });
 
                 }, 1000);
             }
+
+            emitter.on({
+                eventId: EVENT_ID_FORM_ON_STATE
+            }, (data:emitter.EventData) => {
+                console.info("====>FMS_disableFormsUpdate_1100 emitter CallBack====>" + JSON.stringify(data));
+                commonEvent.unsubscribe(subscriberOnState, () => unsubscribeSupplyCallback("FMS_disableFormsUpdate_1100"));
+                commonEvent.subscribe(subscriberSupply, onSupplyEventCallBack);
+
+                setTimeout(() => {
+                    console.log(`FMS_disableFormsUpdate_1100 emitter onFormDisableCallBack end`);
+                    commonEvent.publish(`fms.time_speed`, { code: 1 }, () => {
+                        console.log(`FMS_disableFormsUpdate_1100 emitter time reset`);
+                    });
+                    commonEvent.unsubscribe(subscriberSupply, () => unsubscribeSupplyCallback("FMS_disableFormsUpdate_1100"));
+                    options.code = 0;
+                    options.data = 'Second_FMS_FormOnState_commonEvent';
+                    commonEvent.publish(deleteForm_Event, options, () => {
+                        console.info('FMS_disableFormsUpdate_1100 emitter publish deleteForm_Event');
+                        done();
+                    });
+
+                }, 1000);
+            });
 
             let onStateCallBack = async (_:BusinessError, data: CommonEventManager.CommonEventPublishData) => {
                 console.info("====>FMS_disableFormsUpdate_1100 onAcquiredCallBack====>" + JSON.stringify(data));
@@ -789,13 +816,15 @@ export default function test() {
                         }
                     }
                 }).then((res) => {
-                    console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbilityhost res: ${JSON.stringify(res)}`);
+                    console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbilityhost disable res: ${JSON.stringify(res)}`);
+                    emitter.emit({eventId: EVENT_ID_FORM_ON_STATE},
+                        {data:{code: res, data: 'Second_FMS_FormOnState_commonEvent'}});
                     data.code = res;
                     data.data = 'Second_FMS_FormOnState_commonEvent';
                     commonEvent.publish("FMS_FormOnState_commonEvent", data, () => {
-                        console.info(`FMS_disableFormsUpdate_1000 onStateCallBack publish start`)})
+                        console.info(`FMS_disableFormsUpdate_1000 onStateCallBack disable publish start`)});
                 }).catch((err: BusinessError)  => {
-                    console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbilityhost error: ${JSON.stringify(err)}`);
+                    console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbilityhost disable error: ${JSON.stringify(err)}`);
                 });
                 console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbility notify disable end`);
             }
@@ -819,13 +848,13 @@ export default function test() {
                     }
                 }
             }).then((res) => {
-                console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbilityhost res: ${JSON.stringify(res)}`);
+                console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbilityhost servicea res: ${JSON.stringify(res)}`);
                 options.code = res;
                 options.data = 'FMS_FormOnState_commonEvent';
                 commonEvent.publish("FMS_FormOnState_commonEvent", options, () => {
-                    console.info(`FMS_disableFormsUpdate_1000 onStateCallBack publish start`)})
+                    console.info(`FMS_disableFormsUpdate_1000 onStateCallBack publish servicea start`)})
             }).catch((err: BusinessError)  => {
-                console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbilityhost error: ${JSON.stringify(err)}`);
+                console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbilityhost servicea error: ${JSON.stringify(err)}`);
             });
             console.log(`FMS_disableFormsUpdate_1100 featureAbility.startAbility servicea end`);
         });
