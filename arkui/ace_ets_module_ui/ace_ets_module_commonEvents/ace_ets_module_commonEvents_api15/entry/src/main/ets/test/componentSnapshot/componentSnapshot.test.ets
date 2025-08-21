@@ -66,5 +66,39 @@ export default function componentSnapshot() {
       console.info('[componentSnapshot_0100] END');
       done();
     });
+
+    /**
+     * @tc.number componentSnapshot_0200
+     * @tc.name   componentSnapshot_0200
+     * @tc.desc   test the componentSnapshot error code
+     * @tc.size   MediumTest
+     * @tc.type   Function
+     * @tc.level  0
+     */
+    it('componentSnapshot_0200', Level.LEVEL0, async (done: Function) => {
+      console.info('[componentSnapshot_0200] START');
+      let driver: Driver = Driver.create();
+      let button2 = await driver.findComponent(ON.id('button2'));
+      await button2.click();
+      await CommonFunc.sleep(2000);
+      let button3 = await driver.findComponent(ON.id('button3'));
+      await button3.click();
+      await CommonFunc.sleep(2000);
+
+      let strJson = getInspectorByKey('button2');
+      let obj: ESObject = JSON.parse(strJson);
+      console.info('[componentSnapshot_0200] strJson is: ' + strJson);
+      console.info('[componentSnapshot_0200] componentSnapshot obj is: ' + JSON.stringify(obj.$attrs.label));
+      expect(obj.$attrs.label).assertEqual('401');
+
+      let strJson1 = getInspectorByKey('button3');
+      let obj1: ESObject = JSON.parse(strJson1);
+      console.info('[componentSnapshot_0200] strJson1 is: ' + strJson1);
+      console.info('[componentSnapshot_0200] componentSnapshot obj1 is: ' + JSON.stringify(obj1.$attrs.label));
+      expect(obj1.$attrs.label).assertEqual('100001');
+
+      console.info('[componentSnapshot_0200] END');
+      done();
+    });
   })
 }

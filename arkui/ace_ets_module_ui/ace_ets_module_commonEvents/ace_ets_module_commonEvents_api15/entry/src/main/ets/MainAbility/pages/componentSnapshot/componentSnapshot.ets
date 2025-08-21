@@ -20,23 +20,38 @@ import { image } from '@kit.ImageKit';
 struct SnapshotExample {
   @State pixmap: image.PixelMap | undefined = undefined
   @State value: string = ''
+  @State init1: string = 'init'
+  @State init2: string = 'init'
 
   build() {
     Column() {
       Row() {
         Text(this.value).key('text')
-        Image(this.pixmap).width(200).height(200).border({ color: Color.Black, width: 2 }).margin(5).key('componentSnapshot')
-        Image($r('app.media.icon')).autoResize(true).width(200).height(200).margin(5).id('root')
+        Image(this.pixmap)
+          .width(200)
+          .height(200)
+          .border({ color: Color.Black, width: 2 })
+          .margin(5)
+          .key('componentSnapshot')
+        Image($r('app.media.icon'))
+          .autoResize(true)
+          .width(200)
+          .height(200)
+          .margin(5)
+          .id('root')
       }
+
       Button('click to generate UI snapshot')
         .onClick(() => {
           try {
-            let pixelmap = componentSnapshot.getSync('root', {scale : 2, waitUntilRenderFinished : true,                  region: {
-              left: 200,
-              right: 200,
-              top: 100,
-              bottom: 200
-            }})
+            let pixelmap = componentSnapshot.getSync('root', {
+              scale: 2, waitUntilRenderFinished: true, region: {
+                left: 200,
+                right: 200,
+                top: 100,
+                bottom: 200
+              }
+            })
             this.pixmap = pixelmap
             this.value = 'suc'
           } catch (error) {
@@ -44,6 +59,26 @@ struct SnapshotExample {
           }
         }).margin(10)
         .id('button1')
+
+      Button(this.init1).onClick(() => {
+        try {
+          componentSnapshot.getSync(undefined)
+        } catch (e) {
+          this.init1 = e.code
+          console.log(`startDataLoading errorCode: ${e.code}, errorMessage: ${e.message}`);
+        }
+
+      }).id('button2')
+
+      Button(this.init2).onClick(() => {
+        try {
+          componentSnapshot.getSync("1234")
+        } catch (e) {
+          this.init2 = e.code
+          console.log(`startDataLoading errorCode: ${e.code}, errorMessage: ${e.message}`);
+        }
+
+      }).id('button3')
     }
     .width('100%')
     .height('100%')
