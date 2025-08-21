@@ -9,6 +9,13 @@ const ExpectTrue: (n: boolean) => void = (n: boolean) => {
     console.info(` exportTrue failed err: ${JSON.stringify(err)}`);
   }
 };
+const ExpectFail = () => {
+  try {
+    expect().assertFail();
+  } catch (err) {
+    console.info(`exportFail failed err: ${JSON.stringify(err)}`);
+  }
+}
 
 
 export default function StatisticsErrorCodeTest() {
