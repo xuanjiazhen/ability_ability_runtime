@@ -103,11 +103,10 @@ describe("DeviceManagerCanIUseTest", function () {
      * @tc.name       : testDeviceManagerCanIUsek001
      * @tc.desc       : verify DeviceManagerCanIUse any device
      */
-    it('testDeviceManagerCanIUsek001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+    it('testDeviceManagerCanIUsek001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function () {
         console.info(TAG, '----------------------testDeviceManagerCanIUsek001---------------------------');
         let flag = canIUse("SystemCapability.Driver.ExternalDevice");
         expect(flag).assertEqual(false);
-        done();
     })
 })
 }
