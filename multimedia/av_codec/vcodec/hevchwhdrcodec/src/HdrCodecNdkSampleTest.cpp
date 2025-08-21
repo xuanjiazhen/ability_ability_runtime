@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -311,15 +311,18 @@ int32_t HDRCodecNdkSample::SendDataHdr(OH_AVCodec *codec, uint32_t index, OH_AVM
     if (fileBuffer == nullptr) {
         cout << "Fatal: no memory" << endl;
         delete[] fileBuffer;
+        fileBuffer = nullptr;
         return 0;
     }
     (void)inFile_->read(reinterpret_cast<char *>(fileBuffer), bufferSize);
     if (memcpy_s(avBuffer, size, fileBuffer, bufferSize) != EOK) {
         delete[] fileBuffer;
+        fileBuffer = nullptr;
         cout << "Fatal: memcpy fail" << endl;
         return 0;
     }
     delete[] fileBuffer;
+    fileBuffer = nullptr;
     attr.pts = GetSystemTimeUs();
     attr.size = bufferSize;
     attr.offset = 0;
@@ -364,14 +367,17 @@ int32_t HDRCodecNdkSample::SendDataH263(OH_AVCodec *codec, uint32_t index, OH_AV
     uint8_t *fileBuffer = new uint8_t[bufferSize];
     if (fileBuffer == nullptr) {
         delete[] fileBuffer;
+        fileBuffer = nullptr;
         return 0;
     }
     (void)inFile_->read(reinterpret_cast<char *>(fileBuffer), bufferSize);
     if (memcpy_s(avBuffer, size, fileBuffer, bufferSize) != EOK) {
         delete[] fileBuffer;
+        fileBuffer = nullptr;
         return 0;
     }
     delete[] fileBuffer;
+    fileBuffer = nullptr;
     attr.pts = GetSystemTimeUs();
     attr.size = bufferSize;
     attr.offset = 0;
@@ -396,10 +402,12 @@ int32_t DecAvcPushData(OH_AVMemory *data, uint32_t bufferSize, uint8_t *fileBuff
         inFile_->clear();
         inFile_->seekg(0, ios::beg);
         delete[] fileBuffer;
+        fileBuffer = nullptr;
         return 1;
     }
     if (memcpy_s(avBuffer, size, fileBuffer, bufferSize + START_CODE_SIZE) != EOK) {
         delete[] fileBuffer;
+        fileBuffer = nullptr;
         cout << "Fatal: memcpy fail" << endl;
         return 1;
     }
@@ -423,6 +431,7 @@ int32_t HDRCodecNdkSample::SendDataAvc(OH_AVCodec *codec, uint32_t index, OH_AVM
     uint8_t *fileBuffer = new uint8_t[bufferSize + START_CODE_SIZE];
     if (fileBuffer == nullptr) {
         delete[] fileBuffer;
+        fileBuffer = nullptr;
         return 0;
     }
     if (memcpy_s(fileBuffer, bufferSize + START_CODE_SIZE, START_CODE, START_CODE_SIZE) != EOK) {
@@ -458,6 +467,7 @@ int32_t DecPushData(OH_AVMemory *data, uint32_t bufferSize, uint8_t *fileBuffer)
         inFile_->clear();
         inFile_->seekg(0, ios::beg);
         delete[] fileBuffer;
+        fileBuffer = nullptr;
         return 1;
     }
     uint8_t *avBuffer = OH_AVMemory_GetAddr(data);
@@ -466,6 +476,7 @@ int32_t DecPushData(OH_AVMemory *data, uint32_t bufferSize, uint8_t *fileBuffer)
         inFile_->clear();
         inFile_->seekg(0, ios::beg);
         delete[] fileBuffer;
+        fileBuffer = nullptr;
         return 1;
     }
     if (memcpy_s(avBuffer, size, fileBuffer, bufferSize) != EOK) {
@@ -474,6 +485,7 @@ int32_t DecPushData(OH_AVMemory *data, uint32_t bufferSize, uint8_t *fileBuffer)
         return 1;
     }
     delete[] fileBuffer;
+    fileBuffer = nullptr;
     return 0;
 }
 
