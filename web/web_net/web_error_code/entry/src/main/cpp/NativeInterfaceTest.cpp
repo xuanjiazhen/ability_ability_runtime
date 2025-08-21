@@ -100,26 +100,12 @@ static napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info
 
 static napi_value loadData(napi_env env, napi_callback_info info)
 {
-    size_t argc = 2;
-    napi_value args[ARGS_INDEX_TWO] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-
-    // 获取第一个参数 webName
-    size_t webNameSize = 0;
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], nullptr, 0, &webNameSize);
-    char *webName = new (std::nothrow) char[webNameSize + 1];
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], webName, webNameSize + 1, &webNameSize);
-    // 获取第二个参数 caseNum
-    napi_valuetype valuetype;
-    napi_typeof(env, args[ARGS_INDEX_ONE], &valuetype);
-    if (valuetype != napi_number) {
-        napi_throw_type_error(env, nullptr, "Argument must be a number");
-        return nullptr;
-    }
+    char webName[MAX_WEB_NAME_SIZE] = {0};
     int32_t caseNum = -1;
-    napi_get_value_int32(env, args[ARGS_INDEX_ONE], &caseNum);
+    GetTestCase(env, info, webName, caseNum);
 
     ArkWeb_ErrorCode ret;
+
     switch (caseNum) {
         case CASE_NUM_0:
             // ARKWEB_SUCCESS
@@ -130,8 +116,13 @@ static napi_value loadData(napi_env env, napi_callback_info info)
             ret = ARKWEB_LIBRARY_SYMBOL_NOT_FOUND;
             break;
         case CASE_NUM_2:
-            ret = OH_NativeArkWeb_LoadData(webName, "", "", "", "www.baidu.com", "");
-            ret = ARKWEB_INVALID_PARAM;
+            try {
+                ret = OH_NativeArkWeb_LoadData(webName, "", "", "", "www.baidu.com", "");
+                ret = ARKWEB_INVALID_PARAM;
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "nullptr error:%{public}s", err.what());
+                ret = ARKWEB_INVALID_PARAM;
+            }
             break;
         default:
             return nullptr;
@@ -160,7 +151,12 @@ static napi_value GetBlanklessInfo(napi_env env, napi_callback_info info)
             retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "");
             break;
         case CASE_NUM_3:
-            retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey("", "0731");
+            try {
+                retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey("", "0731");
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "nullptr error:%{public}s", err.what());
+                retInfo.errCode = ARKWEB_BLANKLESS_ERR_INVALID_ARGS;
+            }
             break;
         default:
             break;

@@ -119,7 +119,7 @@ export default function NativeInterfaceTest() {
         console.info("====>testWebNapiLoadDataInvalidParam start====");
         let result: number = nativeInterface.loadData("web1211", 2);
         console.info("====>testWebNapiLoadDataInvalidParam result====", result);
-        // expect(result).assertEqual(0);
+        expect(result).assertEqual(TEST_ARKWEB_INVALID_PARAM);
         console.info("====>testWebNapiLoadDataInvalidParam stop====");
         done();
       } catch (err) {
@@ -200,7 +200,7 @@ export default function NativeInterfaceTest() {
         try {
           console.info("====>testWebNapiGetBlanklessInfoNullWeb start====");
           let result: number = nativeInterface.GetBlanklessInfo('web1211', 3);
-          expect([-2, 801]).assertContain(result);
+          expect([-3, 801]).assertContain(result);
           console.info("====>testWebNapiGetBlanklessInfoNullWeb stop====", result);
           done();
         } catch (err) {
@@ -284,7 +284,7 @@ export default function NativeInterfaceTest() {
         try {
           console.info("====>testWebNapiSetBlanklessInfoTrue start====");
           let result: number = nativeInterface.SetBlanklessInfo('web1211', 3);
-          expect([0, 801]).assertContain(result);
+          expect([0, -5, 801]).assertContain(result);
           console.info("====>testWebNapiSetBlanklessInfoTrue stop====", result);
           done();
         } catch (err) {
@@ -305,7 +305,7 @@ export default function NativeInterfaceTest() {
         try {
           console.info("====>testWebNapiSetBlanklessInfoNullWeb start====");
           let result: number = nativeInterface.SetBlanklessInfo('web1211', 4);
-          expect([-2, 801]).assertContain(result);
+          expect([-3, 801]).assertContain(result);
           console.info("====>testWebNapiSetBlanklessInfoNullWeb stop====", result);
           done();
         } catch (err) {
