@@ -21,6 +21,7 @@
 
 #include "ability_info.h"
 #include "extension_ability_info.h"
+#include "open_link_options.h"
 #include "want.h"
 
 namespace OHOS {
@@ -79,6 +80,20 @@ struct StartAbilityInfoWrap {
     StartAbilityInfoWrap();
     ~StartAbilityInfoWrap();
     void SetStartAbilityInfo(const AppExecFwk::AbilityInfo& abilityInfo);
+};
+
+struct StartAbilityWrapParam {
+    Want want;
+    sptr<IRemoteObject> callerToken;
+    int requestCode;
+    bool isPendingWantCaller;
+    int32_t userId = -1;
+    bool isStartAsCaller = false;
+    uint32_t specifyTokenId = 0;
+    bool isForegroundToRestartApp = false;
+    bool isImplicit = false;
+    bool isUIAbilityOnly = false;
+    AAFwk::OpenLinkOptions opt = {};
 };
 }
 }
