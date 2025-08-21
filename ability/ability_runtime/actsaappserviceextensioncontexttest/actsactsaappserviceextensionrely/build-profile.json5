@@ -22,15 +22,14 @@
         "name": "default",
         "signingConfig": "default",
         "compileSdkVersion": 20,
-        "compatibleSdkVersion": 12,
-        "targetSdkVersion": 12,
+        "compatibleSdkVersion": 20,
         "runtimeOS": "OpenHarmony",
       }
     ]
   },
   "modules": [
     {
-      "name": "entry_test",
+      "name": "entry",
       "srcPath": "./entry",
       "targets": [
         {

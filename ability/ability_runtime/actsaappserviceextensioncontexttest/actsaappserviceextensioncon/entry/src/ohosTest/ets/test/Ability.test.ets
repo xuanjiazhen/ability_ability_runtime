@@ -33,7 +33,7 @@ function sleep(time:number) {
 export default function abilityTest() {
   describe('ActsAbilityTest', () => {
     beforeAll(() =>{
-      context = AppStorage.get<common.UIAbilityContext>("abilityContext") as common.UIAbilityContext;
+      context = AppStorage.get<common.UIAbilityContext>('abilityContext') as common.UIAbilityContext;
     })
 
     /**
@@ -45,8 +45,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_0100`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility"
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility'
       };
 
       let options: common.ConnectOptions = {
@@ -92,8 +92,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_0200`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextensionError",
-        abilityName: "AppServiceExtAbility"
+        bundleName: 'com.acts.context.aappserviceextensionError',
+        abilityName: 'AppServiceExtAbility'
       };
 
       let options: common.ConnectOptions = {
@@ -131,8 +131,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_0300`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility"
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility'
       };
 
       try {
@@ -173,8 +173,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_0400`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextensionError",
-        abilityName: "AppServiceExtAbility"
+        bundleName: 'com.acts.context.aappserviceextensionError',
+        abilityName: 'AppServiceExtAbility'
       }
       try {
         context.startAppServiceExtensionAbility(wantInfo).then(() => {
@@ -227,15 +227,15 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_0600`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility',
         parameters: {
-          "case": '0600'
+          'case': '0600'
         }
       };
 
       let commonEventSubscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
-        events: ["connectServiceExtensionAbility_0600"]
+        events: ['connectServiceExtensionAbility_0600']
       };
       await commonEventManager.createSubscriber(commonEventSubscribeInfo).then((subscriber) => {
         sub = subscriber;
@@ -274,15 +274,15 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_0700`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility',
         parameters: {
-          "case": '0700'
+          'case': '0700'
         }
       };
 
       let commonEventSubscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
-        events: ["connectServiceExtensionAbility_0700"]
+        events: ['connectServiceExtensionAbility_0700']
       };
       await commonEventManager.createSubscriber(commonEventSubscribeInfo).then((subscriber) => {
         sub = subscriber;
@@ -321,15 +321,15 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_0800`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility',
         parameters: {
-          "case": '0800'
+          'case': '0800'
         }
       };
 
       let commonEventSubscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
-        events: ["connectServiceExtensionAbility_0800"]
+        events: ['connectServiceExtensionAbility_0800']
       };
       await commonEventManager.createSubscriber(commonEventSubscribeInfo).then((subscriber) => {
         sub = subscriber;
@@ -367,8 +367,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_0900`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let errorWantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbilityError"
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbilityError'
       };
       try {
          context.stopAppServiceExtensionAbility(errorWantInfo)
@@ -399,14 +399,14 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_3200`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility',
         parameters: {
-          "case": '3200'
+          'case': '3200'
         }
       }
       let commonEventSubscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
-        events: ["connectServiceExtensionAbility_3200"]
+        events: ['connectServiceExtensionAbility_3200']
       };
       await commonEventManager.createSubscriber(commonEventSubscribeInfo).then((subscriber) => {
         sub = subscriber;
@@ -445,14 +445,14 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_3300`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility',
         parameters: {
-          "case": '3300'
+          'case': '3300'
         }
       }
       let commonEventSubscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
-        events: ["connectServiceExtensionAbility_3300"]
+        events: ['connectServiceExtensionAbility_3300']
       };
       await commonEventManager.createSubscriber(commonEventSubscribeInfo).then((subscriber) => {
         sub = subscriber;
@@ -491,14 +491,14 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_3400`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility',
         parameters: {
-          "case": '3400'
+          'case': '3400'
         }
       }
       let commonEventSubscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
-        events: ["connectServiceExtensionAbility_3400"]
+        events: ['connectServiceExtensionAbility_3400']
       };
       await commonEventManager.createSubscriber(commonEventSubscribeInfo).then((subscriber) => {
         sub = subscriber;

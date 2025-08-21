@@ -28,7 +28,7 @@ function sleep(time:number) {
 export default function abilityTest() {
   describe('connectAppServiceExtensionAbility', () => {
     beforeAll(() =>{
-      context = AppStorage.get<common.UIAbilityContext>("abilityContext") as common.UIAbilityContext;
+      context = AppStorage.get<common.UIAbilityContext>('abilityContext') as common.UIAbilityContext;
     })
 
     /**
@@ -40,8 +40,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_1000`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextensionrely",
-        abilityName: "AppServiceExtAbility3"
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'AppServiceExtAbility3'
       }
       let options: common.ConnectOptions = {
         onConnect(elementName, remote) {
@@ -75,15 +75,15 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_1100`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextensionrely",
-        abilityName: "AppServiceExtAbility"
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'AppServiceExtAbility'
       };
 
       context.startAbility({
-        bundleName: "com.acts.context.aappserviceextensionrely",
-        abilityName: "MainAbility",
+        bundleName: 'com.acts.context.aappserviceextensionrely',
+        abilityName: 'MainAbility',
         parameters: {
-          "action": 'start_AppServiceExtAbility'
+          'action': 'start_AppServiceExtAbility'
         }
       }, (error)=> {
         hilog.info(0x0000, 'testTag', '%{public}s', `startAbility result: ${JSON.stringify(error)}`);
@@ -122,8 +122,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_1200`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "MyUIAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'MyUIAbility',
       }
       let options: common.ConnectOptions = {
         onConnect(elementName, remote) {
@@ -159,8 +159,8 @@ export default function abilityTest() {
       const tcNumber = `SUB_AA_ABILITY_NewRule_AppServiceExtension_1300`;
       hilog.info(0x0000, 'testTag', `${tcNumber} Begin`);
       let wantInfo: Want = {
-        bundleName: "com.acts.context.aappserviceextension",
-        abilityName: "AppServiceExtAbility",
+        bundleName: 'com.acts.context.aappserviceextension',
+        abilityName: 'AppServiceExtAbility',
         parameters: {
           'keyFd': { 'type': 'FD', 'value': -1 }
         }
