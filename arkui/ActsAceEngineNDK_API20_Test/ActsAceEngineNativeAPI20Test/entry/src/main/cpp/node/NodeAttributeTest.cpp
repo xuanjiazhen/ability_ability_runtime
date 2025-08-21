@@ -961,20 +961,57 @@ napi_value CheckNodeXComponentSurfaceSize(napi_env env, napi_callback_info info)
 
 napi_value CheckNodeXComponentSurfaceRect(napi_env env, napi_callback_info info)
 {
+    std::random_device randomNumber; // 随机数种子生成器
+    std::mt19937 mt(randomNumber()); // 随机数生成器
+    int32_t setX = mt() % 100; // 生成随机参数
+    int32_t setY = mt() % 100; // 生成随机参数
+    int32_t width = mt() % 100; // 生成随机参数
+    int32_t height = mt() % 100; // 生成随机参数
     napi_value retValue = 0;
     int32_t result = 0;
     XC RowComponent = XC(ARKUI_NODE_XCOMPONENT);
+    RowComponent.SetXComponentType(ARKUI_XCOMPONENT_TYPE_SURFACE);
+    RowComponent.SetXComponentId("test");
+    ArkUI_NumberValue value[] = { { .i32 = setX }, { .i32 = setY }, { .i32 = width }, { .i32 = height } };
+    ArkUI_AttributeItem item = { .value = value, .size = PARAM_4 };
+    int32_t setResult = RowComponent.setAttribute(NODE_XCOMPONENT_SURFACE_RECT, &item);
     const ArkUI_AttributeItem* itemptr = RowComponent.getAttribute(NODE_XCOMPONENT_SURFACE_RECT);
-    bool condition = itemptr->value[0].i32 == 0 && itemptr->value[1].i32 == 0 &&
-                     itemptr->value[2].i32 == 0 && itemptr->value[3].i32 == 0;
-    if (condition) {
+    bool condition = itemptr->value[0].i32 == setX && itemptr->value[1].i32 == setY &&
+                     itemptr->value[2].i32 == width && itemptr->value[3].i32 == height;
+    if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
-    } else {
+    } else if (setResult != ARKUI_ERROR_CODE_NO_ERROR) {
         result = 0;
+    } else {
+        result = PARAM_NEGATIVE_9;
     }
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
-                 "NODE_XCOMPONENT_SURFACE_RECTsetResult: %{public}d",
+                 "CheckNodeXComponentSurfaceRect: %{public}s, setResult == %{public}d",
+                 setResult == ARKUI_ERROR_CODE_NO_ERROR ? "设置成功" : "设置失败", setResult);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "CheckNodeXComponentSurfaceRect: %{public}d",
                  itemptr->value[0].i32);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "CheckNodeXComponentSurfaceRect: %{public}d",
+                 setX);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "CheckNodeXComponentSurfaceRect: %{public}d",
+                 itemptr->value[1].i32);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "CheckNodeXComponentSurfaceRect: %{public}d",
+                 setY);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "CheckNodeXComponentSurfaceRect: %{public}d",
+                 itemptr->value[2].i32);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "CheckNodeXComponentSurfaceRect: %{public}d",
+                 width);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "CheckNodeXComponentSurfaceRect: %{public}d",
+                 itemptr->value[3].i32);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "CheckAttribute",
+                 "CheckNodeXComponentSurfaceRect: %{public}d",
+                 height);
     napi_create_int32(env, result, &retValue);
     return retValue;
 }

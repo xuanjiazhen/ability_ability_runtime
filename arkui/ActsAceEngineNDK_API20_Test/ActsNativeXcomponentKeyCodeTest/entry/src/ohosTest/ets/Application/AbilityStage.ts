@@ -12,16 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-{
-  "modelVersion": "5.0.0",
-  "license": "",
-  "devDependencies": {
-    "@ohos/hypium": "1.0.6"
-  },
-  "author": "",
-  "name": "ActsNativeXcomponentKeyTest",
-  "description": "Please describe the basic information.",
-  "main": "",
-  "version": "1.0.0",
-  "dependencies": {}
+
+import AbilityStage from '@ohos.app.ability.AbilityStage';
+
+export default class MyAbilityStage extends AbilityStage {
+  onCreate() {
+    console.log('[Demo] MyAbilityStage onCreate');
+    globalThis.stageOnCreateRun = 1;
+    globalThis.stageContext = this.context;
+  }
 }

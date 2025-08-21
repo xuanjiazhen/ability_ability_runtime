@@ -719,6 +719,29 @@ export default function NodeAttribute() {
       }
     })
     /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_SURFACE_RECT_0100
+     * @tc.name    : testCheckNodeXComponentSurfaceRect
+     * @tc.desc    : Test get CheckNodeXComponentSurfaceRect's result.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeXComponentSurfaceRect', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_S` +
+                     `URFACE_RECT_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeXComponentSurfaceRect();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_S` +
+                      `URFACE_RECT_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_DATE_PICKER_CAN_LOOP_0100
      * @tc.name    : testCheckNodeDatePickerCanLoop
      * @tc.desc    : Test get CheckNodeDatePickerCanLoop's result.
