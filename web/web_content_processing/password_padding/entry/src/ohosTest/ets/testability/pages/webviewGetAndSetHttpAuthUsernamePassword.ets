@@ -16,7 +16,7 @@ import events_emitter from '@ohos.events.emitter';
 import webview from '@ohos.web.webview';
 import Utils from '../../test/Utils';
 import JSON from '@ohos.util.json';
-import { waitForExist} from '../../test/WaitTest.test';
+import { waitForExist } from '../../test/WaitTest.test';
 
 @Entry
 @Component
@@ -32,13 +32,18 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
   usernamePassword: string[] = [];
   @State emitKey: string = '';
   @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 130000,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+      events_emitter.off(130000);
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -58,10 +63,10 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
           console.info('key==>' + this.emitKey)
           this.isShouldOverlay = true
           this.isCallback = false
-          await Utils.sleep(2000)
-
           webview.WebDataBase.deleteHttpAuthCredentials();
+          await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
           await waitForExist(()=>this.isReceive, this.emitKey, 0);
+          this.isReceive = -1;
           switch (this.emitKey) {
             case 'emitWebviewGetAndSetHttpAuthUsernamePassword': {
               try {
@@ -70,12 +75,12 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
                 if (this.usernamePassword == null || (this.usernamePassword[0] != 'user' ||
                     this.usernamePassword[1] != 'password')) {
                   console.info('WebviewGetAndSetHttpAuthUsernamePassword failed');
-                  Utils.emitEvent('fail', 25001);
+                  Utils.emitEvent('fail', 130010);
                   break;
                 }
-                Utils.emitEvent('success', 25001);
+                Utils.emitEvent('success', 130010);
               } catch (error) {
-                Utils.emitEvent('fail', 25001);
+                Utils.emitEvent('fail', 130010);
               }
               break;
             }
@@ -86,7 +91,7 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
                 if (this.usernamePassword == null || (this.usernamePassword[0] != 'user' ||
                     this.usernamePassword[1] != 'password')) {
                   console.info('WebviewUpdateHttpAuthPassword failed');
-                  Utils.emitEvent('fail', 25002);
+                  Utils.emitEvent('fail', 130020);
                   break;
                 }
                 webview.WebDataBase.saveHttpAuthCredentials(this.host, this.realm, 'user', 'newPassword');
@@ -94,12 +99,12 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
                 if (this.usernamePassword == null || (this.usernamePassword[0] != 'user' ||
                     this.usernamePassword[1] != 'newPassword')) {
                   console.info('WebviewUpdateHttpAuthPassword update failed');
-                  Utils.emitEvent('fail', 25002);
+                  Utils.emitEvent('fail', 130020);
                   break;
                 }
-                Utils.emitEvent('success', 25002);
+                Utils.emitEvent('success', 130020);
               } catch (error) {
-                Utils.emitEvent('fail', 25002);
+                Utils.emitEvent('fail', 130020);
               }
               break;
             }
@@ -110,7 +115,7 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
                 if (this.usernamePassword == null || (this.usernamePassword[0] != 'user' ||
                     this.usernamePassword[1] != 'password')) {
                   console.info('WebviewUpdateHttpAuthUsername failed');
-                  Utils.emitEvent('fail', 25003);
+                  Utils.emitEvent('fail', 130030);
                   break;
                 }
                 webview.WebDataBase.saveHttpAuthCredentials(this.host, this.realm, 'newUser', 'password');
@@ -118,12 +123,12 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
                 if (this.usernamePassword == null || (this.usernamePassword[0] != 'newUser' ||
                     this.usernamePassword[1] != 'password')) {
                   console.info('WebviewUpdateHttpAuthUsername update failed');
-                  Utils.emitEvent('fail', 25003);
+                  Utils.emitEvent('fail', 130030);
                   break;
                 }
-                Utils.emitEvent('success', 25003);
+                Utils.emitEvent('success', 130030);
               } catch (error) {
-                Utils.emitEvent('fail', 25003);
+                Utils.emitEvent('fail', 130030);
               }
               break;
             }
@@ -133,14 +138,14 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
                 this.usernamePassword = webview.WebDataBase.getHttpAuthCredentials(this.host, this.realm);
                 if (this.usernamePassword == null || (this.usernamePassword[0] != 'user' ||
                     this.usernamePassword[1] != 'password')) {
-                  Utils.emitEvent('fail', 25004)
+                  Utils.emitEvent('fail', 130040)
                   break;
                 }
                 webview.WebDataBase.saveHttpAuthCredentials(this.host, this.realm, null, 'password');
                 console.info('WebviewSetHttpAuthUsernameToNull failed');
-                Utils.emitEvent('fail', 25004);
+                Utils.emitEvent('fail', 130040);
               } catch (error) {
-                Utils.emitEvent('success', 25004);
+                Utils.emitEvent('success', 130040);
               }
               break;
             }
@@ -150,14 +155,14 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
                 this.usernamePassword = webview.WebDataBase.getHttpAuthCredentials(this.host, this.realm);
                 if (this.usernamePassword == null || (this.usernamePassword[0] != 'user' ||
                     this.usernamePassword[1] != 'password')) {
-                  Utils.emitEvent('fail', 25005);
+                  Utils.emitEvent('fail', 130050);
                   break;
                 }
                 webview.WebDataBase.saveHttpAuthCredentials(this.host, this.realm, 'user', null);
                 console.info('WebviewSetHttpAuthPasswordToNull failed');
-                Utils.emitEvent('fail', 25005);
+                Utils.emitEvent('fail', 130050);
               } catch (error) {
-                Utils.emitEvent('success', 25005);
+                Utils.emitEvent('success', 130050);
               }
               break;
             }
@@ -167,14 +172,14 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
                 this.usernamePassword = webview.WebDataBase.getHttpAuthCredentials(this.host, this.realm);
                 if (this.usernamePassword == null || (this.usernamePassword[0] != 'user' ||
                     this.usernamePassword[1] != 'password')) {
-                  Utils.emitEvent('fail', 25006);
+                  Utils.emitEvent('fail', 130060);
                   break;
                 }
                 webview.WebDataBase.saveHttpAuthCredentials(this.host, this.realm, null, null);
                 console.info('WebviewSetHttpAuthUsernamePasswordToNull failed');
-                Utils.emitEvent('fail', 25006);
+                Utils.emitEvent('fail', 130060);
               } catch (error) {
-                Utils.emitEvent('success', 25006);
+                Utils.emitEvent('success', 130060);
               }
               break;
             }
@@ -184,19 +189,19 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
                 this.usernamePassword = webview.WebDataBase.getHttpAuthCredentials(this.host, this.realm);
                 if (this.usernamePassword == null || (this.usernamePassword[0] != 'user' ||
                     this.usernamePassword[1] != 'password')) {
-                  Utils.emitEvent('fail', 25007);
+                  Utils.emitEvent('fail', 130070);
                   break;
                 }
                 webview.WebDataBase.deleteHttpAuthCredentials();
                 let ret = webview.WebDataBase.existHttpAuthCredentials();
                 if (ret) {
                   console.info('WebviewDeleteHttpAuthUsernamePassword failed');
-                  Utils.emitEvent('fail', 25007);
+                  Utils.emitEvent('fail', 130070);
                   break;
                 }
-                Utils.emitEvent('success', 25007);
+                Utils.emitEvent('success', 130070);
               } catch (error) {
-                Utils.emitEvent('fail', 25007);
+                Utils.emitEvent('fail', 130070);
               }
               break;
             }
@@ -205,8 +210,10 @@ struct webviewGetAndSetHttpAuthUsernamePassword {
       }
       Web({ src: 'www.example.com', controller: this.controller })
         .databaseAccess(true)
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
+        })
     }
   }
 }
-
-
