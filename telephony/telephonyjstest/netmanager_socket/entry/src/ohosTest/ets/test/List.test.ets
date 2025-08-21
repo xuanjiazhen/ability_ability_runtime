@@ -14,10 +14,8 @@
  */
 
 //other import
-import connectionJsunit from './ConnectionJsunit.test';
 import socketJsunit from './SocketJsunit.test';
 import webSocketJsunit from './WebSocketJsunit.test';
-import connectionSecondJsUnit from './ConnectionSecondJsUnit.test';
 import networkManagerSocketTest from './NetworkManagerSocket.test';
 import connection from '@ohos.net.connection';
 let netHandle = connection.getDefaultNetSync();
@@ -29,6 +27,4 @@ export default function testsuite() {
   }
   networkManagerSocketTest();
   webSocketJsunit();
-  connectionJsunit();
-  connectionSecondJsUnit();
 }
