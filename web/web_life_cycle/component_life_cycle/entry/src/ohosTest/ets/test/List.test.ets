@@ -15,10 +15,12 @@
 import componentLifeCycleTestOne from './componentLifeCycleTestOne.test'
 import webInitTest from './WebInitTest.test'
 import webViewSharedRenderProcessToken from './webViewSharedRenderProcessToken.test'
+import WebViewSetWebDestroyMode from './WebViewSetWebDestroyMode.test'
 
 
 export default function testsuite() {
   webInitTest()
   componentLifeCycleTestOne()
   webViewSharedRenderProcessToken()
+  WebViewSetWebDestroyMode()
 }
