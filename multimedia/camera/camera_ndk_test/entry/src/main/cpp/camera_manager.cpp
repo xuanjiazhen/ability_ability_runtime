@@ -3098,3 +3098,36 @@ Camera_ErrorCode NDKCamera::WhiteBalanceTest(void)
     ret_ = OH_CaptureSession_GetWhiteBalanceMode(captureSession_, &mode);
     return ret_;
 }
+
+Camera_ErrorCode NDKCamera::CreatePreviewOutputByIndex(int index)
+{
+    profile_ = cameraOutputCapability_->previewProfiles[index];
+    if (profile_ == nullptr) {
+        LOG("ndkXTS Get previewProfiles failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    ret_ = OH_CameraManager_CreatePreviewOutput(cameraManager_, profile_, previewSurfaceId_, &previewOutput_);
+    if (previewSurfaceId_ == nullptr || previewOutput_ == nullptr || ret_ != CAMERA_OK) {
+        LOG("ndkXTS CreatePreviewOutput failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    PreviewOutputRegisterCallback();
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::CreateVideoOutputByIndex(char* videoId, int index)
+{
+    LOG("ndkXTS CreateVideoOutput start.");
+    videoProfile_ = cameraOutputCapability_->videoProfiles[index];
+    LOG("ndkXTS CreateVideoOutput videoProfiles start.");
+    if (videoProfile_ == nullptr) {
+        LOG("ndkXTS Get videoProfiles failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    ret_ = OH_CameraManager_CreateVideoOutput(cameraManager_, videoProfile_, videoId, &videoOutput_);
+    if (videoId == nullptr || videoOutput_ == nullptr || ret_ != CAMERA_OK) {
+        LOG("ndkXTS CreateVideoOutput failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    return ret_;
+}

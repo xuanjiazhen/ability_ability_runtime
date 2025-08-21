@@ -127,14 +127,61 @@ async function getVideoSurfaceId() {
   console.info(TAG + 'getVideoSurfaceID videoSurfaceId : ' + JSON.stringify(videoSurfaceId));
 }
 
+async function createVideoOutput() {
+  cameraObj.getSupportedOutputCapability();
+
+  let videoProfiles = cameraObj.getVideoProfiles();
+  console.info("videoProfiles is "+ JSON.stringify(videoProfiles));
+  let videoProfileIndex = 0;
+  let videoProfileHeigth = 1080;
+  let videoProfileWidth = 1920;
+  let FrameRate = 30;
+  //View the videoProfile with an aspect ratio of 4:3
+  for (let i = 0; i < videoProfiles.length; i++) {
+    if (Math.abs((videoProfiles[i].width / videoProfiles[i].height) -(4 / 3)) < 0.1) {
+      videoProfileWidth = videoProfiles[i].width;
+      videoProfileHeigth = videoProfiles[i].height;
+      FrameRate = videoProfiles[i].min;
+      videoProfileIndex = i;
+      break;
+    }
+  }
+
+  videoConfig = {
+    audioSourceType : media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC,
+    videoSourceType : media.VideoSourceType.VIDEO_SOURCE_TYPE_SURFACE_ES,
+    profile : {
+      audioBitrate : 48000,
+      audioChannels : 2,
+      audioCodec : media.CodecMimeType.AUDIO_AAC,
+      audioSampleRate : 48000,
+      fileFormat : media.ContainerFormatType.CFT_MPEG_4,
+      videoBitrate : 512000,
+      videoCodec : media.CodecMimeType.VIDEO_AVC,
+      videoFrameWidth : videoProfileWidth,
+      videoFrameHeight : videoProfileHeigth,
+      videoFrameRate : FrameRate
+    },
+    url : 'fd://',
+    rotation : 0,
+  }
+
+  console.log("videoConfig is "+JSON.stringify(videoConfig));
+  
+  await getVideoSurfaceId();
+  if (cameraObj.createVideoOutputByIndex(videoSurfaceId, videoProfileIndex)) {
+    console.info(TAG + "createVideoOutput FAILED");
+    expect().assertFail();
+  }
+  console.info(TAG + 'Exit createVideoOutput');
+}
+
 export default function cameraJSUnitOutput() {
   describe('cameraJSUnitOutput', () => {
     console.info(TAG + '----------cameraJSUnitOutput begin--------------');
     beforeAll(async () => {
       console.info(TAG + 'getImageReceiverSurfaceId');
       await getImageReceiverSurfaceId();
-      console.info(TAG + 'getVideoSurfaceId');
-      await getVideoSurfaceId();
       console.info(TAG + 'beforeAll case');
     });
     beforeEach(() => {
@@ -423,7 +470,7 @@ export default function cameraJSUnitOutput() {
      */
     it('SUB_MULTIMEDIA_CAMERA_NDK_CAPTURE_SESSION_ADD_VIDEO_OUTPUT_0100', Level.LEVEL1, async () => {
       console.info(TAG + " --------------SUB_MULTIMEDIA_CAMERA_NDK_CAPTURE_SESSION_ADD_VIDEO_OUTPUT_CALLBACK_0100--------------");
-      cameraObj.createVideoOutput(videoSurfaceId);
+      await createVideoOutput();
       let ret = cameraObj.sessionAddVideoOutput();
       if (ret) {
         console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_NDK_CAPTURE_SESSION_ADD_VIDEO_OUTPUT_CALLBACK_0100 sessionAddVideoOutput fail");
