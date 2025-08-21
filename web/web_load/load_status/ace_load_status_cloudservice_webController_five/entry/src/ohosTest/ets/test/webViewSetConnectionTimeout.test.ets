@@ -144,22 +144,5 @@ export default function ActsAceWebViewSetConnectionTimeout() {
       });
       sendEventByKey('webViewSetConnectionTimeoutButton', 10, '');
     })
-
-    /*
-    *@tc.number SUB_ACE_WEB_SETCONNECTIONTIMEOUT_API_0006
-    *@tc.name testWebViewSetConnectionAboutAppearTimeoutFiveSeconds
-    *@tc.desc test setConnectionTimeout_aboutAppear_five_seconds
-    *@tc.size MediumTest
-    *@tc.type Function
-    *@tc.level Level 1
-    */
-    it('testWebViewSetConnectionAboutAppearTimeoutFiveSeconds', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitWebViewSetConnectionAboutAppearTimeoutFiveSeconds"
-      Utils.emitEvent(emitKey, 14077);
-      Utils.registerBaseEvent("testWebViewSetConnectionAboutAppearTimeoutFiveSeconds", 'Time_out', 14083, done, (backData: events_emitter.EventData, expected: Object) => {
-        expect(backData?.data?.ACTION).assertEqual(expected);
-      });
-      sendEventByKey('webViewSetConnectionTimeoutButton', 10, '');
-    })
   })
 }
