@@ -2040,7 +2040,7 @@ export default function audioRendererTest() {
         }
         if (rlen > (totalSize / 8)) {
 
-          audioRen.setRenderRate(audio.AudioRendererRate.RENDER_RATE_DOUBLE, (err) => {
+          await audioRen.setRenderRate(audio.AudioRendererRate.RENDER_RATE_DOUBLE, (err) => {
             if (err) {
               console.info(`${TagFrmwkAudioScene}: setRenderRate : RENDER_RATE_DOUBLE : ERROR : ${err.message}`);
               resultFlag = false;
@@ -2053,7 +2053,7 @@ export default function audioRendererTest() {
       }
       console.info(`${TagFrmwkRender}: Renderer after read`);
 
-      audioRen.getRenderRate((err, data) => {
+      await audioRen.getRenderRate((err, data) => {
         if (err) {
           console.info(`${TagFrmwkAudioScene}: getRenderRate : RENDER_RATE_DOUBLE : ERROR : ${err.message}`);
           resultFlag = false;
