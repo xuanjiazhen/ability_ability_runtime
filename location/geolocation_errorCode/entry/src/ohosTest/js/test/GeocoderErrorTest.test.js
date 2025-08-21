@@ -19,8 +19,6 @@ import abilityAccessCtrl from '@ohos.abilityAccessCtrl'
 import bundle from '@ohos.bundle'
 import osaccount from '@ohos.account.osAccount'
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
-import{AsyncCallback,BusinessError} from '@kit.BasicServicesKit';
-import{accsess}from'kit.ConnectivityKit';
 
 
 function sleep(ms) {
