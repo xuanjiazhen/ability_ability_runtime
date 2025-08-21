@@ -2,11 +2,11 @@
   "string": [
     {
       "name": "app_name",
-      "value": "keyCodeNdk"
+      "value": "ActsAceEngineNativeAPI20"
     },
     {
       "name": "description_application",
-      "value": "KeyCodeTest"
+      "value": "ActsAceEngineNativeAPI20Test"
     }
   ]
 }
