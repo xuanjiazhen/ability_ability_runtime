@@ -38,11 +38,9 @@ struct Index {
     Row() {
       Column() {
         Text("AutoStartupManageOne")
-          .fontSize(35)
-          .fontWeight(FontWeight.Bold)
+          .fontSize(3)
 
         Text(this.message)
-          .margin({top: 10})
 
         Button('set_callback')
           .id('setCallbackButton')
@@ -94,7 +92,6 @@ struct Index {
               });
             }
           })
-          .margin({top: 10})
 
         Button('cancel_callback')
           .size({ width: '1%', height: '1%' })
@@ -146,7 +143,6 @@ struct Index {
               });
             }
           })
-          .margin({top: 10})
 
         Button('set_promise')
           .size({ width: '1%', height: '1%' })
@@ -193,7 +189,6 @@ struct Index {
               });
             }
           })
-          .margin({top: 10})
 
         Button('cancel_promise')
           .size({ width: '1%', height: '1%' })
@@ -240,7 +235,6 @@ struct Index {
               });
             }
           })
-          .margin({top: 10})
 
         Button('query_callback')
           .size({ width: '1%', height: '1%' })
@@ -289,7 +283,6 @@ struct Index {
               });
             }
           })
-          .margin({top: 10})
 
         Button('query_promise')
           .size({ width: '1%', height: '1%' })
@@ -333,7 +326,6 @@ struct Index {
               });
             }
           })
-          .margin({top: 10})
 
         Button('on')
           .size({ width: '1%', height: '1%' })
@@ -382,7 +374,6 @@ struct Index {
               });
             }
           })
-          .margin({top: 10})
 
         Button('off')
           .size({ width: '1%', height: '1%' })
@@ -431,7 +422,6 @@ struct Index {
               });
             }
           })
-          .margin({top: 10})
 
         Button('terminate')
           .size({ width: '1%', height: '1%' })
@@ -449,7 +439,6 @@ struct Index {
               hilog.info(0x0000, this.TAG, "[%{public}s] terminateSelf failed, paramErr: %{public}s", this.TAG, JSON.stringify(paramErr));
             }
           })
-          .margin({top: 10})
       }
       .width('100%')
     }

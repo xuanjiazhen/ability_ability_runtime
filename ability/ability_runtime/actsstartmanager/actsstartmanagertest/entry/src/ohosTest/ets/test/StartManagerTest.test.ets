@@ -17,16 +17,44 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import { BusinessError, commonEventManager } from '@kit.BasicServicesKit';
 import { common } from '@kit.AbilityKit';
-import { Driver, ON ,Component } from '@kit.TestKit';
-
+import { Driver, ON, Component, MatchPattern } from '@kit.TestKit';
 
 let TAG = 'RunTimeTest';
 let uiAbilityContext: common.UIAbilityContext;
-
+let buttonClicked:boolean = false;
+let driver = Driver.create();
+const LOG_TAG = 'COMPLETION_HANDLER_TEST';
+const DOMAIN = 0x0000;
+const DELAY_TIME = 2000;
 function sleep(ms: number) {
   return new Promise<string>(resolve => setTimeout(resolve, ms));
 }
+let allowOpen = async () => {
+  let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELAY_TIME);
+  hilog.info(DOMAIN, LOG_TAG, 'needAllow: %{public}s', JSON.stringify(allowed));
+  if (allowed) {
+    let buttons = await driver.findComponents(ON.text('本次允许', MatchPattern.CONTAINS));
+    if (buttons && buttons.length > 0) {
+      hilog.info(DOMAIN, LOG_TAG, 'buttons.length: %{public}d', buttons.length);
+      hilog.info(DOMAIN, LOG_TAG, 'clicking %{public}s', '本次允许');
+      await buttons[buttons.length - 1].click();
+      hilog.info(DOMAIN, LOG_TAG, '%{public}s clicked', '本次允许');
+      buttonClicked = true;
+      return;
+    }
+    buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+    if (buttons && buttons.length > 0) {
+      hilog.info(DOMAIN, LOG_TAG, 'buttons.length: %{public}d', buttons.length);
+      hilog.info(DOMAIN, LOG_TAG, 'clicking %{public}s', '允许');
+      await buttons[buttons.length - 1].click();
+      hilog.info(DOMAIN, LOG_TAG, '%{public}s clicked', '允许');
+      buttonClicked = true;
+      return;
+    }
 
+    hilog.info(DOMAIN, LOG_TAG, 'button not found');
+  }
+}
 export default function StartManagerTest() {
   describe('StartManagerTest', () => {
     beforeAll(() => {
@@ -77,7 +105,13 @@ export default function StartManagerTest() {
             .catch((err: BusinessError) => {
               hilog.info(0x0000, TAG, "[%{public}s] start entry's ability failed. err: %{public}s", TAG, JSON.stringify(err));
             })
-          let driver = Driver.create();
+          await driver.delayMs(1000);
+          try{
+            await allowOpen();
+            await driver.delayMs(1000);
+          } catch (e) {
+            hilog.error(DOMAIN, LOG_TAG, '%{public}s', `SUB_AbilityRuntime_CompletionHandlerTest_StartAbility_0100 allowOpen failed, ${JSON.stringify(e)}`);
+          }
           await driver.delayMs(1000);
           let setCallbackButton: Component = await driver.findComponent(ON.id('setCallbackButton'));
           let cancelCallbackButton: Component = await driver.findComponent(ON.id('cancelCallbackButton'));
@@ -138,7 +172,13 @@ export default function StartManagerTest() {
             .catch((err: BusinessError) => {
               hilog.info(0x0000, TAG, "[%{public}s] start entry's ability failed. err: %{public}s", TAG, JSON.stringify(err));
             })
-          let driver = Driver.create();
+          await driver.delayMs(1000);
+          try{
+            await allowOpen();
+            await driver.delayMs(1000);
+          } catch (e) {
+            hilog.error(DOMAIN, LOG_TAG, '%{public}s', `SUB_AbilityRuntime_CompletionHandlerTest_StartAbility_0100 allowOpen failed, ${JSON.stringify(e)}`);
+          }
           await driver.delayMs(1000);
           let setPromiseButton: Component = await driver.findComponent(ON.id('setPromiseButton'));
           let cancelPromiseButton: Component = await driver.findComponent(ON.id('cancelPromiseButton'));
@@ -199,7 +239,13 @@ export default function StartManagerTest() {
             .catch((err: BusinessError) => {
               hilog.info(0x0000, TAG, "[%{public}s] start entry's ability failed. err: %{public}s", TAG, JSON.stringify(err));
             })
-          let driver = Driver.create();
+          await driver.delayMs(1000);
+          try{
+            await allowOpen();
+            await driver.delayMs(1000);
+          } catch (e) {
+            hilog.error(DOMAIN, LOG_TAG, '%{public}s', `SUB_AbilityRuntime_CompletionHandlerTest_StartAbility_0100 allowOpen failed, ${JSON.stringify(e)}`);
+          }
           await driver.delayMs(1000);
           let queryCallbackButton: Component = await driver.findComponent(ON.id('queryCallbackButton'));
           let terminateButton: Component = await driver.findComponent(ON.id('terminateButton'));
@@ -257,7 +303,13 @@ export default function StartManagerTest() {
             .catch((err: BusinessError) => {
               hilog.info(0x0000, TAG, "[%{public}s] start entry's ability failed. err: %{public}s", TAG, JSON.stringify(err));
             })
-          let driver = Driver.create();
+          await driver.delayMs(1000);
+          try{
+            await allowOpen();
+            await driver.delayMs(1000);
+          } catch (e) {
+            hilog.error(DOMAIN, LOG_TAG, '%{public}s', `SUB_AbilityRuntime_CompletionHandlerTest_StartAbility_0100 allowOpen failed, ${JSON.stringify(e)}`);
+          }
           await driver.delayMs(1000);
           let queryPromiseButton: Component = await driver.findComponent(ON.id('queryPromiseButton'));
           let terminateButton: Component = await driver.findComponent(ON.id('terminateButton'));
@@ -315,7 +367,13 @@ export default function StartManagerTest() {
             .catch((err: BusinessError) => {
               hilog.info(0x0000, TAG, "[%{public}s] start entry's ability failed. err: %{public}s", TAG, JSON.stringify(err));
             })
-          let driver = Driver.create();
+          await driver.delayMs(1000);
+          try{
+            await allowOpen();
+            await driver.delayMs(1000);
+          } catch (e) {
+            hilog.error(DOMAIN, LOG_TAG, '%{public}s', `SUB_AbilityRuntime_CompletionHandlerTest_StartAbility_0100 allowOpen failed, ${JSON.stringify(e)}`);
+          }
           await driver.delayMs(1000);
           let onButton: Component = await driver.findComponent(ON.id('onButton'));
           let offButton: Component = await driver.findComponent(ON.id('offButton'));

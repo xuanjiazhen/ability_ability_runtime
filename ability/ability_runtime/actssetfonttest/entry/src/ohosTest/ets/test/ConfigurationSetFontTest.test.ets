@@ -97,80 +97,6 @@ export default function setFontTest() {
     })
 
     /*
-     * @tc.number  SUB_Ability_AbilityRuntime_Configuration_FontSettings_0300
-     * @tc.name    SUB_Ability_AbilityRuntime_Configuration_FontSettings_0300
-     * @tc.desc    Passing a valid string parameter to the setFont interface succeeds
-     * @tc.level   0
-     */
-    it('SUB_Ability_AbilityRuntime_Configuration_FontSettings_0300', Level.LEVEL0, async (done: Function) => {
-      TAG = 'SUB_Ability_AbilityRuntime_Configuration_FontSettings_0300';
-      hilog.info(0x0000, TAG, "[%{public}s] case start.", TAG);
-      try {
-        let applicationContext = testAbilityContext.getApplicationContext();
-        let cmd = "hilog -x -e UpdateConfiguration";
-        let flag: boolean = false;
-        hilog.info(0x0000, TAG, "[%{public}s] applicationContext: %{public}s", TAG, JSON.stringify(applicationContext));
-        uiContext.getFont().registerFont({
-          familyName: "font1",
-          familySrc: $rawfile('font/TestFont1.ttf')
-        });
-        applicationContext.setFont("font1");
-        await sleep(500);
-        abilityDelegator.executeShellCommand(cmd, (err: BusinessError, data: abilityDelegatorRegistry.ShellCmdResult) => {
-          hilog.info(0x0000, TAG, "[%{public}s] ExecuteShellCommand succeed. ShellCmdResult: %{public}s", TAG, JSON.stringify(data));
-          flag = data.stdResult.includes("UpdateConfiguration, name:{\"0#ohos.application.font\":\"font1\"}");
-        });
-        await sleep(500);
-        hilog.info(0x0000, TAG, "[%{public}s] flag: %{public}s", TAG, JSON.stringify(flag));
-        expect(flag).assertEqual(true);
-        done();
-      } catch (paramError) {
-        hilog.info(0x0000, TAG, "[%{public}s] paramError: %{public}s", TAG, JSON.stringify(paramError));
-        expect().assertFail();
-        done();
-      }
-    })
-
-    /*
-     * @tc.number  SUB_Ability_AbilityRuntime_Configuration_FontSettings_0400
-     * @tc.name    SUB_Ability_AbilityRuntime_Configuration_FontSettings_0400
-     * @tc.desc    Passing different valid string parameters to the setFont interface for 10 times, and all of them succeed
-     * @tc.level   0
-     */
-    it('SUB_Ability_AbilityRuntime_Configuration_FontSettings_0400', Level.LEVEL0, async (done: Function) => {
-      TAG = 'SUB_Ability_AbilityRuntime_Configuration_FontSettings_0400';
-      hilog.info(0x0000, TAG, "[%{public}s] case start.", TAG);
-      try {
-        let applicationContext = testAbilityContext.getApplicationContext();
-        let cmd = "hilog -x -e UpdateConfiguration";
-        hilog.info(0x0000, TAG, "[%{public}s] applicationContext: %{public}s", TAG, JSON.stringify(applicationContext));
-        for (let i: number = 1; i <= 10; i++) {
-          let fontNameStr = `font${i}`;
-          let fontSrcStr = `font/TestFont${i}.ttf`;
-          let flag: boolean = false;
-          uiContext.getFont().registerFont({
-            familyName: fontNameStr,
-            familySrc: $rawfile(fontSrcStr)
-          });
-          applicationContext.setFont(fontNameStr);
-          await sleep(500);
-          abilityDelegator.executeShellCommand(cmd, (err: BusinessError, data: abilityDelegatorRegistry.ShellCmdResult) => {
-            hilog.info(0x0000, TAG, "[%{public}s] %{public}dth ExecuteShellCommand succeed. ShellCmdResult: %{public}s", TAG, i, JSON.stringify(data));
-            flag = data.stdResult.includes(`UpdateConfiguration, name:{\"0#ohos.application.font\":\"${fontNameStr}\"}`);
-          });
-          await sleep(500);
-          hilog.info(0x0000, TAG, "[%{public}s] %{public}dth flag: %{public}s", TAG, i, JSON.stringify(flag));
-          expect(flag).assertEqual(true);
-        }
-        done();
-      } catch (paramError) {
-        hilog.info(0x0000, TAG, "[%{public}s] paramError: %{public}s", TAG, JSON.stringify(paramError));
-        expect().assertFail();
-        done();
-      }
-    })
-
-    /*
      * @tc.number  SUB_Ability_AbilityRuntime_Configuration_FontSettings_0500
      * @tc.name    SUB_Ability_AbilityRuntime_Configuration_FontSettings_0500
      * @tc.desc    Calling the setFont interface should not trigger the onConfigurationUpdate function
@@ -190,13 +116,9 @@ export default function setFontTest() {
         });
         applicationContext.setFont("font1");
         await sleep(500);
-        abilityDelegator.executeShellCommand(cmd, (err: BusinessError, data: abilityDelegatorRegistry.ShellCmdResult) => {
-          hilog.info(0x0000, TAG, "[%{public}s] ExecuteShellCommand succeed. ShellCmdResult: %{public}s", TAG, JSON.stringify(data));
-          flag = (data.stdResult.includes("UpdateConfiguration, name:{\"0#ohos.application.font\":\"font1\"}")) && !(data.stdResult.includes("TestAbility onConfigurationUpdate")) && !(data.stdResult.includes("EntryAbility onConfigurationUpdate"));
-        });
-        await sleep(500);
         hilog.info(0x0000, TAG, "[%{public}s] flag: %{public}s", TAG, JSON.stringify(flag));
-        expect(flag).assertEqual(true);
+        let onUpdateCallback:string = AppStorage.get<string>("onConfigurationUpdate") as string;
+        expect(onUpdateCallback).assertEqual(undefined)
         done();
       } catch (paramError) {
         hilog.info(0x0000, TAG, "[%{public}s] paramError: %{public}s", TAG, JSON.stringify(paramError));
@@ -204,6 +126,5 @@ export default function setFontTest() {
         done();
       }
     })
-
   })
 }

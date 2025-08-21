@@ -59,7 +59,9 @@ export default class UiAbility07 extends UIAbility {
     commonEventManager.publish('UiAbility07_onForeground', function () {
       hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility07 publish UiAbility07_onForeground');
     });
-    globalThis.uiAbilityContext7.terminateSelf();
+    setTimeout(()=>{
+      globalThis.uiAbilityContext7.terminateSelf();
+    }, 500)
   }
 
   onBackground(): void {

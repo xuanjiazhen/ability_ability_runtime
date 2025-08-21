@@ -30,6 +30,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -50,6 +51,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -70,6 +72,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -90,6 +93,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -110,6 +114,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -130,6 +135,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -150,6 +156,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -170,6 +177,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -190,6 +198,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -210,6 +219,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -230,6 +240,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -250,6 +261,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
@@ -270,6 +282,7 @@
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
         "exported": true,
+        "removeMissionAfterTerminate":true,
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "skills": [
