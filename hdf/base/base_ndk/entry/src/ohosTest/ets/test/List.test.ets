@@ -17,9 +17,9 @@ import baseDdkTest from './BaseDdk.test';
 import baseDdkCanIUseTest from './BaseDdkCanIUse.test';
 
 export default function testsuite() {
-  if (canIUse("SystemCapability.Driver.DDK.Extension")) {
-    baseDdkTest()
-  } else {
-    baseDdkCanIUseTest()
-  }
+    if (canIUse("SystemCapability.Driver.DDK.Extension")) {
+        baseDdkTest()
+    } else {
+        baseDdkCanIUseTest()
+    }
 }
