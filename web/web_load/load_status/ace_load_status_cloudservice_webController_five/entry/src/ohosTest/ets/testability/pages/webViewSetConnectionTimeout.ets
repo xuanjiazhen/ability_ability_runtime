@@ -33,11 +33,7 @@ struct webViewSetConnectionTimeout {
   @State isFrameResourceType: boolean = false;
   @State isReceive: number = -1;
   @State isPageEnd: number = -1;
-  aboutToAppear(): void {
-    if (this.emitKey == 'emitWebViewSetConnectionAboutAppearTimeoutFiveSeconds') {
-      webview.WebviewController.setConnectionTimeout(5);
-    }
-  }
+
   onPageShow() {
       let valueChangeEvent: events_emitter.InnerEvent = {
           eventId: 14077,
@@ -139,9 +135,6 @@ struct webViewSetConnectionTimeout {
                     let getErrorInfo = event.error.getErrorInfo()
                     if (this.emitKey == 'emitWebViewSetConnectionTimeoutTenSeconds') {
                       Utils.emitEvent('Time_out', 14082);
-                    }
-                    if (this.emitKey == 'emitWebViewSetConnectionAboutAppearTimeoutFiveSeconds') {
-                      Utils.emitEvent('Time_out', 14083);
                     }
                   }
                 })
