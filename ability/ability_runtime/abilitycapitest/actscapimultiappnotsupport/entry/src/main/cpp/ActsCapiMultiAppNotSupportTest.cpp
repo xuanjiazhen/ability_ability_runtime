@@ -24,7 +24,7 @@ namespace {
 const uint32_t MAX_NAME_LENGTH = 1024;
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsMultiAppNotSupport(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsMultiAppNotSupport(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");

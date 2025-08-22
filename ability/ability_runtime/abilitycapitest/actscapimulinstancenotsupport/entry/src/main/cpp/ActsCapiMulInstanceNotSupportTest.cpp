@@ -53,7 +53,7 @@ napi_value AbiliRuntimeErrorMultiInstanceNotSupportCode(napi_env env, napi_callb
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantBoolParam(want,"ohos.extra.param.key.createAppInstance", true);
+    OH_AbilityBase_SetWantBoolParam(want, "ohos.extra.param.key.createAppInstance", true);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
     if (ret == ABILITY_RUNTIME_ERROR_MULTI_INSTANCE_NOT_SUPPORTED) {

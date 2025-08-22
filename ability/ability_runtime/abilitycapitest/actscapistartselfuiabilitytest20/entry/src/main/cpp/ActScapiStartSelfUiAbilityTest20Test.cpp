@@ -1045,7 +1045,7 @@ napi_value StartNativeChildProcessNoError(napi_env env, napi_callback_info info)
     NativeChildProcess_Options options = {
         .isolationMode = NCP_ISOLATION_MODE_ISOLATED
     };
-    int32_t ret = OH_Ability_StartNativeChildProcess("libentry.so:Main", args,options, &pid);
+    int32_t ret = OH_Ability_StartNativeChildProcess("libentry.so:Main", args, options, &pid);
     if (ret == NCP_ERR_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
@@ -1334,7 +1334,7 @@ napi_value StartSelfUIAbilityWithStartOptionsCodeInternal(napi_env env, napi_cal
     element.abilityName = const_cast<char *>("EntryAbility");
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
-    AbilityBase_Want* want = OH_AbilityBase_CreateWant(element); 
+    AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     OH_AbilityBase_AddWantFd(want, "fd", -1);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);

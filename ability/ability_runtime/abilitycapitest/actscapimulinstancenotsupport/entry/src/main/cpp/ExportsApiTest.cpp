@@ -19,8 +19,8 @@
 #include <node_api.h>
 
 napi_property_descriptor desc[] = {
-    {"StartSelfUIAbilityWithStartOptionsInstanceNotSupport",
-        nullptr, StartSelfUIAbilityWithStartOptionsInstanceNotSupport, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"StartSelfUIAbilityWithStartOptionsInstanceNotSupport", nullptr,
+        StartSelfUIAbilityWithStartOptionsInstanceNotSupport, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"AbiliRuntimeErrorMultiInstanceNotSupportCode",
         nullptr, AbiliRuntimeErrorMultiInstanceNotSupportCode, nullptr, nullptr, nullptr, napi_default, nullptr}
 };
