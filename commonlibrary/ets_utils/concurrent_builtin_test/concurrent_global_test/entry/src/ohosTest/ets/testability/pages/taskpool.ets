@@ -115,7 +115,7 @@ export function test_Global_test_017() {
 export function test_Global_test_018() {
   let result = decodeURIComponent(
     "!!%22%22%23%23%24%24%25%25%26%26''(())**%2B%2B%2C%2C--..%2F%2F%3A%3A" +
-      "%3B%3B%3C%3C%3D%3D%3E%3E%3F%3F%40%40%5B%5B%5C%5C%5D%5D%5E%5E__%60%" +
+      '%3B%3B%3C%3C%3D%3D%3E%3E%3F%3F%40%40%5B%5B%5C%5C%5D%5D%5E%5E__%60%' +
       '60%7B%7B%7C%7C%7D%7D~~'
   );
   return result;
