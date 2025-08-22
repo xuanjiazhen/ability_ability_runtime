@@ -34,6 +34,8 @@
 #include <napi/native_api.h>
 #include <vector>
 
+extern int g_bucketsInvalidParamCode;
+
 void addRelationStoreBucketsTest(std::vector<napi_property_descriptor>& descData);
 
 napi_value TestDestroyInvalidParamA(napi_env env, napi_callback_info info);
