@@ -135,13 +135,13 @@ struct Index {
   aboutToAppear() {
     console.log(`${this.TAG} aboutToAppear start`);
     commonEvent.createSubscriber(this.subscriberFormDeleteEvent).then(async (data) => {
-        console.info(`====>${this.TAG} Subscriber FormDelete data:====>`, JSON.stringify(data)); 
+        console.info(`====>${this.TAG} aboutToAppear:Subscriber FormDelete data:====>`, JSON.stringify(data)); 
         this.subscriberDel = data;     
         await commonEvent.subscribe(this.subscriberDel, this.deleteCallBack);
     })
 
     commonEvent.createSubscriber(this.subscriberTimeChangeEvent).then(async (data) => {
-        console.info(`====>${this.TAG} Subscriber TimeChange data:====>`, JSON.stringify(data)); 
+        console.info(`====>${this.TAG} aboutToAppear:Subscriber TimeChange data:====>`, JSON.stringify(data)); 
         this.subscriberTimeChange = data;     
         await commonEvent.subscribe(this.subscriberTimeChange, this.timeChangeCallBack);
     })
@@ -213,7 +213,7 @@ struct Index {
         console.log(`${this.TAG} aboutToAppear:deleteForm start`);
         formManager.deleteForm(this.deleteId)
           .then((data) => {
-          console.info(`${this.TAG} deleteForm result:` + data);
+          console.info(`${this.TAG} aboutToAppear:deleteForm result:` + data);
           let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
             data: "0",
             parameters: {
@@ -221,12 +221,12 @@ struct Index {
             }
           };
           setTimeout(()=>{
-            console.log(`${this.TAG} publish formOnAcquiredEvent:` + this.formOnDeletedEvent);
+            console.log(`${this.TAG} aboutToAppear:publish formOnAcquiredEvent:` + this.formOnDeletedEvent);
             commonEvent.publish(this.formOnDeletedEvent, commonEventPublishData, this.publishOnDeletedCallBack);
           }, 500);
         })
         .catch((error:BusinessError) => {
-          console.info(`${this.TAG} deleteForm error:` + error);
+          console.info(`${this.TAG} aboutToAppear:deleteForm error:` + error);
           let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
             data: error.code.toString(),
             parameters: {
@@ -242,7 +242,7 @@ struct Index {
         console.log(`${this.TAG} aboutToAppear:releaseForm start`);
         formManager.releaseForm(this.releaseId, true)
         .then((data) => {
-          console.info(`${this.TAG} releaseForm result:` + data);
+          console.info(`${this.TAG} aboutToAppear:releaseForm result:` + data);
           let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
             data: "0",
             parameters: {
@@ -252,7 +252,7 @@ struct Index {
           commonEvent.publish(this.formOnReleasedEvent, commonEventPublishData, this.publishOnReleasedCallBack);
         })
         .catch((error:BusinessError) => {
-          console.info(`${this.TAG} releaseForm error:` + error);
+          console.info(`${this.TAG} aboutToAppear:releaseForm error:` + error);
           let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
             data: error.code.toString(),
             parameters: {
@@ -266,7 +266,7 @@ struct Index {
       }
     })
     .catch((error: BusinessError) => {
-      console.error(`${this.TAG} Operation failed. Cause: ` + JSON.stringify(error));
+      console.error(`${this.TAG} aboutToAppear:Operation failed. Cause: ` + JSON.stringify(error));
     })
     console.log(`${this.TAG} aboutToAppear end`);
   }
@@ -289,13 +289,13 @@ struct Index {
             .visibility(this.isShowing ? Visibility.Visible : Visibility.Hidden)
             .onAcquired((form:InfoType) => {
               console.log(`${this.TAG} onAcquired start`);
-              console.log(`${this.TAG} get form, form id:` + form.id);
+              console.log(`${this.TAG} onAcquired:get form, form id:` + form.id);
               this.formId = form.id;
               if(this.castForm) {
                 console.log(`${this.TAG} onAcquired:castTempForm start`);
                 formManager.castTempForm(this.temporaryId)
                     .then((data) => {
-                    console.info(`${this.TAG} castTempForm result:` + data);
+                    console.info(`${this.TAG} onAcquired:castTempForm result:` + data);
                      setTimeout(() => {
                       let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
                         data: "0",
@@ -307,7 +307,7 @@ struct Index {
                     }, 5);
                   })
                   .catch((error:BusinessError) => {
-                    console.info(`${this.TAG} castTempForm error:` + error);
+                    console.info(`${this.TAG} onAcquired:castTempForm error:` + error);
                      setTimeout(() => {
                       let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
                         data: error.code.toString(),
@@ -327,7 +327,7 @@ struct Index {
                 setTimeout(() => {
                   formManager.deleteForm(this.deleteId)
                     .then((data) => {
-                    console.info(`${this.TAG} deleteForm result:` + data);
+                    console.info(`${this.TAG} onAcquired:deleteForm result:` + data);
                     let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
                       data: "0",
                       parameters: {
@@ -337,7 +337,7 @@ struct Index {
                     commonEvent.publish(this.formOnDeletedEvent, commonEventPublishData, this.publishOnDeletedCallBack);
                   })
                   .catch((error:BusinessError) => {
-                    console.info(`${this.TAG} deleteForm error:` + error);
+                    console.info(`${this.TAG} onAcquired:deleteForm error:` + error);
                     let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
                       data: error.code.toString(),
                       parameters: {
@@ -357,7 +357,7 @@ struct Index {
                 setTimeout(() => {
                   formManager.releaseForm(this.releaseId, true)
                     .then((data) => {
-                    console.info(`${this.TAG} releaseForm result:` + data);
+                    console.info(`${this.TAG} onAcquired:releaseForm result:` + data);
                     let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
                       data: "0",
                       parameters: {
@@ -367,7 +367,7 @@ struct Index {
                     commonEvent.publish(this.formOnReleasedEvent, commonEventPublishData, this.publishOnReleasedCallBack);
                   })
                   .catch((error:BusinessError) => {
-                    console.info(`${this.TAG} releaseForm error:` + error);
+                    console.info(`${this.TAG} onAcquired:releaseForm error:` + error);
                     let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
                       data: error.code.toString(),
                       parameters: {
@@ -385,7 +385,7 @@ struct Index {
                     data: this.formId.toString()
                 };
                 setTimeout(()=>{
-                  console.log(`${this.TAG} publish formOnAcquiredEvent:` + this.formOnAcquiredEvent);
+                  console.log(`${this.TAG} onAcquired:publish formOnAcquiredEvent:` + this.formOnAcquiredEvent);
                   commonEvent.publish(this.formOnAcquiredEvent, commonEventPublishData, this.publishOnAcquiredCallBack);
                   console.log(`${this.TAG} onAcquired:else end`);
                 }, 500);

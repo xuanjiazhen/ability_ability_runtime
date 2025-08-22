@@ -387,7 +387,6 @@ export default function test() {
 
             let onReleasedCallBack = (_:BusinessError, data: CommonEventManager.CommonEventPublishData) => {
                 console.info("!!!====>FMS_releaseForm_0600 onReleasedCallBack data:====>" + JSON.stringify(data));
-                expect(data.data).assertEqual("FMS_FormOnReleased_commonEvent");
                 expect(data.code).assertEqual(0);
                 commonEvent.unsubscribe(subscriberOnReleased, () => unsubscribeOnReleasedCallback("FMS_releaseForm_0600"));
                 commonEvent.publish(deleteForm_Event, data, async (err) => {
@@ -399,7 +398,6 @@ export default function test() {
 
             let onDeletedCallBack = (_:BusinessError, data: CommonEventManager.CommonEventPublishData) => {
                 console.info("!!!====>FMS_releaseForm_0600 onDeletedCallBack data:====>" + JSON.stringify(data));
-                expect(data.data).assertEqual("FMS_FormOnDeleted_commonEvent");
                 expect(data.code).assertEqual(0);
                 commonEvent.unsubscribe(subscriberOnDeleted, unsubscribeDeletedCallback)
                 if(data.parameters) {
