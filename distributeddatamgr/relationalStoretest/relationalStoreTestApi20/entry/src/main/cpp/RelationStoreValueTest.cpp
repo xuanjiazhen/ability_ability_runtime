@@ -28,7 +28,7 @@ int g_valueInvalidParamCode = 14800001;
 int g_valueTypeNull = 14800063;
 int g_valueTypeMismatch = 14800064;
 
-void addRelationStoreValueTest1(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreValueTest1(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetAssetsInvalidParam", nullptr, TestGetAssetsInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -62,7 +62,7 @@ void addRelationStoreValueTest1(std::vector<napi_property_descriptor>& descData)
                         napi_default, nullptr});
 }
 
-void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"destroy", nullptr, Destroy, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"putNull", nullptr, PutNull, nullptr, nullptr, nullptr, napi_default, nullptr});
@@ -107,7 +107,7 @@ void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"testGetAssetsCountDataTypeNull", nullptr, TestGetAssetsCountDataTypeNull, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
 
-    addRelationStoreValueTest1(descData);
+    AddRelationStoreValueTest1(descData);
 }
 
 napi_value Destroy(napi_env env, napi_callback_info info)

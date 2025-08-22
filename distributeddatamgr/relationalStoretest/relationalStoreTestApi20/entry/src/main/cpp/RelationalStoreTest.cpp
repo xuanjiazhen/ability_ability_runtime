@@ -20,7 +20,7 @@
 #include <napi/native_api.h>
 #include <database/rdb/relational_store_error_code.h>
 
-void addRelationalStoreTest(std::vector<napi_property_descriptor>& descData)
+void AddRelationalStoreTest(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"getURISuccess", nullptr, GetURISuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"getPathSuccess", nullptr, GetPathSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});

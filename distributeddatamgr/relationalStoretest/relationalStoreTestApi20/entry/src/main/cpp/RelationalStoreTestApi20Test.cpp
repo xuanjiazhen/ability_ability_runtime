@@ -24,10 +24,10 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     std::vector<napi_property_descriptor> descData;
-    addRelationalStoreTest(descData);
-    addRelationStoreValueTest(descData);
-    addRelationStoreValuesTest(descData);
-    addRelationStoreBucketsTest(descData);
+    AddRelationalStoreTest(descData);
+    AddRelationStoreValueTest(descData);
+    AddRelationStoreValuesTest(descData);
+    AddRelationStoreBucketsTest(descData);
     
     napi_define_properties(env, exports, descData.size(), descData.data());
     return exports;

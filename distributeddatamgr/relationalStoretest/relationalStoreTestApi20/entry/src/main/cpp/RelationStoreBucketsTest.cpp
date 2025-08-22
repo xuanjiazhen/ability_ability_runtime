@@ -23,7 +23,7 @@
 
 int g_bucketsInvalidParamCode = 14800001;
 
-void addRelationStoreBucketsTest(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreBucketsTest(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testDestroyInvalidParamA", nullptr, TestDestroyInvalidParamA, nullptr, nullptr, nullptr,
                         napi_default, nullptr});

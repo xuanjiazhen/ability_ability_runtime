@@ -25,7 +25,7 @@ int g_valuesInvalidParamCode = 14800001;
 int g_valuesTypeNull = 14800063;
 int g_valuesTypeMismatch = 14800064;
 
-void addRelationStoreValuesTest1(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreValuesTest1(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -55,7 +55,7 @@ void addRelationStoreValuesTest1(std::vector<napi_property_descriptor>& descData
         {"testIsNullInvalidParam", nullptr, TestIsNullInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
-void addRelationStoreValuesTest2(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreValuesTest2(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetIntInvalidParamA", nullptr, TestGetIntInvalidParamA, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -91,7 +91,7 @@ void addRelationStoreValuesTest2(std::vector<napi_property_descriptor>& descData
         {"testGetAssetTypeNullA", nullptr, TestGetAssetTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
-void addRelationStoreValuesTest3(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreValuesTest3(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetAssetsCountInvalidParamA", nullptr, TestGetAssetsCountInvalidParamA, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
@@ -131,11 +131,11 @@ void addRelationStoreValuesTest3(std::vector<napi_property_descriptor>& descData
                         nullptr, napi_default, nullptr});
 }
 
-void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
 {
-    addRelationStoreValuesTest1(descData);
-    addRelationStoreValuesTest2(descData);
-    addRelationStoreValuesTest3(descData);
+    AddRelationStoreValuesTest1(descData);
+    AddRelationStoreValuesTest2(descData);
+    AddRelationStoreValuesTest3(descData);
 }
 
 napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
@@ -838,7 +838,7 @@ napi_value TestGetUnlimitedIntTypeMismatchA(napi_env env, napi_callback_info inf
     
     int index = 0;
     int sign = 0;
-    uint64_t datagit a[5];
+    uint64_t data[5];
     size_t inLen = 5;
     size_t outLen;
     int ret = OH_Values_GetUnlimitedInt(values, index, &sign, data, inLen, &outLen);

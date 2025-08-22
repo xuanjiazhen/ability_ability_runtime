@@ -36,7 +36,7 @@
 
 extern int g_bucketsInvalidParamCode;
 
-void addRelationStoreBucketsTest(std::vector<napi_property_descriptor>& descData);
+void AddRelationStoreBucketsTest(std::vector<napi_property_descriptor>& descData);
 
 napi_value TestDestroyInvalidParamA(napi_env env, napi_callback_info info);
 napi_value TestPutRowInvalidParam(napi_env env, napi_callback_info info);
