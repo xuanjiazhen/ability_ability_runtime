@@ -584,6 +584,7 @@ export default function InjectTouchEvent() {
         let result = injectTouchEvent.testInjectTouchEventwithSubWindowClick(subWindowId, x, y);
         console.info(`${Tag}: ${caseName} result: ${result}`);
         expect(result).assertEqual(0);
+        await sleep(400);
         let newText = await btn.getText();
         await sleep(200);
         expect(newText).assertEqual('TextChanged');
@@ -632,6 +633,7 @@ export default function InjectTouchEvent() {
         let result = injectTouchEvent.testInjectTouchEventwithDialogWindowClick(subWindowId, x, y);
         console.info(`${Tag}: ${caseName} result: ${result}`);
         expect(result).assertEqual(0);
+        await sleep(400);
         let newText = await btn.getText();
         await sleep(200);
         expect(newText).assertEqual('TextChanged');

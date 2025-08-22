@@ -1938,9 +1938,10 @@ export default function displayTest() {
         let screenId: number = await display.createVirtualScreen(option);
         console.log(caseName + ' success in createVirtualScreen ' + screenId);
         let displays = await display.getAllDisplays();
+        console.log(caseName + ' getAllDisplays: ' + JSON.stringify(displays));
         let outDisplayId = -1;
         for (let i = 0; i< displays.length; i++) {
-          if (displays[i].id != 0) {
+          if (displays[i].id == screenId) {
             outDisplayId = displays[i].id;
             break;
           }
@@ -2099,9 +2100,10 @@ export default function displayTest() {
         let screenId: number = await display.createVirtualScreen(option);
         console.log(caseName + ' success in createVirtualScreen ' + screenId);
         let displays = await display.getAllDisplays();
+        console.log(caseName + ' getAllDisplays: ' + JSON.stringify(displays));
         let outDisplayId = -1;
         for (let i = 0; i< displays.length; i++) {
-          if (displays[i].id != 0) {
+          if (displays[i].id == screenId) {
             outDisplayId = displays[i].id;
             break;
           }
@@ -2285,7 +2287,7 @@ export default function displayTest() {
         let displays = await display.getAllDisplays();
         let outDisplayId = -1;
         for (let i = 0; i< displays.length; i++) {
-          if (displays[i].id != 0) {
+          if (displays[i].id == screenId) {
             outDisplayId = displays[i].id;
             break;
           }
