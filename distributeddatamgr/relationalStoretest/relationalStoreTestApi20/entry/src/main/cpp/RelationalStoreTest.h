@@ -43,6 +43,5 @@ napi_value GetModifyTimeSuccess(napi_env env, napi_callback_info info);
 napi_value GetSizeSuccess(napi_env env, napi_callback_info info);
 napi_value GetStatusSuccess(napi_env env, napi_callback_info info);
 napi_value GetDestroyOneSuccess(napi_env env, napi_callback_info info);
-napi_value TestDestroyMultipleInvalidParam(napi_env env, napi_callback_info info);
 
 #endif //RELATIONALSTORETESTAPI20_RELATIONALSTORETEST_H

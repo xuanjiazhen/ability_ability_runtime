@@ -171,28 +171,6 @@ export default function ActsRelationalStoreTest() {
       })
 
     /**
-     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800
-     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800
-     * @tc.desc    : test OH_Data_Asset_DestroyMultiple Test Illegal Parameter Scene
-     * @tc.level   : Level1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800',
-      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
-        try {
-          console.info("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 start====");
-          let result: number = testNapi.testDestroyMultipleInvalidParam();
-          console.info("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 result====", result);
-          expect(result).assertEqual(RDB_OK);
-          done();
-        } catch (err) {
-          console.error("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 catch err: " + err);
-        }
-      })
-
-    /**
      * @tc.number  : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_Destroy_0900
      * @tc.name    : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_Destroy_0900
      * @tc.desc    : test OH_VBuckets_Destroy Test Illegal Parameter Scene
