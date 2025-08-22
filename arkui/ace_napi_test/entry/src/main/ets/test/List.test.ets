@@ -16,7 +16,7 @@ import napiStringTest from './NativeApiStringTest';
 import napiBufferTest from './NativeApiBufferTest';
 import napiSendableTest from './NativeApiSendableTest';
 import napiApiTest from './NapiTest';
-import napiApiTestEx from './NapiTestEx.test';
+import napiCheckExTest from './napiCheckEx.test';
 import napiTaskApiTest from './NapiTask.test';
 import napiSendableTaskTest from './NapiSendableTask.test';
 import napiWorkerTest from './NapiWorker.test';
@@ -27,7 +27,7 @@ export default function testsuite() {
   napiBufferTest();
   napiSendableTest();
   napiApiTest();
-  napiApiTestEx();
+  napiCheckExTest();
   napiTaskApiTest();
   napiSendableTaskTest();
   napiWorkerTest();

@@ -90,7 +90,8 @@ static napi_value GetBufferInfo(napi_env env, napi_callback_info info)
 }
 
 EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports) {
+static napi_value Init(napi_env env, napi_value exports)
+{
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("CreateBufferCopy", CreateBufferCopy),
         DECLARE_NAPI_FUNCTION("IsBuffer", IsBuffer),

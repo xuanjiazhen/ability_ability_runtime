@@ -26,13 +26,13 @@ async function sleep(time: number) {
   })
 }
 
-export default function napiApiTestEx() {
-  describe('napiApiTestEx', () => {
+export default function napiCheckExTest() {
+  describe('napiCheckExTest', () => {
     /**
      * run after testcase
      */
     afterEach(async () => {
-      console.info('[napiApiTestEx] after each called')
+      console.info('[napiCheckExTest] after each called')
     });
 
     /**
