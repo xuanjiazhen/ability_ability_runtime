@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
-import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@ohos/hypium';
+import { beforeAll, beforeEach, describe, it , TestType, Size, Level, expect } from '@ohos/hypium';
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver } from '@kit.TestKit';
+import events_emitter from '@ohos.events.emitter';
+
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
-
+const driver = Driver.create();
 export default function precompileJavaScriptTest() {
 
   describe('precompileJavaScriptTest', () => {
@@ -31,15 +34,14 @@ export default function precompileJavaScriptTest() {
       try {
         router.clear();
         let pages = router.getState();
-        console.info("get precompileJavaScriptTest state success " + JSON.stringify(pages));
+        console.info('get precompileJavaScriptTest state success ' + JSON.stringify(pages));
         if (!("precompileJavaScriptTest" == pages.name)) {
-          console.info("get precompileJavaScriptTest state success " + JSON.stringify(pages.name));
+          console.info('get precompileJavaScriptTest state success ' + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(900);
-          console.info("push precompileJavaScriptTest page success " + JSON.stringify(result));
+          console.info('push precompileJavaScriptTest page success ' + JSON.stringify(result));
         }
       } catch (err) {
-        console.error("push precompileJavaScriptTest page error: " + err);
+        console.error('push precompileJavaScriptTest page error: ' + err);
       }
       done()
     });
@@ -50,8 +52,7 @@ export default function precompileJavaScriptTest() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(500);
-      console.info("precompileJavaScriptTest beforeEach start");
+      console.info('precompileJavaScriptTest beforeEach start');
       done();
     })
 
@@ -64,10 +65,12 @@ export default function precompileJavaScriptTest() {
     * @tc.level      : Level 1
     */
     it('testPrecompileJavaScript001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testPrecompileJavaScript001", 10)
-      await Utils.sleep(500);
-      Utils.registerEvent("testPrecompileJavaScript001", 0, 10092, done);
-      sendEventByKey('precompileJavaScriptTestButton', 10, '');
+      Utils.emitEvent("testPrecompileJavaScript001", 148401)
+      Utils.registerBaseEvent("testPrecompileJavaScript001", 0, 148410, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected)
+        });
+      Utils.waitAndClickComponent('precompileJavaScriptTestButton',driver)
     })
 
     /*
@@ -79,10 +82,12 @@ export default function precompileJavaScriptTest() {
     * @tc.level      : Level 1
     */
     it('testPrecompileJavaScript005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testPrecompileJavaScript005", 10)
-      await Utils.sleep(500);
-      Utils.registerEvent("testPrecompileJavaScript005", "401", 10096, done);
-      sendEventByKey('precompileJavaScriptTestButton', 10, '');
+      Utils.emitEvent("testPrecompileJavaScript005", 148401)
+      Utils.registerBaseEvent("testPrecompileJavaScript005", "401", 148420, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected)
+        });
+      Utils.waitAndClickComponent('precompileJavaScriptTestButton',driver)
     })
     /*
     * @tc.number     : SUB_WEB_WEBVIEWCONTROLLER_PRECOMPILEJAVASCRIPT_0600
@@ -93,10 +98,12 @@ export default function precompileJavaScriptTest() {
     * @tc.level      : Level 1
     */
     it('testPrecompileJavaScript006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testPrecompileJavaScript006", 10)
-      await Utils.sleep(500);
-      Utils.registerEvent("testPrecompileJavaScript006", "401", 10097, done);
-      sendEventByKey('precompileJavaScriptTestButton', 10, '');
+      Utils.emitEvent("testPrecompileJavaScript006", 148401)
+      Utils.registerBaseEvent("testPrecompileJavaScript006", "401", 148430, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected)
+        });
+      Utils.waitAndClickComponent('precompileJavaScriptTestButton',driver)
     })
 
     /*
@@ -108,10 +115,12 @@ export default function precompileJavaScriptTest() {
     * @tc.level      : Level 1
     */
     it('testPrecompileJavaScript011', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testPrecompileJavaScript011", 10)
-      await Utils.sleep(500);
-      Utils.registerEvent("testPrecompileJavaScript011", 0, 10102, done);
-      sendEventByKey('precompileJavaScriptTestButton', 10, '');
+      Utils.emitEvent("testPrecompileJavaScript011", 148401)
+      Utils.registerBaseEvent("testPrecompileJavaScript011", 0, 148440, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected)
+        });
+      Utils.waitAndClickComponent('precompileJavaScriptTestButton',driver)
     })
 
   })
