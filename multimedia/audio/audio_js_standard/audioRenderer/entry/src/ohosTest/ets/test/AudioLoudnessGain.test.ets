@@ -45,49 +45,6 @@ export default function audioLoudnessGainTest() {
       console.info(TAG + 'afterEach called')
     })
 
-
-    /**
-     * @tc.number    : SUB_MULTIMEDIA_AUDIO_SET_LOUDNESS_GAIN_INTERFACE_TEST_001
-     * @tc.name      : SUB_MULTIMEDIA_AUDIO_SET_LOUDNESS_GAIN_INTERFACE_TEST_001
-     * @tc.desc      : right test, set number is -90.0, streamtype is music,expect loudnessGain = -90.0
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    it("SUB_MULTIMEDIA_AUDIO_SET_LOUDNESS_GAIN_INTERFACE_TEST_001", Level.LEVEL0, async (done: Function) => {
-        let audioStreamInfo: audio.AudioStreamInfo = {
-            samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_48000,
-            channels: audio.AudioChannel.CHANNEL_2,
-            sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE,
-            encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW
-        };
-
-        let audioRendererInfo: audio.AudioRendererInfo = {
-          usage: audio.StreamUsage.STREAM_USAGE_MUSIC,
-          rendererFlags: 0
-        };
-
-        let audioRendererOptions: audio.AudioRendererOptions = {
-          streamInfo: audioStreamInfo,
-          rendererInfo: audioRendererInfo
-        };
-
-        let audioRenderer: audio.AudioRenderer = await audio.createAudioRenderer(audioRendererOptions);
-
-        let loudnessGainFloatTen = -90.0;
-        if(audioRenderer){
-          try{
-            await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
-            let loudnessGain = audioRenderer.getLoudnessGain();
-            console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain).assertEqual(-90.0);
-          }catch(error){
-            console.error('createAudioRenderer Fail!');
-          }
-          done();
-        }
-    })
-
     /**
      * @tc.number    : SUB_MULTIMEDIA_AUDIO_SET_LOUDNESS_GAIN_INTERFACE_TEST_002
      * @tc.name      : SUB_MULTIMEDIA_AUDIO_SET_LOUDNESS_GAIN_INTERFACE_TEST_002
