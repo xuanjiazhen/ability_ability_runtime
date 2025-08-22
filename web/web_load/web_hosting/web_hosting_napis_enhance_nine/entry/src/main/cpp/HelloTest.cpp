@@ -24,7 +24,7 @@
 
 ArkWeb_SchemeHandler *g_schemeHandler;
 int32_t g_testResultCode = 10000;
-int TEST_RESULT_CODE = 10000;
+int g_resultCode = 10000;
 
 static napi_value InitSchemeHandler(napi_env env, napi_callback_info info)
 {
@@ -40,7 +40,7 @@ void OnURLRequestStart1(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart1 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     ArkWeb_Response* response;
     OH_ArkWeb_CreateResponse(&response);
     OH_ArkWebResponse_SetError(response, ARKWEB_ERR_IO_PENDING);
@@ -58,7 +58,7 @@ void OnURLRequestStart2(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart2 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     ArkWeb_Response* response;
     OH_ArkWeb_CreateResponse(&response);
     OH_ArkWebResponse_SetError(response, ARKWEB_ERR_IO_PENDING);
@@ -76,7 +76,7 @@ void OnURLRequestStart3(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart3 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     ArkWeb_Response* response;
     OH_ArkWeb_CreateResponse(&response);
     OH_ArkWebResponse_SetError(response, ARKWEB_ERR_IO_PENDING);
@@ -94,7 +94,7 @@ void OnURLRequestStart4(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart4 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     ArkWeb_Response* response;
     OH_ArkWeb_CreateResponse(&response);
     OH_ArkWebResponse_SetError(response, ARKWEB_ERR_IO_PENDING);
@@ -111,7 +111,7 @@ void OnURLRequestStart5(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart5 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     ArkWeb_Response* response;
     OH_ArkWeb_CreateResponse(&response);
     OH_ArkWebResponse_SetError(response, ARKWEB_ERR_IO_PENDING);
@@ -128,7 +128,7 @@ void OnURLRequestStart6(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart6 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     ArkWeb_Response* response;
     OH_ArkWeb_CreateResponse(&response);
     OH_ArkWebResponse_SetError(response, ARKWEB_ERR_IO_PENDING);
@@ -145,7 +145,7 @@ void OnURLRequestStart7(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart7 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     OH_ArkWebResourceHandler_DidReceiveResponse(resourceHandler, nullptr);
     int32_t resultCode = OH_ArkWebResourceHandler_DidFailWithErrorV2(resourceHandler, ARKWEB_ERR_FAILED, true);
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart7 resultCode: %{public}d", resultCode);
@@ -160,7 +160,7 @@ void OnURLRequestStart8(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart8 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     OH_ArkWebResourceHandler_DidReceiveResponse(resourceHandler, nullptr);
     int32_t resultCode = OH_ArkWebResourceHandler_DidFailWithErrorV2(resourceHandler, ARKWEB_ERR_FAILED, false);
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart8 resultCode: %{public}d", resultCode);
@@ -175,7 +175,7 @@ void OnURLRequestStart9(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart9 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     OH_ArkWebResourceHandler_DidReceiveResponse(resourceHandler, nullptr);
     int32_t resultCode = OH_ArkWebResourceHandler_DidFailWithErrorV2(resourceHandler, ARKWEB_ERR_FAILED, 5);
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart9 resultCode: %{public}d", resultCode);
@@ -190,7 +190,7 @@ void OnURLRequestStart10(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart10 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     int32_t resultCode = OH_ArkWebResourceHandler_DidFailWithErrorV2(resourceHandler, ARKWEB_ERR_IO_PENDING, true);
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart10 resultCode: %{public}d", resultCode);
     g_testResultCode = resultCode;
@@ -204,7 +204,7 @@ void OnURLRequestStart11(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart11 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     int32_t resultCode = OH_ArkWebResourceHandler_DidFailWithErrorV2(resourceHandler, ARKWEB_ERR_IO_PENDING, false);
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart11 resultCode: %{public}d", resultCode);
     g_testResultCode = resultCode;
@@ -218,7 +218,7 @@ void OnURLRequestStart12(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart12 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     int32_t resultCode = OH_ArkWebResourceHandler_DidFailWithErrorV2(resourceHandler, ARKWEB_ERR_IO_PENDING, 5);
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart12 resultCode: %{public}d", resultCode);
     g_testResultCode = resultCode;
@@ -232,7 +232,7 @@ void OnURLRequestStart13(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart13 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     int32_t resultCode = OH_ArkWebResourceHandler_DidFailWithErrorV2(nullptr, ARKWEB_ERR_IO_PENDING, true);
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart13 resultCode: %{public}d", resultCode);
     g_testResultCode = resultCode;
@@ -246,7 +246,7 @@ void OnURLRequestStart14(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart14 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     int32_t resultCode = OH_ArkWebResourceHandler_DidFailWithErrorV2(resourceHandler, ARKWEB_NET_OK, true);
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart14 resultCode: %{public}d", resultCode);
     g_testResultCode = resultCode;
@@ -260,7 +260,7 @@ void OnURLRequestStart15(const ArkWeb_SchemeHandler *schemeHandler,
 {
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart15 start");
     *intercept = true;
-    g_testResultCode = TEST_RESULT_CODE;
+    g_testResultCode = g_resultCode;
     int32_t resultCode = OH_ArkWebResourceHandler_DidFailWithErrorV2(resourceHandler, ARKWEB_NET_OK, false);
     OH_LOG_INFO(LOG_APP, "OnURLRequestStart15 resultCode: %{public}d", resultCode);
     g_testResultCode = resultCode;
