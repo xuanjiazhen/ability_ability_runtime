@@ -125,6 +125,11 @@ interface colorSpacesSize {
   colorSpacesSize: number;
 }
 
+interface effectTypeSize {
+  errorCode: number;
+  effectTypeSize: number;
+}
+
 interface activeColorSpace {
   errorCode: number;
   activeColorSpace: number;
@@ -289,6 +294,18 @@ export const sessionSetExposureBias: (a: number) => number;
 export const sessionGetExposureBias: () => number; // return exposureBias
 
 export const sessionIsFocusModeSupported: (a: number) => boolean;
+
+export const sessionIsControlCenterSupported: () => boolean;
+
+export const sessionGetSupportedEffectTypes: (index: number) => effectTypeSize;
+
+export const sessionDeleteSupportedEffectTypes: (index: number) => number;
+
+export const sessionEnableControlCenter: (enable: boolean) => number;
+
+export const sessionRegisterControlCenterEffectStatusChange: (index:number) => number;
+ 
+export const sessionUnregisterControlCenterEffectStatusChange: (index:number) => number;
 
 export const sessionGetPhotoRotation: (a: number) => number;
 

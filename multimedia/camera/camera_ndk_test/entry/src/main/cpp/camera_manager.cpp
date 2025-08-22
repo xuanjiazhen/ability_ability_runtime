@@ -1179,6 +1179,105 @@ Camera_ErrorCode NDKCamera::SessionGetFocusMode(void)
     return ret;
 }
 
+Camera_ErrorCode NDKCamera::SessionIsControlCenterSupported(void)
+{
+    LOG("IsControlCenterSupported begin.");
+    Camera_ErrorCode ret = OH_CaptureSession_IsControlCenterSupported(captureSession_, &isContolCenterSupported_);
+    if (ret == CAMERA_OK) {
+        LOG("OH_CaptureSession_IsControlCenterSupported success.");
+    } else {
+        LOG("OH_CaptureSession_IsControlCenterSupported failed. %d ", ret);
+    }
+    return ret;
+}
+
+Camera_ErrorCode NDKCamera::SessionGetSupportedEffectTypes(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        controlCenterEffectType_ = new Camera_ControlCenterEffectType[1];
+        ret_ = OH_CaptureSession_GetSupportedEffectTypes(captureSession_, &controlCenterEffectType_, &effectTypeSize_);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_GetSupportedEffectTypes(nullptr, &controlCenterEffectType_, &effectTypeSize_);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_GetSupportedEffectTypes(captureSession_, nullptr, &effectTypeSize_);
+    } else if (useCaseCode == PARAMETER3_ERROR) {
+        ret_ = OH_CaptureSession_GetSupportedEffectTypes(captureSession_, &controlCenterEffectType_, nullptr);
+    }
+    if (controlCenterEffectType_ == nullptr || effectTypeSize_ == 0 || ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_GetSupportedEffectTypes failed.");
+    }
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::SessionDeleteSupportedEffectTypes(int useCaseCode)
+{
+    LOG("NDKCamera::SessionDeleteSupportedEffectTypes");
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_DeleteSupportedEffectTypes(captureSession_, controlCenterEffectType_, effectTypeSize_);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_DeleteSupportedEffectTypes(nullptr, controlCenterEffectType_, effectTypeSize_);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_DeleteSupportedEffectTypes(captureSession_, nullptr, effectTypeSize_);
+    } else if (useCaseCode == PARAMETER3_ERROR) {
+        ret_ = OH_CaptureSession_DeleteSupportedEffectTypes(captureSession_, controlCenterEffectType_, 0);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_DeleteSupportedEffectTypes failed.");
+    }
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::SessionEnableControlCenter(bool enabled)
+{
+    ret_ = OH_CaptureSession_EnableControlCenter(captureSession_, enabled);
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_EnableControlCenter failed.");
+    }
+    return ret_;
+}
+
+void ControlCenterEffectStatusChange(Camera_CaptureSession* session,
+    Camera_ControlCenterStatusInfo* controlCenterStatusInfo)
+{
+    LOG("ControlCenterEffectStatusChange is called.");
+}
+
+Camera_ErrorCode NDKCamera::RegisterControlCenterEffectStatusChange(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(captureSession_,
+            ControlCenterEffectStatusChange);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(nullptr,
+            ControlCenterEffectStatusChange);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(captureSession_,
+            nullptr);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback failed.");
+    }
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::UnregisterControlCenterEffectStatusChange(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(captureSession_,
+            ControlCenterEffectStatusChange);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(nullptr,
+            ControlCenterEffectStatusChange);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(captureSession_,
+            nullptr);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback failed.");
+    }
+    return ret_;
+}
+
 Camera_ErrorCode NDKCamera::SessionSetFocusMode(uint32_t mode)
 {
     LOG("SetFocusMode begin.");

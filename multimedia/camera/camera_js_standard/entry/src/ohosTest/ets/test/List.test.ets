@@ -33,6 +33,7 @@ import CameraSessionCameraRotationTest from './CameraSessionCameraRotationTest.t
 import CameraVideoCodecTypeTest from './CameraVideoCodecTypeTest.test.ets'
 import cameraSessionAutoDeviceSwitchTest from './CameraSessionAutoDeviceSwitchTest.test.ets'
 import cameraSessionSystemPressureTest from './CameraSessionSystemPressureTest.test.ets'
+import cameraSessionControlCenterTest from './CameraSessionControlCenterTest.test.ets'
 import CameraMirrorTest from './CameraMirrorTest.test.ets'
 import CameraVideoMirrorTest from './CameraVideoMirrorTest.test.ets'
 import CameraVideoQualityPrioritizationTest from './CameraVideoQualityPrioritizationTest.test.ets'
@@ -69,6 +70,7 @@ export default function cameraKit() {
   CameraVideoCodecTypeTest()
   cameraSessionAutoDeviceSwitchTest()
   cameraSessionSystemPressureTest()
+  cameraSessionControlCenterTest()
   CameraMirrorTest()
   CameraVideoMirrorTest()
   CameraPhotoSessionTest()
