@@ -14,7 +14,7 @@
 */
 
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from "@ohos/hypium"
-import napitest from 'libnapitestex.so'
+import napitestex from 'libnapitestex.so'
 
 async function sleep(time: number) {
   return new Promise((resolve: (value: string) => void) => {
@@ -41,9 +41,9 @@ export default function napiApiTestEx() {
     * @tc.desc      napiTestEx
     */
     it('napiTestEx0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
-      let buffer: Object = napitest.CreateBufferCopy();
-      expect(napitest.IsBuffer(buffer)).assertTrue();
-      expect(napitest.GetBufferInfo(buffer)).assertTrue();
+      let buffer: Object = napitestex.CreateBufferCopy();
+      expect(napitestex.IsBuffer(buffer)).assertTrue();
+      expect(napitestex.GetBufferInfo(buffer)).assertTrue();
     });
   })
 }

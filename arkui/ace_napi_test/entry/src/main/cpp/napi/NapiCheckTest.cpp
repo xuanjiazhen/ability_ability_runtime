@@ -17,16 +17,13 @@
 #include "napi/native_api.h"
 #include <securec.h>
 #include <pthread.h>
-#include <stdint.h>
+#include <cstdint>
 #include <string>
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
-#include <malloc.h>
 #include <cstdlib>
 #include <ctime>
 #include <thread>
-#include <unistd.h>
-#include <memory.h>
 #include <uv.h>
 
 static const char TEST_STR[] = "Where there is a will, there is a way.";

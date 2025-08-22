@@ -16,6 +16,6 @@ add_library(napitest SHARED ./napi/napi_test.cpp)
 
 target_link_libraries(napitest PUBLIC securec libace_napi.z.so libuv.so libhilog_ndk.z.so libc++.a)
 
-add_library(napitestex SHARED ./napi/napi_test_ex.cpp)
+add_library(napitestex SHARED ./napi/NapiCheckTest.cpp)
 
 target_link_libraries(napitestex PUBLIC securec libace_napi.z.so libuv.so libhilog_ndk.z.so libc++.a)
