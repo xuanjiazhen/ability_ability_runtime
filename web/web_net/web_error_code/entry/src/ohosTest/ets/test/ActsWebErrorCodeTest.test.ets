@@ -517,5 +517,636 @@ export default function ActsWebErrorCodeTest() {
         console.error("====>testArkWebNativeJavascriptValue catch err: " + err);
       }
     })
+
+
+    /**
+     * @tc.number  : SUB_OH_ArkWeb_RegisterCustomSchemes0100
+     * @tc.name    : testArkWebRegisterCustomSchemes0100
+     * @tc.desc    : test SUB_OH_ArkWeb_RegisterCustomSchemes0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebRegisterCustomSchemes0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebRegisterCustomSchemes0100 start====");
+        let result: number = webCode.OH_ArkWeb_RegisterCustomSchemes0100();
+        console.info("====>testArkWebRegisterCustomSchemes0100 result====", result);
+        expect(result).assertEqual(17100102);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebRegisterCustomSchemes0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWeb_RegisterCustomSchemes0101
+     * @tc.name    : testArkWebRegisterCustomSchemes0101
+     * @tc.desc    : test SUB_OH_ArkWeb_RegisterCustomSchemes0101
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebRegisterCustomSchemes0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebRegisterCustomSchemes0101 start====");
+        let result: number = webCode.OH_ArkWeb_RegisterCustomSchemes0101();
+        console.info("====>testArkWebRegisterCustomSchemes0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebRegisterCustomSchemes0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebServiceWorker_ClearSchemeHandlers0100
+     * @tc.name    : testArkWebServiceWorkerClearSchemeHandlers0100
+     * @tc.desc    : test SUB_OH_ArkWebServiceWorker_ClearSchemeHandlers0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebServiceWorkerClearSchemeHandlers0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebServiceWorkerClearSchemeHandlers0100 start====");
+        let result: number = webCode.OH_ArkWebServiceWorker_ClearSchemeHandlers0100();
+        console.info("====>testArkWebServiceWorkerClearSchemeHandlers0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebServiceWorkerClearSchemeHandlers0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWeb_ClearSchemeHandlers0100
+     * @tc.name    : testArkWebClearSchemeHandlers0100
+     * @tc.desc    : test SUB_OH_ArkWeb_ClearSchemeHandlers0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebClearSchemeHandlers0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebClearSchemeHandlers0100 start====");
+        let result: number = webCode.OH_ArkWeb_ClearSchemeHandlers0100();
+        console.info("====>testArkWebClearSchemeHandlers0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebClearSchemeHandlers0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWeb_ClearSchemeHandlers0101
+     * @tc.name    : testArkWebClearSchemeHandlers0101
+     * @tc.desc    : test SUB_OH_ArkWeb_ClearSchemeHandlers0101
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebClearSchemeHandlers0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebClearSchemeHandlers0101 start====");
+        let result: number = webCode.OH_ArkWeb_ClearSchemeHandlers0101();
+        console.info("====>testArkWebClearSchemeHandlers0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebClearSchemeHandlers0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebSchemeHandler_SetUserData0100
+     * @tc.name    : testArkWebSchemeHandlerSetUserData0100
+     * @tc.desc    : test SUB_OH_ArkWebSchemeHandler_SetUserData0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSchemeHandlerSetUserData0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSchemeHandlerSetUserData0100 start====");
+        let result: number = webCode.OH_ArkWebSchemeHandler_SetUserData0100();
+        console.info("====>testArkWebSchemeHandlerSetUserData0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSchemeHandlerSetUserData0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebSchemeHandler_SetUserData0101
+     * @tc.name    : testArkWebSchemeHandlerSetUserData0101
+     * @tc.desc    : test SUB_OH_ArkWebSchemeHandler_SetUserData0101
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSchemeHandlerSetUserData0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSchemeHandlerSetUserData0101 start====");
+        let result: number = webCode.OH_ArkWebSchemeHandler_SetUserData0101();
+        console.info("====>testArkWebSchemeHandlerSetUserData0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSchemeHandlerSetUserData0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebSchemeHandler_SetOnRequestStart0100
+     * @tc.name    : testArkWebSchemeHandlerSetOnRequestStart0100
+     * @tc.desc    : test ARKWEB_NATIVE_JAVASCRIPT_VALUE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSchemeHandlerSetOnRequestStart0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSchemeHandlerSetOnRequestStart0100 start====");
+        let result: number = webCode.OH_ArkWebSchemeHandler_SetOnRequestStart0100();
+        console.info("====>testArkWebSchemeHandlerSetOnRequestStart0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSchemeHandlerSetOnRequestStart0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebSchemeHandler_SetOnRequestStart0101
+     * @tc.name    : testArkWebSchemeHandlerSetOnRequestStart0101
+     * @tc.desc    : test ARKWEB_NATIVE_JAVASCRIPT_VALUE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSchemeHandlerSetOnRequestStart0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSchemeHandlerSetOnRequestStart0101 start====");
+        let result: number = webCode.OH_ArkWebSchemeHandler_SetOnRequestStart0101();
+        console.info("====>testArkWebSchemeHandlerSetOnRequestStart0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSchemeHandlerSetOnRequestStart0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebSchemeHandler_SetOnRequestStop0100
+     * @tc.name    : testArkWebSchemeHandlerSetOnRequestStop0100
+     * @tc.desc    : test ARKWEB_NATIVE_JAVASCRIPT_VALUE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSchemeHandlerSetOnRequestStop0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSchemeHandlerSetOnRequestStop0100 start====");
+        let result: number = webCode.OH_ArkWebSchemeHandler_SetOnRequestStop0100();
+        console.info("====>testArkWebSchemeHandlerSetOnRequestStop0100 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSchemeHandlerSetOnRequestStop0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebSchemeHandler_SetOnRequestStop0101
+     * @tc.name    : testArkWebSchemeHandlerSetOnRequestStop0101
+     * @tc.desc    : test ARKWEB_NATIVE_JAVASCRIPT_VALUE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSchemeHandlerSetOnRequestStop0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSchemeHandlerSetOnRequestStop0101 start====");
+        let result: number = webCode.OH_ArkWebSchemeHandler_SetOnRequestStop0101();
+        console.info("====>testArkWebSchemeHandlerSetOnRequestStop0101 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSchemeHandlerSetOnRequestStop0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetUrl0100
+     * @tc.name    : testArkWebResponseSetUrl0100
+     * @tc.desc    : test ARKWEB_NATIVE_JAVASCRIPT_VALUE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetUrl0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetUrl0100 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetUrl0100();
+        console.info("====>testArkWebResponseSetUrl0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetUrl0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetUrl0101
+     * @tc.name    : testArkWebResponseSetUrl0101
+     * @tc.desc    : test ARKWEB_NATIVE_JAVASCRIPT_VALUE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetUrl0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetUrl0101 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetUrl0101();
+        console.info("====>testArkWebResponseSetUrl0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetUrl0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetError0100
+     * @tc.name    : testArkWebResponseSetError0100
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetError0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetError0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetError0100 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetError0100();
+        console.info("====>testArkWebResponseSetError0100 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetError0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetStatus0100
+     * @tc.name    : testArkWebResponseSetStatus0100
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetStatus0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetStatus0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetStatus0100 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetStatus0100();
+        console.info("====>testArkWebResponseSetStatus0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetStatus0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetStatus0101
+     * @tc.name    : testArkWebResponseSetStatus0101
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetStatus0101
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetStatus0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetStatus0101 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetStatus0101();
+        console.info("====>testArkWebResponseSetStatus0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetStatus0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetStatusText0100
+     * @tc.name    : testArkWebResponseSetStatusText0100
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetStatusText0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetStatusText0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetStatusText0100 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetStatusText0100();
+        console.info("====>testArkWebResponseSetStatusText0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetStatusText0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetStatusText0101
+     * @tc.name    : testArkWebResponseSetStatusText0101
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetStatusText0101
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetStatusText0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetStatusText0101 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetStatusText0101();
+        console.info("====>testArkWebResponseSetStatusText0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetStatusText0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetMimeType0100
+     * @tc.name    : testArkWebResponseSetMimeType0100
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetMimeType0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetMimeType0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetMimeType0100 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetMimeType0100();
+        console.info("====>testArkWebResponseSetMimeType0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetMimeType0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetMimeType0101
+     * @tc.name    : testArkWebResponseSetMimeType0101
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetMimeType0101
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetMimeType0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetMimeType0101 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetMimeType0101();
+        console.info("====>testArkWebResponseSetMimeType0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetMimeType0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetCharset0100
+     * @tc.name    : testArkWebResponseSetCharset0100
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetCharset0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetCharset0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetCharset0100 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetCharset0100();
+        console.info("====>testArkWebResponseSetCharset0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetCharset0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetCharset0101
+     * @tc.name    : testArkWebResponseSetCharset0101
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetCharset0101
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetCharset0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetCharset0101 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetCharset0101();
+        console.info("====>testArkWebResponseSetCharset0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetCharset0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetHeaderByName0100
+     * @tc.name    : testArkWebResponseSetHeaderByName0100
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetHeaderByName0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetHeaderByName0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetHeaderByName0100 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetHeaderByName0100();
+        console.info("====>testArkWebResponseSetHeaderByName0100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetHeaderByName0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResponse_SetHeaderByName0101
+     * @tc.name    : testArkWebResponseSetHeaderByName0101
+     * @tc.desc    : test SUB_OH_ArkWebResponse_SetHeaderByName0101
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResponseSetHeaderByName0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResponseSetHeaderByName0101 start====");
+        let result: number = webCode.OH_ArkWebResponse_SetHeaderByName0101();
+        console.info("====>testArkWebResponseSetHeaderByName0101 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResponseSetHeaderByName0101 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResourceHandler_Destroy0100
+     * @tc.name    : testArkWebResourceHandlerDestroy0100
+     * @tc.desc    : test SUB_OH_ArkWebResourceHandler_Destroy0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResourceHandlerDestroy0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResourceHandlerDestroy0100 start====");
+        let result: number = webCode.OH_ArkWebResourceHandler_Destroy0100();
+        console.info("====>testArkWebResourceHandlerDestroy0100 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResourceHandlerDestroy0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResourceHandler_DidReceiveResponse0100
+     * @tc.name    : testArkWebResourceHandlerDidReceiveResponse0100
+     * @tc.desc    : test SUB_OH_ArkWebResourceHandler_DidReceiveResponse0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResourceHandlerDidReceiveResponse0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResourceHandlerDidReceiveResponse0100 start====");
+        let result: number = webCode.OH_ArkWebResourceHandler_DidReceiveResponse0100();
+        console.info("====>testArkWebResourceHandlerDidReceiveResponse0100 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResourceHandlerDidReceiveResponse0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResourceHandler_DidReceiveData0100
+     * @tc.name    : testArkWebResourceHandlerDidReceiveData0100
+     * @tc.desc    : test SUB_OH_ArkWebResourceHandler_DidReceiveData0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResourceHandlerDidReceiveData0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResourceHandlerDidReceiveData0100 start====");
+        let result: number = webCode.OH_ArkWebResourceHandler_DidReceiveData0100();
+        console.info("====>testArkWebResourceHandlerDidReceiveData0100 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResourceHandlerDidReceiveData0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResourceHandler_DidFinish0100
+     * @tc.name    : testArkWebResourceHandlerDidFinish0100
+     * @tc.desc    : test SUB_OH_ArkWebResourceHandler_DidFinish0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResourceHandlerDidFinish0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResourceHandlerDidFinish0100 start====");
+        let result: number = webCode.OH_ArkWebResourceHandler_DidFinish0100();
+        console.info("====>testArkWebResourceHandlerDidFinish0100 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResourceHandlerDidFinish0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResourceHandler_DidFailWithError0100
+     * @tc.name    : testArkWebResourceHandlerDidFailWithError0100
+     * @tc.desc    : test SUB_OH_ArkWebResourceHandler_DidFinish0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResourceHandlerDidFailWithError0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResourceHandlerDidFailWithError0100 start====");
+        let result: number = webCode.OH_ArkWebResourceHandler_DidFailWithError0100();
+        console.info("====>testArkWebResourceHandlerDidFailWithError0100 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResourceHandlerDidFailWithError0100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_ArkWebResourceHandler_DidFailWithErrorV20100
+     * @tc.name    : testArkWebResourceHandlerDidFailWithErrorV20100
+     * @tc.desc    : test SUB_OH_ArkWebResourceHandler_DidFinish0100
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebResourceHandlerDidFailWithErrorV20100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebResourceHandlerDidFailWithErrorV20100 start====");
+        let result: number = webCode.OH_ArkWebResourceHandler_DidFailWithErrorV20100();
+        console.info("====>testArkWebResourceHandlerDidFailWithErrorV20100 result====", result);
+        expect(result).assertEqual(17100101);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebResourceHandlerDidFailWithErrorV20100 catch err: " + err);
+        expect(false).assertEqual(0);
+      }
+    })
   })
 }
