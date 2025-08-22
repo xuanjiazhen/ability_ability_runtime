@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -84,7 +84,7 @@ export default function wifiEapErrorTest(){
                 }
                 eap.regCustomEapHandler(invalidNetType,validEapCode,validEapType,getEapData);
                 console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0100 regCustomEapHandler success");
-                //expect().assertFail();
+                expect().assertFail();
             }catch(error){
                 console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0100 regCustomEapHandler failed,code is ${error.code}, message is ${error.message}`);
                 if(error.code==801){
@@ -110,7 +110,7 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else {
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0100 eap register undefined errorcode`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }
             }finally{
                 done();
@@ -146,7 +146,7 @@ export default function wifiEapErrorTest(){
                             eap.replyCustomEapData(eap.CustomResult.RESULT_NEXT,eapData);
                             console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0200 replyCustomEapData success");
                         }catch(error){
-                            console.error("SUB_Communication_Netmanager_Eap_ErrorCode_0200 replyCustomEapData failed : ",error);
+                            console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0200 replyCustomEapData failed :,code is ${error.code}, message is ${error.message}`);
                         }finally{
                             try{
                                 eap.unregCustomEapHandler(validNetType,invalidEapCode,validEapType,getEapData);
@@ -157,9 +157,10 @@ export default function wifiEapErrorTest(){
                         }
                     },1*1000);
                 }
+                console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0200 regCustomEapHandler start");
                 eap.regCustomEapHandler(validNetType,invalidEapCode,validEapType,getEapData);
                 console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0200 regCustomEapHandler success");
-                //expect().assertFail();
+                expect().assertFail();
             }catch(error){
                 console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0200 regCustomEapHandler failed,code is ${error.code}, message is ${error.message}`);
                 if(error.code==801){
@@ -170,10 +171,10 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else if(error.code==33200006){
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0200 eap register invalid NetType`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }else if(error.code==33200007){
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0200 eap register invalid EapCode`);
-                    expect().assertFail();
+                    expect(true).assertTrue();
                 }else if(error.code==33200008){
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0200 eap register invalid EapType`);
                     expect().assertFail();
@@ -185,7 +186,7 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else {
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0200 eap register undefined errorcode`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }
             }finally{
                 done();
@@ -212,7 +213,7 @@ export default function wifiEapErrorTest(){
             try{
                 const validNetType=1;
                 const validEapCode=1;
-                const invalidEapType=0;
+                const invalidEapType=-1;
                 let getEapData=(eapData: eap.EapData):void=>{
                     console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0300 callback eapData : " + JSON.stringify(eapData));
                     setTimeout(()=>{
@@ -245,13 +246,13 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else if(error.code==33200006){
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0300 eap register invalid NetType`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }else if(error.code==33200007){
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0300 eap register invalid EapCode`);
                     expect().assertFail();
                 }else if(error.code==33200008){
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0300 eap register invalid EapType`);
-                    expect().assertFail();
+                    expect(true).assertTrue();
                 }else if(error.code==33200009){
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0300 eap register netmanager stop`);
                     expect(true).assertTrue();
@@ -260,7 +261,7 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else {
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0300 eap register undefined errorcode`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }
             }finally{
                 done();
@@ -296,14 +297,14 @@ export default function wifiEapErrorTest(){
                             eap.replyCustomEapData(eap.CustomResult.RESULT_FINISH,eapData);
                             console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0400 replyCustomEapData success");
                         }catch(error){
-                            console.error("SUB_Communication_Netmanager_Eap_ErrorCode_0400 replyCustomEapData failed : ",error)
+                            console.error("SUB_Communication_Netmanager_Eap_ErrorCode_0400 replyCustomEapData failed : ",error);
                         }
                         done();
                     },1*1000);
                 }
                 eap.unregCustomEapHandler(invalidNetType,validEapCode,validEapType,getEapData)
                 console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0400 unregCustomEapHandler success");
-                //expect().assertFail();
+                expect().assertFail();
             }catch(error){
                 console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0400 unregCustomEapHandler failed,code is ${error.code}, message is ${error.message}`);
                 if(error.code==801){
@@ -329,13 +330,13 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else {
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0400 eap unregister undefined errorcode`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }
             }finally{
                 done();
             }
         })   
-                /**
+         /**
          * @tc.number SUB_Communication_Netmanager_Eap_ErrorCode_0500
          * @tc.name SUB_Communication_Netmanager_Eap_ErrorCode_0500
          * @tc.desc Test eap register api functionality.
@@ -371,7 +372,7 @@ export default function wifiEapErrorTest(){
                 }
                 eap.unregCustomEapHandler(validNetType,invalidEapCode,validEapType,getEapData)
                 console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0500 unregCustomEapHandler success");
-                //expect().assertFail();
+                expect().assertFail();
             }catch(error){
                 console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0500 unregCustomEapHandler failed,code is ${error.code}, message is ${error.message}`);
                 if(error.code==801){
@@ -397,7 +398,7 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else {
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0500 eap unregister undefined errorcode`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }
             }finally{
                 done();
@@ -423,7 +424,7 @@ export default function wifiEapErrorTest(){
             try{
                 const validNetType=1;
                 const validEapCode=1;
-                const invalidEapType=0;
+                const invalidEapType=-1;
                 let getEapData=(eapData: eap.EapData):void=>{
                     console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0600 callback eapData : " + JSON.stringify(eapData));
                     setTimeout(()=>{
@@ -437,9 +438,10 @@ export default function wifiEapErrorTest(){
                         done();
                     },1*1000);
                 }
-                eap.unregCustomEapHandler(validNetType,validEapCode,invalidEapType,getEapData)
+                console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0600 unregCustomEapHandler start");
+                eap.unregCustomEapHandler(validNetType,validEapCode,invalidEapType,getEapData);
                 console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0600 unregCustomEapHandler success");
-                //expect().assertFail();
+                expect().assertFail();
             }catch(error){
                 console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0600 unregCustomEapHandler failed,code is ${error.code}, message is ${error.message}`);
                 if(error.code==801){
@@ -465,7 +467,7 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else {
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0600 eap unregister undefined errorcode`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }
             }finally{
                 done();
@@ -507,7 +509,7 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else if(error.code==33200005){
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0700 eap replyCustomEapData invalid size of eap data`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }else if(error.code==33200009){
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0700 eap replyCustomEapData netmanager stop`);
                     expect(true).assertTrue();
@@ -516,7 +518,7 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else {
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0700 eap replyCustomEapData undefined errorcode`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }
             }finally{
                 done();
@@ -587,7 +589,7 @@ export default function wifiEapErrorTest(){
                     expect(true).assertTrue();
                 }else {
                     console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 eap startEthEap undefined errorcode`);
-                    expect(true).assertTrue();
+                    expect().assertFail();
                 }
             }
             done();
