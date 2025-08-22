@@ -19,8 +19,8 @@
 #include <node_api.h>
 
 napi_property_descriptor desc[] = {
-    {"StartSelfUIAbilityWithStartOptionsMultiAppNotSupport",
-        nullptr, StartSelfUIAbilityWithStartOptionsMultiAppNotSupport, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"StartSelfUIAbilityWithStartOptionsMultiAppNotSupport", nullptr,
+        StartSelfUIAbilityWithStartOptionsMultiAppNotSupport, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"AbilityRuntimeErrorCodeMultiAppNotSupportCode",
         nullptr, AbilityRuntimeErrorCodeMultiAppNotSupportCode, nullptr, nullptr, nullptr, napi_default, nullptr}
 };

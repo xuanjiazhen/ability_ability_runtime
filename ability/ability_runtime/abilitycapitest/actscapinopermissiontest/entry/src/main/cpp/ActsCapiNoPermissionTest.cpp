@@ -24,7 +24,7 @@ namespace {
 const uint32_t MAX_NAME_LENGTH = 1024;
 }
 
-napi_value StartSelfUIAbilityPermissionDenied(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityPermissionDenied(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -33,7 +33,7 @@ napi_value StartSelfUIAbilityPermissionDenied(napi_env env, napi_callback_info i
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -45,7 +45,7 @@ napi_value StartSelfUIAbilityPermissionDenied(napi_env env, napi_callback_info i
     return nullptr;
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsPermissionDenied(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsPermissionDenied(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -53,8 +53,8 @@ napi_value StartSelfUIAbilityWithStartOptionsPermissionDenied(napi_env env, napi
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED){
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -66,7 +66,7 @@ napi_value StartSelfUIAbilityWithStartOptionsPermissionDenied(napi_env env, napi
     return nullptr;
 }
 
-napi_value AbilityRuntimeErrorCodePermissionDeniedCode(napi_env env, napi_callback_info info)   
+napi_value AbilityRuntimeErrorCodePermissionDeniedCode(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -75,7 +75,7 @@ napi_value AbilityRuntimeErrorCodePermissionDeniedCode(napi_env env, napi_callba
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;

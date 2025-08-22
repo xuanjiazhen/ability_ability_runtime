@@ -984,24 +984,18 @@ napi_value CreateNativeChildProcessLibLoadingFailed(napi_env env, napi_callback_
 {
     std::promise<int> promise;
     g_promiseStartProcess = &promise;
-    
     size_t argc = 1;
     napi_value args[1] = { nullptr };
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    
     char libName[64];
     size_t nameLen;
     napi_get_value_string_utf8(env, args[0], libName, sizeof(libName), &nameLen);
-    
-    
     int32_t ret = OH_Ability_CreateNativeChildProcess("libentry.so:Main", OnNativeChildProcessStarted);
-    
     if (ret == NCP_NO_ERROR) {
         auto future = promise.get_future();
         OH_LOG_INFO(LOG_APP, "Main process - Wait for call back");
         ret = future.get();
     }
-
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -1082,7 +1076,7 @@ napi_value StartNativeChildProcessInvalidParam(napi_env env, napi_callback_info 
     NativeChildProcess_Options options = {
         .isolationMode = NCP_ISOLATION_MODE_ISOLATED
     };
-    int32_t ret = OH_Ability_StartNativeChildProcess(nullptr, args,options, &pid);
+    int32_t ret = OH_Ability_StartNativeChildProcess(nullptr, args, options, &pid);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -1098,7 +1092,7 @@ napi_value StartNativeChildProcessWithConfigsNoError(napi_env env, napi_callback
         .isolationMode = NCP_ISOLATION_MODE_ISOLATED
     };
     Ability_ChildProcessConfigs* configs = OH_Ability_CreateChildProcessConfigs();
-    int32_t ret = OH_Ability_StartNativeChildProcessWithConfigs("libentry.so:Main", args,configs, &pid);
+    int32_t ret = OH_Ability_StartNativeChildProcessWithConfigs("libentry.so:Main", args, configs, &pid);
     if (ret == NCP_ERR_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
@@ -1130,7 +1124,7 @@ napi_value StartNativeChildProcessWithConfigsInvalidParam(napi_env env, napi_cal
         .isolationMode = NCP_ISOLATION_MODE_ISOLATED
     };
     Ability_ChildProcessConfigs* configs = OH_Ability_CreateChildProcessConfigs();
-    int32_t ret = OH_Ability_StartNativeChildProcessWithConfigs(nullptr, args,configs, &pid);
+    int32_t ret = OH_Ability_StartNativeChildProcessWithConfigs(nullptr, args, configs, &pid);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -1147,21 +1141,21 @@ napi_value StartNativeChildProcessWithConfigsServiceError(napi_env env, napi_cal
     };
     Ability_ChildProcessConfigs* configs = OH_Ability_CreateChildProcessConfigs();
     OH_Ability_DestroyChildProcessConfigs(configs);
-    int32_t ret = OH_Ability_StartNativeChildProcessWithConfigs("libentry.so:Main", args,configs, &pid);
+    int32_t ret = OH_Ability_StartNativeChildProcessWithConfigs("libentry.so:Main", args, configs, &pid);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
 }
 
-napi_value StartSelfUIAbilityInstanceKeyNotSupport(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityInstanceKeyNotSupport(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantBoolParam(want,"ohos.extra.param.key.createAppInstance",true);
-    OH_AbilityBase_SetWantCharParam(want,"ohos.extra.param.key.appInstance","app_instance_0");
+    OH_AbilityBase_SetWantBoolParam(want, "ohos.extra.param.key.createAppInstance", true);
+    OH_AbilityBase_SetWantCharParam(want, "ohos.extra.param.key.appInstance", "app_instance_0");
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
     if (ret == ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED) {
@@ -1176,7 +1170,7 @@ napi_value StartSelfUIAbilityInstanceKeyNotSupport(napi_env env, napi_callback_i
     return nullptr;
 }
 
-napi_value StartSelfUIAbilityNoError(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityNoError(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -1198,7 +1192,7 @@ napi_value StartSelfUIAbilityNoError(napi_env env, napi_callback_info info)
     }
 }
 
-napi_value StartSelfUIAbilityUpperLimitReached(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityUpperLimitReached(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -1220,7 +1214,7 @@ napi_value StartSelfUIAbilityUpperLimitReached(napi_env env, napi_callback_info 
     return nullptr;
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsInstanceKeyNotSupport(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsInstanceKeyNotSupport(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -1244,7 +1238,7 @@ napi_value StartSelfUIAbilityWithStartOptionsInstanceKeyNotSupport(napi_env env,
     return nullptr;
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsNoError(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsNoError(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -1267,7 +1261,7 @@ napi_value StartSelfUIAbilityWithStartOptionsNoError(napi_env env, napi_callback
     }
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsUpperLimitReached(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsUpperLimitReached(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -1290,7 +1284,7 @@ napi_value StartSelfUIAbilityWithStartOptionsUpperLimitReached(napi_env env, nap
     return nullptr;
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsNoSuchAbility(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsNoSuchAbility(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("ErrorEntryAbility");
@@ -1312,7 +1306,7 @@ napi_value StartSelfUIAbilityWithStartOptionsNoSuchAbility(napi_env env, napi_ca
     return nullptr;
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsCodeCrossApp(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsCodeCrossApp(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -1334,7 +1328,7 @@ napi_value StartSelfUIAbilityWithStartOptionsCodeCrossApp(napi_env env, napi_cal
     return nullptr;
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsCodeInternal(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsCodeInternal(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -1357,14 +1351,14 @@ napi_value StartSelfUIAbilityWithStartOptionsCodeInternal(napi_env env, napi_cal
     return nullptr;
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsInvalidAppInstanceKey(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsInvalidAppInstanceKey(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantCharParam(want,"ohos.extra.param.key.appInstance","app_instance_0_Error");
+    OH_AbilityBase_SetWantCharParam(want, "ohos.extra.param.key.appInstance", "app_instance_0_Error");
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
@@ -1380,7 +1374,7 @@ napi_value StartSelfUIAbilityWithStartOptionsInvalidAppInstanceKey(napi_env env,
     return nullptr;
 }
 
-napi_value StartSelfUIAbilityWithStartOptionsVisibilitySettingDisabled(napi_env env, napi_callback_info info)   
+napi_value StartSelfUIAbilityWithStartOptionsVisibilitySettingDisabled(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -1389,7 +1383,7 @@ napi_value StartSelfUIAbilityWithStartOptionsVisibilitySettingDisabled(napi_env 
     
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    OH_AbilityRuntime_SetStartOptionsStartVisibility(options,ABILITY_RUNTIME_HIDE_UPON_START);
+    OH_AbilityRuntime_SetStartOptionsStartVisibility(options, ABILITY_RUNTIME_HIDE_UPON_START);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
     if (ret == ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED) {
@@ -1409,7 +1403,7 @@ napi_value ApplicationContextGetCacheDirNoError(napi_env env, napi_callback_info
     const size_t kBufferSize = 256;
     char cacheDir[kBufferSize] = {0};
     int32_t actualLength = 0;
-    AbilityRuntime_ErrorCode ret = 
+    AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetCacheDir(cacheDir, kBufferSize, &actualLength);
     if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
@@ -1429,7 +1423,7 @@ napi_value ApplicationContextGetCacheDirInvPar(napi_env env, napi_callback_info 
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
     }
-    return nullptr; 
+    return nullptr;
 }
 
 napi_value ApplicationContextGetAreaModeNoError(napi_env env, napi_callback_info info)
@@ -1662,7 +1656,7 @@ napi_value ApplicationContextGetCloudFileDirNoError(napi_env env, napi_callback_
     char cacheDir[kBufferSize] = {0};
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
-        OH_AbilityRuntime_ApplicationContextGetCloudFileDir(cacheDir ,kBufferSize,&actualLength);
+        OH_AbilityRuntime_ApplicationContextGetCloudFileDir(cacheDir, kBufferSize, &actualLength);
     if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
@@ -1721,7 +1715,7 @@ napi_value NcpErrorServiceErrorCode(napi_env env, napi_callback_info info)
     args.fdList.head = NULL;
     Ability_ChildProcessConfigs* configs = OH_Ability_CreateChildProcessConfigs();
     OH_Ability_DestroyChildProcessConfigs(configs);
-    int32_t ret = OH_Ability_StartNativeChildProcessWithConfigs("libentry.so:Main", args,configs, &pid);
+    int32_t ret = OH_Ability_StartNativeChildProcessWithConfigs("libentry.so:Main", args, configs, &pid);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -1853,7 +1847,7 @@ napi_value AbilityRuntimeErrorCodeInternalCode(napi_env env, napi_callback_info 
     element.abilityName = const_cast<char *>("EntryAbility");
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
-    AbilityBase_Want* want = OH_AbilityBase_CreateWant(element); 
+    AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     OH_AbilityBase_AddWantFd(want, "fd", -1);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
@@ -1872,7 +1866,7 @@ napi_value AbilityRuntimeErrorCodeInternalCode(napi_env env, napi_callback_info 
     return napiRet;
 }
 
-napi_value AbilityRuntimeErrorVisibilitySettingDisabledCode(napi_env env, napi_callback_info info)   
+napi_value AbilityRuntimeErrorVisibilitySettingDisabledCode(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -1881,7 +1875,7 @@ napi_value AbilityRuntimeErrorVisibilitySettingDisabledCode(napi_env env, napi_c
     
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    OH_AbilityRuntime_SetStartOptionsStartVisibility(options,ABILITY_RUNTIME_HIDE_UPON_START);
+    OH_AbilityRuntime_SetStartOptionsStartVisibility(options, ABILITY_RUNTIME_HIDE_UPON_START);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
     if (ret == ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED) {
@@ -1898,14 +1892,14 @@ napi_value AbilityRuntimeErrorVisibilitySettingDisabledCode(napi_env env, napi_c
     return napiRet;
 }
 
-napi_value AbilityRuntimeErrorCodeInvalidAppInstanceKeyCode(napi_env env, napi_callback_info info)   
+napi_value AbilityRuntimeErrorCodeInvalidAppInstanceKeyCode(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantCharParam(want,"ohos.extra.param.key.appInstance","app_instance_0_Error");
+    OH_AbilityBase_SetWantCharParam(want, "ohos.extra.param.key.appInstance", "app_instance_0_Error");
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
@@ -1923,14 +1917,14 @@ napi_value AbilityRuntimeErrorCodeInvalidAppInstanceKeyCode(napi_env env, napi_c
     return napiRet;
 }
 
-napi_value AbilityRuntimeErrorCodeUpperLimitReachedCode(napi_env env, napi_callback_info info)   
+napi_value AbilityRuntimeErrorCodeUpperLimitReachedCode(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantBoolParam(want,"ohos.extra.param.key.createAppInstance",true);
+    OH_AbilityBase_SetWantBoolParam(want, "ohos.extra.param.key.createAppInstance", true);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
     if (ret == ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED) {
@@ -1947,15 +1941,15 @@ napi_value AbilityRuntimeErrorCodeUpperLimitReachedCode(napi_env env, napi_callb
     return napiRet;
 }
 
-napi_value AbilityRuntimeErrorAppInstanceKeyNotSupportCode(napi_env env, napi_callback_info info)   
+napi_value AbilityRuntimeErrorAppInstanceKeyNotSupportCode(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantBoolParam(want,"ohos.extra.param.key.createAppInstance",true);
-    OH_AbilityBase_SetWantCharParam(want,"ohos.extra.param.key.appInstance","app_instance_0");
+    OH_AbilityBase_SetWantBoolParam(want, "ohos.extra.param.key.createAppInstance", true);
+    OH_AbilityBase_SetWantCharParam(want, "ohos.extra.param.key.appInstance", "app_instance_0");
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);

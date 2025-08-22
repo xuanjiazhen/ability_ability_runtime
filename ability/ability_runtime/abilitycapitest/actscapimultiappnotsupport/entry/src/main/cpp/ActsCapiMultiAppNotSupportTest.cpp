@@ -32,13 +32,13 @@ napi_value StartSelfUIAbilityWithStartOptionsMultiAppNotSupport(napi_env env, na
     element.moduleName = const_cast<char *>("entry");
     
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    const char* key = "ohos.extra.param.key.appInstance";  
+    const char* key = "ohos.extra.param.key.appInstance";
     const char* value = "app_instance_0";
-    OH_AbilityBase_SetWantCharParam(want,key,value);
+    OH_AbilityBase_SetWantCharParam(want, key, value);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -50,7 +50,7 @@ napi_value StartSelfUIAbilityWithStartOptionsMultiAppNotSupport(napi_env env, na
     return nullptr;
 }
 
-napi_value AbilityRuntimeErrorCodeMultiAppNotSupportCode(napi_env env, napi_callback_info info)   
+napi_value AbilityRuntimeErrorCodeMultiAppNotSupportCode(napi_env env, napi_callback_info info)
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
@@ -58,12 +58,12 @@ napi_value AbilityRuntimeErrorCodeMultiAppNotSupportCode(napi_env env, napi_call
     element.moduleName = const_cast<char *>("entry");
     
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    const char* key = "ohos.extra.param.key.appInstance";  
+    const char* key = "ohos.extra.param.key.appInstance";
     const char* value = "app_instance_0";
-    OH_AbilityBase_SetWantCharParam(want,key,value);
+    OH_AbilityBase_SetWantCharParam(want, key, value);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
