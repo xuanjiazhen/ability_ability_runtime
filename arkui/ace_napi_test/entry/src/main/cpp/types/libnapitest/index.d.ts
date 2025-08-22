@@ -76,7 +76,6 @@ export const createDouble: (para:number) => number;
 export const createAndGetStringLatin1: (para:string) => string;
 export const createAndGetStringUtf8: (para:string) => string;
 export const CreateBuffer: () => object;
-export const CreateBufferCopy: () => object;
 export const getPrototype: () => object;
 export const getPrototype2: (para: Function) => object;
 export const getValueBool: (para: boolean) => boolean;

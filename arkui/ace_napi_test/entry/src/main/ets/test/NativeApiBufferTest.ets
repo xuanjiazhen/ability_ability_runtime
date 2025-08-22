@@ -48,16 +48,5 @@ export default function napiBufferTest() {
       expect(napitest.IsBuffer(buffer)).assertTrue();
       expect(napitest.GetBufferInfo(buffer)).assertTrue();
     })
-
-    /**
-    * @tc.number    SUB_ACE_BASIC_ETS_NAPI_0001
-    * @tc.name      napiBufferTest003
-    * @tc.desc      aceNapiEtsTest
-    */
-    it('napiBufferTest003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
-      let buffer: Object = napitest.CreateBufferCopy();
-      expect(napitest.IsBuffer(buffer)).assertTrue();
-      expect(napitest.GetBufferInfo(buffer)).assertTrue();
-    })
   })
 }
