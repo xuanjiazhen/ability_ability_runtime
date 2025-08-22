@@ -723,7 +723,7 @@ export default function ErrorTest() {
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.stack}`);
         console.log("result:" + err.stack + "result1")
-        expect(`${err.stack}`).assertContain('entry/src/ohosTest/ets/test/Error/Error.test.ts');
+        expect(`${err.stack}`).assertContain('src/ohosTest/ets/test/Error/Error.test.ts');
       }
     })
 
@@ -837,7 +837,7 @@ export default function ErrorTest() {
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.stack}`);
         console.log("result:" + err.stack)
-        expect(`${err.stack}`).assertContain('entry/src/ohosTest/ets/test/Error/Error.test.ts');
+        expect(`${err.stack}`).assertContain('src/ohosTest/ets/test/Error/Error.test.ts');
       }
     })
 
