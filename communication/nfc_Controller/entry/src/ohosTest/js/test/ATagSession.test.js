@@ -392,6 +392,8 @@ export default function nfcATagSessionTest() {
             sleep(3500);
         })
 
+
+
         /**
          * @tc.number SUB_Communication_NFC_nfcAtage_js_1200
          * @tc.name testsendData
@@ -521,7 +523,6 @@ export default function nfcATagSessionTest() {
                 console.info("[NFC_test]getAtag14 = null & = undefined: ");
                 expect().assertFail();
             }
-            sleep(2000)
         })
 
         /**
