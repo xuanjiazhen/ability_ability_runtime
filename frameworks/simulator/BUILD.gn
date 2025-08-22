@@ -133,6 +133,11 @@ ohos_copy("copy_ability_simulator") {
   out_path =
       get_label_info("//arkcompiler/toolchain/tooling:libark_ecma_debugger",
                      "root_out_dir")
+
+  deps += [ "//arkcompiler/toolchain/tooling/hybrid_step:arkhybridstep" ]
+  out_path =
+      get_label_info("//arkcompiler/toolchain/tooling/hybrid_step:arkhybridstep",
+                     "root_out_dir")
   sources +=
       [ out_path + "/arkcompiler/toolchain/libark_tooling" + dylib_suffix ]
 
