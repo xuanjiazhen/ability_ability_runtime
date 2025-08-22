@@ -78,6 +78,9 @@ export default class AppService2 extends AppServiceExtensionAbility {
       try {
         this.context.startAbility(wantInfo).then(() => {
           successReturn('startAppServiceDefault', 'AppServiceExtension_1900');
+          try { 
+            this.context.terminateSelf(); 
+          } catch (err) {}
         }).catch((error: BusinessError) => {
           errorReturn('startAppServiceDefault', 'AppServiceExtension_1900', error);
         });
