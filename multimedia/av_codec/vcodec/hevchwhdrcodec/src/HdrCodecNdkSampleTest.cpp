@@ -367,17 +367,14 @@ int32_t HDRCodecNdkSample::SendDataH263(OH_AVCodec *codec, uint32_t index, OH_AV
     uint8_t *fileBuffer = new uint8_t[bufferSize];
     if (fileBuffer == nullptr) {
         delete[] fileBuffer;
-        fileBuffer = nullptr;
         return 0;
     }
     (void)inFile_->read(reinterpret_cast<char *>(fileBuffer), bufferSize);
     if (memcpy_s(avBuffer, size, fileBuffer, bufferSize) != EOK) {
         delete[] fileBuffer;
-        fileBuffer = nullptr;
         return 0;
     }
     delete[] fileBuffer;
-    fileBuffer = nullptr;
     attr.pts = GetSystemTimeUs();
     attr.size = bufferSize;
     attr.offset = 0;
