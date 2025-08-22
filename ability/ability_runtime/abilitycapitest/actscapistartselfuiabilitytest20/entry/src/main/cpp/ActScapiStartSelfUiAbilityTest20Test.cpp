@@ -951,7 +951,7 @@ void OnNativeChildProcessStarted(int errCode, OHIPCRemoteProxy *remoteProxy)
 napi_value CreateNativeChildProcessNoError(napi_env env, napi_callback_info info)
 {
     int32_t ret = OH_Ability_CreateNativeChildProcess("libentry.so:Main", OnNativeChildProcessStarted);
-    if(ret == NCP_ERR_NOT_SUPPORTED){
+    if (ret == NCP_ERR_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -959,7 +959,7 @@ napi_value CreateNativeChildProcessNoError(napi_env env, napi_callback_info info
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if(ret == NCP_NO_ERROR){
+    } else if (ret == NCP_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -967,7 +967,7 @@ napi_value CreateNativeChildProcessNoError(napi_env env, napi_callback_info info
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else{
+    } else {
         return nullptr;
     }
 }
@@ -1012,7 +1012,7 @@ napi_value CreateNativeChildProcessWithConfigsNoError(napi_env env, napi_callbac
     Ability_ChildProcessConfigs* configs = OH_Ability_CreateChildProcessConfigs();
     int32_t ret =
         OH_Ability_CreateNativeChildProcessWithConfigs("libentry.so:Main", configs, OnNativeChildProcessStarted);
-    if(ret == NCP_ERR_NOT_SUPPORTED){
+    if (ret == NCP_ERR_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1020,15 +1020,15 @@ napi_value CreateNativeChildProcessWithConfigsNoError(napi_env env, napi_callbac
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if(ret == NCP_NO_ERROR){
+    } else if (ret == NCP_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == NCP_ERR_MAX_CHILD_PROCESSES_REACHED) {
+    } else if (ret == NCP_ERR_MAX_CHILD_PROCESSES_REACHED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else{
+    } else {
         return nullptr;
     }
 }
@@ -1052,7 +1052,7 @@ napi_value StartNativeChildProcessNoError(napi_env env, napi_callback_info info)
         .isolationMode = NCP_ISOLATION_MODE_ISOLATED
     };
     int32_t ret = OH_Ability_StartNativeChildProcess("libentry.so:Main", args,options, &pid);
-    if(ret == NCP_ERR_NOT_SUPPORTED){
+    if (ret == NCP_ERR_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1060,15 +1060,15 @@ napi_value StartNativeChildProcessNoError(napi_env env, napi_callback_info info)
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if(ret == NCP_NO_ERROR){
+    } else if (ret == NCP_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == NCP_ERR_MAX_CHILD_PROCESSES_REACHED) {
+    } else if (ret == NCP_ERR_MAX_CHILD_PROCESSES_REACHED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else{
+    } else {
         return nullptr;
     }
 }
@@ -1099,7 +1099,7 @@ napi_value StartNativeChildProcessWithConfigsNoError(napi_env env, napi_callback
     };
     Ability_ChildProcessConfigs* configs = OH_Ability_CreateChildProcessConfigs();
     int32_t ret = OH_Ability_StartNativeChildProcessWithConfigs("libentry.so:Main", args,configs, &pid);
-    if(ret == NCP_ERR_NOT_SUPPORTED){
+    if (ret == NCP_ERR_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1107,15 +1107,15 @@ napi_value StartNativeChildProcessWithConfigsNoError(napi_env env, napi_callback
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if(ret == NCP_NO_ERROR){
+    } else if (ret == NCP_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == NCP_ERR_MAX_CHILD_PROCESSES_REACHED) {
+    } else if (ret == NCP_ERR_MAX_CHILD_PROCESSES_REACHED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else{
+    } else {
         return nullptr;
     }
 }
@@ -1164,11 +1164,11 @@ napi_value StartSelfUIAbilityInstanceKeyNotSupport(napi_env env, napi_callback_i
     OH_AbilityBase_SetWantCharParam(want,"ohos.extra.param.key.appInstance","app_instance_0");
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1185,7 +1185,7 @@ napi_value StartSelfUIAbilityNoError(napi_env env, napi_callback_info info)
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1193,7 +1193,7 @@ napi_value StartSelfUIAbilityNoError(napi_env env, napi_callback_info info)
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else{
+    } else {
         return nullptr;
     }
 }
@@ -1205,14 +1205,14 @@ napi_value StartSelfUIAbilityUpperLimitReached(napi_env env, napi_callback_info 
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantBoolParam(want,"ohos.extra.param.key.createAppInstance",true);
+    OH_AbilityBase_SetWantBoolParam(want, "ohos.extra.param.key.createAppInstance", true);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1227,16 +1227,16 @@ napi_value StartSelfUIAbilityWithStartOptionsInstanceKeyNotSupport(napi_env env,
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantBoolParam(want,"ohos.extra.param.key.createAppInstance",true);
-    OH_AbilityBase_SetWantCharParam(want,"ohos.extra.param.key.appInstance","app_instance_0");
+    OH_AbilityBase_SetWantBoolParam(want, "ohos.extra.param.key.createAppInstance", true);
+    OH_AbilityBase_SetWantCharParam(want, "ohos.extra.param.key.appInstance", "app_instance_0");
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1252,9 +1252,9 @@ napi_value StartSelfUIAbilityWithStartOptionsNoError(napi_env env, napi_callback
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret = ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED){
+    if (ret = ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1262,7 +1262,7 @@ napi_value StartSelfUIAbilityWithStartOptionsNoError(napi_env env, napi_callback
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else{
+    } else {
         return nullptr;
     }
 }
@@ -1274,15 +1274,15 @@ napi_value StartSelfUIAbilityWithStartOptionsUpperLimitReached(napi_env env, nap
     element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantBoolParam(want,"ohos.extra.param.key.createAppInstance",true);
+    OH_AbilityBase_SetWantBoolParam(want, "ohos.extra.param.key.createAppInstance", true);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1298,13 +1298,13 @@ napi_value StartSelfUIAbilityWithStartOptionsNoSuchAbility(napi_env env, napi_ca
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1320,13 +1320,13 @@ napi_value StartSelfUIAbilityWithStartOptionsCodeCrossApp(napi_env env, napi_cal
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_CROSS_APP){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_CROSS_APP) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1343,13 +1343,13 @@ napi_value StartSelfUIAbilityWithStartOptionsCodeInternal(napi_env env, napi_cal
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element); 
     OH_AbilityBase_AddWantFd(want, "fd", -1);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_INTERNAL){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_INTERNAL) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1366,13 +1366,13 @@ napi_value StartSelfUIAbilityWithStartOptionsInvalidAppInstanceKey(napi_env env,
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     OH_AbilityBase_SetWantCharParam(want,"ohos.extra.param.key.appInstance","app_instance_0_Error");
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1390,9 +1390,9 @@ napi_value StartSelfUIAbilityWithStartOptionsVisibilitySettingDisabled(napi_env 
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     OH_AbilityRuntime_SetStartOptionsStartVisibility(options,ABILITY_RUNTIME_HIDE_UPON_START);
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED){
+    if (ret == ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1411,7 +1411,7 @@ napi_value ApplicationContextGetCacheDirNoError(napi_env env, napi_callback_info
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret = 
         OH_AbilityRuntime_ApplicationContextGetCacheDir(cacheDir, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1424,7 +1424,7 @@ napi_value ApplicationContextGetCacheDirInvPar(napi_env env, napi_callback_info 
     const size_t kBufferSize = 256;
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetCacheDir(nullptr, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1436,7 +1436,7 @@ napi_value ApplicationContextGetAreaModeNoError(napi_env env, napi_callback_info
 {
     AbilityRuntime_AreaMode para = ABILITY_RUNTIME_AREA_MODE_EL1;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetAreaMode(&para);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1447,7 +1447,7 @@ napi_value ApplicationContextGetAreaModeNoError(napi_env env, napi_callback_info
 napi_value ApplicationContextGetAreaModeInvPar(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetAreaMode(nullptr);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1462,7 +1462,7 @@ napi_value ApplicationContextGetBundleNameNoError(napi_env env, napi_callback_in
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetBundleName(cacheDir, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1476,7 +1476,7 @@ napi_value ApplicationContextGetBundleNameInvPar(napi_env env, napi_callback_inf
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetBundleName(nullptr, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1490,7 +1490,7 @@ napi_value ApplicationContextGetTempDirNoError(napi_env env, napi_callback_info 
     char cacheDir[kBufferSize] = {0};
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetTempDir(cacheDir, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1503,7 +1503,7 @@ napi_value ApplicationContextGetTempDirInvPar(napi_env env, napi_callback_info i
     const size_t kBufferSize = 256;
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetTempDir(nullptr, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1518,7 +1518,7 @@ napi_value ApplicationContextGetFilesDirNoError(napi_env env, napi_callback_info
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetFilesDir(cacheDir, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1531,7 +1531,7 @@ napi_value ApplicationContextGetFilesDirInvPar(napi_env env, napi_callback_info 
     const size_t kBufferSize = 256;
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetFilesDir(nullptr, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1546,7 +1546,7 @@ napi_value ApplicationContextGetDatabaseDirNoError(napi_env env, napi_callback_i
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetDatabaseDir(cacheDir, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1560,7 +1560,7 @@ napi_value ApplicationContextGetDatabaseDirInvPar(napi_env env, napi_callback_in
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetDatabaseDir(nullptr, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1575,7 +1575,7 @@ napi_value ApplicationContextGetPreferencesDirNoError(napi_env env, napi_callbac
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetPreferencesDir(cacheDir, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1589,7 +1589,7 @@ napi_value ApplicationContextGetPreferencesDirInvPar(napi_env env, napi_callback
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetPreferencesDir(nullptr, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1604,7 +1604,7 @@ napi_value ApplicationContextGetBundleCodeDirNoError(napi_env env, napi_callback
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetBundleCodeDir(cacheDir, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1616,8 +1616,9 @@ napi_value ApplicationContextGetBundleCodeDirInvPar(napi_env env, napi_callback_
 {
     const size_t kBufferSize = 256;
     int32_t actualLength = 0;
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetBundleCodeDir(nullptr, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    AbilityRuntime_ErrorCode ret =
+        OH_AbilityRuntime_ApplicationContextGetBundleCodeDir(nullptr, kBufferSize, &actualLength);
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1632,7 +1633,7 @@ napi_value ApplicationContextGetDistributedFilesDirNoError(napi_env env, napi_ca
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetDistributedFilesDir(cacheDir, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1647,7 +1648,7 @@ napi_value ApplicationContextGetDistributedFilesDirInvPar(napi_env env, napi_cal
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetDistributedFilesDir(nullptr, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1662,7 +1663,7 @@ napi_value ApplicationContextGetCloudFileDirNoError(napi_env env, napi_callback_
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetCloudFileDir(cacheDir ,kBufferSize,&actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1676,7 +1677,7 @@ napi_value ApplicationContextGetCloudFileDirInvPar(napi_env env, napi_callback_i
     int32_t actualLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetCloudFileDir(nullptr, kBufferSize, &actualLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1692,7 +1693,7 @@ napi_value ApplicationContextGetResourceDirNoError(napi_env env, napi_callback_i
     int32_t writeLength = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_ApplicationContextGetResourceDir(moduleName, buffer, bufferSize, &writeLength);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1742,7 +1743,7 @@ napi_value NcpErrorLibLoadingFailedCode(napi_env env, napi_callback_info info)
         OH_LOG_INFO(LOG_APP, "Main process - Wait for call back");
         ret = future.get();
     }
-    if(ret == NCP_ERR_LIB_LOADING_FAILED){
+    if (ret == NCP_ERR_LIB_LOADING_FAILED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1788,7 +1789,7 @@ napi_value AbilityBaseErrorCodeNoErrorCode(napi_env env, napi_callback_info info
 napi_value AbilityBaseErrorCodeParamInvalidCode(napi_env env, napi_callback_info info)
 {
     AbilityBase_ErrorCode ret = OH_AbilityBase_DestroyWant(nullptr);
-    if(ret == ABILITY_BASE_ERROR_CODE_PARAM_INVALID){
+    if (ret == ABILITY_BASE_ERROR_CODE_PARAM_INVALID) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1806,13 +1807,13 @@ napi_value AbilityRuntimeErrorCodeNoSuchAbilityCode(napi_env env, napi_callback_
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1830,13 +1831,13 @@ napi_value AbilityRuntimeErrorCodeCrossAppCode(napi_env env, napi_callback_info 
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_CROSS_APP){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_CROSS_APP) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1855,13 +1856,13 @@ napi_value AbilityRuntimeErrorCodeInternalCode(napi_env env, napi_callback_info 
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element); 
     OH_AbilityBase_AddWantFd(want, "fd", -1);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_INTERNAL){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_INTERNAL) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1881,9 +1882,9 @@ napi_value AbilityRuntimeErrorVisibilitySettingDisabledCode(napi_env env, napi_c
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     OH_AbilityRuntime_SetStartOptionsStartVisibility(options,ABILITY_RUNTIME_HIDE_UPON_START);
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED){
+    if (ret == ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1906,13 +1907,13 @@ napi_value AbilityRuntimeErrorCodeInvalidAppInstanceKeyCode(napi_env env, napi_c
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     OH_AbilityBase_SetWantCharParam(want,"ohos.extra.param.key.appInstance","app_instance_0_Error");
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1932,11 +1933,11 @@ napi_value AbilityRuntimeErrorCodeUpperLimitReachedCode(napi_env env, napi_callb
     OH_AbilityBase_SetWantBoolParam(want,"ohos.extra.param.key.createAppInstance",true);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -1956,13 +1957,13 @@ napi_value AbilityRuntimeErrorAppInstanceKeyNotSupportCode(napi_env env, napi_ca
     OH_AbilityBase_SetWantBoolParam(want,"ohos.extra.param.key.createAppInstance",true);
     OH_AbilityBase_SetWantCharParam(want,"ohos.extra.param.key.appInstance","app_instance_0");
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want,options);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED){
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
+    } else if (ret == ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
