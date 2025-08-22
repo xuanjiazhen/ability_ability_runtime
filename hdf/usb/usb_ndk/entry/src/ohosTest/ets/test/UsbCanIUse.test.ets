@@ -66,7 +66,7 @@ export default function usbCanIUseTest() {
      * @tc.desc       : OH_Usb_CanIUse Interface testing
      */
     it('testUsbCanIUse001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
-      let flag = canIUse("SystemCapability.Driver.DDK.Extension");
+      let flag = canIUse("SystemCapability.Driver.USB.Extension");
       expect(flag).assertEqual(false);
       done();
     });
