@@ -68,6 +68,7 @@ group("multimedia") {
       "camera/camera_ndk_xts/OHCameraNdk:ActsMediaCameraNDKTest",
       "camera/camera_picker_test:camera_picker_ets_hap",
       "camera/camera_ets_standard/cameraXts:cameraXts_ets_hap",
+      "camera/camera_ets_standard/cameraXtsSupplements:cameraXts_supp_ets_hap",
       "drm/AVCodecDrmNdk:AVcodecDrm_NDK_test",
       "drm/avPlayerDrmNdk:AVPlayerDrm_NDK_test",
       "drm/drm_js_standard/avPlayer:drm_avplayer_js_hap",
