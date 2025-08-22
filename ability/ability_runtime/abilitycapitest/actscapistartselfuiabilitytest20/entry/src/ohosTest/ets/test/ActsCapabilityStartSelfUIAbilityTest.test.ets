@@ -1979,16 +1979,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500
+     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0400
+     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0400
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000001.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500',
+    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0400',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0400`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsNoSuchAbility();
@@ -2009,16 +2009,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600
+     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500
+     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000018.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600',
+    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsCodeCrossApp();
@@ -2039,16 +2039,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700
+     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600
+     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000050.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700',
+    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsCodeInternal();
@@ -2069,16 +2069,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_1000
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_1000
+     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700
+     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000076.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_1000',
+    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_1000`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsInvalidAppInstanceKey();
@@ -2099,16 +2099,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_1100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_1100
+     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0800
+     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0800
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000067.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_1100',
+    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0800',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_1100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0800`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsVisibilitySettingDisabled();

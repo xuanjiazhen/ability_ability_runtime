@@ -22,7 +22,7 @@ export default function ActsCapiMultiAppNotSupportTest() {
   describe('ActsCapiMultiAppNotSupportTest', () => {
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbilityWithStartOptions _0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbilityWithStartOptions_0100
      * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_DestroyChildProcessConfigs_0100
      * @tc.desc    : Testing StartSelfUIAbilityWithStartOptions returns 16000072.
      * @tc.level   : Level1
@@ -51,16 +51,16 @@ export default function ActsCapiMultiAppNotSupportTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_AbilityRuntimeErrorCodeMultiAppNotSupport_0200
-     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_AbilityRuntimeErrorCodeMultiAppNotSupport_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_AbilityRuntimeErrorCodeMultiAppNotSupport_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_AbilityRuntimeErrorCodeMultiAppNotSupport_0100
      * @tc.desc    : Test AbilityRuntimeErrorCodeMultiAppNotSupport error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NativeChildProcess_AbilityRuntimeErrorCodeMultiAppNotSupport_0200',
+    it('SUB_Ability_AbilityBase_NativeChildProcess_AbilityRuntimeErrorCodeMultiAppNotSupport_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_AbilityRuntimeErrorCodeMultiAppNotSupport_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_AbilityRuntimeErrorCodeMultiAppNotSupport_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbilityRuntimeErrorCodeMultiAppNotSupportCode();
