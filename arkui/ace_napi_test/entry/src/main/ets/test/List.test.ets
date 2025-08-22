@@ -16,7 +16,7 @@ import napiStringTest from './NativeApiStringTest';
 import napiBufferTest from './NativeApiBufferTest';
 import napiSendableTest from './NativeApiSendableTest';
 import napiApiTest from './NapiTest';
-import napiCheckExTest from './napiCheckEx.test';
+import napiCheckExTest from './NapiCheckEx.test';
 import napiTaskApiTest from './NapiTask.test';
 import napiSendableTaskTest from './NapiSendableTask.test';
 import napiWorkerTest from './NapiWorker.test';
