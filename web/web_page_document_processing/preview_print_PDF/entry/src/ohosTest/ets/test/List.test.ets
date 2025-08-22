@@ -14,8 +14,9 @@
  */
 import webInitTest from './WebInitTest.test'
 import createPdf from './createPdfJsunit.test'
-
+import WebViewOnPdfLoadEvent from './WebViewOnPdfLoadEvent.test'
 export default function testsuite() {
   webInitTest()
   createPdf()
+  WebViewOnPdfLoadEvent()
 }
