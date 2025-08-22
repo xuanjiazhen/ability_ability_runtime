@@ -15,10 +15,10 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level, Size,TestType } from '@ohos/hypium'
 import relationalStore from '@ohos.data.relationalStore';
 import { BusinessError } from '@kit.BasicServicesKit';
-import common from '@ohos.app.ability.common';
+import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 
-
-let context: common.UIAbilityContext;
+const delegator = AbilityDelegatorRegistry.getAbilityDelegator();
+const context = delegator.getAppContext().getApplicationContext();
 const TAG = "[RelationalStore_JSKITS_TEST]";
 const CREATE_TABLE_EMPLOYEE = "CREATE TABLE IF NOT EXISTS employee (" + "id INTEGER PRIMARY KEY AUTOINCREMENT, " + "name TEXT NOT NULL, " + "age INTEGER)";
 
@@ -33,7 +33,7 @@ export default function relationalStoreInterfaceTest() {
     beforeAll(async ()=> {
       console.info(TAG + "*************Unit Test Begin*************");
       console.info(TAG + 'beforeAll');
-      context = AppStorage.Get<common.UIAbilityContext>("TestAbilityContext") as common.UIAbilityContext;
+
     })
 
     beforeEach(async ()=> {
@@ -45,8 +45,7 @@ export default function relationalStoreInterfaceTest() {
 
     afterEach(async ()=> {
       console.info(TAG + 'afterEach');
-      await relationalStore.deleteRdbStore(context,"rdbStore.db");
-
+      await relationalStore.deleteRdbStore(context,"rdbStore.db")
     })
 
     afterAll(async ()=> {
@@ -366,7 +365,7 @@ export default function relationalStoreInterfaceTest() {
       }
       console.info(TAG + "************* relationalStoreTest009 end *************");
     })
-        /**
+    /**
      * @tc.name relationalStoreTest010
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBFGAPITest_1000
      * @tc.desc querySync success
@@ -422,6 +421,511 @@ export default function relationalStoreInterfaceTest() {
       }
       console.info(TAG + "************* relationalStoreTest011 end *************");
     })
-
+    /**
+     * @tc.name relationalStoreTest012
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_Int64JsAPITest_2300
+     * @tc.desc Number.MIN_SAFE_INTEGER
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest012', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest012 start *************");
+      let valueNum = Number.MIN_SAFE_INTEGER;
+      const record :relationalStore.ValuesBucket= {
+        "name": "Jim",
+        "age": valueNum,
+      };
+      try {
+        await (rdbStore as relationalStore.RdbStore).insert("employee", record);
+        let resultSet = await (rdbStore as relationalStore.RdbStore).querySql("select * from employee")
+        console.log(TAG+"resultSet.rowCount"+resultSet.rowCount)
+        expect(true).assertEqual(resultSet.goToFirstRow());
+        let res = await resultSet.getColumnType("age")
+        console.log(TAG + "res:" + res + typeof(res))
+        expect(typeof(valueNum)).assertEqual(typeof(res))
+        let str = resultSet.getString(resultSet.getColumnIndex("age"))
+        expect(String(valueNum)).assertEqual(str);
+        console.log(TAG + "str:" + str);
+        done()
+      } catch (err) {
+        console.log(TAG + "query failed"+ err.code + err.message);
+        expect().assertFail()
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest012 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest013
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_Int64JsAPITest_2400
+     * @tc.desc Number.MIN_SAFE_INTEGER*10
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest013', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest013 start *************");
+      let valueNum = Number.MIN_SAFE_INTEGER*10;
+      const record :relationalStore.ValuesBucket= {
+        "name": "Jim",
+        "age": valueNum,
+      };
+      try {
+        await (rdbStore as relationalStore.RdbStore).insert("employee", record);
+        let resultSet = await (rdbStore as relationalStore.RdbStore).querySql("select * from employee")
+        console.log(TAG+"resultSet.rowCount"+resultSet.rowCount)
+        expect(true).assertEqual(resultSet.goToFirstRow());
+        let res = await resultSet.getColumnType(resultSet.getColumnIndex("age"))
+        console.log(TAG + "res:" + res + typeof(res))
+        expect(typeof(valueNum)).assertEqual(typeof(res))
+        let str = resultSet.getString(resultSet.getColumnIndex("age"))
+        console.log(TAG + "str:" + str);
+        console.log(TAG + "valueNum:" + valueNum);
+        expect(valueNum < Number.MIN_SAFE_INTEGER).assertTrue()
+        done()
+      } catch (err) {
+        console.log(TAG + "query failed"+ err.code + err.message);
+        expect().assertFail()
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest013 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest014
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_Int64JsAPITest_2500
+     * @tc.desc Number.MAX_SAFE_INTEGER
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest014', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest014 start *************");
+      let valueNum = Number.MAX_SAFE_INTEGER;
+      const record :relationalStore.ValuesBucket= {
+        "name": "Jim",
+        "age": valueNum,
+      };
+      try {
+        await (rdbStore as relationalStore.RdbStore).insert("employee", record);
+        let resultSet = await (rdbStore as relationalStore.RdbStore).querySql("select * from employee")
+        console.log(TAG+"resultSet.rowCount"+resultSet.rowCount)
+        expect(true).assertEqual(resultSet.goToFirstRow());
+        let res = await resultSet.getColumnType(resultSet.getColumnIndex("age"))
+        console.log(TAG + "res:" + res + typeof(res))
+        expect(typeof(valueNum)).assertEqual(typeof(res))
+        let str = resultSet.getString(resultSet.getColumnIndex("age"))
+        expect(String(valueNum)).assertEqual(str);
+        console.log(TAG + "str:" + str);
+        done()
+      } catch (err) {
+        console.log(TAG + "query failed"+ err.code + err.message);
+        expect().assertFail()
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest014 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest015
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_Int64JsAPITest_2600
+     * @tc.desc Number.MAX_SAFE_INTEGER*10
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest015', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest015 start *************");
+      let valueNum = Number.MAX_SAFE_INTEGER*10;
+      const record :relationalStore.ValuesBucket= {
+        "name": "Jim",
+        "age": valueNum,
+      };
+      try {
+        await (rdbStore as relationalStore.RdbStore).insert("employee", record);
+        let resultSet = await (rdbStore as relationalStore.RdbStore).querySql("select * from employee")
+        console.log(TAG+"resultSet.rowCount"+resultSet.rowCount)
+        expect(true).assertEqual(resultSet.goToFirstRow());
+        let res = await resultSet.getColumnType(resultSet.getColumnIndex("age"))
+        console.log(TAG + "res:" + res + typeof(res))
+        let str = resultSet.getString(resultSet.getColumnIndex("age"))
+        console.log(TAG + "str:" + str);
+        console.log(TAG + "valueNum:" + valueNum);
+        expect(valueNum > Number.MIN_SAFE_INTEGER).assertTrue()
+        done()
+      } catch (err) {
+        console.log(TAG + "query failed"+ err.code + err.message);
+        expect().assertFail()
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest015 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest016
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_Int64JsAPITest_2700
+     * @tc.desc getColumnType test
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest016', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest016 start *************");
+      let valueNum = -500;
+      const record :relationalStore.ValuesBucket= {
+        "name": "Jim",
+        "age": valueNum,
+      };
+      try {
+        await (rdbStore as relationalStore.RdbStore).insert("employee", record);
+        let resultSet = await (rdbStore as relationalStore.RdbStore).querySql("select * from employee")
+        console.log(TAG+"resultSet.rowCount"+resultSet.rowCount)
+        expect(true).assertEqual(resultSet.goToFirstRow());
+        let res = await resultSet.getColumnType(resultSet.getColumnIndex("age"))
+        console.log(TAG + "res:" + res + typeof(res))
+        expect(typeof(valueNum)).assertEqual(typeof(res))
+        let str = resultSet.getLong(resultSet.getColumnIndex("age"))
+        expect(valueNum).assertEqual(str);
+        console.log(TAG + "str:" + str);
+        done()
+      } catch (err) {
+        console.log(TAG + "query failed"+ err.code + err.message);
+        expect().assertFail()
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest016 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest017
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_Int64JsAPITest_2800
+     * @tc.desc getColumnType test
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest017', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest017 start *************");
+      let valueNum = 500;
+      const record :relationalStore.ValuesBucket= {
+        "name": "Jim",
+        "age": valueNum,
+      };
+      try {
+        await (rdbStore as relationalStore.RdbStore).insert("employee", record);
+        let resultSet = await (rdbStore as relationalStore.RdbStore).querySql("select * from employee")
+        console.log(TAG+"resultSet.rowCount"+resultSet.rowCount)
+        expect(true).assertEqual(resultSet.goToFirstRow());
+        let res = await resultSet.getColumnType(resultSet.getColumnIndex("age"))
+        console.log(TAG + "res:" + res + typeof(res))
+        expect(typeof(valueNum)).assertEqual(typeof(res))
+        let str = resultSet.getLong(resultSet.getColumnIndex("age"))
+        expect(valueNum).assertEqual(str);
+        console.log(TAG + "str:" + str);
+        done()
+      } catch (err) {
+        console.log(TAG + "query failed"+ err.code + err.message);
+        expect().assertFail()
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest017 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest018
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_SetLocale_0100
+     * @tc.desc errcode is 14800001
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest018', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest018 start *************");
+      try {
+        rdbStore.setLocale("")
+        console.log(TAG + "relationalStoreTest018");
+        done()
+      } catch (err) {
+        console.log(TAG + "err"+ err.code + err.message);
+        expect("14800001").assertEqual(String(err.code))
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest018 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest019
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_SetLocale_0200
+     * @tc.desc errcode is 14800014
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest019', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest019 start *************");
+      rdbStore.close();
+      try {
+        rdbStore.setLocale("zh")
+        console.log(TAG + "relationalStoreTest019");
+        done()
+      } catch (err) {
+        console.log(TAG + "err"+ err.code + err.message);
+        expect("14800014").assertEqual(String(err.code))
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest019 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest020
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_SetLocale_0300
+     * @tc.desc errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest020', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest020 start *************");
+      try {
+        rdbStore.setLocale(undefined)
+        console.log(TAG + "relationalStoreTest020");
+        done()
+      } catch (err) {
+        console.log(TAG + "err"+ err.code + err.message);
+        expect("401").assertEqual(String(err.code))
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest020 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest021
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_SetLocale_0400
+     * @tc.desc setLocale para is "zh-CN"
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest021', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest021 start *************");
+      const valueBucket1: relationalStore.ValuesBucket = {
+      'name': '张三',
+      'age': 18,
+     };
+    const valueBucket2: relationalStore.ValuesBucket = {
+      'name': '李四',
+      'age': 18,
+    };
+    const valueBucket3: relationalStore.ValuesBucket = {
+      'name': '王五',
+      'age': 18,
+    };
+    await rdbStore?.insert('employee', valueBucket1);
+    await rdbStore?.insert('employee', valueBucket2);
+    await rdbStore?.insert('employee', valueBucket3);
+      try {
+        await rdbStore?.setLocale("zh-CN");
+        let resultSet = await rdbStore?.querySql("select * from employee order by name collate LOCALES")
+        resultSet?.goToNextRow()
+        expect('李四').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('王五').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('张三').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.close()
+        done()
+      } catch (e) {
+        console.error(`message is ${e.message}  code  ${e.code}`);
+        expect().assertFail();
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest021 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest022
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_SetLocale_0500
+     * @tc.desc errcode is 14800001
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest022', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest021 start *************");
+      try {
+        await rdbStore?.setLocale("%zh%");
+        console.log(TAG + "relationalStoreTest022")
+        expect().assertFail()
+        done()
+      } catch (err) {
+        console.log(TAG + "err" + err.code +err.message)
+        expect("14800001").assertEqual(String(err.code));
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest022 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest023
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_SetLocale_0600
+     * @tc.desc setLocale para is "zh-Hans"
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest023', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest023 start *************");
+      const valueBucket1: relationalStore.ValuesBucket = {
+        'name': '张三',
+        'age': 18,
+      };
+      const valueBucket2: relationalStore.ValuesBucket = {
+        'name': '李四',
+        'age': 18,
+      };
+      const valueBucket3: relationalStore.ValuesBucket = {
+        'name': '王五',
+        'age': 18,
+      };
+      await rdbStore?.insert('employee', valueBucket1);
+      await rdbStore?.insert('employee', valueBucket2);
+      await rdbStore?.insert('employee', valueBucket3);
+      try {
+        await rdbStore?.setLocale("zh-Hans");
+        let resultSet = await rdbStore?.querySql("select * from employee order by name collate LOCALES")
+        resultSet?.goToNextRow()
+        expect('李四').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('王五').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('张三').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.close()
+        done()
+      } catch (err) {
+        console.log(TAG + "err" + err.code +err.message);
+        expect().assertFail();
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest023 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest024
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_SetLocale_0700
+     * @tc.desc setLocale para is "zh-Hant"
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest024', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest024 start *************");
+      const valueBucket1: relationalStore.ValuesBucket = {
+        'name': '张三',
+        'age': 18,
+      };
+      const valueBucket2: relationalStore.ValuesBucket = {
+        'name': '李四',
+        'age': 18,
+      };
+      const valueBucket3: relationalStore.ValuesBucket = {
+        'name': '王五',
+        'age': 18,
+      };
+      await rdbStore?.insert('employee', valueBucket1);
+      await rdbStore?.insert('employee', valueBucket2);
+      await rdbStore?.insert('employee', valueBucket3);
+      try {
+        await rdbStore?.setLocale("zh-Hant");
+        let resultSet = await rdbStore?.querySql("select * from employee order by name collate LOCALES")
+        resultSet?.goToNextRow()
+        expect('王五').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('张三').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('李四').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.close()
+        done()
+      } catch (err) {
+        console.log(TAG + "err" + err.code +err.message);
+        expect().assertFail();
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest024 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest025
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_SetLocale_0800
+     * @tc.desc setLocale para is "zh"
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest025', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest025 start *************");
+      const valueBucket1: relationalStore.ValuesBucket = {
+        'name': '张三',
+        'age': 18,
+      };
+      const valueBucket2: relationalStore.ValuesBucket = {
+        'name': '李四',
+        'age': 18,
+      };
+      const valueBucket3: relationalStore.ValuesBucket = {
+        'name': '王五',
+        'age': 18,
+      };
+      await rdbStore?.insert('employee', valueBucket1);
+      await rdbStore?.insert('employee', valueBucket2);
+      await rdbStore?.insert('employee', valueBucket3);
+      try {
+        await rdbStore?.setLocale("zh");
+        let resultSet = await rdbStore?.querySql("select * from employee order by name collate LOCALES")
+        resultSet?.goToNextRow()
+        expect('李四').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('王五').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('张三').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.close()
+        done()
+      } catch (err) {
+        console.log(TAG + "err" + err.code +err.message);
+        expect().assertFail();
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest025 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest026
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_SetLocale_0900
+     * @tc.desc setLocale para is "es"
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest026', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest026 start *************");
+      const valueBucket1: relationalStore.ValuesBucket = {
+        'name': 'Fulano',
+        'age': 18,
+      };
+      const valueBucket2: relationalStore.ValuesBucket = {
+        'name': 'Mengano',
+        'age': 18,
+      };
+      const valueBucket3: relationalStore.ValuesBucket = {
+        'name': 'Zutano',
+        'age': 18,
+      };
+      await rdbStore?.insert('employee', valueBucket1);
+      await rdbStore?.insert('employee', valueBucket2);
+      await rdbStore?.insert('employee', valueBucket3);
+      try {
+        await rdbStore?.setLocale("es");
+        let resultSet = await rdbStore?.querySql("select * from employee order by name collate LOCALES")
+        resultSet?.goToNextRow()
+        expect('Fulano').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('Mengano').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.goToNextRow()
+        expect('Zutano').assertEqual(resultSet?.getString(resultSet.getColumnIndex("name")));
+        resultSet?.close()
+        done()
+      } catch (err) {
+        console.log(TAG + "err" + err.code +err.message)
+        expect().assertFail()
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest026 end *************");
+    })
   })
 }
