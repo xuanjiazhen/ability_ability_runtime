@@ -28,15 +28,15 @@ struct SnapshotExample {
       Row() {
         Text(this.value).key('text')
         Image(this.pixmap)
-          .width(200)
-          .height(200)
+          .width('50%')
+          .height('20%')
           .border({ color: Color.Black, width: 2 })
           .margin(5)
           .key('componentSnapshot')
         Image($r('app.media.icon'))
           .autoResize(true)
-          .width(200)
-          .height(200)
+          .width('50%')
+          .height('20%')
           .margin(5)
           .id('root')
       }
@@ -46,10 +46,10 @@ struct SnapshotExample {
           try {
             let pixelmap = componentSnapshot.getSync('root', {
               scale: 2, waitUntilRenderFinished: true, region: {
-                left: 200,
-                right: 200,
-                top: 100,
-                bottom: 200
+                left: 20,
+                right: 20,
+                top: 10,
+                bottom: 20
               }
             })
             this.pixmap = pixelmap
