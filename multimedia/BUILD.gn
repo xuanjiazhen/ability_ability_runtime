@@ -52,6 +52,7 @@ group("multimedia") {
       "av_codec/demuxer:ActsDemuxerTest",
       "av_codec/vcodec/encoder:ActsEncoderTest",
       "av_codec/vcodec/hdrcodec:ActsHdrcodecTest",
+      "av_codec/vcodec/hevchwhdrcodec:ActsHevcHdrcodecTest",
       "av_codec/vcodec/hwdecoder:ActsHwdecoderTest",
       "av_codec/vcodec/swdecoder:ActsSwDecodeTest",
       "av_codec/vcodec/h263swdecoder:ActsH263SwDecodeTest",
