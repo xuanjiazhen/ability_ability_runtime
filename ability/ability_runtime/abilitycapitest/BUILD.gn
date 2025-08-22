@@ -19,7 +19,10 @@ group("abilitycapitest") {
     deps = [
       "actscapistartselfuiabilityrely:ActsCapiStartSelfUiAbilityRely",
       "actscapistartselfuiabilitytest:ActsCapiStartSelfUiAbilityTest",
-      "actscapistartselfuiabilitytest20:ActsCapiStartSelfUiAbilityTest20Test"
+      "actscapistartselfuiabilitytest20:ActsCapiStartSelfUiAbilityTest20Test",
+      "actscapinopermissiontest:ActsCapiNoPermissionTest",
+      "actscapimultiappnotsupport:ActsCapiMultiAppNotSupport",
+      "actscapimulinstancenotsupport:ActsCapiMulInstanceNotSupport"
     ]
   }
 }
