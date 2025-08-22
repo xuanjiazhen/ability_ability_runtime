@@ -56,7 +56,7 @@ export default function ConnectionGetNetCapabilitiesTest() {
             done();
           } else {
             console.log(`${caseName}  get value success: ${JSON.stringify(data)}`);
-            // ExpectTrue(data.routes[0].isExcludedRoute == undefined);
+            ExpectTrue(data.routes[0].isExcludedRoute == undefined);
             console.info(`${caseName}---End`);
             done();
           }
