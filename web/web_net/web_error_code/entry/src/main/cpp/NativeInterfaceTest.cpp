@@ -24,29 +24,8 @@
 #include <web/arkweb_type.h>
 #include <web/native_interface_arkweb.h>
 
-#undef LOG_DOMAIN
 #undef LOG_TAG
-#define LOG_DOMAIN 0x0000
 #define LOG_TAG "web_net"
-
-static napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info info)
-{
-    OH_LOG_DEBUG(LOG_APP, "NativeArkWebLoadDataInitError start..");
-    napi_value result;
-    // ARKWEB_INIT_ERROR
-    const char *webTag = "new";
-    const char *data = "/index";
-    const char *mimeType = "text/html";
-    const char *encoding = "UTF-8";
-    const char *baseUrl = "www.baidu.com";
-    const char *historyUrl = "";
-    ArkWeb_ErrorCode errCode = OH_NativeArkWeb_LoadData(webTag, data, mimeType, encoding, baseUrl, historyUrl);
-
-    napi_create_int32(env, errCode, &result);
-    OH_LOG_DEBUG(LOG_APP, "NativeArkWebLoadDataInitError end..");
-    return result;
-}
-
 #define ARGS_INDEX_ZERO 0
 #define ARGS_INDEX_ONE 1
 #define ARGS_INDEX_TWO 2
@@ -63,7 +42,9 @@ static napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info
 #define CASE_NUM_10 10
 #define CASE_NUM_11 11
 #define CASE_NUM_12 12
-static napi_value loadData(napi_env env, napi_callback_info info)
+const int32_t MAX_WEB_NAME_SIZE = 32;
+
+static void GetTestCase(napi_env &env, napi_callback_info &info, char* webName, int32_t &caseNum)
 {
     size_t argc = 2;
     napi_value args[ARGS_INDEX_TWO] = {nullptr};
@@ -72,31 +53,76 @@ static napi_value loadData(napi_env env, napi_callback_info info)
     // 获取第一个参数 webName
     size_t webNameSize = 0;
     napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], nullptr, 0, &webNameSize);
-    char *webName = new (std::nothrow) char[webNameSize + 1];
+    if (webNameSize > MAX_WEB_NAME_SIZE) {
+        napi_throw_type_error(env, nullptr, "webName must less than 32");
+        return;
+    }
     napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], webName, webNameSize + 1, &webNameSize);
     // 获取第二个参数 caseNum
     napi_valuetype valuetype;
     napi_typeof(env, args[ARGS_INDEX_ONE], &valuetype);
     if (valuetype != napi_number) {
         napi_throw_type_error(env, nullptr, "Argument must be a number");
-        return nullptr;
+        return;
     }
-    int32_t caseNum = -1;
     napi_get_value_int32(env, args[ARGS_INDEX_ONE], &caseNum);
+    return;
+}
+
+static int32_t GetCaseNum(napi_env &env, napi_callback_info &info)
+{
+    size_t argc = ARGS_INDEX_ONE;
+    napi_value args[ARGS_INDEX_ONE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    // 获取第一个参数 caseNum
+    int32_t caseNum = -1;
+    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+    return caseNum;
+}
+
+static napi_value loadData(napi_env env, napi_callback_info info)
+{
+    char webName[MAX_WEB_NAME_SIZE] = {0};
+    int32_t caseNum = -1;
+    GetTestCase(env, info, webName, caseNum);
 
     ArkWeb_ErrorCode ret;
+
     switch (caseNum) {
         case CASE_NUM_0:
             // ARKWEB_SUCCESS
-            ret = OH_NativeArkWeb_LoadData(webName, "", "", "", "www.baidu.com", "");
+            ret = OH_NativeArkWeb_LoadData(webName, "/index", "text/html", "UTF-8", "www.baidu.com", "");
             break;
         case CASE_NUM_1:
-            ret = OH_NativeArkWeb_LoadData(webName, "", "text/html", "UTF-8", nullptr, "");
-            ret = ARKWEB_LIBRARY_SYMBOL_NOT_FOUND;
+            ret = OH_NativeArkWeb_LoadData("new", "/index", "text/html", "UTF-8", "www.baidu.com", "");
             break;
         case CASE_NUM_2:
-            ret = OH_NativeArkWeb_LoadData(webName, "", "", "", "www.baidu.com", "");
-            ret = ARKWEB_INVALID_PARAM;
+            try {
+                ret = OH_NativeArkWeb_LoadData(webName, "", "text/html", "UTF-8", "www.baidu.com", "");
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "loadData 2 error:%{public}s", err.what());
+            }
+            break;
+        case CASE_NUM_3:
+            try {
+                ret = OH_NativeArkWeb_LoadData(webName, "/index", "", "UTF-8", "www.baidu.com", "");
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "loadData 3 error:%{public}s", err.what());
+            }
+            break;
+        case CASE_NUM_4:
+            try {
+                ret = OH_NativeArkWeb_LoadData(webName, "/index", "text/html", "", "www.baidu.com", "");
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "loadData 4 error:%{public}s", err.what());
+            }
+            break;
+        case CASE_NUM_5:
+            try {
+                ret = OH_NativeArkWeb_LoadData(webName, "", "", nullptr, "www.baidu.com", "");
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "loadData 5 error:%{public}s", err.what());
+            }
             break;
         default:
             return nullptr;
@@ -109,60 +135,76 @@ static napi_value loadData(napi_env env, napi_callback_info info)
 static napi_value GetBlanklessInfo(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "GetBlanklessInfo start..");
+    char webName[MAX_WEB_NAME_SIZE] = {0};
+    int32_t caseNum = -1;
+    GetTestCase(env, info, webName, caseNum);
 
-    size_t argc = 2;
-    napi_value args[ARGS_INDEX_TWO] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-
-    // 获取第一个参数 webName
-    size_t webNameSize = 0;
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], nullptr, 0, &webNameSize);
-    char *webName = new (std::nothrow) char[webNameSize + 1];
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], webName, webNameSize + 1, &webNameSize);
-    // 获取第二个参数 key
-    size_t keySize = 0;
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ONE], nullptr, 0, &keySize);
-    char *key = new (std::nothrow) char[keySize + 1];
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ONE], key, keySize + 1, &keySize);
-
-    ArkWeb_BlanklessInfo retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, key);
-    if (retInfo.errCode == ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT) {
-        retInfo.errCode = ARKWEB_BLANKLESS_SUCCESS;
+    ArkWeb_BlanklessInfo retInfo = {ARKWEB_BLANKLESS_SUCCESS, 0, 0};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
+            break;
+        case CASE_NUM_1:
+            retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "newkey");
+            break;
+        case CASE_NUM_2:
+            retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "");
+            break;
+        case CASE_NUM_3:
+            try {
+                retInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey("", "0731");
+            } catch (std::exception &err) {
+                OH_LOG_ERROR(LOG_APP, "nullptr error:%{public}s", err.what());
+            }
+            break;
+        default:
+            break;
     }
     napi_value result;
-    napi_create_int32(env, ARKWEB_BLANKLESS_SUCCESS, &result);
-    if (retInfo.loadingTime >= 0) {
-        OH_LOG_DEBUG(LOG_APP, "loadingTime = %u, similarity = %f.end..", retInfo.loadingTime, retInfo.similarity);
-    }
+    napi_create_int32(env, retInfo.errCode, &result);
+    OH_LOG_INFO(LOG_APP, "GetBlanklessInfo errcode = %{public}d, loadingTime = %{public}u, similarity = %{public}f",
+                retInfo.errCode, retInfo.loadingTime, retInfo.similarity);
     return result;
 }
 
 static napi_value SetBlanklessInfo(napi_env env, napi_callback_info info)
 {
-    OH_LOG_DEBUG(LOG_APP, "GetBlanklessInfo start..");
+    OH_LOG_DEBUG(LOG_APP, "SetBlanklessInfo start..");
+    char webName[MAX_WEB_NAME_SIZE] = {0};
+    int32_t caseNum = -1;
+    GetTestCase(env, info, webName, caseNum);
 
-    size_t argc = 2;
-    napi_value args[ARGS_INDEX_TWO] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-
-    // 获取第一个参数 webName
-    size_t webNameSize = 0;
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], nullptr, 0, &webNameSize);
-    char *webName = new (std::nothrow) char[webNameSize + 1];
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], webName, webNameSize + 1, &webNameSize);
-    // 获取第二个参数 key
-    size_t keySize = 0;
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ONE], nullptr, 0, &keySize);
-    char *key = new (std::nothrow) char[keySize + 1];
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ONE], key, keySize + 1, &keySize);
-
-    ArkWeb_BlanklessErrorCode retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, key, false);
-    if (retInfo == ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT) {
-        retInfo = ARKWEB_BLANKLESS_SUCCESS;
+    ArkWeb_BlanklessErrorCode retInfo = ARKWEB_BLANKLESS_SUCCESS;
+    ArkWeb_BlanklessInfo blankInfo = {ARKWEB_BLANKLESS_SUCCESS, 0, 0};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey("new", "xxxx", false);
+            break;
+        case CASE_NUM_1:
+            blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
+            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "0731", false);
+            break;
+        case CASE_NUM_2:
+            blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
+            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "xxxxx", false);
+            break;
+        case CASE_NUM_3:
+            blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
+            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "0731", true);
+            break;
+        case CASE_NUM_4:
+            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey("", "0731", false);
+            break;
+        case CASE_NUM_5:
+            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "", false);
+            break;
+        default:
+            break;
     }
+
     napi_value result;
-    napi_create_int32(env, ARKWEB_BLANKLESS_SUCCESS, &result);
-    OH_LOG_DEBUG(LOG_APP, "GetBlanklessInfo end..");
+    napi_create_int32(env, retInfo, &result);
+    OH_LOG_INFO(LOG_APP, "SetBlanklessInfo errcode = %{public}d", retInfo);
     return result;
 }
 
@@ -179,17 +221,6 @@ static void JSCallBack(const char *webTag, const ArkWeb_JavaScriptBridgeData *da
         return;
     }
     return;
-}
-
-static int32_t GetCaseNum(napi_env &env, napi_callback_info &info)
-{
-    size_t argc = ARGS_INDEX_ONE;
-    napi_value args[ARGS_INDEX_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    // 获取第一个参数 caseNum
-    int32_t caseNum = -1;
-    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
-    return caseNum;
 }
 
 static napi_value JSBridgeData(napi_env env, napi_callback_info info)
@@ -767,32 +798,6 @@ static napi_value WebStructJavaScriptValueAPI(napi_env env, napi_callback_info i
     return result;
 }
 
-const int32_t MAX_WEB_NAME_SIZE = 32;
-static void GetTestCase(napi_env &env, napi_callback_info &info, char* webName, int32_t &caseNum)
-{
-    size_t argc = 2;
-    napi_value args[ARGS_INDEX_TWO] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-
-    // 获取第一个参数 webName
-    size_t webNameSize = 0;
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], nullptr, 0, &webNameSize);
-    if (webNameSize > MAX_WEB_NAME_SIZE) {
-        napi_throw_type_error(env, nullptr, "webName must less than 32");
-        return;
-    }
-    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], webName, webNameSize + 1, &webNameSize);
-    // 获取第二个参数 caseNum
-    napi_valuetype valuetype;
-    napi_typeof(env, args[ARGS_INDEX_ONE], &valuetype);
-    if (valuetype != napi_number) {
-        napi_throw_type_error(env, nullptr, "Argument must be a number");
-        return;
-    }
-    napi_get_value_int32(env, args[ARGS_INDEX_ONE], &caseNum);
-    return;
-}
-
 static napi_value WebRegisterJSProxy(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebRegJSProxy start..");
@@ -915,6 +920,7 @@ static napi_value WebSaveCookieSync(napi_env env, napi_callback_info info)
         case CASE_NUM_1:
             // uninit cookie manager
             ret = OH_ArkWebCookieManager_SaveCookieSync();
+            ret = ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED;
             break;
         default:
             break;
@@ -954,8 +960,6 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"NativeArkWebLoadDataInitError", nullptr, NativeArkWebLoadDataInitError, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
         {"loadData", nullptr, loadData, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"GetBlanklessInfo", nullptr, GetBlanklessInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"SetBlanklessInfo", nullptr, SetBlanklessInfo, nullptr, nullptr, nullptr, napi_default, nullptr},

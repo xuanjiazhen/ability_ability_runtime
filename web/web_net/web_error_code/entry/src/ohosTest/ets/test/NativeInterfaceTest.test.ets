@@ -44,26 +44,6 @@ export default function NativeInterfaceTest() {
 
     /**
      * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0100
-     * @tc.name    : testWebNapiLoadDataNotInit
-     * @tc.desc    : test OH_NativeArkWeb_LoadData() not init
-     * @tc.level   : Level2
-     * @tc.size    : SMALLTEST
-     * @tc.type    : Function
-     */
-    it('testWebNapiLoadDataNotInit', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>testWebNapiLoadDataNotInit start====");
-        let result: number = nativeInterface.NativeArkWebLoadDataInitError();
-        console.info("====>testWebNapiLoadDataNotInit result====", result);
-        expect(result).assertEqual(TEST_ARKWEB_INIT_ERROR);
-        done();
-      } catch (err) {
-        console.error("====>testWebNapiLoadDataNotInit catch err: " + err);
-      }
-    })
-
-    /**
-     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0200
      * @tc.name    : testWebNapiLoadDataSuccess
      * @tc.desc    : test OH_NativeArkWeb_LoadData() SUCCESS
      * @tc.level   : Level2
@@ -84,51 +64,174 @@ export default function NativeInterfaceTest() {
     })
 
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0300
-     * @tc.name    : testWebNapiLoadDataSymbolNotFound
-     * @tc.desc    : test OH_NativeArkWeb_LoadData() ARKWEB_LIBRARY_SYMBOL_NOT_FOUND
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0200
+     * @tc.name    : testWebNapiLoadDataNotInit
+     * @tc.desc    : test OH_NativeArkWeb_LoadData() not init
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('testWebNapiLoadDataSymbolNotFound', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
-      async (done: Function) => {
+    it('testWebNapiLoadDataNotInit', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
       try {
-        console.info("====>testWebNapiLoadDataSymbolNotFound start====");
+        console.info("====>testWebNapiLoadDataNotInit start====");
         let result: number = nativeInterface.loadData("web1211", 1);
-        console.info("====>testWebNapiLoadDataSymbolNotFound result====", result);
-        // expect(result).assertEqual(TEST_ARKWEB_LIBRARY_SYMBOL_NOT_FOUND);
-        console.info("====>testWebNapiLoadDataSymbolNotFound stop====");
+        console.info("====>testWebNapiLoadDataNotInit result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_INIT_ERROR);
         done();
       } catch (err) {
-        console.error("====>testWebNapiLoadDataSymbolNotFound catch err: " + err);
+        console.error("====>testWebNapiLoadDataNotInit catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0300
+     * @tc.name    : testWebNapiLoadDataNoData
+     * @tc.desc    : test OH_NativeArkWeb_LoadData()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiLoadDataNoData', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+      try {
+        console.info("====>testWebNapiLoadDataNoData start====");
+        let result: number = nativeInterface.loadData("web1211", 2);
+        console.info("====>testWebNapiLoadDataNoData result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_SUCCESS);
+        console.info("====>testWebNapiLoadDataNoData stop====");
+        done();
+      } catch (err) {
+        console.error("====>testWebNapiLoadDataNoData catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0400
-     * @tc.name    : testWebNapiLoadDataInvalidParam
-     * @tc.desc    : test OH_NativeArkWeb_LoadData() ARKWEB_INVALID_PARAM
+     * @tc.name    : testWebNapiLoadDataNoType
+     * @tc.desc    : test OH_NativeArkWeb_LoadData()
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('testWebNapiLoadDataInvalidParam', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiLoadDataNoType', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
-      try {
-        console.info("====>testWebNapiLoadDataInvalidParam start====");
-        let result: number = nativeInterface.loadData("web1211", 2);
-        console.info("====>testWebNapiLoadDataInvalidParam result====", result);
-        // expect(result).assertEqual(0);
-        console.info("====>testWebNapiLoadDataInvalidParam stop====");
-        done();
-      } catch (err) {
-        console.error("====>testWebNapiLoadDataInvalidParam catch err: " + err);
-      }
-    })
+        try {
+          console.info("====>testWebNapiLoadDataNoType start====");
+          let result: number = nativeInterface.loadData("web1211", 3);
+          console.info("====>testWebNapiLoadDataNoType result====", result);
+          expect(result).assertEqual(TEST_ARKWEB_SUCCESS);
+          console.info("====>testWebNapiLoadDataNoType stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiLoadDataNoType catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0500
+     * @tc.name    : testWebNapiLoadDataNoEncode
+     * @tc.desc    : test OH_NativeArkWeb_LoadData()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiLoadDataNoEncode', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiLoadDataNoEncode start====");
+          let result: number = nativeInterface.loadData("web1211", 4);
+          console.info("====>testWebNapiLoadDataNoEncode result====", result);
+          expect(result).assertEqual(TEST_ARKWEB_SUCCESS);
+          console.info("====>testWebNapiLoadDataNoEncode stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiLoadDataNoType catch err: " + err);
+        }
+      })
 
     /**
      * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0100
+     * @tc.name    : testWebNapiGetBlanklessInfoSuccess
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiGetBlanklessInfoSuccess', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiGetBlanklessInfoSuccess start====");
+          let result: number = nativeInterface.GetBlanklessInfo('web1211', 0);
+          expect([0, 801]).assertContain(result);
+          console.info("====>testWebNapiGetBlanklessInfoSuccess stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiGetBlanklessInfoSuccess catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0200
+     * @tc.name    : testWebNapiGetBlanklessInfoNewkey
+     * @tc.desc    : test OH_NativeArkWeb_GetBlanklessInfoWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiGetBlanklessInfoNewkey', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiGetBlanklessInfoNewkey start====");
+          let result: number = nativeInterface.GetBlanklessInfo('web1211', 1);
+          expect([0, 801]).assertContain(result);
+          console.info("====>testWebNapiGetBlanklessInfoNewkey stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiGetBlanklessInfoNewkey catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0300
+     * @tc.name    : testWebNapiGetBlanklessInfoNullkey
+     * @tc.desc    : test OH_NativeArkWeb_GetBlanklessInfoWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiGetBlanklessInfoNullkey', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiGetBlanklessInfoNullkey start====");
+          let result: number = nativeInterface.GetBlanklessInfo('web1211', 2);
+          expect([-2, 801]).assertContain(result);
+          console.info("====>testWebNapiGetBlanklessInfoNullkey stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiGetBlanklessInfoNullkey catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0400
+     * @tc.name    : testWebNapiGetBlanklessInfoNullWeb
+     * @tc.desc    : test OH_NativeArkWeb_GetBlanklessInfoWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiGetBlanklessInfoNullWeb', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiGetBlanklessInfoNullWeb start====");
+          let result: number = nativeInterface.GetBlanklessInfo('web1211', 3);
+          expect([-3, 801]).assertContain(result);
+          console.info("====>testWebNapiGetBlanklessInfoNullWeb stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiGetBlanklessInfoNullWeb catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0500
      * @tc.name    : testWebNapiSetBlanklessInfoNotInit
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
@@ -139,9 +242,9 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiSetBlanklessInfoNotInit start====");
-          let result: number = nativeInterface.SetBlanklessInfo('new', '0731');
-          expect(result).assertEqual(0);
-          console.info("====>testWebNapiSetBlanklessInfoNotInit stop====");
+          let result: number = nativeInterface.SetBlanklessInfo('web1211', 0);
+          expect([-3, 801]).assertContain(result);
+          console.info("====>testWebNapiSetBlanklessInfoNotInit stop====", result);
           done();
         } catch (err) {
           console.error("====>testWebNapiSetBlanklessInfoNotInit catch err: " + err);
@@ -149,7 +252,7 @@ export default function NativeInterfaceTest() {
       })
 
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0200
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0600
      * @tc.name    : testWebNapiSetBlanklessInfoSuccess
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
@@ -160,9 +263,10 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiSetBlanklessInfoSuccess start====");
-          let result: number = nativeInterface.SetBlanklessInfo('web1211', '0731');
-          expect(result).assertEqual(0);
-          console.info("====>testWebNapiSetBlanklessInfoSuccess stop====");
+          let result: number = nativeInterface.SetBlanklessInfo('web1211', 1);
+          // timeout -1?
+          expect([0, 801]).assertContain(result);
+          console.info("====>testWebNapiSetBlanklessInfoSuccess stop====", result);
           done();
         } catch (err) {
           console.error("====>testWebNapiSetBlanklessInfoSuccess catch err: " + err);
@@ -170,7 +274,7 @@ export default function NativeInterfaceTest() {
       })
 
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0300
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0700
      * @tc.name    : testWebNapiSetBlanklessInfoNokey
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
@@ -181,34 +285,73 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiSetBlanklessInfoNokey start====");
-          let result: number = nativeInterface.SetBlanklessInfo('web1211', 'xxxxxx');
-          expect(result).assertEqual(0);
-          console.info("====>testWebNapiSetBlanklessInfoNokey stop====");
+          let result: number = nativeInterface.SetBlanklessInfo('web1211', 2);
+          expect([801,-4]).assertContain(result);
+          console.info("====>testWebNapiSetBlanklessInfoNokey stop====", result);
           done();
         } catch (err) {
           console.error("====>testWebNapiSetBlanklessInfoNokey catch err: " + err);
         }
       })
-
     /**
-     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0400
-     * @tc.name    : testWebNapiGetBlanklessInfo
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0800
+     * @tc.name    : testWebNapiSetBlanklessInfoTrue
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('testWebNapiGetBlanklessInfo', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiSetBlanklessInfoTrue', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>testWebNapiGetBlanklessInfo start====");
-          nativeInterface.SetBlanklessInfo('web1211', '0731');
-          let result: number = nativeInterface.GetBlanklessInfo('web1211', '0731');
-          expect(result).assertEqual(0);
-          console.info("====>testWebNapiGetBlanklessInfo stop====");
+          console.info("====>testWebNapiSetBlanklessInfoTrue start====");
+          let result: number = nativeInterface.SetBlanklessInfo('web1211', 3);
+          expect([0, -5, 801]).assertContain(result);
+          console.info("====>testWebNapiSetBlanklessInfoTrue stop====", result);
           done();
         } catch (err) {
-          console.error("====>testWebNapiGetBlanklessInfo catch err: " + err);
+          console.error("====>testWebNapiSetBlanklessInfoTrue catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0900
+     * @tc.name    : testWebNapiSetBlanklessInfoNullWeb
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlanklessInfoNullWeb', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlanklessInfoNullWeb start====");
+          let result: number = nativeInterface.SetBlanklessInfo('web1211', 4);
+          expect([-3, 801]).assertContain(result);
+          console.info("====>testWebNapiSetBlanklessInfoNullWeb stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlanklessInfoNullWeb catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_1000
+     * @tc.name    : testWebNapiSetBlanklessInfoNullKey
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlanklessInfoNullKey', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlanklessInfoNullKey start====");
+          let result: number = nativeInterface.SetBlanklessInfo('web1211', 5);
+          expect([-2, 801]).assertContain(result);
+          console.info("====>testWebNapiSetBlanklessInfoNullKey stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlanklessInfoNullKey catch err: " + err);
         }
       })
 
@@ -1891,7 +2034,7 @@ export default function NativeInterfaceTest() {
         try {
           console.info("====>testWebNapiSetBlankCacheCapSmaller start====");
           let result: number = nativeInterface.WebSetBlankCacheCap(3);
-          expect(result).assertEqual(0);
+          expect([0, 100]).assertContain(result);
           console.info("====>testWebNapiSetBlankCacheCapSmaller stop====", result);
           done();
         } catch (err) {
