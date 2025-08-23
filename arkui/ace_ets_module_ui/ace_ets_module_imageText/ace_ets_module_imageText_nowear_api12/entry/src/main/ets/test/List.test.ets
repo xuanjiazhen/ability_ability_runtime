@@ -270,7 +270,11 @@ import RichEditorCustomSpan016 from './RichEditorCustomSpanTest/RichEditorCustom
 import RichEditorCustomSpan017 from './RichEditorCustomSpanTest/RichEditorCustomSpan017.test'
 export default function testsuite() {
   textAreaInputTest();
-
+  RichEditor3();
+  RichEditor5();
+  RichEditorApi5();
+  RichEditorLineMetrics021();
+  RichEditorLineMetrics022();
   RichEditor001();
   RichEditor002();
   RichEditor003();
@@ -446,8 +450,6 @@ export default function testsuite() {
   RichEditorLineMetrics010();
   RichEditorLineMetrics011();
   RichEditorLineMetrics012();
-  RichEditorLineMetrics021();
-  RichEditorLineMetrics022();
   RichEditorLineMetrics023();
 
   RichEditorSetStyledString011();
@@ -465,7 +467,6 @@ export default function testsuite() {
   RichEditorCustomSpan016();
   RichEditorCustomSpan017();
 
-  RichEditorApi5();
   searchTest();
   styledStringChange();
   onSelectionChange1();
@@ -480,9 +481,7 @@ export default function testsuite() {
   onSelectionChange19();
   RichEditorMenuPolicyJsunit();
   RichEditor1();
-  RichEditor3();
   RichEditor4();
-  RichEditor5();
   RichEditor6();
   RichEditor7();
   RichEditor11();

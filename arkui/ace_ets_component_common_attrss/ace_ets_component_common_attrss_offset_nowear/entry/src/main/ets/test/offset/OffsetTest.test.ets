@@ -39,13 +39,13 @@ class PageConfig {
 export default function OffsetTest() {
   //A list of components that support the position attribute, which is required.
   let supportView = [
-	'Select',
     'SideBarContainer',
 	'WaterFlow', 
     'RowSplit', 
 	'ColumnSplit',
     'Stepper', 
 	'FlowItem',
+    'Select',
 	'StepperItem'
     ]
 

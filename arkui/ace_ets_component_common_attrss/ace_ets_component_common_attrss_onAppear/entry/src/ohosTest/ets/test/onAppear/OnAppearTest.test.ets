@@ -130,7 +130,9 @@ export default function onAppearTest() {
   describe('OnAppearTest', () => {
     CommonTest.initTest(pageConfig, supportView, testValues, null, async (data: ESObject) => {
       //Get text content,check content is onAppear
+      await Utils.sleep(500);
       let compareTextObj: ESObject = Utils.getComponentByKey(data.pageConfig.compareTextKey);
+      await Utils.sleep(500);
       console.info('compareTextObj.$attrs.content: ' + compareTextObj.$attrs.content);
       expect(compareTextObj.$attrs.content).assertEqual(data.testValue.expectValue.changeAppear);
     });
