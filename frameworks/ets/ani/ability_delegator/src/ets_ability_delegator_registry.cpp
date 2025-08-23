@@ -18,6 +18,7 @@
 #include <memory>
 #include "ability_delegator.h"
 #include "ability_delegator_registry.h"
+#include "ani_common_util.h"
 #include "ets_ability_delegator.h"
 #include "ets_ability_delegator_utils.h"
 #include "ets_native_reference.h"
@@ -39,34 +40,34 @@ static ani_object GetAbilityDelegator(ani_env *env)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null env");
-        return {};
+        return nullptr;
     }
 
     std::lock_guard<std::mutex> lock(etsReferenceMutex);
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
     if (delegator == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
-        return {};
+        return AppExecFwk::CreateEtsNull(env);
     }
 
     if (etsReference == nullptr) {
         ani_object value = CreateEtsAbilityDelegator(env);
         if (value == nullptr) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "value is nullptr");
-            return {};
+            return AppExecFwk::CreateEtsNull(env);
         }
         ani_boolean isValue = false;
         env->Reference_IsNullishValue(value, &isValue);
         if (isValue) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "Reference_IsNullishValue");
-            return {};
+            return AppExecFwk::CreateEtsNull(env);
         }
         etsReference = std::make_unique<AppExecFwk::ETSNativeReference>();
         ani_ref result = nullptr;
         auto status = env->GlobalReference_Create(value, &(result));
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "Create Gloabl ref for delegator failed %{public}d", status);
-            return {};
+            return AppExecFwk::CreateEtsNull(env);
         }
         etsReference->aniObj = static_cast<ani_object>(result);
         return etsReference->aniObj;
@@ -79,13 +80,13 @@ static ani_object GetArguments(ani_env *env)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null env");
-        return {};
+        return nullptr;
     }
 
     auto abilityDelegatorArgs = AppExecFwk::AbilityDelegatorRegistry::GetArguments();
     if (abilityDelegatorArgs == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "get argument failed");
-        return {};
+        return AppExecFwk::CreateEtsNull(env);
     }
 
     return CreateEtsAbilityDelegatorArguments(env, abilityDelegatorArgs);

@@ -172,28 +172,27 @@ ani_object EtsAbilityDelegator::GetAppContext(ani_env *env, [[maybe_unused]]ani_
     TAG_LOGD(AAFwkTag::DELEGATOR, "GetAppContext call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "env is nullptr");
-        return {};
+        return nullptr;
     }
     ani_class cls = nullptr;
-    ani_object nullobj = nullptr;
     if (ANI_OK != env->FindClass(CONTEXT_CLASS_NAME, &cls)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "FindClass Context Failed");
-        return nullobj;
+        return AppExecFwk::CreateEtsNull(env);
     }
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
     if (!delegator) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
-        return nullobj;
+        return AppExecFwk::CreateEtsNull(env);
     }
     std::shared_ptr<AbilityRuntime::Context> context = delegator->GetAppContext();
     if (!context) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null context");
-        return nullobj;
+        return AppExecFwk::CreateEtsNull(env);
     }
     ani_object contextObj = SetAppContext(env, context);
     if (contextObj == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null contextObj");
-        return nullobj;
+        return AppExecFwk::CreateEtsNull(env);
     }
     ContextUtil::CreateEtsBaseContext(env, cls, contextObj, context);
     TAG_LOGD(AAFwkTag::DELEGATOR, "GetAppContext end");
