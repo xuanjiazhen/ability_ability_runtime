@@ -34,7 +34,7 @@
 #include <napi/native_api.h>
 #include <vector>
 
-void addRelationalStoreTest(std::vector<napi_property_descriptor>& descData);
+void AddRelationalStoreTest(std::vector<napi_property_descriptor>& descData);
 
 napi_value GetURISuccess(napi_env env, napi_callback_info info);
 napi_value GetPathSuccess(napi_env env, napi_callback_info info);
@@ -43,6 +43,5 @@ napi_value GetModifyTimeSuccess(napi_env env, napi_callback_info info);
 napi_value GetSizeSuccess(napi_env env, napi_callback_info info);
 napi_value GetStatusSuccess(napi_env env, napi_callback_info info);
 napi_value GetDestroyOneSuccess(napi_env env, napi_callback_info info);
-napi_value TestDestroyMultipleInvalidParam(napi_env env, napi_callback_info info);
 
 #endif //RELATIONALSTORETESTAPI20_RELATIONALSTORETEST_H

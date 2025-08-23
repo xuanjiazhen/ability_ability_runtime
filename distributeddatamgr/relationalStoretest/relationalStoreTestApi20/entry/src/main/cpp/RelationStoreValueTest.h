@@ -34,7 +34,11 @@
 #include <napi/native_api.h>
 #include <vector>
 
-void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData);
+extern int g_valueInvalidParamCode;
+extern int g_valueTypeNull;
+extern int g_valueTypeMismatch;
+
+void AddRelationStoreValueTest(std::vector<napi_property_descriptor>& descData);
 
 napi_value Destroy(napi_env env, napi_callback_info info);
 napi_value PutNull(napi_env env, napi_callback_info info);

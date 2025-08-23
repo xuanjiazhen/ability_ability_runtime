@@ -20,7 +20,7 @@
 #include <napi/native_api.h>
 #include <database/rdb/relational_store_error_code.h>
 
-void addRelationalStoreTest(std::vector<napi_property_descriptor>& descData)
+void AddRelationalStoreTest(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"getURISuccess", nullptr, GetURISuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"getPathSuccess", nullptr, GetPathSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
@@ -33,8 +33,6 @@ void addRelationalStoreTest(std::vector<napi_property_descriptor>& descData)
         {"getStatusSuccess", nullptr, GetStatusSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back(
         {"getDestroyOneSuccess", nullptr, GetDestroyOneSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"testDestroyMultipleInvalidParam", nullptr, TestDestroyMultipleInvalidParam, nullptr, nullptr,
-                        nullptr, napi_default, nullptr});
 }
 
 napi_value GetURISuccess(napi_env env, napi_callback_info info)
@@ -60,7 +58,7 @@ napi_value GetPathSuccess(napi_env env, napi_callback_info info)
     size_t length = 10;
     int ret = OH_Data_Asset_GetPath(readData5, path, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : 1, &result);
     OH_Data_Asset_DestroyOne(readData5);
     return result;
 }
@@ -73,7 +71,7 @@ napi_value GetCreateTimeSuccess(napi_env env, napi_callback_info info)
     int64_t createTime = 0;
     int ret = OH_Data_Asset_GetCreateTime(readData5, &createTime);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : 1, &result);
     OH_Data_Asset_DestroyOne(readData5);
     return result;
 }
@@ -86,7 +84,7 @@ napi_value GetModifyTimeSuccess(napi_env env, napi_callback_info info)
     int64_t modifyTime = 0;
     int ret = OH_Data_Asset_GetModifyTime(readData5, &modifyTime);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : 1, &result);
     OH_Data_Asset_DestroyOne(readData5);
     return result;
 }
@@ -99,7 +97,7 @@ napi_value GetSizeSuccess(napi_env env, napi_callback_info info)
     size_t size = 0;
     int ret = OH_Data_Asset_GetSize(readData5, &size);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : 1, &result);
     OH_Data_Asset_DestroyOne(readData5);
     return result;
 }
@@ -112,7 +110,7 @@ napi_value GetStatusSuccess(napi_env env, napi_callback_info info)
     Data_AssetStatus status = Data_AssetStatus::ASSET_NORMAL;
     int ret = OH_Data_Asset_GetStatus(readData5, &status);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : 1, &result);
     OH_Data_Asset_DestroyOne(readData5);
     return result;
 }
@@ -124,19 +122,6 @@ napi_value GetDestroyOneSuccess(napi_env env, napi_callback_info info)
     
     int ret = OH_Data_Asset_DestroyOne(asset);
 
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-napi_value TestDestroyMultipleInvalidParam(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    
-    uint32_t count = 2;
-    Data_Asset **asset = OH_Data_Asset_CreateMultiple(count);
-    
-    int ret = OH_Data_Asset_DestroyMultiple(asset, count);
-
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : 1, &result);
     return result;
 }

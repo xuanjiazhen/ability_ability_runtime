@@ -16,11 +16,16 @@
 #include "RelationStoreValuesTest.h"
 #include "napi/native_api.h"
 #include <database/data/oh_data_values.h>
+#include <database/rdb/relational_store_error_code.h>
 #include <js_native_api_types.h>
 #include <cstdint>
 #include <vector>
 
-void addRelationStoreValuesTest1(std::vector<napi_property_descriptor>& descData)
+int g_valuesInvalidParamCode = 14800001;
+int g_valuesTypeNull = 14800063;
+int g_valuesTypeMismatch = 14800064;
+
+void AddRelationStoreValuesTest1(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -50,7 +55,7 @@ void addRelationStoreValuesTest1(std::vector<napi_property_descriptor>& descData
         {"testIsNullInvalidParam", nullptr, TestIsNullInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
-void addRelationStoreValuesTest2(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreValuesTest2(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetIntInvalidParamA", nullptr, TestGetIntInvalidParamA, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -86,7 +91,7 @@ void addRelationStoreValuesTest2(std::vector<napi_property_descriptor>& descData
         {"testGetAssetTypeNullA", nullptr, TestGetAssetTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
-void addRelationStoreValuesTest3(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreValuesTest3(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetAssetsCountInvalidParamA", nullptr, TestGetAssetsCountInvalidParamA, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
@@ -126,11 +131,11 @@ void addRelationStoreValuesTest3(std::vector<napi_property_descriptor>& descData
                         nullptr, napi_default, nullptr});
 }
 
-void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
+void AddRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
 {
-    addRelationStoreValuesTest1(descData);
-    addRelationStoreValuesTest2(descData);
-    addRelationStoreValuesTest3(descData);
+    AddRelationStoreValuesTest1(descData);
+    AddRelationStoreValuesTest2(descData);
+    AddRelationStoreValuesTest3(descData);
 }
 
 napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
@@ -140,7 +145,7 @@ napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_Values_Destroy(values);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -151,7 +156,7 @@ napi_value TestPutNullInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_Values_PutNull(values);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -163,7 +168,7 @@ napi_value TestPutIntInvalidParam(napi_env env, napi_callback_info info)
     int64_t val = 0;
     int ret = OH_Values_PutInt(values, val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -175,7 +180,7 @@ napi_value TestPutRealInvalidParam(napi_env env, napi_callback_info info)
     double val = 0;
     int ret = OH_Values_PutReal(values, val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -187,7 +192,7 @@ napi_value TestPutTextInvalidParam(napi_env env, napi_callback_info info)
     const char *val = "aaa";
     int ret = OH_Values_PutText(values, val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -200,7 +205,7 @@ napi_value TestPutBlobInvalidParam(napi_env env, napi_callback_info info)
     size_t length = sizeof(val);
     int ret = OH_Values_PutBlob(values, val, length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -213,7 +218,7 @@ napi_value TestPutAssetInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_Values_PutAsset(values, asset);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     OH_Data_Asset_DestroyOne(asset);
     return result;
 }
@@ -227,7 +232,7 @@ napi_value TestPutAssetsInvalidParam(napi_env env, napi_callback_info info)
     size_t length = 2;
     int ret = OH_Values_PutAssets(values, asset, length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -241,7 +246,7 @@ napi_value TestPutUnlimitedIntInvalidParam(napi_env env, napi_callback_info info
     size_t length = sizeof(bigInt) / sizeof(bigInt[0]);
     int ret = OH_Values_PutUnlimitedInt(values, sign, bigInt, length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -253,7 +258,7 @@ napi_value TestCountInvalidParam(napi_env env, napi_callback_info info)
     size_t cnt = 0;
     int ret = OH_Values_Count(values, &cnt);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -266,7 +271,7 @@ napi_value TestGetTypeInvalidParam(napi_env env, napi_callback_info info)
     OH_ColumnType columnType;
     int ret = OH_Values_GetType(values, 0, &columnType);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     return result;
 }
 
@@ -279,7 +284,7 @@ napi_value TestGetInvalidParam(napi_env env, napi_callback_info info)
     OH_Data_Value *val = OH_Value_Create();
     int ret = OH_Values_Get(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     OH_Value_Destroy(val);
     return result;
 }
@@ -293,7 +298,7 @@ napi_value TestIsNullInvalidParam(napi_env env, napi_callback_info info)
     bool val;
     int ret = OH_Values_IsNull(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -307,7 +312,7 @@ napi_value TestGetIntInvalidParamA(napi_env env, napi_callback_info info)
     int64_t val;
     int ret = OH_Values_GetInt(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -324,7 +329,7 @@ napi_value TestGetIntTypeMismatchA(napi_env env, napi_callback_info info)
     int64_t val;
     int ret = OH_Values_GetInt(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -341,7 +346,7 @@ napi_value TestGetIntTypeNullA(napi_env env, napi_callback_info info)
     int64_t val;
     int ret = OH_Values_GetInt(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull :1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -356,7 +361,7 @@ napi_value TestGetRealInvalidParamA(napi_env env, napi_callback_info info)
     double val;
     int ret = OH_Values_GetReal(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -373,7 +378,7 @@ napi_value TestGetRealTypeMismatchA(napi_env env, napi_callback_info info)
     double val;
     int ret = OH_Values_GetReal(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -390,7 +395,7 @@ napi_value TestGetRealTypeNullA(napi_env env, napi_callback_info info)
     double  val;
     int ret = OH_Values_GetReal(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -405,7 +410,7 @@ napi_value TestGetTextInvalidParamA(napi_env env, napi_callback_info info)
     const char *val;
     int ret = OH_Values_GetText(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -422,7 +427,7 @@ napi_value TestGetTextTypeMismatchA(napi_env env, napi_callback_info info)
     const char *val;
     int ret = OH_Values_GetText(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -439,7 +444,7 @@ napi_value TestGetTextTypeNullA(napi_env env, napi_callback_info info)
     const char *val;
     int ret = OH_Values_GetText(values, index, &val);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -455,7 +460,7 @@ napi_value TestGetBlobInvalidParamA(napi_env env, napi_callback_info info)
     size_t length;
     int ret = OH_Values_GetBlob(values, index, &val, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -473,7 +478,7 @@ napi_value TestGetBlobTypeMismatchA(napi_env env, napi_callback_info info)
     size_t length;
     int ret = OH_Values_GetBlob(values, index, &val, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -491,7 +496,7 @@ napi_value TestGetBlobTypeNullA(napi_env env, napi_callback_info info)
     size_t length;
     int ret = OH_Values_GetBlob(values, index, &val, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -506,7 +511,7 @@ napi_value TestGetAssetInvalidParamA(napi_env env, napi_callback_info info)
     Data_Asset *asset = OH_Data_Asset_CreateOne();
     int ret = OH_Values_GetAsset(values, index, asset);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     OH_Data_Asset_DestroyOne(asset);
     return result;
 }
@@ -523,7 +528,7 @@ napi_value TestGetAssetTypeMismatchA(napi_env env, napi_callback_info info)
     Data_Asset *asset = OH_Data_Asset_CreateOne();
     int ret = OH_Values_GetAsset(values, index, asset);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     OH_Data_Asset_DestroyOne(asset);
@@ -541,7 +546,7 @@ napi_value TestGetAssetTypeNullA(napi_env env, napi_callback_info info)
     Data_Asset *asset = OH_Data_Asset_CreateOne();
     int ret = OH_Values_GetAsset(values, index, asset);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     
     OH_Values_Destroy(values);
     OH_Data_Asset_DestroyOne(asset);
@@ -557,7 +562,7 @@ napi_value TestGetAssetsCountInvalidParamA(napi_env env, napi_callback_info info
     size_t length = 0;
     int ret = OH_Values_GetAssetsCount(values, index, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -574,7 +579,7 @@ napi_value TestGetAssetsCountTypeMismatchA(napi_env env, napi_callback_info info
     size_t length = 0;
     int ret = OH_Values_GetAssetsCount(values, index, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -591,7 +596,7 @@ napi_value TestGetAssetsCountTypeNullA(napi_env env, napi_callback_info info)
     size_t length = 0;
     int ret = OH_Values_GetAssetsCount(values, index, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -608,7 +613,7 @@ napi_value TestGetAssetsInvalidParamA(napi_env env, napi_callback_info info)
     size_t outLen = 0;
     int ret = OH_Values_GetAssets(values, index, val, inLen, &outLen);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     uint32_t cnt = 2;
     OH_Data_Asset_DestroyMultiple(val, cnt);
     return result;
@@ -628,7 +633,7 @@ napi_value TestGetAssetsTypeMismatchA(napi_env env, napi_callback_info info)
     size_t outLen = 0;
     int ret = OH_Values_GetAssets(values, index, val, inLen, &outLen);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     uint32_t cnt = 2;
     OH_Data_Asset_DestroyMultiple(val, cnt);
@@ -649,7 +654,7 @@ napi_value TestGetAssetsTypeNullA(napi_env env, napi_callback_info info)
     size_t outLen = 0;
     int ret = OH_Values_GetAssets(values, index, val, inLen, &outLen);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     
     uint32_t cnt = 2;
     OH_Data_Asset_DestroyMultiple(val, cnt);
@@ -666,7 +671,7 @@ napi_value TestGetFloatVectorCountInvalidParamA(napi_env env, napi_callback_info
     size_t length = 0;
     int ret = OH_Values_GetFloatVectorCount(values, index, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -681,7 +686,7 @@ napi_value TestGetFloatVectorCountTypeMismatchA(napi_env env, napi_callback_info
     size_t length = 0;
     int ret = OH_Values_GetFloatVectorCount(values, index, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -697,7 +702,7 @@ napi_value TestGetFloatVectorCountTypeNullA(napi_env env, napi_callback_info inf
     size_t length = 0;
     int ret = OH_Values_GetFloatVectorCount(values, index, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -714,7 +719,7 @@ napi_value TestGetFloatVectorInvalidParamA(napi_env env, napi_callback_info info
     size_t outLen;
     int ret = OH_Values_GetFloatVector(values, index, arr, inLen, &outLen);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -732,7 +737,7 @@ napi_value TestGetFloatVectorTypeMismatchA(napi_env env, napi_callback_info info
     size_t outLen;
     int ret = OH_Values_GetFloatVector(values, index, arr, inLen, &outLen);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -751,7 +756,7 @@ napi_value TestGetFloatVectorTypeNullA(napi_env env, napi_callback_info info)
     size_t outLen;
     int ret = OH_Values_GetFloatVector(values, index, arr, inLen, &outLen);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -766,7 +771,7 @@ napi_value TestGetUnlimitedIntBandInvalidParamA(napi_env env, napi_callback_info
     size_t length = 0;
     int ret = OH_Values_GetUnlimitedIntBand(values, index, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -783,7 +788,7 @@ napi_value TestGetUnlimitedIntBandTypeMismatchA(napi_env env, napi_callback_info
     size_t length = 0;
     int ret = OH_Values_GetUnlimitedIntBand(values, index, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -800,7 +805,7 @@ napi_value TestGetUnlimitedIntBandTypeNullA(napi_env env, napi_callback_info inf
     size_t length = 0;
     int ret = OH_Values_GetUnlimitedIntBand(values, index, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -818,7 +823,7 @@ napi_value TestGetUnlimitedIntInvalidParamA(napi_env env, napi_callback_info inf
     size_t outLen;
     int ret = OH_Values_GetUnlimitedInt(values, index, &sign, data, inLen, &outLen);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_valuesInvalidParamCode : 1, &result);
     
     return result;
 }
@@ -838,7 +843,7 @@ napi_value TestGetUnlimitedIntTypeMismatchA(napi_env env, napi_callback_info inf
     size_t outLen;
     int ret = OH_Values_GetUnlimitedInt(values, index, &sign, data, inLen, &outLen);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_TYPE_MISMATCH ? g_valuesTypeMismatch : 1, &result);
     
     OH_Values_Destroy(values);
     return result;
@@ -855,7 +860,7 @@ napi_value TestGetUnlimitedIntTypeNullA(napi_env env, napi_callback_info info)
     size_t inLen = 5;
     size_t outLen;
     int ret = OH_Values_GetUnlimitedInt(values, index, &sign, data, inLen, &outLen);
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_DATA_TYPE_NULL ? g_valuesTypeNull : 1, &result);
     OH_Values_Destroy(values);
     return result;
 }
