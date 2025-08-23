@@ -236,12 +236,12 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermission(const UriPermissionRawD
     if (res != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "raw data to vec failed");
         funcResult = res;
-        return res;
+        return ERR_OK;
     }
     auto errCode = GrantUriPermission(uriVec, flag, targetBundleName, appIndex, initiatorTokenId, funcResult);
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "GrantUriPermission failed, errCode:%{public}d", errCode);
-        return errCode;
+        return ERR_OK;
     }
     TAG_LOGI(AAFwkTag::URIPERMMGR, "GrantUriPermission finished.");
     return ERR_OK;
@@ -538,13 +538,13 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermissionPrivileged(const UriPerm
     if (res != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "raw data to vec failed");
         funcResult = res;
-        return res;
+        return ERR_OK;
     }
     auto errCode = GrantUriPermissionPrivileged(uriStrVec, flag, targetBundleName, appIndex, initiatorTokenId,
         hideSensitiveType, funcResult);
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "GrantUriPermissionPrivileged failed, errCode:%{public}d", errCode);
-        return errCode;
+        return ERR_OK;
     }
     TAG_LOGI(AAFwkTag::URIPERMMGR, "GrantUriPermissionPrivileged finished.");
     return ERR_OK;
@@ -807,13 +807,13 @@ ErrCode UriPermissionManagerStubImpl::CheckUriAuthorization(const UriPermissionR
         TAG_LOGE(AAFwkTag::URIPERMMGR, "raw data to vec failed");
         std::vector<bool> defaultFalseResult(1, false);
         BoolVecToRawData(defaultFalseResult, funcResult, resultCharVec);
-        return res;
+        return ERR_OK;
     }
     std::vector<bool> resultBoolVec(uriStringVec.size(), false);
     auto errCode = CheckUriAuthorization(uriStringVec, flag, tokenId, resultBoolVec);
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "CheckUriAuthorization failed, errCode:%{public}d", errCode);
-        return errCode;
+        return ERR_OK;
     }
     BoolVecToRawData(resultBoolVec, funcResult, resultCharVec);
     if (funcResult.size > MAX_IPC_RAW_DATA_SIZE) {
