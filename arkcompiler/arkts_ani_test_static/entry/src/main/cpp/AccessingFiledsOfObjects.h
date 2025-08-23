@@ -143,7 +143,10 @@ ani_int test_Object_SetProperty_Ref([[maybe_unused]] ani_env *env, [[maybe_unuse
     ASSERT_EQ(GetClassObject(env, &obj, &cls, "Lentry/src/main/src/ets/AccessingFiledsOfObjects/TestField;"), ANI_TRUE);
 
     ani_ref value = {};
-    ASSERT_EQ(env->Object_SetPropertyByName_Ref(obj, "stringValue", value), ANI_OK);
+    ani_string testField;
+    std::string name = "stringValue";
+    env->String_NewUTF8(name.c_str(), name.size(), &testField);
+    ASSERT_EQ(env->Object_SetPropertyByName_Ref(obj, "stringValue", testField), ANI_OK);
     return ANI_TRUE;
 }
 

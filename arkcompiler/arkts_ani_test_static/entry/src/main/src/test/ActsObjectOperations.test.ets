@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { describe, it, expect, TestType, Size, Level } from "../../../hypium/index";
 import hilog from '@ohos.hilog'
 import Utils from './Util.test';
@@ -9,11 +24,10 @@ let tag: string = 'testTag';
 export default function objectOperationsTest() {
 
   describe("ActsObjectOperationsTest", (): void => {
-    hilog.info(domain, tag, '%{public}s', 'describe start');
     try {
       loadLibrary("entry")
     } catch(e: Error) {
-      hilog.info(domain, tag, 'loadFailed', e.message);
+      console.log('loadFailed', e.message);
     }
 
     /*
@@ -26,13 +40,13 @@ export default function objectOperationsTest() {
       */
     it("Object_InstanceOf_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Object_InstanceOf_0100 start');
+        console.log('Object_InstanceOf_0100 start');
         let cls = new Foo();
         let result = cls.test_Object_InstanceOf();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Object_InstanceOf_0100 done');
+        console.log('Object_InstanceOf_0100 done');
         done();
-        hilog.info(domain, tag, 'Object_InstanceOf_0100 end');
+        console.log('Object_InstanceOf_0100 end');
       })
 
     /*
@@ -45,13 +59,13 @@ export default function objectOperationsTest() {
       */
     it("Object_GetType_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Object_GetType_0100 start');
+        console.log('Object_GetType_0100 start');
         let cls = new Foo();
         let result = cls.test_Object_GetType();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Object_GetType_0100 done');
+        console.log('Object_GetType_0100 done');
         done();
-        hilog.info(domain, tag, 'Object_GetType_0100 end');
+        console.log('Object_GetType_0100 end');
       })
 
     /*
@@ -64,13 +78,13 @@ export default function objectOperationsTest() {
       */
     it("Object_New_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-      hilog.info(domain, tag, 'Object_New_0100 start');
+      console.log('Object_New_0100 start');
       let cls = new Foo();
       let result = cls.test_Object_New();
       expect(result).assertTrue();
-      hilog.info(domain, tag, 'Object_New_0100 done');
+      console.log('Object_New_0100 done');
       done();
-      hilog.info(domain, tag, 'Object_New_0100 end');
+      console.log('Object_New_0100 end');
     })
 
     /*
@@ -83,13 +97,13 @@ export default function objectOperationsTest() {
       */
     it("Reference_IsNull_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Reference_IsNull_0100 start');
+        console.log('Reference_IsNull_0100 start');
         let cls = new Foo();
         let result = cls.test_Reference_IsNull();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Reference_IsNull_0100 done');
+        console.log('Reference_IsNull_0100 done');
         done();
-        hilog.info(domain, tag, 'Reference_IsNull_0100 end');
+        console.log('Reference_IsNull_0100 end');
       })
 
     /*
@@ -102,13 +116,13 @@ export default function objectOperationsTest() {
       */
     it("Reference_IsUndefined_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Reference_IsUndefined_0100 start');
+        console.log('Reference_IsUndefined_0100 start');
         let cls = new Foo();
         let result = cls.test_Reference_IsUndefined();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Reference_IsUndefined_0100 done');
+        console.log('Reference_IsUndefined_0100 done');
         done();
-        hilog.info(domain, tag, 'Reference_IsUndefined_0100 end');
+        console.log('Reference_IsUndefined_0100 end');
       })
 
     /*
@@ -121,13 +135,13 @@ export default function objectOperationsTest() {
       */
     it("Reference_IsNullishValue_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Reference_IsNullishValue_0100 start');
+        console.log('Reference_IsNullishValue_0100 start');
         let cls = new Foo();
         let result = cls.test_Reference_IsNullishValue();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Reference_IsNullishValue_0100 done');
+        console.log('Reference_IsNullishValue_0100 done');
         done();
-        hilog.info(domain, tag, 'Reference_IsNullishValue_0100 end');
+        console.log('Reference_IsNullishValue_0100 end');
       })
 
     /*
@@ -140,13 +154,13 @@ export default function objectOperationsTest() {
       */
     it("Reference_Equals_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Reference_Equals_0100 start');
+        console.log('Reference_Equals_0100 start');
         let cls = new Foo();
         let result = cls.test_Reference_Equals();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Reference_Equals_0100 done');
+        console.log('Reference_Equals_0100 done');
         done();
-        hilog.info(domain, tag, 'Reference_Equals_0100 end');
+        console.log('Reference_Equals_0100 end');
       })
 
     /*
@@ -159,13 +173,13 @@ export default function objectOperationsTest() {
       */
     it("Array_New_Ref_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Array_New_Ref_0100 start');
+        console.log('Array_New_Ref_0100 start');
         let cls = new Foo();
         let result = cls.test_Array_New_Ref();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Array_New_Ref_0100 done');
+        console.log('Array_New_Ref_0100 done');
         done();
-        hilog.info(domain, tag, 'Array_New_Ref_0100 end');
+        console.log('Array_New_Ref_0100 end');
       })
 
     /*
@@ -178,13 +192,13 @@ export default function objectOperationsTest() {
       */
     it("Object_New_A_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Object_New_A_0100 start');
+        console.log('Object_New_A_0100 start');
         let cls = new Foo();
         let result = cls.test_Object_New_A();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Object_New_A_0100 done');
+        console.log('Object_New_A_0100 done');
         done();
-        hilog.info(domain, tag, 'Object_New_A_0100 end');
+        console.log('Object_New_A_0100 end');
       })
 
     /*
@@ -197,13 +211,13 @@ export default function objectOperationsTest() {
       */
     it("Object_New_V_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Object_New_V_0100 start');
+        console.log('Object_New_V_0100 start');
         let cls = new Foo();
         let result = cls.test_Object_New_V();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Object_New_V_0100 done');
+        console.log('Object_New_V_0100 done');
         done();
-        hilog.info(domain, tag, 'Object_New_V_0100 end');
+        console.log('Object_New_V_0100 end');
       })
   })
 }

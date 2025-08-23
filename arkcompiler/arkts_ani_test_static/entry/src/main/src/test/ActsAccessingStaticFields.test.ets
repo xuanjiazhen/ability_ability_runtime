@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { describe, it, expect, TestType, Size, Level } from "../../../hypium/index";
 import hilog from '@ohos.hilog'
 import Utils from './Util.test';
@@ -9,11 +24,10 @@ let tag: string = 'testTag';
 export default function accessingStaticFieldsTest() {
 
   describe("ActsAccessingStaticFieldsTest", (): void => {
-    hilog.info(domain, tag, '%{public}s', 'describe start');
     try {
       loadLibrary("entry")
     } catch(e: Error) {
-      hilog.info(domain, tag, 'loadFailed', e.message);
+      console.log('loadFailed', e.message);
     }
 
     /*
@@ -26,13 +40,13 @@ export default function accessingStaticFieldsTest() {
      */
     it("Class_GetStaticField_Boolean_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticField_Boolean_0100 start');
+        console.log('Class_GetStaticField_Boolean_0100 start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticField_Boolean();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticField_Boolean_0100 done');
+        console.log('Class_GetStaticField_Boolean_0100 done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticField_Boolean_0100 end');
+        console.log('Class_GetStaticField_Boolean_0100 end');
       })
 
     /*
@@ -45,13 +59,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticField_Char_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticField_Char_0100 start');
+        console.log('Class_GetStaticField_Char_0100 start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticField_Char();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticField_Char_0100 done');
+        console.log('Class_GetStaticField_Char_0100 done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticField_Char_0100 end');
+        console.log('Class_GetStaticField_Char_0100 end');
       })
 
     /*
@@ -64,13 +78,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticField_Byte_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticField_Byte_0100 start');
+        console.log('Class_GetStaticField_Byte_0100 start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticField_Byte();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticField_Byte_0100 done');
+        console.log('Class_GetStaticField_Byte_0100 done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticField_Byte_0100 end');
+        console.log('Class_GetStaticField_Byte_0100 end');
       })
 
     /*
@@ -83,13 +97,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticField_Short_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticField_Short_0100 start');
+        console.log('Class_GetStaticField_Short_0100 start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticField_Short();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticField_Short_0100 done');
+        console.log('Class_GetStaticField_Short_0100 done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticField_Short_0100 end');
+        console.log('Class_GetStaticField_Short_0100 end');
       })
 
     /*
@@ -102,13 +116,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticField_Int_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticField_Int_0100 start');
+        console.log('Class_GetStaticField_Int_0100 start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticField_Int();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticField_Int_0100 done');
+        console.log('Class_GetStaticField_Int_0100 done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticField_Int_0100 end');
+        console.log('Class_GetStaticField_Int_0100 end');
       })
 
     /*
@@ -121,13 +135,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticField_Long_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticField_Long_0100 start');
+        console.log('Class_GetStaticField_Long_0100 start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticField_Long();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticField_Long_0100 done');
+        console.log('Class_GetStaticField_Long_0100 done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticField_Long end');
+        console.log('Class_GetStaticField_Long end');
       })
 
     /*
@@ -140,13 +154,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticField_Float_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticField_Float_0100 start');
+        console.log('Class_GetStaticField_Float_0100 start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticField_Float();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticField_Float_0100 done');
+        console.log('Class_GetStaticField_Float_0100 done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticField_Float_0100 end');
+        console.log('Class_GetStaticField_Float_0100 end');
       })
 
     /*
@@ -159,13 +173,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticField_Double", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticField_Double start');
+        console.log('Class_GetStaticField_Double start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticField_Double();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticField_Double done');
+        console.log('Class_GetStaticField_Double done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticField_Double end');
+        console.log('Class_GetStaticField_Double end');
       })
 
     /*
@@ -178,13 +192,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticField_Ref", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticField_Ref start');
+        console.log('Class_GetStaticField_Ref start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticField_Ref();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticField_Ref done');
+        console.log('Class_GetStaticField_Ref done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticField_Ref end');
+        console.log('Class_GetStaticField_Ref end');
       })
 
     /*
@@ -197,13 +211,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticField_Boolean", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticField_Boolean start');
+        console.log('Class_SetStaticField_Boolean start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticField_Boolean();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticField_Boolean done');
+        console.log('Class_SetStaticField_Boolean done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticField_Boolean end');
+        console.log('Class_SetStaticField_Boolean end');
       })
 
     /*
@@ -216,13 +230,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticField_Char", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticField_Char start');
+        console.log('Class_SetStaticField_Char start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticField_Char();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticField_Char done');
+        console.log('Class_SetStaticField_Char done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticField_Char end');
+        console.log('Class_SetStaticField_Char end');
       })
 
     /*
@@ -235,13 +249,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticField_Byte", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticField_Byte start');
+        console.log('Class_SetStaticField_Byte start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticField_Byte();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticField_Byte done');
+        console.log('Class_SetStaticField_Byte done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticField_Byte end');
+        console.log('Class_SetStaticField_Byte end');
       })
 
     /*
@@ -254,13 +268,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticField_Short", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticField_Short start');
+        console.log('Class_SetStaticField_Short start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticField_Short();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticField_Short done');
+        console.log('Class_SetStaticField_Short done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticField_Short end');
+        console.log('Class_SetStaticField_Short end');
       })
 
     /*
@@ -273,13 +287,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticField_Int", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticField_Int start');
+        console.log('Class_SetStaticField_Int start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticField_Int();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticField_Int done');
+        console.log('Class_SetStaticField_Int done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticField_Int end');
+        console.log('Class_SetStaticField_Int end');
       })
 
     /*
@@ -292,13 +306,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticField_Long", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticField_Long start');
+        console.log('Class_SetStaticField_Long start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticField_Long();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticField_Long done');
+        console.log('Class_SetStaticField_Long done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticField_Long end');
+        console.log('Class_SetStaticField_Long end');
       })
 
     /*
@@ -311,13 +325,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticField_Float", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticField_Float start');
+        console.log('Class_SetStaticField_Float start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticField_Float();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticField_Float done');
+        console.log('Class_SetStaticField_Float done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticField_Float end');
+        console.log('Class_SetStaticField_Float end');
       })
 
     /*
@@ -330,13 +344,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticField_Double", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticField_Double start');
+        console.log('Class_SetStaticField_Double start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticField_Double();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticField_Double done');
+        console.log('Class_SetStaticField_Double done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticField_Double end');
+        console.log('Class_SetStaticField_Double end');
       })
 
     /*
@@ -349,13 +363,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticField_Ref", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticField_Ref start');
+        console.log('Class_SetStaticField_Ref start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticField_Ref();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticField_Ref done');
+        console.log('Class_SetStaticField_Ref done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticField_Ref end');
+        console.log('Class_SetStaticField_Ref end');
       })
 
     /*
@@ -368,13 +382,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticFieldByName_Boolean", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Boolean start');
+        console.log('Class_GetStaticFieldByName_Boolean start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticFieldByName_Boolean();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Boolean done');
+        console.log('Class_GetStaticFieldByName_Boolean done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Boolean end');
+        console.log('Class_GetStaticFieldByName_Boolean end');
       })
 
     /*
@@ -387,13 +401,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticFieldByName_Char", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Char start');
+        console.log('Class_GetStaticFieldByName_Char start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticFieldByName_Char();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Char done');
+        console.log('Class_GetStaticFieldByName_Char done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Char end');
+        console.log('Class_GetStaticFieldByName_Char end');
       })
 
     /*
@@ -406,13 +420,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticFieldByName_Byte", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Byte start');
+        console.log('Class_GetStaticFieldByName_Byte start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticFieldByName_Byte();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Byte done');
+        console.log('Class_GetStaticFieldByName_Byte done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Byte end');
+        console.log('Class_GetStaticFieldByName_Byte end');
       })
 
     /*
@@ -425,13 +439,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticFieldByName_Short", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Short start');
+        console.log('Class_GetStaticFieldByName_Short start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticFieldByName_Short();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Short done');
+        console.log('Class_GetStaticFieldByName_Short done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Short end');
+        console.log('Class_GetStaticFieldByName_Short end');
       })
 
     /*
@@ -444,13 +458,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticFieldByName_Int", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Int start');
+        console.log('Class_GetStaticFieldByName_Int start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticFieldByName_Int();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Int done');
+        console.log('Class_GetStaticFieldByName_Int done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Int end');
+        console.log('Class_GetStaticFieldByName_Int end');
       })
 
     /*
@@ -463,13 +477,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticFieldByName_Long", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Long start');
+        console.log('Class_GetStaticFieldByName_Long start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticFieldByName_Long();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Long done');
+        console.log('Class_GetStaticFieldByName_Long done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Long end');
+        console.log('Class_GetStaticFieldByName_Long end');
       })
 
     /*
@@ -482,13 +496,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticFieldByName_Float", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Float start');
+        console.log('Class_GetStaticFieldByName_Float start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticFieldByName_Float();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Float done');
+        console.log('Class_GetStaticFieldByName_Float done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Float end');
+        console.log('Class_GetStaticFieldByName_Float end');
       })
 
     /*
@@ -501,13 +515,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticFieldByName_Double", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Double start');
+        console.log('Class_GetStaticFieldByName_Double start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticFieldByName_Double();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Double done');
+        console.log('Class_GetStaticFieldByName_Double done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Double end');
+        console.log('Class_GetStaticFieldByName_Double end');
       })
 
     /*
@@ -520,13 +534,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_GetStaticFieldByName_Ref", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Ref start');
+        console.log('Class_GetStaticFieldByName_Ref start');
         let cls = new Foo();
         let result = cls.test_Class_GetStaticFieldByName_Ref();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Ref done');
+        console.log('Class_GetStaticFieldByName_Ref done');
         done();
-        hilog.info(domain, tag, 'Class_GetStaticFieldByName_Ref end');
+        console.log('Class_GetStaticFieldByName_Ref end');
       })
 
     /*
@@ -539,13 +553,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticFieldByName_Boolean", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Boolean start');
+        console.log('Class_SetStaticFieldByName_Boolean start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticFieldByName_Boolean();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Boolean done');
+        console.log('Class_SetStaticFieldByName_Boolean done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Boolean end');
+        console.log('Class_SetStaticFieldByName_Boolean end');
       })
 
     /*
@@ -558,13 +572,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticFieldByName_Char", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Char start');
+        console.log('Class_SetStaticFieldByName_Char start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticFieldByName_Char();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Char done');
+        console.log('Class_SetStaticFieldByName_Char done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Char end');
+        console.log('Class_SetStaticFieldByName_Char end');
       })
 
     /*
@@ -577,13 +591,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticFieldByName_Byte", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Byte start');
+        console.log('Class_SetStaticFieldByName_Byte start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticFieldByName_Byte();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Byte done');
+        console.log('Class_SetStaticFieldByName_Byte done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Byte end');
+        console.log('Class_SetStaticFieldByName_Byte end');
       })
 
     /*
@@ -596,13 +610,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticFieldByName_Short", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Short start');
+        console.log('Class_SetStaticFieldByName_Short start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticFieldByName_Short();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Short done');
+        console.log('Class_SetStaticFieldByName_Short done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Short end');
+        console.log('Class_SetStaticFieldByName_Short end');
       })
 
     /*
@@ -615,13 +629,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticFieldByName_Int", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Int start');
+        console.log('Class_SetStaticFieldByName_Int start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticFieldByName_Int();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Int done');
+        console.log('Class_SetStaticFieldByName_Int done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Int end');
+        console.log('Class_SetStaticFieldByName_Int end');
       })
 
     /*
@@ -634,13 +648,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticFieldByName_Long", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Long start');
+        console.log('Class_SetStaticFieldByName_Long start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticFieldByName_Long();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Long done');
+        console.log('Class_SetStaticFieldByName_Long done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Long end');
+        console.log('Class_SetStaticFieldByName_Long end');
       })
 
     /*
@@ -653,13 +667,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticFieldByName_Float", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Float start');
+        console.log('Class_SetStaticFieldByName_Float start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticFieldByName_Float();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Float done');
+        console.log('Class_SetStaticFieldByName_Float done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Float end');
+        console.log('Class_SetStaticFieldByName_Float end');
       })
 
     /*
@@ -672,13 +686,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticFieldByName_Double", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Double start');
+        console.log('Class_SetStaticFieldByName_Double start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticFieldByName_Double();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Double done');
+        console.log('Class_SetStaticFieldByName_Double done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Double end');
+        console.log('Class_SetStaticFieldByName_Double end');
       })
 
     /*
@@ -691,13 +705,13 @@ export default function accessingStaticFieldsTest() {
     */
     it("Class_SetStaticFieldByName_Ref", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Ref start');
+        console.log('Class_SetStaticFieldByName_Ref start');
         let cls = new Foo();
         let result = cls.test_Class_SetStaticFieldByName_Ref();
         expect(result).assertTrue();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Ref done');
+        console.log('Class_SetStaticFieldByName_Ref done');
         done();
-        hilog.info(domain, tag, 'Class_SetStaticFieldByName_Ref end');
+        console.log('Class_SetStaticFieldByName_Ref end');
       })
   })
 }
