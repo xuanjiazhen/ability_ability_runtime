@@ -188,7 +188,7 @@ void InsightIntentUtilsTest::MockBundleInstallerAndSA()
             return saMgr->GetSystemAbility(systemAbilityId);
         }
     };
-    EXPECT_CALL(*mockSystemAbility_, CheckSystemAbility(testing::_))
+    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
         .WillRepeatedly(testing::Invoke(mockGetSystemAbility));
 }
 
