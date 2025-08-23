@@ -183,6 +183,7 @@ export default function wifiEapTest(){
                     done();
                 }
             }
+            unregisterAndFinish();
         })
         
         /**
