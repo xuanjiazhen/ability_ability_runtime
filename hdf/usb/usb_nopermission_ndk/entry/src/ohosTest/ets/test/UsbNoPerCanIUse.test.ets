@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,7 +45,7 @@ export default function usbNoPerCanIUseTest() {
     })
 
     /**
-     * @tc.number     : SUB_Driver_Ext_DDKNoPerCanIUse_0100
+     * @tc.number     : SUB_Driver_Ext_USBNoPerCanIUse_0100
      * @tc.name       : testUsbNoPerCanIUse001
      * @tc.desc       : OH_Usb_NoPerCanIUse face testing
      * @tc.size       : MediumTest
@@ -53,7 +53,7 @@ export default function usbNoPerCanIUseTest() {
      * @tc.level      : Level 3
      */
     it('testUsbNoPerCanIUse001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
-      let flag = canIUse("SystemCapability.Driver.DDK.Extension");
+      let flag = canIUse("SystemCapability.Driver.USB.Extension");
       expect(flag).assertEqual(false);
       done();
     });
