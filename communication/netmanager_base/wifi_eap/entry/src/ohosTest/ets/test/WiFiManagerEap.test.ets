@@ -178,9 +178,9 @@ export default function wifiEapTest(){
                     }else {
                         console.error(`SUB_Communication_Netmanager_Eap_js_0200 eap unregister undefined errorcode`);
                         expect().assertFail();
-                    }finally{
-                        done();
                     }
+                }finally{
+                    done();
                 }
             }
         })
