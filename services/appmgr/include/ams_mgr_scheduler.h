@@ -294,15 +294,6 @@ public:
         int32_t requestId = 0, const std::string &customProcess = "") override;
 
     /**
-     * SetCurrentUserId, set the userid to app mgr by ability mgr when switching to another user.
-     *
-     * @param userId the new user.
-     */
-    virtual void SetCurrentUserId(const int32_t userId) override;
-
-    virtual void SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess) override;
-
-    /**
      * GetBundleNameByPid, get bundleName and uid of a process.
      *
      * @param pid input param indicates the pid of the process.

@@ -22,6 +22,7 @@
 #include "ffrt.h"
 #include "keep_alive_utils.h"
 #include "main_element_utils.h"
+#include "user_controller/user_controller.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -211,8 +212,8 @@ void ResidentProcessManager::UpdateResidentProcessesStatus(
     }
 
     AppExecFwk::BundleInfo bundleInfo;
-    auto currentUser = DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId();
-    std::set<int32_t> users{0, currentUser};
+    auto callerUser = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    std::set<int32_t> users{0, callerUser};
 
     for (const auto &userId: users) {
         if (!IN_PROCESS_CALL(bms->GetBundleInfo(

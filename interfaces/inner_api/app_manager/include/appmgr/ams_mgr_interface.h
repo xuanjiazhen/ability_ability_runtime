@@ -302,23 +302,6 @@ public:
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg) = 0;
 
     /**
-     * Set the current userId of appMgr.
-     *
-     * @param userId the user id.
-     *
-     * @return
-     */
-    virtual void SetCurrentUserId(const int32_t userId) = 0;
-
-    /**
-     * Set enable start process flag by userId
-     * @param userId the user id.
-     * @param enableStartProcess enable start process.
-     * @return
-     */
-    virtual void SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess) {}
-
-    /**
      * Get bundleName by pid.
      *
      * @param pid process id.
@@ -546,8 +529,7 @@ public:
         GET_APPLICATION_INFO_BY_PROCESS_ID,
         KILL_APPLICATION_SELF,
         UPDATE_APPLICATION_INFO_INSTALLED,
-        SET_CURRENT_USER_ID,
-        Get_BUNDLE_NAME_BY_PID,
+        Get_BUNDLE_NAME_BY_PID = 21,
         SET_ABILITY_FOREGROUNDING_FLAG,
         REGISTER_APP_DEBUG_LISTENER,
         UNREGISTER_APP_DEBUG_LISTENER,
@@ -577,8 +559,7 @@ public:
         FORCE_KILL_APPLICATION_BY_ACCESS_TOKEN_ID = 49,
         IS_PROCESS_ATTACHED,
         IS_CALLER_KILLING,
-        ENABLE_START_PROCESS_FLAG_BY_USER_ID,
-        SET_KEEP_ALIVE_DKV,
+        SET_KEEP_ALIVE_DKV = 53,
         SET_KEEP_ALIVE_APP_SERVICE,
         KILL_PROCESSES_IN_BATCH,
         PREPARE_TERMINATE_APP,

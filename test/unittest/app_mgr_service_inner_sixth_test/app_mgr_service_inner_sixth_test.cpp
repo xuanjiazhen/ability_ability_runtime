@@ -28,7 +28,6 @@
 #include "mock_permission_verification.h"
 #include "remote_client_manager.h"
 #include "task_handler_wrap.h"
-#include "user_record_manager.h"
 
 using namespace testing;
 using namespace testing::ext;

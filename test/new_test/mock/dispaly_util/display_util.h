@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,24 @@
  * limitations under the License.
  */
 
-#include "user_event_handler.h"
+#ifndef OHOS_ABILITY_RUNTIME_DISPLAY_UTIL_H
+#define OHOS_ABILITY_RUNTIME_DISPLAY_UTIL_H
 
-#include "user_controller.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace AAFwk {
-UserEventHandler::UserEventHandler(
-    const std::shared_ptr<TaskHandlerWrap> &taskHandler, const std::weak_ptr<UserController> &owner)
-    : EventHandlerWrap(taskHandler), controller_(owner)
+namespace DisplayUtil {
+static inline int32_t GetDefaultDisplayId()
 {
+    return 0;
 }
 
-void UserEventHandler::ProcessEvent(const EventWrap &event)
+static inline uint64_t ObtainDefaultDisplayId()
 {
-    auto owner = controller_.lock();
-    if (owner) {
-        owner->ProcessEvent(event);
-    }
+    return 0;
+}
 }
 }  // namespace AAFwk
 }  // namespace OHOS
+#endif  // OHOS_ABILITY_RUNTIME_DISPLAY_UTIL_H

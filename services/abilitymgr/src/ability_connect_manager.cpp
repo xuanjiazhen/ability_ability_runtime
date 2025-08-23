@@ -42,6 +42,7 @@
 #include "datetime_ex.h"
 #include "init_reboot.h"
 #include "string_wrapper.h"
+#include "user_controller/user_controller.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -652,7 +653,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 #ifdef SUPPORT_UPMS
     // grant uri to service extension by connect, must call out of serialMutex_
     if (userId_ == U0_USER_ID ||
-        userId_ == DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId()) {
+        userId_ == AbilityRuntime::UserController::GetInstance().GetCallerUserId()) {
         UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
     } else {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "cross user, without grantUriPermission");
@@ -1895,7 +1896,7 @@ void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<Ability
     RemoveServiceAbility(abilityRecord);
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
     if (abilityRecord->IsSceneBoard()) {
-        if (DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() == userId_) {
+        if (AbilityRuntime::UserController::GetInstance().IsCurrentUser(userId_)) {
             RestartAbility(abilityRecord, userId_);
         }
         return;
@@ -2483,8 +2484,7 @@ void AbilityConnectManager::CleanActivatingTimeoutAbility(std::shared_ptr<Abilit
     if (!IsAbilityNeedKeepAlive(abilityRecord)) {
         return;
     }
-    if (!abilityRecord->IsSceneBoard() ||
-        DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() == userId_) {
+    if (!abilityRecord->IsSceneBoard() || AbilityRuntime::UserController::GetInstance().IsCurrentUser(userId_)) {
         RestartAbility(abilityRecord, userId_);
     }
 }
@@ -2536,7 +2536,7 @@ void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<AbilityRecord
         }
     }
 
-    if (userId_ != USER_ID_NO_HEAD && userId_ != U1_USER_ID && userId_ != currentUserId) {
+    if (userId_ != U0_USER_ID && userId_ != U1_USER_ID && userId_ != currentUserId) {
         TAG_LOGI(AAFwkTag::EXT, "Not current user's ability");
         return;
     }
@@ -2802,6 +2802,10 @@ void AbilityConnectManager::RestartAbility(const std::shared_ptr<AbilityRecord> 
         }
         if (abilityRecord->IsSceneBoard()) {
             requestInfo.want.SetParam("ohos.app.recovery", true);
+            uint64_t displayId = 0;
+            if (AbilityRuntime::UserController::GetInstance().GetDisplayIdByUserId(userId_, displayId)) {
+                requestInfo.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, static_cast<int32_t>(displayId));
+            }
             DelayedSingleton<AbilityManagerService>::GetInstance()->EnableListForSCBRecovery(userId_);
         }
         requestInfo.restartCount = abilityRecord->GetRestartCount();
@@ -3029,7 +3033,7 @@ void AbilityConnectManager::PauseExtensions()
             auto targetExtension = it->second;
             if (targetExtension != nullptr && targetExtension->GetAbilityInfo().type == AbilityType::EXTENSION &&
                 (IsLauncher(targetExtension) || targetExtension->IsSceneBoard() ||
-                (targetExtension->GetKeepAlive() && userId_ != USER_ID_NO_HEAD))) {
+                (targetExtension->GetKeepAlive() && userId_ != U0_USER_ID))) {
                 terminatingExtensionList_.push_back(it->second);
                 it = serviceMap_.erase(it);
                 TAG_LOGI(AAFwkTag::EXT, "terminate ability:%{public}s, serviceMap size:%{public}zu",

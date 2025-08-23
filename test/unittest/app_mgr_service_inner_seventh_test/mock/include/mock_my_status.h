@@ -21,7 +21,6 @@
 #include "iservice_registry.h"
 #include "singleton.h"
 #include "system_ability_definition.h"
-#include "user_record_manager.h"
 
 #include <mutex>
 #include "hilog_tag_wrapper.h"

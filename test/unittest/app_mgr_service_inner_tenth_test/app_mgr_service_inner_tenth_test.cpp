@@ -25,7 +25,6 @@
 #include "child_process_record.h"
 #include "cache_process_manager.h"
 #undef private
-#include "user_record_manager.h"
 #include "mock_my_status.h"
 #include "ability_manager_errors.h"
 #include "overlay_manager_proxy.h"

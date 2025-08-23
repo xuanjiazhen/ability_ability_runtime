@@ -536,26 +536,6 @@ int32_t AmsMgrScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reaso
     return amsMgrServiceInner_->NotifyAppMgrRecordExitReason(pid, reason, exitMsg);
 }
 
-void AmsMgrScheduler::SetCurrentUserId(const int32_t userId)
-{
-    if (!IsReady()) {
-        return;
-    }
-    amsMgrServiceInner_->SetCurrentUserId(userId);
-}
-
-void AmsMgrScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
-{
-    if (!IsReady()) {
-        return;
-    }
-    if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
-    }
-    amsMgrServiceInner_->SetEnableStartProcessFlagByUserId(userId, enableStartProcess);
-}
-
 int32_t AmsMgrScheduler::GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid)
 {
     if (!IsReady()) {

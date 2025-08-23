@@ -23,7 +23,6 @@
 #include "child_process_record.h"
 #include "cache_process_manager.h"
 #undef private
-#include "user_record_manager.h"
 #include "mock_my_status.h"
 #include "ability_manager_errors.h"
 #include "overlay_manager_proxy.h"
@@ -585,54 +584,6 @@ HWTEST_F(AppMgrServiceInnerEighthTest, StartNativeProcessForDebugger_006, TestSi
     auto ret = appMgrServiceInner->StartNativeProcessForDebugger(want);
     EXPECT_EQ(ret, ERR_NO_INIT);
     TAG_LOGI(AAFwkTag::TEST, "StartNativeProcessForDebugger_006 end");
-}
-
-/**
- * @tc.name: GetCurrentAccountId_001
- * @tc.desc: test GetCurrentAccountId_001
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerEighthTest, GetCurrentAccountId_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetCurrentAccountId_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().queryActiveOsAccountIds_ = ERR_NO_INIT;
-
-    auto ret = appMgrServiceInner->GetCurrentAccountId();
-    EXPECT_EQ(ret, DEFAULT_USER_ID);
-    TAG_LOGI(AAFwkTag::TEST, "GetCurrentAccountId_001 end");
-}
-
-/**
- * @tc.name: GetCurrentAccountId_002
- * @tc.desc: test GetCurrentAccountId_002
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerEighthTest, GetCurrentAccountId_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetCurrentAccountId_002 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().queryActiveOsAccountIds_ = ERR_OK;
-    
-    auto ret = appMgrServiceInner->GetCurrentAccountId();
-    EXPECT_EQ(ret, DEFAULT_USER_ID);
-    TAG_LOGI(AAFwkTag::TEST, "GetCurrentAccountId_002 end");
-}
-
-/**
- * @tc.name: SetCurrentUserId_001
- * @tc.desc: test SetCurrentUserId_001
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerEighthTest, SetCurrentUserId_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "SetCurrentUserId_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
-    
-    appMgrServiceInner->SetCurrentUserId(2);
-    EXPECT_EQ(appMgrServiceInner->currentUserId_, 2);
-    TAG_LOGI(AAFwkTag::TEST, "SetCurrentUserId_001 end");
 }
 
 /**

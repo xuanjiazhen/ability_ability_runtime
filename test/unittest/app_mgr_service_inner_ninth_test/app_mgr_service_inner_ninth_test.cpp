@@ -34,7 +34,6 @@
 #include "mock_start_specified_ability_response.h"
 #include "overlay_manager_proxy.h"
 #include "parameters.h"
-#include "user_record_manager.h"
 #include "want.h"
 using namespace testing;
 using namespace testing::ext;
@@ -196,7 +195,6 @@ HWTEST_F(AppMgrServiceInnerNinthTest, PreloadApplication_003, TestSize.Level1)
     AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = true;
     AAFwk::MyStatus::GetInstance().isSACall_ = true;
     appMgrServiceInner->appPreloader_ = nullptr;
-    appMgrServiceInner->currentUserId_ = 200;
 
     std::string bundleName = "com.test.preload";
     int32_t userId = -2; // CURRENT_USER_ID
