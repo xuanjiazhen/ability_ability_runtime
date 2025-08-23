@@ -21,8 +21,8 @@ group("abilitycapitest") {
       "actscapistartselfuiabilitytest:ActsCapiStartSelfUiAbilityTest",
       "actscapistartselfuiabilitytest20:ActsCapiStartSelfUiAbilityTest20Test",
       "actscapinopermissiontest:ActsCapiNoPermissionTest",
-      "actscapimultiappnotsupport:ActsCapiMultiAppNotSupport",
-      "actscapimulinstancenotsupport:ActsCapiMulInstanceNotSupport"
+      "actscapimultiappnotsupport:ActsCapiMultiAppNotSupportTest",
+      "actscapimulinstancenotsupport:ActsCapiMulInstanceNotSupportTest"
     ]
   }
 }

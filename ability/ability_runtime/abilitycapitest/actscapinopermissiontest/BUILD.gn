@@ -21,11 +21,11 @@ ohos_app_assist_suite("ActsCapiNoPermissionTestMainTest") {
   subsystem_name = "ability"
 }
 
-ohos_js_app_suite("ActsCapiNoPermissionTest20Test") {
+ohos_js_app_suite("ActsCapiNoPermissionTest") {
   test_hap = true
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsCapiNoPermissionTest20Test"
+  hap_name = "ActsCapiNoPermissionTest"
   part_name = "ability_runtime"
   subsystem_name = "ability"
   deps = [ ":ActsCapiNoPermissionTestMainTest" ]
