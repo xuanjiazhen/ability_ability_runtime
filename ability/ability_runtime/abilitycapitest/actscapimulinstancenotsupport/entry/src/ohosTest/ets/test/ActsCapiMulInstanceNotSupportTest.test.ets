@@ -22,16 +22,16 @@ export default function ActsCapiMulInstanceNotSupportTest() {
   describe('ActsCapiMulInstanceNotSupportTest', () => {
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbilityWithStartOptions_0100
-     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbilityWithStartOptions_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0900
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0900
      * @tc.desc    : Testing StartSelfUIAbilityWithStartOptions returns 16000078.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbilityWithStartOptions_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0900',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbilityWithStartOptions_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0900`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsInstanceNotSupport();
@@ -51,16 +51,16 @@ export default function ActsCapiMulInstanceNotSupportTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_AbiliRuntimeErrorMultiInstanceNotSupport_0100
-     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_AbiliRuntimeErrorMultiInstanceNotSupport_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbiliRuntimeErrorMultiInstanceNotSupport_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbiliRuntimeErrorMultiInstanceNotSupport_0100
      * @tc.desc    : Test AbiliRuntimeErrorMultiInstanceNotSupport error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NativeChildProcess_AbiliRuntimeErrorMultiInstanceNotSupport_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_AbiliRuntimeErrorMultiInstanceNotSupport_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_AbiliRuntimeErrorMultiInstanceNotSupport_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbiliRuntimeErrorMultiInstanceNotSupport_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbiliRuntimeErrorMultiInstanceNotSupportCode();

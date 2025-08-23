@@ -1798,16 +1798,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0100
-     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0100
      * @tc.desc    : Test StartSelfUIAbility and return 16000079.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityInstanceKeyNotSupport();
@@ -1828,16 +1828,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0200
-     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0200
      * @tc.desc    : Test StartSelfUIAbility and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityNoError();
@@ -1858,16 +1858,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0300
-     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0300
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0300
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0300
      * @tc.desc    : Test StartSelfUIAbility and return 16000077.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0300',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0300',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_StartSelfUIAbility_0300`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbility_0300`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityUpperLimitReached();
@@ -1889,16 +1889,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
 
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0100
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000079.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsInstanceKeyNotSupport();
@@ -1919,16 +1919,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0200
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0200
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsNoError();
@@ -1949,16 +1949,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0300
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0300
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0300
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0300
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000077.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0300',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0300',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0300`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0300`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsUpperLimitReached();
@@ -1979,16 +1979,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0400
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0400
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0400
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0400
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000001.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0400',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0400',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0400`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0400`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsNoSuchAbility();
@@ -2009,16 +2009,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0500
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0500
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000018.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0500',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0500`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0500`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsCodeCrossApp();
@@ -2039,16 +2039,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0600
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0600
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000050.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0600',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0600`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0600`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsCodeInternal();
@@ -2069,16 +2069,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0700
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0700
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000076.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0700',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0700`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0700`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsInvalidAppInstanceKey();
@@ -2099,16 +2099,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0800
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0800
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0800
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0800
      * @tc.desc    : Test StartSelfUIAbilityWithStartOptions and return 16000067.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0800',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0800',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntime_StartSelfUIAbilityWithStartOptions_0800`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_StartSelfUIAbilityWithStartOptions_0800`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result : number = AbilityKitTest.StartSelfUIAbilityWithStartOptionsVisibilitySettingDisabled();
@@ -2129,16 +2129,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetCacheDir_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetCacheDir_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCacheDir_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCacheDir_0100
      * @tc.desc    : Test ApplicationContextGetCacheDir and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetCacheDir_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCacheDir_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetCacheDir_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCacheDir_0100`;
         try {
           console.info(`${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetCacheDirNoError();
@@ -2153,16 +2153,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetCacheDir_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetCacheDir_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCacheDir_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCacheDir_0200
      * @tc.desc    : Testing ApplicationContextGetCacheDir returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetCacheDir_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCacheDir_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetCacheDir_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCacheDir_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetCacheDirInvPar();
@@ -2177,16 +2177,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetAreaMode_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetAreaMode_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetAreaMode_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetAreaMode_0100
      * @tc.desc    : Test ApplicationContextGetAreaMode and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetAreaMode_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetAreaMode_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetAreaMode_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetAreaMode_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetAreaModeNoError();
@@ -2201,16 +2201,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetAreaMode_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetAreaMode_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetAreaMode_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetAreaMode_0200
      * @tc.desc    : Testing ApplicationContextGetAreaMode returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetAreaMode_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetAreaMode_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetAreaMode_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetAreaMode_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetAreaModeInvPar();
@@ -2225,16 +2225,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetBundleName_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetBundleName_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleName_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleName_0100
      * @tc.desc    : Test ApplicationContextGetBundleName and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetBundleName_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleName_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetBundleName_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleName_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetBundleNameNoError();
@@ -2249,16 +2249,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetBundleName_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetBundleName_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleName_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleName_0200
      * @tc.desc    : Testing ApplicationContextGetBundleName returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetBundleName_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleName_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetBundleName_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleName_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetBundleNameInvPar();
@@ -2273,16 +2273,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetTempDir_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetTempDir_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetTempDir_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetTempDir_0100
      * @tc.desc    : Test ApplicationContextGetTempDir and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetTempDir_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetTempDir_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetTempDir_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetTempDir_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetTempDirNoError();
@@ -2297,16 +2297,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetTempDir_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetTempDir_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetTempDir_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetTempDir_0200
      * @tc.desc    : Testing ApplicationContextGetTempDir returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetTempDir_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetTempDir_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetTempDir_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetTempDir_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetTempDirInvPar();
@@ -2321,16 +2321,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetFilesDir_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetFilesDir_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetFilesDir_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetFilesDir_0100
      * @tc.desc    : Test ApplicationContextGetFilesDir and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetFilesDir_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetFilesDir_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetFilesDir_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetFilesDir_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetFilesDirNoError();
@@ -2345,16 +2345,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetFilesDir_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetFilesDir_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetFilesDir_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetFilesDir_0200
      * @tc.desc    : Testing ApplicationContextGetFilesDir returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetFilesDir_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetFilesDir_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetFilesDir_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetFilesDir_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetFilesDirInvPar();
@@ -2369,16 +2369,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetDatabaseDir_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetDatabaseDir_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDatabaseDir_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDatabaseDir_0100
      * @tc.desc    : Test ApplicationContextGetDatabaseDir and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetDatabaseDir_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDatabaseDir_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetDatabaseDir_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDatabaseDir_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetDatabaseDirNoError();
@@ -2393,16 +2393,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetDatabaseDir_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetDatabaseDir_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDatabaseDir_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDatabaseDir_0200
      * @tc.desc    : Testing ApplicationContextGetDatabaseDir returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetDatabaseDir_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDatabaseDir_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetDatabaseDir_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDatabaseDir_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetDatabaseDirInvPar();
@@ -2417,16 +2417,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetPreferencesDir_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetPreferencesDir_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetPreferencesDir_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetPreferencesDir_0100
      * @tc.desc    : Test ApplicationContextGetPreferencesDir and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetPreferencesDir_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetPreferencesDir_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetPreferencesDir_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetPreferencesDir_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetPreferencesDirNoError();
@@ -2441,16 +2441,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetPreferencesDir_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetPreferencesDir_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetPreferencesDir_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetPreferencesDir_0200
      * @tc.desc    : Testing ApplicationContextGetPreferencesDir returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetPreferencesDir_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetPreferencesDir_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetPreferencesDir_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetPreferencesDir_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetPreferencesDirInvPar();
@@ -2465,16 +2465,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetBundleCodeDir_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetBundleCodeDir_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleCodeDir_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleCodeDir_0100
      * @tc.desc    : Test ApplicationContextGetBundleCodeDir and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetBundleCodeDir_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleCodeDir_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetBundleCodeDir_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleCodeDir_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetBundleCodeDirNoError();
@@ -2489,16 +2489,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetBundleCodeDir_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetBundleCodeDir_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleCodeDir_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleCodeDir_0200
      * @tc.desc    : Testing ApplicationContextGetBundleCodeDir returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetBundleCodeDir_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleCodeDir_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetBundleCodeDir_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetBundleCodeDir_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetBundleCodeDirInvPar();
@@ -2513,16 +2513,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetDistributedFilesDir_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetDistributedFilesDir_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDistributedFilesDir_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDistributedFilesDir_0100
      * @tc.desc    : Test ApplicationContextGetDistributedFilesDir and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetDistributedFilesDir_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDistributedFilesDir_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetDistributedFilesDir_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDistributedFilesDir_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetDistributedFilesDirNoError();
@@ -2537,16 +2537,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetDistributedFilesDir_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetDistributedFilesDir_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDistributedFilesDir_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDistributedFilesDir_0200
      * @tc.desc    : Testing ApplicationContextGetDistributedFilesDir returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetDistributedFilesDir_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDistributedFilesDir_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetDistributedFilesDir_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetDistributedFilesDir_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetDistributedFilesDirInvPar();
@@ -2561,16 +2561,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetCloudFileDir_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetCloudFileDir_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCloudFileDir_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCloudFileDir_0100
      * @tc.desc    : Test ApplicationContextGetCloudFileDir and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetCloudFileDir_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCloudFileDir_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetCloudFileDir_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCloudFileDir_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetCloudFileDirNoError();
@@ -2585,16 +2585,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetCloudFileDir_0200
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetCloudFileDir_0200
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCloudFileDir_0200
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCloudFileDir_0200
      * @tc.desc    : Testing ApplicationContextGetCloudFileDir returns an invalid parameter error code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetCloudFileDir_0200',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCloudFileDir_0200',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetCloudFileDir_0200`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetCloudFileDir_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetCloudFileDirInvPar();
@@ -2609,16 +2609,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_ApplicationContextGetResourceDir_0100
-     * @tc.name    : SUB_Ability_AbilityBase_ApplicationContextGetResourceDir_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetResourceDir_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetResourceDir_0100
      * @tc.desc    : Test ApplicationContextGetResourceDir and return the correct code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_ApplicationContextGetResourceDir_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetResourceDir_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_ApplicationContextGetResourceDir_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_ApplicationContextGetResourceDir_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.ApplicationContextGetResourceDirNoError();
@@ -2633,16 +2633,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NcpErrorInvalidParam_0100
-     * @tc.name    : SUB_Ability_AbilityBase_NcpErrorInvalidParam_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorInvalidParam_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorInvalidParam_0100
      * @tc.desc    : Test NcpErrorInvalidParam Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NcpErrorInvalidParam_0100',
+    it('SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorInvalidParam_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NcpErrorInvalidParam_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorInvalidParam_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.NcpErrorInvalidParamCode();
@@ -2657,16 +2657,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NcpErrorServiceError_0100
-     * @tc.name    : SUB_Ability_AbilityBase_NcpErrorServiceError_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorServiceError_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorServiceError_0100
      * @tc.desc    : Test NcpErrorServiceError Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NcpErrorServiceError_0100',
+    it('SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorServiceError_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NcpErrorServiceError_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorServiceError_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.NcpErrorServiceErrorCode();
@@ -2685,16 +2685,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NcpErrorLibLoadingFailed_0100
-     * @tc.name    : SUB_Ability_AbilityBase_NcpErrorLibLoadingFailed_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorLibLoadingFailed_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorLibLoadingFailed_0100
      * @tc.desc    : Test NcpErrorLibLoadingFailed Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NcpErrorLibLoadingFailed_0100',
+    it('SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorLibLoadingFailed_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NcpErrorLibLoadingFailed_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_NcpErrorLibLoadingFailed_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.NcpErrorLibLoadingFailedCode();
@@ -2713,16 +2713,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_NcpErrCallBackNotExist_0100
-     * @tc.name    : SUB_Ability_AbilityBase_NcpErrCallBackNotExist_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeChildProcess_NcpErrCallBackNotExist_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeChildProcess_NcpErrCallBackNotExist_0100
      * @tc.desc    : Test NcpErrCallBackNotExist Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_NcpErrCallBackNotExist_0100',
+    it('SUB_Ability_AbilityBase_NativeChildProcess_NcpErrCallBackNotExist_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_NcpErrCallBackNotExist_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_NcpErrCallBackNotExist_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.NcpErrCallBackNotExistCode();
@@ -2737,16 +2737,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityBaseErrorCodeNoError_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityBaseErrorCodeNoError_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityBase_AbilityBaseErrorCodeNoError_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityBase_AbilityBaseErrorCodeNoError_0100
      * @tc.desc    : Test AbilityBaseErrorCodeNoError Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityBaseErrorCodeNoError_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityBase_AbilityBaseErrorCodeNoError_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityBaseErrorCodeNoError_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_AbilityBaseErrorCodeNoError_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbilityBaseErrorCodeNoErrorCode();
@@ -2761,16 +2761,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityBaseErrorCodeParamInvalid_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityBaseErrorCodeParamInvalid_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityBase_AbilityBaseErrorCodeParamInvalid_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityBase_AbilityBaseErrorCodeParamInvalid_0100
      * @tc.desc    : Test AbilityBaseErrorCodeParamInvalid Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityBaseErrorCodeParamInvalid_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityBase_AbilityBaseErrorCodeParamInvalid_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityBaseErrorCodeParamInvalid_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_AbilityBaseErrorCodeParamInvalid_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbilityBaseErrorCodeParamInvalidCode();
@@ -2790,16 +2790,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeNoSuchAbility_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeNoSuchAbility_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeNoSuchAbility_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeNoSuchAbility_0100
      * @tc.desc    : Test AbilityRuntimeErrorCodeNoSuchAbility Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeNoSuchAbility_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeNoSuchAbility_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeNoSuchAbility_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeNoSuchAbility_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbilityRuntimeErrorCodeNoSuchAbilityCode();
@@ -2819,16 +2819,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeCrossApp_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeCrossApp_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeCrossApp_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeCrossApp_0100
      * @tc.desc    : Test AbilityRuntimeErrorCodeCrossApp Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeCrossApp_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeCrossApp_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeCrossApp_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeCrossApp_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbilityRuntimeErrorCodeCrossAppCode();
@@ -2848,16 +2848,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeInternal_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeInternal_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeInternal_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeInternal_0100
      * @tc.desc    : Test AbilityRuntimeErrorCodeInternal Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeInternal_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeInternal_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeInternal_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeInternal_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbilityRuntimeErrorCodeInternalCode();
@@ -2877,16 +2877,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntimeErrorVisibilitySettingDisabled_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntimeErrorVisibilitySettingDisabled_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorVisibilitySettingDisabled_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorVisibilitySettingDisabled_0100
      * @tc.desc    : Test AbilityRuntimeErrorVisibilitySettingDisabled Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeErrorVisibilitySettingDisabled_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorVisibilitySettingDisabled_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntimeErrorVisibilitySettingDisabled_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorVisibilitySettingDisabled_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbilityRuntimeErrorVisibilitySettingDisabledCode();
@@ -2906,16 +2906,16 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeInvalidAppInstanceKey_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeInvalidAppInstanceKey_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeInvalidAppInstanceKey_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeInvalidAppInstanceKey_0100
      * @tc.desc    : Test AbilityRuntimeErrorCodeInvalidAppInstanceKey Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeInvalidAppInstanceKey_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeInvalidAppInstanceKey_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeInvalidAppInstanceKey_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeInvalidAppInstanceKey_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbilityRuntimeErrorCodeInvalidAppInstanceKeyCode();
@@ -2935,14 +2935,14 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeUpperLimitReached_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeUpperLimitReached_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeUpperLimitReached_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeUpperLimitReached_0100
      * @tc.desc    : Test AbilityRuntimeErrorCodeUpperLimitReached Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeUpperLimitReached_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorCodeUpperLimitReached_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntimeErrorCodeUpperLimitReached_0100`;
         try {
@@ -2964,8 +2964,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
       })
 
     /**
-     * @tc.number  : SUB_Ability_AbilityBase_AbilityRuntimeErrorAppInstanceKeyNotSupport_0100
-     * @tc.name    : SUB_Ability_AbilityBase_AbilityRuntimeErrorAppInstanceKeyNotSupport_0100
+     * @tc.number  : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorAppInstanceKeyNotSupport_0100
+     * @tc.name    : SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorAppInstanceKeyNotSupport_0100
      * @tc.desc    : Test AbilityRuntimeErrorAppInstanceKeyNotSupport Error Code.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
