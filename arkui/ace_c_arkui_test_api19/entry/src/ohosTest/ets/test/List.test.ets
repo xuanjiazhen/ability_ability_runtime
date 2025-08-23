@@ -19,8 +19,8 @@ import textPickerRangeTest from "./textpicker/textPickerRangeTest.test"
 import customDialogTest1 from "./customdialog/customDialogTest1.test"
 
 export default function testsuite() {
-  textPickerRangeTest();
   customDialogBackGroundTest();
-  customDialogTest();  
+  customDialogTest();
+  textPickerRangeTest();
   customDialogTest1()
 }
