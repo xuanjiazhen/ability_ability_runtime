@@ -16,7 +16,11 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Level, Size} from '@ohos/hypium'
 import { BusinessError } from '@kit.BasicServicesKit';
 import { hidebug } from '@kit.PerformanceAnalysisKit';
-import { statfs } from '@kit.CoreFileKit';
+import { fileIo as fs, statfs } from '@kit.CoreFileKit';
+
+export function asyncSleep(time: number): Promise<Object> {
+  return new Promise(resolve => setTimeout(resolve, time));
+};
 
 export default function HidebugrawTest() {
   describe('HidebugrawTest', () => {
@@ -123,8 +127,174 @@ export default function HidebugrawTest() {
       }catch (error) {
         console.error(`TestTag error code: ${(error as BusinessError).code}, error msg: ${(error as BusinessError).message}`);
         expect((error as BusinessError).code==11400112).assertTrue();
+        await asyncSleep(5000);
         done();
       }
+    })
+
+    /**
+     * @tc.number SUB_DFX_DFR_Hidebug_Ets_0400
+     * @tc.name testHidebugraw_0400
+     * @tc.desc 验证 setJsRawHeapTrimLevel(1) 和 不设置setJsRawHeapTrimLevel 时候比较文件大小
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level2
+     */
+    it('testHidebugraw_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      try {
+        console.info(`testHidebugraw_0400 success start`)
+        let path: string = '/data/storage/el2/base/files/' ;
+        console.info("output path: " + path);
+        let freeSize = await statfs.getFreeSize(path);
+        if (freeSize > 30 * 1024 * 1024 * 1024) {
+          let filename1 = await hidebug.dumpJsRawHeapData()
+          console.info(`testHidebugraw_0400 success filename1 is ${filename1}`)
+          let stat1 = fs.statSync(filename1);
+          let filesize1 = stat1.size
+          console.info("testHidebugraw_0400 success filezize1 is " + filesize1);
+          hidebug.setJsRawHeapTrimLevel(1)
+          let filename2 = await hidebug.dumpJsRawHeapData()
+          console.info(`testHidebugraw_0400 success filename2 is ${filename2}`)
+          let stat2 = fs.statSync(filename2);
+          let filesize2 = stat2.size
+          console.info("testHidebugraw_0400 success filezize2 is " + filesize2);
+          console.info("testHidebugraw_0400 success filezize2 - filesize2 is " + Math.abs(filesize1-filesize2));
+          console.info("testHidebugraw_0400 success 1/4 filezize2 is " + 1/4 * filesize1);
+          expect(Math.abs(filesize2-filesize1) > 1/4 * filesize2 ).assertTrue();
+          hidebug.setJsRawHeapTrimLevel(0)
+          done()
+        }
+      }catch (err) {
+        console.info(`testHidebugraw_0400 > error code: ${err.code}, error msg: ${err.message}`);
+        expect(false).assertTrue();
+        done();
+      }
+      console.info(`testHidebugraw_0400 success end`)
+    })
+
+    /**
+     * @tc.number SUB_DFX_DFR_Hidebug_Ets_0500
+     * @tc.name testHidebugraw_0500
+     * @tc.desc 验证 setJsRawHeapTrimLevel(1) 和 setJsRawHeapTrimLevel(0) 时候比较文件大小
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level2
+     */
+    it('testHidebugraw_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      try {
+        console.info(`testHidebugraw_0500 success start`)
+        let path: string = '/data/storage/el2/base/files/' ;
+        console.info("output path: " + path);
+        let freeSize = await statfs.getFreeSize(path);
+        if (freeSize > 30 * 1024 * 1024 * 1024) {
+          hidebug.setJsRawHeapTrimLevel(1)
+          let filename1 = await hidebug.dumpJsRawHeapData()
+          console.info(`testHidebugraw_0500 success filename1 is ${filename1}`)
+          let stat1 = fs.statSync(filename1);
+          let filesize1 = stat1.size
+          console.info("testHidebugraw_0500 success filezize1 is " + filesize1);
+          hidebug.setJsRawHeapTrimLevel(0)
+          let filename2 = await hidebug.dumpJsRawHeapData()
+          console.info(`testHidebugraw_0500 success filename2 is ${filename2}`)
+          let stat2 = fs.statSync(filename2);
+          let filesize2 = stat2.size
+          console.info("testHidebugraw_0500 success filezize2 is " + filesize2);
+          console.info("testHidebugraw_0500 success filezize2 - filesize2 is " + Math.abs(filesize1-filesize2));
+          console.info("testHidebugraw_0500 success 1/4 filezize2 is " + 1/4 * filesize2);
+          expect(Math.abs(filesize1-filesize2) > 1/4 * filesize2 ).assertTrue();
+          done()
+        }
+      }catch (err) {
+        console.info(`testHidebugraw_0500 > error code: ${err.code}, error msg: ${err.message}`);
+        expect(false).assertTrue();
+        done();
+      }
+      console.info(`testHidebugraw_0500 success end`)
+    })
+
+
+    /**
+     * @tc.number SUB_DFX_DFR_Hidebug_Ets_0600
+     * @tc.name testHidebugraw_0600
+     * @tc.desc setJsRawHeapTrimLevel 传入异常值返回 401 错误码
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level2
+     */
+    it('testHidebugraw_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      try {
+        console.info(`testHidebugraw_0600 success start`)
+        hidebug.setJsRawHeapTrimLevel(undefined)
+        expect(false).assertTrue()
+      }catch (err) {
+        console.info(`testHidebugraw_0600 > error code: ${err.code}, error msg: ${err.message}`);
+        expect(err.code == 401).assertTrue();
+        done();
+      }
+      console.info(`testHidebugraw_0600 success end`)
+    })
+
+    /**
+     * @tc.number SUB_DFX_DFR_Hidebug_Ets_0700
+     * @tc.name testHidebugraw_0700
+     * @tc.desc hidebug.setJsRawHeapTrimLevel 传入枚举类型 TRIM_LEVEL_1 和 TRIM_LEVEL_2
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level2
+     */
+    it('testHidebugraw_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      try {
+        console.info(`testHidebugraw_0700 success start`)
+        let path: string = '/data/storage/el2/base/files/' ;
+        console.info("output path: " + path);
+        let freeSize = await statfs.getFreeSize(path);
+        if (freeSize > 30 * 1024 * 1024 * 1024) {
+          hidebug.setJsRawHeapTrimLevel(hidebug.JsRawHeapTrimLevel.TRIM_LEVEL_1);
+          let filename1 = await hidebug.dumpJsRawHeapData()
+          console.info(`testHidebugraw_0700 success filename1 is ${filename1}`)
+          let stat1 = fs.statSync(filename1);
+          let filesize1 = stat1.size
+          console.info("testHidebugraw_0700 success filezize1 is " + filesize1);
+          hidebug.setJsRawHeapTrimLevel(hidebug.JsRawHeapTrimLevel.TRIM_LEVEL_2);
+          let filename2 = await hidebug.dumpJsRawHeapData()
+          console.info(`testHidebugraw_0700 success filename2 is ${filename2}`)
+          let stat2 = fs.statSync(filename2);
+          let filesize2 = stat2.size
+          console.info("testHidebugraw_0700 success filezize2 is " + filesize2);
+          console.info("testHidebugraw_0700 success filezize2 - filesize2 is " + Math.abs(filesize1-filesize2));
+          console.info("testHidebugraw_0700 success 1/4 filezize2 is " + 1/5 * filesize1);
+          expect(Math.abs(filesize2-filesize1) > 1/5 * filesize2 ).assertTrue();
+          hidebug.setJsRawHeapTrimLevel(hidebug.JsRawHeapTrimLevel.TRIM_LEVEL_1);
+          done()
+        }
+      }catch (err) {
+        console.info(`testHidebugraw_0700 > error code: ${err.code}, error msg: ${err.message}`);
+        expect(false).assertTrue();
+        done();
+      }
+      console.info(`testHidebugraw_0700 success end`)
+    })
+
+
+    /**
+     * @tc.number SUB_DFX_DFR_Hidebug_Ets_0800
+     * @tc.name testHidebugraw_0800
+     * @tc.desc setJsRawHeapTrimLevel 传入异常值返回 401 错误码
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level2
+     */
+    it('testHidebugraw_0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      try {
+        console.info(`testHidebugraw_0800 success start`)
+        hidebug.setJsRawHeapTrimLevel(3);
+        expect(false).assertTrue()
+      }catch (err) {
+        console.info(`testHidebugraw_0800 > error code: ${err.code}, error msg: ${err.message}`);
+        expect(err.code == 401).assertTrue();
+        done();
+      }
+      console.info(`testHidebugraw_0800 success end`)
     })
     
   })
