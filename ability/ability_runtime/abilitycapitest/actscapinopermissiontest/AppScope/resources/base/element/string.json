@@ -2,11 +2,11 @@
   "string": [
     {
       "name": "app_name",
-      "value": "ActsCapabilityStartSelfUIAbilityTest"
+      "value": "ActsCapiNoPermissionTest"
     },
     {
       "name": "description_application",
-      "value": "ActsCapabilityStartSelfUIAbilityTest"
+      "value": "ActsCapiNoPermissionTest"
     }
   ]
 }
