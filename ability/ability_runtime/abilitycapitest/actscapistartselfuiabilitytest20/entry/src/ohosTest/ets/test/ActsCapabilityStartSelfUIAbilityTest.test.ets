@@ -2971,9 +2971,9 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeErrorAppInstanceKeyNotSupport_0100',
+    it('SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorAppInstanceKeyNotSupport_0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        const LOG_NAME = `SUB_Ability_AbilityBase_AbilityRuntimeErrorAppInstanceKeyNotSupport_0100`;
+        const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeErrorAppInstanceKeyNotSupport_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
           let result:number = AbilityKitTest.AbilityRuntimeErrorAppInstanceKeyNotSupportCode();
