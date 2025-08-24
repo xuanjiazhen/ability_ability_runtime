@@ -160,7 +160,7 @@ struct WebViewMenuShowResult {
                 await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
               } else {
                 //点击第二个input框copy聚焦
-                await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 218 }, MouseButton.MOUSE_BUTTON_RIGHT);
+                await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 180 }, MouseButton.MOUSE_BUTTON_RIGHT);
               }
               await Utils.sleep(2000);
               this.menuShowState = 'Copy'
@@ -168,7 +168,7 @@ struct WebViewMenuShowResult {
                 await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
               } else {
                 //点击第二个input框copy聚焦
-                // await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 218 }, MouseButton.MOUSE_BUTTON_RIGHT);
+                // await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 180 }, MouseButton.MOUSE_BUTTON_RIGHT);
                 let buttonOne = await driver.findComponent(ON.text('1301234'));
               }
               await Utils.sleep(2000);
@@ -207,7 +207,7 @@ struct WebViewMenuShowResult {
               if ((this.userAgentPC).includes("PC")) {
                 await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
               } else {
-                await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 218 }, MouseButton.MOUSE_BUTTON_RIGHT);
+                await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 180  }, MouseButton.MOUSE_BUTTON_RIGHT);
               }
               await Utils.sleep(2000);
               this.menuShowState = 'Cut'
@@ -215,7 +215,7 @@ struct WebViewMenuShowResult {
                 await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
               } else {
                 //点击第二个input框copy聚焦
-                await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 218 }, MouseButton.MOUSE_BUTTON_RIGHT);
+                await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 180 }, MouseButton.MOUSE_BUTTON_RIGHT);
               }
               await Utils.sleep(2000);
               this.menuShowState = 'cutPaste'
