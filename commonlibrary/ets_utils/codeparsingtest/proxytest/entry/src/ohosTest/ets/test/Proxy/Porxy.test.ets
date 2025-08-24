@@ -1,0 +1,765 @@
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, Level, Size, TestType } from '@ohos/hypium';
+import {
+  testApplyInterceptCall28,
+  testArrayProxyLength38,
+  testConstructReturnNonObject29,
+  testDefinePropertyConfigInvariant52,
+  testDefinePropertyInvariant21,
+  testGetArrayIndex41,
+  testGetInheritedProperty24,
+  testGetInvariant25,
+  testGetOwnPropertyDescriptorInvariant19,
+  testGetOwnPropertyDescriptorTrap18,
+  testGetPrototypeOfInvariant12,
+  testGetPrototypeOfTrap11,
+  testGetSymbolProperty42,
+  testGetThisBinding40,
+  testHasInheritedProperty47,
+  testHasInvariantExtensible48,
+  testIsExtensibleInvariant16,
+  testNestedProxy37,
+  testOwnKeysFilterNonEnumerable49,
+  testOwnKeysFilterSymbols39,
+  testOwnKeysInvariant10,
+  testOwnKeysInvariant23,
+  testOwnKeysSymbolInvariant50,
+  testPreventExtensionsTrap17,
+  testProxyApplyTrap5,
+  testProxyConstructTrap6,
+  testProxyDateObject60,
+  testProxyDeleteProperty4,
+  testProxyFunctionPrototype59,
+  testProxyGetTrap1,
+  testProxyHasTrap3,
+  testProxySetTrap2,
+  testReflectApply30,
+  testReflectApplyNoArgs56,
+  testReflectConstruct31,
+  testReflectDefineProperty9,
+  testReflectDelete33,
+  testReflectForwarding8,
+  testReflectGetDesc34,
+  testReflectGetInherited55,
+  testReflectHas32,
+  testReflectIsExtensible54,
+  testReflectSetPrototype53,
+  testRevocableProxy7,
+  testRevokedProxyApply35,
+  testRevokedProxyConstruct36,
+  testRevokedProxyHas57,
+  testRevokedProxyOwnKeys58,
+  testSetAccessorInvariant46,
+  testSetArrayIndex44,
+  testSetInheritedProperty26,
+  testSetPrototypeOfInvariant14,
+  testSetPrototypeOfTrap13,
+  testSetStrictMode27
+} from './Proxy';
+
+function sleep(time: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, time));
+}
+
+
+export default function proxyTest() {
+  describe('proxyTest', () => {
+    // Defines a test suite. Two parameters are supported: test suite name and test suite function.
+    beforeAll(() => {
+      // Presets an action, which is performed only once before all test cases of the test suite start.
+      // This API supports only one parameter: preset action function.
+    })
+    beforeEach(async () => {
+      await sleep(100);
+      // Presets an action, which is performed before each unit test case starts.
+      // The number of execution times is the same as the number of test cases defined by **it**.
+      // This API supports only one parameter: preset action function.
+    })
+    afterEach(() => {
+      // Presets a clear action, which is performed after each unit test case ends.
+      // The number of execution times is the same as the number of test cases defined by **it**.
+      // This API supports only one parameter: clear action function.
+    })
+    afterAll(() => {
+      // Presets a clear action, which is performed after all test cases of the test suite end.
+      // This API supports only one parameter: clear action function.
+    })
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_0100
+     * @tc.name proxyTest001
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyGetTrap1();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_0200
+     * @tc.name proxyTest002
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxySetTrap2();
+      expect(result).assertEqual(3);
+    });
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_0300
+     * @tc.name proxyTest003
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyHasTrap3();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_0400
+     * @tc.name proxyTest004
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyDeleteProperty4();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_0500
+     * @tc.name proxyTest005
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyApplyTrap5();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_0600
+     * @tc.name proxyTest006
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyConstructTrap6();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_0700
+     * @tc.name proxyTest007
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testRevocableProxy7();
+      expect(result).assertEqual(3);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_0800
+     * @tc.name proxyTest008
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest008', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectForwarding8();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_0900
+     * @tc.name proxyTest009
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest009', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectDefineProperty9();
+      expect(result).assertEqual(3);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_1000
+     * @tc.name proxyTest010
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest010', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testOwnKeysInvariant10();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_1100
+     * @tc.name proxyTest011
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest011', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetPrototypeOfTrap11();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_1200
+     * @tc.name proxyTest012
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest012', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetPrototypeOfInvariant12();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_1300
+     * @tc.name proxyTest013
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest013', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetPrototypeOfTrap13();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_1400
+     * @tc.name proxyTest014
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest014', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetPrototypeOfInvariant14();
+      expect(result).assertEqual(1);
+
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_1600
+     * @tc.name proxyTest016
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest016', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testIsExtensibleInvariant16();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_1700
+     * @tc.name proxyTest017
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest017', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testPreventExtensionsTrap17();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_1800
+     * @tc.name proxyTest018
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest018', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetOwnPropertyDescriptorTrap18();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_1900
+     * @tc.name proxyTest019
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest019', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetOwnPropertyDescriptorInvariant19();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_2100
+     * @tc.name proxyTest021
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest021', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testDefinePropertyInvariant21();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_2300
+     * @tc.name proxyTest023
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest023', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testOwnKeysInvariant23();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_2400
+     * @tc.name proxyTest024
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest024', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetInheritedProperty24();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_2500
+     * @tc.name proxyTest025
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest025', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetInvariant25();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_2600
+     * @tc.name proxyTest026
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest026', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetInheritedProperty26();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_2700
+     * @tc.name proxyTest027
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest027', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetStrictMode27();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_2800
+     * @tc.name proxyTest028
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest028', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testApplyInterceptCall28();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_2900
+     * @tc.name proxyTest029
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest029', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testConstructReturnNonObject29();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3000
+     * @tc.name proxyTest030
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest030', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectApply30();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3100
+     * @tc.name proxyTest031
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest031', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectConstruct31();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3200
+     * @tc.name proxyTest032
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest032', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectHas32();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3300
+     * @tc.name proxyTest033
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest033', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectDelete33();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3400
+     * @tc.name proxyTest034
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest034', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectGetDesc34();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3500
+     * @tc.name proxyTest035
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest035', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testRevokedProxyApply35();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3600
+     * @tc.name proxyTest036
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest036', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testRevokedProxyConstruct36();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3700
+     * @tc.name proxyTest037
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest037', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testNestedProxy37();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3800
+     * @tc.name proxyTest038
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest038', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testArrayProxyLength38();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_3900
+     * @tc.name proxyTest039
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest039', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testOwnKeysFilterSymbols39();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_4000
+     * @tc.name proxyTest040
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest040', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetThisBinding40();
+      expect(result).assertEqual(true);
+    });
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_4100
+     * @tc.name proxyTest041
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest041', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetArrayIndex41();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_4200
+     * @tc.name proxyTest042
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest042', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetSymbolProperty42();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_4400
+     * @tc.name proxyTest044
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest044', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetArrayIndex44();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_4600
+     * @tc.name proxyTest046
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest046', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetAccessorInvariant46();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_4700
+     * @tc.name proxyTest047
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest047', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testHasInheritedProperty47();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_4800
+     * @tc.name proxyTest048
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest048', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testHasInvariantExtensible48();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_4900
+     * @tc.name proxyTest049
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest049', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testOwnKeysFilterNonEnumerable49();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_5300
+     * @tc.name proxyTest053
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest053', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectSetPrototype53();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_5400
+     * @tc.name proxyTest054
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest054', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectIsExtensible54();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_5500
+     * @tc.name proxyTest055
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest055', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectGetInherited55();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_5600
+     * @tc.name proxyTest056
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest056', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectApplyNoArgs56();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_5700
+     * @tc.name proxyTest057
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest057', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testRevokedProxyHas57();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_5800
+     * @tc.name proxyTest058
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest058', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testRevokedProxyOwnKeys58();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_5900
+     * @tc.name proxyTest059
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest059', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyFunctionPrototype59();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_6000
+     * @tc.name proxyTest060
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest060', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyDateObject60();
+      expect(result).assertEqual(true);
+    });
+
+  })
+}
+
+

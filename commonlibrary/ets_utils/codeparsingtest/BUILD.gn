@@ -26,6 +26,7 @@ group("codeparsingtest") {
       "decimallibtest:ActsDecimalLibTest",
       "etsspectest:ActsBaseSpecTest",
       "specialchartest:ActsSpecialCharTest",
+      "proxytest:ActsProxyTest",
     ]
   }
 }
