@@ -99,6 +99,12 @@ struct WebViewMenuShowResult {
               }
               await Utils.sleep(2000);
               this.menuShowState = 'Copy'
+             if ((this.userAgentPC).includes("PC")) {
+                //点击第二个input框copy聚焦
+                await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              } else {
+                await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 60 }, MouseButton.MOUSE_BUTTON_RIGHT);
+              }
               await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 60 }, MouseButton.MOUSE_BUTTON_RIGHT);
               await Utils.sleep(2000);
               this.menuShowState = 'copyPastetest'
