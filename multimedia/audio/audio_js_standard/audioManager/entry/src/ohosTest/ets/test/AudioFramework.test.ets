@@ -4159,7 +4159,7 @@ export default function audioFramework() {
           outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
           flag = false;
         }
-        let data = await audio.isMicrophoneMute();
+        let data = await audioManager.isMicrophoneMute();
         if (data == false){
           await audioManager.setDeviceActive(2, false).then(() => {
             console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 Promise returned to indicate that the device is set to the active status.`);
