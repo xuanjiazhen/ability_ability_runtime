@@ -134,12 +134,14 @@ export default function abilityTest() {
           done();
         }).catch((err: BusinessError) => {
           console.error(CaseName+ ` Failed to create floating ball controller. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed to test_Create_1300019. Cause:${e.code}, message:${e.message}`);
         expect(e.code).assertEqual(1300019);
+        expect(err.message!=null).assertTrue();
         done();
       }
     })
@@ -185,6 +187,7 @@ export default function abilityTest() {
 
         }).catch((err: BusinessError) => {
           console.error(CaseName+ ` Failed to create floating ball controller. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           if(err.code == 801){
             done();
           }else{
@@ -223,6 +226,7 @@ export default function abilityTest() {
         done();
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(err.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -260,12 +264,14 @@ export default function abilityTest() {
             done();
           }).catch((err: BusinessError) => {
             console.error(CaseName+ ` Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+            expect(err.message!=null).assertTrue();
             expect(false).assertTrue();
             done();
           });
 
         }).catch((err: BusinessError) => {
           console.error(CaseName+ ` Failed to create floating ball controller. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           if(err.code == 801){
             done();
           }else if(err.code == 1300019){
@@ -315,10 +321,12 @@ export default function abilityTest() {
             console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
             await floatingBallController1.stopFloatingBall();
             expect(err.code).assertEqual(1300021);
+            expect(err.message!=null).assertTrue();
             done();
           });
         }).catch((err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController1 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
@@ -326,6 +334,7 @@ export default function abilityTest() {
 
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -364,6 +373,7 @@ export default function abilityTest() {
             console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
             await floatingBallController1.stopFloatingBall();
             expect(err.code).assertEqual(1300022);
+            expect(err.message!=null).assertTrue();
             done();
           });
         }).catch((err: BusinessError) => {
@@ -375,6 +385,7 @@ export default function abilityTest() {
 
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -418,6 +429,7 @@ export default function abilityTest() {
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else if(e.code == 1300019){
@@ -457,11 +469,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else if(e.code == 1300019){
@@ -501,11 +515,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else if(e.code == 1300019){
@@ -546,11 +562,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else if(e.code == 1300019){
@@ -591,11 +609,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }
@@ -638,6 +658,7 @@ export default function abilityTest() {
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else if(e.code == 1300019){
@@ -683,6 +704,7 @@ export default function abilityTest() {
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else if(e.code == 1300019){
@@ -724,11 +746,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -768,11 +792,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -810,11 +836,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -856,6 +884,7 @@ export default function abilityTest() {
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else if(e.code == 1300019){
@@ -897,11 +926,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -941,11 +972,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -983,11 +1016,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1024,11 +1059,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1068,11 +1105,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1112,11 +1151,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1154,11 +1195,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1195,11 +1238,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1239,11 +1284,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1283,11 +1330,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1325,11 +1374,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1366,11 +1417,13 @@ export default function abilityTest() {
           done();
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1420,10 +1473,12 @@ export default function abilityTest() {
           console.error(CaseName+ ` floatingBallController Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
           await floatingBallController.stopFloatingBall();
           expect(err.code).assertEqual(1300019)
+          expect(err.message!=null).assertTrue();
           done()
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1463,11 +1518,13 @@ export default function abilityTest() {
           done();
         }).catch((err: BusinessError) => {
           console.error(CaseName+ ` Failed to update floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(err.code).assertEqual(1300025);
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1513,7 +1570,7 @@ export default function abilityTest() {
             console.error(CaseName+ ` Failed to update floating ball. Cause:${err.code}, message:${err.message}`);
             await floatingBallController.stopFloatingBall();
             expect(err.code).assertEqual(1300028)
-
+            expect(err.message!=null).assertTrue();
             done();
           });
         }).catch(async (err: BusinessError) => {
@@ -1524,6 +1581,7 @@ export default function abilityTest() {
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1567,7 +1625,7 @@ export default function abilityTest() {
             console.error(CaseName+ ` Failed to update floating ball. Cause:${err.code}, message:${err.message}`);
             await floatingBallController.stopFloatingBall();
             expect(err.code).assertEqual(1300027)
-
+            expect(err.message!=null).assertTrue();
             done();
           });
         }).catch(async (err: BusinessError) => {
@@ -1577,6 +1635,7 @@ export default function abilityTest() {
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1624,7 +1683,7 @@ export default function abilityTest() {
             console.error(CaseName+ ` Failed to update floating ball. Cause:${err.code}, message:${err.message}`);
             await floatingBallController.stopFloatingBall();
             expect(err.code).assertEqual(1300028)
-
+            expect(err.message!=null).assertTrue();
             done();
           });
         }).catch(async (err: BusinessError) => {
@@ -1634,6 +1693,7 @@ export default function abilityTest() {
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1680,16 +1740,19 @@ export default function abilityTest() {
             done();
           }).catch((err: BusinessError) => {
             console.error(CaseName+ ` Failed to update floating ball. Cause:${err.code}, message:${err.message}`);
+            expect(err.message!=null).assertTrue();
             expect(false).assertTrue();
             done();
           });
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done()
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1737,16 +1800,19 @@ export default function abilityTest() {
             done();
           }).catch((err: BusinessError) => {
             console.error(CaseName+ ` Failed to update floating ball. Cause:${err.code}, message:${err.message}`);
+            expect(err.message!=null).assertTrue();
             expect(false).assertTrue();
             done();
           });
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done()
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1794,16 +1860,19 @@ export default function abilityTest() {
             done();
           }).catch((err: BusinessError) => {
             console.error(CaseName+ ` Failed to update floating ball. Cause:${err.code}, message:${err.message}`);
+            expect(err.message!=null).assertTrue();
             expect(false).assertTrue();
             done();
           });
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done()
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1841,20 +1910,24 @@ export default function abilityTest() {
             }).catch((err: BusinessError) => {
               console.error(CaseName+ ` Failed to stop 2 floating ball. Cause:${err.code}, message:${err.message}`);
               expect(err.code).assertEqual(1300022);
+              expect(err.message!=null).assertTrue();
               done();
             });
           }).catch((err: BusinessError) => {
             console.error(CaseName+ ` Failed to stop 1 floating ball. Cause:${err.code}, message:${err.message}`);
+            expect(err.message!=null).assertTrue();
             expect(false).assertTrue();
             done()
           });
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done()
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1883,10 +1956,12 @@ export default function abilityTest() {
         }).catch((err: BusinessError) => {
           console.error(CaseName+ ` Failed to stop 2 floating ball. Cause:${err.code}, message:${err.message}`);
           expect(err.code).assertEqual(1300024);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1927,26 +2002,31 @@ export default function abilityTest() {
                 done()
               }).catch((err: BusinessError) => {
                 console.error(CaseName+ ` Failed to stop 2 floating ball. Cause:${err.code}, message:${err.message}`);
+                expect(err.message!=null).assertTrue();
                 expect(false).assertTrue();
                 done()
               });
             }).catch((err: BusinessError) => {
               console.error(CaseName+ ` Failed to starting 2 floating ball. Cause:${err.code}, message:${err.message}`);
+              expect(err.message!=null).assertTrue();
               expect(false).assertTrue();
               done();
             });
           }).catch((err: BusinessError) => {
             console.error(CaseName+ ` Failed to stop 1 floating ball. Cause:${err.code}, message:${err.message}`);
+            expect(err.message!=null).assertTrue();
             expect(false).assertTrue();
             done()
           });
         }).catch(async (err: BusinessError) => {
           console.error(CaseName+ ` floatingBallController Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done()
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -1989,10 +2069,12 @@ export default function abilityTest() {
           await floatingBallController.stopFloatingBall();
           floatingBallController.off('stateChange',onStateChange);
           expect(err.code).assertEqual(1300022);
+          expect(err.message!=null).assertTrue();
           done()
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -2036,6 +2118,7 @@ export default function abilityTest() {
         done();
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -2088,6 +2171,7 @@ export default function abilityTest() {
         done();
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -2141,6 +2225,7 @@ export default function abilityTest() {
         done();
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -2182,10 +2267,12 @@ export default function abilityTest() {
           await floatingBallController.stopFloatingBall();
           floatingBallController.off('stateChange',onClick);
           expect(err.code).assertEqual(1300022);
+          expect(err.message!=null).assertTrue();
           done()
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -2250,6 +2337,7 @@ export default function abilityTest() {
         done();
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -2314,6 +2402,7 @@ export default function abilityTest() {
         done();
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -2349,10 +2438,12 @@ export default function abilityTest() {
         }).catch((err: BusinessError) => {
           console.error(CaseName + ` Failed to get floating ball window info. Cause code: ${err.code}, message: ${err.message}`);
           expect(err.code).assertEqual(1300025)
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -2388,11 +2479,13 @@ export default function abilityTest() {
           done();
         }).catch((err: BusinessError) => {
           console.error(CaseName + ` Failed to get floating ball window info. Cause code: ${err.code}, message: ${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
@@ -2437,12 +2530,14 @@ export default function abilityTest() {
           console.error( CaseName+  `Failed restoreMainWindow. Cause:${e.code}, message:${e.message}`);
           await floatingBallController.stopFloatingBall();
           expect(e.code).assertEqual(1300019);
+          expect(e.message!=null).assertTrue();
           done();
 
         }
 
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }
@@ -2482,10 +2577,12 @@ export default function abilityTest() {
         }).catch((err: BusinessError) => {
           console.error(CaseName+` Failed to restore floating ball main window. Cause code: ${err.code}, message: ${err.message}`);
           expect(err.code).assertEqual(1300025);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }
@@ -2536,11 +2633,12 @@ export default function abilityTest() {
           console.error(CaseName+` Failed to restore floating ball main window. Cause code: ${err.code}, message: ${err.message}`);
           await floatingBallController.stopFloatingBall();
           expect(err.code).assertEqual(1300026);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
-
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }
@@ -2584,11 +2682,12 @@ export default function abilityTest() {
           console.error(CaseName+` Failed to restore floating ball main window. Cause code: ${err.code}, message: ${err.message}`);
           await floatingBallController.stopFloatingBall();
           expect(err.code).assertEqual(1300026);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
-
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }
@@ -2638,11 +2737,13 @@ export default function abilityTest() {
           done();
         }).catch((err: BusinessError) => {
           console.error(CaseName+` Failed to restore floating ball main window. Cause code: ${err.code}, message: ${err.message}`);
+          expect(err.message!=null).assertTrue();
           expect(false).assertTrue();
           done();
         });
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }

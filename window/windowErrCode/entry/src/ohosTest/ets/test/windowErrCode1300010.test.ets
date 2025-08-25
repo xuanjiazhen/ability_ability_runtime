@@ -49,17 +49,19 @@ export default function windowErrCode1300010() {
           expect().assertFail();
           done();
         }).catch((err: BusinessError) => {
-          console.error(msgStr + 'Failed to call moveWindowToGlobal. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           if (err.code == 801) {
             console.info(msgStr + '此设备不支持moveWindowToGlobal能力.');
           } else {
             expect(err.code).assertEqual(1300010);
+            expect(err.message!=null).assertTrue();
           }
           done()
         });
       } catch (exception) {
         if (exception.code == 801) {
           console.info(`${caseName}: The current device type does not support: ${exception.message}`);
+          expect(exception.message!=null).assertTrue();
           done();
         } else {
           console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);

@@ -70,6 +70,8 @@ export default function windowCallbackTest() {
       expect(!!dpClass).assertTrue();
       dpClass.getCutoutInfo((err, data) => {
         if (err && err.code) {
+          console.log(caseName + ', err : ' + JSON.stringify(err)+',msg:'+ JSON.stringify(err.message));
+          expect(err.message!=null).assertTrue();
           unexpectedError(TRUE_FLAG, err, caseName, 'displayClass.getCutoutInfo', done);
         } else {
           console.info(msgStr + 'Succeeded in getting cutoutInfo. Data: ' + JSON.stringify(data));
@@ -121,6 +123,8 @@ export default function windowCallbackTest() {
         console.info('Succeeded in getting cutoutInfo. Data: ' + JSON.stringify(data));
         done();
       }).catch((err: BusinessError) => {
+        console.log(caseName + ', err : ' + JSON.stringify(err)+',msg:'+ JSON.stringify(err.message));
+        expect(err.message!=null).assertTrue();
         unexpectedError(TRUE_FLAG, err, caseName, 'displayClass.getCutoutInfo', done);
       });
     })

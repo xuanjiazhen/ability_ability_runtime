@@ -196,6 +196,7 @@ export default function WindowEnterpriseTest() {
       } catch (err) {
         await terminateAbility3(caseName);
         console.log(`${caseName} : failed, code: ${err.code}, msg: ${err.message}`);
+        expect(err.message!=null).assertTrue();
         if (err.code === 801) {
             console.log(`${caseName} deviceType does not supported this Capability`);
             done()
@@ -264,6 +265,7 @@ export default function WindowEnterpriseTest() {
         } catch (err) {
           await terminateAbility3(caseName);
           console.log(`${caseName} : failed, code: ${err.code}, msg: ${err.message}`);
+          expect(err.message!=null).assertTrue();
           if (err.code === 801) {
             console.log(`${caseName} deviceType does not supported this Capability`);
             done()

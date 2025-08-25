@@ -56,11 +56,12 @@ export default function windowErrCode1300009() {
           expect().assertFail();
           done()
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setRaiseByClickEnabled. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           if (err.code == 801) {
             console.info(msgStr + '此设备不支持setWindowTitleMoveEnabled能力.');
           } else {
             expect(err.code).assertEqual(1300009);
+        expect(err.message!=null).assertTrue();
           }
           done()
         });
@@ -103,8 +104,9 @@ export default function windowErrCode1300009() {
           expect().assertFail();
           done()
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call raiseToAppTop. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300009);
+        expect(err.message!=null).assertTrue();
           done()
         });
       } catch (exception) {

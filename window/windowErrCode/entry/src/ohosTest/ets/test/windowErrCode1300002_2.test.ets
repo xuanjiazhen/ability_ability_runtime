@@ -96,8 +96,9 @@ export default function windowErrCode1300002_2() {
           console.info(msgStr + 'Succeeded in calling recover.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call recover. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -136,8 +137,9 @@ export default function windowErrCode1300002_2() {
           console.info(msgStr + 'Succeeded in calling restore.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call restore. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300002);
+          expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -177,8 +179,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call setWindowDecorVisible. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -213,8 +216,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call setWindowTitleMoveEnabled. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -248,8 +252,9 @@ export default function windowErrCode1300002_2() {
           console.info(msgStr + 'Succeeded in calling setWindowTitle.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setWindowTitle. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -289,8 +294,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call setWindowDecorHeight. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -328,8 +334,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call setDecorButtonStyle. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -364,8 +371,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call getDecorButtonStyle. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -400,8 +408,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call getTitleButtonRect. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -436,8 +445,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call setWindowTitleButtonVisible. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -471,8 +481,9 @@ export default function windowErrCode1300002_2() {
           console.info(msgStr + 'Succeeded in calling enableLandscapeMultiWindow.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call enableLandscapeMultiWindow. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -516,8 +527,9 @@ export default function windowErrCode1300002_2() {
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call startMoving. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300002);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -551,8 +563,9 @@ export default function windowErrCode1300002_2() {
           console.info(msgStr + 'Succeeded in calling disableLandscapeMultiWindow.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call disableLandscapeMultiWindow. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -594,8 +607,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call on windowTitleButtonRectChange. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -629,8 +643,9 @@ export default function windowErrCode1300002_2() {
           console.info(msgStr + 'Succeeded in calling setWindowGrayScale.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setWindowGrayScale. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -670,8 +685,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call setImmersiveModeEnabledState. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -706,8 +722,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call getImmersiveModeEnabledState. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -749,8 +766,9 @@ export default function windowErrCode1300002_2() {
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call createSubWindowWithOptions. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300002);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -784,8 +802,9 @@ export default function windowErrCode1300002_2() {
           console.info(msgStr + 'Succeeded in calling setTitleAndDockHoverShown.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setTitleAndDockHoverShown. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -813,8 +832,9 @@ export default function windowErrCode1300002_2() {
         windowStageStart!.loadContentByName("entryAbility", storage, async (err: BusinessError) => {
           const errCode: number = err.code;
           if (errCode) {
-            console.error(msgStr + 'Failed to call loadContentByName. Cause:' + JSON.stringify(err));
+            console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
             expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
             done()
             return;
           }
@@ -846,8 +866,9 @@ export default function windowErrCode1300002_2() {
         windowStageStart!.loadContentByName("entryAbility", async (err: BusinessError) => {
           const errCode: number = err.code;
           if (errCode) {
-            console.error(msgStr + 'Failed to call loadContentByName. Cause:' + JSON.stringify(err));
+            console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
             expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
             done()
             return;
           }
@@ -881,8 +902,9 @@ export default function windowErrCode1300002_2() {
           console.info(msgStr + 'Succeeded in calling loadContentByName.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call loadContentByName. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -913,8 +935,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call on windowStageEvent. Cause:' + JSON.stringify(e));
+       console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -940,8 +963,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call off windowStageEvent. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -967,8 +991,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call on windowStageClose. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -994,8 +1019,9 @@ export default function windowErrCode1300002_2() {
         expect().assertFail();
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call off windowStageClose. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+` message:${e.message}`);
         expect(e.code).assertEqual(1300002);
+        expect(e.message!=null).assertTrue();
         done()
       }
     })
@@ -1020,11 +1046,13 @@ export default function windowErrCode1300002_2() {
         }).catch(async (err: BusinessError) => {
           console.error(msgStr + 'Failed to call removeStartingWindow. Cause: ' + JSON.stringify(err));
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call removeStartingWindow. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300002);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -1049,11 +1077,13 @@ export default function windowErrCode1300002_2() {
         }).catch(async (err: BusinessError) => {
           console.error(msgStr + 'Failed to call setWindowRectAutoSave. Cause: ' + JSON.stringify(err));
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowRectAutoSave. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300002);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -1078,11 +1108,13 @@ export default function windowErrCode1300002_2() {
         }).catch(async (err: BusinessError) => {
           console.error(msgStr + 'Failed to call isWindowRectAutoSave. Cause: ' + JSON.stringify(err));
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call isWindowRectAutoSave. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300002);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -1106,6 +1138,7 @@ export default function windowErrCode1300002_2() {
       }).catch((err:BusinessError)=>{
         console.error(CaseName + ' setWindowLayoutFullScreen failed,casued: err.code '+err.code +' ,err.message: '+err.message);
         expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         done();
       })
     })
@@ -1130,6 +1163,7 @@ export default function windowErrCode1300002_2() {
       }).catch((err:BusinessError)=>{
         console.error(CaseName + ' setWindowSystemBarEnable failed,casued: err.code '+err.code +' ,err.message: '+err.message);
         expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         done();
       })
     })
@@ -1166,6 +1200,7 @@ export default function windowErrCode1300002_2() {
       }catch (err) {
         console.error(CaseName + ' failed,casued: err.code '+err.code +' ,err.message: '+err.message);
         expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         done();
       }
 
@@ -1197,6 +1232,7 @@ export default function windowErrCode1300002_2() {
       }catch (err) {
         console.error(CaseName + ' failed,casued: err.code '+err.code +' ,err.message: '+err.message);
         expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         done();
       }
     })
@@ -1220,6 +1256,7 @@ export default function windowErrCode1300002_2() {
           if (errCode) {
             console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
             expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
             done();
           } else {
             console.log(CaseName + ' setWindowSystemBarEnable success ');
@@ -1253,6 +1290,7 @@ export default function windowErrCode1300002_2() {
           if (errCode) {
             console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
             expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
             done();
           } else {
             console.log(CaseName + ' setWindowPrivacyMode success ');
@@ -1289,6 +1327,7 @@ export default function windowErrCode1300002_2() {
         }).catch((err:BusinessError)=>{
           console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
           expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
           done();
         })
       }catch (err) {

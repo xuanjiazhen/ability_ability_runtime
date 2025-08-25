@@ -192,13 +192,15 @@ export default function displayAndWindowRefactorInterfaceTest() {
           expect().assertFail();
           done();
         }).catch((err: BusinessError) => {
-          console.log(caseName + 'failed to create the virtual screen, err : ' + JSON.stringify(err));
+          console.log(caseName + 'failed to create the virtual screen, err : ' + JSON.stringify(err.code)+',msg:'+ JSON.stringify(err.message));
           expect(err.code == 201).assertTrue();
+          expect(err.message!=null).assertTrue();
           done();
         })
       } catch (err) {
-        console.log(caseName + 'error in createVirtualScreen, err : ' + JSON.stringify(err));
+        console.log(caseName + 'error in createVirtualScreen, err : ' + JSON.stringify(err)+',msg:'+ JSON.stringify(err.message));
         if (err.code != 801) {
+          expect(err.message!=null).assertTrue();
           expect().assertFail();
         }
         done();

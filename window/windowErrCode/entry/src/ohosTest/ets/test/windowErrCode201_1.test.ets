@@ -55,11 +55,13 @@ export default function windowErrCode201_1() {
         }).catch((err: BusinessError) => {
           console.error(msgStr +`Failed to set the main window to be topmost. Cause code: ${err.code}, message: ${err.message}`);
           expect(err.code).assertEqual(201);
+          expect(err.message!=null).assertTrue();
           done()
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowTopmost. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call setWindowTopmost. Cause:' + JSON.stringify(exception.code) + `message:${exception.message}`);
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done();
         }else{
           expect(false).assertTrue();
@@ -99,11 +101,13 @@ export default function windowErrCode201_1() {
           }).catch((err: BusinessError) => {
             console.error(CaseName+ ` Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
             expect(err.code).assertEqual(201);
+            expect(err.message!=null).assertTrue();
             done();
           });
         }).catch((err: BusinessError) => {
           console.error(CaseName+ ` Failed to create floating ball controller. Cause:${err.code}, message:${err.message}`);
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             done()
           }else {
             expect(false).assertTrue();

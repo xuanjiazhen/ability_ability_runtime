@@ -212,8 +212,9 @@ export default function windowPropertiesTest2() {
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setStatusBarColor. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setStatusBarColor. Cause code :' + JSON.stringify(exception.code)+',errMessage: '+exception.message);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -243,8 +244,9 @@ export default function windowPropertiesTest2() {
           console.info(msgStr + 'Succeeded in calling setStatusBarColor.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setStatusBarColor. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call setStatusBarColor. Cause: ' + JSON.stringify(err.code) +',errMessage: '+ err.message);
           expect(err.code).assertEqual(1300002);
+          expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -346,8 +348,9 @@ export default function windowPropertiesTest2() {
         console.error(msgStr + 'Succeeded in calling getStatusBarProperty.');
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call getStatusBarProperty. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call getStatusBarProperty. Cause:' + JSON.stringify(exception.code) +',errMessage: '+ exception.message);
         expect(exception.code).assertEqual(1300002);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -435,8 +438,9 @@ export default function windowPropertiesTest2() {
         await subWindowClass.destroyWindow();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         expect(exception.code).assertEqual(401)
+        expect(exception.message!=null).assertTrue();
         await subWindowClass.destroyWindow();
         done()
       }
@@ -467,8 +471,9 @@ export default function windowPropertiesTest2() {
         console.error(msgStr + 'Succeeded in calling setWindowShadowRadius.');
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         expect(exception.code).assertEqual(1300002)
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -492,8 +497,9 @@ export default function windowPropertiesTest2() {
         console.info(msgStr + 'Succeeded in calling setWindowShadowRadius.');
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception));
-        expect(exception.code).assertEqual(1300004)
+        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
+        expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -522,8 +528,9 @@ export default function windowPropertiesTest2() {
         await subWindowClass.destroyWindow();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         expect(exception.code).assertEqual(401)
+        expect(exception.message!=null).assertTrue();
         await subWindowClass.destroyWindow();
         done()
       }
@@ -556,10 +563,11 @@ export default function windowPropertiesTest2() {
         await subWindowClass.destroyWindow();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass.destroyWindow();
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowShadowRadius`);
+          expect(exception.message!=null).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -595,10 +603,11 @@ export default function windowPropertiesTest2() {
         await subWindowClass.destroyWindow();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass.destroyWindow();
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowShadowRadius`);
+          expect(exception.message!=null).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -634,10 +643,11 @@ export default function windowPropertiesTest2() {
         await subWindowClass.destroyWindow();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass.destroyWindow();
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowShadowRadius`);
+          expect(exception.message!=null).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -676,13 +686,15 @@ export default function windowPropertiesTest2() {
           await windowClass!.destroyWindow();
           done()
         }).catch(async (err:BusinessError)=> {
-          console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(err));
+          console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to setWindowShadowRadius`);
+            expect(err.message!=null).assertTrue();
             await windowClass!.destroyWindow();
             done();
           } else if (err.code == 1300002) {
             console.info(`${caseName} The current device type does not support to create float Window`);
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             expect().assertFail();
@@ -729,13 +741,15 @@ export default function windowPropertiesTest2() {
           await windowClass!.destroyWindow();
           done()
         }).catch(async (err:BusinessError)=> {
-          console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(err));
+          console.error(msgStr + 'Failed2 to set the call setWindowShadowRadius. Cause:' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to setWindowShadowRadius`);
+            expect(err.message!=null).assertTrue();
             await windowClass!.destroyWindow();
             done();
           } else if (err.code == 1300002) {
             console.info(`${caseName} The current device type does not support to create float Window`);
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             expect().assertFail();
@@ -780,8 +794,9 @@ export default function windowPropertiesTest2() {
         await subWindowClass.destroyWindow();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         expect(exception.code).assertEqual(401)
+        expect(exception.message!=null).assertTrue();
         await subWindowClass.destroyWindow();
         done()
       }
@@ -815,9 +830,10 @@ export default function windowPropertiesTest2() {
         await subWindowClass.destroyWindow();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass.destroyWindow();
-        expect(exception.code).assertEqual(401)
+        expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -845,8 +861,9 @@ export default function windowPropertiesTest2() {
           console.info(msgStr + 'Succeeded in calling setWindowCornerRadius.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           expect(err.code).assertEqual(1300002);
+          expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -877,21 +894,25 @@ export default function windowPropertiesTest2() {
           console.info(msgStr + 'Succeeded in calling setWindowCornerRadius.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+            expect(err.message!=null).assertTrue();
           } else {
             expect(err.code).assertEqual(1300004)
+            expect(err.message!=null).assertTrue();
           }
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+          expect(exception.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
+        done();
       }
     })
 
@@ -924,20 +945,23 @@ export default function windowPropertiesTest2() {
           console.info(msgStr + 'Succeeded in calling setWindowCornerRadius.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           await subWindowClass!.destroyWindow();
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+            expect(err.message!=null).assertTrue();
           } else {
             expect(err.code).assertEqual(1300004)
+            expect(err.message!=null).assertTrue();
           }
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass!.destroyWindow();
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+          expect(exception.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
@@ -968,20 +992,22 @@ export default function windowPropertiesTest2() {
           console.info(msgStr + 'Succeeded in calling setWindowCornerRadius.');
           await subWindowClass!.destroyWindow();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           await subWindowClass!.destroyWindow();
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+            expect(exception.message!=null).assertTrue();
           } else {
             expect().assertFail();
           }
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass!.destroyWindow();
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+          expect(exception.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
@@ -1012,23 +1038,26 @@ export default function windowPropertiesTest2() {
           console.info(msgStr + 'Succeeded in calling setWindowCornerRadius.');
           await subWindowClass!.destroyWindow();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           await subWindowClass!.destroyWindow();
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+            expect(err.message!=null).assertTrue();
           } else {
             expect().assertFail();
           }
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass!.destroyWindow();
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+          expect(exception.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
+        done();
       }
     })
 
@@ -1056,23 +1085,26 @@ export default function windowPropertiesTest2() {
           console.info(msgStr + 'Succeeded in calling setWindowCornerRadius.');
           await subWindowClass!.destroyWindow();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           await subWindowClass!.destroyWindow();
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+            expect(err.message!=null).assertTrue();
           } else {
             expect().assertFail();
           }
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass!.destroyWindow();
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+          expect(exception.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
+        done()''
       }
     })
 
@@ -1100,20 +1132,22 @@ export default function windowPropertiesTest2() {
           console.info(msgStr + 'Succeeded in calling setWindowCornerRadius.');
           await subWindowClass!.destroyWindow();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call setWindowCornerRadius. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           await subWindowClass!.destroyWindow();
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+            expect(err.message!=null).assertTrue();
           } else {
             expect().assertFail();
           }
         });
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass!.destroyWindow();
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+          expect(exception.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
@@ -1151,12 +1185,14 @@ export default function windowPropertiesTest2() {
           await windowClass!.destroyWindow();
           done()
         }).catch(async (err:BusinessError)=>{
-          console.error(msgStr + 'ohosWindow.createWindow ' + 'caught, err: ' + JSON.stringify(err));
+          console.error(msgStr + 'ohosWindow.createWindow ' + 'caught, err: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           if (err.code === 1300002) {
+            expect(err.message!=null).assertTrue();
             done();
           } else if (err.code == 801) {
-            console.error(msgStr + 'setWindowCornerRadius failed ' + 'caught, err: ' + JSON.stringify(err));
+            console.error(msgStr + 'setWindowCornerRadius failed ' + 'caught, err: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
             await windowClass!.destroyWindow();
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             expect().assertFail();
@@ -1205,12 +1241,14 @@ export default function windowPropertiesTest2() {
           await windowClass!.destroyWindow();
           done()
         }).catch(async (err:BusinessError)=>{
-          console.error(msgStr + 'ohosWindow.createWindow ' + 'caught, err: ' + JSON.stringify(err));
+          console.error(msgStr + 'ohosWindow.createWindow ' + 'caught, err: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           if (err.code === 1300002) {
+            expect(err.message!=null).assertTrue();
             done();
           } else if (err.code == 801) {
             console.error(msgStr + 'setWindowCornerRadius failed ' + 'caught, err: ' + JSON.stringify(err));
             await windowClass!.destroyWindow();
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             expect().assertFail();
@@ -1252,10 +1290,11 @@ export default function windowPropertiesTest2() {
         await subWindowClass!.destroyWindow();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         await subWindowClass!.destroyWindow();
         if (exception.code == 801) {
           console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
+          expect(exception.message!=null).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -1289,8 +1328,9 @@ export default function windowPropertiesTest2() {
         console.error(msgStr + 'Succeeded in calling setWindowCornerRadius.');
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception));
-        expect(exception.code).assertEqual(1300002)
+        console.error(msgStr + 'Failed2 to set the call setWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
+        expect(exception.code).assertEqual(1300002);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -1317,8 +1357,9 @@ export default function windowPropertiesTest2() {
         console.info(msgStr + 'Succeeded in calling getWindowCornerRadius.');
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call getWindowCornerRadius. Cause:' + JSON.stringify(exception));
-        expect(exception.code).assertEqual(1300004)
+        console.error(msgStr + 'Failed2 to set the call getWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
+        expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -1357,9 +1398,10 @@ export default function windowPropertiesTest2() {
         console.error(msgStr + 'Succeeded in calling getWindowCornerRadius.');
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed2 to set the call getWindowCornerRadius. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed2 to set the call getWindowCornerRadius. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         expect(exception.code).assertEqual(1300004)
         await (subWindowClass! as ohosWindow.Window).destroyWindow();
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -1411,9 +1453,10 @@ export default function windowPropertiesTest2() {
           pixelMap.release();
           done();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to snapshotIgnorePrivacy`);
+            expect(err.message!=null).assertTrue();
           } else {
             expect().assertFail();
           }
@@ -1473,9 +1516,10 @@ export default function windowPropertiesTest2() {
           pixelMap.release();
           done();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to snapshotIgnorePrivacy`);
+            expect(err.message!=null).assertTrue();
           } else {
             expect().assertFail();
           }
@@ -1535,9 +1579,10 @@ export default function windowPropertiesTest2() {
           pixelMap.release();
           done();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to snapshotIgnorePrivacy`);
+            expect(err.message!=null).assertTrue();
           } else {
             expect().assertFail();
           }
@@ -1595,10 +1640,11 @@ export default function windowPropertiesTest2() {
             await windowClass!.destroyWindow();
             done();
           }).catch(async (err: BusinessError) => {
-            console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err));
+            console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
             await windowClass!.destroyWindow();
             if (err.code == 801) {
               console.info(`${caseName} The current device type does not support to snapshotIgnorePrivacy`);
+              expect(err.message!=null).assertTrue();
             } else {
               expect().assertFail();
             }
@@ -1655,9 +1701,10 @@ export default function windowPropertiesTest2() {
                 await sleep(2000)
                 done();
               }).catch(async (err: BusinessError) => {
-                console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err));
+                console.error(msgStr + 'Failed to call snapshotIgnorePrivacy. Cause: ' + JSON.stringify(err.code)+',errMessage: '+ err.message);
                 if (err.code == 801) {
                   console.info(`${caseName} The current device type does not support to snapshotIgnorePrivacy`);
+                  expect(err.message!=null).assertTrue();
                 } else {
                   expect().assertFail();
                 }
@@ -1713,8 +1760,9 @@ export default function windowPropertiesTest2() {
         expect().assertFail();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception));
-        expect(exception.code).assertEqual(1300002)
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
+        expect(exception.code).assertEqual(1300002);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -1742,8 +1790,9 @@ export default function windowPropertiesTest2() {
         expect().assertFail();
         done()
       } catch (exception) {
-        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+',errMessage: '+ exception.message);
         expect(exception.code).assertEqual(1300002)
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -1797,6 +1846,7 @@ export default function windowPropertiesTest2() {
         }).catch((err: BusinessError) => {
           console.error(`${caseName} Failed. Cause code: ${err.code}, message: ${err.message}`);
           if (err.code === 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue()
             done();
           } else {
@@ -1833,6 +1883,7 @@ export default function windowPropertiesTest2() {
         }).catch(async (err: BusinessError) => {
           console.error(`${caseName} Failed. Cause code: ${err.code}, message: ${err.message}`);
           await windowClass.destroyWindow()
+          expect(err.message!=null).assertTrue();
           if (err.code === 801) {
             expect(true).assertTrue()
             done();
@@ -1878,6 +1929,7 @@ export default function windowPropertiesTest2() {
           done()
         }).catch(async (err: BusinessError) => {
           console.error(`${caseName} createWindow Failed. Cause code: ${err.code}, message: ${err.message}`);
+          expect(err.message!=null).assertTrue();
           if (err.code === 1300002 || err.code === 801) {
             await subWindowClass?.destroyWindow();
             done()
@@ -1924,6 +1976,7 @@ export default function windowPropertiesTest2() {
           done()
         }).catch(async (err: BusinessError) => {
           console.error(`${caseName} createWindow Failed. Cause code: ${err.code}, message: ${err.message}`);
+          expect(err.message!=null).assertTrue();
           if (err.code === 1300002 || err.code === 801) {
             await subWindowClass?.destroyWindow();
             done()
@@ -1970,6 +2023,7 @@ export default function windowPropertiesTest2() {
           done()
         }).catch(async (err: BusinessError) => {
           console.error(`${caseName} createWindow Failed. Cause code: ${err.code}, message: ${err.message}`);
+          expect(err.message!=null).assertTrue();
           if (err.code === 801) {
             await subWindowClass?.destroyWindow();
             done()
@@ -2016,6 +2070,7 @@ export default function windowPropertiesTest2() {
           done()
         }).catch(async (err: BusinessError) => {
           console.error(`${caseName} createWindow Failed. Cause code: ${err.code}, message: ${err.message}`);
+          expect(err.message!=null).assertTrue();
           if (err.code === 801) {
             await subWindowClass?.destroyWindow();
             done()
@@ -2096,6 +2151,7 @@ export default function windowPropertiesTest2() {
           await subWindowClass?.destroyWindow();
           await dialogWindowClass?.destroyWindow();
           await floatWindowClass?.destroyWindow();
+          expect(err.message!=null).assertTrue();
           if (err.code === 1300002 || err.code === 801) {
             done()
           } else {
@@ -2176,6 +2232,7 @@ export default function windowPropertiesTest2() {
           await subWindowClass?.destroyWindow();
           await dialogWindowClass?.destroyWindow();
           await floatWindowClass?.destroyWindow();
+          expect(err.message!=null).assertTrue();
           if (err.code === 1300002 || err.code === 801) {
             done()
           } else {
@@ -2256,6 +2313,7 @@ export default function windowPropertiesTest2() {
           await subWindowClass?.destroyWindow();
           await dialogWindowClass?.destroyWindow();
           await floatWindowClass?.destroyWindow();
+          expect(err.message!=null).assertTrue();
           if (err.code === 1300002 || err.code === 801) {
             done()
           } else {
@@ -2293,8 +2351,9 @@ export default function windowPropertiesTest2() {
         expect().assertFail()
         done();
       } catch (err) {
-        console.error(caseName + 'Failed. Cause: ' + JSON.stringify(err));
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
         await subWindowClass.destroyWindow();
+        expect(err.message!=null).assertTrue();
         if (err.code == 801) {
           done()
         } else {
@@ -2325,8 +2384,9 @@ export default function windowPropertiesTest2() {
         expect().assertFail()
         done();
       } catch (err) {
-        console.error(caseName + 'Failed. Cause: ' + JSON.stringify(err));
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
         expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         done();
       }
     });
@@ -2352,8 +2412,9 @@ export default function windowPropertiesTest2() {
         expect().assertFail()
         done();
       } catch (err) {
-        console.error(caseName + 'Failed. Cause: ' + JSON.stringify(err));
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
         expect(err.code).assertEqual(1300002);
+        expect(err.message!=null).assertTrue();
         done();
       }
     });

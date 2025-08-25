@@ -48,8 +48,9 @@ export default function windowErrCode1300006() {
         ohosWindow.createWindow(windowConfig, async (err: BusinessError) => {
           const errCode: number = err.code;
           if (errCode) {
-            console.error(msgStr + 'Failed to call createWindow. Cause:' + JSON.stringify(err));
+            console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
             expect(err.code).assertEqual(1300006);
+        expect(err.message!=null).assertTrue();
             done()
             return;
           }
@@ -85,8 +86,9 @@ export default function windowErrCode1300006() {
           console.info(msgStr + 'Succeeded in calling createWindow.');
           expect().assertFail();
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call createWindow. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300006);
+        expect(err.message!=null).assertTrue();
         });
         done()
       } catch (exception) {
@@ -121,8 +123,9 @@ export default function windowErrCode1300006() {
           done()
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300016);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })

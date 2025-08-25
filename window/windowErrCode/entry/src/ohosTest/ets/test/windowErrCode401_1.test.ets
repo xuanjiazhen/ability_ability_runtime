@@ -50,8 +50,9 @@ export default function windowErrCode401_1() {
           done()
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call shiftAppWindowFocus. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call shiftAppWindowFocus. Cause:' + JSON.stringify(exception.code)+ `message:${exception.message}`);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -78,8 +79,9 @@ export default function windowErrCode401_1() {
           done()
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call getWindowsByCoordinate. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call getWindowsByCoordinate. Cause:' + JSON.stringify(exception.code)+ `message:${exception.message}`);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -106,8 +108,9 @@ export default function windowErrCode401_1() {
           done()
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call getAllWindowLayoutInfo. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call getAllWindowLayoutInfo. Cause:' + JSON.stringify(exception.code)+ `message:${exception.message}`);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -149,8 +152,9 @@ export default function windowErrCode401_1() {
         done()
       } catch (exception) {
         await win!.destroyWindow()
-        console.error(msgStr + 'Failed to set the call moveWindowTo. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call moveWindowTo. Cause:' + JSON.stringify(exception.code)+ `message:${exception.message}`);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -195,9 +199,10 @@ export default function windowErrCode401_1() {
           done();
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to call moveWindowTo. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to call moveWindowTo. Cause:' + JSON.stringify(exception.code)+ `message:${exception.message}`);
         await win!.destroyWindow()
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -239,8 +244,9 @@ export default function windowErrCode401_1() {
         done()
       } catch (exception) {
         await win!.destroyWindow()
-        console.error(msgStr + 'Failed to set the call moveWindowToAsync. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call moveWindowToAsync. Cause:' + JSON.stringify(exception)+ JSON.stringify(exception.message));
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -282,8 +288,9 @@ export default function windowErrCode401_1() {
         done()
       } catch (exception) {
         await win!.destroyWindow()
-        console.error(msgStr + 'Failed to set the call moveWindowToGlobal. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to set the call moveWindowToGlobal. Cause:' + JSON.stringify(exception.code)+ `message:${exception.message}`);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -328,9 +335,10 @@ export default function windowErrCode401_1() {
           done();
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to call setWindowLayoutFullScreen. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to call setWindowLayoutFullScreen. Cause:' + JSON.stringify(exception.code)+ `message:${exception.message}`);
         await win!.destroyWindow()
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -371,8 +379,10 @@ export default function windowErrCode401_1() {
         await win!.destroyWindow()
         done()
       } catch (exception) {
+        console.error(msgStr + 'Failed . Cause: ' + JSON.stringify(exception.code)+`message:${exception.message}`);
         await win!.destroyWindow()
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -418,9 +428,10 @@ export default function windowErrCode401_1() {
           done();
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to call setWindowSystemBarEnable. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed to call setWindowSystemBarEnable. Cause:' + JSON.stringify(exception.code)+`message:${exception.message}`);
         await win!.destroyWindow()
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -461,8 +472,10 @@ export default function windowErrCode401_1() {
         await win!.destroyWindow()
         done()
       } catch (exception) {
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+`message:${exception.message}`);
         await win!.destroyWindow()
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -504,9 +517,9 @@ export default function windowErrCode401_1() {
         done()
       } catch (exception) {
         await win!.destroyWindow()
-        console.error(msgStr + 'Failed to set the call setSpecificSystemBarEnabled. Cause:' +
-        JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+`message:${exception.message}`);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -548,8 +561,9 @@ export default function windowErrCode401_1() {
         done()
       } catch (exception) {
         await win!.destroyWindow()
-        console.error(msgStr + 'Failed to set the call setGestureBackEnabled. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+`message:${exception.message}`);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -591,8 +605,9 @@ export default function windowErrCode401_1() {
         done()
       } catch (exception) {
         await win!.destroyWindow()
-        console.error(msgStr + 'Failed to set the call setPreferredOrientation. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+`message:${exception.message}`);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -637,9 +652,10 @@ export default function windowErrCode401_1() {
           done();
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to call setPreferredOrientation. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+`message:${exception.message}`);
         await win!.destroyWindow()
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -684,9 +700,10 @@ export default function windowErrCode401_1() {
           done();
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to call loadContentByName. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+`message:${exception.message}`);
         await win!.destroyWindow()
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -729,8 +746,9 @@ export default function windowErrCode401_1() {
         done()
       } catch (exception) {
         await win!.destroyWindow()
-        console.error(msgStr + 'Failed to set the call loadContentByName. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+`message:${exception.message}`);
         expect(exception.code).assertEqual(401);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -770,8 +788,9 @@ export default function windowErrCode401_1() {
         console.log(msgStr + 'end.');
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call on windowSizeChange. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+`message:${e.message}`);
         expect(e.code).assertEqual(401);
+        expect(e.message!=null).assertTrue();
         await win!.destroyWindow()
         console.log(msgStr + 'end.');
         done()
@@ -812,8 +831,9 @@ export default function windowErrCode401_1() {
         console.log(msgStr + 'end.');
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call on windowSizeChange. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+`message:${e.message}`);
         expect(e.code).assertEqual(401);
+        expect(e.message!=null).assertTrue();
         await win!.destroyWindow()
         console.log(msgStr + 'end.');
         done()
@@ -854,8 +874,9 @@ export default function windowErrCode401_1() {
         console.log(msgStr + 'end.');
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call on avoidAreaChange. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+`message:${e.message}`);
         expect(e.code).assertEqual(401);
+        expect(e.message!=null).assertTrue();
         await win!.destroyWindow()
         console.log(msgStr + 'end.');
         done()
@@ -896,8 +917,9 @@ export default function windowErrCode401_1() {
         console.log(msgStr + 'end.');
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call off avoidAreaChange. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+`message:${e.message}`);
         expect(e.code).assertEqual(401);
+        expect(e.message!=null).assertTrue();
         await win!.destroyWindow()
         console.log(msgStr + 'end.');
         done()
@@ -938,8 +960,9 @@ export default function windowErrCode401_1() {
         console.log(msgStr + 'end.');
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call on keyboardHeightChange. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+`message:${e.message}`);
         expect(e.code).assertEqual(401);
+        expect(e.message!=null).assertTrue();
         await win!.destroyWindow()
         console.log(msgStr + 'end.');
         done()
@@ -980,8 +1003,9 @@ export default function windowErrCode401_1() {
         console.log(msgStr + 'end.');
         done()
       } catch (e) {
-        console.log(msgStr + 'Failed to call off keyboardHeightChange. Cause:' + JSON.stringify(e));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(e.code)+`message:${e.message}`);
         expect(e.code).assertEqual(401);
+        expect(e.message!=null).assertTrue();
         await win!.destroyWindow()
         console.log(msgStr + 'end.');
         done()

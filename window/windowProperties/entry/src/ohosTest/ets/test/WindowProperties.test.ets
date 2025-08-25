@@ -164,6 +164,7 @@ export default function windowPropertiesTest() {
         }).catch((err: BusinessError) => {
           console.error(`${caseName} :Failed to obtain all window layout info. Cause code: ${err.code}, message: ${err.message}`);
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             done();
           }else {
             expect().assertFail();
@@ -201,6 +202,7 @@ export default function windowPropertiesTest() {
             `Failed to getWindowDensityInfo. Cause code: ${exception.code}, message: ${exception.message}`);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:getWindowDensityInfo`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(false).assertTrue();
@@ -237,6 +239,7 @@ export default function windowPropertiesTest() {
             `Failed to getWindowDensityInfo. Cause code: ${exception.code}, message: ${exception.message}`);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(false).assertTrue();
@@ -266,6 +269,7 @@ export default function windowPropertiesTest() {
             `Failed to getWindowDensityInfo. Cause code: ${exception.code}, message: ${exception.message}`);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(false).assertTrue();
@@ -295,6 +299,7 @@ export default function windowPropertiesTest() {
             `Failed to getWindowDensityInfo. Cause code: ${exception.code}, message: ${exception.message}`);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(false).assertTrue();
@@ -325,9 +330,11 @@ export default function windowPropertiesTest() {
             `Failed to getWindowDensityInfo. Cause code: ${exception.code}, message: ${exception.message}`);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(exception.code).assertEqual(401);
+            expect(exception.message!=null).assertTrue();
             done();
             }
         }
@@ -355,6 +362,7 @@ export default function windowPropertiesTest() {
             `Failed to getWindowDensityInfo. Cause code: ${exception.code}, message: ${exception.message}`);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(exception.code).assertEqual(401);
@@ -415,6 +423,7 @@ export default function windowPropertiesTest() {
             await sleep(500);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(false).assertTrue();
@@ -478,6 +487,7 @@ export default function windowPropertiesTest() {
             await sleep(500);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(false).assertTrue();
@@ -537,6 +547,7 @@ export default function windowPropertiesTest() {
             await sleep(500);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(false).assertTrue();
@@ -620,6 +631,7 @@ export default function windowPropertiesTest() {
             await sleep(500);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(false).assertTrue();
@@ -665,6 +677,7 @@ export default function windowPropertiesTest() {
             `Failed to on systemDensityChange. Cause code: ${exception.code}, message: ${exception.message}`);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:on_systemDensityChange`);
+            expect(exception.message!=null).assertTrue();
             done();
             return;
             } else {
@@ -703,6 +716,7 @@ export default function windowPropertiesTest() {
             await sleep(500);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:setCustomDensity`);
+            expect(exception.message!=null).assertTrue();
             done();
             } else {
             expect(false).assertTrue();
@@ -741,6 +755,7 @@ export default function windowPropertiesTest() {
             `Failed to on systemDensityChange. Cause code: ${exception.code}, message: ${exception.message}`);
             if (exception.code == 801) {
             console.info(msgStr + `Current device not support API:on_systemDensityChange`);
+            expect(exception.message!=null).assertTrue();
             done();
             return;
             } else {
@@ -768,11 +783,12 @@ export default function windowPropertiesTest() {
                 expect(isGestureBackEnabled).assertTrue();
                 done();
             }).catch((err: BusinessError) => {
+              console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${err.code}, message: ${err.message}`);
                 if (err.code == 801) {
                     console.info(`${caseName} The current device type does not support to setGestureBackEnabled`);
+                    expect(err.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${err.code}, message: ${err.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -796,11 +812,12 @@ export default function windowPropertiesTest() {
                 expect(isGestureBackEnabled).assertFalse();
                 done();
             }).catch((err: BusinessError) => {
+              console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${err.code}, message: ${err.message}`);
                 if (err.code == 801) {
                     console.info(`${caseName} The current device type does not support to setGestureBackEnabled`);
+                    expect(err.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${err.code}, message: ${err.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -827,13 +844,16 @@ export default function windowPropertiesTest() {
                 expect(false).assertTrue();
                 done();
             }).catch(async (err: BusinessError) => {
+              console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${err.code}, message: ${err.message}`);
                 if (err.code == 801) {
                     console.info(`${caseName} The current device type does not support to setGestureBackEnabled.`);
                     await subWindowClass.destroyWindow();
+                    expect(err.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`${caseName} Unauthorized operation.`);
                     expect(err.code).assertEqual(1300004);
+                    expect(err.message!=null).assertTrue();
                     await subWindowClass.destroyWindow();
                     done();
                 }
@@ -865,14 +885,17 @@ export default function windowPropertiesTest() {
                 expect(false).assertTrue();
                 done();
             }).catch(async (err: BusinessError) => {
+              console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${err.code}, message: ${err.message}`);
                 if (err.code == 801) {
                     console.info(`${caseName} The current device type does not support to setGestureBackEnabled.`);
                     await subWindowClass.destroyWindow();
+                    expect(err.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`${caseName} Unauthorized operation.`);
                     expect(err.code).assertEqual(1300004);
                     await subWindowClass.destroyWindow();
+                    expect(err.message!=null).assertTrue();
                     done();
                 }
             });
@@ -899,12 +922,15 @@ export default function windowPropertiesTest() {
                 expect(false).assertTrue();
                 done();
             }).catch(async (err: BusinessError) => {
+              console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${err.code}, message: ${err.message}`);
                 if (err.code == 801) {
                     console.info(`${caseName} The current device type does not support to setGestureBackEnabled.`);
+                    expect(err.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`${caseName} This window state is abnormal.`);
                     expect(err.code).assertEqual(1300002);
+                    expect(err.message!=null).assertTrue();
                     done();
                 }
             });
@@ -930,12 +956,15 @@ export default function windowPropertiesTest() {
                 expect(false).assertTrue();
                 done();
             } catch (exception) {
+              console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${err.code}, message: ${err.message}`);
                 if (exception.code == 801) {
                     console.info(`${caseName} The current device type does not support to getGestureBackEnabled.`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`${caseName} Unauthorized operation.`);
                     expect(exception.code).assertEqual(1300004);
+                    expect(exception.message!=null).assertTrue();
                     await subWindowClass.destroyWindow();
                     done();
                 }
@@ -1010,8 +1039,10 @@ export default function windowPropertiesTest() {
                     console.info(`${caseName}: Succeeded in setting the grayScale 0.`);
                     done();
                 }).catch((err: BusinessError) => {
+                  console.error(`${caseName} Failed. Cause code: ${err.code}, message: ${err.message}`);
                     if (err.code == 801) {
                         console.info(`${caseName}: 此设备不支持setWindowGrayScale能力.`);
+                        expect(err.message!=null).assertTrue();
                         done();
                     } else {
                         console.error(`${caseName}: Failed to set the grayScale 0. Cause code: ${err.code}, message: ${err.message}`);
@@ -1043,8 +1074,10 @@ export default function windowPropertiesTest() {
                     console.info(`${caseName}: Succeeded in setting the grayScale 0.5.`);
                     done();
                 }).catch((err: BusinessError) => {
+                  console.error(`${caseName} Failed. Cause code: ${err.code}, message: ${err.message}`);
                     if (err.code == 801) {
                         console.info(`${caseName} 此设备不支持setWindowGrayScale能力.`);
+                        expect(err.message!=null).assertTrue();
                         done();
                     } else {
                         console.error(`${caseName} Failed to set the grayScale 0.5. Cause code: ${err.code}, message: ${err.message}`);
@@ -1076,8 +1109,10 @@ export default function windowPropertiesTest() {
                     console.info(`${caseName} Succeeded in setting the grayScale 1.`);
                     done();
                 }).catch((err: BusinessError) => {
+                  console.error(`${caseName} Failed. Cause code: ${err.code}, message: ${err.message}`);
                     if (err.code == 801) {
                         console.info(`${caseName} 此设备不支持setWindowGrayScale能力.`);
+                        expect(err.message!=null).assertTrue();
                         done();
                     } else {
                         console.error(`${caseName} Failed to set the grayScale 1. Cause code: ${err.code}, message: ${err.message}`);
@@ -1110,11 +1145,13 @@ export default function windowPropertiesTest() {
                     expect(false).assertTrue();
                     done();
                 }).catch((err: BusinessError) => {
+                  console.error(`${caseName} Failed to set the grayScale -1. Cause code: ${err.code}, message: ${err.message}`);
                     if (err.code == 801) {
                         console.info(`${caseName} 此设备不支持setWindowGrayScale能力.`);
+                        expect(err.message!=null).assertTrue();
                         done();
                     } else {
-                        console.error(`${caseName} Failed to set the grayScale -1. Cause code: ${err.code}, message: ${err.message}`);
+                        
                         expect().assertFail();
                         done();
                     }
@@ -1144,8 +1181,10 @@ export default function windowPropertiesTest() {
                     expect(false).assertTrue();
                     done();
                 }).catch((err: BusinessError) => {
+                  console.error(`${caseName}: Failed to set the grayScale 2. Cause code: ${err.code}, message: ${err.message}`);
                     if (err.code == 801) {
                         console.info(`${caseName}: 此设备不支持setWindowGrayScale能力.`);
+                        expect(err.message!=null).assertTrue();
                         done();
                     } else {
                         console.error(`${caseName}: Failed to set the grayScale 2. Cause code: ${err.code}, message: ${err.message}`);
@@ -1179,11 +1218,13 @@ export default function windowPropertiesTest() {
                         console.info(`${caseName}: Succeeded in setting the grayScale 1.`);
                         done();
                     }).catch((err: BusinessError) => {
+                      console.error(`${caseName}: Failed to set the grayScale. Cause code: ${err.code}, message: ${err.message}`);
                         if (err.code == 801) {
                             console.info(`${caseName}: 此设备不支持setWindowGrayScale能力.`);
+                            expect(err.message!=null).assertTrue();
                             done();
                         } else {
-                            console.error(`${caseName}: Failed to set the grayScale. Cause code: ${err.code}, message: ${err.message}`);
+                            
                             expect().assertFail();
                             done();
                         }
@@ -1252,7 +1293,9 @@ export default function windowPropertiesTest() {
                 await windowClass.resize(1500, 500);
                 console.info(`${caseName} Succeeded in changing the window size.`);
             } catch (error) {
+              console.log(`${caseName}: . Cause code: ${error.code}, message: ${error.message}`);
                 if (error.code == 1300002) {
+                  expect(error.message!=null).assertTrue();
                     try {
                         const windowStatus = windowClass.getWindowStatus();
                         console.info(`${caseName} This window state is: ${windowStatus}. full-screen is not to support resize`);
@@ -1262,6 +1305,7 @@ export default function windowPropertiesTest() {
                     } catch (error) {
                         if (error.code === 801) {
                             console.info(`${caseName} The current device type does not support to getWindowStatus`);
+                            expect(err.message!=null).assertTrue();
                             windowClass.off('windowSizeChange');
                             done();
                         } else {
@@ -1305,11 +1349,14 @@ export default function windowPropertiesTest() {
                 await subWindowClass.moveWindowTo(300, 300);
                 console.info(`${caseName} Succeeded in moving the window.`);
             } catch (error) {
+              console.log(`${caseName}:failed . Cause code: ${error.code}, message: ${error.message}`);
                 if (error.code == 1300002) {
                     console.info(`${caseName} This window state is abnormal`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else if (error.code == 801) {
                     console.info(`${caseName} The current device type does not support to windowRectChange`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`${caseName}: Error: ${JSON.stringify(error)}`);
@@ -1345,11 +1392,14 @@ export default function windowPropertiesTest() {
                 await subWindowClass.destroyWindow();
                 done();
             } catch (error) {
+              console.log(`${caseName}:failed . Cause code: ${error.code}, message: ${error.message}`);
                 if (error.code == 1300002) {
                     console.info(`${caseName} This window state is abnormal`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else if (error.code == 801) {
                     console.info(`${caseName} The current device type does not support to windowRectChange`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`${caseName}: Error: ${JSON.stringify(error)}`);
@@ -1394,11 +1444,14 @@ export default function windowPropertiesTest() {
                 await subWindowClass.destroyWindow();
                 done();
             } catch (error) {
+              console.log(`${caseName}:failed . Cause code: ${error.code}, message: ${error.message}`);
                 if (error.code == 1300002) {
                     console.info(`${caseName} This window state is abnormal`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else if (error.code == 801) {
                     console.info(`${caseName} The current device type does not support to windowRectChange`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`${caseName}: Error: ${JSON.stringify(error)}`);
@@ -1442,11 +1495,14 @@ export default function windowPropertiesTest() {
                 await subWindowClass.destroyWindow();
                 done();
             } catch (error) {
+              console.log(`${caseName}:failed . Cause code: ${error.code}, message: ${error.message}`);
                 if (error.code == 1300002) {
                     console.info(`${caseName} This window state is abnormal`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else if (error.code == 801) {
                     console.info(`${caseName} The current device type does not support to windowRectChange`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`${caseName}: Error: ${JSON.stringify(error)}`);
@@ -1490,11 +1546,14 @@ export default function windowPropertiesTest() {
                 await subWindowClass.destroyWindow();
                 done();
             } catch (error) {
+              console.log(`${caseName}:failed . Cause code: ${error.code}, message: ${error.message}`);
                 if (error.code == 1300002) {
                     console.info(`${caseName} This window state is abnormal`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else if (error.code == 801) {
                     console.info(`${caseName} The current device type does not support to windowRectChange`);
+                    expect(error.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`${caseName}: Error: ${JSON.stringify(error)}`);
@@ -1845,6 +1904,7 @@ export default function windowPropertiesTest() {
             } catch (exception) {
                 console.error(`${caseName} Failed to set sub window colorspace. Cause code: ${exception.code}, message: ${exception.message}`);
                 expect(exception.code).assertEqual(1300002);
+                expect(exception.message!=null).assertTrue();
                 done();
             }
         })
@@ -2043,6 +2103,7 @@ export default function windowPropertiesTest() {
                 }).catch((err: BusinessError) => {
                     console.info(`${caseName} Set the brightness -1.5 Parameter error. Cause code: ${err.code}, message: ${err.message}`)
                     expect(err.code).assertEqual(401);
+                    expect(err.message!=null).assertTrue();
                     done();
                 });
             } catch (exception) {
@@ -2068,8 +2129,9 @@ export default function windowPropertiesTest() {
                     expect(false).assertTrue();
                     done();
                 }).catch((err: BusinessError) => {
+                  console.info(`${caseName} Set the brightness 1.5 Parameter error. Cause code: ${err.code}, message: ${err.message}`)
                     if (err.code === 401) {
-                        console.info(`${caseName} Set the brightness 1.5 Parameter error. Cause code: ${err.code}, message: ${err.message}`)
+                        expect(err.message!=null).assertTrue();
                         done();
                     } else {
                         console.error(`${caseName} Failed to set the brightness 1.5. Cause code: ${err.code}, message: ${err.message}`);
@@ -2456,11 +2518,13 @@ export default function windowPropertiesTest() {
                 subWindow.setWindowPrivacyMode(true, async (err: BusinessError) => {
                     const errCode: number = err.code;
                     if (errCode) {
+                      console.error(`${caseName} Failed to set the subwindow to privacy mode. Cause code: ${err.code}, message: ${err.message}`);
                         if (errCode === 201) {
                             console.info(`${caseName} The application does not have the permission required to call the API`);
+                            expect(err.message!=null).assertTrue();
                             done();
                         } else {
-                            console.error(`${caseName} Failed to set the subwindow to privacy mode. Cause code: ${err.code}, message: ${err.message}`);
+                            
                             expect().assertFail();
                             done();
                         }
@@ -2492,11 +2556,13 @@ export default function windowPropertiesTest() {
                 subWindow.setWindowPrivacyMode(false, async (err: BusinessError) => {
                     const errCode: number = err.code;
                     if (errCode) {
+                      console.error(`${caseName} Failed to set the subwindow to privacy mode. Cause code: ${err.code}, message: ${err.message}`);
                         if (errCode === 201) {
                             console.info(`${caseName} The application does not have the permission required to call the API`);
+                            expect(err.message!=null).assertTrue();
                             done();
                         } else {
-                            console.error(`${caseName} Failed to set the subwindow to privacy mode. Cause code: ${err.code}, message: ${err.message}`);
+                            
                             expect().assertFail();
                             done();
                         }
@@ -2527,11 +2593,13 @@ export default function windowPropertiesTest() {
                 windowClass.setWindowPrivacyMode(true, (err: BusinessError) => {
                     const errCode: number = err.code;
                     if (errCode) {
+                      console.error(`${caseName} Failed to set the window to privacy mode. Cause code: ${err.code}, message: ${err.message}`);
                         if (errCode === 201) {
                             console.info(`${caseName} The application does not have the permission required to call the API`);
+                            expect(err.message!=null).assertTrue();
                             done();
                         } else {
-                            console.error(`${caseName} Failed to set the window to privacy mode. Cause code: ${err.code}, message: ${err.message}`);
+                            
                             expect().assertFail();
                             done();
                         }
@@ -2561,11 +2629,13 @@ export default function windowPropertiesTest() {
                 windowClass.setWindowPrivacyMode(false, (err: BusinessError) => {
                     const errCode: number = err.code;
                     if (errCode) {
+                      console.error(`${caseName} Failed to set the window to privacy mode. Cause code: ${err.code}, message: ${err.message}`);
                         if (errCode === 201) {
                             console.info(`${caseName} The application does not have the permission required to call the API`);
+                            expect(err.message!=null).assertTrue();
                             done();
                         } else {
-                            console.error(`${caseName} Failed to set the window to privacy mode. Cause code: ${err.code}, message: ${err.message}`);
+                            
                             expect().assertFail();
                             done();
                         }
@@ -2595,11 +2665,13 @@ export default function windowPropertiesTest() {
                 windowClass.snapshot((err: BusinessError, pixelMap) => {
                     const errCode: number = err.code;
                     if (errCode) {
+                      console.error(`${caseName} Failed to snapshot window. Cause code: ${err.code}, message: ${err.message}`);
                         if (errCode === 1300002) {
                             console.info(`${caseName} This window state is abnormal`);
+                            expect(err.message!=null).assertTrue();
                             done();
                         } else {
-                            console.error(`${caseName} Failed to snapshot window. Cause code: ${err.code}, message: ${err.message}`);
+                            
                             expect().assertFail();
                             done();
                         }
@@ -2638,11 +2710,13 @@ export default function windowPropertiesTest() {
                 subWindow.snapshot(async (err: BusinessError, pixelMap) => {
                     const errCode: number = err.code;
                     if (errCode) {
+                      console.error(`${caseName} Failed to snapshot subwindow. Cause code: ${err.code}, message: ${err.message}`);
                         if (errCode === 1300002) {
                             console.info(`${caseName} This subwindow state is abnormal`);
+                            expect(err.message!=null).assertTrue();
                             done();
                         } else {
-                            console.error(`${caseName} Failed to snapshot subwindow. Cause code: ${err.code}, message: ${err.message}`);
+                            
                             expect().assertFail();
                             done();
                         }
@@ -2690,11 +2764,13 @@ export default function windowPropertiesTest() {
                     pixelMap.release();
                     done();
                 }).catch((err: BusinessError) => {
+                  console.error(`${caseName} Failed to snapshot window. Cause code: ${err.code}, message: ${err.message}`);
                     if (err.code === 1300002) {
                         console.info(`${caseName} This window state is abnormal`);
+                        expect(err.message!=null).assertTrue();
                         done();
                     } else {
-                        console.error(`${caseName} Failed to snapshot window. Cause code: ${err.code}, message: ${err.message}`);
+                        
                         expect().assertFail();
                         done();
                     }
@@ -2731,11 +2807,13 @@ export default function windowPropertiesTest() {
                     await subWindow.destroyWindow();
                     done();
                 }).catch((err: BusinessError) => {
+                  console.error(`${caseName} Failed to snapshot window. Cause code: ${err.code}, message: ${err.message}`);
                     if (err.code === 1300002) {
                         console.info(`${caseName} This window state is abnormal`);
+                        expect(err.message!=null).assertTrue();
                         done();
                     } else {
-                        console.error(`${caseName} Failed to snapshot window. Cause code: ${err.code}, message: ${err.message}`);
+                        
                         expect().assertFail();
                         done();
                     }
@@ -2763,11 +2841,12 @@ export default function windowPropertiesTest() {
                 expect(uiContext !== null).assertTrue();
                 done();
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code === 1300002) {
                     console.info(`${caseName} This window state is abnormal`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -2792,11 +2871,12 @@ export default function windowPropertiesTest() {
                 await subWindow.destroyWindow();
                 done();
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code === 1300002) {
                     console.info(`${caseName} This window state is abnormal`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -2848,6 +2928,7 @@ export default function windowPropertiesTest() {
                     if (errCode) {
                         console.error(`${caseName} Failed to load the content. Cause code: ${err.code}, message: ${err.message}`);
                         expect(err.code).assertEqual(401);
+                        expect(err.message!=null).assertTrue();
                         done();
                     } else {
                         console.info(`${caseName} Succeeded in loading the content.`);
@@ -2910,6 +2991,7 @@ export default function windowPropertiesTest() {
                     if (errCode) {
                         console.error(`Failed to load the content. Cause code: ${err.code}, message: ${err.message}`);
                         expect(err.code).assertEqual(401);
+                        expect(err.message!=null).assertTrue();
                         await subWindow.destroyWindow();
                         done();
                     } else {
@@ -2993,11 +3075,12 @@ export default function windowPropertiesTest() {
                 console.info(`${caseName} Succeeded in setting default density enabled`)
                 done();
             } catch (exception) {
+              console.error(`Failed to set default density enabled. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code === 801) {
                     console.info(`${caseName} The current device not support to setDefaultDensityEnabled`)
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`Failed to set default density enabled. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -3018,11 +3101,12 @@ export default function windowPropertiesTest() {
                 console.info(`${caseName} Succeeded in setting default density enabled`)
                 done();
             } catch (exception) {
+              console.error(`Failed to set default density enabled. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code === 801) {
                     console.info(`${caseName} The current device not support to setDefaultDensityEnabled`)
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`Failed to set default density enabled. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -3053,6 +3137,7 @@ export default function windowPropertiesTest() {
             } catch (exception) {
                 console.error(`${caseName} Failed to set the window mask. Cause code: ${exception.code}, message: ${exception.message}`);
                 expect(exception.code).assertEqual(1300004);
+                expect(exception.message!=null).assertTrue();
                 done();
             }
         })
@@ -3083,11 +3168,12 @@ export default function windowPropertiesTest() {
                 done();
             } catch (exception) {
                 await subWindow?.destroyWindow();
+                console.error(`Failed to set sub window mask. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code === 801) {
                     console.info(`${caseName} The current device not support to set sub window mask`)
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`Failed to set sub window mask. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -3120,11 +3206,12 @@ export default function windowPropertiesTest() {
                         expect(windowStatus).assertEqual(window.WindowStatusType.FULL_SCREEN);
                         done();
                     } catch (exception) {
+                      console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                         if (exception.code == 801) {
                             console.info(`${caseName}: The current device type does not support to get window status`);
+                            expect(exception.message!=null).assertTrue();
                             done();
                         } else {
-                            console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                             expect().assertFail();
                             done();
                         }
@@ -3167,11 +3254,12 @@ export default function windowPropertiesTest() {
                   done();
                 }
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code == 801) {
                     console.info(`${caseName}: The current device type does not support: ${exception.message}`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -3198,11 +3286,12 @@ export default function windowPropertiesTest() {
                 await windowClass.recover();
                 done();
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code == 801) {
                     console.info(`${caseName}: The current device type does not support: ${exception.message}`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -3237,11 +3326,12 @@ export default function windowPropertiesTest() {
                 expect(windowStatus).assertEqual(window.WindowStatusType.FLOATING);
                 done();
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code == 801) {
                     console.info(`${caseName}: The current device type does not support: ${exception.message}`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -3275,12 +3365,14 @@ export default function windowPropertiesTest() {
                 expect(false).assertEqual(true);
                 done();
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code == 801) {
                     console.info(`${caseName}: The current device type does not support: ${exception.message}`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect(exception.code).assertEqual(1300002);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 }
             }
@@ -3307,12 +3399,14 @@ export default function windowPropertiesTest() {
                 expect(false).assertEqual(true);
                 done();
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code == 801) {
                     console.info(`${caseName}: The current device type does not support: ${exception.message}`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect(exception.code).assertEqual(1300002);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 }
             }
@@ -3340,14 +3434,16 @@ export default function windowPropertiesTest() {
                 expect(isFocused).assertTrue();
                 done();
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code === 1300002) {
                     console.error(`${caseName} This window state is abnormal.`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else if (exception.code === 801) {
                     console.error(`${caseName}: The current device type does not support: ${exception.message}.`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -3381,11 +3477,12 @@ export default function windowPropertiesTest() {
                 expect(isFocused).assertTrue();
                 done();
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code === 1300002) {
                     console.error(`${caseName} This window state is abnormal.`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -3466,6 +3563,7 @@ export default function windowPropertiesTest() {
                 console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code === 1300002) {
                     console.error(`${caseName} This window state is abnormal.`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else if(exception.code === 801){
                     done();
@@ -3499,6 +3597,7 @@ export default function windowPropertiesTest() {
             } catch (exception) {
                 console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 expect(exception.code).assertEqual(1300002);
+                expect(exception.message!=null).assertTrue();
                 done();
             }
         })
@@ -3523,6 +3622,7 @@ export default function windowPropertiesTest() {
                 }).catch((err: BusinessError) => {
                     console.error(`${caseName} Failed to move the window. Cause code: ${err.code}, message: ${err.message}`);
                     if(err.code == 801){
+                      expect(err.message!=null).assertTrue();
                         done();
                     }else{
                         expect().assertFail();
@@ -3533,6 +3633,7 @@ export default function windowPropertiesTest() {
             } catch (exception) {
                 console.error(`${caseName} Failed to move the window. Cause code: ${exception.code}, message: ${exception.message}`);
                 expect(exception.code).assertEqual(401);
+                expect(exception.message!=null).assertTrue();
                 done();
             }
         })
@@ -3561,6 +3662,7 @@ export default function windowPropertiesTest() {
           console.error(`Failed to move the window. Cause code: ${err.code}, message: ${err.message}`);
           await windowClass.destroyWindow();
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             done();
           }else{
             expect().assertFail();
@@ -3590,6 +3692,7 @@ export default function windowPropertiesTest() {
                     if (errCode) {
                         console.error(`Failed to set the window layout to full-screen mode. Cause code: ${err.code}, message: ${err.message}`);
                         expect(err.code).assertEqual(401);
+                        expect(err.message!=null).assertTrue();
                         done();
                     }
                     console.info('Succeeded in setting the window layout to full-screen mode.');
@@ -3600,6 +3703,7 @@ export default function windowPropertiesTest() {
             } catch (exception) {
                 console.error(`${caseName} Failed to move the window. Cause code: ${exception.code}, message: ${exception.message}`);
                 expect(exception.code).assertEqual(401);
+                expect(exception.message!=null).assertTrue();
                 done();
             }
         })
@@ -3629,6 +3733,7 @@ export default function windowPropertiesTest() {
             } catch (exception) {
                 console.error(`${caseName} Failed to move the window. Cause code: ${exception.code}, message: ${exception.message}`);
                 expect(exception.code).assertEqual(401);
+                expect(exception.message!=null).assertTrue();
                 done();
             }
         })
@@ -3651,11 +3756,12 @@ export default function windowPropertiesTest() {
                 expect(rect.height).assertLarger(0);
                 done();
             } catch (exception) {
+              console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code === 801) {
                     console.error(`${caseName} The current device type does not support to getting the global rect.`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
-                    console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
                     expect().assertFail();
                     done();
                 }
@@ -3687,12 +3793,14 @@ export default function windowPropertiesTest() {
                 expect(windowStatus).assertEqual(mainWindowstatus);
                 done();
               }).catch((err: BusinessError) => {
+                console.error(`${caseName} Unauthorized operation. Cause code: ${err.code}, message: ${err.message}`);
                 if (err.code === 801) {
                   console.error(`${caseName} The current device type does not support to restore.`);
+                  expect(err.message!=null).assertTrue();
                   done();
                 } else {
-                  console.error(`${caseName} Unauthorized operation. Cause code: ${err.code}, message: ${err.message}`);
                   expect(1300004).assertEqual(err.code);
+                  expect(err.message!=null).assertTrue();
                   done();
                 }
               });
@@ -3708,6 +3816,7 @@ export default function windowPropertiesTest() {
         } catch (exception) {
           if (exception.code === 801) {
             console.error(`${caseName} The current device type does not support to getWindowStatus. Cause code: ${exception.code}, message: ${exception.message}`);
+            expect(exception.message!=null).assertTrue();
             done();
           } else {
             console.error(`Failed to obtain the window status of window. Cause code: ${exception.code}, message: ${exception.message}`);
@@ -3757,10 +3866,12 @@ export default function windowPropertiesTest() {
                     }).catch((err: BusinessError) => {
                         if (err.code === 801) {
                             console.error(`${caseName} The current device type does not support to restore. Cause code: ${err.code}, message: ${err.message}`);
+                            expect(err.message!=null).assertTrue();
                             done();
                         } else {
                             console.error(`${caseName} Unauthorized operation. Cause code: ${err.code}, message: ${err.message}`);
                             expect(1300004).assertEqual(err.code);
+                            expect(err.message!=null).assertTrue();
                             done();
                         }
                     });
@@ -3768,6 +3879,7 @@ export default function windowPropertiesTest() {
             } catch (exception) {
                 if (exception.code === 801) {
                     console.error(`${caseName} The current device type does not support to getWindowStatus. Cause code: ${exception.code}, message: ${exception.message}`);
+                    expect(exception.message!=null).assertTrue();
                     done();
                 } else {
                     console.error(`Failed to obtain the window status of window. Cause code: ${exception.code}, message: ${exception.message}`);
@@ -3802,6 +3914,7 @@ export default function windowPropertiesTest() {
             } catch (exception) {
                 console.error(`${caseName} Failed to register callback. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code != 801) {
+                  expect(exception.message!=null).assertTrue();
                 expect().assertFail();
                 }
             }
@@ -3831,6 +3944,7 @@ export default function windowPropertiesTest() {
             } catch (exception) {
                 console.error(caseName + `Failed to unregister callback. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code != 801) {
+                  expect(exception.message!=null).assertTrue();
                 expect().assertFail();
                 }
             }
@@ -3863,6 +3977,7 @@ export default function windowPropertiesTest() {
       } catch (err) {
         console.error(`${caseName} :Failed . Cause code: ${err.code}, message: ${err.message}`);
         if(err.code == 401){
+          expect(err.message!=null).assertTrue();
           done();
         }else {
           expect().assertFail();
@@ -3896,6 +4011,7 @@ export default function windowPropertiesTest() {
         }).catch((err: BusinessError) => {
           console.error(`${caseName} :Failed to startMoving. Cause code: ${err.code}, message: ${err.message}`);
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             done();
           }else {
             expect().assertFail();
@@ -3933,6 +4049,7 @@ export default function windowPropertiesTest() {
         }).catch((err: BusinessError) => {
           console.error(`${caseName} :Failed to stopMoving. Cause code: ${err.code}, message: ${err.message}`);
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             done();
           }else {
             expect().assertFail();
@@ -3985,9 +4102,10 @@ export default function windowPropertiesTest() {
             done();
         });
       } catch (error) {
-        console.error(msg + ' failed in windowClass.setWindowLimits 2  ' + JSON.stringify(error));
+        console.error(msg + ' failed in windowClass.setWindowLimits 2  ' + JSON.stringify(error)+ 'error.message: '+ error.message);
         if(error.code == 801){
             console.info(msg+' The current device type is not supported')
+            expect(error.message!=null).assertTrue();
             done();
           }else{
             expect().assertFail()
@@ -4070,8 +4188,10 @@ export default function windowPropertiesTest() {
         expect(true).assertTrue();
         done();
       } catch (error) {
+        console.log(msgStr + 'Failed to window rect changes.Data: ' + JSON.stringify(error.code)+'error.message: '+ error.message);
         if (error.code === 801) {
           console.info(`${msgStr} The current device type does not support to windowRectChange`);
+           expect(error.message!=null).assertTrue();
           done();
         } else {
           console.log(msgStr + 'Failed to window rect changes.Data: ' + JSON.stringify(error));
@@ -4103,6 +4223,7 @@ export default function windowPropertiesTest() {
           console.error(msgStr + `Failed to set the grayScale. Cause code: ${err.code}, message: ${err.message}`);
           if (err.code == 801) {
             console.info(msgStr + '此设备不支持setWindowGrayScale能力.');
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             expect(false).assertTrue();
@@ -4137,6 +4258,7 @@ export default function windowPropertiesTest() {
           console.error(msgStr + `Failed to set the grayScale. Cause code: ${err.code}, message: ${err.message}`);
           if (err.code == 801) {
             console.info(msgStr + '此设备不支持setWindowGrayScale能力.');
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             expect(false).assertTrue();
@@ -4171,6 +4293,7 @@ export default function windowPropertiesTest() {
           console.error(msgStr + `Failed to set the grayScale. Cause code: ${err.code}, message: ${err.message}`);
           if (err.code == 801) {
             console.info(msgStr + '此设备不支持setWindowGrayScale能力.');
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             expect(false).assertTrue();
@@ -4206,6 +4329,7 @@ export default function windowPropertiesTest() {
           console.error(msgStr + `Failed to set the grayScale. Cause code: ${err.code}, message: ${err.message}`);
           if (err.code == 801) {
             console.info(msgStr + '此设备不支持setWindowGrayScale能力.');
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             expect(false).assertTrue();
@@ -4240,6 +4364,7 @@ export default function windowPropertiesTest() {
           console.error(msgStr + `Failed to set the grayScale. Cause code: ${err.code}, message: ${err.message}`);
           if (err.code == 801) {
             console.info(msgStr + '此设备不支持setWindowGrayScale能力.');
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             expect(false).assertTrue();
@@ -4281,6 +4406,7 @@ export default function windowPropertiesTest() {
               await subWindowClass.destroyWindow();
               if (err.code == 801) {
                 console.info(msgStr + '此设备不支持setWindowGrayScale能力.');
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect(false).assertTrue();
@@ -4331,11 +4457,14 @@ export default function windowPropertiesTest() {
             done();
           }).catch(async (err: BusinessError) => {
             console.error(msgStr + `Failed to create the subwindow. Cause code: ${err.code}, message: ${err.message}`);
+            expect(err.message!=null).assertTrue();
             if (err.code == 801) {
               console.log(msgStr + '此设备不支持');
+              expect(err.message!=null).assertTrue();
               done();
             } else if(err.code == 1300002){
               expect(true).assertTrue();
+              expect(err.message!=null).assertTrue();
               done();
             }else {
               console.log(msgStr + 'Failed to setWindowMask');
@@ -4346,6 +4475,7 @@ export default function windowPropertiesTest() {
           });
         }).catch(async (err: BusinessError) => {
           console.error(msgStr + `Failed to create the subwindow. Cause code: ${err.code}, message: ${err.message}`);
+          expect(err.message!=null).assertTrue();
           await subWindowClass.destroyWindow();
           if (err.code == 801) {
             console.log(msgStr + '此设备不支持');
@@ -4389,6 +4519,7 @@ export default function windowPropertiesTest() {
             done();
           }).catch(async (err: BusinessError) => {
             console.error(msgStr + `Failed to create the subwindow. Cause code: ${err.code}, message: ${err.message}`);
+            expect(err.message!=null).assertTrue();
             if (err.code == 801) {
               console.log(msgStr + '此设备不支持');
               done();
@@ -4455,11 +4586,12 @@ export default function windowPropertiesTest() {
             await subWindowClass.destroyWindow();
             done();
           }).catch(async (error: BusinessError) => {
-            console.error(msgStr + 'Failed to create the subwindow. Cause: ' + JSON.stringify(error));
+            console.error(msgStr + 'Failed to create the subwindow. Cause: ' + JSON.stringify(error.code)+'error.message:'+ error.message);
             if (subWindowClass !== undefined) {
               await subWindowClass.destroyWindow();
             }
             if (error.code == 1300002) {
+              expect(error.message!=null).assertTrue();
               expect(true).assertTrue();
               done();
             } else {
@@ -4468,11 +4600,12 @@ export default function windowPropertiesTest() {
             }
           });
         } catch (error) {
-          console.error(msgStr + ' Failed2 to create the subwindow. Cause: ' + JSON.stringify(error));
+          console.error(msgStr + ' Failed2 to create the subwindow. Cause: ' + JSON.stringify(error.code)+'error.message:'+ error.message);
           if (subWindowClass !== undefined) {
             await subWindowClass.destroyWindow();
           }
           if (error.code == 1300002) {
+            expect(error.message!=null).assertTrue();
             expect().assertTrue();
             done();
           } else {
@@ -4537,11 +4670,12 @@ export default function windowPropertiesTest() {
             await subWindowClass.destroyWindow();
             done();
           }).catch(async (error: BusinessError) => {
-            console.error(msgStr + 'Failed to create the subwindow. Cause: ' + JSON.stringify(error));
+            console.error(msgStr + 'Failed to create the subwindow. Cause: ' +JSON.stringify(error.code)+'error.message:'+ error.message);
             if (subWindowClass !== undefined) {
               await subWindowClass.destroyWindow();
             }
             if (error.code == 1300002) {
+              expect(error.message!=null).assertTrue();
               expect(true).assertTrue();
               done();
             } else {
@@ -4555,6 +4689,7 @@ export default function windowPropertiesTest() {
             await subWindowClass.destroyWindow();
           }
           if (error.code == 1300002) {
+            expect(error.message!=null).assertTrue();
             expect().assertTrue();
             done();
           } else {
@@ -4591,9 +4726,10 @@ export default function windowPropertiesTest() {
             await subWindowClass.destroyWindow();
             done();
           }).catch(async (err: BusinessError) => {
-            console.error(`${msgStr} Failed to createWindow. Cause: ${JSON.stringify(err)}`);
+            console.error(`${msgStr} Failed to createWindow. Cause: ${JSON.stringify(err.code)}`+'error.message:'+ err.message);
             await subWindowClass?.destroyWindow();
             if (err.code === 1300002) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -4671,6 +4807,7 @@ export default function windowPropertiesTest() {
             }).catch((err: BusinessError) => {
               console.error(`${msgStr} Failed to maximize the window. Cause code: ${err.code}, message: ${err.message}`);
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -4714,6 +4851,7 @@ export default function windowPropertiesTest() {
             }).catch((err: BusinessError) => {
               console.error(`${msgStr} Failed to maximize the window. Cause code: ${err.code}, message: ${err.message}`);
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -4757,6 +4895,7 @@ export default function windowPropertiesTest() {
             }).catch((err: BusinessError) => {
               console.error(`${msgStr} Failed to maximize the window. Cause code: ${err.code}, message: ${err.message}`);
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -4800,6 +4939,7 @@ export default function windowPropertiesTest() {
             }).catch((err: BusinessError) => {
               console.error(`${msgStr} Failed to maximize the window. Cause code: ${err.code}, message: ${err.message}`);
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -4878,6 +5018,7 @@ export default function windowPropertiesTest() {
             }).catch((err: BusinessError) => {
               console.error(`${msgStr} Failed2 to setWindowFocusable. Cause code: ${err.code}, message: ${err.message}`);
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -4887,6 +5028,7 @@ export default function windowPropertiesTest() {
           }).catch((err: BusinessError) => {
             console.error(`${msgStr} Failed1 to setWindowFocusable. Cause code: ${err.code}, message: ${err.message}`);
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -4931,6 +5073,7 @@ export default function windowPropertiesTest() {
               console.error(`${msgStr} Failed2 to setWindowFocusable. Cause code: ${err.code}, message: ${err.message}`);
               await windowClass.destroyWindow();
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -4941,6 +5084,7 @@ export default function windowPropertiesTest() {
             console.error(`${msgStr} Failed1 to setWindowFocusable. Cause code: ${err.code}, message: ${err.message}`);
             await windowClass.destroyWindow();
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -4991,6 +5135,7 @@ export default function windowPropertiesTest() {
               console.error(`${msgStr} Failed2 to setWindowFocusable. Cause code: ${err.code}, message: ${err.message}`);
               await windowClass.destroyWindow();
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5001,6 +5146,7 @@ export default function windowPropertiesTest() {
             console.error(`${msgStr} Failed1 to setWindowFocusable. Cause code: ${err.code}, message: ${err.message}`);
             await windowClass.destroyWindow();
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5044,6 +5190,7 @@ export default function windowPropertiesTest() {
             }).catch((err: BusinessError) => {
               console.error(`${msgStr} Failed2 to setWindowTouchable. Cause code: ${err.code}, message: ${err.message}`);
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5053,6 +5200,7 @@ export default function windowPropertiesTest() {
           }).catch((err: BusinessError) => {
             console.error(`${msgStr} Failed1 to setWindowTouchable. Cause code: ${err.code}, message: ${err.message}`);
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5097,6 +5245,7 @@ export default function windowPropertiesTest() {
               console.error(`${msgStr} Failed2 to setWindowTouchable. Cause code: ${err.code}, message: ${err.message}`);
               await windowClass.destroyWindow();
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5107,6 +5256,7 @@ export default function windowPropertiesTest() {
             console.error(`${msgStr} Failed1 to setWindowTouchable. Cause code: ${err.code}, message: ${err.message}`);
             await windowClass.destroyWindow();
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5157,6 +5307,7 @@ export default function windowPropertiesTest() {
               console.error(`${msgStr} Failed2 to setWindowTouchable. Cause code: ${err.code}, message: ${err.message}`);
               await windowClass.destroyWindow();
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5167,6 +5318,7 @@ export default function windowPropertiesTest() {
             console.error(`${msgStr} Failed1 to setWindowTouchable. Cause code: ${err.code}, message: ${err.message}`);
             await windowClass.destroyWindow();
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5313,6 +5465,7 @@ export default function windowPropertiesTest() {
             }).catch((err: BusinessError) => {
               console.error(`${msgStr} Failed2 to setWindowKeepScreenOn. Cause code: ${err.code}, message: ${err.message}`);
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5322,6 +5475,7 @@ export default function windowPropertiesTest() {
           }).catch((err: BusinessError) => {
             console.error(`${msgStr} Failed1 to setWindowKeepScreenOn. Cause code: ${err.code}, message: ${err.message}`);
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5366,6 +5520,7 @@ export default function windowPropertiesTest() {
               console.error(`${msgStr} Failed2 to setWindowKeepScreenOn. Cause code: ${err.code}, message: ${err.message}`);
               await windowClass.destroyWindow();
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5376,6 +5531,7 @@ export default function windowPropertiesTest() {
             console.error(`${msgStr} Failed1 to setWindowKeepScreenOn. Cause code: ${err.code}, message: ${err.message}`);
             await windowClass.destroyWindow();
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5426,6 +5582,7 @@ export default function windowPropertiesTest() {
               console.error(`${msgStr} Failed2 to setWindowKeepScreenOn. Cause code: ${err.code}, message: ${err.message}`);
               await windowClass.destroyWindow();
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5436,6 +5593,7 @@ export default function windowPropertiesTest() {
             console.error(`${msgStr} Failed1 to setWindowKeepScreenOn. Cause code: ${err.code}, message: ${err.message}`);
             await windowClass.destroyWindow();
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5479,6 +5637,7 @@ export default function windowPropertiesTest() {
             }).catch((err: BusinessError) => {
               console.error(`${msgStr} Failed2 to setPrivacyMode. Cause code: ${err.code}, message: ${err.message}`);
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5488,6 +5647,7 @@ export default function windowPropertiesTest() {
           }).catch((err: BusinessError) => {
             console.error(`${msgStr} Failed1 to setPrivacyMode. Cause code: ${err.code}, message: ${err.message}`);
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5532,6 +5692,7 @@ export default function windowPropertiesTest() {
               console.error(`${msgStr} Failed2 to setPrivacyMode. Cause code: ${err.code}, message: ${err.message}`);
               await windowClass.destroyWindow();
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5542,6 +5703,7 @@ export default function windowPropertiesTest() {
             console.error(`${msgStr} Failed1 to setPrivacyMode. Cause code: ${err.code}, message: ${err.message}`);
             await windowClass.destroyWindow();
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5592,6 +5754,7 @@ export default function windowPropertiesTest() {
               console.error(`${msgStr} Failed2 to setPrivacyMode. Cause code: ${err.code}, message: ${err.message}`);
               await windowClass.destroyWindow();
               if (err.code == 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -5602,6 +5765,7 @@ export default function windowPropertiesTest() {
             console.error(`${msgStr} Failed1 to setPrivacyMode. Cause code: ${err.code}, message: ${err.message}`);
             await windowClass.destroyWindow();
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -5846,11 +6010,12 @@ export default function windowPropertiesTest() {
             await subWindowClass.destroyWindow();
             done();
           }).catch(async (error: BusinessError) => {
-            console.error(msgStr + 'Failed to create the subwindow. Cause: ' + JSON.stringify(error));
+            console.error(msgStr + 'Failed to create the subwindow. Cause: ' + JSON.stringify(error.code)+'message: ' + error.message);
             if (subWindowClass !== undefined) {
               await subWindowClass.destroyWindow();
             }
             if (error.code == 1300002) {
+              expect(error.message!=null).assertTrue();
               expect(true).assertTrue();
               done();
             } else {
@@ -5859,11 +6024,12 @@ export default function windowPropertiesTest() {
             }
           });
         } catch (error) {
-          console.error(msgStr + ' Failed2 to create the subwindow. Cause: ' + JSON.stringify(error));
+          console.error(msgStr + ' Failed2 to create the subwindow. Cause: ' + JSON.stringify(error.code)+'message: ' + error.message);
           if (subWindowClass !== undefined) {
             await subWindowClass.destroyWindow();
           }
           if (error.code == 1300002) {
+            expect(error.message!=null).assertTrue();
             expect().assertTrue();
             done();
           } else {
@@ -5902,9 +6068,10 @@ export default function windowPropertiesTest() {
             await subWindowClass.destroyWindow();
             done();
           }).catch(async (err: BusinessError) => {
-            console.error(`${msgStr} Failed to createWindow. Cause: ${JSON.stringify(err)}`);
+            console.error(`${msgStr} Failed to createWindow. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
             await subWindowClass?.destroyWindow();
             if (err.code === 1300002) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -6082,8 +6249,9 @@ export default function windowPropertiesTest() {
             console.error(`${caseName} Succeeded in calling getGlobalWindowMode.`);
             done()
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
             if (err.code == 801) {
+              expect(err.message!=null).assertTrue();
               done()
             } else {
               expect().assertFail();
@@ -6091,8 +6259,9 @@ export default function windowPropertiesTest() {
             }
           });
         } catch (error) {
-          console.error(`${caseName} Failed2 to call getGlobalWindowMode. Cause: ${JSON.stringify(error)}`);
+          console.error(`${caseName} Failed2 to call getGlobalWindowMode. Cause: ${JSON.stringify(error.code)},message: ${JSON.stringify(error.message)}`);
           expect(error.code).assertEqual(1300016)
+          expect(error.message!=null).assertTrue();
           done();
         }
       })
@@ -6117,8 +6286,9 @@ export default function windowPropertiesTest() {
             done()
           });
         } catch (error) {
-          console.error(`${caseName} Failed2 to call getGlobalWindowMode. Cause: ${JSON.stringify(error)}`);
+          console.error(`${caseName} Failed2 to call getGlobalWindowMode. Cause: ${JSON.stringify(error)},message: ${JSON.stringify(error.message)}`);
           expect(error.code).assertEqual(1300016)
+          expect(error.message!=null).assertTrue();
           done();
         }
       })
@@ -6139,8 +6309,9 @@ export default function windowPropertiesTest() {
             expect(data).assertEqual(0);
             done();
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
             if (err.code === 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -6186,12 +6357,13 @@ export default function windowPropertiesTest() {
             await subWindowClass?.destroyWindow();
             done();
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
             if (isPCStatus != '' || isAutoWindow == 'true') {
               await mainWindow.recover();
             }
             await subWindowClass?.destroyWindow();
             if (err.code === 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -6248,12 +6420,13 @@ export default function windowPropertiesTest() {
               await subWindowClass?.destroyWindow();
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
               if (isPCStatus != '' || isAutoWindow == 'true') {
                 await mainWindow.recover();
               }
               await subWindowClass?.destroyWindow();
               if (err.code === 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -6261,9 +6434,10 @@ export default function windowPropertiesTest() {
               }
             });
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to createWindow. Cause: ${JSON.stringify(err)}`);
+            console.error(`${caseName} Failed to createWindow. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
             await subWindowClass?.destroyWindow();
             if (err.code === 1300002) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -6374,11 +6548,12 @@ export default function windowPropertiesTest() {
               await pipController?.stopPiP();
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
               if (isMaximize) {
                 await mainWindow.recover();
               }
               if (err.code === 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -6387,11 +6562,12 @@ export default function windowPropertiesTest() {
             });
           }
         } catch (error) {
-          console.error(`${caseName} Failed2 to call getGlobalWindowMode. Cause: ${JSON.stringify(error)}`);
+          console.error(`${caseName} Failed2 to call getGlobalWindowMode. Cause: ${JSON.stringify(error.code)},message: ${JSON.stringify(error.massage)}`);
           if (isMaximize) {
             await mainWindow.recover();
           }
           if (error.code === 801) {
+            expect(error.message!=null).assertTrue();
             done();
           } else {
             expect().assertFail();
@@ -6440,18 +6616,20 @@ export default function windowPropertiesTest() {
               await mainWindow.recover();
               done()
             }catch (err) {
-              console.error(`${caseName} recover failed. data: ${err.code}`);
+              console.error(`${caseName} recover failed. data: ${err.code},message: ${JSON.stringify(err.massage)}`);
               if(err.code == 801){
+                expect(err.message!=null).assertTrue();
                 done()
               }
             }
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
             if (isPCStatus != '' || isAutoWindow == 'true') {
               await mainWindow.recover();
             }
             await subWindowClass?.destroyWindow();
             if (err.code === 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -6492,9 +6670,10 @@ export default function windowPropertiesTest() {
               await terminateAbility3(caseName);
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
               await terminateAbility3(caseName);
               if (err.code === 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -6534,8 +6713,9 @@ export default function windowPropertiesTest() {
             }
             done();
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
             if (err.code === 801) {
+              expect(err.message!=null).assertTrue();
               done();
             } else {
               expect().assertFail();
@@ -6586,9 +6766,10 @@ export default function windowPropertiesTest() {
 
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
               await pipController?.stopPiP();
               if (err.code === 801) {
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 expect().assertFail();
@@ -6661,9 +6842,9 @@ export default function windowPropertiesTest() {
               }
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
               if (err.code === 801) {
-                console.error(`${caseName} 11111...`);
+                expect(err.message!=null).assertTrue();
                 done();
               } else {
                 if (isMaximized) {
@@ -6737,6 +6918,7 @@ export default function windowPropertiesTest() {
       } catch (exception) {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         expect(exception.code).assertEqual(1300002);
+        expect(exception.message!=null).assertTrue();
         done();
       }
     })
@@ -6759,9 +6941,11 @@ export default function windowPropertiesTest() {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         await subWindow.destroyWindow();
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else {
           expect(exception.code).assertEqual(1300002);
+          expect(exception.message!=null).assertTrue();
           done();
         }
 
@@ -6787,9 +6971,11 @@ export default function windowPropertiesTest() {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         await subWindow.destroyWindow();
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else {
           expect(exception.code).assertEqual(1300002);
+          expect(exception.message!=null).assertTrue();
           done();
         }
 
@@ -6822,6 +7008,7 @@ export default function windowPropertiesTest() {
       } catch (exception) {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else {
           expect(false).assertTrue();
@@ -6858,6 +7045,7 @@ export default function windowPropertiesTest() {
       } catch (exception) {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else {
           expect(false).assertTrue();
@@ -6897,6 +7085,7 @@ export default function windowPropertiesTest() {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         await subWindow.destroyWindow();
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else {
           expect(false).assertTrue();
@@ -6937,6 +7126,7 @@ export default function windowPropertiesTest() {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         await subWindow.destroyWindow();
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else {
           expect(false).assertTrue();
@@ -6981,6 +7171,7 @@ export default function windowPropertiesTest() {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         await dialogWindow.destroyWindow();
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else {
           expect(false).assertTrue();
@@ -7026,6 +7217,7 @@ export default function windowPropertiesTest() {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         await dialogWindow.destroyWindow();
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else {
           expect(false).assertTrue();
@@ -7070,8 +7262,10 @@ export default function windowPropertiesTest() {
       } catch (exception) {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else if(exception.code == 1300002){
+          expect(exception.message!=null).assertTrue();
           done();
         }else {
           expect(false).assertTrue();
@@ -7116,8 +7310,10 @@ export default function windowPropertiesTest() {
       } catch (exception) {
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         if(exception.code == 801){
+          expect(exception.message!=null).assertTrue();
           done()
         }else if(exception.code == 1300002){
+          expect(exception.message!=null).assertTrue();
           done();
         }else {
           expect(false).assertTrue();

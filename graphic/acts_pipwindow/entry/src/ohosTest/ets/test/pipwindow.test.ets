@@ -55,7 +55,7 @@ async function terminateAbility(caseName: string) {
   await pageContext.terminateSelf().then(() => {
     console.log(`${caseName} terminateSelf success`);
   }).catch((err: BusinessError) => {
-    console.error(`${caseName} terminateSelf fail, err: ${JSON.stringify(err)}`);
+    console.error(`${caseName} terminateSelf fail, err: ${JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message)}`);
   });
   await sleep(1000)
 }
@@ -188,8 +188,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log('www data Failed1 to create pip controller. Cause' + JSON.stringify(err));
+          console.log('www data Failed1 to create pip controller. Cause' + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
@@ -198,7 +199,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log('www data Failed3 to create pip controller. Cause' +JSON.stringify(error))
+        console.log('www data Failed3 to create pip controller. Cause' +JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message))
         expect().assertFail();
         done();
       }
@@ -234,13 +235,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(true).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log('www data Failed1 to start pip. Cause:' +JSON.stringify(err));
+          console.log('www data Failed1 to start pip. Cause:' +JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           expect().assertFail();
           done();
         });
       } catch (error) {
-        console.log('www data Failed2 to start pip. Cause:' +JSON.stringify(error));
+        console.log('www data Failed2 to start pip. Cause:' +JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -283,18 +285,20 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           done();
         }).catch((err:BusinessError) => {
           if (err.code == 1300015) {
-            console.log('www data window is stopping:'+ JSON.stringify(err))
+            console.log('www data window is stopping:'+ JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message))
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue()
             done()
           } else {
-            console.log('www data Failed1 to stop pip in stopPiP . Cause:' + JSON.stringify(err))
+            console.log('www data Failed1 to stop pip in stopPiP . Cause:' + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message))
             expect().assertFail();
             done();
           }
         });
       } catch (error) {
-        console.log('www data Failed2 to stop pip. Cause:' + JSON.stringify(error))
+        console.log('www data Failed2 to stop pip. Cause:' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message))
         if(error.code == 801){
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -334,8 +338,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         expect(true).assertTrue();
         done();
       } catch (error) {
-        console.log('www data Failed to setAutoStartEnabled_test' + JSON.stringify(error))
+        console.log('www data Failed to setAutoStartEnabled_test' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message))
         if(error.code == 801){
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -376,8 +381,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         expect(true).assertTrue();
         done();
       } catch (error) {
-        console.log('www data Failed to updateContentSize_test' + JSON.stringify(error));
+        console.log('www data Failed to updateContentSize_test' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -442,8 +448,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         expect(true).assertTrue();
         done();
       } catch (err) {
-        console.log('www data Failed to stateChange_Function_ Callback' + JSON.stringify(err));
+        console.log('www data Failed to stateChange_Function_ Callback' + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
         if(err.code == 801){
+          expect(err.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -510,13 +517,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(true).assertTrue();
           done()
         } catch (error) {
-          console.log('www data Failed1 to stateChange_test' + JSON.stringify(error))
+          console.log('www data Failed1 to stateChange_test' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message))
           expect().assertFail();
           done();
         }
       } catch (error) {
-        console.log('www data Failed2 to stateChange_test' + JSON.stringify(error))
+        console.log('www data Failed2 to stateChange_test' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message))
         if(error.code == 801){
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -567,8 +575,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         expect(true).assertTrue();
         done();
       } catch (error) {
-        console.log('www data Failed to registerActionEventCallback , event:' + JSON.stringify(error));
+        console.log('www data Failed to registerActionEventCallback , event:' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -621,13 +630,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(true).assertTrue();
           done();
         } catch (error) {
-          console.log('www data Failed1 to controlPanelActionEvent_test' + JSON.stringify(error));
+          console.log('www data Failed1 to controlPanelActionEvent_test' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
           expect().assertFail();
           done();
         }
       } catch (error) {
-        console.log('www data Failed2 to registerActionEventCallback , event:' + JSON.stringify(error))
+        console.log('www data Failed2 to registerActionEventCallback , event:' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message))
         if(error.code == 801){
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -716,8 +726,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log('www data Failed1 to create pip controller. Cause' + JSON.stringify(err));
+          console.log('www data Failed1 to create pip controller. Cause' + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
@@ -726,7 +737,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log('www data Failed3 to create pip controller. Cause' + JSON.stringify(error));
+        console.log('www data Failed3 to create pip controller. Cause' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -762,8 +773,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log('www data Failed1 to create pip controller. Cause' + JSON.stringify(err));
+          console.log('www data Failed1 to create pip controller. Cause' + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
@@ -772,7 +784,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log('www data Failed3 to create pip controller. Cause' + JSON.stringify(error))
+        console.log('www data Failed3 to create pip controller. Cause' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message))
         expect().assertFail();
         done();
       }
@@ -808,8 +820,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log('www data Failed1 to create pip controller. Cause' + JSON.stringify(err))
+          console.log('www data Failed1 to create pip controller. Cause' + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message))
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
@@ -818,7 +831,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log('www data Failed2 to create pip controller. Cause' + JSON.stringify(error))
+        console.log('www data Failed2 to create pip controller. Cause' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message))
         expect().assertFail();
         done();
       }
@@ -854,8 +867,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -865,7 +879,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoPlayControlGroup_VIDEO_PREVIOUS_NEXT Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoPlayControlGroup_VIDEO_PREVIOUS_NEXT Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -902,8 +916,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -913,7 +928,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoPlayControlGroup_FAST_FORWARD_BACKWARD Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoPlayControlGroup_FAST_FORWARD_BACKWARD Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -950,12 +965,12 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(false).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           expect(false).assertTrue();
           done();
         });
       } catch (error) {
-        console.log(`${tag} test_VideoPlayControlGroup_VIDEO_PREVIOUS_NEXT_FAST_FORWARD_BACKWARD Failed. Cause` + JSON.stringify(error) + error.code);
+        console.log(`${tag} test_VideoPlayControlGroup_VIDEO_PREVIOUS_NEXT_FAST_FORWARD_BACKWARD Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message) + error.code);
         expect(error.code).assertEqual(401);
         done();
       }
@@ -992,8 +1007,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1003,7 +1019,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoCallControlGroup_MICROPHONE_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoCallControlGroup_MICROPHONE_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1039,8 +1055,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1050,7 +1067,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoCallControlGroup_HANG_UP_BUTTON Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoCallControlGroup_HANG_UP_BUTTON Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1086,8 +1103,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1097,7 +1115,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoCallControlGroup_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoCallControlGroup_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1133,8 +1151,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1144,7 +1163,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoCallControlGroup_MICROPHONE_SWITCH_HANG_UP_BUTTON Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoCallControlGroup_MICROPHONE_SWITCH_HANG_UP_BUTTON Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1180,8 +1199,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1191,7 +1211,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoCallControlGroup_MICROPHONE_SWITCH_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoCallControlGroup_MICROPHONE_SWITCH_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1228,8 +1248,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1239,7 +1260,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoCallControlGroup_HANG_UP_BUTTON_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoCallControlGroup_HANG_UP_BUTTON_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1275,8 +1296,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1286,7 +1308,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoCallControlGroup_MICROPHONE_SWITCH_HANG_UP_BUTTON_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoCallControlGroup_MICROPHONE_SWITCH_HANG_UP_BUTTON_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1323,8 +1345,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1334,7 +1357,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoMeetingControlGroup_HANG_UP_BUTTON Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoMeetingControlGroup_HANG_UP_BUTTON Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1370,8 +1393,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1381,7 +1405,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoMeetingControlGroup_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoMeetingControlGroup_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1418,8 +1442,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1429,7 +1454,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoMeetingControlGroup_MUTE_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoMeetingControlGroup_MUTE_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1465,8 +1490,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1476,7 +1502,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoMeetingControlGroup_HANG_UP_BUTTON_MUTE_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoMeetingControlGroup_HANG_UP_BUTTON_MUTE_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1512,8 +1538,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1523,7 +1550,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoMeetingControlGroup_HANG_UP_BUTTON_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoMeetingControlGroup_HANG_UP_BUTTON_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1559,8 +1586,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1570,7 +1598,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoMeetingControlGroup_MUTE_SWITCH_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoMeetingControlGroup_MUTE_SWITCH_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1606,8 +1634,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data != null).assertTrue();
           done();
         }).catch((err:BusinessError) => {
-          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err));
+          console.log(`${tag} Failed1 to create pip controller. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           }
@@ -1617,7 +1646,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }
         });
       } catch (error) {
-        console.log(`${tag} test_VideoMeetingControlGroup_HANG_UP_BUTTON_MUTE_SWITCH_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error));
+        console.log(`${tag} test_VideoMeetingControlGroup_HANG_UP_BUTTON_MUTE_SWITCH_CAMERA_SWITCH Failed. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         expect().assertFail();
         done();
       }
@@ -1669,7 +1698,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
                 expect(true).assertTrue();
                 done();
               } else{
-                console.error(`${message} Params error. Cause` + JSON.stringify(error));
+                console.error(`${message} Params error. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
                 expect().assertFail();
                 done();
               }
@@ -1687,12 +1716,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           });
 
         }).catch((err: BusinessError) => {
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
             console.info(`${message} The current device type does not support to create pipController`);
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
-            console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err));
+            
             expect().assertFail();
             done();
           }
@@ -1703,7 +1734,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(true).assertTrue();
           done();
         } else{
-          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error));
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
           expect().assertFail();
           done();
         }
@@ -1740,45 +1771,51 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
               expect(true).assertTrue();
               done();
             } catch (error) {
+              console.error(`${message} Params error. Cause:${error.code}, message:${error.message}`);
               if(error.code == 801){
+                expect(error.message!=null).assertTrue();
                 console.info(`${message} The current device type does not support to updatePiPControlStatus`);
                 expect(true).assertTrue();
                 done();
               } else{
-                console.error(`${message} Params error. Cause` + JSON.stringify(error));
+                console.error(`${message} Params error. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
                 expect().assertFail();
                 done();
               }
             }
           }).catch((err: BusinessError) => {
+            console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
             if(err.code == 801){
+              expect(error.message!=null).assertTrue();
               console.info(`${message} The current device type does not support to start pip`);
               expect(true).assertTrue();
               done();
             } else{
-              console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
               expect().assertFail();
               done();
             }
           });
         }).catch((err: BusinessError) => {
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
+            expect(error.message!=null).assertTrue();
             console.info(`${message} The current device type does not support to create pipController`);
             expect(true).assertTrue();
             done();
           } else{
-            console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err));
             expect().assertFail();
             done();
           }
         });
       } catch (error) {
+        console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
+          expect(error.message!=null).assertTrue();
           console.info(`${message} The current device type does not support to create pipController`);
           expect(true).assertTrue();
           done();
         } else{
-          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error));
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
           expect().assertFail();
           done();
         }
@@ -1830,7 +1867,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
                 expect(true).assertTrue();
                 done();
               } else{
-                console.info(`${message} Params error. Cause` + JSON.stringify(error));
+                console.info(`${message} Params error. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
                 expect().assertFail();
                 done();
               }
@@ -1847,23 +1884,26 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             }
           });
         }).catch((err: BusinessError) => {
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             console.info(`${message} The current device type does not support to create pipController`);
             expect(true).assertTrue();
             done();
           } else{
-            console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err));
             expect().assertFail();
             done();
           }
         });
       } catch (error) {
+        console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
+          expect(err.message!=null).assertTrue();
           console.info(`${message} The current device type does not support to create pipController`);
           expect(true).assertTrue();
           done();
         } else{
-          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error));
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
           expect().assertFail();
           done();
         }
@@ -1916,41 +1956,44 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
                 expect(true).assertTrue();
                 done();
               } else{
-                console.error(`${message} Params error. Cause` + JSON.stringify(error));
+                console.error(`${message} Params error. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
                 expect().assertFail();
                 done();
               }
             }
           }).catch((err: BusinessError) => {
+            console.error(`${message}} Failed to start pip. Cause:${err.code}, message:${err.message}`);
             if(err.code == 801){
               console.info(`${message} The current device type does not support to start pip`);
+              expect(err.message!=null).assertTrue();
               expect(true).assertTrue();
               done();
             } else{
-              console.error(`${message}} Failed to start pip. Cause:${err.code}, message:${err.message}`);
               expect().assertFail();
               done();
             }
           });
 
         }).catch((err: BusinessError) => {
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
             console.info(`${message} The current device type does not support to create pipController`);
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
-            console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err));
             expect().assertFail();
             done();
           }
         });
       } catch (error) {
+        console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
           console.info(`${message} The current device type does not support to create pipController`);
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
-          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error));
           expect().assertFail();
           done();
         }
@@ -1997,45 +2040,49 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
               expect(0).assertEqual(count);
               done();
             } catch (error) {
+              console.info(`${message} Params error. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
               if(error.code == 801){
                 console.info(`${message} The current device type does not support to updatePiPControlStatus`);
+                expect(error.message!=null).assertTrue();
                 expect(true).assertTrue();
                 done();
               } else{
-                console.info(`${message} Params error. Cause` + JSON.stringify(error));
                 expect().assertFail();
                 done();
               }
             }
           }).catch((err: BusinessError) => {
+            console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
             if(err.code == 801){
               console.info(`${message} The current device type does not support to start pip`);
+              expect(err.message!=null).assertTrue();
               expect(true).assertTrue();
               done();
             } else{
-              console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
               expect().assertFail();
               done();
             }
           });
         }).catch((err: BusinessError) => {
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
             console.info(`${message} The current device type does not support to create pipController`);
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
-            console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err));
             expect().assertFail();
             done();
           }
         });
       } catch (error) {
+        console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
           console.info(`${message} The current device type does not support to create pipController`);
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
-          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error));
           expect().assertFail();
           done();
         }
@@ -2066,45 +2113,49 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
               expect(true).assertTrue();
               done();
             } catch (error) {
+              console.info(`${message} Params error. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
               if(error.code == 801){
                 console.info(`${message} The current device type does not support to setPiPControlEnabled`);
+                expect(error.message!=null).assertTrue();
                 expect(true).assertTrue();
                 done();
               } else{
-                console.info(`${message} Params error. Cause` + JSON.stringify(error));
                 expect().assertFail();
                 done();
               }
             }
           }).catch((err: BusinessError) => {
+            console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
             if(err.code == 801){
               console.info(`${message} The current device type does not support to start pip`);
+              expect(err.message!=null).assertTrue();
               expect(true).assertTrue();
               done();
             } else{
-              console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
               expect().assertFail();
               done();
             }
           });
         }).catch((err: BusinessError) => {
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
             console.info(`${message} The current device type does not support to create pipController`);
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
-            console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err));
             expect().assertFail();
             done();
           }
         });
       } catch (error) {
+        console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
           console.info(`${message} The current device type does not support to create pipController`);
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
-          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error));
           expect().assertFail();
           done();
         }
@@ -2135,45 +2186,49 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
               expect(true).assertTrue();
               done();
             } catch (error) {
+              console.info(`${message} Params error. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
               if(error.code == 801){
                 console.info(`${message} The current device type does not support to setPiPControlEnabled`);
+                expect(error.message!=null).assertTrue();
                 expect(true).assertTrue();
                 done();
               } else{
-                console.info(`${message} Params error. Cause` + JSON.stringify(error));
                 expect().assertFail();
                 done();
               }
             }
           }).catch((err: BusinessError) => {
+            console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
             if(err.code == 801){
               console.info(`${message} The current device type does not support to start pip`);
+              expect(err.message!=null).assertTrue();
               expect(true).assertTrue();
               done();
             } else{
-              console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
               expect().assertFail();
               done();
             }
           });
         }).catch((err: BusinessError) => {
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
             console.info(`${message} The current device type does not support to create pipController`);
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
-            console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err));
             expect().assertFail();
             done();
           }
         });
       } catch (error) {
+        console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
           console.info(`${message} The current device type does not support to create pipController`);
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
-          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error));
           expect().assertFail();
           done();
         }
@@ -2204,45 +2259,49 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
               expect(true).assertTrue();
               done();
             } catch (error) {
+              console.info(`${message} Params error. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
               if(error.code == 801){
                 console.info(`${message} The current device type does not support to setPiPControlEnabled`);
+                expect(error.message!=null).assertTrue();
                 expect(true).assertTrue();
                 done();
               } else{
-                console.info(`${message} Params error. Cause` + JSON.stringify(error));
                 expect().assertFail();
                 done();
               }
             }
           }).catch((err: BusinessError) => {
+            console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
             if(err.code == 801){
               console.info(`${message} The current device type does not support to start pip`);
+              expect(err.message!=null).assertTrue();
               expect(true).assertTrue();
               done();
             } else{
-              console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
               expect().assertFail();
               done();
             }
           });
         }).catch((err: BusinessError) => {
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
             console.info(`${message} The current device type does not support to create pipController`);
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
-            console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err));
             expect().assertFail();
             done();
           }
         });
       } catch (error) {
+        console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
           console.info(`${message} The current device type does not support to create pipController`);
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
-        } else{
-          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error));
+        } else{   
           expect().assertFail();
           done();
         }
@@ -2274,23 +2333,25 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(true).assertTrue();
           done();
         }).catch((err: BusinessError) => {
+          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
             console.info(`${message} The current device type does not support to create pipController`);
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else{
-            console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err));
             expect().assertFail();
             done();
           }
         });
       } catch (error) {
+        console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
           console.info(`${message} The current device type does not support to create pipController`);
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
-          console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error));
           expect().assertFail();
           done();
         }
@@ -2330,21 +2391,23 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           expect(data !== null).assertTrue();
           done();
         }).catch((err: BusinessError) => {
+          console.error(`${caseName} Failed to create pip controller. Cause:${err.code}, message:${err.message}`);
           if (err.code === 801) {
             console.error(`${caseName} The current device Capability not supported.`);
+            expect(err.message!=null).assertTrue();
             done();
           } else {
-            console.error(`${caseName} Failed to create pip controller. Cause:${err.code}, message:${err.message}`);
             expect().assertFail();
             done();
           }
         });
       } catch (exception) {
+        console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         if(exception.code == 1300002) {
           console.info(`${caseName}: This window state is abnormal.`);
+          expect(error.message!=null).assertTrue();
           done();
         } else {
-          console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
           expect().assertFail();
           done();
         }
@@ -2418,9 +2481,10 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           done();
         }
       } catch (err2) {
-        console.log('data Failed0 to PiPSizeChange_test' + JSON.stringify(err2))
+        console.log('data Failed0 to PiPSizeChange_test' + JSON.stringify(err2.code)+':msg:'+JSON.stringify(err2.message))
         if(err2.code == 801 || err2.code == 401){
           expect(true).assertTrue();
+          expect(err2.message!=null).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -2501,8 +2565,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           done();
         }
       } catch (err2) {
-        console.log('data Failed2 to PiPSizeChange_test' + JSON.stringify(err2))
+        console.log('data Failed2 to PiPSizeChange_test' + JSON.stringify(err2.code)+':msg:'+JSON.stringify(err2.message))
         if(err2.code == 801 || err2.code == 401){
+          expect(err2.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -2593,8 +2658,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           done();
         }
       } catch (err2) {
-        console.log('data Failed3 to PiPSizeChange_test' + JSON.stringify(err2));
+        console.log('data Failed3 to PiPSizeChange_test' + JSON.stringify(err2.code)+':msg:'+JSON.stringify(err2.message));
         if(err2.code == 801 || err2.code == 401){
+          expect(err2.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else{
@@ -2664,6 +2730,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.error(`${caseName} Failed to create pip controller. Cause:${err.code}, message:${err.message}`);
           if(err.code == 801){
+            expect(err.message!=null).assertTrue();
             done();
           }else{
             expect(false).assertTrue();
@@ -2719,9 +2786,10 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           done()
         }
       } catch (error) {
-        console.log(message + 'Failed2 to call updateContentSize. Cause:' + JSON.stringify(error));
+        console.log(message + 'Failed2 to call updateContentSize. Cause:' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if (error.code == 801) {
           console.info(message + '此设备不支持updateContentSize能力.');
+          expect(error.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
@@ -2769,9 +2837,10 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           done()
         }
       } catch (error) {
-        console.log(message + 'Failed2 to call updatePiPControlStatus. Cause:' + JSON.stringify(error));
+        console.log(message + 'Failed2 to call updatePiPControlStatus. Cause:' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if (error.code == 801) {
           console.info(message + '此设备不支持updatePiPControlStatus能力.');
+          expect(error.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
@@ -2819,9 +2888,10 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           done()
         }
       } catch (error) {
-        console.log(message + 'Failed2 to call setPiPControlEnabled. Cause:' + JSON.stringify(error));
+        console.log(message + 'Failed2 to call setPiPControlEnabled. Cause:' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if (error.code == 801) {
           console.info(message + '此设备不支持setPiPControlEnabled能力.');
+          expect(error.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
@@ -2870,9 +2940,10 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           done()
         }
       } catch (error) {
-        console.log(message + 'Failed2 to call on_pipWindowSizeChange. Cause:' + JSON.stringify(error));
+        console.log(message + 'Failed2 to call on_pipWindowSizeChange. Cause:' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if (error.code == 801) {
           console.info(message + '此设备不支持on_pipWindowSizeChange能力.');
+          expect(error.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
@@ -2921,9 +2992,10 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           done()
         }
       } catch (error) {
-        console.log(message + 'Failed2 to call off_pipWindowSizeChange. Cause:' + JSON.stringify(error));
+        console.log(message + 'Failed2 to call off_pipWindowSizeChange. Cause:' + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if (error.code == 801) {
           console.info(message + '此设备不支持off_pipWindowSizeChange能力.');
+          expect(error.message!=null).assertTrue();
         } else {
           expect().assertFail();
         }
@@ -2953,20 +3025,23 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           if (err.code == 801) {
             console.info(`${message} The current device type does not support to getPiPWindowInfo`);
             expect(true).assertTrue();
+            expect(err.message!=null).assertTrue();
             done();
           } else {
             console.error(`${message} Failed to getPiPWindowInfo. Cause:${err.code}, message:${err.message}`);
             expect(err.code).assertEqual(1300014);
+            expect(err.message!=null).assertTrue();
             done();
           }
         });
       } catch (error) {
         if (error.code == 801) {
           console.info(`${message} The current device type does not support to getPiPWindowInfo`);
+          expect(error.message!=null).assertTrue();
           expect(true).assertTrue();
           done();
         } else {
-          console.info(`${message} Failed2 to getPiPWindowInfo. Cause` + JSON.stringify(error));
+          console.info(`${message} Failed2 to getPiPWindowInfo. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
           expect().assertFail();
           done();
         }
@@ -3029,6 +3104,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.log(`${message} promise Failed to create pipcontroller.errcode:${err.code}Cause:${JSON.stringify(err.message)}`);
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else {
@@ -3090,6 +3166,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.log(`${message} promise Failed to create pipcontroller.errcode:${err.code}, Cause:${JSON.stringify(err.message)}`);
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else {
@@ -3151,6 +3228,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.log(`${message} promise Failed to create pipcontroller.errcode:${err.code}, Cause:${JSON.stringify(err.message)}`);
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else {
@@ -3212,6 +3290,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.log(`${message} promise Failed to create pipcontroller.errcode:${err.code}, Cause:${JSON.stringify(err.message)}`);
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else {
@@ -3273,6 +3352,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.log(`${message} promise Failed to create pipcontroller.errcode:${err.code}, Cause:${JSON.stringify(err.message)}`);
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else {
@@ -3334,6 +3414,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.log(`${message} promise Failed to create pipcontroller.errcode:${err.code}, Cause:${JSON.stringify(err.message)}`);
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else {
@@ -3413,6 +3494,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           console.log(`${message} promise Failed to create pipcontroller.errcode:${err.code}, Cause:${JSON.stringify(err.message)}`);
           pipController?.off('controlEvent', callback);
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else {
@@ -3492,6 +3574,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           console.log(`${message} promise Failed to create pipcontroller.errcode:${err.code}, Cause:${JSON.stringify(err.message)}`);
           pipController?.off('controlEvent');
           if (err.code == 801) {
+            expect(err.message!=null).assertTrue();
             expect(true).assertTrue();
             done();
           } else {
@@ -3549,6 +3632,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
           expect(err.code).assertEqual(801);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch (err) {
@@ -3604,12 +3688,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             } catch (err) {
               console.error(`${message} Failed to updateContentNode, Cause code ${err.code}, message ${err.message}`);
               expect(err.code).assertEqual(801);
+              expect(err.message!=null).assertTrue();
               done();
             }
           }
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
           expect(err.code).assertEqual(801);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch (err) {
@@ -3666,12 +3752,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             } catch (err) {
               console.error(`${message} Failed to updateContentNode, Cause code ${err.code}, message ${err.message}`);
               expect(err.code).assertEqual(801);
+              expect(err.message!=null).assertTrue();
               done();
             }
           }
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
           expect(err.code).assertEqual(801);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch (err) {
@@ -3727,12 +3815,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             } catch (err) {
               console.error(`${message} Failed to updateContentNode, Cause code ${err.code}, message ${err.message}`);
               expect(err.code).assertEqual(801);
+              expect(err.message!=null).assertTrue();
               done();
             }
           }
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
           expect(err.code).assertEqual(801);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch (err) {
@@ -3781,12 +3871,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             } catch (err) {
               console.error(`${message} Failed to updateContentSize, Cause code ${err.code}, message ${err.message}`);
               expect(err.code == 801 || err.code == 401).assertTrue();
+              expect(err.message!=null).assertTrue();
               done();
             }
           }
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
           expect(err.code).assertEqual(801);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch (err) {
@@ -3840,12 +3932,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             } catch (err) {
               console.error(`${message} Failed to updateContentSize, Cause code ${err.code}, message ${err.message}`);
               expect(err.code == 801).assertTrue();
+              expect(err.message!=null).assertTrue();
               done();
             }
           }
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
           expect(err.code).assertEqual(801);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch (err) {
@@ -3897,12 +3991,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             } catch (err) {
               console.error(`${message} Failed to updateContentSize, Cause code ${err.code}, message ${err.message}`);
               expect(err.code == 801).assertTrue();
+              expect(err.message!=null).assertTrue();
               done();
             }
           }
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
           expect(err.code).assertEqual(801);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch (err) {
@@ -3960,6 +4056,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
           expect(err.code).assertEqual(801);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch (err) {
@@ -4330,9 +4427,11 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
       } catch (err) {
         console.error(`${message} Failed, Cause code ${err.code}, message ${err.message}`);
         if (err.code === 801) {
+          expect(err.message!=null).assertTrue();
           done();
         } else {
           expect(err.code).assertEqual(401);
+          expect(err.message!=null).assertTrue();
           done();
         }
       }
@@ -4376,12 +4475,14 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             }).catch((err: BusinessError) => {
               console.error(`${message} promise Failed getPiPSettingSwitch, Cause code ${err.code}, message ${err.message}`);
               expect(err.code).assertEqual(801);
+              expect(err.message!=null).assertTrue();
               done();
             });
           }
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
           expect(err.code).assertEqual(801);
+          expect(err.message!=null).assertTrue();
           done();
         });
       } catch (err) {
