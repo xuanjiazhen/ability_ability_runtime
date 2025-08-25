@@ -23,6 +23,10 @@
     "deliveryWithInstall": true,
     "installationFree": false,
     "pages": "$profile:main_pages",
+    "testRunner": {
+      "srcPath": "",
+      "name": ""
+    },
     "abilities": [
       {
         "name": "EntryAbility",
