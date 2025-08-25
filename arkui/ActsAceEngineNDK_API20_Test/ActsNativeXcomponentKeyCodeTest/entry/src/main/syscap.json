@@ -5,7 +5,6 @@
             {
                 "xts": [
                     "SystemCapability.ArkUI.ArkUI.Full",
-                    "SystemCapability.ArkUI.ArkUI.Lite",
                     "SystemCapability.ArkUI.ArkUI.Circle",
                     "SystemCapability.Test.UiTest",
                     "SystemCapability.Ability.AbilityRuntime.Core",

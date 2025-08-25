@@ -15,7 +15,8 @@
 {
   "license": "",
   "devDependencies": {
-    "@types/libnativexcomopnentkeycode.so": "file:./src/main/cpp/types/libnativexcomopnentkeycode"
+    "@types/libnativexcomopnentkeycode.so": "file:./src/main/cpp/types/libnativexcomopnentkeycode",
+    "@types/libarkuikeycodendk.so": "file:./src/main/cpp/types/libarkuikeycodendk"
   },
   "author": "",
   "name": "entry",
@@ -23,6 +24,7 @@
   "main": "",
   "version": "1.0.0",
   "dependencies": {
-    "@types/libnativexcomopnentkeycode.so": "file:./src/main/cpp/types/libnativexcomopnentkeycode"
+    "@types/libnativexcomopnentkeycode.so": "file:./src/main/cpp/types/libnativexcomopnentkeycode",
+    "@types/libarkuikeycodendk.so": "file:./src/main/cpp/types/libarkuikeycodendk"
   }
 }

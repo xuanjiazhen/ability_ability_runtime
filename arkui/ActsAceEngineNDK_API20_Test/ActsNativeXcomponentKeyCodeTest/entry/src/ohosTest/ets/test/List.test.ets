@@ -14,7 +14,8 @@
  */
  
 import KeyCodeNdkTest from './nativekeycode/KeyCodeTest.test'
-
+import ArkUIKeyCodeNdkTest from './arkuikeycodetest/ArkUIKeyCodeTest.test'
 export default function testsuite() {
   KeyCodeNdkTest()
+  ArkUIKeyCodeNdkTest()
 }

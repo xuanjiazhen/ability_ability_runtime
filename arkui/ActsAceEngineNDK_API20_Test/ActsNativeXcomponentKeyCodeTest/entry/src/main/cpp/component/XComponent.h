@@ -28,10 +28,12 @@ public:
     void PrintXComponentInfo();
 };
 void OnKeyEvent(ArkUI_NodeEvent* event);
+void OnUIKeyEvent(ArkUI_NodeEvent* event);
 void OnFocusEvent(OH_NativeXComponent* component, void* window);
 void OnBlurEvent(OH_NativeXComponent* component, void* window);
 napi_value InitTextComponent(napi_env env, napi_callback_info info);
 napi_value CreateNativeNode(napi_env env, napi_callback_info info);
+napi_value CreateArkUINode(napi_env env, napi_callback_info info);
 }
 
 #endif //ACE_C_ARKUI_INTERFACE_XCOMPONENT_TEST_API20_XCOMPONENT_H

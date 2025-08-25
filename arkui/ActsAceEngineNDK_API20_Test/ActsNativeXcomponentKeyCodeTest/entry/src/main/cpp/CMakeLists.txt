@@ -55,3 +55,15 @@ target_link_libraries(nativexcomopnentkeycode PUBLIC
     ${libnapi-lib}
     ${libuv-lib}
     libohinput.so)
+
+add_library(arkuikeycodendk SHARED
+    arkuikeycode/ArkUIKeyCodeTest.cpp
+    common/CommonTest.cpp
+    component/ComponentTest.cpp
+    component/XComponentTest.cpp)
+target_link_libraries(arkuikeycodendk PUBLIC
+    ${hilog-lib}
+    ${libace-lib}
+    ${libnapi-lib}
+    ${libuv-lib}
+    libohinput.so)
