@@ -28,12 +28,24 @@
 
 #include "hilog/log.h"
 
+#define THREAD_COUNT 4
 #define NUM_100 100
 #define NUM_128 128
 #define NUM_1024 1024
 #define NUM_512 512
 #define BUFFER_MAX_LEN 2097152
 
+struct ThreadData {
+    napi_env env;
+    napi_value arraybuffer;
+    int threadId;
+    bool testPassed;
+};
+
+static pthread_mutex_t g_lock;
+static napi_ref g_arraybufferRef;
+
+static void* ThreadFunction(void* arg);
 static const char TEST_STR[] = "Where there is a will, there is a way.";
 
 static napi_value CreateBuffer(napi_env env, napi_callback_info info)
@@ -632,6 +644,329 @@ napi_value TestArrayBufferComparison(napi_env env, napi_callback_info info)
     return testDetach(env, info);
 }
 
+napi_value NapiArrayBufferTest01(napi_env env, napi_callback_info info)
+{
+    napi_value arraybuffer;
+    void* data = nullptr;
+    const size_t byteLength = 1024;
+    napi_status status = napi_create_arraybuffer(env, byteLength, &data, &arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_create_arraybuffer failed");
+    
+    bool isArraybuffer = false;
+    status = napi_is_arraybuffer(env, arraybuffer, &isArraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_is_arraybuffer failed");
+    NAPI_ASSERT(env, isArraybuffer, "Created object is not ArrayBuffer");
+    
+    void* retrievedData = nullptr;
+    size_t retrievedLength = 0;
+    status = napi_get_arraybuffer_info(env, arraybuffer, &retrievedData, &retrievedLength);
+    NAPI_ASSERT(env, status == napi_ok, "napi_get_arraybuffer_info failed");
+
+    NAPI_ASSERT(env, data == retrievedData, "Data pointer mismatch");
+    NAPI_ASSERT(env, byteLength == retrievedLength, "Buffer length mismatch");
+
+    bool isDetached = true;
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    NAPI_ASSERT(env, status == napi_ok, "napi_is_detached_arraybuffer failed");
+    NAPI_ASSERT(env, !isDetached, "ArrayBuffer should not be detached");
+
+    napi_value result;
+    napi_get_boolean(env, true, &result);
+    return result;
+}
+
+napi_value NapiArrayBufferTest02(napi_env env, napi_callback_info info)
+{
+    napi_value arraybuffer;
+    void* data = nullptr;
+    const size_t byteLength = 512;
+    napi_status status = napi_create_arraybuffer(env, byteLength, &data, &arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_create_arraybuffer failed");
+    
+    const char* testData = "Hello, ArrayBuffer!";
+    size_t dataLen = strlen(testData) + 1;
+    if (dataLen <= byteLength) {
+        errno_t memcpyResult = memcpy_s(data, byteLength, testData, dataLen);
+        NAPI_ASSERT(env, memcpyResult == 0, "memcpy_s failed");
+    }
+    
+    bool preDetached = true;
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &preDetached);
+    NAPI_ASSERT(env, status == napi_ok, "Pre-detach check failed");
+    NAPI_ASSERT(env, !preDetached, "ArrayBuffer should not be detached initially");
+    
+    status = napi_detach_arraybuffer(env, arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_detach_arraybuffer failed");
+    
+    bool isDetached = false;
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    NAPI_ASSERT(env, status == napi_ok, "Post-detach check failed");
+    NAPI_ASSERT(env, isDetached, "ArrayBuffer should be detached");
+    
+    void* retrievedData = nullptr;
+    size_t retrievedLength = 1;
+    status = napi_get_arraybuffer_info(env, arraybuffer, &retrievedData, &retrievedLength);
+    NAPI_ASSERT(env, status == napi_ok, "napi_get_arraybuffer_info failed after detach");
+    
+    bool success = true;
+    if (retrievedData != nullptr) {
+        success = false;
+    }
+    if (retrievedLength != 0) {
+        success = false;
+    }
+    
+    napi_value result;
+    napi_get_boolean(env, success, &result);
+    return result;
+}
+
+napi_value NapiArrayBufferTest03(napi_env env, napi_callback_info info)
+{
+    napi_value arraybuffer;
+    void* data = nullptr;
+    const size_t byteLength = 1024;
+    napi_status status = napi_create_arraybuffer(env, byteLength, &data, &arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_create_arraybuffer failed");
+    
+    const char* testData = "Test data for ArrayBuffer";
+    size_t dataLen = strlen(testData) + 1;
+    if (dataLen <= byteLength) {
+        errno_t memcpyResult = memcpy_s(data, byteLength, testData, dataLen);
+        NAPI_ASSERT(env, memcpyResult == 0, "memcpy_s failed");
+    }
+    
+    bool dataOk = (strcmp(static_cast<const char*>(data), testData) == 0);
+    NAPI_ASSERT(env, dataOk, "Data verification failed");
+    
+    bool isArraybuffer = false;
+    status = napi_is_arraybuffer(env, arraybuffer, &isArraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_is_arraybuffer failed");
+    NAPI_ASSERT(env, isArraybuffer, "Object should be ArrayBuffer");
+    
+    void* retrievedData = nullptr;
+    size_t retrievedLength = 0;
+    status = napi_get_arraybuffer_info(env, arraybuffer, &retrievedData, &retrievedLength);
+    NAPI_ASSERT(env, status == napi_ok, "napi_get_arraybuffer_info failed");
+    NAPI_ASSERT(env, retrievedData == data, "Data pointer should match");
+    NAPI_ASSERT(env, retrievedLength == byteLength, "Length should match");
+    
+    napi_value result;
+    napi_get_boolean(env, true, &result);
+    return result;
+}
+
+napi_value NapiArrayBufferTest04(napi_env env, napi_callback_info info)
+{
+    napi_value arraybuffer;
+    void* data = nullptr;
+    const size_t byteLength = 256;
+    napi_status status = napi_create_arraybuffer(env, byteLength, &data, &arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_create_arraybuffer failed");
+    
+    status = napi_detach_arraybuffer(env, arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "First detach should succeed");
+    
+    bool isDetached = false;
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    NAPI_ASSERT(env, status == napi_ok, "napi_is_detached_arraybuffer failed after first detach");
+    NAPI_ASSERT(env, isDetached, "ArrayBuffer should be detached after first detach");
+    
+    void* retrievedData = nullptr;
+    size_t retrievedLength = 1;
+    status = napi_get_arraybuffer_info(env, arraybuffer, &retrievedData, &retrievedLength);
+    NAPI_ASSERT(env, status == napi_ok, "napi_get_arraybuffer_info failed after first detach");
+    NAPI_ASSERT(env, retrievedData == nullptr, "Data pointer should be null after detach");
+    NAPI_ASSERT(env, retrievedLength == 0, "Length should be 0 after detach");
+    
+    status = napi_detach_arraybuffer(env, arraybuffer);
+    bool secondDetachFailed = (status == napi_invalid_arg);
+    
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    NAPI_ASSERT(env, status == napi_ok, "napi_is_detached_arraybuffer failed after second detach attempt");
+    NAPI_ASSERT(env, isDetached, "ArrayBuffer should remain detached");
+    
+    status = napi_detach_arraybuffer(env, arraybuffer);
+    bool thirdDetachFailed = (status == napi_invalid_arg);
+    
+    napi_value result;
+    napi_get_boolean(env, secondDetachFailed && thirdDetachFailed, &result);
+    return result;
+}
+
+napi_value NapiArrayBufferTest05(napi_env env, napi_callback_info info)
+{
+    napi_value arraybuffer;
+    void* data = nullptr;
+    const size_t byteLength = 0;
+    napi_status status = napi_create_arraybuffer(env, byteLength, &data, &arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_create_arraybuffer failed for zero-length buffer");
+    
+    bool isArraybuffer = false;
+    status = napi_is_arraybuffer(env, arraybuffer, &isArraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_is_arraybuffer failed");
+    NAPI_ASSERT(env, isArraybuffer, "Zero-length buffer should be ArrayBuffer");
+    
+    void* retrievedData = nullptr;
+    size_t retrievedLength = 1;
+    status = napi_get_arraybuffer_info(env, arraybuffer, &retrievedData, &retrievedLength);
+    NAPI_ASSERT(env, status == napi_ok, "napi_get_arraybuffer_info failed");
+    
+    bool lengthOk = (retrievedLength == 0);
+    NAPI_ASSERT(env, lengthOk, "Zero-length buffer should have length 0");
+
+    bool pointerOk = true;
+    bool isDetached = true;
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    NAPI_ASSERT(env, status == napi_ok, "napi_is_detached_arraybuffer failed");
+    NAPI_ASSERT(env, !isDetached, "Zero-length buffer should not be detached");
+    
+    status = napi_detach_arraybuffer(env, arraybuffer);
+    bool detachOk = (status == napi_ok);
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    NAPI_ASSERT(env, status == napi_ok, "Post-detach check failed");
+    NAPI_ASSERT(env, isDetached, "Should be detached after detach");
+    
+    void* detachedData;
+    size_t detachedLength;
+    status = napi_get_arraybuffer_info(env, arraybuffer, &detachedData, &detachedLength);
+    NAPI_ASSERT(env, status == napi_ok, "napi_get_arraybuffer_info after detach failed");
+    NAPI_ASSERT(env, detachedData == nullptr, "Data should be null after detach");
+    NAPI_ASSERT(env, detachedLength == 0, "Length should be 0 after detach");
+    
+    napi_value result;
+    napi_get_boolean(env, lengthOk && pointerOk, &result);
+    return result;
+}
+
+napi_value NapiArrayBufferTest06(napi_env env, napi_callback_info info)
+{
+    napi_value arraybuffer;
+    void* data = nullptr;
+    const size_t byteLength = 128;
+    napi_status status = napi_create_arraybuffer(env, byteLength, &data, &arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "First napi_create_arraybuffer failed");
+
+    const char* testData = "First buffer";
+    size_t dataLen = strlen(testData) + 1;
+    if (dataLen <= byteLength) {
+        errno_t memcpyResult = memcpy_s(data, byteLength, testData, dataLen);
+        NAPI_ASSERT(env, memcpyResult == 0, "memcpy_s failed");
+    }
+
+    status = napi_detach_arraybuffer(env, arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "First detach failed");
+
+    bool isDetached = false;
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    NAPI_ASSERT(env, status == napi_ok, "First detach status check failed");
+    NAPI_ASSERT(env, isDetached, "First buffer should be detached");
+
+    void* secondData = nullptr;
+    size_t secondByteLength = 64;
+
+    status = napi_create_arraybuffer(env, secondByteLength, &secondData, &arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "Second napi_create_arraybuffer failed");
+
+    const char* testData2 = "Second buffer";
+    size_t dataLen2 = strlen(testData2) + 1;
+    if (dataLen2 <= secondByteLength) {
+        errno_t memcpyResult = memcpy_s(secondData, secondByteLength, testData2, dataLen2);
+        NAPI_ASSERT(env, memcpyResult == 0, "memcpy_s failed");
+    }
+
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    NAPI_ASSERT(env, status == napi_ok, "Second buffer status check failed");
+    NAPI_ASSERT(env, !isDetached, "Second buffer should not be detached");
+    
+    void* retrievedData = nullptr;
+    size_t retrievedLength = 0;
+    status = napi_get_arraybuffer_info(env, arraybuffer, &retrievedData, &retrievedLength);
+    NAPI_ASSERT(env, status == napi_ok, "napi_get_arraybuffer_info for second buffer failed");
+
+    bool success = true;
+    if (retrievedLength != secondByteLength) {
+        success = false;
+    }
+
+    napi_value result;
+    napi_get_boolean(env, success, &result);
+    return result;
+}
+
+napi_value NapiArrayBufferTest07(napi_env env, napi_callback_info info)
+{
+    pthread_mutex_init(&g_lock, nullptr);
+    
+    void* bufferData;
+    napi_value arraybuffer;
+    napi_status status = napi_create_arraybuffer(env, BUFFER_SIZE, &bufferData, &arraybuffer);
+    NAPI_ASSERT(env, status == napi_ok, "napi_create_arraybuffer failed");
+    
+    memset_s(bufferData, BUFFER_SIZE, 0, BUFFER_SIZE);
+    
+    status = napi_create_reference(env, arraybuffer, 1, &g_arraybufferRef);
+    NAPI_ASSERT(env, status == napi_ok, "napi_create_reference failed");
+    
+    pthread_t threads[THREAD_COUNT];
+    ThreadData threadData[THREAD_COUNT];
+    
+    for (int i = 0; i < THREAD_COUNT; i++) {
+        threadData[i].env = env;
+        threadData[i].arraybuffer = arraybuffer;
+        threadData[i].threadId = i;
+        threadData[i].testPassed = true;
+        
+        int err = pthread_create(&threads[i], nullptr, ThreadFunction, &threadData[i]);
+        if (err != 0) {
+            napi_throw_error(env, nullptr, "Failed to create thread");
+            break;
+        }
+    }
+    
+    for (int i = 0; i < THREAD_COUNT; i++) {
+        pthread_join(threads[i], nullptr);
+    }
+    
+    bool isDetached;
+    status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    NAPI_ASSERT(env, status == napi_ok, "Final status check failed");
+    
+    napi_delete_reference(env, g_arraybufferRef);
+    pthread_mutex_destroy(&g_lock);
+    
+    bool allPassed = true;
+    for (int i = 0; i < THREAD_COUNT; i++) {
+        if (!threadData[i].testPassed) {
+            allPassed = false;
+            break;
+        }
+    }
+
+    napi_value result;
+    napi_get_boolean(env, allPassed, &result);
+    return result;
+}
+
+static void* ThreadFunction(void* arg)
+{
+    ThreadData* threadData = static_cast<ThreadData*>(arg);
+    napi_env env = threadData->env;
+    napi_value arraybuffer = threadData->arraybuffer;
+    
+    pthread_mutex_lock(&g_lock);
+    
+    bool isDetached = false;
+    napi_status status = napi_is_detached_arraybuffer(env, arraybuffer, &isDetached);
+    if (status != napi_ok || isDetached) {
+        threadData->testPassed = false;
+    }
+    
+    pthread_mutex_unlock(&g_lock);
+    
+    return nullptr;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -652,7 +987,14 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("TestMultipleOperations", TestMultipleOperations),
         DECLARE_NAPI_FUNCTION("TestExternalArrayBuffer", TestExternalArrayBuffer),
         DECLARE_NAPI_FUNCTION("TestArrayBufferThreadSafety", TestArrayBufferThreadSafety),
-        DECLARE_NAPI_FUNCTION("TestArrayBufferComparison", TestArrayBufferComparison)
+        DECLARE_NAPI_FUNCTION("TestArrayBufferComparison", TestArrayBufferComparison),
+        DECLARE_NAPI_FUNCTION("NapiArrayBufferTest01", NapiArrayBufferTest01),
+        DECLARE_NAPI_FUNCTION("NapiArrayBufferTest02", NapiArrayBufferTest02),
+        DECLARE_NAPI_FUNCTION("NapiArrayBufferTest03", NapiArrayBufferTest03),
+        DECLARE_NAPI_FUNCTION("NapiArrayBufferTest04", NapiArrayBufferTest04),
+        DECLARE_NAPI_FUNCTION("NapiArrayBufferTest05", NapiArrayBufferTest05),
+        DECLARE_NAPI_FUNCTION("NapiArrayBufferTest06", NapiArrayBufferTest06),
+        DECLARE_NAPI_FUNCTION("NapiArrayBufferTest07", NapiArrayBufferTest07),
     };
 
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(properties) / sizeof(*properties), properties));
