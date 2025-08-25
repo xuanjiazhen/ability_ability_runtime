@@ -92,7 +92,6 @@ export default function ActsAceWebViewOnPdfLoadResult() {
       */
     it('emitWebViewOnPdfLoadResult001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       Utils.emitEvent("emitWebViewOnPdfLoadResult001", 10)
-      await Utils.sleep(2000);
       Utils.registerEvent("emitWebViewOnPdfLoadResult001", PdfLoadResult.LOAD_SUCCESS, 20250825, done);
       sendEventByKey('WebViewOnPdfScrollAtBottomKey', 10, '');
     })
@@ -107,7 +106,6 @@ export default function ActsAceWebViewOnPdfLoadResult() {
        */
     it('emitWebViewOnPdfLoadResult002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       Utils.emitEvent("emitWebViewOnPdfLoadResult002", 10)
-      await Utils.sleep(2000);
       Utils.registerEvent("emitWebViewOnPdfLoadResult002", PdfLoadResult.PARSE_ERROR_FILE, 20250826, done);
       sendEventByKey('WebViewOnPdfScrollAtBottomKey', 10, '');
     })
@@ -122,7 +120,6 @@ export default function ActsAceWebViewOnPdfLoadResult() {
        */
     it('emitWebViewOnPdfLoadResult003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       Utils.emitEvent("emitWebViewOnPdfLoadResult003", 10)
-      await Utils.sleep(2000);
       Utils.registerEvent("emitWebViewOnPdfLoadResult003", PdfLoadResult.PARSE_ERROR_FORMAT, 20250827, done);
       sendEventByKey('WebViewOnPdfScrollAtBottomKey', 10, '');
     })
@@ -137,7 +134,6 @@ export default function ActsAceWebViewOnPdfLoadResult() {
      */
     it('emitWebViewOnPdfLoadResult004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       Utils.emitEvent("emitWebViewOnPdfLoadResult004", 10)
-      await Utils.sleep(2000);
       Utils.registerEvent("emitWebViewOnPdfLoadResult004", PdfLoadResult.PARSE_ERROR_PASSWORD, 20250828, done);
       sendEventByKey('WebViewOnPdfScrollAtBottomKey', 10, '');
     })
@@ -152,7 +148,6 @@ export default function ActsAceWebViewOnPdfLoadResult() {
      */
     it('emitWebViewOnPdfLoadResult005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       Utils.emitEvent("emitWebViewOnPdfLoadResult005", 10)
-      await Utils.sleep(2000);
       Utils.registerEvent("emitWebViewOnPdfLoadResult005", PdfLoadResult.PARSE_ERROR_HANDLER, 20250829, done);
       sendEventByKey('WebViewOnPdfScrollAtBottomKey', 10, '');
     })

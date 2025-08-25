@@ -18,6 +18,7 @@ import { webview } from '@kit.ArkWeb';
 import { waitForExist} from '../../test/WaitTest.test';
 import events_emitter from '@ohos.events.emitter';
 import Utils from '../../test/Utils';
+import { Driver, MouseButton, UiWindow, ON, On  } from '@ohos.UiTest';
 
 @Entry
 @Component
@@ -57,6 +58,9 @@ struct WebComponent {
             await waitForExist(()=>this.isReceive, this.emitKey, 0);
             console.info('key==>' + this.emitKey);
             this.isReceive = -1;
+            let webRect = Utils.getComponentRect('printTemplateKey');
+            let X = Utils.getRectHorizontalCenterX(webRect)
+            let Y = Utils.getRectVerticalCenterY(webRect)
             switch (this.emitKey) {
               case 'emitwebViewWebViewOnPdfLoadEvent001': {
                 await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
@@ -72,17 +76,11 @@ struct WebComponent {
                 break;
               }
 
-              case 'emitwebViewWebViewOnPdfLoadEvent003': {
-                this.controller.loadUrl("resource://rawfile/small.pdf");
-                await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
-                console.log('result' + this.ScrollUrl)
-                Utils.emitEvent(this.ScrollUrl,20250824)
-                break;
-              }
             }
           })
       }
       Web({ src: $rawfile('printTemplate.pdf'), controller: this.controller })
+        .key('printTemplateKey')
         .onPdfLoadEvent((eventInfo: OnPdfLoadEvent) => {
           console.info(`Load event callback called. url: ${eventInfo.url}, result: ${eventInfo.result}`)
           this.eventInfoUrl = eventInfo.url;

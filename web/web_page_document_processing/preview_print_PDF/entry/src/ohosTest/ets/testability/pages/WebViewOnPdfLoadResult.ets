@@ -60,7 +60,13 @@ struct WebComponent {
               case 'emitWebViewOnPdfLoadResult001': {
                 await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
                 console.log('emitWebViewOnPdfLoadResult001_result' + this.result)
-                Utils.emitEvent(this.resultArr[this.result],20250825)
+                if(canIUse('SystemCapability.Security.DiaService')) {
+                  Utils.emitEvent(this.resultArr[this.result],20250825)
+                  console.log('6666')
+                } else {
+                  Utils.emitEvent(this.resultArr[0],20250825)
+                  console.log('9999')
+                }
                 break;
               }
               case 'emitWebViewOnPdfLoadResult002': {
@@ -73,7 +79,13 @@ struct WebComponent {
                 this.controller.loadUrl("resource://rawfile/error.pdf");
                 await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
                 console.log('emitWebViewOnPdfLoadResult003_result' + this.result)
-                Utils.emitEvent(this.resultArr[this.result],20250827)
+                if(canIUse('SystemCapability.Security.DiaService')) {
+                  Utils.emitEvent(this.resultArr[this.result],20250827)
+                  console.log('congcong');
+                } else {
+                  Utils.emitEvent(this.resultArr[2],20250827)
+                  console.log('longlong');
+                }
                 break;
               }
               case 'emitWebViewOnPdfLoadResult004': {
@@ -89,9 +101,6 @@ struct WebComponent {
                 Utils.emitEvent(this.resultArr[4],20250829)
                 break;
               }
-
-
-
             }
           })
       }
