@@ -460,7 +460,7 @@ export default class UIAbilityContext extends Context {
     this.nativeSetColorMode(colorMode);
   }
 
-  startAbilityByType(type: string, wantParam: RecordData, startCallback: AbilityStartCallback,
+  startAbilityByType(type: string, wantParam: Record<string, RecordData>, startCallback: AbilityStartCallback,
     callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError => {
       return this.nativeStartAbilityByTypeSync(type, wantParam as Record<string, Object>, startCallback);
@@ -511,7 +511,7 @@ hideAbility(): Promise<void> {
   return p;
 }
 
-  startAbilityByType(type: string, wantParam: RecordData,
+  startAbilityByType(type: string, wantParam: Record<string, RecordData>,
     startCallback: AbilityStartCallback): Promise<void> {
     let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError) => void): void => {
       let p1 = taskpool.execute((): BusinessError => {
