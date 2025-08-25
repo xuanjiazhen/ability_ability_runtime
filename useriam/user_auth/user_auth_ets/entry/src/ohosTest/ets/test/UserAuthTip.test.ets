@@ -78,6 +78,7 @@ export default function UserAuthTipTest() {
       expect(4).assertEqual(userAuth.UserAuthTipCode.PERMANENTLY_LOCKED);
       expect(5).assertEqual(userAuth.UserAuthTipCode.WIDGET_LOADED);
       expect(6).assertEqual(userAuth.UserAuthTipCode.WIDGET_RELEASED);
+      expect(7).assertEqual(userAuth.UserAuthTipCode.COMPARE_FAILURE_WITH_FROZEN);
       console.info('SUB_Security_userIam_authWidget_Func_Tip_0031 end')
       done();
     })
