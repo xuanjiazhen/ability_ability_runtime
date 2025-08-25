@@ -60,7 +60,7 @@ struct WebComponent {
               case 'emitWebViewOnPdfLoadResult001': {
                 await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
                 console.log('emitWebViewOnPdfLoadResult001_result' + this.result)
-                if(canIUse('SystemCapability.Security.DiaService')) {
+                if(!canIUse('SystemCapability.Security.DiaService')) {
                   Utils.emitEvent(this.resultArr[this.result],20250825)
                   console.log('6666')
                 } else {
@@ -79,7 +79,7 @@ struct WebComponent {
                 this.controller.loadUrl("resource://rawfile/error.pdf");
                 await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
                 console.log('emitWebViewOnPdfLoadResult003_result' + this.result)
-                if(canIUse('SystemCapability.Security.DiaService')) {
+                if(!canIUse('SystemCapability.Security.DiaService')) {
                   Utils.emitEvent(this.resultArr[this.result],20250827)
                   console.log('congcong');
                 } else {
