@@ -180,6 +180,8 @@ export default function ImageReceiverModuleTest() {
         createCameraSessionInstance();
         cameraObj.sessionAddInput();
         let ret = createPhotoOutput();
+        cameraObj.createPreviewOutput();
+        cameraObj.sessionAddPreviewOutput();
         expect(ret == true).assertTrue();
         cameraObj.sessionAddPhotoOutput();
         await commitCameraSessionConfig();
