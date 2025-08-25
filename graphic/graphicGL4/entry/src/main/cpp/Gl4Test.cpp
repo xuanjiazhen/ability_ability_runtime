@@ -79,6 +79,30 @@ static napi_value GLLineStippleHalfEmpty(napi_env env, napi_callback_info info)
     return getError(env, glError);
 }
 
+static napi_value GLLineStippleMaxFactor(napi_env env, napi_callback_info info)
+{
+    // max factor test
+    glEnable(GL_LINE_STIPPLE);
+    GLint maxRepeatFactor = 256;
+    GLushort halfDashedPattern = 0x00FF;
+    glLineStipple(maxRepeatFactor, halfDashedPattern);
+    GLenum glError = glGetError();
+    glDisable(GL_LINE_STIPPLE); // clean state
+    return getError(env, glError);
+}
+
+static napi_value GLLineStippleDottedPattern(napi_env env, napi_callback_info info)
+{
+    // dotted pattern test
+    glEnable(GL_LINE_STIPPLE);
+    GLint minRepeatFactor = 1;
+    GLushort dottedPattern = 0x0101;
+    glLineStipple(minRepeatFactor, dottedPattern);
+    GLenum glError = glGetError();
+    glDisable(GL_LINE_STIPPLE); // clean state
+    return getError(env, glError);
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -88,6 +112,9 @@ static napi_value Init(napi_env env, napi_value exports)
         {"gLUniformARBTest", nullptr, GLUniformARBTest, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"gLUniformMatrixARBTest", nullptr, GLUniformMatrixARBTest, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"glLineStippleHalfEmpty", nullptr, GLLineStippleHalfEmpty, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"glLineStippleMaxFactor", nullptr, GLLineStippleMaxFactor, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"glLineStippleDottedPattern", nullptr, GLLineStippleDottedPattern, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     setenv("NEED_OPENGL", "1", 1);
