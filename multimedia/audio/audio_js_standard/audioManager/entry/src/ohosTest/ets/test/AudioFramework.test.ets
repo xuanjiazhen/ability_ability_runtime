@@ -4159,28 +4159,25 @@ export default function audioFramework() {
           outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
           flag = false;
         }
-        let data = await audioManager.isMicrophoneMute();
-        if (data == false){
-          await audioManager.setDeviceActive(2, false).then(() => {
-            console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 Promise returned to indicate that the device is set to the active status.`);
-          });
-          await audioManager.isDeviceActive(audio.ActiveDeviceType.SPEAKER).then((value) => {
-            console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 isDeviceActive : SPEAKER: Deactivate : value is ${flag}`);
-            if (flag == true && value == true) {
-              console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 isDeviceActive : SPEAKER: Deactivate : PASS :${value} flag is ${flag}`);
-              expect(true).assertTrue();
-            } else if (flag == false && value == true) {
-              console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 isDeviceActive : SPEAKER: Deactivate : PASS :${value} flag is ${flag}`);
-              expect(true).assertTrue();
-            } else {
-              console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 isDeviceActive : SPEAKER: Deactivate : fail :${value} flag is ${flag}`);
-              expect(false).assertTrue();
-            }
-          }).catch((err: BusinessError) => {
-            console.log('err :' + JSON.stringify(err.message));
+        await audioManager.setDeviceActive(2, false).then(() => {
+          console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 Promise returned to indicate that the device is set to the active status.`);
+        });
+        await audioManager.isDeviceActive(audio.ActiveDeviceType.SPEAKER).then((value) => {
+          console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 isDeviceActive : SPEAKER: Deactivate : value is ${flag}`);
+          if (flag == true && value == true) {
+            console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 isDeviceActive : SPEAKER: Deactivate : PASS :${value} flag is ${flag}`);
+            expect(true).assertTrue();
+          } else if (flag == false && value == true) {
+            console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 isDeviceActive : SPEAKER: Deactivate : PASS :${value} flag is ${flag}`);
+            expect(true).assertTrue();
+          } else {
+            console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 isDeviceActive : SPEAKER: Deactivate : fail :${value} flag is ${flag}`);
             expect(false).assertTrue();
-          });
-        }
+          }
+        }).catch((err: BusinessError) => {
+          console.log('err :' + JSON.stringify(err.message));
+          expect(false).assertTrue();
+        });
       } catch (err) {
         console.log('err :' + JSON.stringify(err.message));
         expect(false).assertTrue();
