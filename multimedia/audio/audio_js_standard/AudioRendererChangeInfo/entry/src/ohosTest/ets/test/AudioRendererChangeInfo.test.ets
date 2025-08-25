@@ -1387,7 +1387,7 @@ export default function audioRendererChange() {
             let cCount: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0];
             let cMask: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks;
             console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
-            if (Id > 0 && (dType == 2 || dType == 23) && dRole == 2 && sRate != null && cCount != null && cMask != null) {
+            if (Id > 0 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
               resultFlag = true;
             }
           }
@@ -1841,7 +1841,7 @@ export default function audioRendererChange() {
             let cCount: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0];
             let cMask: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks;
             console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
-            if (Id > 0 && (dType == 2 || dType == 23) && dRole == 2 && sRate != null && cCount != null && cMask != null) {
+            if (Id > 0 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
               resultFlag = false;
             }
           }
@@ -2397,7 +2397,7 @@ export default function audioRendererChange() {
               let cCount: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0];
               let cMask: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks;
               console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
-              if (Id > 0 && (dType == 2 || dType == 23) && dRole == 2 && sRate != null && cCount != null && cMask != null) {
+              if (Id > 0 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
                 resultFlag = true;
               }
             }
@@ -2892,7 +2892,7 @@ export default function audioRendererChange() {
                 let cCount: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0];
                 let cMask: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks;
                 console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
-                if (Id > 0 && (dType == 2 || dType == 23) && dRole == 2 && sRate != null && cCount != null && cMask != null) {
+                if (Id > 0 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
                   resultFlag = true;
                 }
               }
