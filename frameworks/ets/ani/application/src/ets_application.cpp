@@ -30,8 +30,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* PERMISSION_GET_BUNDLE_INFO = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
-constexpr const char* CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
-constexpr const char* APPLICATION_SPACE_NAME = "L@ohos/app/ability/application/application;";
+constexpr const char* CONTEXT_CLASS_NAME = "application.Context.Context";
+constexpr const char* APPLICATION_SPACE_NAME = "@ohos.app.ability.application.application";
 }
 
 ani_object CreateEmptyContextObject(ani_env *env)
@@ -83,7 +83,7 @@ bool SetNativeContextLong(ani_env *env, std::shared_ptr<Context> context, ani_cl
     }
     ani_status status = ANI_ERROR;
     ani_method method {};
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         return false;
     }
@@ -302,16 +302,22 @@ ani_object EtsApplication::GetApplicationContext(ani_env *env)
     TAG_LOGD(AAFwkTag::APPKIT, "GetApplicationContext Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
-        return {};
+        return nullptr;
     }
     auto etsReference =
         AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
     if (etsReference == nullptr || etsReference->aniRef == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContextObject");
-        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
-        ani_ref result = nullptr;
-        env->GetNull(&result);
-        return static_cast<ani_object>(result);
+        auto applicationContext = ApplicationContext::GetInstance();
+        ani_object applicationContextObject =
+            EtsApplicationContextUtils::CreateEtsApplicationContext(env, applicationContext);
+        if (applicationContextObject == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null applicationContextObject");
+            AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            ani_ref result = nullptr;
+            env->GetNull(&result);
+            return static_cast<ani_object>(result);
+        }
+        return applicationContextObject;
     }
     return reinterpret_cast<ani_object>(etsReference->aniRef);
 }
@@ -333,14 +339,14 @@ void ApplicationInit(ani_env *env)
     std::array methods = {
         ani_native_function {
             "nativeCreateModuleContext",
-            "Lapplication/Context/Context;Lstd/core/String;Lstd/core/String;"
-            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            "C{application.Context.Context}C{std.core.String}C{std.core.String}"
+            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::CreateModuleContext)
         },
         ani_native_function {
             "nativeCreateBundleContext",
-            "Lapplication/Context/Context;Lstd/core/String;"
-            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            "C{application.Context.Context}C{std.core.String}"
+            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::CreateBundleContext)
         },
         ani_native_function {
@@ -351,7 +357,7 @@ void ApplicationInit(ani_env *env)
         },
         ani_native_function {
             "nativeGetApplicationContext",
-            ":Lapplication/ApplicationContext/ApplicationContext;",
+            ":C{application.ApplicationContext.ApplicationContext}",
             reinterpret_cast<void *>(EtsApplication::GetApplicationContext)
         },
     };

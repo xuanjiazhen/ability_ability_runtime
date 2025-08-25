@@ -15,11 +15,12 @@
 
 import { AbilityResult } from 'ability.abilityResult';
 import { AsyncCallback } from '@ohos.base';
-import { BusinessError } from '@ohos.base';
+import { BusinessError, RecordData } from '@ohos.base';
 import uiExtensionHost from '@ohos.uiExtensionHost';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 import AbilityStartCallback from 'application.AbilityStartCallback';
+import uiExtension from '@ohos.arkui.uiExtension';
 
 class Cleaner {
   static callback(cleaner: Cleaner): void {
@@ -54,14 +55,16 @@ export default class UIExtensionContentSession {
   native loadContent(path: string, storage?: LocalStorage): void;
   native setWindowBackgroundColor(color: string): void;
   native getUIExtensionHostWindowProxy(): uiExtensionHost.UIExtensionHostWindowProxy;
+  native getUIExtensionWindowProxy(): uiExtension.WindowProxy;
   native nativeSetReceiveDataCallback(callback: (data: Record<string, Object>) => void): void;
   native nativeSetReceiveDataForResultCallback(callback: (data: Record<string, Object>) => Record<string, Object>): void;
   native terminateSelfSync(callback:AsyncCallbackWrapper<void>): void;
   native terminateSelfWithResultSync(parameter: AbilityResult, callback:AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
+  native nativeSetWindowPrivacyMode(isPrivacyMode: boolean, callback:AsyncCallbackWrapper<void>): void;
 
-  sendData(data: Record<string, Object>): void {
-    this.nativeSendData(data);
+  sendData(data: RecordData): void {
+    this.nativeSendData(data as Record<string, Object>);
   }
 
   setReceiveDataCallback(callback: (data: Record<string, Object>) => void): void {
@@ -118,10 +121,10 @@ export default class UIExtensionContentSession {
     return p;
   }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback,
+  startAbilityByType(type: string, wantParam: RecordData, startCallback: AbilityStartCallback,
     callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError<void> => {
-      return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
+      return this.nativeStartAbilityByTypeSync(type, wantParam as Record<string, Object>, startCallback);
     });
     p1.then((e: NullishType) => {
       let retError = e as BusinessError<void>;
@@ -135,11 +138,11 @@ export default class UIExtensionContentSession {
     });
   }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>,
+  startAbilityByType(type: string, wantParam: RecordData,
     startCallback: AbilityStartCallback): Promise<void> {
     let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError<void>) => void): void => {
       let p1 = taskpool.execute((): BusinessError<void> => {
-        return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
+        return this.nativeStartAbilityByTypeSync(type, wantParam as Record<string, Object>, startCallback);
       });
       p1.then((e: NullishType) => {
         let retError = e as BusinessError<void>;
@@ -153,5 +156,27 @@ export default class UIExtensionContentSession {
       });
     });
     return p;
+  }
+
+  setWindowPrivacyMode(isPrivacyMode: boolean): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeSetWindowPrivacyMode(isPrivacyMode, asyncCall);
+      });
+    });
+  }
+
+  setWindowPrivacyMode(isPrivacyMode: boolean, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeSetWindowPrivacyMode(isPrivacyMode, asyncCall);
+    });
   }
 }

@@ -42,7 +42,7 @@ ani_object ETSAbilityStageContext::CreateEtsAbilityStageContext(ani_env *env, st
     }
 
     ani_method method = nullptr;
-    if ((status = env->Class_FindMethod(abilityStageCtxCls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(abilityStageCtxCls, "<ctor>", ":", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "call Class_FindMethod ctor failed");
         return nullptr;
     }
@@ -59,20 +59,21 @@ ani_object ETSAbilityStageContext::CreateEtsAbilityStageContext(ani_env *env, st
         TAG_LOGE(AAFwkTag::ABILITY, "workContext nullptr");
         return nullptr;
     }
-    ani_field contextField;
-    if ((status = env->Class_FindField(abilityStageCtxCls, "nativeContext", &contextField)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "call Class_FindField nativeContext failed");
-    }
     ani_long nativeContextLong = (ani_long)workContext;
-    if ((status = env->Object_SetField_Long(obj, contextField, nativeContextLong)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "call Object_SetField_Long contextField failed");
+    if ((status = env->Object_SetFieldByName_Long(obj, "nativeContext", nativeContextLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "SetField_Long nativeContext failed, status: %{public}d", status);
         delete workContext;
         return nullptr;
     }
 
     ContextUtil::CreateEtsBaseContext(env, abilityStageCtxCls, obj, context);
     SetConfiguration(env, abilityStageCtxCls, obj, context);
-    ani_ref* contextGlobalRef = new (std::nothrow) ani_ref;
+    ani_ref *contextGlobalRef = new (std::nothrow) ani_ref;
+    if (contextGlobalRef == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "new contextGlobalRef failed");
+        delete workContext;
+        return nullptr;
+    }
     if ((status = env->GlobalReference_Create(obj, contextGlobalRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "GlobalReference_Create failed status: %{public}d", status);
         delete contextGlobalRef;
@@ -119,7 +120,7 @@ void ETSAbilityStageContext::ConfigurationUpdated(
     }
 
     ani_method method = nullptr;
-    status = env->Class_FindMethod(abilityStageCtxCls, "<ctor>", ":V", &method);
+    status = env->Class_FindMethod(abilityStageCtxCls, "<ctor>", ":", &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "call Class_FindMethod ctor failed");
     }
@@ -130,7 +131,7 @@ void ETSAbilityStageContext::ConfigurationUpdated(
     }
 
     method = nullptr;
-    status = env->Class_FindMethod(abilityStageCtxCls, "onUpdateConfiguration", "LConfiguration;:V", &method);
+    status = env->Class_FindMethod(abilityStageCtxCls, "onUpdateConfiguration", "C{Configuration}:", &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "Class_FindMethod FAILED");
         return;
