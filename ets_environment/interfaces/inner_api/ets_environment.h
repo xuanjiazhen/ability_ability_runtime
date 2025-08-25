@@ -99,6 +99,7 @@ private:
     bool LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj);
     void InitEventHandler(const std::shared_ptr<AppExecFwk::EventRunner> &eventRunner);
     int32_t ParseHdcRegisterOption(std::string& option);
+    void PostCoroutineScheduleTask();
     static ETSRuntimeAPI lazyApis_;
     VMEntry vmEntry_;
     ETSUncaughtExceptionInfo uncaughtExceptionInfo_;

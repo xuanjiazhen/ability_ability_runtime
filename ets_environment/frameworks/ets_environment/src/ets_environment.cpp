@@ -67,6 +67,7 @@ const char ETS_SYS_NSNAME[] = "ets_system";
 
 constexpr const char* CLASSNAME_STRING = "Lstd/core/String;";
 constexpr const char* CLASSNAME_LINKER = "Lstd/core/AbcRuntimeLinker;";
+constexpr const char* CLASSNAME_COROUTINE = "Lstd/core/Coroutine;";
 } // namespace
 
 ETSRuntimeAPI ETSEnvironment::lazyApis_ {};
@@ -264,6 +265,7 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetEnv failed %{public}d", status);
         return false;
     }
+    PostCoroutineScheduleTask();
     return true;
 }
 
@@ -873,6 +875,36 @@ ani_object ETSEnvironment::CreateRuntimeLinker(
 
     return object;
 }
+
+static void ScheduleCoroutine(ani_env *aniEnv)
+{
+    ani_class cls = nullptr;
+    if (aniEnv->FindClass(CLASSNAME_COROUTINE, &cls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass std.core.Coroutine Failed");
+        return;
+    }
+    ani_static_method schedule {};
+    if (aniEnv->Class_FindStaticMethod(cls, "Schedule", ":", &schedule) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindStaticMethod Schedule failed");
+        return;
+    }
+    if (aniEnv->Class_CallStaticMethod_Void(cls, schedule) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_CallStaticMethod_Void Schedule failed");
+        return;
+    }
+}
+
+void ETSEnvironment::PostCoroutineScheduleTask()
+{
+    auto scheduleTask = [weakEnv = weak_from_this()]() {
+        if (auto etsEnv = weakEnv.lock(); etsEnv != nullptr) {
+            ScheduleCoroutine(etsEnv->GetAniEnv());
+            etsEnv->PostCoroutineScheduleTask();
+        }
+    };
+    PostTask(scheduleTask, "ScheduleCoroutine", 0);
+}
+
 } // namespace EtsEnv
 } // namespace OHOS
 
