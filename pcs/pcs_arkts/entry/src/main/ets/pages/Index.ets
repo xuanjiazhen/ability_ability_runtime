@@ -36,10 +36,6 @@ struct Index {
   @State audioStateText: string = 'Error'
   private scroller: Scroller = new Scroller()
 
-  async aboutToAppear() {
-    this.audioRenderer = await this.getAudioRenderer()
-  }
-
   async onPageShow() {
     this.audioStateText = this.audioRenderer ? this.audioRenderer.state.toString() : 'Error'
   }
@@ -89,6 +85,7 @@ struct Index {
                 .id('StartAudio')
                 .fontSize(20)
                 .onClick(async () => {
+                  this.audioRenderer = await this.getAudioRenderer()
                   let res = await this.startAudio(this.audioRenderer, this.abilityContext)
                   this.audioStateText = this.audioRenderer ? this.audioRenderer.state.toString() : 'Error'
                 })

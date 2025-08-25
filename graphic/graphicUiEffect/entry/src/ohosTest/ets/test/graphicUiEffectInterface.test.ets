@@ -36,7 +36,6 @@ export default function graphicUiEffectInterfaceTest() {
       try {
         let filter : uiEffect.Filter = uiEffect.createFilter()
         console.log(msg + " Succeed in uiEffect.createFilter ")
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in uiEffect.createFilter " + JSON.stringify(err))

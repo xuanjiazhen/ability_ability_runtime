@@ -13,18 +13,25 @@
 * limitations under the License.
 */
 import abilityTest from './Ability.test';
-import AsyncLocktest from './AsyncLocktest.test';
-import BitVectortest from './BitVector.test';
-import Uint8ClampedArraytest from './ClampedArrayTest.test';
-import collectionsFifthtest from './CollectionsFifithTest.test';
-import CollectionsFloattest from './CollectionsFloattest.test';
-import collectionsForthtest from './CollectionsForthTest.test';
-import collectionsInttest from './CollectionsInttest.test';
+import collectionsAddTest from './Array/CollectionsAdd.test';
+import collectionsConcurrentModifyTest from './Array/CollectionsConcurrentModify.test';
+import AsyncLocktest from './AsyncLock/AsyncLocktest.test';
+import BitVectortest from './BitVector/BitVector.test';
 import collectionsSecondtest from './CollectionsSecondtest.test';
-import collectionsSixtest from './CollectionsSixTest.test';
 import collectionstest from './Collectionstest.test';
-import collectionsThirdtest from './CollectionsThirdtest.test';
-import sendableLruCachetest from './SendableLruCachetest.test';
+import sendableLruCachetest from './SendableLruCache/SendableLruCachetest.test';
+import Uint8ClampedArraytest from './TypeArray/ClampedArrayTest.test';
+import ColectiontInt16Array from './TypeArray/ColectiontInt16Array.test';
+import ColectiontInt32Array from './TypeArray/ColectiontInt32Array.test';
+import ColectiontTypeArray from './TypeArray/ColectiontTypeArray.test';
+import collectionsConcurrentInt8Array from './TypeArray/CollectionsConcurrentInt8Array.test';
+import collectionsConcurrentUint8ClampedArray from './TypeArray/CollectionsConcurrentUint8ClampedArray.test';
+import collectionsFifthtest from './TypeArray/CollectionsFifithTest.test';
+import CollectionsFloattest from './TypeArray/CollectionsFloattest.test';
+import collectionsForthtest from './TypeArray/CollectionsForthTest.test';
+import collectionsInttest from './TypeArray/CollectionsInttest.test';
+import collectionsSixtest from './TypeArray/CollectionsSixTest.test';
+import collectionsThirdtest from './TypeArray/CollectionsThirdtest.test';
 
 export default function testsuite() {
   abilityTest();
@@ -40,4 +47,12 @@ export default function testsuite() {
   Uint8ClampedArraytest();
   BitVectortest();
   AsyncLocktest();
+  collectionsAddTest();
+  ColectiontTypeArray();
+  ColectiontInt32Array();
+  ColectiontInt16Array();
+  collectionsConcurrentModifyTest();
+  collectionsConcurrentInt8Array();
+  collectionsConcurrentUint8ClampedArray();
+  
 }

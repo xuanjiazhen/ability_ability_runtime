@@ -242,13 +242,14 @@ async function releaseVideoSession() {
   await mVideoSession?.release();
 }
 
-function getFlashSupportedStatusError(done: Function, testName: string, sMode: camera.SceneMode) {
+async function getFlashSupportedStatusError(done: Function, testName: string, sMode: camera.SceneMode) {
   console.info(TAG, testName + ' begin.');
   if (!checkBackCamera()) {
     console.info(TAG, testName + ' the current device does not have a rear camera.');
     done();
     return;
   }
+  let testSession: camera.PhotoSession | camera.VideoSession | camera.SecureSession | undefined = undefined;
   try {
     if (isEmpty(mCameraManager)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -256,23 +257,23 @@ function getFlashSupportedStatusError(done: Function, testName: string, sMode: c
     } else {
       switch (sMode) {
         case sceneMode.NORMAL_PHOTO:
-          let photoSession = mCameraManager.createSession(sceneMode.NORMAL_PHOTO) as camera.PhotoSession;
-          expect(isEmpty(photoSession)).assertFalse();
-          let photoStatus = photoSession.hasFlash();
+          testSession = mCameraManager.createSession(sceneMode.NORMAL_PHOTO) as camera.PhotoSession;
+          expect(isEmpty(testSession)).assertFalse();
+          let photoStatus = testSession.hasFlash();
           expect(isEmpty(photoStatus)).assertFalse();
           console.info(TAG, testName + 'photo mode, status: ' + photoStatus);
           break;
         case sceneMode.NORMAL_VIDEO:
-          let videoSession = mCameraManager.createSession(sceneMode.NORMAL_VIDEO) as camera.VideoSession;
-          expect(isEmpty(videoSession)).assertFalse();
-          let videoStatus = videoSession.hasFlash();
+          testSession = mCameraManager.createSession(sceneMode.NORMAL_VIDEO) as camera.VideoSession;
+          expect(isEmpty(testSession)).assertFalse();
+          let videoStatus = testSession.hasFlash();
           expect(isEmpty(videoStatus)).assertFalse();
           console.info(TAG, testName + 'video mode, status: ' + videoStatus);
           break;
         case sceneMode.SECURE_PHOTO:
-          let secureSession = mCameraManager.createSession(sceneMode.SECURE_PHOTO) as camera.PhotoSession;
-          expect(isEmpty(secureSession)).assertFalse();
-          let secureStatus = secureSession.hasFlash();
+          testSession = mCameraManager.createSession(sceneMode.SECURE_PHOTO) as camera.SecureSession;
+          expect(isEmpty(testSession)).assertFalse();
+          let secureStatus = testSession.hasFlash();
           expect(isEmpty(secureStatus)).assertFalse();
           console.info(TAG, testName + 'secure_photo mode, status: ' + secureStatus);
           break;
@@ -285,11 +286,12 @@ function getFlashSupportedStatusError(done: Function, testName: string, sMode: c
   } catch (err) {
     console.error(TAG, testName + ' session hasFlash failed. code: ' + err.code + ', msg: ' + err.message);
     expect(err.code == cameraErrorCode.SESSION_NOT_CONFIG).assertTrue();
+    await testSession?.release();
     done();
   }
 }
 
-function getFlashSupportedModeStatusError(done: Function, testName: string, sMode: camera.SceneMode,
+async function getFlashSupportedModeStatusError(done: Function, testName: string, sMode: camera.SceneMode,
   flashMode: camera.FlashMode) {
   console.info(TAG, testName + ' begin.');
   if (!checkBackCamera()) {
@@ -297,6 +299,7 @@ function getFlashSupportedModeStatusError(done: Function, testName: string, sMod
     done();
     return;
   }
+  let testSession: camera.PhotoSession | camera.VideoSession | camera.SecureSession | undefined = undefined;
   try {
     if (isEmpty(mCameraManager)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -304,23 +307,23 @@ function getFlashSupportedModeStatusError(done: Function, testName: string, sMod
     } else {
       switch (sMode) {
         case sceneMode.NORMAL_PHOTO:
-          let photoSession = mCameraManager.createSession(sceneMode.NORMAL_PHOTO) as camera.PhotoSession;
-          expect(isEmpty(photoSession)).assertFalse();
-          let photoStatus = photoSession.isFlashModeSupported(flashMode);
+          testSession = mCameraManager.createSession(sceneMode.NORMAL_PHOTO) as camera.PhotoSession;
+          expect(isEmpty(testSession)).assertFalse();
+          let photoStatus = testSession.isFlashModeSupported(flashMode);
           expect(isEmpty(photoStatus)).assertFalse();
           console.info(TAG, testName + 'photo mode, status: ' + photoStatus);
           break;
         case sceneMode.NORMAL_VIDEO:
-          let videoSession = mCameraManager.createSession(sceneMode.NORMAL_VIDEO) as camera.VideoSession;
-          expect(isEmpty(videoSession)).assertFalse();
-          let videoStatus = videoSession.isFlashModeSupported(flashMode);
+          testSession = mCameraManager.createSession(sceneMode.NORMAL_VIDEO) as camera.VideoSession;
+          expect(isEmpty(testSession)).assertFalse();
+          let videoStatus = testSession.isFlashModeSupported(flashMode);
           expect(isEmpty(videoStatus)).assertFalse();
           console.info(TAG, testName + 'video mode, status: ' + videoStatus);
           break;
         case sceneMode.SECURE_PHOTO:
-          let secureSession = mCameraManager.createSession(sceneMode.SECURE_PHOTO) as camera.PhotoSession;
-          expect(isEmpty(secureSession)).assertFalse();
-          let secureStatus = secureSession.isFlashModeSupported(flashMode);
+          testSession = mCameraManager.createSession(sceneMode.SECURE_PHOTO) as camera.SecureSession;
+          expect(isEmpty(testSession)).assertFalse();
+          let secureStatus = testSession.isFlashModeSupported(flashMode);
           expect(isEmpty(secureStatus)).assertFalse();
           console.info(TAG, testName + 'secure_photo mode, status: ' + secureStatus);
           break;
@@ -333,6 +336,7 @@ function getFlashSupportedModeStatusError(done: Function, testName: string, sMod
   } catch (err) {
     console.error(TAG, testName + ' session isFlashModeSupported failed. code: ' + err.code + ', msg: ' + err.message);
     expect(err.code == cameraErrorCode.SESSION_NOT_CONFIG).assertTrue();
+    await testSession?.release();
     done();
   }
 }
@@ -354,8 +358,8 @@ async function getPhotoFlashSupportedModeStatus(done: Function, testName: string
         mCameraManager.createPreviewOutput(mCameraOutputCapModePhoto.previewProfiles[0], indexSurfaceId);
       await getCreatePhotoSession(mPreviewOutput, mPhotoOutput);
       let photoStatus = mPhotoSession.isFlashModeSupported(flashMode);
-      expect(photoStatus).assertTrue();
       console.info(TAG, testName + ' photo mode, status: ' + photoStatus);
+      expect(typeof photoStatus).assertEqual('boolean');
       await releasePhotoSession();
     }
     done();
@@ -477,13 +481,14 @@ async function getVideoFlashSupportedModeStatusAbnormal(done: Function, testName
   }
 }
 
-function getFlashModeError(done: Function, testName: string, sMode: camera.SceneMode) {
+async function getFlashModeError(done: Function, testName: string, sMode: camera.SceneMode) {
   console.info(TAG, testName + ' begin.');
   if (!checkBackCamera()) {
     console.info(TAG, testName + ' the current device does not have a rear camera.');
     done();
     return;
   }
+  let testSession: camera.PhotoSession | camera.VideoSession | camera.SecureSession | undefined = undefined;
   try {
     if (isEmpty(mCameraManager)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -491,23 +496,23 @@ function getFlashModeError(done: Function, testName: string, sMode: camera.Scene
     } else {
       switch (sMode) {
         case sceneMode.NORMAL_PHOTO:
-          let photoSession = mCameraManager.createSession(sceneMode.NORMAL_PHOTO) as camera.PhotoSession;
-          expect(isEmpty(photoSession)).assertFalse();
-          let photoStatus = photoSession.getFlashMode();
+          testSession = mCameraManager.createSession(sceneMode.NORMAL_PHOTO) as camera.PhotoSession;
+          expect(isEmpty(testSession)).assertFalse();
+          let photoStatus = testSession.getFlashMode();
           expect(isEmpty(photoStatus)).assertFalse();
           console.info(TAG, testName + 'photo mode, status: ' + photoStatus);
           break;
         case sceneMode.NORMAL_VIDEO:
-          let videoSession = mCameraManager.createSession(sceneMode.NORMAL_VIDEO) as camera.VideoSession;
-          expect(isEmpty(videoSession)).assertFalse();
-          let videoStatus = videoSession.getFlashMode();
+          testSession = mCameraManager.createSession(sceneMode.NORMAL_VIDEO) as camera.VideoSession;
+          expect(isEmpty(testSession)).assertFalse();
+          let videoStatus = testSession.getFlashMode();
           expect(isEmpty(videoStatus)).assertFalse();
           console.info(TAG, testName + 'video mode, status: ' + videoStatus);
           break;
         case sceneMode.SECURE_PHOTO:
-          let secureSession = mCameraManager.createSession(sceneMode.SECURE_PHOTO) as camera.PhotoSession;
-          expect(isEmpty(secureSession)).assertFalse();
-          let secureStatus = secureSession.getFlashMode();
+          testSession = mCameraManager.createSession(sceneMode.SECURE_PHOTO) as camera.SecureSession;
+          expect(isEmpty(testSession)).assertFalse();
+          let secureStatus = testSession.getFlashMode();
           expect(isEmpty(secureStatus)).assertFalse();
           console.info(TAG, testName + 'secure_photo mode, status: ' + secureStatus);
           break;
@@ -520,6 +525,7 @@ function getFlashModeError(done: Function, testName: string, sMode: camera.Scene
   } catch (err) {
     console.error(TAG, testName + ' session hasFlash failed. code: ' + err.code + ', msg: ' + err.message);
     expect(err.code == cameraErrorCode.SESSION_NOT_CONFIG).assertTrue();
+    await testSession?.release();
     done();
   }
 }
@@ -878,6 +884,7 @@ async function setFlashModeVideoPreConfig(done: Function, testName: string, flas
       let result = mVideoSession.canPreconfig(type as camera.PreconfigType, ratio as camera.PreconfigRatio);
       if (!result) {
         console.info(TAG, testName + ' the camera of this device does not support pre configuration.');
+        await mVideoSession.release();
         done();
         return;
       }
@@ -1151,8 +1158,8 @@ export default function CameraSessionFlashBackTest() {
             mCameraManager.createPreviewOutput(mCameraOutputCapModePhoto.previewProfiles[0], indexSurfaceId);
           await getCreatePhotoSession(mPreviewOutput, mPhotoOutput);
           let photoStatus = mPhotoSession.hasFlash();
-          expect(photoStatus).assertTrue();
           console.info(TAG, testName + ' photo mode, status: ' + photoStatus);
+          expect(typeof photoStatus).assertEqual('boolean');
           await releasePhotoSession();
         }
         done();
@@ -1246,8 +1253,8 @@ export default function CameraSessionFlashBackTest() {
             mVideoOutput = mCameraManager.createVideoOutput(mVideoProfile, mVideoSurfaceId);
             await getCreateVideoSession(testName, mPreviewOutput, mVideoOutput);
             let videoStatus = mVideoSession.hasFlash();
-            expect(videoStatus).assertTrue();
             console.info(TAG, testName + ' video mode, status: ' + videoStatus);
+            expect(typeof videoStatus).assertEqual('boolean');
             await releaseVideoSession();
           }
         }

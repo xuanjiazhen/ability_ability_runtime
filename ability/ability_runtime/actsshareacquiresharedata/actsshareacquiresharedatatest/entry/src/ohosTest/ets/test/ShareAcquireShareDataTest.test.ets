@@ -17,8 +17,38 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import { BusinessError, commonEventManager } from '@kit.BasicServicesKit';
 import { common } from '@kit.AbilityKit';
-import { Driver, ON ,Component } from '@kit.TestKit';
+import { Driver, ON, Component, MatchPattern } from '@kit.TestKit';
+let buttonClicked:boolean = false;
+let driver = Driver.create();
+const DOMAIN = 0x0000;
+const LOG_TAG = 'COMPLETION_HANDLER_TEST';
+const DELAY_TIME = 2000;
+let allowOpen = async () => {
+  let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELAY_TIME);
+  hilog.info(DOMAIN, LOG_TAG, 'needAllow: %{public}s', JSON.stringify(allowed));
+  if (allowed) {
+    let buttons = await driver.findComponents(ON.text('本次允许', MatchPattern.CONTAINS));
+    if (buttons && buttons.length > 0) {
+      hilog.info(DOMAIN, LOG_TAG, 'buttons.length: %{public}d', buttons.length);
+      hilog.info(DOMAIN, LOG_TAG, 'clicking %{public}s', '本次允许');
+      await buttons[buttons.length - 1].click();
+      hilog.info(DOMAIN, LOG_TAG, '%{public}s clicked', '本次允许');
+      buttonClicked = true;
+      return;
+    }
+    buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+    if (buttons && buttons.length > 0) {
+      hilog.info(DOMAIN, LOG_TAG, 'buttons.length: %{public}d', buttons.length);
+      hilog.info(DOMAIN, LOG_TAG, 'clicking %{public}s', '允许');
+      await buttons[buttons.length - 1].click();
+      hilog.info(DOMAIN, LOG_TAG, '%{public}s clicked', '允许');
+      buttonClicked = true;
+      return;
+    }
 
+    hilog.info(DOMAIN, LOG_TAG, 'button not found');
+  }
+}
 let TAG = 'RunTimeTest';
 let testAbilityContext: common.UIAbilityContext;
 
@@ -81,7 +111,13 @@ export default function shareAcquireShareDataTest() {
               hilog.info(0x0000, TAG, '[%{public}s] startAbility succeed', TAG);
             }
           })
-          const driver = Driver.create();
+          await driver.delayMs(1000);
+          try{
+            await allowOpen();
+            await driver.delayMs(1000);
+          } catch (e) {
+            hilog.error(DOMAIN, LOG_TAG, '%{public}s', `SUB_AbilityRuntime_CompletionHandlerTest_StartAbility_0100 allowOpen failed, ${JSON.stringify(e)}`);
+          }
           await driver.delayMs(1000);
           let button: Component = await driver.findComponent(ON.id(TAG));
           await button.click();
@@ -135,7 +171,13 @@ export default function shareAcquireShareDataTest() {
               hilog.info(0x0000, TAG, '[%{public}s] startAbility succeed', TAG);
             }
           })
-          const driver = Driver.create();
+          await driver.delayMs(1000);
+          try{
+            await allowOpen();
+            await driver.delayMs(1000);
+          } catch (e) {
+            hilog.error(DOMAIN, LOG_TAG, '%{public}s', `SUB_AbilityRuntime_CompletionHandlerTest_StartAbility_0100 allowOpen failed, ${JSON.stringify(e)}`);
+          }
           await driver.delayMs(1000);
           let button: Component = await driver.findComponent(ON.id(TAG));
           await button.click();

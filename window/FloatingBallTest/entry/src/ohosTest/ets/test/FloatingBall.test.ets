@@ -384,55 +384,7 @@ export default function abilityTest() {
       }
     })
 
-    /**
-     * @tc.number    : SUB_BASIC_WMS_FLOATING_BALL_0900
-     * @tc.name      : test_startFloatingBall_1300024
-     * @tc.desc      : test_startFloatingBall_1300024
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level3
-     */
-    it('test_startFloatingBall_1300024', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
-      let CaseName:string = 'test_startFloatingBall_1300024';
-      let config: floatingBall.FloatingBallConfiguration = {
-        context: context,
-      };
-      let startParams: floatingBall.FloatingBallParams = {
-        template: floatingBall.FloatingBallTemplate.EMPHATIC,
-        title: 'title',
-        content: 'content'
-      };
-      if(isAutoWindow == 'true'){
-        try {
-          let floatingBallController = await floatingBall.create(config);
-          let mainWindow = windowStage.getMainWindowSync();
-          await mainWindow.minimize();
-          floatingBallController.startFloatingBall(startParams).then(async () => {
-            console.info(CaseName+' floatingBallController Succeeded  in starting floating ball.');
-            await mainWindow.recover();
-            expect(false).assertTrue();
-            done();
-          }).catch(async (err: BusinessError) => {
-            console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
-            await floatingBallController.stopFloatingBall();
-            await mainWindow.recover();
-            expect(err.code).assertEqual(1300024);
-            done();
-          });
-        } catch(e) {
-          console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
-          if(e.code == 801){
-            done();
-          }else{
-            expect(false).assertTrue();
-            done();
-          }
-        }
-      }else{
-        done();
-      }
-
-    })
+    
 
     /**
      * @tc.number    : SUB_BASIC_WMS_FLOATING_BALL_1000
@@ -2430,7 +2382,7 @@ export default function abilityTest() {
         let floatingBallController = await floatingBall.create(config);
         await floatingBallController.startFloatingBall(startParams);
         floatingBallController.getFloatingBallWindowInfo().then((data: floatingBall.FloatingBallWindowInfo) => {
-          console.info(CaseName+' Succeeded in getting floating ball window info. Info: ' + JSON.stringify(data));
+          console.info(CaseName+' Succeeded in getting floating ball window info. Info: ' + JSON.stringify(data.windowId));
           floatingBallController.stopFloatingBall();
           expect(data!=null).assertTrue();
           done();

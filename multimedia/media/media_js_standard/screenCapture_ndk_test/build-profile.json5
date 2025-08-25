@@ -23,6 +23,7 @@
         "signingConfig": "default",
         "compileSdkVersion": 20,//测试环境跟随compileSdkVersion或targetSdkVersion最低支持到20
         "compatibleSdkVersion": 14,
+        "runtimeOS": "OpenHarmony",
       }
     ]
   },

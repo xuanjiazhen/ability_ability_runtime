@@ -86,7 +86,6 @@ export default function getThumbnailTest() {
         asset.getThumbnail(size, async (err, pixelMap) => {
           if (err) {
             console.info(`${testNum} err: ${err}`);
-            expect(true).assertTrue();
           } else {
             expect(false).assertTrue();
           }
@@ -94,7 +93,6 @@ export default function getThumbnailTest() {
         })
       } catch (error) {
         console.info(`${testNum} failed; error: ${error}`);
-        expect(true).assertTrue();
         done();
       }
     }
@@ -108,7 +106,6 @@ export default function getThumbnailTest() {
             console.info(`${testNum} err: ${err}`);
             expect(false).assertTrue();
           } else {
-            expect(true).assertTrue();
           }
           done();
         })
@@ -164,7 +161,6 @@ export default function getThumbnailTest() {
         done();
       } catch (error) {
         console.info(`${testNum} failed; error: ${error}`);
-        expect(true).assertTrue();
         done();
       }
     }
@@ -174,7 +170,6 @@ export default function getThumbnailTest() {
       try {
         let asset: photoAccessHelper.PhotoAsset = await getFileAsset(testContext, testNum, fetchOps);
         await asset.getThumbnail(size);
-        expect(true).assertTrue()
         done();
       } catch (error) {
         console.info(`${testNum} failed; error: ${error}`);

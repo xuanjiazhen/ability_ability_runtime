@@ -62,6 +62,31 @@ struct closeToastTest {
             }
           }, 4500)
         })
+
+      Button('closeToastError')
+        .height('10%')
+        .onClick(() => {
+          try {
+            promptAction.closeToast(5555);
+          } catch (error) {
+            let message = (error as BusinessError).message;
+            let code = (error as BusinessError).code;
+            console.error(`CloseToast error code is ${code}, message is ${message}`);
+            AppStorage.setOrCreate('103401Code', code);
+          };
+        })
+      Button('closeToast')
+        .height('10%')
+        .onClick(() => {
+          try {
+            promptAction.closeToast(this.toastId);
+          } catch (error) {
+            let message = (error as BusinessError).message;
+            let code = (error as BusinessError).code;
+            console.error(`CloseToast error code is ${code}, message is ${message}`);
+          };
+        })
+
     }.height('100%').width('100%').justifyContent(FlexAlign.Center)
   }
 }

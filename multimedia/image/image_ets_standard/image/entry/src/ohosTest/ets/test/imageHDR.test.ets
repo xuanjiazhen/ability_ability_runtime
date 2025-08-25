@@ -83,7 +83,7 @@ export default function imageHDR() {
     const checkMimeType = async(done: Function, TAG: string, picture: string, mimeType:string) => {
       try {
         await getFd(picture);
-        let imageSourceApi = image.createImageSource(fdNumber);
+        let imageSourceApi = await image.createImageSource(fdNumber);
         if (imageSourceApi != undefined) {
           globalimageSource = imageSourceApi;
           let imageInfo = imageSourceApi.getImageInfoSync();
@@ -408,6 +408,33 @@ export default function imageHDR() {
     it("SUB_MULTIMEDIA_IMAGE_MIMETYPE_1200", Level.LEVEL0, async (done: Function) => {
       let tag = 'SUB_MULTIMEDIA_IMAGE_MIMETYPE_1200';
       await checkMimeType(done, tag, 'mimeType_test.srw', 'image/x-samsung-srw');
+    })
+
+    /**
+     * @tc.number   : SUB_MULTIMEDIA_IMAGE_MIMETYPE_1300
+     * @tc.name     : check mimetype values
+     * @tc.desc     : 1.getimagepath,2.createImageSourceFromFd,3.getImageInfo from ImageSource,4.check the mimetype of different pictures
+     * @tc.size     : MediumTest
+     * @tc.type     : Functional
+     * @tc.level    : Level 0
+     */
+    it("SUB_MULTIMEDIA_IMAGE_MIMETYPE_1300", Level.LEVEL0, async (done: Function) => {
+      let tag = 'SUB_MULTIMEDIA_IMAGE_MIMETYPE_1300';
+      await checkMimeType(done, tag, 'mimeType_test.cur', 'image/x-icon');
+    })
+
+
+    /**
+     * @tc.number   : SUB_MULTIMEDIA_IMAGE_MIMETYPE_1400
+     * @tc.name     : check mimetype values
+     * @tc.desc     : 1.getimagepath,2.createImageSourceFromFd,3.getImageInfo from ImageSource,4.check the mimetype of different pictures
+     * @tc.size     : MediumTest
+     * @tc.type     : Functional
+     * @tc.level    : Level 0
+     */
+    it("SUB_MULTIMEDIA_IMAGE_MIMETYPE_1400", Level.LEVEL0, async (done: Function) => {
+      let tag = 'SUB_MULTIMEDIA_IMAGE_MIMETYPE_1400';
+      await checkMimeType(done, tag, 'mimeType_test.jfif', 'image/jpeg');
     })
 
   })

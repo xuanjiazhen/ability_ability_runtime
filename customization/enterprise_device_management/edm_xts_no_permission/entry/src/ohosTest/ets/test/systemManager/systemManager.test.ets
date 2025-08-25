@@ -29,11 +29,11 @@ export default function systemManagerTest() {
     testNotifyUpdatePackages();
     testGetUpdateResult();
     testGetUpdateAuthData();
+    testSetAutoUnlockAfterReboot();
+    testGetAutoUnlockAfterReboot();
     testGetDisallowedNearLink();
     testAddDisallowedNearLinkProtocols();
     testRemoveDisallowedNearLinkProtocols();
-    testSetAutoUnlockAfterReboot();
-    testGetAutoUnlockAfterReboot();
     testSetInstallLocalEnterpriseAppEnabled();
     testGetInstallLocalEnterpriseAppEnabled();
   })
@@ -207,6 +207,52 @@ function testGetUpdateAuthData() {
   });
 }
 
+function testSetAutoUnlockAfterReboot() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_AUTO_UNLOCK_AFTER_REBOOT_JS_0001
+   * @tc.name      : test_set_auto_unlock_after_reboot_0001
+   * @tc.desc      : test systemManager getUpdateAuthData with admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_auto_unlock_after_reboot_0001", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      await systemManager.setAutoUnlockAfterReboot(SELFWANT, false);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 801 || error.code == 201).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+}
+
+function testGetAutoUnlockAfterReboot() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_AUTO_UNLOCK_AFTER_REBOOT_JS_0001
+   * @tc.name      : test_get_auto_unlock_after_reboot_0001
+   * @tc.desc      : test systemManager getUpdateAuthData with admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_auto_unlock_after_reboot_0001", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      await systemManager.getAutoUnlockAfterReboot(SELFWANT);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 801 || error.code == 201).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+}
+
 function testGetDisallowedNearLink() {
     /**
      * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_NEARLINK_JS_0003
@@ -280,52 +326,6 @@ function testRemoveDisallowedNearLinkProtocols() {
         }
         done();
     });
-}
-
-function testSetAutoUnlockAfterReboot() {
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_AUTO_UNLOCK_AFTER_REBOOT_JS_0001
-   * @tc.name      : test_set_auto_unlock_after_reboot_0001
-   * @tc.desc      : test systemManager getUpdateAuthData with admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_auto_unlock_after_reboot_0001", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
-    try {
-      await systemManager.setAutoUnlockAfterReboot(SELFWANT, false);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 801 || error.code == 201).assertTrue();
-    } finally {
-      await adminManager.disableAdmin(SELFWANT);
-    }
-    done();
-  });
-}
-
-function testGetAutoUnlockAfterReboot() {
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_AUTO_UNLOCK_AFTER_REBOOT_JS_0001
-   * @tc.name      : test_get_auto_unlock_after_reboot_0001
-   * @tc.desc      : test systemManager getUpdateAuthData with admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_get_auto_unlock_after_reboot_0001", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
-    try {
-      await systemManager.getAutoUnlockAfterReboot(SELFWANT);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 801 || error.code == 201).assertTrue();
-    } finally {
-      await adminManager.disableAdmin(SELFWANT);
-    }
-    done();
-  });
 }
 
 function testSetInstallLocalEnterpriseAppEnabled() {

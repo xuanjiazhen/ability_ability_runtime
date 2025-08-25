@@ -9,6 +9,13 @@ const ExpectTrue: (n: boolean) => void = (n: boolean) => {
     console.info(` exportTrue failed err: ${JSON.stringify(err)}`);
   }
 };
+const ExpectFail = () => {
+  try {
+    expect().assertFail();
+  } catch (err) {
+    console.info(`exportFail failed err: ${JSON.stringify(err)}`);
+  }
+}
 
 
 export default function StatisticsErrorCodeTest() {
@@ -250,6 +257,358 @@ export default function StatisticsErrorCodeTest() {
       catch (err){
         console.info(`${caseName} try catch err: ${JSON.stringify(err)}`);
         ExpectTrue(err.code == 2100001);
+        done();
+      }
+    });
+    
+    /*
+     * @tc.number: SUB_NetManager_Statistics_GetSockfdTxBytes_CallBackErrCo_0100
+     * @tc.name:  testNetManagerStatisticsGetSockfdTxBytesCallBackErrCo0100
+     * @tc.desc: Function test
+     * @tc.level:Level 3
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+      it("testNetManagerStatisticsGetSockfdTxBytesCallBackErrCo0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+        let caseName: string = "testNetManagerStatisticsGetSockfdTxBytesCallBackErrCo0100";
+        console.info(`${caseName}---start`);
+        try {
+          statistics.getSockfdTxBytes(123456, (error, data) => {
+            console.info(`${caseName} getSockfdTxBytes error is : ` + JSON.stringify(error)+ " data is :"+ data);
+            if (error) {
+              ExpectTrue(error.code == 2100002);
+            } else {
+              ExpectFail();
+            }
+            console.info(`${caseName}---End`);
+            done();
+          });
+        } catch (error) {
+          console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+          ExpectTrue(error.code == 2100002);
+          console.info(`${caseName}---End`);
+          done();
+        }
+
+      });
+    /*
+     * @tc.number: SUB_NetManager_Statistics_GetSockfdTxBytes_PromiseErrCo_0200
+     * @tc.name:  testNetManagerStatisticsGetSockfdTxBytesPromiseErrCo0200
+     * @tc.desc: Function test
+     * @tc.level:Level 3
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+      it("testNetManagerStatisticsGetSockfdTxBytesPromiseErrCo0200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+        let caseName: string = "testNetManagerStatisticsGetSockfdTxBytesPromiseErrCo0200";
+        console.info(`${caseName}---start`);
+        try {
+          statistics.getSockfdTxBytes(123456).then((data)=>{
+            console.log(`${caseName} getSockfdTxBytes success, data: ${JSON.stringify(data)}`);
+            ExpectFail();
+            done();
+          }).catch((err: BusinessError)=>{
+            console.log(`${caseName} getSockfdTxBytes err is : ${JSON.stringify(err)}`);
+            ExpectTrue(err.code == 2100002);
+            done();
+          })
+        } catch (error) {
+          console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+          ExpectTrue(error.code == 2100002);
+          console.info(`${caseName}---End`);
+          done();
+        }
+      });
+
+      /**
+       * @tc.number SUB_NetManager_Statistics_GetSockfdTxBytes_CallbackErrCo_0300
+       * @tc.name testNetManagerStatisticsGetSockfdTxBytesCallbackErrCo0300
+       * @tc.desc Test getSockfdTxBytes property
+       * @tc.type:Function
+       * @tc.size:MediumTest
+       */
+      it("testNetManagerStatisticsGetSockfdTxBytesCallbackErrCo0300", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+        let caseName: string = "testNetManagerStatisticsGetSockfdTxBytesCallbackErrCo0300";
+        console.info(`${caseName}---start`);
+        try {
+          statistics.getSockfdTxBytes(undefined, (err, data) => {
+            if (err) {
+              console.info(`${caseName} getSockfdTxBytes failed, err: ${JSON.stringify(err)}`);
+              ExpectTrue(err.code == 401);
+              done();
+            } else {
+              console.log(`${caseName} getSockfdTxBytes success, data: ${JSON.stringify(data)}`);
+              ExpectFail();
+              done();
+            }
+          });
+        } catch (error) {
+          console.log(`${caseName} catch error, expect error: [${error.code}, ${error.message}]`);
+          expect(error.code == 401).assertTrue();
+          done();
+        }
+      });
+
+    /*
+     * @tc.number: SUB_NetManager_Statistics_GetSockfdTxBytes_PromiseErrCo_0400
+     * @tc.name:  testNetManagerStatisticsGetSockfdTxBytesPromiseErrCo0400
+     * @tc.desc: Function test
+     * @tc.level:Level 3
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+    it("testNetManagerStatisticsGetSockfdTxBytesPromiseErrCo0400", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testNetManagerStatisticsGetSockfdTxBytesPromiseErrCo0400";
+      console.info(`${caseName}---start`);
+      try {
+        statistics.getSockfdTxBytes(undefined).then((data)=>{
+          console.log(`${caseName} getSockfdTxBytes success, data: ${JSON.stringify(data)}`);
+          ExpectFail();
+          done();
+        }).catch((err: BusinessError)=>{
+          console.log(`${caseName} getSockfdTxBytes err is : ${JSON.stringify(err)}`);
+          ExpectTrue(err.code == 401);
+          done();
+        })
+      } catch (error) {
+        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+        ExpectTrue(error.code == 401);
+        console.info(`${caseName}---End`);
+        done();
+      }
+    });
+
+    /*
+   * @tc.number: SUB_NetManager_Statistics_GetSockfdTxBytes_CallBackErrCo_0500
+   * @tc.name:  testNetManagerStatisticsGetSockfdTxBytesCallBackErrCo0500
+   * @tc.desc: Function test
+   * @tc.level:Level 3
+   * @tc.type:Function
+   * @tc.size:MediumTest
+   */
+    it("testNetManagerStatisticsGetSockfdTxBytesCallBackErrCo0500", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testNetManagerStatisticsGetSockfdTxBytesCallBackErrCo0500";
+      console.info(`${caseName}---start`);
+      try {
+        statistics.getSockfdTxBytes(-1, (error, data) => {
+          console.info(`${caseName} getSockfdTxBytes error is : ` + JSON.stringify(error)+ " data is :"+ data);
+          if (error) {
+            ExpectTrue(error.code == 2100001);
+          } else {
+            ExpectFail();
+          }
+          console.info(`${caseName}---End`);
+          done();
+        });
+      } catch (error) {
+        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+        ExpectTrue(error.code == 2100001);
+        console.info(`${caseName}---End`);
+        done();
+      }
+
+    });
+    /*
+     * @tc.number: SUB_NetManager_Statistics_GetSockfdTxBytes_PromiseErrCo_0600
+     * @tc.name:  testNetManagerStatisticsGetSockfdTxBytesPromiseErrCo0600
+     * @tc.desc: Function test
+     * @tc.level:Level 3
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+    it("testNetManagerStatisticsGetSockfdTxBytesPromiseErrCo0600", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testNetManagerStatisticsGetSockfdTxBytesPromiseErrCo0600";
+      console.info(`${caseName}---start`);
+      try {
+        statistics.getSockfdTxBytes(-1).then((data)=>{
+          console.log(`${caseName} getSockfdTxBytes success, data: ${JSON.stringify(data)}`);
+          ExpectFail();
+          done();
+        }).catch((err: BusinessError)=>{
+          console.log(`${caseName} getSockfdTxBytes err is : ${JSON.stringify(err)}`);
+          ExpectTrue(err.code == 2100001);
+          done();
+        })
+      } catch (error) {
+        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+        ExpectTrue(error.code == 2100001);
+        console.info(`${caseName}---End`);
+        done();
+      }
+    });
+
+    /*
+     * @tc.number: SUB_NetManager_Statistics_GetSockfdRxBytes_CallBackErrCo_0100
+     * @tc.name:  testNetManagerStatisticsGetSockfdRxBytesCallBackErrCo0100
+     * @tc.desc: Function test
+     * @tc.level:Level 3
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+    it("testNetManagerStatisticsGetSockfdRxBytesCallBackErrCo0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testNetManagerStatisticsGetSockfdRxBytesCallBackErrCo0100";
+      console.info(`${caseName}---start`);
+      try {
+        statistics.getSockfdRxBytes(123456, (error, data) => {
+          console.info(`${caseName} getSockfdTxBytes error is : ` + JSON.stringify(error)+ " data is :"+ data);
+          if (error) {
+            ExpectTrue(error.code == 2100002);
+          } else {
+            ExpectFail();
+          }
+          console.info(`${caseName}---End`);
+          done();
+        });
+      } catch (error) {
+        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+        ExpectTrue(error.code == 2100002);
+        console.info(`${caseName}---End`);
+        done();
+      }
+
+    });
+    /*
+     * @tc.number: SUB_NetManager_Statistics_GetSockfdRxBytes_PromiseErrCo_0200
+     * @tc.name:  testNetManagerStatisticsGetSockfdRxBytesPromiseErrCo0200
+     * @tc.desc: Function test
+     * @tc.level:Level 3
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+    it("testNetManagerStatisticsGetSockfdRxBytesPromiseErrCo0200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testNetManagerStatisticsGetSockfdRxBytesPromiseErrCo0200";
+      console.info(`${caseName}---start`);
+      try {
+        statistics.getSockfdRxBytes(123456).then((data)=>{
+          console.log(`${caseName} getSockfdTxBytes success, data: ${JSON.stringify(data)}`);
+          ExpectFail();
+          done();
+        }).catch((err: BusinessError)=>{
+          console.log(`${caseName} getSockfdTxBytes err is : ${JSON.stringify(err)}`);
+          ExpectTrue(err.code == 2100002);
+          done();
+        })
+      } catch (error) {
+        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+        ExpectTrue(error.code == 2100002);
+        console.info(`${caseName}---End`);
+        done();
+      }
+    });
+
+    /**
+     * @tc.number SUB_NetManager_Statistics_GetSockfdRxBytes_CallbackErrCo_0300
+     * @tc.name testNetManagerStatisticsGetSockfdRxBytesCallbackErrCo0300
+     * @tc.desc Test getSockfdTxBytes property
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+    it("testNetManagerStatisticsGetSockfdRxBytesCallbackErrCo0300", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testNetManagerStatisticsGetSockfdRxBytesCallbackErrCo0300";
+      console.info(`${caseName}---start`);
+      try {
+        statistics.getSockfdRxBytes(undefined, (err, data) => {
+          if (err) {
+            console.info(`${caseName} getSockfdTxBytes failed, err: ${JSON.stringify(err)}`);
+            ExpectTrue(err.code == 401);
+            done();
+          } else {
+            console.log(`${caseName} getSockfdTxBytes success, data: ${JSON.stringify(data)}`);
+            ExpectFail();
+            done();
+          }
+        });
+      } catch (error) {
+        console.log(`${caseName} catch error, expect error: [${error.code}, ${error.message}]`);
+        expect(error.code == 401).assertTrue();
+        done();
+      }
+    });
+
+    /*
+     * @tc.number: SUB_NetManager_Statistics_GetSockfdRxBytes_PromiseErrCo_0400
+     * @tc.name:  testNetManagerStatisticsGetSockfdRxBytesPromiseErrCo0400
+     * @tc.desc: Function test
+     * @tc.level:Level 3
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+    it("testNetManagerStatisticsGetSockfdRxBytesPromiseErrCo0400", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testNetManagerStatisticsGetSockfdRxBytesPromiseErrCo0400";
+      console.info(`${caseName}---start`);
+      try {
+        statistics.getSockfdRxBytes(undefined).then((data)=>{
+          console.log(`${caseName} getSockfdTxBytes success, data: ${JSON.stringify(data)}`);
+          ExpectFail();
+          done();
+        }).catch((err: BusinessError)=>{
+          console.log(`${caseName} getSockfdTxBytes err is : ${JSON.stringify(err)}`);
+          ExpectTrue(err.code == 401);
+          done();
+        })
+      } catch (error) {
+        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+        ExpectTrue(error.code == 401);
+        console.info(`${caseName}---End`);
+        done();
+      }
+    });
+
+    /*
+   * @tc.number: SUB_NetManager_Statistics_GetSockfdRxBytes_CallBackErrCo_0500
+   * @tc.name:  testNetManagerStatisticsGetSockfdRxBytesCallBackErrCo0500
+   * @tc.desc: Function test
+   * @tc.level:Level 3
+   * @tc.type:Function
+   * @tc.size:MediumTest
+   */
+    it("testNetManagerStatisticsGetSockfdRxBytesCallBackErrCo0500", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testNetManagerStatisticsGetSockfdRxBytesCallBackErrCo0500";
+      console.info(`${caseName}---start`);
+      try {
+        statistics.getSockfdRxBytes(-1, (error, data) => {
+          console.info(`${caseName} getSockfdTxBytes error is : ` + JSON.stringify(error)+ " data is :"+ data);
+          if (error) {
+            ExpectTrue(error.code == 2100001);
+          } else {
+            ExpectFail();
+          }
+          console.info(`${caseName}---End`);
+          done();
+        });
+      } catch (error) {
+        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+        ExpectTrue(error.code == 2100001);
+        console.info(`${caseName}---End`);
+        done();
+      }
+
+    });
+    /*
+     * @tc.number: SUB_NetManager_Statistics_GetSockfdRxBytes_PromiseErrCo_0600
+     * @tc.name:  testNetManagerStatisticsGetSockfdRxBytesPromiseErrCo0600
+     * @tc.desc: Function test
+     * @tc.level:Level 3
+     * @tc.type:Function
+     * @tc.size:MediumTest
+     */
+    it("testNetManagerStatisticsGetSockfdRxBytesPromiseErrCo0600", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testNetManagerStatisticsGetSockfdRxBytesPromiseErrCo0600";
+      console.info(`${caseName}---start`);
+      try {
+        statistics.getSockfdRxBytes(-1).then((data)=>{
+          console.log(`${caseName} getSockfdTxBytes success, data: ${JSON.stringify(data)}`);
+          ExpectFail();
+          done();
+        }).catch((err: BusinessError)=>{
+          console.log(`${caseName} getSockfdTxBytes err is : ${JSON.stringify(err)}`);
+          ExpectTrue(err.code == 2100001);
+          done();
+        })
+      } catch (error) {
+        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
+        ExpectTrue(error.code == 2100001);
+        console.info(`${caseName}---End`);
         done();
       }
     });

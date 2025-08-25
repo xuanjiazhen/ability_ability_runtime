@@ -15,8 +15,10 @@
 
 import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@ohos/hypium';
 import router from '@ohos.router';
+import { Driver, ON } from '@kit.TestKit';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 
@@ -35,12 +37,12 @@ export default function webViewControllerPart3Test() {
         if (!("WebViewControllerPart3" == pages.name)) {
           console.info("get WebViewControllerPart3 state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebViewControllerPart3 page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push WebViewControllerPart3 page error: " + err);
       }
+      await waitForComponent("WebViewControllerTestButton");
       done()
     });
 
@@ -50,7 +52,6 @@ export default function webViewControllerPart3Test() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("WebViewControllerPart3 beforeEach start");
       done();
     })
@@ -63,9 +64,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 0
     */
     it('testHasImage001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent("testHasImage001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHasImage001", true, 100049, done);
+      Utils.emitEvent("testHasImage001", 14058)
+      Utils.registerEvent("testHasImage001", true, 14059, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -78,9 +78,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testHasImage002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHasImage002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHasImage002", false, 100050, done);
+      Utils.emitEvent("testHasImage002", 14058)
+      Utils.registerEvent("testHasImage002", false, 14060, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -93,9 +92,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testHasImage003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHasImage003", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHasImage003", true, 100051, done);
+      Utils.emitEvent("testHasImage003", 14058)
+      Utils.registerEvent("testHasImage003", true, 14061, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -108,9 +106,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testHasImage004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHasImage004", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHasImage004", true, 100052, done);
+      Utils.emitEvent("testHasImage004", 14058)
+      Utils.registerEvent("testHasImage004", true, 14062, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -123,9 +120,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testHasImage005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHasImage005", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHasImage005", false, 100053, done);
+      Utils.emitEvent("testHasImage005", 14058)
+      Utils.registerEvent("testHasImage005", false, 14063, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -138,9 +134,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testHasImage006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHasImage006", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHasImage006", true, 100054, done);
+      Utils.emitEvent("testHasImage006", 14058)
+      Utils.registerEvent("testHasImage006", true, 14064, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -153,9 +148,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testGetFavicon001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testGetFavicon001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testGetFavicon001", false, 100057, done);
+      Utils.emitEvent("testGetFavicon001", 14058)
+      Utils.registerEvent("testGetFavicon001", false, 14065, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -168,9 +162,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testGetFavicon002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testGetFavicon002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testGetFavicon002", '32_32', 100058, done);
+      Utils.emitEvent("testGetFavicon002", 14058)
+      Utils.registerEvent("testGetFavicon002", '32_32', 14066, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -183,9 +176,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testGetOriginalUrl001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testGetOriginalUrl001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testGetOriginalUrl001", 'resource://rawfile/secondCopy.html', 100059, done);
+      Utils.emitEvent("testGetOriginalUrl001", 14058)
+      Utils.registerEvent("testGetOriginalUrl001", 'resource://rawfile/secondCopy.html', 14067, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -198,9 +190,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testGetOriginalUrl002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testGetOriginalUrl002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testGetOriginalUrl002", true, 100060, done);
+      Utils.emitEvent("testGetOriginalUrl002", 14058)
+      Utils.registerEvent("testGetOriginalUrl002", true, 14067, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -213,9 +204,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testGetUrl001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testGetUrl001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testGetUrl001", 'resource://rawfile/secondCopy.html', 100061, done);
+      Utils.emitEvent("testGetUrl001", 14058)
+      Utils.registerEvent("testGetUrl001", 'resource://rawfile/secondCopy.html', 14068, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -228,9 +218,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testGetUrl002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testGetUrl002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testGetUrl002", 'https://www.example.com/', 100062, done);
+      Utils.emitEvent("testGetUrl002", 14058)
+      Utils.registerEvent("testGetUrl002", 'https://www.example.com/', 14069, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 
@@ -245,9 +234,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 1
     */
     it('testGetPageHeight001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testGetPageHeight001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testGetPageHeight001", true, 100074, done);
+      Utils.emitEvent("testGetPageHeight001", 14058)
+      Utils.registerEvent("testGetPageHeight001", true, 14070, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 

@@ -31,7 +31,6 @@ async function scaleSyncPromiseTest(done: Function, testName: string, opts: imag
 
     if (sendablePixelMap != undefined) {
       sendablePixelMap.scaleSync(scaleX, scaleY);
-      expect(true).assertTrue();
       done()
     }
   } catch (error) {
@@ -50,7 +49,6 @@ async function scaleSyncAbnormalPromiseTest(done: Function, testName: string, op
 
     if (sendablePixelMap != undefined) {
       sendablePixelMap.scaleSync(scaleX, scaleY);
-      expect(true).assertTrue();
       done()
     }
   } catch (error) {

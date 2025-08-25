@@ -14,22 +14,20 @@
  */
 
 import events_emitter from '@ohos.events.emitter';
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
-import { Hypium } from '@ohos/hypium';
-import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
-import { ErrorEvent } from '@ohos.worker';
 
+const EVENT_ID_SET_EMIT_KEY = 110010;
 interface objectCss {
   code: number;
   message: string;
 }
+
 @Entry
 @Component
 struct webViewContCookieToGeoLocationError {
   controller: web_webview.WebviewController = new web_webview.WebviewController();
-  @State str: string = "emitGetCookieInitErr";
+  @State str: string = "";
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
   @State javaScriptAccess: boolean = true;
@@ -41,14 +39,20 @@ struct webViewContCookieToGeoLocationError {
   @State errorCode: string = '0';
   @State errorTestCode: number = 0;
   @State errorMsg: string = 'failed';
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
   origin: string = "";
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -57,17 +61,21 @@ struct webViewContCookieToGeoLocationError {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 1;
       }
     }
   }
   interface() {
     ErrorEvent1: this.errorCode
   }
-build() {
+  build() {
     Column() {
       Row() {
-        Button("CookieToGeoLocationErrorTest").key('webViewContCookieToGeoLocationError').onClick(() => {
+        Button("CookieToGeoLocationErrorTest").key('webViewContCookieToGeoLocationError').onClick(async () => {
+          await Utils.waitForExist(()=>this.isPageEnd, 'webViewContCookieToGeoLocationErrorIsPageEnd', 1, 1000);
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContCookieToGeoLocationErrorIsReceive', 1, 1000);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
             case "emitGetCookieInitErr": {
               try {
@@ -77,8 +85,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 752)
-              Utils.emitEvent(this.errorMsg, 753)
+              Utils.emitEvent(this.errorCode, 110020)
+              Utils.emitEvent(this.errorMsg, 110030)
               break;
             }
             case "emitSetCookieInitErr": {
@@ -91,8 +99,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 754)
-              Utils.emitEvent(this.errorMsg, 755)
+              Utils.emitEvent(this.errorCode, 110040)
+              Utils.emitEvent(this.errorMsg, 110050)
               break;
             }
             case "emitSetCookieValueErr": {
@@ -105,8 +113,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 756)
-              Utils.emitEvent(this.errorMsg, 757)
+              Utils.emitEvent(this.errorCode, 110060)
+              Utils.emitEvent(this.errorMsg, 110070)
               break;
             }
             case "emitDeleteOriginValueNullErr": {
@@ -119,8 +127,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 758)
-              Utils.emitEvent(this.errorMsg, 759)
+              Utils.emitEvent(this.errorCode, 110080)
+              Utils.emitEvent(this.errorMsg, 110090)
               break;
             }
             case "emitDeleteOriginValueIllegalErr": {
@@ -134,8 +142,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 760)
-              Utils.emitEvent(this.errorMsg, 761)
+              Utils.emitEvent(this.errorCode, 110100)
+              Utils.emitEvent(this.errorMsg, 110110)
               break;
             }
             case "emitDeleteOriginValueErr": {
@@ -149,8 +157,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 762)
-              Utils.emitEvent(this.errorMsg, 763)
+              Utils.emitEvent(this.errorCode, 110120)
+              Utils.emitEvent(this.errorMsg, 110130)
               break;
             }
             case "emitGetOriginsCallbackUnAPIErr": {
@@ -165,8 +173,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginsCallbackUnAPIErr getOrigins return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 764)
-                    Utils.emitEvent(this.errorMsg, 765)
+                    Utils.emitEvent(this.errorTestCode, 110140)
+                    Utils.emitEvent(this.errorMsg, 110150)
                     return;
                   }
                   for (let i = 0; i < origins.length; i++) {
@@ -200,8 +208,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginsPromiseUnAPIErr getOrigins return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 766)
-                    Utils.emitEvent(this.errorMsg, 767)
+                    Utils.emitEvent(this.errorTestCode, 110160)
+                    Utils.emitEvent(this.errorMsg, 110170)
                   })
               } catch (error) {
                 console.error(`emitGetOriginsPromiseUnAPIErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -220,8 +228,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginQuotaCallbackValueErr getOriginQuota return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 768)
-                    Utils.emitEvent(this.errorMsg, 769)
+                    Utils.emitEvent(this.errorTestCode, 110180)
+                    Utils.emitEvent(this.errorMsg, 110190)
                     return;
                   }
                   console.log('quota: ' + quota);
@@ -242,8 +250,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginQuotaCallbackValueIllegalErr getOriginQuota return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 770)
-                    Utils.emitEvent(this.errorMsg, 771)
+                    Utils.emitEvent(this.errorTestCode, 110200)
+                    Utils.emitEvent(this.errorMsg, 110210)
                     return;
                   }
                   console.log('quota: ' + quota);
@@ -264,8 +272,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginQuotaCallbackValueNullErr getOriginQuota return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 772)
-                    Utils.emitEvent(this.errorMsg, 773)
+                    Utils.emitEvent(this.errorTestCode, 110220)
+                    Utils.emitEvent(this.errorMsg, 110230)
                     return;
                   }
                   console.log('quota: ' + quota);
@@ -289,8 +297,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginQuotaPromiseValueErr getOriginQuota return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 774)
-                    Utils.emitEvent(this.errorMsg, 775)
+                    Utils.emitEvent(this.errorTestCode, 110240)
+                    Utils.emitEvent(this.errorMsg, 110250)
                   })
               } catch (error) {
                 console.error(`emitGetOriginQuotaPromiseValueErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -311,8 +319,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginQuotaPromiseValueIllegalErr getOriginQuota return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 776)
-                    Utils.emitEvent(this.errorMsg, 777)
+                    Utils.emitEvent(this.errorTestCode, 110260)
+                    Utils.emitEvent(this.errorMsg, 110270)
                   })
               } catch (error) {
                 console.error(`emitGetOriginQuotaPromiseValueIllegalErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -333,8 +341,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginQuotaPromiseValueNullErr getOriginQuota return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 778)
-                    Utils.emitEvent(this.errorMsg, 779)
+                    Utils.emitEvent(this.errorTestCode, 110280)
+                    Utils.emitEvent(this.errorMsg, 110290)
                   })
               } catch (error) {
                 console.error(`emitGetOriginQuotaPromiseValueNullErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -352,8 +360,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginUsageCallbackValueErr getOriginUsage return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 780)
-                    Utils.emitEvent(this.errorMsg, 781)
+                    Utils.emitEvent(this.errorTestCode, 110300)
+                    Utils.emitEvent(this.errorMsg, 110310)
                     return;
                   }
                   console.log('usage: ' + usage);
@@ -374,8 +382,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginUsageCallbackValueIllegalErr getOriginUsage return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 782)
-                    Utils.emitEvent(this.errorMsg, 783)
+                    Utils.emitEvent(this.errorTestCode, 110320)
+                    Utils.emitEvent(this.errorMsg, 110330)
                     return;
                   }
                   console.log('usage: ' + usage);
@@ -396,8 +404,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginUsageCallbackValueNullErr getOriginUsage return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 784)
-                    Utils.emitEvent(this.errorMsg, 785)
+                    Utils.emitEvent(this.errorTestCode, 110340)
+                    Utils.emitEvent(this.errorMsg, 110350)
                     return;
                   }
                   console.log('usage: ' + usage);
@@ -421,8 +429,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginUsagePromiseValueErr getOriginUsage return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 786)
-                    Utils.emitEvent(this.errorMsg, 787)
+                    Utils.emitEvent(this.errorTestCode, 110360)
+                    Utils.emitEvent(this.errorMsg, 110370)
                   })
               } catch (error) {
                 console.error(`emitGetOriginUsagePromiseValueErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -443,8 +451,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginUsagePromiseValueIllegalErr getOriginUsage return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 788)
-                    Utils.emitEvent(this.errorMsg, 789)
+                    Utils.emitEvent(this.errorTestCode, 110380)
+                    Utils.emitEvent(this.errorMsg, 110390)
                   })
               } catch (error) {
                 console.error(`emitGetOriginUsagePromiseValueIllegalErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -465,8 +473,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetOriginUsagePromiseValueNullErr getOriginUsage return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 790)
-                    Utils.emitEvent(this.errorMsg, 791)
+                    Utils.emitEvent(this.errorTestCode, 110400)
+                    Utils.emitEvent(this.errorMsg, 110410)
                   })
               } catch (error) {
                 console.error(`emitGetOriginUsagePromiseValueNullErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -484,8 +492,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 792)
-              Utils.emitEvent(this.errorMsg, 793)
+              Utils.emitEvent(this.errorCode, 110420)
+              Utils.emitEvent(this.errorMsg, 110430)
               break;
             }
             case "emitAllowGeolocationValueIllegalErr": {
@@ -499,8 +507,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 794)
-              Utils.emitEvent(this.errorMsg, 795)
+              Utils.emitEvent(this.errorCode, 110440)
+              Utils.emitEvent(this.errorMsg, 110450)
               break;
             }
             case "emitAllowGeolocationValueNullErr": {
@@ -514,8 +522,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 796)
-              Utils.emitEvent(this.errorMsg, 797)
+              Utils.emitEvent(this.errorCode, 110460)
+              Utils.emitEvent(this.errorMsg, 110470)
               break;
             }
             case "emitDeleteGeolocationValueErr": {
@@ -529,8 +537,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 798)
-              Utils.emitEvent(this.errorMsg, 799)
+              Utils.emitEvent(this.errorCode, 110480)
+              Utils.emitEvent(this.errorMsg, 110490)
               break;
             }
             case "emitDeleteGeolocationValueIllegalErr": {
@@ -544,8 +552,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 800)
-              Utils.emitEvent(this.errorMsg, 801)
+              Utils.emitEvent(this.errorCode, 110500)
+              Utils.emitEvent(this.errorMsg, 110510)
               break;
             }
             case "emitDeleteGeolocationValueNullErr": {
@@ -559,8 +567,8 @@ build() {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 802)
-              Utils.emitEvent(this.errorMsg, 803)
+              Utils.emitEvent(this.errorCode, 110520)
+              Utils.emitEvent(this.errorMsg, 110530)
               break;
             }
             case "emitGetAccessibleGeolocationCallbackValueErr": {
@@ -574,8 +582,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetAccessibleGeolocationCallbackValueErr getAccessibleGeolocation return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 804)
-                    Utils.emitEvent(this.errorMsg, 805)
+                    Utils.emitEvent(this.errorTestCode, 110540)
+                    Utils.emitEvent(this.errorMsg, 110550)
                     return;
                   }
                   console.log('getAccessibleGeolocationAsync result: ' + result);
@@ -596,8 +604,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetAccessibleGeolocationCallbackValueIllegalErr getAccessibleGeolocation return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 806)
-                    Utils.emitEvent(this.errorMsg, 807)
+                    Utils.emitEvent(this.errorTestCode, 110560)
+                    Utils.emitEvent(this.errorMsg, 110570)
                     return;
                   }
                   console.log('getAccessibleGeolocationAsync result: ' + result);
@@ -618,8 +626,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetAccessibleGeolocationCallbackValueNullErr getAccessibleGeolocation return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 808)
-                    Utils.emitEvent(this.errorMsg, 809)
+                    Utils.emitEvent(this.errorTestCode, 110580)
+                    Utils.emitEvent(this.errorMsg, 110590)
                     return;
                   }
                   console.log('getAccessibleGeolocationAsync result: ' + result);
@@ -643,8 +651,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetAccessibleGeolocationPromiseValueErr getAccessibleGeolocation return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 810)
-                    Utils.emitEvent(this.errorMsg, 811)
+                    Utils.emitEvent(this.errorTestCode, 110600)
+                    Utils.emitEvent(this.errorMsg, 110610)
                   });
               } catch (error) {
                 console.error(`emitGetAccessibleGeolocationPromiseValueErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -665,8 +673,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetAccessibleGeolocationPromiseValueIllegalErr getAccessibleGeolocation return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 812)
-                    Utils.emitEvent(this.errorMsg, 813)
+                    Utils.emitEvent(this.errorTestCode, 110620)
+                    Utils.emitEvent(this.errorMsg, 110630)
                   });
               } catch (error) {
                 console.error(`emitGetAccessibleGeolocationPromiseValueIllegalErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -687,8 +695,8 @@ build() {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitGetAccessibleGeolocationPromiseValueNullErr getAccessibleGeolocation return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 814)
-                    Utils.emitEvent(this.errorMsg, 815)
+                    Utils.emitEvent(this.errorTestCode, 110640)
+                    Utils.emitEvent(this.errorMsg, 110650)
                   });
               } catch (error) {
                 console.error(`emitGetAccessibleGeolocationPromiseValueNullErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -707,6 +715,10 @@ build() {
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
+        .onPageEnd((event) => {
+          console.log('onPageEnd url:' + event.url);
+          this.isPageEnd = 1;
+        })
     }
   }
 }

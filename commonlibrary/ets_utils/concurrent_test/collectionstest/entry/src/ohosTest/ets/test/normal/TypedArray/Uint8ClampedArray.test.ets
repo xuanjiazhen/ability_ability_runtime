@@ -4092,7 +4092,7 @@ export default function Uint8ClampedArrayTest() {
       const TAG = "testUint8ClampedArrayLastIndexOf0001";
       try {
         let array: collections.Uint8ClampedArray = collections.Uint8ClampedArray.from([]);
-        let res = array.lastIndexOf(3);
+        let res : number = array.lastIndexOf(3);
         expect(res).assertEqual(-1);
         done();
       } catch (err) {
@@ -4114,7 +4114,7 @@ export default function Uint8ClampedArrayTest() {
       const TAG = "testUint8ClampedArrayLastIndexOf0002";
       try {
         let array: collections.Uint8ClampedArray = collections.Uint8ClampedArray.from([1, 2, 3]);
-        let res = array.lastIndexOf(4);
+        let res : number = array.lastIndexOf(4);
         expect(res).assertEqual(-1);
         done();
       } catch (err) {
@@ -4137,7 +4137,7 @@ export default function Uint8ClampedArrayTest() {
       try {
         let array: collections.Uint8ClampedArray = collections.Uint8ClampedArray.from([1, 2, 3]);
         array.set([4, 5], 1);
-        let res = array.lastIndexOf(4);
+        let res : number = array.lastIndexOf(4);
         expect(res).assertEqual(1);
         done();
       } catch (err) {
@@ -4159,7 +4159,7 @@ export default function Uint8ClampedArrayTest() {
       const TAG = "testUint8ClampedArrayLastIndexOf0004";
       try {
         let array: collections.Uint8ClampedArray = collections.Uint8ClampedArray.from([1, 2, 3, 4, 3, 5, 3, 6, 3, 3]);
-        let res = array.lastIndexOf(3, -1);
+        let res : number = array.lastIndexOf(3, -1);
         expect(res).assertEqual(array.length - 1);
         done();
       } catch (err) {
@@ -4181,7 +4181,7 @@ export default function Uint8ClampedArrayTest() {
       const TAG = "testUint8ClampedArrayLastIndexOf0005";
       try {
         let array: collections.Uint8ClampedArray = collections.Uint8ClampedArray.from([1, 2, 3, 4, 3, 5, 3, 6, 3, 3]);
-        let res = array.lastIndexOf(3, 5);
+        let res : number = array.lastIndexOf(3, 5);
         expect(res).assertEqual(4);
         done();
       } catch (err) {
@@ -4203,7 +4203,7 @@ export default function Uint8ClampedArrayTest() {
       const TAG = "testUint8ClampedArrayLastIndexOf0006";
       try {
         let array: collections.Uint8ClampedArray = collections.Uint8ClampedArray.from([1, 2, 4, 3, 5, 3, 6, 3, 3]);
-        let res = array.lastIndexOf(3, 3);
+        let res : number = array.lastIndexOf(3, 3);
         expect(res).assertEqual(3);
         done();
       } catch (err) {
@@ -4225,7 +4225,7 @@ export default function Uint8ClampedArrayTest() {
       const TAG = "testUint8ClampedArrayLastIndexOf0007";
       try {
         let array: collections.Uint8ClampedArray = collections.Uint8ClampedArray.from([1, 2, 4, 3, 5, 3, 6, 3, 3]);
-        let res = array.lastIndexOf(3, 2);
+        let res : number = array.lastIndexOf(3, 2);
         expect(res).assertEqual(-1);
         done();
       } catch (err) {
@@ -4247,7 +4247,7 @@ export default function Uint8ClampedArrayTest() {
       const TAG = "testUint8ClampedArrayLastIndexOf0008";
       try {
         let array: collections.Uint8ClampedArray = collections.Uint8ClampedArray.from([1, 2, 3, 4, 3, 5, 3, 6, 3, 3]);
-        let res = array.lastIndexOf(3);
+        let res : number = array.lastIndexOf(3);
         expect(res).assertEqual(9);
         done();
       } catch (err) {
@@ -4268,7 +4268,7 @@ export default function Uint8ClampedArrayTest() {
     it('testUint8ClampedArrayOf0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testUint8ClampedArrayOf0001";
       try {
-        let result = collections.Uint8ClampedArray.of(1);
+        let result : collections.Uint8ClampedArray = collections.Uint8ClampedArray.of(1);
         expect(result.toString()).assertEqual('1');
         done();
       } catch (err) {
@@ -4289,7 +4289,7 @@ export default function Uint8ClampedArrayTest() {
     it('testUint8ClampedArrayOf0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testUint8ClampedArrayOf0002";
       try {
-        let result = collections.Uint8ClampedArray.of(1, 2, 3);
+        let result : collections.Uint8ClampedArray = collections.Uint8ClampedArray.of(1, 2, 3);
         expect(result.toString()).assertEqual('1,2,3');
         done();
       } catch (err) {

@@ -10,6 +10,15 @@
     "MainAbility/pages/touchTestDone/OntouchTestDoneTest",
     "MainAbility/pages/nodeUtils/TestNodeUniqueId",
     "MainAbility/pages/uiInput/UiInputErrorCodeTest",
-    "MainAbility/pages/scope/TestRunTaskInScope"
+    "MainAbility/pages/scope/TestRunTaskInScope",
+    "MainAbility/pages/list/ListTypeNodePage",
+    "MainAbility/pages/list/ListCNodePage",
+    "MainAbility/pages/grid/GridTypeNodePage",
+    "MainAbility/pages/grid/GridCNodePage",
+    "MainAbility/pages/swiper/SwiperTypeNodePage",
+    "MainAbility/pages/swiper/SwiperCNodePage",
+    "MainAbility/pages/waterFlow/WaterFlowTypeNodePage",
+    "MainAbility/pages/waterFlow/WaterFlowCNodePage",
+    "MainAbility/pages/BindController/BindController"
   ]
 }

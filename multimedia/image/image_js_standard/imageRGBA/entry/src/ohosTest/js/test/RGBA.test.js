@@ -417,7 +417,6 @@ describe("Image", function () {
             })
             .catch((error) => {
                 console.log("SUB_MULTIMEDIA_IMAGE_RGBA_CREATE_PIXELMAP_PROMISE_0600 err: " + error);
-                expect(true).assertTrue();
                 done();
             });
     });
@@ -445,7 +444,6 @@ describe("Image", function () {
             })
             .catch((error) => {
                 console.log("SUB_MULTIMEDIA_IMAGE_RGBA_CREATE_PIXELMAP_PROMISE_0700 error: " + error);
-                expect(true).assertTrue();
                 done();
             });
     });

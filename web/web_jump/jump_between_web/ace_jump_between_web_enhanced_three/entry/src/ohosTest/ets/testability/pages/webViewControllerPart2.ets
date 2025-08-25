@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 import Utils from '../../test/Utils';
 import webView from '@ohos.web.webview';
 import events_emitter from '@ohos.events.emitter';
+import { waitForExist } from '../../test/WaitTest.test';
 import { JsProxyObject } from '../../test/Interfaces';
 import image from '@ohos.multimedia.image';
 import business_error from '@ohos.base'
@@ -41,18 +42,20 @@ struct webViewControllerPart2 {
   @State enterPageEnd: boolean = false
   @State numberOfMatches: number = 0
   @State searchNext: boolean = false
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
   no_error: string = "no error happened"
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 134100,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(134100)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -61,9 +64,11 @@ struct webViewControllerPart2 {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
+
   private jsObj: JsProxyObject = {
     test: (res: object) => {
       Utils.emitEvent(String(res), 102);
@@ -81,23 +86,34 @@ struct webViewControllerPart2 {
     Column() {
       Row() {
         Button("WebViewControllerPart2 click").key('WebViewControllerPart2Button').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str)
           switch (this.str) {
 
             case "testBackOrForward001": {
               try {
-                this.controller.clearHistory()
-                await Utils.sleep(1000);
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/index.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+
+                this.controller.clearHistory()
+
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/second.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+
+                this.isPageEnd = -1;
                 this.controller.backward()
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+
+                this.isPageEnd = -1;
                 this.controller.backOrForward(1)
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+
                 let title = this.controller.getTitle();
-                Utils.emitEvent(title, 37005)
+                Utils.emitEvent(title, 134110)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -106,16 +122,22 @@ struct webViewControllerPart2 {
 
             case "testBackOrForward002": {
               try {
-                this.controller.clearHistory()
-                await Utils.sleep(1000);
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/index.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+
+                this.controller.clearHistory()
+
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/second.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+
+                this.isPageEnd = -1;
                 this.controller.backOrForward(-1)
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+
                 let title = this.controller.getTitle();
-                Utils.emitEvent(title, 37006)
+                Utils.emitEvent(title, 134120)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -124,14 +146,19 @@ struct webViewControllerPart2 {
 
             case "testBackOrForward003": {
               try {
-                this.controller.clearHistory()
-                await Utils.sleep(1000);
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/index.html");
-                await Utils.sleep(3000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+
+                this.controller.clearHistory()
+
+                this.isPageEnd = -1;
                 this.controller.backOrForward(-3)
-                await Utils.sleep(3000);
+                await waitForExist(() => this.isPageEnd, this.str, 0, 100);
+                this.isPageEnd = 0;
+
                 let title = this.controller.getTitle();
-                Utils.emitEvent(title, 37007)
+                Utils.emitEvent(title, 134130)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -140,14 +167,19 @@ struct webViewControllerPart2 {
 
             case "testBackOrForward004": {
               try {
-                this.controller.clearHistory()
-                await Utils.sleep(1000);
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/index.html");
-                await Utils.sleep(3000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+
+                this.controller.clearHistory()
+
+                this.isPageEnd = -1;
                 this.controller.backOrForward(3)
-                await Utils.sleep(3000);
+                await waitForExist(() => this.isPageEnd, this.str, 0, 100);
+                this.isPageEnd = 0;
+
                 let title = this.controller.getTitle();
-                Utils.emitEvent(title, 37008)
+                Utils.emitEvent(title, 134140)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -167,6 +199,10 @@ struct webViewControllerPart2 {
           name: "backToEts",
           methodList: ["test", "toString"],
           controller: this.controller
+        })
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
         })
     }
   }

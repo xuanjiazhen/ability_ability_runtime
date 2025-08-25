@@ -21,6 +21,7 @@ const caseName: string = 'SUB_Ability_AbilityRuntime_setFontSizeAtApp_1100';
 export default class SetFontSizeAbility011 extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     hilog.info(0x0000, 'testTag', '%{public}s', caseName + 'setFontSizeAbility011 onCreate');
+    globalThis.context11 = this.context;
   }
 
   onDestroy(): void {

@@ -17,6 +17,7 @@
 #include <hilog/log.h>
 #include <network/netmanager/net_connection.h>
 #include <network/netmanager/net_connection_type.h>
+#include <network/netstack/net_ssl/net_ssl_c.h>
 #include <string>
 #include <cstdint>
 #include <network/netstack/net_http.h>
@@ -832,52 +833,129 @@ static napi_value OHHttpGetHeaderValue(napi_env env, napi_callback_info info)
     return result;
 }
 
+static napi_value OHNetStackIsCleartextCfgByComponent(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    char component[1024] = {0};
+    size_t size_t1;
+    napi_get_value_string_utf8(env, args[0], component, DEFAULT_HOST_LEN, &size_t1);
+
+    bool isComponetCfg;
+    int res = OH_Netstack_IsCleartextCfgByComponent(component, &isComponetCfg);
+    napi_value result = nullptr;
+    napi_create_int32(env, res, &result);
+    return result;
+}
+
+static napi_value OHQueryProbeResult_destination_nullptr(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    char pacUrl[1024] = {0};
+    size_t sizeT1;
+    napi_get_value_string_utf8(env, args[0], pacUrl, DEFAULT_HOST_LEN, &sizeT1);
+    NetConn_ProbeResultInfo probeResultInfo = {};
+    int res = OH_NetConn_QueryProbeResult(nullptr, 10, &probeResultInfo);
+    napi_value result = nullptr;
+    napi_create_int32(env, res, &result);
+    return result;
+}
+
+static napi_value OHQueryProbeResult_int(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    char pacUrl[1024] = {0};
+    size_t sizeT1;
+    napi_get_value_string_utf8(env, args[0], pacUrl, DEFAULT_HOST_LEN, &sizeT1);
+    NetConn_ProbeResultInfo probeResultInfo = {};
+    int res = OH_NetConn_QueryProbeResult(pacUrl, 10, &probeResultInfo);
+    napi_value result = nullptr;
+    napi_create_int32(env, res, &result);
+    return result;
+}
+
+static napi_value OHQueryTraceRoute(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    char pacUrl[1024] = {0};
+    size_t sizeT1;
+    napi_get_value_string_utf8(env, args[0], pacUrl, DEFAULT_HOST_LEN, &sizeT1);
+    NetConn_TraceRouteInfo traceRouteInfo[30] = {};
+    NetConn_TraceRouteOption traceoption = {30, NETCONN_PACKETS_ICMP};
+    int res = OH_NetConn_QueryTraceRoute(pacUrl, &traceoption, traceRouteInfo);
+    napi_value result = nullptr;
+    napi_create_int32(env, res, &result);
+    return result;
+}
+
 EXTERN_C_START
+static napi_property_descriptor net_group[] = {
+    {"CallHttpClientApi", nullptr, CallHttpClientApi, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHHttpGetHeaderValue", nullptr, OHHttpGetHeaderValue, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnGetAddrInfo", nullptr, OHNetConnGetAddrInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnFreeDnsResult", nullptr, OHNetConnFreeDnsResult, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnGetAllNets", nullptr, OHNetConnGetAllNets, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnHasDefaultNet", nullptr, OHNetConnHasDefaultNet, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnIsDefaultNetMetered", nullptr, OHNetConnIsDefaultNetMetered, nullptr, nullptr, nullptr, napi_default,
+     nullptr},
+    {"OHNetConnGetDefaultNet", nullptr, OHNetConnGetDefaultNet, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnGetConnectionProperties", nullptr, OHNetConnGetConnectionProperties, nullptr, nullptr, nullptr,
+     napi_default, nullptr},
+    {"OHNetConnGetNetCapabilities", nullptr, OHNetConnGetNetCapabilities, nullptr, nullptr, nullptr, napi_default,
+     nullptr},
+    {"OHNetConnGetDefaultHttpProxy", nullptr, OHNetConnGetDefaultHttpProxy, nullptr, nullptr, nullptr, napi_default,
+     nullptr},
+    {"OHOSNetConnRegisterDnsResolver", nullptr, OHOSNetConnRegisterDnsResolver, nullptr, nullptr, nullptr,
+     napi_default, nullptr},
+    {"OHOSNetConnUnregisterDnsResolver", nullptr, OHOSNetConnUnregisterDnsResolver, nullptr, nullptr, nullptr,
+     napi_default, nullptr},
+    {"OHNetConnRegisterDnsResolver", nullptr, OHNetConnRegisterDnsResolver, nullptr, nullptr, nullptr,
+     napi_default, nullptr},
+    {"OHNetConnUnregisterDnsResolver", nullptr, OHNetConnUnregisterDnsResolver, nullptr, nullptr, nullptr,
+     napi_default, nullptr},
+    {"OHNetConnBindSocket", nullptr, OHNetConnBindSocket, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnSetAppHttpProxy", nullptr, OHNetConnSetAppHttpProxy, nullptr, nullptr, nullptr, napi_default,
+     nullptr},
+    {"OHNetConnRegisterAppHttpProxyCallback", nullptr, OHNetConnRegisterAppHttpProxyCallback, nullptr,
+     nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnUnregisterAppHttpProxyCallback", nullptr, OHNetConnUnregisterAppHttpProxyCallback, nullptr,
+     nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnRegisterNetConnCallback", nullptr, OHNetConnRegisterNetConnCallback, nullptr, nullptr, nullptr,
+     napi_default, nullptr},
+    {"OHNetConnRegisterNetConnCallbackTimeout", nullptr, OHNetConnRegisterNetConnCallbackTimeout, nullptr, nullptr,
+     nullptr, napi_default, nullptr},
+    {"OHNetConnRegisterDefaultNetConnCallback", nullptr, OHNetConnRegisterDefaultNetConnCallback, nullptr,
+     nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnUnregisterNetConnCallback", nullptr, OHNetConnUnregisterNetConnCallback, nullptr, nullptr,
+     nullptr, napi_default, nullptr},
+    {"OHNetConnGetPacUrl", nullptr, OHNetConnGetPacUrl, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHNetConnSetPacUrl", nullptr, OHNetConnSetPacUrl, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHNetStackIsCleartextCfgByComponent", nullptr, OHNetStackIsCleartextCfgByComponent, nullptr, nullptr,
+     nullptr, napi_default, nullptr},
+};
+
+static napi_property_descriptor ping_group[] = {
+    {"OHQueryProbeResult_destination_nullptr", nullptr, OHQueryProbeResult_destination_nullptr, nullptr, nullptr,
+     nullptr, napi_default, nullptr},
+    {"OHQueryProbeResult_int", nullptr, OHQueryProbeResult_int, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"OHQueryTraceRoute", nullptr, OHQueryTraceRoute, nullptr, nullptr, nullptr, napi_default, nullptr},
+};
+
 static napi_value Init(napi_env env, napi_value exports)
 {
-    napi_property_descriptor desc[] = {
-        {"CallHttpClientApi", nullptr, CallHttpClientApi, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHHttpGetHeaderValue", nullptr, OHHttpGetHeaderValue, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnGetAddrInfo", nullptr, OHNetConnGetAddrInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnFreeDnsResult", nullptr, OHNetConnFreeDnsResult, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnGetAllNets", nullptr, OHNetConnGetAllNets, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnHasDefaultNet", nullptr, OHNetConnHasDefaultNet, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnIsDefaultNetMetered", nullptr, OHNetConnIsDefaultNetMetered, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"OHNetConnGetDefaultNet", nullptr, OHNetConnGetDefaultNet, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnGetConnectionProperties", nullptr, OHNetConnGetConnectionProperties, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"OHNetConnGetNetCapabilities", nullptr, OHNetConnGetNetCapabilities, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"OHNetConnGetDefaultHttpProxy", nullptr, OHNetConnGetDefaultHttpProxy, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"OHOSNetConnRegisterDnsResolver", nullptr, OHOSNetConnRegisterDnsResolver, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"OHOSNetConnUnregisterDnsResolver", nullptr, OHOSNetConnUnregisterDnsResolver, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"OHNetConnRegisterDnsResolver", nullptr, OHNetConnRegisterDnsResolver, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"OHNetConnUnregisterDnsResolver", nullptr, OHNetConnUnregisterDnsResolver, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"OHNetConnBindSocket", nullptr, OHNetConnBindSocket, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnSetAppHttpProxy", nullptr, OHNetConnSetAppHttpProxy, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"OHNetConnRegisterAppHttpProxyCallback", nullptr, OHNetConnRegisterAppHttpProxyCallback, nullptr,
-         nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnUnregisterAppHttpProxyCallback", nullptr, OHNetConnUnregisterAppHttpProxyCallback, nullptr,
-         nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnRegisterNetConnCallback", nullptr, OHNetConnRegisterNetConnCallback, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"OHNetConnRegisterNetConnCallbackTimeout", nullptr, OHNetConnRegisterNetConnCallbackTimeout, nullptr, nullptr,
-         nullptr, napi_default, nullptr},
-        {"OHNetConnRegisterDefaultNetConnCallback", nullptr, OHNetConnRegisterDefaultNetConnCallback, nullptr,
-         nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnUnregisterNetConnCallback", nullptr, OHNetConnUnregisterNetConnCallback, nullptr, nullptr,
-         nullptr, napi_default, nullptr},
-        {"OHNetConnGetPacUrl", nullptr, OHNetConnGetPacUrl, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHNetConnSetPacUrl", nullptr, OHNetConnSetPacUrl, nullptr, nullptr, nullptr, napi_default, nullptr}
-    };
-    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
+    napi_define_properties(env, exports, sizeof(net_group) / sizeof(net_group[0]), net_group);
+    napi_define_properties(env, exports, sizeof(ping_group) / sizeof(ping_group[0]), ping_group);
     return exports;
 }
 EXTERN_C_END

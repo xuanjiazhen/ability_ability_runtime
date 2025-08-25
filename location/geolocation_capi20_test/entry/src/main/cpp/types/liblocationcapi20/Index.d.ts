@@ -12,4 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const OHLocationInfoGetAdditionalInfo_test: () => number;
+export const OHLocationInfoGetAdditionalInfo: () => number;
+export const OH_Location_IsLocatingEnabled1: () => number;
+export const OH_Location_IsLocatingEnabled2: () => number;
+export const OH_Location_StartLocating1: () => number;
+export const OH_Location_StartLocating2: () => number;
+export const OH_Location_StopLocating2: () => number;
+export const OHLocationInfoGetAdditionalInfo0100: () => number;
+export const OH_LocationRequestConfig_SetUseScene0100: () => number;
+export const OH_LocationRequestConfig_SetUseScene0101: () => number;
+export const OH_LocationRequestConfig_SetUseScene0102: () => number;
+export const OH_LocationRequestConfig_SetPowerConsumptionScene0100: () => number;
+export const OH_LocationRequestConfig_SetPowerConsumptionScene0101: () => number;
+

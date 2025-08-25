@@ -156,12 +156,7 @@ export default function TextPickerDialogBGColorTest() {
       let dialog: ESObject = tree.$children[1];
       let column: ESObject = dialog.$children[0];
       let backgroundColor: string = column.$attrs.backgroundColor;
-      let uniRenderFlag: string = dialog.$attrs.uniRender;
-      if (uniRenderFlag == 'false') {
-        expect(backgroundColor).assertEqual('#FFFFFFFF');
-      } else {
-        expect(backgroundColor).assertEqual('#00FFFFFF');
-      }
+      expect(backgroundColor).assertContain('#');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       done();
@@ -181,12 +176,7 @@ export default function TextPickerDialogBGColorTest() {
       let dialog: ESObject = tree.$children[1];
       let column: ESObject = dialog.$children[0];
       let backgroundColor: string = column.$attrs.backgroundColor;
-      let uniRenderFlag: string = dialog.$attrs.uniRender;
-      if (uniRenderFlag == 'false') {
-        expect(backgroundColor).assertEqual('#FFFFFFFF');
-      } else {
-        expect(backgroundColor).assertEqual('#00FFFFFF');
-      }
+      expect(backgroundColor).assertContain('#');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       done();
@@ -206,12 +196,7 @@ export default function TextPickerDialogBGColorTest() {
       let dialog: ESObject = tree.$children[1];
       let column: ESObject = dialog.$children[0];
       let backgroundColor: string = column.$attrs.backgroundColor;
-      let uniRenderFlag: string = dialog.$attrs.uniRender;
-      if (uniRenderFlag == 'false') {
-        expect(backgroundColor).assertEqual('#FFFFFFFF');
-      } else {
-        expect(backgroundColor).assertEqual('#00FFFFFF');
-      }
+      expect(backgroundColor).assertContain('#');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       done();

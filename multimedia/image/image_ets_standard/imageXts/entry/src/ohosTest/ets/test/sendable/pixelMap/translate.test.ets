@@ -30,7 +30,6 @@ async function translatePromiseTest(done: Function, testName: string, opts: imag
 
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.translate(translateX, translateY);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -49,7 +48,6 @@ async function translateAbnormalPromiseTest(done: Function, testName: string, op
 
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.translate(translateX, translateY);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

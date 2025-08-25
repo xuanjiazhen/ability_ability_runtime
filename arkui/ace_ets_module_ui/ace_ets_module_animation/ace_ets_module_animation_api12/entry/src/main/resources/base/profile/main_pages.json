@@ -14,6 +14,7 @@
         "MainAbility/pages/Particle",
         "MainAbility/pages/SimpleAnimatorOptionsPage",
         "MainAbility/pages/Blur",
-        "MainAbility/pages/ParticleModifierTest"
+        "MainAbility/pages/ParticleModifierTest",
+        "MainAbility/pages/ParticleShapePage"
     ]
 }

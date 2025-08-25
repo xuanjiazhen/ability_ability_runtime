@@ -46,6 +46,35 @@ export default class UiAbility01 extends UIAbility {
     });
     commonEventManager.publish('ACTS_TEST_START02', function () {
       hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility01 publish ACTS_TEST_START02');
+      setTimeout(()=>{
+        try{
+          globalThis.uiAbilityContext1.moveAbilityToBackground().then(()=>{
+            hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility01 moveAbilityToBackground success');
+          }).catch((err)=>{
+            hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility01 moveAbilityToBackground fail ' + err?.code);
+            if(err?.code == 16000061){
+              commonEventManager.publish('UiAbility01_onBackground', function () {
+                hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0100 publish UiAbility01_onBackground');
+              });
+              setTimeout(() => {
+                // destroy
+                globalThis.uiAbilityContext1.terminateSelf();
+              }, 5000);
+            }
+          });
+        }catch(e){
+          hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility01 moveAbilityToBackground catch fail ' + e?.code + ' ' + e.message);
+          if(e?.code == 16000061){
+            commonEventManager.publish('UiAbility01_onBackground', function () {
+              hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0100 publish UiAbility01_onBackground');
+            });
+            setTimeout(() => {
+              // destroy
+              globalThis.uiAbilityContext1.terminateSelf();
+            }, 5000);
+          }
+        }
+      }, 2000)
     });
     windowStage.loadContent('testability/pages/UiAbility/UiAbility01', (err, data) => {
       if (err.code) {

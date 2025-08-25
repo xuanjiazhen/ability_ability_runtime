@@ -7845,3 +7845,104 @@ HWTEST(MSLiteTest, SUB_AI_MindSpore_Covered_0001, Function | MediumTest | Level0
     ASSERT_EQ(OH_AI_DATATYPE_NUMBERTYPE_BEGIN, 29);
     ASSERT_EQ(OH_AI_DATATYPE_NUMBERTYPE_END, 46);
 }
+
+
+/**
+* @tc.number    : SUB_AI_MindSpore_ModelLoadConfig_0001
+* @tc.name      : 模型加载合法配置文件成功
+* @tc.desc      : 正常场景1：合法参数+有效配置文件 → 返回OH_AI_STATUS_SUCCESS
+*/
+HWTEST(MSLiteTest, SUB_AI_MindSpore_ModelLoadConfig_0001, Function | MediumTest | Level0) {
+    printf("==========创建上下文与模型==========\n");
+    OH_AI_ContextHandle context = OH_AI_ContextCreate();
+    ASSERT_NE(context, nullptr);
+    AddContextDeviceCPU(context);  // 添加CPU设备支持
+    OH_AI_ModelHandle model = OH_AI_ModelCreate();
+    ASSERT_NE(model, nullptr);
+    printf("==========加载合法配置文件==========\n");
+    // 测试目标：加载存在且格式正确的配置文件
+    const char* validConfigPath = "/data/test/ml_face_isface.config";
+    OH_AI_Status load_status = OH_AI_ModelLoadConfig(model, validConfigPath);
+    ASSERT_EQ(load_status, OH_AI_STATUS_SUCCESS);
+    // 从文件加载模型
+    printf("==========从文件加载模型==========\n");
+    auto status = OH_AI_ModelBuildFromFile(model, "/data/test/ml_face_isface.ms", OH_AI_MODELTYPE_MINDIR, context);
+    ASSERT_EQ(status, OH_AI_STATUS_SUCCESS);
+    printf("==========GetInputs==========\n");
+    OH_AI_TensorHandleArray inputs = OH_AI_ModelGetInputs(model);
+    ASSERT_NE(inputs.handle_list, nullptr);
+    FillInputsData(inputs, "ml_face_isface", true);
+    printf("==========Model Predict==========\n");
+    OH_AI_TensorHandleArray outputs;
+    OH_AI_Status predict_ret = OH_AI_ModelPredict(model, inputs, &outputs, nullptr, nullptr);
+    ASSERT_EQ(predict_ret, OH_AI_STATUS_SUCCESS);
+    printf("==========CompareResult==========\n");
+    CompareResult(outputs, "ml_face_isface");
+    // 资源释放
+    OH_AI_ContextDestroy(&context);
+    OH_AI_ModelDestroy(&model);
+}
+
+
+/**
+* @tc.number    : SUB_AI_MindSpore_ModelLoadConfig_0002
+* @tc.name      : config_file_path为nullptr
+* @tc.desc      : 异常场景1：config_file_path为nullptr → 返回OH_AI_STATUS_LITE_NULLPTR
+*/
+HWTEST(MSLiteTest, SUB_AI_MindSpore_ModelLoadConfig_0002, Function | MediumTest | Level0) {
+    OH_AI_ContextHandle context = OH_AI_ContextCreate();
+    ASSERT_NE(context, nullptr);
+    AddContextDeviceCPU(context);
+    OH_AI_ModelHandle model = OH_AI_ModelCreate();
+    ASSERT_NE(model, nullptr);
+    OH_AI_Status load_status = OH_AI_ModelLoadConfig(model, nullptr);
+    std::cout << "load_status is " << load_status << std::endl;
+    ASSERT_EQ(load_status, OH_AI_STATUS_LITE_NULLPTR);
+    OH_AI_Status load_status_01 = OH_AI_ModelLoadConfig(nullptr, "/data/test/ml_face_isface.config");
+    std::cout << "load_status is " << load_status_01 << std::endl;
+    ASSERT_EQ(load_status_01, OH_AI_STATUS_LITE_NULLPTR);
+    OH_AI_ContextDestroy(&context);
+    OH_AI_ModelDestroy(&model);
+}
+
+
+/**
+* @tc.number    : SUB_AI_MindSpore_ModelLoadConfig_0003
+* @tc.name      : 配置文件不存在
+* @tc.desc      : 异常场景2：配置文件不存在 → 必须返回非SUCCESS且非NULLPTR
+*/
+HWTEST(MSLiteTest, SUB_AI_MindSpore_ModelLoadConfig_0003, Function | MediumTest | Level0) {
+    OH_AI_ContextHandle context = OH_AI_ContextCreate();
+    ASSERT_NE(context, nullptr);
+    AddContextDeviceCPU(context);
+    OH_AI_ModelHandle model = OH_AI_ModelCreate();
+    ASSERT_NE(model, nullptr);
+    const char* nonExistConfig = "/data/test/not_exist.config";  // 不存在
+    OH_AI_Status load_status = OH_AI_ModelLoadConfig(model, nonExistConfig);
+    std::cout << "load_status is " << load_status << std::endl;
+    // 修正：同时断言非SUCCESS和非NULLPTR，确保错误被检测
+    ASSERT_NE(load_status, OH_AI_STATUS_SUCCESS);
+    ASSERT_NE(load_status, OH_AI_STATUS_LITE_NULLPTR);
+    OH_AI_ContextDestroy(&context);
+    OH_AI_ModelDestroy(&model);
+}
+
+
+/**
+* @tc.number    : SUB_AI_MindSpore_ModelLoadConfig_0004
+* @tc.name      : 配置内容无效（如不支持的数据类型
+* @tc.desc      : 异常场景3：配置内容无效（如不支持的数据类型）→ 返回SUCCESS
+*/
+HWTEST(MSLiteTest, SUB_AI_MindSpore_ModelLoadConfig_0004, Function | MediumTest | Level0) {
+    OH_AI_ContextHandle context = OH_AI_ContextCreate();
+    ASSERT_NE(context, nullptr);
+    AddContextDeviceCPU(context);
+    OH_AI_ModelHandle model = OH_AI_ModelCreate();
+    ASSERT_NE(model, nullptr);
+    const char* invalidContentConfig = "/data/test/invalid_content.config";  // 内容无效
+    OH_AI_Status load_status = OH_AI_ModelLoadConfig(model, invalidContentConfig);
+    std::cout << "load_status is " << load_status << std::endl;
+    ASSERT_EQ(load_status, OH_AI_STATUS_SUCCESS);
+    OH_AI_ContextDestroy(&context);
+    OH_AI_ModelDestroy(&model);
+}

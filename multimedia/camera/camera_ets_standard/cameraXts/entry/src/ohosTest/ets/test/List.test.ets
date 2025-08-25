@@ -13,6 +13,7 @@ import CameraNoPermissionTest from './CameraNoPermissionTest.test';
 import PhotoOutputTest from './CameraOutput/PhotoOutput.test';
 import PreviewOutputTest from './CameraOutput/PreviewOutput.test';
 import VideoOutputTest from './CameraOutput/VideoOutput.test';
+import CameraSessionControlCenterTest from './ControlCenter/CameraSessionControlCenter.test.ets';
 import CameraSessionFlashTest from './Flash/CameraSessionFlash.test';
 import CameraSessionFocusTest from './Focus/CameraSessionFocus.test';
 import CameraPhotoSessionTest from './Session/CameraPhotoSession.test';
@@ -53,6 +54,7 @@ export default function testsuite() {
   CameraPhotoSessionBackTest();
   CameraVideoSessionTest();
   CameraVideoSessionBackTest();
+  CameraSessionControlCenterTest();
   CameraSessionFlashTest();
   CameraSessionFocusTest();
   CameraSessionZoomTest();

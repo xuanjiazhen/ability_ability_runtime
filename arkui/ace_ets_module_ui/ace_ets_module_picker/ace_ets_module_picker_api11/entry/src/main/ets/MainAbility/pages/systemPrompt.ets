@@ -18,7 +18,7 @@ import prompt from '@system.prompt';
 @Component
 struct promptExample {
   @State text: string = 'item1'
-  @State color: string = '#000000'
+  @State color: string = '#fffc0909'
   build(){
     Column(){
       Button('showActionMenu')
@@ -43,6 +43,8 @@ struct promptExample {
               },
             });
       })
+      Text(this.color).id('color')
+      Text(this.text).id('text')
       Button('showDialog')
       .key('button2')
       .backgroundColor('#FF0B8FE2')

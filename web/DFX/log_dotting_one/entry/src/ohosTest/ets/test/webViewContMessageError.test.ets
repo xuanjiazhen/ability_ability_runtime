@@ -12,57 +12,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeEach, afterEach, it, expect , TestType, Size, Level } from "@ohos/hypium";
-import events_emitter from '@ohos.events.emitter';
+import { describe, beforeEach, it, TestType, Size, Level, beforeAll } from "@ohos/hypium";
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
+
+const EVENT_ID_SET_EMIT_KEY = 111780;
+const driver = Driver.create();
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
-
-let emitKey = "emitPostMessageInitErr";
+let emitKey = "";
 
 export default function webViewContMessageError() {
   describe('ActsAceWebDevWebViewContMessageErrorTest', () => {
+    beforeAll(async (done: Function) => {
+      await driver.waitForComponent(ON.id("webViewContMessageError"), 10000);
+      console.log("waitForComponent webViewContMessageError");
+      done()
+    });
+
     beforeEach(async (done: Function) => {
       config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
         console.info(`enable success`);
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("webViewContMessageError beforeEach start");
       done();
     })
-    afterEach(async (done: Function) => {
-      console.info("webViewContMessageError afterEach start:" + emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
-      done();
-    })
+
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWCONTMESSAGEERROR_0100
      *tc.name testPostMessageInitErr
      *tc.desc test interface of postMessage with not been associated with specific Web Components
      */
     it('testPostMessageInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitPostMessageEventUnPortErr";
-      Utils.registerEvent("testPostMessageInitErr", "17100001", 600, done);
-      Utils.registerEvent("testPostMessageInitErr", "Init error. The WebviewController must be associated with a Web component", 601, done);
-      sendEventByKey('webViewContMessageError', 10, '');
+      emitKey = "emitPostMessageInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testPostMessageInitErr", "17100001", 111790, null);
+      Utils.registerEvent("testPostMessageInitErr", "Init error. The WebviewController must be associated with a Web component", 111800, done);
+      await Utils.waitAndClickComponent(driver, "webViewContMessageError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWCONTMESSAGEERROR_0200
@@ -71,9 +60,10 @@ export default function webViewContMessageError() {
      */
     it('testPostMessageEventPortClose', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitPostMessageEventUnPortErr";
-      Utils.registerEvent("testPostMessageEventPortClose", "17100010", 602, done);
-      Utils.registerEvent("testPostMessageEventPortClose", "Failed to post messages through the port.", 603, done);
-      sendEventByKey('webViewContMessageError', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testPostMessageEventPortClose", "17100010", 111810, null);
+      Utils.registerEvent("testPostMessageEventPortClose", "Failed to post messages through the port.", 111820, done);
+      await Utils.waitAndClickComponent(driver, "webViewContMessageError");
     })
   })
 }

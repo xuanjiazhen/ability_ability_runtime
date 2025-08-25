@@ -85,7 +85,6 @@ export default function nativeApiImageJsunit() {
           pixelmap.release();
           console.info('TC_001 test |release again end');
 
-          expect(true).assertTrue();
           done();
 
           console.info('TC_001 test |end');

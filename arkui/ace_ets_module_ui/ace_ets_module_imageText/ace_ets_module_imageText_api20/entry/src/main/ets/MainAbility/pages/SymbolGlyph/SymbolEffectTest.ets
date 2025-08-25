@@ -18,18 +18,20 @@
 struct SymbolEffectTest {
   @State triggerValueReplace1: number = 0;
   @State triggerValueReplace2: number = 0;
+  @State triggerValueReplace3: number = 0;
   @State renderMode: number = 1;
 
   replaceFlag1: boolean = true;
   replaceFlag2: boolean = true;
+  replaceFlag3: boolean = true;
   build() {
     Column() {
       Row() {
         Column() {
-          Text("禁用动效")
-          SymbolGlyph(this.replaceFlag1 ? $r('sys.symbol.eye_slash') : $r('sys.symbol.eye'))
+          Text("替换动效")
+          SymbolGlyph(this.replaceFlag1 ? $r('sys.symbol.checkmark_circle') : $r('sys.symbol.repeat_1'))
             .renderingStrategy(this.renderMode)
-            .symbolEffect(new DisableSymbolEffect(EffectScope.LAYER), this.triggerValueReplace1)
+            .symbolEffect(new ReplaceSymbolEffect(EffectScope.LAYER,ReplaceEffectType.SEQUENTIAL), this.triggerValueReplace1)
             .id('SymbolGlyph1')
           Button('trigger')
             .onClick(() => {
@@ -40,13 +42,24 @@ struct SymbolEffectTest {
         Column() {
           Text("快速替换动效")
           SymbolGlyph(this.replaceFlag2 ? $r('sys.symbol.checkmark_circle') : $r('sys.symbol.repeat_1'))
-            .symbolEffect(new QuickReplaceSymbolEffect(EffectScope.WHOLE), this.triggerValueReplace2)
+            .symbolEffect(new ReplaceSymbolEffect(EffectScope.WHOLE,ReplaceEffectType.CROSS_FADE), this.triggerValueReplace2)
             .id('SymbolGlyph2')
           Button('trigger')
             .onClick(() => {
               this.replaceFlag2 = !this.replaceFlag2;
               this.triggerValueReplace2 = this.triggerValueReplace2 + 1;
             }).id('trigger_2')
+        }
+        Column() {
+          Text("禁用动效")
+          SymbolGlyph(this.replaceFlag3 ? $r('sys.symbol.eye_slash') : $r('sys.symbol.eye'))
+            .symbolEffect(new ReplaceSymbolEffect(EffectScope.WHOLE,ReplaceEffectType.SLASH_OVERLAY ), this.triggerValueReplace3)
+            .id('SymbolGlyph3')
+          Button('trigger')
+            .onClick(() => {
+              this.replaceFlag3 = !this.replaceFlag3;
+              this.triggerValueReplace3 = this.triggerValueReplace3 + 1;
+            }).id('trigger_3')
         }
       }
     }

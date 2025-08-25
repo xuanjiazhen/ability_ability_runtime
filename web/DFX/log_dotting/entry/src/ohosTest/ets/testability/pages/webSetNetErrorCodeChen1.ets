@@ -16,23 +16,29 @@ import events_emitter from '@ohos.events.emitter'
 import webview from '@ohos.web.webview'
 import Utils from '../../test/Utils'
 import business_error from '@ohos.base'
-import buffer from '@ohos.buffer'
 import { WebNetErrorList } from '@ohos.web.netErrorList'
+const EVENT_ID_SET_EIMIT_KEY = 106000;
+
 @Entry
 @Component
 struct webSetNetErrorCodeChen1 {
   controller: webview.WebviewController = new webview.WebviewController();
   schemeHandler: webview.WebSchemeHandler = new webview.WebSchemeHandler();
   srcUrl: string = 'https://www.example.com/';
-
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
   @State emitKey: string = '';
 
   onPageShow() {
       let valueChangeEvent: events_emitter.InnerEvent = {
-          eventId: 10,
+          eventId: EVENT_ID_SET_EIMIT_KEY,
           priority: events_emitter.EventPriority.LOW
       }
       events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EIMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -40,6 +46,7 @@ struct webSetNetErrorCodeChen1 {
           console.info('valueChangeCallBack:' + JSON.stringify(eventData));
           if (eventData.data != null && eventData.data.ACTION != null) {
               this.emitKey = eventData.data.ACTION;
+	            this.isReceive = 1;
           }
       }
   }
@@ -51,7 +58,9 @@ struct webSetNetErrorCodeChen1 {
               .key('webSetNetErrorCodeChen1Button')
               .onClick(async () => {
                   console.info('key==>' + this.emitKey)
-                  await Utils.sleep(1000);
+                  await Utils.waitForExist(()=>this.isPageEnd, 'webSetNetErrorCodeChen1ButtonIsPageEnd', 1, 1000);
+                  await Utils.waitForExist(()=>this.isReceive, 'webSetNetErrorCodeChen1ButtonIsReceive', 1, 1000);
+                  this.isReceive = -1;
                   switch (this.emitKey) {
                     case 'emitWebSetNetErrorCode_ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE': {
                       let response: webview.WebSchemeHandlerResponse = new webview.WebSchemeHandlerResponse();
@@ -59,14 +68,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE) {
-                          Utils.emitEvent(true, 3083)
+                          Utils.emitEvent(true, 106010)
                         } else {
-                          Utils.emitEvent(false, 3083)
+                          Utils.emitEvent(false, 106010)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3083)
+                        Utils.emitEvent(false, 106010)
                       }
                       break;
                     }
@@ -76,14 +85,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_SSL_CLIENT_AUTH_CERT_BAD_FORMAT);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_SSL_CLIENT_AUTH_CERT_BAD_FORMAT) {
-                          Utils.emitEvent(true, 3084)
+                          Utils.emitEvent(true, 106020)
                         } else {
-                          Utils.emitEvent(false, 3084)
+                          Utils.emitEvent(false, 106020)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3084)
+                        Utils.emitEvent(false, 106020)
                       }
                       break;
                     }
@@ -93,14 +102,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_ICANN_NAME_COLLISION);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_ICANN_NAME_COLLISION) {
-                          Utils.emitEvent(true, 3085)
+                          Utils.emitEvent(true, 106030)
                         } else {
-                          Utils.emitEvent(false, 3085)
+                          Utils.emitEvent(false, 106030)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3085)
+                        Utils.emitEvent(false, 106030)
                       }
                       break;
                     }
@@ -110,14 +119,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_SSL_SERVER_CERT_BAD_FORMAT);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_SSL_SERVER_CERT_BAD_FORMAT) {
-                          Utils.emitEvent(true, 3086)
+                          Utils.emitEvent(true, 106040)
                         } else {
-                          Utils.emitEvent(false, 3086)
+                          Utils.emitEvent(false, 106040)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3086)
+                        Utils.emitEvent(false, 106040)
                       }
                       break;
                     }
@@ -127,14 +136,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CT_STH_PARSING_FAILED);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CT_STH_PARSING_FAILED) {
-                          Utils.emitEvent(true, 3087)
+                          Utils.emitEvent(true, 106050)
                         } else {
-                          Utils.emitEvent(false, 3087)
+                          Utils.emitEvent(false, 106050)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3087)
+                        Utils.emitEvent(false, 106050)
                       }
                       break;
                     }
@@ -144,14 +153,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CT_STH_INCOMPLETE);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CT_STH_INCOMPLETE) {
-                          Utils.emitEvent(true, 3088)
+                          Utils.emitEvent(true, 106060)
                         } else {
-                          Utils.emitEvent(false, 3088)
+                          Utils.emitEvent(false, 106060)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3088)
+                        Utils.emitEvent(false, 106060)
                       }
                       break;
                     }
@@ -161,14 +170,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_UNABLE_TO_REUSE_CONNECTION_FOR_PROXY_AUTH);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_UNABLE_TO_REUSE_CONNECTION_FOR_PROXY_AUTH) {
-                          Utils.emitEvent(true, 3089)
+                          Utils.emitEvent(true, 106070)
                         } else {
-                          Utils.emitEvent(false, 3089)
+                          Utils.emitEvent(false, 106070)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3089)
+                        Utils.emitEvent(false, 106070)
                       }
                       break;
                     }
@@ -178,14 +187,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CT_CONSISTENCY_PROOF_PARSING_FAILED);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CT_CONSISTENCY_PROOF_PARSING_FAILED) {
-                          Utils.emitEvent(true, 3090)
+                          Utils.emitEvent(true, 106080)
                         } else {
-                          Utils.emitEvent(false, 3090)
+                          Utils.emitEvent(false, 106080)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3090)
+                        Utils.emitEvent(false, 106080)
                       }
                       break;
                     }
@@ -195,14 +204,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_SSL_OBSOLETE_CIPHER);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_SSL_OBSOLETE_CIPHER) {
-                          Utils.emitEvent(true, 3091)
+                          Utils.emitEvent(true, 106090)
                         } else {
-                          Utils.emitEvent(false, 3091)
+                          Utils.emitEvent(false, 106090)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3091)
+                        Utils.emitEvent(false, 106090)
                       }
                       break;
                     }
@@ -212,14 +221,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_WS_UPGRADE);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_WS_UPGRADE) {
-                          Utils.emitEvent(true, 3092)
+                          Utils.emitEvent(true, 106100)
                         } else {
-                          Utils.emitEvent(false, 3092)
+                          Utils.emitEvent(false, 106100)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3092)
+                        Utils.emitEvent(false, 106100)
                       }
                       break;
                     }
@@ -229,14 +238,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_READ_IF_READY_NOT_IMPLEMENTED);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_READ_IF_READY_NOT_IMPLEMENTED) {
-                          Utils.emitEvent(true, 3093)
+                          Utils.emitEvent(true, 106110)
                         } else {
-                          Utils.emitEvent(false, 3093)
+                          Utils.emitEvent(false, 106110)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3093)
+                        Utils.emitEvent(false, 106110)
                       }
                       break;
                     }
@@ -246,14 +255,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_NO_BUFFER_SPACE);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_NO_BUFFER_SPACE) {
-                          Utils.emitEvent(true, 3094)
+                          Utils.emitEvent(true, 106120)
                         } else {
-                          Utils.emitEvent(false, 3094)
+                          Utils.emitEvent(false, 106120)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3094)
+                        Utils.emitEvent(false, 106120)
                       }
                       break;
                     }
@@ -263,14 +272,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_SSL_CLIENT_AUTH_NO_COMMON_ALGORITHMS);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_SSL_CLIENT_AUTH_NO_COMMON_ALGORITHMS) {
-                          Utils.emitEvent(true, 3095)
+                          Utils.emitEvent(true, 106130)
                         } else {
-                          Utils.emitEvent(false, 3095)
+                          Utils.emitEvent(false, 106130)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3095)
+                        Utils.emitEvent(false, 106130)
                       }
                       break;
                     }
@@ -280,14 +289,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_EARLY_DATA_REJECTED);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_EARLY_DATA_REJECTED) {
-                          Utils.emitEvent(true, 3096)
+                          Utils.emitEvent(true, 106140)
                         } else {
-                          Utils.emitEvent(false, 3096)
+                          Utils.emitEvent(false, 106140)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3096)
+                        Utils.emitEvent(false, 106140)
                       }
                       break;
                     }
@@ -297,14 +306,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_WRONG_VERSION_ON_EARLY_DATA);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_WRONG_VERSION_ON_EARLY_DATA) {
-                          Utils.emitEvent(true, 3097)
+                          Utils.emitEvent(true, 106150)
                         } else {
-                          Utils.emitEvent(false, 3097)
+                          Utils.emitEvent(false, 106150)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3097)
+                        Utils.emitEvent(false, 106150)
                       }
                       break;
                     }
@@ -314,14 +323,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_TLS13_DOWNGRADE_DETECTED);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_TLS13_DOWNGRADE_DETECTED) {
-                          Utils.emitEvent(true, 3098)
+                          Utils.emitEvent(true, 106160)
                         } else {
-                          Utils.emitEvent(false, 3098)
+                          Utils.emitEvent(false, 106160)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3098)
+                        Utils.emitEvent(false, 106160)
                       }
                       break;
                     }
@@ -331,14 +340,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_SSL_KEY_USAGE_INCOMPATIBLE);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_SSL_KEY_USAGE_INCOMPATIBLE) {
-                          Utils.emitEvent(true, 3099)
+                          Utils.emitEvent(true, 106170)
                         } else {
-                          Utils.emitEvent(false, 3099)
+                          Utils.emitEvent(false, 106170)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3099)
+                        Utils.emitEvent(false, 106170)
                       }
                       break;
                     }
@@ -348,14 +357,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_INVALID_ECH_CONFIG_LIST);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_INVALID_ECH_CONFIG_LIST) {
-                          Utils.emitEvent(true, 3100)
+                          Utils.emitEvent(true, 106180)
                         } else {
-                          Utils.emitEvent(false, 3100)
+                          Utils.emitEvent(false, 106180)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3100)
+                        Utils.emitEvent(false, 106180)
                       }
                       break;
                     }
@@ -365,14 +374,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_ECH_NOT_NEGOTIATED);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_ECH_NOT_NEGOTIATED) {
-                          Utils.emitEvent(true, 3101)
+                          Utils.emitEvent(true, 106190)
                         } else {
-                          Utils.emitEvent(false, 3101)
+                          Utils.emitEvent(false, 106190)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3101)
+                        Utils.emitEvent(false, 106190)
                       }
                       break;
                     }
@@ -382,14 +391,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_ECH_FALLBACK_CERTIFICATE_INVALID);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_ECH_FALLBACK_CERTIFICATE_INVALID) {
-                          Utils.emitEvent(true, 3102)
+                          Utils.emitEvent(true, 106200)
                         } else {
-                          Utils.emitEvent(false, 3102)
+                          Utils.emitEvent(false, 106200)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3102)
+                        Utils.emitEvent(false, 106200)
                       }
                       break;
                     }
@@ -399,14 +408,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_COMMON_NAME_INVALID);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_COMMON_NAME_INVALID) {
-                          Utils.emitEvent(true, 3103)
+                          Utils.emitEvent(true, 106210)
                         } else {
-                          Utils.emitEvent(false, 3103)
+                          Utils.emitEvent(false, 106210)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3103)
+                        Utils.emitEvent(false, 106210)
                       }
                       break;
                     }
@@ -416,14 +425,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_DATE_INVALID);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_DATE_INVALID) {
-                          Utils.emitEvent(true, 3104)
+                          Utils.emitEvent(true, 106220)
                         } else {
-                          Utils.emitEvent(false, 3104)
+                          Utils.emitEvent(false, 106220)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3104)
+                        Utils.emitEvent(false, 106220)
                       }
                       break;
                     }
@@ -433,14 +442,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_AUTHORITY_INVALID);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_AUTHORITY_INVALID) {
-                          Utils.emitEvent(true, 3105)
+                          Utils.emitEvent(true, 106230)
                         } else {
-                          Utils.emitEvent(false, 3105)
+                          Utils.emitEvent(false, 106230)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3105)
+                        Utils.emitEvent(false, 106230)
                       }
                       break;
                     }
@@ -450,14 +459,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_CONTAINS_ERRORS);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_CONTAINS_ERRORS) {
-                          Utils.emitEvent(true, 3106)
+                          Utils.emitEvent(true, 106240)
                         } else {
-                          Utils.emitEvent(false, 3106)
+                          Utils.emitEvent(false, 106240)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3106)
+                        Utils.emitEvent(false, 106240)
                       }
                       break;
                     }
@@ -467,14 +476,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_NO_REVOCATION_MECHANISM);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_NO_REVOCATION_MECHANISM) {
-                          Utils.emitEvent(true, 3107)
+                          Utils.emitEvent(true, 106250)
                         } else {
-                          Utils.emitEvent(false, 3107)
+                          Utils.emitEvent(false, 106250)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3107)
+                        Utils.emitEvent(false, 106250)
                       }
                       break;
                     }
@@ -484,14 +493,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_UNABLE_TO_CHECK_REVOCATION);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_UNABLE_TO_CHECK_REVOCATION) {
-                          Utils.emitEvent(true, 3108)
+                          Utils.emitEvent(true, 106260)
                         } else {
-                          Utils.emitEvent(false, 3108)
+                          Utils.emitEvent(false, 106260)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3108)
+                        Utils.emitEvent(false, 106260)
                       }
                       break;
                     }
@@ -501,14 +510,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_REVOKED);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_REVOKED) {
-                          Utils.emitEvent(true, 3109)
+                          Utils.emitEvent(true, 106270)
                         } else {
-                          Utils.emitEvent(false, 3109)
+                          Utils.emitEvent(false, 106270)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3109)
+                        Utils.emitEvent(false, 106270)
                       }
                       break;
                     }
@@ -518,14 +527,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_INVALID);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_INVALID) {
-                          Utils.emitEvent(true, 3110)
+                          Utils.emitEvent(true, 106280)
                         } else {
-                          Utils.emitEvent(false, 3110)
+                          Utils.emitEvent(false, 106280)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3110)
+                        Utils.emitEvent(false, 106280)
                       }
                       break;
                     }
@@ -535,14 +544,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_WEAK_SIGNATURE_ALGORITHM);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_WEAK_SIGNATURE_ALGORITHM) {
-                          Utils.emitEvent(true, 3111)
+                          Utils.emitEvent(true, 106290)
                         } else {
-                          Utils.emitEvent(false, 3111)
+                          Utils.emitEvent(false, 106290)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3111)
+                        Utils.emitEvent(false, 106290)
                       }
                       break;
                     }
@@ -552,14 +561,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_NON_UNIQUE_NAME);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_NON_UNIQUE_NAME) {
-                          Utils.emitEvent(true, 3112)
+                          Utils.emitEvent(true, 106300)
                         } else {
-                          Utils.emitEvent(false, 3112)
+                          Utils.emitEvent(false, 106300)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3112)
+                        Utils.emitEvent(false, 106300)
                       }
                       break;
                     }
@@ -569,14 +578,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_WEAK_KEY);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_WEAK_KEY) {
-                          Utils.emitEvent(true, 3113)
+                          Utils.emitEvent(true, 106310)
                         } else {
-                          Utils.emitEvent(false, 3113)
+                          Utils.emitEvent(false, 106310)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3113)
+                        Utils.emitEvent(false, 106310)
                       }
                       break;
                     }
@@ -586,14 +595,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_NAME_CONSTRAINT_VIOLATION);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_NAME_CONSTRAINT_VIOLATION) {
-                          Utils.emitEvent(true, 3114)
+                          Utils.emitEvent(true, 106320)
                         } else {
-                          Utils.emitEvent(false, 3114)
+                          Utils.emitEvent(false, 106320)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3114)
+                        Utils.emitEvent(false, 106320)
                       }
                       break;
                     }
@@ -603,14 +612,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_VALIDITY_TOO_LONG);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_VALIDITY_TOO_LONG) {
-                          Utils.emitEvent(true, 3115)
+                          Utils.emitEvent(true, 106330)
                         } else {
-                          Utils.emitEvent(false, 3115)
+                          Utils.emitEvent(false, 106330)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3115)
+                        Utils.emitEvent(false, 106330)
                       }
                       break;
                     }
@@ -620,14 +629,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERTIFICATE_TRANSPARENCY_REQUIRED);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERTIFICATE_TRANSPARENCY_REQUIRED) {
-                          Utils.emitEvent(true, 3116)
+                          Utils.emitEvent(true, 106340)
                         } else {
-                          Utils.emitEvent(false, 3116)
+                          Utils.emitEvent(false, 106340)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3116)
+                        Utils.emitEvent(false, 106340)
                       }
                       break;
                     }
@@ -637,14 +646,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_SYMANTEC_LEGACY);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_SYMANTEC_LEGACY) {
-                          Utils.emitEvent(true, 3117)
+                          Utils.emitEvent(true, 106350)
                         } else {
-                          Utils.emitEvent(false, 3117)
+                          Utils.emitEvent(false, 106350)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3117)
+                        Utils.emitEvent(false, 106350)
                       }
                       break;
                     }
@@ -654,14 +663,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_KNOWN_INTERCEPTION_BLOCKED);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_KNOWN_INTERCEPTION_BLOCKED) {
-                          Utils.emitEvent(true, 3118)
+                          Utils.emitEvent(true, 106360)
                         } else {
-                          Utils.emitEvent(false, 3118)
+                          Utils.emitEvent(false, 106360)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3118)
+                        Utils.emitEvent(false, 106360)
                       }
                       break;
                     }
@@ -671,14 +680,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_SSL_OBSOLETE_VERSION_OR_CIPHER);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_SSL_OBSOLETE_VERSION_OR_CIPHER) {
-                          Utils.emitEvent(true, 3119)
+                          Utils.emitEvent(true, 106370)
                         } else {
-                          Utils.emitEvent(false, 3119)
+                          Utils.emitEvent(false, 106370)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3119)
+                        Utils.emitEvent(false, 106370)
                       }
                       break;
                     }
@@ -688,14 +697,14 @@ struct webSetNetErrorCodeChen1 {
                         response.setNetErrorCode(WebNetErrorList.ERR_CERT_END);
                         let errorCode:number = response.getNetErrorCode();
                         if (errorCode == WebNetErrorList.ERR_CERT_END) {
-                          Utils.emitEvent(true, 3120)
+                          Utils.emitEvent(true, 106380)
                         } else {
-                          Utils.emitEvent(false, 3120)
+                          Utils.emitEvent(false, 106380)
                         }
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent(false, 3120)
+                        Utils.emitEvent(false, 106380)
                       }
                       break;
                     }
@@ -703,6 +712,10 @@ struct webSetNetErrorCodeChen1 {
               })
           }
           Web({ src: this.srcUrl, controller: this.controller })
+          .onPageEnd((event) => {
+            console.log('onPageEnd url:' + event.url);
+            this.isPageEnd = 1;
+          })
       }
   }
 }

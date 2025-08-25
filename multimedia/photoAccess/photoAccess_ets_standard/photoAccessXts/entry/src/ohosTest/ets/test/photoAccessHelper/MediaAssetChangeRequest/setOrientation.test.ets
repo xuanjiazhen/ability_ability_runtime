@@ -39,7 +39,6 @@ async function setOrientationPromiseTest(done: Function, testName: string, orien
     await assetChangeRequest.setOrientation(orientation);
     await phAccessHelper.applyChanges(assetChangeRequest);
     console.info('apply setOrientation  successfully');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code},${error.message}`, testName);
@@ -61,7 +60,6 @@ async function setOrientationAbnormalPromiseTest(done: Function, testName: strin
     await assetChangeRequest.setOrientation(orientation);
     await phAccessHelper.applyChanges(assetChangeRequest);
     console.info('apply setOrientation  successfully');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code},${error.message}`, testName);

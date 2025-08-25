@@ -53,7 +53,6 @@ export default function effectKitBTest() {
               try{
                   let colors = colorPicker.getTopProportionColors(2);
                   console.info(msgStr + ' Succeed in getTopProportionColors.');
-                  expect(true).assertTrue()
                   done()
               }catch(err){
                   console.info(msgStr + ' Succeed in getTopProportionColors. ' + JSON.stringify(err));
@@ -104,7 +103,6 @@ export default function effectKitBTest() {
             try{
               headFilter.invert();
               console.info(msgStr + ' Succeed in invert. ');
-              expect(true).assertTrue()
               done()
             }catch(err){
               console.info(msgStr + ' Failed in invert. ' + JSON.stringify(err));
@@ -163,7 +161,6 @@ export default function effectKitBTest() {
             try{
               headFilter.setColorMatrix(colorMatrix);
               console.info(msgStr + ' Succeed in setColorMatrix. ');
-              expect(true).assertTrue()
               done()
             }catch(err){
               console.info(msgStr + ' Failed in setColorMatrix. ' + JSON.stringify(err));
@@ -232,7 +229,6 @@ export default function effectKitBTest() {
         if (headFilter != null) {
           headFilter.blur(radius, effectKit.TileMode.DECAL);
           console.info(msgStr + ' Succeed in headFilter.blur. ');
-          expect(true).assertTrue()
           done()
         }
       }).catch((err:BusinessError) => {
@@ -241,6 +237,63 @@ export default function effectKitBTest() {
         done()
       })
     })
-
+    
+    /**
+     * @tc.number    : testGetEffectPixelMap_useCpuRender1
+     * @tc.name      : testGetEffectPixelMap_useCpuRender1
+     * @tc.desc      : test getEffectPixelMap useCpuRender
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level1
+     */
+    it('testGetEffectPixelMap_useCpuRender1', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, (done: Function) => {
+      const color = new ArrayBuffer(96);
+      let opts : image.InitializationOptions = {
+        editable: true,
+        pixelFormat: 3,
+        size: {
+          height: 4,
+          width: 6
+        }
+      };
+      image.createPixelMap(color, opts).then((pixelMap) => {
+        effectKit.createEffect(pixelMap).grayscale().getEffectPixelMap(false).then(data => {
+          console.info('getPixelBytesNumber = ', data.getPixelBytesNumber());
+          done();
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+          done();
+        })
+      })
+    })
+    
+    /**
+     * @tc.number    : testGetEffectPixelMap_useCpuRender2
+     * @tc.name      : testGetEffectPixelMap_useCpuRender2
+     * @tc.desc      : test getEffectPixelMap useCpuRender
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level1
+     */
+    it('testGetEffectPixelMap_useCpuRender2', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, (done: Function) => {
+      const color = new ArrayBuffer(96);
+      let opts : image.InitializationOptions = {
+        editable: true,
+        pixelFormat: 3,
+        size: {
+          height: 4,
+          width: 6
+        }
+      };
+      image.createPixelMap(color, opts).then((pixelMap) => {
+        effectKit.createEffect(pixelMap).grayscale().getEffectPixelMap(true).then(data => {
+          console.info('getPixelBytesNumber = ', data.getPixelBytesNumber());
+          done();
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+          done();
+        })
+      })
+    })
   })
 }

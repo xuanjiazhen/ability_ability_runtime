@@ -69,7 +69,6 @@ async function unmarshallingPromiseTest(done: Function, testName: string, opts: 
       // 反序列化 rpc获取到data。
       let ret: MySequence = new MySequence(pixelMap);
       data.readParcelable(ret);
-      expect(true).assertTrue();
     } else {
       expect().assertFail();
     }

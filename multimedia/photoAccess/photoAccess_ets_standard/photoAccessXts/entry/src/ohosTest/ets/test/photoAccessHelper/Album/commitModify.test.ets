@@ -39,7 +39,6 @@ async function commitModifyCallbackTest(done: Function, fetchOps: photoAccessHel
           console.error(TAG, `commitModify failed with error: ${err.code}, ${err.message}`, testName);
           expect().assertFail();
         } else {
-          expect(true).assertTrue();
           console.info(TAG, 'commitModify successfully', testName);
         }
       });
@@ -66,7 +65,6 @@ async function commitModifyPromiseTest(done: Function, fetchOps: photoAccessHelp
       album.albumName = 'hello' + genRandomStr(10);
       album.commitModify().then(() => {
         console.info(TAG, 'commitModify successfully');
-        expect(true).assertTrue();
       }).catch((err: BusinessError) => {
         console.error(TAG, `commitModify failed with error: ${err.code}, ${err.message}`);
         expect().assertFail();

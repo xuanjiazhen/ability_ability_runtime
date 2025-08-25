@@ -15,9 +15,12 @@
 
 import ConnectionRegisterTest from './ConnectionResgister.test';
 import NetExtAttributeHasNetTest from './NetExtAttributeHasNet.test';
-
+import ConnectionBasicTest from './ConnectionBasic.test';
+import ConnectionGetNetCapabilitiesTest from './ConnectionGetNetCapabilities.test';
 
 export default function testsuite() {
   NetExtAttributeHasNetTest();
   ConnectionRegisterTest();
+  ConnectionBasicTest();
+  ConnectionGetNetCapabilitiesTest();
 }

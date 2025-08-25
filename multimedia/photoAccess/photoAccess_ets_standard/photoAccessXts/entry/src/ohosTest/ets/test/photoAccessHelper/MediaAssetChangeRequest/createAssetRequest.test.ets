@@ -36,7 +36,6 @@ async function createAssetRequestPromiseTest(done: Function, testName: string, p
     await assetChangeRequest.addResource(ResourceType, fileUri);
     await phAccessHelper.applyChanges(assetChangeRequest);
     console.info('apply createAssetRequest successfully');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `createImageAssetRequestDemo failed with error: ${error},${error.code},${error.message}`,

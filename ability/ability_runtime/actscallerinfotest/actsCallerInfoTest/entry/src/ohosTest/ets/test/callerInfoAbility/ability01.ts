@@ -29,7 +29,7 @@ export default class CallerInfo01 extends UIAbility {
     hilog.info(0x0000, 'testTag', '%{public}s', `CallerInfo01 JSON.stringify(want.parameters) is: ${JSON.stringify(want.parameters)}`);
     let optionsWant = {
       parameters: {
-        result: JSON.stringify(want.parameters)
+        result: want.parameters
       }
     };
     commonEventManager.publish('ACTS_TEST_ON_CREATE_WANT', optionsWant, function () {
@@ -42,12 +42,22 @@ export default class CallerInfo01 extends UIAbility {
     hilog.info(0x0000, 'testTag', `%{public}s', onNewWant, launchParam: ${JSON.stringify(launchParam)}`);
     let options = {
       parameters: {
-        result: JSON.stringify(want.parameters)
+        result: want.parameters
       }
     };
     commonEventManager.publish('ACTS_TEST_ON_NEW_WANT', options, function () {
       hilog.info(0x0000, 'testTag', '%{public}s', 'commonEventManager CallerInfo01 publish ACTS_TEST_ON_NEW_WANT');
     });
+    setTimeout(()=>{
+      try{
+        commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+          globalThis.CallerInfo01.terminateSelf();
+          hilog.info(0x0000, 'testTag', '%{public}s', 'commonEventManager CallerInfo01 publish ACTS_TEST_DESTROY');
+        });
+      }catch(err){
+        hilog.info(0x0000, 'testTag', '%{public}s', ' CallerInfo01 moveAbilityToBackground fail ' + err.code);
+      }
+    }, 1000)
   }
 
   onDestroy():void {
@@ -71,30 +81,29 @@ export default class CallerInfo01 extends UIAbility {
   }
 
   onForeground():void {
-    hilog.info(0x0000, 'testTag', '%{public}s', 'CallerInfo01 onForeground');
-    if(backSet==0){
-      backSet++;
-      hilog.info(0x0000, 'testTag', '%{public}s', `UiAbility02 backSet.. is: ${backSet}`);
-      try {
-        globalThis.CallerInfo01.startAbility(
-          {
-            bundleName: 'com.acts.actsCallerInfoAssist01Test',
-            abilityName: 'AssistAbility01'
-          }).then(() => {
-          hilog.info(0x0000, 'testTag', '%{public}s', `CallerInfo01 startAbility end`);
-        })
-      } catch (err) {
-        // 处理入参错误异常
-        let code = (err as BusinessError).code;
-        let message = (err as BusinessError).message;
-        hilog.info(0x0000, 'testTag', '%{public}s', `startAbility failed, error.code: ${code}, error.message: ${message}`);
+    hilog.info(0x0000, 'testTag', '%{public}s', 'CallerInfo01 onForeground backSet:' + backSet);
+    setTimeout(()=>{
+      hilog.info(0x0000, 'testTag', '%{public}s', 'CallerInfo01 onForeground backSet:' + backSet);
+      if(backSet==0){
+        backSet = backSet + 1;
+        hilog.info(0x0000, 'testTag', '%{public}s', `UiAbility02 backSet.. is: ${backSet}`);
+        try {
+          globalThis.CallerInfo01.startAbility(
+            {
+              bundleName: 'com.acts.actsCallerInfoAssist01Test',
+              abilityName: 'AssistAbility01'
+            }).then(() => {
+            hilog.info(0x0000, 'testTag', '%{public}s', `CallerInfo01 startAbility end`);
+          })
+        } catch (err) {
+          // 处理入参错误异常
+          let code = (err as BusinessError).code;
+          let message = (err as BusinessError).message;
+          hilog.info(0x0000, 'testTag', '%{public}s', `startAbility failed, error.code: ${code}, error.message: ${message}`);
+        }
       }
-    } else if(backSet==1){
-      commonEventManager.publish('ACTS_TEST_DESTROY', function () {
-        globalThis.CallerInfo01.terminateSelf();
-        hilog.info(0x0000, 'testTag', '%{public}s', 'commonEventManager CallerInfo01 publish ACTS_TEST_DESTROY');
-      });
-    }
+    }, 500)
+    
   }
 
   onBackground():void {

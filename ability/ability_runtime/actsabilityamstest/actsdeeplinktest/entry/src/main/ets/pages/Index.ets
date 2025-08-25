@@ -39,7 +39,7 @@ struct Index {
     Column({space:5}){
       Text(this.message)
         .id('appA')
-        .fontSize(50)
+        .fontSize('2%')
         .fontWeight(FontWeight.Bold)
         .alignRules({
           center: { anchor: '__container__', align: VerticalAlign.Center },

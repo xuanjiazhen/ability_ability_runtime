@@ -23,6 +23,7 @@ config_include_dirs = [
   "$old_root_dir/../../../../../../interfaces/kits/c/common/",
   "$old_root_dir/../../../../../../interfaces/kits/c/audio_renderer/",
   "$old_root_dir/../../../../../../interfaces/kits/c/audio_capturer/",
+  "$old_root_dir/../../../../../../interfaces/kits/c/audio_manager/",
   "$old_root_dir/../../../../audiocapturer/include",
   "$old_root_dir/../../../../audiopolicy/include",
   "$old_root_dir/../../../../audiorenderer/include",

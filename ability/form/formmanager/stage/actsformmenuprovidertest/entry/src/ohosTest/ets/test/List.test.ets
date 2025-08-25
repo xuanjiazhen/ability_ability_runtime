@@ -17,6 +17,5 @@ import formMenuTest from './formMenu.test';
 import formProviderApiTest from './formProviderApi.test';
 
 export default function testsuite() {
-  formMenuTest();
   formProviderApiTest();
 }

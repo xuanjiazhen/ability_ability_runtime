@@ -60,7 +60,9 @@
             "resource/ai/mindspore/ml_face_isface_quant/ml_face_isface.om.ms -> /data/test",
             "resource/ai/mindspore/ml_face_isface_quant/ml_face_isface_quant_0.input -> /data/test",
             "resource/ai/mindspore/ml_face_isface_quant/ml_face_isface_quant0.output -> /data/test",
-            "resource/ai/mindspore/ml_face_isface_quant/ml_face_isface_quant.ms -> /data/test"
+            "resource/ai/mindspore/ml_face_isface_quant/ml_face_isface_quant.ms -> /data/test",
+            "resource/ai/mindspore/ml_face_is_face/invalid_content.config -> /data/test",
+            "resource/ai/mindspore/ml_face_is_face/ml_face_isface.config -> /data/test"
         ]
     },
     {

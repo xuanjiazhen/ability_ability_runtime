@@ -41,7 +41,6 @@ async function getObjectByPositionCallbackTest(done: Function, fetchOps: photoAc
       fetchResult.close();
       if (photoAsset !== undefined) {
         console.info(TAG, 'photoAsset displayName: ', photoAsset.displayName, testName);
-        expect(true).assertTrue();
       } else {
         console.error(TAG, `photoAsset failed with err: ${err.code}, ${err.message}`);
         expect().assertFail();
@@ -75,7 +74,6 @@ async function getObjectByPositionAbnormalCallbackTest(done: Function, fetchOps:
       fetchResult.close();
       if (photoAsset !== undefined) {
         console.info(TAG, 'photoAsset displayName: ', photoAsset.displayName, testName);
-        expect(true).assertTrue();
       } else {
         console.error(TAG, `photoAsset failed with err: ${err.code}, ${err.message}`);
         expect(err.code == ErrorCode.SYSTEM_INNER_ERROR_CODE || err.code == ErrorCode.PARAM_ERROR_CODE).assertTrue();
@@ -109,7 +107,6 @@ async function getObjectByPositionPromiseTest(done: Function, fetchOps: photoAcc
     let photoAsset: photoAccessHelper.PhotoAsset = await fetchResult.getObjectByPosition(index);
     console.info('photoAsset displayName: ', photoAsset.displayName, testName);
     await fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(`failed; error:${error}, ${error.code}`, testName);
@@ -138,7 +135,6 @@ async function getObjectByPositionAbnormalPromiseTest(done: Function, fetchOps: 
     let photoAsset: photoAccessHelper.PhotoAsset = await fetchResult.getObjectByPosition(index);
     console.info('photoAsset displayName: ', photoAsset.displayName, testName);
     await fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(`failed; error:${error}, ${error.code}`, testName);

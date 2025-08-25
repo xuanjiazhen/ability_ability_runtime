@@ -30,7 +30,6 @@ async function selectPromiseTest(done: Function, testName: string) {
     PhotoSelectOptions.maxSelectNumber = 50;
     let photoPicker = new photoAccessHelper.PhotoViewPicker();
     photoPicker.select(PhotoSelectOptions);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);
@@ -56,7 +55,6 @@ async function selectCallbackTest(done: Function, testName: string) {
         } else {
           console.info('PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
           done();
         }
       });

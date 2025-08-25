@@ -19,6 +19,7 @@ import {
     gcAfterLockAsyncTest,
     doubleExitSharedLockTest,
     pendingSharedRequestAfterGC,
+    checkDeadlock,
 } from './LockTest';
 
 
@@ -86,6 +87,21 @@ export default function AsyncLockTest() {
      */
     it('pendingSharedRequestAfterGC', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       let result: Object = await pendingSharedRequestAfterGC();
+      expect(result).assertEqual("PASSED");
+      done();
+    })
+
+    /**
+     * @tc.number: SUB_COMMONLIBRARY_ETSUTILS_ASYNCLOCK_005
+     * @tc.name: checkDeadlock
+     * @tc.desc: checks that deadlock is detected
+     * @tc.author: diartyz
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     * @tc.level: Level 2
+     */
+    it('checkDeadlock', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let result: Object = await checkDeadlock();
       expect(result).assertEqual("PASSED");
       done();
     })

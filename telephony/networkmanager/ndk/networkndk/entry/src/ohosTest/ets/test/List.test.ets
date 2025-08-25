@@ -15,8 +15,12 @@
 
 import NetStackNDKTest from './NetStackNDK.test'
 import NetConnectionNDKTest from './NetConnectionNDK.test';
+import PingTraceRouteNDKTest from './PingTraceRouteNDKTest.test';
+import PingTraceRouteErrorCode201NDKTest from './PingTraceRouteErrorCode201NDKTest.test';
 
 export default function testsuite() {
+  PingTraceRouteErrorCode201NDKTest();
   NetStackNDKTest();
   NetConnectionNDKTest();
+  PingTraceRouteNDKTest();
 }

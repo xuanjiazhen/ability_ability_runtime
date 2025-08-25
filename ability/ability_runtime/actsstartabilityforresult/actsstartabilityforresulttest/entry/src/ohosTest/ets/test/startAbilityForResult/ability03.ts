@@ -57,9 +57,7 @@ export default class UiAbility03 extends UIAbility {
       hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbilityForResult_5000 publish ability03_onForeground');
     });
     setTimeout(() => {
-      commonEventManager.publish('ACTS_TEST_BACK', function () {
-        hilog.info(0x0000, 'testTag', '%{public}s', 'commonEventManager UiAbility03 publish ACTS_TEST_BACK');
-      });
+      globalThis.uiAbilityContext3.terminateSelf();
     }, 500);
   }
 

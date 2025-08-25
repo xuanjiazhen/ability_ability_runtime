@@ -299,7 +299,6 @@ export default function ImageReceiverTest() {
         it('SUB_MULTIMEDIA_IMAGE_RECEIVERNDK_RELEASE_0100', Level.LEVEL0, async (done: Function) => {
             if (!isSupportedCamerasResult) {
               console.info('Failed to obtain the default camera or device object.Not support usb camera');
-              expect(true).assertTrue();
               done();
               return;
             }
@@ -339,7 +338,6 @@ export default function ImageReceiverTest() {
         it('SUB_MULTIMEDIA_IMAGE_RECEIVERNDK_RELEASE_0200', Level.LEVEL0, async (done: Function) => {
             if (!isSupportedCamerasResult) {
               console.info('Failed to obtain the default camera or device object.Not support usb camera');
-              expect(true).assertTrue();
               done();
               return;
             }
@@ -381,13 +379,11 @@ export default function ImageReceiverTest() {
         it('SUB_MULTIMEDIA_IMAGE_RECEIVERNDK_NORMAL_0100', Level.LEVEL0, async (done: Function) => {
             if (!isSupportedCamerasResult) {
               console.info('Failed to obtain the default camera or device object.Not support usb camera');
-              expect(true).assertTrue();
               done();
               return;
             }
             if (!isSupportCameraVideoProfiles) {
                 console.info('Failed to obtain the default videoProfiles object. Not support usb camera');
-                expect(true).assertTrue();
                 done();
             }
             else {
@@ -472,7 +468,6 @@ export default function ImageReceiverTest() {
         it('SUB_MULTIMEDIA_IMAGE_RECEIVERNDK_NORMAL_0200', Level.LEVEL0, async (done: Function) => {
             if (!isSupportedCamerasResult) {
               console.info('Failed to obtain the default camera or device object.Not support usb camera');
-              expect(true).assertTrue();
               done();
               return;
             }
@@ -510,7 +505,6 @@ export default function ImageReceiverTest() {
         it('SUB_MULTIMEDIA_IMAGE_RECEIVERNDK_NORMAL_0300', Level.LEVEL0, async (done: Function) => {
             if (!isSupportedCamerasResult) {
               console.info('Failed to obtain the default camera or device object.Not support usb camera');
-              expect(true).assertTrue();
               done();
               return;
             }
@@ -547,13 +541,11 @@ export default function ImageReceiverTest() {
         it('SUB_MULTIMEDIA_IMAGE_RECEIVERNDK_NORMAL_0400', Level.LEVEL0, async (done: Function) => {
             if (!isSupportedCamerasResult) {
               console.info('Failed to obtain the default camera or device object.Not support usb camera');
-              expect(true).assertTrue();
               done();
               return;
             }
             if (!isSupportCameraVideoProfiles) {
                 console.info('Failed to obtain the default videoProfiles object. Not support usb camera');
-                expect(true).assertTrue();
                 done();
             }
             else {
@@ -601,13 +593,11 @@ export default function ImageReceiverTest() {
         it('SUB_MULTIMEDIA_IMAGE_RECEIVERNDK_NORMAL_0500', Level.LEVEL0, async (done: Function) => {
             if (!isSupportedCamerasResult) {
               console.info('Failed to obtain the default camera or device object.Not support usb camera');
-              expect(true).assertTrue();
               done();
               return;
             }
             if (!isSupportCameraVideoProfiles) {
                 console.info('Failed to obtain the default videoProfiles object. Not support usb camera');
-                expect(true).assertTrue();
                 done();
             }
             else {

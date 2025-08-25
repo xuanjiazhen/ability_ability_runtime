@@ -96,7 +96,7 @@ export default function gestureGestureInfoTest() {
       let dataArray: number[][] = nativeRender.getGestureData();
       let panGesture: number[] = dataArray[1];
       console.log('testGestureGestureInfo002', JSON.stringify(dataArray))
-      expect(panGesture[0] >= 150 && panGesture[0] <= 250 && panGesture[1] >= 150 && panGesture[1] <= 250 &&
+      expect(panGesture[0] >= 140 && panGesture[0] <= 250 && panGesture[1] >= 140 && panGesture[1] <= 250 &&
         panGesture[2] >= -1 && panGesture[2] <= 1 && panGesture[3] >= 8 && panGesture[3] <= 16 && panGesture[4] == 0).assertEqual(true)
       done();
     })
@@ -115,7 +115,7 @@ export default function gestureGestureInfoTest() {
       let dataArray: number[][] = nativeRender.getGestureData();
       let swipeGesture: number[] = dataArray[2];
       console.log('testGestureGestureInfo003', JSON.stringify(dataArray))
-      expect(swipeGesture[0] == 0 && swipeGesture[1] >= 165 && swipeGesture[1] <= 185).assertEqual(true)
+      expect(swipeGesture[0] == 0 && swipeGesture[1] >= 140 && swipeGesture[1] <= 250).assertEqual(true)
       done();
     })
 

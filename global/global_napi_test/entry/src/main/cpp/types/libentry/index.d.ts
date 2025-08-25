@@ -74,3 +74,4 @@ export const testGetIntPluralStringByName139: (resmgr: resourceManager.ResourceM
 export const testGetDoublePluralStringByName140: (resmgr: resourceManager.ResourceManager, resName: string) => Boolean;
 export const testGetIntPluralStringByName141: (resmgr: resourceManager.ResourceManager, resName: string) => Boolean;
 export const testGetDoublePluralStringByName142: (resmgr: resourceManager.ResourceManager, resName: string) => Boolean;
+export const getResourceConfiguration: (resmgr: resourceManager.ResourceManager) => Boolean;

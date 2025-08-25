@@ -38,7 +38,7 @@ struct IndexFeature {
     Row() {
       Column() {
         Text('Hello Feature')
-          .fontSize(50)
+          .fontSize('1%')
           .fontWeight(FontWeight.Bold)
 
         Button('getFontSizeScale')
@@ -73,9 +73,9 @@ struct IndexFeature {
               hilog.info(0x0000, this.TAG, "[%{public}s] terminateSelf failed, paramErr: %{public}s", this.TAG, JSON.stringify(paramErr));
             }
           })
-          .margin({top: 10})
+          .margin({top: '1%'})
         Text(this.message)
-          .margin({top: 10})
+          .margin({top: '1%'})
       }
       .width('100%')
     }

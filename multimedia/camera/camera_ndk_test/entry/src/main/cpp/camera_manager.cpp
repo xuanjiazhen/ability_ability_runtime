@@ -1179,6 +1179,105 @@ Camera_ErrorCode NDKCamera::SessionGetFocusMode(void)
     return ret;
 }
 
+Camera_ErrorCode NDKCamera::SessionIsControlCenterSupported(void)
+{
+    LOG("IsControlCenterSupported begin.");
+    Camera_ErrorCode ret = OH_CaptureSession_IsControlCenterSupported(captureSession_, &isContolCenterSupported_);
+    if (ret == CAMERA_OK) {
+        LOG("OH_CaptureSession_IsControlCenterSupported success.");
+    } else {
+        LOG("OH_CaptureSession_IsControlCenterSupported failed. %d ", ret);
+    }
+    return ret;
+}
+
+Camera_ErrorCode NDKCamera::SessionGetSupportedEffectTypes(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        controlCenterEffectType_ = new Camera_ControlCenterEffectType[1];
+        ret_ = OH_CaptureSession_GetSupportedEffectTypes(captureSession_, &controlCenterEffectType_, &effectTypeSize_);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_GetSupportedEffectTypes(nullptr, &controlCenterEffectType_, &effectTypeSize_);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_GetSupportedEffectTypes(captureSession_, nullptr, &effectTypeSize_);
+    } else if (useCaseCode == PARAMETER3_ERROR) {
+        ret_ = OH_CaptureSession_GetSupportedEffectTypes(captureSession_, &controlCenterEffectType_, nullptr);
+    }
+    if (controlCenterEffectType_ == nullptr || effectTypeSize_ == 0 || ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_GetSupportedEffectTypes failed.");
+    }
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::SessionDeleteSupportedEffectTypes(int useCaseCode)
+{
+    LOG("NDKCamera::SessionDeleteSupportedEffectTypes");
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_DeleteSupportedEffectTypes(captureSession_, controlCenterEffectType_, effectTypeSize_);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_DeleteSupportedEffectTypes(nullptr, controlCenterEffectType_, effectTypeSize_);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_DeleteSupportedEffectTypes(captureSession_, nullptr, effectTypeSize_);
+    } else if (useCaseCode == PARAMETER3_ERROR) {
+        ret_ = OH_CaptureSession_DeleteSupportedEffectTypes(captureSession_, controlCenterEffectType_, 0);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_DeleteSupportedEffectTypes failed.");
+    }
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::SessionEnableControlCenter(bool enabled)
+{
+    ret_ = OH_CaptureSession_EnableControlCenter(captureSession_, enabled);
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_EnableControlCenter failed.");
+    }
+    return ret_;
+}
+
+void ControlCenterEffectStatusChange(Camera_CaptureSession* session,
+    Camera_ControlCenterStatusInfo* controlCenterStatusInfo)
+{
+    LOG("ControlCenterEffectStatusChange is called.");
+}
+
+Camera_ErrorCode NDKCamera::RegisterControlCenterEffectStatusChange(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(captureSession_,
+            ControlCenterEffectStatusChange);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(nullptr,
+            ControlCenterEffectStatusChange);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback(captureSession_,
+            nullptr);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_RegisterControlCenterEffectStatusChangeCallback failed.");
+    }
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::UnregisterControlCenterEffectStatusChange(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(captureSession_,
+            ControlCenterEffectStatusChange);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(nullptr,
+            ControlCenterEffectStatusChange);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback(captureSession_,
+            nullptr);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_UnregisterControlCenterEffectStatusChangeCallback failed.");
+    }
+    return ret_;
+}
+
 Camera_ErrorCode NDKCamera::SessionSetFocusMode(uint32_t mode)
 {
     LOG("SetFocusMode begin.");
@@ -2915,7 +3014,7 @@ Camera_ErrorCode NDKCamera::UnegisterAutoDeviceSwitchStatusCallback(int useCaseC
 }
  
 void CameraSystemPressureLevelCallback(Camera_CaptureSession* session,
-    Camera_SystemPressureLevel* systemPressureLevel)
+    Camera_SystemPressureLevel systemPressureLevel)
 {
     LOG("CameraSystemPressureLevelCallback is called.");
 }
@@ -2986,12 +3085,18 @@ Camera_ErrorCode NDKCamera::CameraManagerUnregisterFoldStatusCallback(int useCas
 Camera_ErrorCode NDKCamera::GetCameraDevice(int useCaseCode)
 {
     if (useCaseCode == PARAMETER_OK) {
+        Camera_Device* cameraArray;
+        OH_CameraManager_GetSupportedCameras(cameraManager_, &cameraArray, &size_);
+        LOG("camera getSupportedCameras success : %d", size_);
+        if (size_ == 0) {
+            return CAMERA_OK;
+        }
         Camera_Device* cameranow = nullptr;
         if (cameraManager_ == nullptr) {
             return ret_;
         }
         ret_ = OH_CameraManager_GetCameraDevice(cameraManager_,
-            Camera_Position::CAMERA_POSITION_BACK, Camera_Type::CAMERA_TYPE_DEFAULT, cameranow);
+            cameraArray[0].cameraPosition, cameraArray[0].cameraType, cameranow);
     }
     return ret_;
 }
@@ -3090,5 +3195,38 @@ Camera_ErrorCode NDKCamera::WhiteBalanceTest(void)
         captureSession_, Camera_WhiteBalanceMode::CAMERA_WHITE_BALANCE_MODE_CLOUDY);
     Camera_WhiteBalanceMode mode = Camera_WhiteBalanceMode::CAMERA_WHITE_BALANCE_MODE_AUTO;
     ret_ = OH_CaptureSession_GetWhiteBalanceMode(captureSession_, &mode);
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::CreatePreviewOutputByIndex(int index)
+{
+    profile_ = cameraOutputCapability_->previewProfiles[index];
+    if (profile_ == nullptr) {
+        LOG("ndkXTS Get previewProfiles failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    ret_ = OH_CameraManager_CreatePreviewOutput(cameraManager_, profile_, previewSurfaceId_, &previewOutput_);
+    if (previewSurfaceId_ == nullptr || previewOutput_ == nullptr || ret_ != CAMERA_OK) {
+        LOG("ndkXTS CreatePreviewOutput failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    PreviewOutputRegisterCallback();
+    return ret_;
+}
+
+Camera_ErrorCode NDKCamera::CreateVideoOutputByIndex(char* videoId, int index)
+{
+    LOG("ndkXTS CreateVideoOutput start.");
+    videoProfile_ = cameraOutputCapability_->videoProfiles[index];
+    LOG("ndkXTS CreateVideoOutput videoProfiles start.");
+    if (videoProfile_ == nullptr) {
+        LOG("ndkXTS Get videoProfiles failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
+    ret_ = OH_CameraManager_CreateVideoOutput(cameraManager_, videoProfile_, videoId, &videoOutput_);
+    if (videoId == nullptr || videoOutput_ == nullptr || ret_ != CAMERA_OK) {
+        LOG("ndkXTS CreateVideoOutput failed.");
+        return CAMERA_INVALID_ARGUMENT;
+    }
     return ret_;
 }

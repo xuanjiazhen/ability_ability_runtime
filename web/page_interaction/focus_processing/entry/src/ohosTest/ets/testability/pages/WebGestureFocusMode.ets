@@ -74,9 +74,6 @@ struct WebComponent {
         Button("WebController click").key('WebGestureFocusModeButton').onClick(async () => {
           console.info("key==>" + this.str)
           await waitForExist(()=>this.isReceive, this.str, 0);
-          let webRect = Utils.getComponentRect('WebViewGestureFocusMode');
-          let X = Utils.getRectHorizontalCenterX(webRect)
-          let Y = Utils.getRectVerticalCenterY(webRect)
           switch (this.str) {
             case "testWebGestureFocusMode001": {
               try {
@@ -87,9 +84,16 @@ struct WebComponent {
                 let buttonOne = await driver.findComponent(ON.text('textInput'));
                 await buttonOne.click()
                 await Utils.sleep(2000);
-                let buttonTwo = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
+                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
+                if (buttonTwo) {
+                  await buttonTwo.click()
+                } else {
+                  this.inputMethodController.hideTextInput()
+                }
+                await Utils.sleep(2000);
+                let buttonThree = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
                 //再点击web 抢焦点
-                await buttonTwo.click()
+                await buttonThree.click()
 
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
@@ -105,9 +109,16 @@ struct WebComponent {
                 let buttonOne = await driver.findComponent(ON.text('textInput'));
                 await buttonOne.click()
                 await Utils.sleep(2000);
-                let buttonTwo = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
+                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
+                if (buttonTwo) {
+                  await buttonTwo.click()
+                } else {
+                  this.inputMethodController.hideTextInput()
+                }
+                await Utils.sleep(2000);
+                let buttonThree = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
                 //再长按web 抢焦点
-                await buttonTwo.longClick()
+                await buttonThree.longClick()
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
               }
@@ -123,6 +134,13 @@ struct WebComponent {
                 let buttonOne = await driver.findComponent(ON.text('textInput'));
                 await buttonOne.click()
                 await Utils.sleep(2000);
+                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
+                if (buttonTwo) {
+                  await buttonTwo.click()
+                } else {
+                  this.inputMethodController.hideTextInput()
+                }
+                await Utils.sleep(2000);
                 let HtmlOne = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
                 //再缩放web 抢焦点
                 await HtmlOne.pinchOut(1.5);
@@ -131,45 +149,12 @@ struct WebComponent {
               }
               break;
             }
-            case "testWebGestureFocusMode004": {
-              try {
-                this.flagType = 'webOnscroll'
-                this.controller.loadUrl("www.example.com");
-                await Utils.sleep(2000);
-                this.controller.loadUrl($rawfile('inputmode.html'));
-                let driver = Driver.create();
-                //先点击textInput
-                let buttonOne = await driver.findComponent(ON.text('textInput'));
-                await buttonOne.click()
-                await Utils.sleep(2000);
-                //关闭软键盘方法
-                //let softKeyBoard = await driver.findComponent(ON.type('Canvas'));
-                //if (softKeyBoard != null) {
-                  //await driver.pressBack()
-                //}
-                //关闭软键盘方法
-                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
-                if (buttonTwo) {
-                  await buttonTwo.click()
-                } else {
-                  this.inputMethodController.hideTextInput()
-                }
-                await Utils.sleep(1000);
-                await driver.swipe(X, Y, X, Y-800);
-              } catch (error) {
-                console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
-              }
-              break;
-            }
-
-
           }
         })
       }
 
       TextInput({ text: this.currentUrl })
-        .background(this.TextInputborderColor1)
-        .height(nativeHeight)
+        .backgroundColor(this.TextInputborderColor1)
         .onFocus(() => {
           this.TextInputborderColor1 = Color.Red;
         })

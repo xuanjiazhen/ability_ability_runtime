@@ -1923,7 +1923,6 @@ export default function ImageSourceNDKTest() {
             let loopcount = mdkTest.JsGetImageProperty(fd, 'GIFLoopCount');
             if (loopcount == 5) {
                 mlg.log('loopcount = ' + loopcount);
-                expect(true).assertTrue();
                 done();
                 return;
             } else {
@@ -1952,7 +1951,6 @@ export default function ImageSourceNDKTest() {
             let loopcount = mdkTest.JsGetImageProperty(fd, 'GIFLoopCount');
             if (loopcount == 1) {
                 mlg.log('loopcount = ' + loopcount);
-                expect(true).assertTrue();
                 done();
                 return;
             } else {
@@ -1981,7 +1979,6 @@ export default function ImageSourceNDKTest() {
             let loopcount: number = mdkTest.JsGetImageProperty(fd, 'GIFLoopCount');
             if (loopcount == 0) {
                 mlg.log('loopcount = ' + loopcount);
-                expect(true).assertTrue();
                 done();
                 return;
             } else {
@@ -2010,7 +2007,6 @@ export default function ImageSourceNDKTest() {
             let loopcount = mdkTest.JsGetImageProperty(fd, 'GIFLoopCount');
             if (loopcount == undefined) {
                 mlg.log('loopcount = ' + loopcount);
-                expect(true).assertTrue();
                 done();
                 return;
             } else {
@@ -2786,7 +2782,6 @@ export default function ImageSourceNDKTest() {
             TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done :Function) => {
             let log: ESObject = logger("SUB_MULTIMEDIA_IMAGE_PIXEL_MAP_SET_COLOR_SPACE_3000");
             if (!fs.accessSync("/sys_prod/lib64/VideoProcessingEngine/libaihdr_engine.so")) {
-              expect(true).assertTrue();
               done();
               return
             }
@@ -2796,7 +2791,6 @@ export default function ImageSourceNDKTest() {
                 } else {
                     log.log("device is not support HDR");
                 }
-                expect(true).assertTrue();
                 done();
             } else {
                 let checkProps = (result: number) => {
@@ -2825,7 +2819,6 @@ export default function ImageSourceNDKTest() {
             TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done :Function) => {
             let log: ESObject = logger("SUB_MULTIMEDIA_IMAGE_PIXEL_MAP_SET_COLOR_SPACE_3100");
             if (!fs.accessSync("/sys_prod/lib64/VideoProcessingEngine/libaihdr_engine.so")) {
-              expect(true).assertTrue();
               done();
               return
             }
@@ -2835,7 +2828,6 @@ export default function ImageSourceNDKTest() {
                 } else {
                     log.log("device is not support HDR");
                 }
-                expect(true).assertTrue();
                 done();
             } else {
                 let checkProps = (result: number) => {
@@ -3021,7 +3013,6 @@ export default function ImageSourceNDKTest() {
             } else {
               console.info(`SUB_MULTIMEDIA_IMAGE_SOURCENDK_GET_MODIFY_MAKERNOTE_PROPERTY_0200 device is not support heic encode`);
             }
-            expect(true).assertTrue();
             done();
           } else {
             let writeFd: number = getFdFilesDir("test_makernote_heic.heic");
@@ -3141,7 +3132,6 @@ export default function ImageSourceNDKTest() {
                 if (imageSourceApi != undefined) {
                     mdkTest.releaseImageSource(imageSourceApi);
                 }
-                expect(true).assertTrue();
                 done();
             } else {
                 log.log('GetMakerNoteImageProperty error: ' + makerNote);

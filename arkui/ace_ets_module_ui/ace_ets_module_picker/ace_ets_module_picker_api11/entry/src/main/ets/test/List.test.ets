@@ -49,6 +49,7 @@ import checkBoxGroupSelectAllJsunit from './checkboxGroup/checkBoxGroup.test';
 import textPickerDefaultPickerItemHeightJsunit from './TextPicker/textPicker.test';
 import datePickerJsunit from './DatePickerTest/DatePickerJsunit.test';
 import systempromptJsunit from './SystempromptJsunit.test';
+import ohosPromptJsunit from './OhosPrompt.test';
 import TextPickerJsunit from './TextPicker/TextPickerJsunit.test';
 import TimePickerJsunit from './TimePickerTest/TimePickerJsunit.test';
 import timeStampJsunit from './TimePickerTest/TimeStampJsunit.test';
@@ -102,6 +103,7 @@ export default function testsuite() {
   textPickerDefaultPickerItemHeightJsunit()
   datePickerJsunit();
   systempromptJsunit();
+  ohosPromptJsunit();
   TextPickerJsunit();
   TimePickerJsunit();
   timeStampJsunit();

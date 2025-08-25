@@ -29,6 +29,16 @@ export default class UiAbility08 extends UIAbility {
     globalThis.uiAbilityContext8 = this.context;
     hilog.info(0x0000, 'testTag', '%{public}s', `UiAbility08 want is, ${JSON.stringify(want)}`);
   }
+  onNewWant(want, launchParam) {
+    hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 onNewWant');
+    commonEventManager.publish('UiAbility08_onNewWant', function () {
+      hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 publish UiAbility08_onNewWant');
+    });
+    setTimeout(()=>{
+      // destroy
+      globalThis.uiAbilityContext8.terminateSelf();
+    }, 500);
+  }
 
   onDestroy(): void {
     hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 onDestroy');
@@ -70,18 +80,26 @@ export default class UiAbility08 extends UIAbility {
           }).then(() => {
           hilog.info(0x0000, 'testTag', '%{public}s', `UiAbility08 start other hap AbilityTest01 end`);
         })
+        setTimeout(()=>{
+          try{
+            globalThis.uiAbilityContext8.moveAbilityToBackground().then(()=>{
+              hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 moveAbilityToBackground success');
+            }).catch((err)=>{
+              hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 moveAbilityToBackground fail ' + err?.code);
+              if(err?.code == 16000061){
+                commonEventManager.publish('UiAbility08_onBackground', function () {
+                  hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 publish UiAbility08_onBackground');
+                });
+              }
+            });
+          }catch(e){
+            hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 moveAbilityToBackground catch fail ' + e?.code + ' ' + e.message);
+          }
+        }, 1000)
       } catch (err) {
         hilog.info(0x0000, 'testTag', '%{public}s', `UiAbility08 start other hap AbilityTest01 fail : ${err}`);
       }
-    } else if (testNum === 2) {
-      commonEventManager.publish('UiAbility08_onForeground_02', function () {
-        hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 publish UiAbility08_onForeground_02');
-      });
-      setTimeout(() => {
-        // destroy
-        globalThis.uiAbilityContext8.terminateSelf();
-      }, 500);
-    };
+    }
     hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility08 onForeground');
   }
 

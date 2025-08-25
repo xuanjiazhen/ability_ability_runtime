@@ -29,7 +29,6 @@ async function createPixelMapPromiseTest(done: Function, testName: string, pathU
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let pixelMap: image.PixelMap = await imageSourceApi.createPixelMap(options);
     await imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -49,7 +48,6 @@ async function createPixelMapCallbackTest(done: Function, testName: string, path
         console.error(TAG, `Failed to create pixelMap.code is ${err.code},message is ${err.message}`);
         expect().assertFail();
       } else {
-        expect(true).assertTrue();
       }
       done();
     })
@@ -73,7 +71,6 @@ async function createPixelMapDecodingOptionsCallbackTest(done: Function, testNam
         expect().assertFail();
         done();
       } else {
-        expect(true).assertTrue();
         done();
       }
     })

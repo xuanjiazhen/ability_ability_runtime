@@ -1,0 +1,9 @@
+{
+  "src": [
+    "MainAbility/pages/XTSIndex",
+    "MainAbility/pages/testgesture",
+    "MainAbility/pages/capi/ArkUIPostAsyncUITask",
+    "MainAbility/pages/capi/ArkUIPostUITask",
+    "MainAbility/pages/capi/ArkUIPostUITaskAndWait"
+  ]
+}

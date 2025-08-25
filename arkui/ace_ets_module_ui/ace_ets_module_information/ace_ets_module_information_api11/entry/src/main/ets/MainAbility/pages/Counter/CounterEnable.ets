@@ -24,7 +24,7 @@ struct CounterEnable {
       Counter() {
         Text(this.value.toString())
       }
-      .margin(100)
+      .margin(20)
       .onInc(() => {
         this.value++
       })

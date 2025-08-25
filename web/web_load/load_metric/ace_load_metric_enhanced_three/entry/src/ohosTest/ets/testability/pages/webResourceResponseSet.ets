@@ -16,6 +16,8 @@
 import events_emitter from '@ohos.events.emitter';
 import Utils from '../../test/Utils';
 import webView from '@ohos.web.webview';
+import {waitForAssert, waitForExist} from '../../test/WaitTest.test';
+
 
 @Entry
 @Component
@@ -57,17 +59,20 @@ struct webResourceResponseSet {
   @State setResponseIsReady: boolean = true
   @State onTitleReceive: boolean = false
   @State setResponseCode: number = 403
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
+
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 14049,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(14049)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -76,6 +81,7 @@ struct webResourceResponseSet {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -85,15 +91,18 @@ struct webResourceResponseSet {
       Row() {
         Button("WebResourceResponseSet click").key('WebResourceResponseSetButton').onClick(async () => {
           console.info("key==>" + this.str)
+          await waitForExist(()=>this.isReceive, this.str, 0);
+          await waitForExist(()=>this.isPageEnd, this.str, 0);
+          this.isReceive = -1;
+          this.isPageEnd = -1;
           switch (this.str) {
-
             case "testSetResponseData001": {
               try {
                 this.onHttpErrorReceive = true
                 this.getResponseDataValue = '123'
                 this.controller.loadUrl('http://1.1.1.123/index.html');
-                await Utils.sleep(2000);
-                Utils.emitEvent(this.getResponseDataValue == '""', 36010);
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
+                Utils.emitEvent(this.getResponseDataValue == '""', 14050);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -105,8 +114,8 @@ struct webResourceResponseSet {
                 this.onHttpErrorReceive = true
                 this.getResponseEncodingValue = ''
                 this.controller.loadUrl('http://1.1.1.123/index.html');
-                await Utils.sleep(2000);
-                Utils.emitEvent(this.getResponseEncodingValue, 36011);
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
+                Utils.emitEvent(this.getResponseEncodingValue, 14051);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -118,8 +127,8 @@ struct webResourceResponseSet {
                 this.onHttpErrorReceive = true
                 this.getResponseMimeTypeValue = ''
                 this.controller.loadUrl('http://1.1.1.123/index.html');
-                await Utils.sleep(2000);
-                Utils.emitEvent(this.getResponseMimeTypeValue, 36012);
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
+                Utils.emitEvent(this.getResponseMimeTypeValue, 14052);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -131,8 +140,8 @@ struct webResourceResponseSet {
                 this.onHttpErrorReceive = true
                 this.getReasonMessageValue = ''
                 this.controller.loadUrl('http://1.1.1.123/index.html');
-                await Utils.sleep(2000);
-                Utils.emitEvent(this.getReasonMessageValue, 36013);
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
+                Utils.emitEvent(this.getReasonMessageValue, 14053);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -144,8 +153,8 @@ struct webResourceResponseSet {
                 this.onHttpErrorReceive = true
                 this.getResponseHeaderValue = false
                 this.controller.loadUrl('http://1.1.1.123/index.html');
-                await Utils.sleep(2000);
-                Utils.emitEvent(this.getResponseHeaderValue, 36014);
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
+                Utils.emitEvent(this.getResponseHeaderValue, 14054);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -157,8 +166,8 @@ struct webResourceResponseSet {
                 this.onHttpErrorReceive = true
                 this.getResponseCodeValue = 0
                 this.controller.loadUrl('http://1.1.1.123/index.html');
-                await Utils.sleep(2000);
-                Utils.emitEvent(this.getResponseCodeValue, 36015);
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
+                Utils.emitEvent(this.getResponseCodeValue, 14055);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -170,10 +179,9 @@ struct webResourceResponseSet {
                 this.onHttpErrorReceive = true
                 this.setResponseIsReady = false
                 this.setResponseCode = 200
-                await Utils.sleep(2000);
                 this.controller.loadUrl('http://1.1.1.123/index.html');
-                await Utils.sleep(2000);
-                Utils.emitEvent(this.title, 36016);
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
+                Utils.emitEvent(this.title, 14056);
 
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -187,10 +195,9 @@ struct webResourceResponseSet {
                 this.setResponseIsReady = true
                 this.onTitleReceive = true
                 this.setResponseCode = 200
-                await Utils.sleep(2000);
                 this.controller.loadUrl('http://1.1.1.123/index.html');
-                await Utils.sleep(2000);
-                Utils.emitEvent(this.title, 36017);
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
+                Utils.emitEvent(this.title, 14057);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -277,6 +284,9 @@ struct webResourceResponseSet {
               this.title = event.title
             }
           }
+        })
+        .onPageEnd(() => {
+          this.isPageEnd = 0;
         })
     }
   }

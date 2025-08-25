@@ -19,16 +19,17 @@ import { common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import commonEvent from '@ohos.commonEventManager';
 import { abilityDelegatorRegistry } from '@kit.TestKit';
+import systemParameterEnhance from '@ohos.systemParameterEnhance';
 
 const TAG = 'AbilityRuntime';
 const TEST_SUITE_NAME: string = 'AbilityContext';
 let abilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
 let testAbilityContext: common.UIAbilityContext;
+let deviceType:string;
 
 function sleep(time: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, time));
 }
-
 export default function actsterminateselfwithresulttest() {
   describe('ActsTerminateSelfWithResultTest', () => {
     // Defines a test suite. Two parameters are supported: test suite name and test suite function.
@@ -143,6 +144,9 @@ export default function actsterminateselfwithresulttest() {
 
     beforeAll(() => {
       testAbilityContext = AppStorage.get<common.UIAbilityContext>('TestAbilityContext') as common.UIAbilityContext;
+      deviceType = systemParameterEnhance.getSync('persist.sys.abilityms.move_ui_ability_to_background_api_enable');
+      hilog.info(0x0000, 'testTag', '%{public}s',
+          `current device is ` + deviceType);
     })
 
     afterEach(async () => {
@@ -170,7 +174,7 @@ export default function actsterminateselfwithresulttest() {
       await abilityDelegator.executeShellCommand(cmda1).catch((error: BusinessError) => {
         console.log("====> executeShellCommand error : " + JSON.stringify(error));
       });
-
+      await sleep(1000);
     })
 
     /**
@@ -206,7 +210,7 @@ export default function actsterminateselfwithresulttest() {
           // 执行正常业务
           hilog.info(0x0000, TAG, '%{public}s', `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbility succeed`);
           await sleep(3000);
-          commonEvent.unsubscribe(subscriber)
+          await commonEvent.unsubscribe(subscriber)
           expect(onEntryCreateFlag).assertEqual(true);
           expect(onEntryOnDestroyFlag).assertEqual(false);
           done();
@@ -264,7 +268,7 @@ export default function actsterminateselfwithresulttest() {
             `${TEST_SUITE_NAME}#${TEST_CASE_NAME} onEntryCreateFlag===  ${onEntryCreateFlag}`);
           hilog.info(0x0000, TAG, '%{public}s',
             `${TEST_SUITE_NAME}#${TEST_CASE_NAME} onEntryOnDestroyFlag===  ${onEntryOnDestroyFlag}`);
-          commonEvent.unsubscribe(subscriber);
+          await commonEvent.unsubscribe(subscriber);
           // expect(onEntryCreateFlag).assertEqual(true);
           // expect(onEntryOnDestroyFlag).assertEqual(true);
           done();
@@ -361,55 +365,56 @@ export default function actsterminateselfwithresulttest() {
     it('SUB_Ability_AbilityRuntime_AbilityStage_OnDestroy_0500', Level.LEVEL0, async (done: Function) => {
       const TEST_CASE_NAME = 'SUB_Ability_AbilityRuntime_AbilityStage_OnDestroy_0500';
       hilog.info(0x0000, TAG, '%{public}s', `${TEST_SUITE_NAME}#${TEST_CASE_NAME} test begin`);
-
-      subscriber = await commonEvent.createSubscriber(subscribeInfo);
-      commonEvent.subscribe(subscriber, (err, data) => {
-        subscribeCallBack(err, data, done, TEST_CASE_NAME);
-      });
-      let want: Want = {
-        deviceId: '',
-        bundleName: 'com.acts.terminateselfwithresulthelper',
-        abilityName: 'EntryAbility3'
-      };
-      try {
-        testAbilityContext.startAbility(want, (err: BusinessError) => {
-          if (err.code) {
-            // 处理业务逻辑错误
-            console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
-            hilog.info(0x0000, TAG, '%{public}s',
-              `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbility failed, code is ${err.code}, message is ${err.message}`);
-            expect().assertFail();
-            done();
-          }
-          // 执行正常业务
-          hilog.info(0x0000, TAG, '%{public}s', `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbility succeed`);
+      if(deviceType === 'false'){
+        done();
+      }else{
+        subscriber = await commonEvent.createSubscriber(subscribeInfo);
+        commonEvent.subscribe(subscriber, (err, data) => {
+          subscribeCallBack(err, data, done, TEST_CASE_NAME);
         });
-      } catch (err) {
-        // 处理入参错误异常
-        let code = (err as BusinessError).code;
-        let message = (err as BusinessError).message;
+        let want: Want = {
+          deviceId: '',
+          bundleName: 'com.acts.terminateselfwithresulthelper',
+          abilityName: 'EntryAbility3'
+        };
+        try {
+          testAbilityContext.startAbility(want, (err: BusinessError) => {
+            if (err.code) {
+              // 处理业务逻辑错误
+              console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
+              hilog.info(0x0000, TAG, '%{public}s',
+                `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbility failed, code is ${err.code}, message is ${err.message}`);
+              expect().assertFail();
+              done();
+            }
+            // 执行正常业务
+            hilog.info(0x0000, TAG, '%{public}s', `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbility succeed`);
+          });
+        } catch (err) {
+          // 处理入参错误异常
+          let code = (err as BusinessError).code;
+          let message = (err as BusinessError).message;
+          hilog.info(0x0000, TAG, '%{public}s',
+            `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult catch failed, code is ${code}, message is ${message}`);
+          expect().assertFail();
+          done();
+        }
+        await sleep(6000);
+        await commonEvent.unsubscribe(subscriber);
         hilog.info(0x0000, TAG, '%{public}s',
-          `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult catch failed, code is ${code}, message is ${message}`);
-        expect().assertFail();
+          `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult onFirstEntryCreateFlag is === ${onFirstEntryCreateFlag}`);
+        hilog.info(0x0000, TAG, '%{public}s',
+          `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult onFirstEntryOnDestroyFlag is === ${onFirstEntryOnDestroyFlag}`);
+        hilog.info(0x0000, TAG, '%{public}s',
+          `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult onSecondEntryCreateFlag is === ${onSecondEntryCreateFlag}`);
+        hilog.info(0x0000, TAG, '%{public}s',
+          `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult onSecondEntryOnDestroyFlag is === ${onSecondEntryOnDestroyFlag}`);
+        expect(onEntryCreateFlag).assertTrue();
+        expect(onEntryOnDestroyFlag).assertTrue();
+        expect(onSecondEntryCreateFlag).assertTrue();
+        expect(onSecondEntryOnDestroyFlag).assertTrue();
         done();
       }
-      await sleep(6000);
-      commonEvent.unsubscribe(subscriber);
-      hilog.info(0x0000, TAG, '%{public}s',
-        `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult onFirstEntryCreateFlag is === ${onFirstEntryCreateFlag}`);
-      hilog.info(0x0000, TAG, '%{public}s',
-        `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult onFirstEntryOnDestroyFlag is === ${onFirstEntryOnDestroyFlag}`);
-      hilog.info(0x0000, TAG, '%{public}s',
-        `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult onSecondEntryCreateFlag is === ${onSecondEntryCreateFlag}`);
-      hilog.info(0x0000, TAG, '%{public}s',
-        `${TEST_SUITE_NAME}#${TEST_CASE_NAME} startAbilityForResult onSecondEntryOnDestroyFlag is === ${onSecondEntryOnDestroyFlag}`);
-      expect(onEntryCreateFlag).assertTrue();
-      expect(onEntryOnDestroyFlag).assertTrue();
-      expect(onSecondEntryCreateFlag).assertTrue();
-      expect(onSecondEntryOnDestroyFlag).assertTrue();
-      done();
-
-
     });
 
     /**
@@ -454,7 +459,7 @@ export default function actsterminateselfwithresulttest() {
           hilog.info(0x0000, TAG, '%{public}s', `${TEST_SUITE_NAME}#${TEST_CASE_NAME} times=endTime=${endTime}`);
           hilog.info(0x0000, TAG, '%{public}s',
             `${TEST_SUITE_NAME}#${TEST_CASE_NAME} times=distanceTime=${distanceTime}`);
-          commonEvent.unsubscribe(subscriber);
+          await commonEvent.unsubscribe(subscriber);
           expect(onEntryOnDestroyBeginFlag).assertTrue();
           expect(onEntryOnDestroyEndFlag).assertTrue();
           expect(distanceTime).assertLarger(1000);
@@ -513,7 +518,7 @@ export default function actsterminateselfwithresulttest() {
           hilog.info(0x0000, TAG, '%{public}s', `${TEST_SUITE_NAME}#${TEST_CASE_NAME} times=endTime=${endTime}`);
           hilog.info(0x0000, TAG, '%{public}s',
             `${TEST_SUITE_NAME}#${TEST_CASE_NAME} times=distanceTime=${distanceTime}`);
-          commonEvent.unsubscribe(subscriber);
+          await commonEvent.unsubscribe(subscriber);
           expect(onEntryOnDestroyBeginFlag).assertTrue();
           expect(onEntryOnDestroyEndFlag).assertTrue();
           expect(distanceTime).assertLess(50);

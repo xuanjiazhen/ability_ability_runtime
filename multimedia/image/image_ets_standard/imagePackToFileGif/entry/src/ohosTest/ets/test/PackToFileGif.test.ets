@@ -435,7 +435,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_0100", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -463,7 +462,6 @@ export default function imagePackToFileGif() {
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_0200", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -491,7 +489,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_0300", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -519,7 +516,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_0400", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -547,7 +543,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_0500", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -577,7 +572,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_0600", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -606,7 +600,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_0700", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -635,7 +628,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_0800", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -664,7 +656,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_0900", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -693,7 +684,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1000", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -722,7 +712,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1100", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -751,7 +740,6 @@ export default function imagePackToFileGif() {
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1200", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -779,7 +767,6 @@ export default function imagePackToFileGif() {
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1300", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -807,7 +794,6 @@ export default function imagePackToFileGif() {
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1400", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -835,7 +821,6 @@ export default function imagePackToFileGif() {
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1500", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -863,7 +848,6 @@ export default function imagePackToFileGif() {
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1600", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -891,7 +875,6 @@ export default function imagePackToFileGif() {
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1700", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -919,7 +902,6 @@ export default function imagePackToFileGif() {
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1800", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -945,20 +927,21 @@ export default function imagePackToFileGif() {
          * @tc.level     : level 0
          */
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1900", Level.LEVEL0, async (done: Function) => {
-            if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")){
-                expect(true).assertTrue();
-                done();
-                return
-            };
+            try {
+                if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")) {
+                    done();
+                    return
+                };
+            } catch (error) {
+                console.info('can not find path');
+            }
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let isSupportFormat = await isSupportImageFormat("HDRVividSingleLayer.heic", "image/heic");
                 if (!isSupportFormat) {
                     console.info("device is not support imageformat heic");
-                    expect(true).assertTrue();
                     done();
                 } else {
                     let testFile: TestFile = {
@@ -988,7 +971,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_ERROR_0100", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -1017,7 +999,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_ERROR_0200", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -1046,7 +1027,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_ERROR_0300", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -1075,7 +1055,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_ERROR_0400", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -1104,7 +1083,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_ERROR_0500", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -1133,7 +1111,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_PACKTOFILE_PIXELMAPLIST_ERROR_0100", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFile = {
@@ -1162,7 +1139,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_GIF_PACKTOFILE_0100", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFilePack: TestFilePack = {
@@ -1189,7 +1165,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_GIF_PACKTOFILE_0200", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFilePack = {
@@ -1216,7 +1191,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_GIF_PACKTOFILE_0300", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFilePack = {
@@ -1243,7 +1217,6 @@ export default function imagePackToFileGif() {
         it("SUB_MULTIMEDIA_IMAGE_GIF_PACKTOFILE_0400", Level.LEVEL0, async (done: Function) => {
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
-                expect(true).assertTrue();
                 done();
             } else {
                 let testFile: TestFilePack = {

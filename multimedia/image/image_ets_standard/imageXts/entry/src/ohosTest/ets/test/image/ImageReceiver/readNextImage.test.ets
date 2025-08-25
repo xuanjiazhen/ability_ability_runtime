@@ -25,7 +25,6 @@ async function readNextImagePromiseTest(done: Function, testName: string, size: 
     const receiver: image.ImageReceiver = await image.createImageReceiver(size, image.ImageFormat.JPEG, 8);
     await receiver.getReceivingSurfaceId().then((id: string) => {
       console.info(TAG, 'Succeeded in getting the readNextImage.');
-      expect(true).assertTrue();
     }).catch((error: BusinessError) => {
       console.error(TAG, `Failed to get the readNextImage.code ${error.code},message is ${error.message}`);
       expect().assertFail();
@@ -47,7 +46,6 @@ async function readNextImageCallbackTest(done: Function, testName: string, size:
         expect().assertFail();
       } else {
         console.info('Succeeded in reading the latest Image.');
-        expect(true).assertTrue();
       }
       done();
     });

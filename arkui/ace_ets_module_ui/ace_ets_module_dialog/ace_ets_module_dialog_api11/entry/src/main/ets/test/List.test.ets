@@ -67,6 +67,7 @@ import bindMenuJsunitt from './MenuTest/BindMenuJsunitt.test.ets';
 import bindPopupJsunit from './MenuTest/BindPopupJsunit.test.ets';
 import CustomDialogRouter from './customDialogTest/CustomDialogRouter.test'
 import menuDividerTest from './MenuTest/menuDivider.test.ets'
+import muneRadiusTest from './MenuTest/muneRadiusTest.test.ets'
 
 import SelectStatusTest from './checkbox/SelectStatus.test'
 
@@ -126,5 +127,6 @@ export default function testsuite() {
   bindPopupJsunit();
   CustomDialogRouter();
   menuDividerTest();
+  muneRadiusTest()
   SelectStatusTest()
 }

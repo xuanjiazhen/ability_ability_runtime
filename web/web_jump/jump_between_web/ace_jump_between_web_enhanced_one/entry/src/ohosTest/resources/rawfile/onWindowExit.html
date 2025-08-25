@@ -17,25 +17,24 @@
 </head>
 <body>
 <div>
-    <p id="baidu"><a href="https://www.bing.com/" target="_blank">新页面</a></p>
+    <p id="example"><a href="https://www.example.com" target="_blank">新页面</a></p>
 </div>
 
 <script>
-    function OpenWindowAll(){
-        openwindowAll = window.open('https://www.baidu.com', '_blank', 'height=400,width=600,top=100,scrollbars=yes');
+    function openWindowAll() {
+        openwindowAll = window.open('https://www.example.com', '_blank', 'height=400,width=600,top=100,scrollbars=yes');
         setTimeout(function() {
             window.close();
         }, 30);
 
     }
-    function OpenWindowAllTwo(){
-        openwindowAll = window.open('https://www.baidu.com', '_blank', 'height=400,width=600,top=100,scrollbars=yes');
+    function openWindowAllTwo() {
+        openwindowAll = window.open('https://www.example.com', '_blank', 'height=400,width=600,top=100,scrollbars=yes');
         setTimeout(function() {
-            if (openwindowAll){
+            if (openwindowAll) {
                 openwindowAll.close();
             }
         }, 300);
-
     }
 </script>
 </body>

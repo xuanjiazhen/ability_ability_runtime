@@ -55,6 +55,7 @@ struct Tabs_PadMar {
         .fontWeight(this.currentIndex === index ? 500 : 400)
         .lineHeight(22)
     }.width('100%').height('100%').key('Tabs_PadMar_' + name)
+     .backgroundColor(Color.Pink)
   }
 
   build() {

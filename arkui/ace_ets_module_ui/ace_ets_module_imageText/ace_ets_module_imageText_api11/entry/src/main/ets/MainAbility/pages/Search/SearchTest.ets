@@ -183,10 +183,10 @@ struct SliderExample {
           'Search',
           {
             fontSize: $r('sys.float.ohos_id_text_size_body1'),
-            fontColor: $r('sys.color.ohos_id_color_text_primary_activated')
+            fontColor: $r('sys.color.font_emphasize')
           }
         )
-        .fontColor($r('sys.color.ohos_id_color_text_primary'))
+        .fontColor($r('sys.color.search_text_color'))
         .key('searchTestDefaultapp')
 
       Search({ value: '', placeholder: 'Type to search...' })
@@ -206,10 +206,10 @@ struct SliderExample {
           'Search',
           {
             fontSize: $r('sys.float.ohos_id_text_size_body1'),
-            fontColor: $r('sys.color.ohos_id_color_text_primary_activated')
+            fontColor: $r('sys.color.font_emphasize')
           }
         )
-        .fontColor($r('sys.color.ohos_id_color_text_primary'))
+        .fontColor($r('sys.color.search_text_color'))
         .key('searchTestDefaultapp001')
 
       Search({ value: '', placeholder: 'Type to search...' })
@@ -229,10 +229,10 @@ struct SliderExample {
           'Search',
           {
             fontSize: $r('sys.float.ohos_id_text_size_body1'),
-            fontColor: $r('sys.color.ohos_id_color_text_primary_activated')
+            fontColor: $r('sys.color.font_emphasize')
           }
         )
-        .fontColor($r('sys.color.ohos_id_color_text_primary'))
+        .fontColor($r('sys.color.search_text_color'))
         .key('searchTestDefaultapp002')
 
       Search({ value: '', placeholder: 'Type to search...' })
@@ -266,7 +266,7 @@ struct SliderExample {
 
       Search({ value: '', placeholder: 'Type to search...' })
         .caretStyle({
-          color: $r('sys.color.ohos_id_color_text_primary_activated')
+          color: $r('sys.color.textfield_cursor_color')
         })
         .searchIcon({
           color: $r('sys.color.search_icon_color'),
@@ -280,10 +280,10 @@ struct SliderExample {
           'Search',
           {
             fontSize: $r('sys.float.Body_M'),
-            fontColor: $r('sys.color.ohos_id_color_text_primary_activated')
+            fontColor: $r('sys.color.font_emphasize')
           }
         )
-        .fontColor($r('sys.color.ohos_id_color_text_primary'))
+        .fontColor($r('sys.color.search_text_color'))
         .key('searchTestDefaultValue')
 
       Search({ value: '', placeholder: 'Type to search...' })

@@ -61,7 +61,7 @@ export default class EntryAbility extends UIAbility {
     let context: common.UIAbilityContext;
     context = getContext() as common.UIAbilityContext;
 
-    windowStage.loadContent('pages/Index', (err) => {
+    windowStage.loadContent('entryability3/pages/Index', (err) => {
       if (err.code) {
         hilog.error(0x0000, 'testTag',
           `${this.TEST_CASE_NAME} Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '`);

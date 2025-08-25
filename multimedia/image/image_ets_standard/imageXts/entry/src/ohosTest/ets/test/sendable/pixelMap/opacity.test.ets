@@ -29,7 +29,6 @@ async function opacityPromiseTest(done: Function, testName: string, opts: image.
 
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.opacity(rate);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -48,7 +47,6 @@ async function opacityAbnormalPromiseTest(done: Function, testName: string, opts
 
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.opacity(rate);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

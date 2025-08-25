@@ -21,6 +21,7 @@ import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
 import Want from '@ohos.app.ability.Want';
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
+import {waitForAssert, waitForExist} from '../../test/WaitTest.test';
 
 
 export default class EntryAbility extends UIAbility {
@@ -43,6 +44,8 @@ struct Index {
   @State text: string = "";
   @State textRatio: number = 100;
   @State zoomAccessValue: boolean = true;
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
   host: string = "www.spincast.org";
   realm: string = "protected example";
   username_password: string[] = [];
@@ -50,10 +53,14 @@ struct Index {
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 14045,
       priority: events_emitter.EventPriority.LOW
     };
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack);
+  }
+
+  onPageHide() {
+    events_emitter.off(14045);
   }
 
   private valueChangeCallBack = (eventData: ESObject) => {
@@ -62,6 +69,7 @@ struct Index {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -90,17 +98,21 @@ struct Index {
       Row() {
         Button("web click").key('webcomponent').onClick(async () => {
           console.info("key==>" + this.str);
+          await waitForExist(()=>this.isReceive, this.str, 0);
+          await waitForExist(()=>this.isPageEnd, this.str, 0);
+          this.isReceive = -1;
+          this.isPageEnd = -1;
           switch (this.str) {
             case "emitIsCookieAllowed": {
               web_webview.WebCookieManager.putAcceptCookieEnabled(false);
               setTimeout(() => {
-                Utils.emitEvent(web_webview.WebCookieManager.isCookieAllowed(), 408);
+                Utils.emitEvent(web_webview.WebCookieManager.isCookieAllowed(), 14046);
               }, 3000);
               break;
             }
             case "emitSaveCookieAsync": {
               web_webview.WebCookieManager.saveCookieAsync((result) => {
-                Utils.emitEvent("result", 410)
+                Utils.emitEvent("result", 14048)
               });
               break;
             }
@@ -109,7 +121,7 @@ struct Index {
               setTimeout(() => {
                 let result = web_webview.WebCookieManager.isThirdPartyCookieAllowed();
                 console.log(result.toString());
-                Utils.emitEvent(web_webview.WebCookieManager.isThirdPartyCookieAllowed(), 412);
+                Utils.emitEvent(web_webview.WebCookieManager.isThirdPartyCookieAllowed(), 14049);
               }, 3000);
               break;
             }
@@ -136,6 +148,9 @@ struct Index {
             Utils.emitEvent(sourceId, 422);
           }, 3000);
           return false;
+        })
+        .onPageEnd(() => {
+          this.isPageEnd = 0;
         })
     }
   }

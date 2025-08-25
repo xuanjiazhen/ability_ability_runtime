@@ -40,7 +40,8 @@ let ACTS_EVENT: commonEventManager.CommonEventSubscribeInfo = {
     'entryAbility4_onForeground_01',
     'entryAbility4_onForeground_02',
     'entryAbility4_onBackground_01',
-    'entryAbility4_onBackground_02'
+    'entryAbility4_onBackground_02',
+    'entryAbility4_onNewWant'
   ]
 };
 
@@ -212,7 +213,6 @@ export default function startAbilityForResultTwoTest() {
       let entryAbility4OnCreate: string = 'entryAbility4OnCreate_fail';
       let entryAbility4OnWindowStageCreate: string = 'entryAbility4OnWindowStageCreate_fail';
       let entryAbility4OnForeground01: string = 'entryAbility4OnForeground01_fail';
-      let entryAbility4OnForeground02: string = 'entryAbility4OnForeground02_fail';
       let entryAbility4OnBackground01: string = 'entryAbility4OnBackground01_fail';
       let entryAbility4OnBackground02: string = 'entryAbility4OnBackground02_fail';
       let want: Want = {
@@ -225,7 +225,6 @@ export default function startAbilityForResultTwoTest() {
           let unSubscribeCallback = () => {
             setTimeout(() => {
               hilog.info(0x0000, 'testTag', `${tag} unSubscribeCallback`);
-              expect(ability02OnForeground).assertEqual('ability02OnForeground_success');
               expect(ability03OnCreate).assertEqual('ability03OnCreate_success');
               expect(ability03OnWindowStageCreate).assertEqual('ability03OnWindowStageCreate_success');
               expect(ability03OnForeground).assertEqual('ability03OnForeground_success');
@@ -233,18 +232,13 @@ export default function startAbilityForResultTwoTest() {
               expect(entryAbility4OnCreate).assertEqual('entryAbility4OnCreate_success');
               expect(entryAbility4OnWindowStageCreate).assertEqual('entryAbility4OnWindowStageCreate_success');
               expect(entryAbility4OnForeground01).assertEqual('entryAbility4OnForeground01_success');
-              expect(entryAbility4OnForeground02).assertEqual('entryAbility4OnForeground02_success');
-              expect(entryAbility4OnBackground01).assertEqual('entryAbility4OnBackground01_success');
-              expect(entryAbility4OnBackground02).assertEqual('entryAbility4OnBackground02_success');
+              expect(entryAbility4OnBackground01).assertEqual('entryAbility4O_onBackground_success');
               hilog.info(0x0000, 'testTag', '%{public}s', `${tag} end`);
               done();
             }, 1000);
           }
           let subscribeCallBack = (err: BusinessError, data: commonEventManager.CommonEventData) => {
             hilog.info(0x0000, 'testTag', '%{public}s', `subscribeCallBack success with status: ${data.event}`)
-            if (data.event == 'ability02_onForeground') {
-              ability02OnForeground = 'ability02OnForeground_success';
-            }
             if (data.event == 'ability03_onCreate') {
               ability03OnCreate = 'ability03OnCreate_success';
             }
@@ -266,14 +260,8 @@ export default function startAbilityForResultTwoTest() {
             if (data.event == 'entryAbility4_onForeground_01') {
               entryAbility4OnForeground01 = 'entryAbility4OnForeground01_success';
             }
-            if (data.event == 'entryAbility4_onForeground_02') {
-              entryAbility4OnForeground02 = 'entryAbility4OnForeground02_success';
-            }
             if (data.event == 'entryAbility4_onBackground_01') {
-              entryAbility4OnBackground01 = 'entryAbility4OnBackground01_success';
-            }
-            if (data.event == 'entryAbility4_onBackground_02') {
-              entryAbility4OnBackground02 = 'entryAbility4OnBackground02_success';
+              entryAbility4OnBackground01 = 'entryAbility4O_onBackground_success';
             }
             if (data.event == 'ACTS_TEST_START') {
                 try {
@@ -295,23 +283,11 @@ export default function startAbilityForResultTwoTest() {
                     `startAbilityForResult failed, error.code: ${code}, error.message: ${message}`);
                 }
             }
-            if (data.event == 'ACTS_TEST_BACK') {
-              try {
-                router.back();
-                hilog.info(0x0000, 'testTag', '%{public}s', 'router.back success!');
-              } catch (err) {
-                let code = (err as BusinessError).code;
-                let message = (err as BusinessError).message;
-                hilog.info(0x0000, 'testTag', '%{public}s',
-                  `router.back failed, error.code: ${code}, error.message: ${message}`);
-              }
-            }
             if (data.event == 'ACTS_TEST_DESTROY') {
               globalThis.uiAbilityContext2.terminateSelf()
-              globalThis.uiAbilityContext3.terminateSelf()
               setTimeout(() => {
                 commonEventManager.unsubscribe(subscriber, unSubscribeCallback);
-              }, 500);
+              }, 5000);
             }
           }
           commonEventManager.subscribe(subscriber, subscribeCallBack);

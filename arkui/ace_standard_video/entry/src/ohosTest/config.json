@@ -61,8 +61,6 @@
             {
                 "pages": [
                     "pages/index/index",
-                    "pages/routerPush/index",
-                    "pages/routerReplace/index",
                     "pages/video/router/index"
                 ],
                 "name": ".MainAbility",

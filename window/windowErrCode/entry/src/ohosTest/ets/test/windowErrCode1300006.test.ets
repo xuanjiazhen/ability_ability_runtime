@@ -95,5 +95,37 @@ export default function windowErrCode1300006() {
         done()
       }
     })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_SET_RELATIVE_POSITION_TO_PARENT_WINDOWW_ENABLED_WITH_INVAILD_PARAMETERS
+     * @tc.name       : testSetRelativePositionToParentWindowEnabledwithInvalidParameters
+     * @tc.desc       : 验证setRelativePositionToParentWindowEnabled抛1300016错误码
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 3
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithInvalidParameters', Level.LEVEL3, async (done: Function) => {
+      let caseName = "testSetRelativePositionToParentWindowEnabledwithInvalidParameters";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      let windowClass = windowStage.getMainWindowSync();
+      try {
+        const maxInt = 2**31 -1;
+        windowClass.setRelativePositionToParentWindowEnabled(true, ohosWindow.WindowAnchor.TOP_START, maxInt, maxInt).then(async () => {
+          console.info(msgStr + 'Succeeded in calling setRelativePositionToParentWindowEnabled.');
+          expect().assertFail();
+          done();
+        }).catch(async (err: BusinessError) => {
+          console.error(msgStr + 'Failed to call setRelativePositionToParentWindowEnabled. Cause: ' + JSON.stringify(err));
+          expect().assertFail();
+          done()
+        });
+      } catch (exception) {
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception));
+        expect(exception.code).assertEqual(1300016);
+        done()
+      }
+    })
+
   })
 }

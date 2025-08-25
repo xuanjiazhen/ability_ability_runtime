@@ -28,12 +28,12 @@ import { BusinessError } from '@ohos.base';
 struct PrecompileJavaScriptTest {
   controller: webView.WebviewController = new webView.WebviewController();
   message: webView.WebMessageExt = new webView.WebMessageExt();
-  @State str: string = ""
+  @State str: string = ''
   @State javaScriptAccess: boolean = true;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 148401,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
@@ -41,13 +41,13 @@ struct PrecompileJavaScriptTest {
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(148401)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
-    console.info("web page valueChangeCallBack");
+    console.info('web page valueChangeCallBack');
     if (eventData != null) {
-      console.info("valueChangeCallBack:" + JSON.stringify(eventData));
+      console.info('valueChangeCallBack:' + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
       }
@@ -55,13 +55,13 @@ struct PrecompileJavaScriptTest {
   }
   private jsObj: JsProxyObject = {
     test: (res: object) => {
-      console.info("ets toString:" + String(res));
+      console.info('ets toString:' + String(res));
     },
     toString: (str: string) => {
-      console.info("ets toString:" + String(str));
+      console.info('ets toString:' + String(str));
     },
     register: (res: object) => {
-      return "precompileJavaScript test"
+      return 'precompileJavaScript test';
     }
   }
 
@@ -69,7 +69,7 @@ struct PrecompileJavaScriptTest {
     Column() {
       Row() {
         Button("precompileJavaScriptTest click").key('precompileJavaScriptTestButton').onClick(async () => {
-          console.info("key==>" + this.str)
+          console.info('key==>' + this.str)
           switch (this.str) {
             case "testPrecompileJavaScript001": {
               let msg = "testPrecompileJavaScript001"
@@ -81,10 +81,10 @@ struct PrecompileJavaScriptTest {
                   }
                 ]
               }).then((res) => {
-                console.info(msg + " precompile result: " + res);
-                Utils.emitEvent(res, 10092)
+                console.info(msg + ' precompile result: ' + res);
+                Utils.emitEvent(res, 148410)
               }).catch((err: number) => {
-                console.error(msg + " precompile error: " + err);
+                console.error(msg + ' precompile error: ' + err);
               })
               break;
             }
@@ -100,13 +100,13 @@ struct PrecompileJavaScriptTest {
                     }
                   ]
                 }).then((res) => {
-                  console.info(msg + " precompile result: " + res);
+                  console.info(msg + ' precompile result: ' + res);
                 }).catch((err: number) => {
-                  console.error(msg + " precompile error: " + err);
+                  console.error(msg + ' precompile error: ' + err);
                 })
               } catch (error) {
                 console.error(`${msg} ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 10096)
+                Utils.emitEvent(error.code, 148420)
               }
               break;
             }
@@ -121,23 +121,23 @@ struct PrecompileJavaScriptTest {
                     }
                   ]
                 }).then((res) => {
-                  console.info(msg + " precompile result: " + res);
+                  console.info(msg + ' precompile result: ' + res);
                 }).catch((err: number) => {
-                  console.error(msg + " precompile error: " + err);
+                  console.error(msg + ' precompile error: ' + err);
                 })
               } catch (error) {
                 console.error(`${msg} ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 10097)
+                Utils.emitEvent(error.code, 148430)
               }
               break;
             }
             case "testPrecompileJavaScript011": {
               let msg = "testPrecompileJavaScript011"
               this.controller.precompileJavaScript('https://exmaple.com/example.js', 'hawe', null).then((res) => {
-                console.info(msg + " precompile result: " + res);
-                Utils.emitEvent(res, 10102)
+                console.info(msg + ' precompile result: ' + res);
+                Utils.emitEvent(res, 148440)
               }).catch((err: number) => {
-                console.error(msg + " precompile error: " + err);
+                console.error(msg + ' precompile error: ' + err);
               })
               break;
             }
@@ -154,7 +154,6 @@ struct PrecompileJavaScriptTest {
           methodList: ["test", "toString"],
           controller: this.controller
         })
-
     }
   }
 }

@@ -21,6 +21,7 @@ import processTest from './process/Process.test';
 import uriTest from './uri/Uri.test';
 import urlTest from './url/Url.test';
 import utilTest from './util/Util.test';
+import util2Test from './util/Util2.test';
 import timerTest from './timer/Timer.test';
 import jsonTest from './json/Json.test';
 import tresMapTest from './treemap/Treemap.test';
@@ -30,6 +31,7 @@ import hashMapTest from './hashmap/HashMap.test';
 import arkListTest from './arklist/ArkList.test';
 import arrayListTest from './arraylist/ArrayList.test';
 import xmlTest from './xml/Xml.test';
+import dynamicXmlTest from './xml/DynamicXml';
 import convertXmlTest from './convertxml/ConvertXml.test';
 import queueTest from './queue/Queue.test';
 import stackTest from './stack/Stack.test';
@@ -43,6 +45,7 @@ import streamTest from './stream/Stream.test';
 import specialChar from './specialchar/SpecialChar.test';
 import consoleTest from './console/Console.test';
 import LRUCacheTest from './LRUCache/LRUCache.test';
+import ActsUrlParameterTest from './url/UrlParameter.test'
 import emojiFastBufferTest from './fastbuffer/Emoji_FastBuffer.test.ets';
 import escapeFastBufferTest from './fastbuffer/Escape_FastBuffer.test.ets';
 import fastBuffer1Test from './fastbuffer/FastBuffer1.test.ets';
@@ -58,6 +61,7 @@ export default function testsuite() {
   uriTest();
   urlTest();
   utilTest();
+  util2Test();
   timerTest();
   jsonTest();
   tresMapTest();
@@ -67,6 +71,7 @@ export default function testsuite() {
   arkListTest()
   arrayListTest()
   xmlTest()
+  dynamicXmlTest()
   convertXmlTest()
   queueTest()
   stackTest()
@@ -86,4 +91,5 @@ export default function testsuite() {
   fastBuffer1Test();
   fastBuffer2Test();
   fastBuffer3Test();
+  ActsUrlParameterTest();
 }

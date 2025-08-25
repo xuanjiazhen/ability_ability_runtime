@@ -518,6 +518,89 @@ export default function ActsCommonEventManagerSupportTest() {
       console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_2900 END`)
     })
 
+    /*
+     * @tc.number    : SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3100
+     * @tc.name      : commonEventManager.Support
+     * @tc.desc      : bluetooth handsfree ag connection state change common event
+     */
+    it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3100', Level.LEVEL2, async  function () {
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3100 START`)
+      expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_HANDSFREE_AG_CONNECT_STATE_CHANGE)
+        .assertEqual('usual.event.bluetooth.handsfree.ag.CONNECT_STATE_CHANGE')
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3100 END`)
+    })
+
+    /*
+     * @tc.number    : SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3200
+     * @tc.name      : commonEventManager.Support
+     * @tc.desc      : bluetooth a2dp source connection state change common event
+     */
+    it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3200', Level.LEVEL2, async  function () {
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3200 START`)
+      expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSOURCE_CONNECT_STATE_CHANGE)
+        .assertEqual('usual.event.bluetooth.a2dpsource.CONNECT_STATE_CHANGE')
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3200 END`)
+    })
+
+    /*
+     * @tc.number    : SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3300
+     * @tc.name      : commonEventManager.Support
+     * @tc.desc      : bluetooth avrcp connection state change common event
+     */
+    it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3300', Level.LEVEL2, async  function () {
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3300 START`)
+      expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSOURCE_AVRCP_CONNECT_STATE_CHANGE)
+        .assertEqual('usual.event.bluetooth.a2dpsource.AVRCP_CONNECT_STATE_CHANGE')
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3300 END`)
+    })
+
+    /*
+     * @tc.number    : SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3400
+     * @tc.name      : commonEventManager.Support
+     * @tc.desc      : bluetooth codec change common event
+     */
+    it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3400', Level.LEVEL2, async  function () {
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3400 START`)
+      expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_A2DPSOURCE_CODEC_VALUE_CHANGE)
+        .assertEqual('usual.event.bluetooth.a2dpsource.CODEC_VALUE_CHANGE')
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3400 END`)
+    })
+
+    /*
+     * @tc.number    : SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3500
+     * @tc.name      : commonEventManager.Support
+     * @tc.desc      : bluetooth remote device acl state change common event
+     */
+    it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3500', Level.LEVEL2, async  function () {
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3500 START`)
+      expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_ACL_STATE_CHANGE)
+        .assertEqual('usual.event.bluetooth.remotedevice.ACL_STATE_CHANGE')
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3500 END`)
+    })
+
+    /*
+     * @tc.number    : SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3600
+     * @tc.name      : commonEventManager.Support
+     * @tc.desc      : bluetooth pair state change common event
+     */
+    it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3600', Level.LEVEL2, async  function () {
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3600 START`)
+      expect(commonEventManager.Support.COMMON_EVENT_BLUETOOTH_REMOTEDEVICE_PAIR_STATE_CHANGE)
+        .assertEqual('usual.event.bluetooth.remotedevice.PAIR_STATE_CHANGE')
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3600 END`)
+    })
+
+    /*
+     * @tc.number    : SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3000
+     * @tc.name      : commonEventManager.Support
+     * @tc.desc      : start/stop screen capture
+     */
+    it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3000', Level.LEVEL2, async  function () {
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3000 START`)
+      expect(commonEventManager.Support.COMMON_EVENT_SCREEN_SHARE).assertEqual('usual.event.SCREEN_SHARE')
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3000 END`)
+    })
+    
     console.info(`${TAG} SUB_NOTIFICATION_CES_SUPPORT_ENUM_TEST END`)
   })
 

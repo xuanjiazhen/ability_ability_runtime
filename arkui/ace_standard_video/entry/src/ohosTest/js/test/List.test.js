@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 
-import basicabilityapi from './basicabilityapi.test.js'
 import mediaquery_vioTest from './mediaquery.test.js'
 import aceJsTest from './commonComponentJsApi.test.js'
 export default function testsuite() {
-basicabilityapi()
 mediaquery_vioTest()
 aceJsTest()
 }

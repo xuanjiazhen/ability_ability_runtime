@@ -38,7 +38,6 @@ async function getComponentPromiseTest(done: Function, testName: string) {
       } else {
         img.getComponent(image.ComponentType.JPEG).then(() => {
           console.info(TAG, 'Succeeded in dequeuing the Image.');
-          expect(true).assertTrue();
           done();
         }).catch((error: BusinessError) => {
           console.error(TAG, `Failed to get the component.code ${error.code},message is ${error.message}`);
@@ -69,7 +68,6 @@ async function getComponentAbnormalPromiseTest(done: Function, testName: string,
       } else {
         img.getComponent(ComponentType).then(() => {
           console.info(TAG, 'Succeeded in dequeuing the Image.');
-          expect(true).assertTrue();
           done();
         }).catch((error: BusinessError) => {
           console.error(TAG, `Failed to get the component.code ${error.code},message is ${error.message}`);
@@ -106,7 +104,6 @@ async function getComponentCallbackTest(done: Function, testName: string) {
             done();
           } else {
             console.info(TAG, 'Succeeded in getting component.');
-            expect(true).assertTrue();
             done();
           }
         })
@@ -140,7 +137,6 @@ async function getComponentAbnormalCallbackTest(done: Function, testName: string
             done();
           } else {
             console.info(TAG, 'Succeeded in getting component.');
-            expect(true).assertTrue();
             done();
           }
         })

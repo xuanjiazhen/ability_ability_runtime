@@ -99,17 +99,72 @@ async function getVideoSurfaceId() {
   console.info(TAG + 'getVideoSurfaceID videoSurfaceId : ' + JSON.stringify(mVideoSurfaceId));
 }
 
-function createOutput() {
+async function createOutput() {
   console.info(TAG + 'Enter createOutput');
 
   cameraObj.getSupportedOutputCapability();
-  if (cameraObj.createVideoOutput(mVideoSurfaceId)) {
+
+  let previewProfiles = cameraObj.getPreviewProfiles();
+  console.info("previewProfiles is "+ JSON.stringify(previewProfiles));
+
+  let videoProfiles = cameraObj.getVideoProfiles();
+  console.info("videoProfiles is "+ JSON.stringify(videoProfiles));
+  let videoProfileIndex = 0;
+  let videoProfileHeigth = 1080;
+  let videoProfileWidth = 1920;
+  let previewProfileIndex = 0;
+  let previewProfileHeigth = 1080;
+  let previewProfileWidth = 1920;
+  let FrameRate = 30;
+  //View the videoProfile with an aspect ratio of 4:3
+  for (let i = 0; i < videoProfiles.length; i++) {
+    if (Math.abs((videoProfiles[i].width / videoProfiles[i].height) - (4 / 3)) < 0.1) {
+      videoProfileWidth = videoProfiles[i].width;
+      videoProfileHeigth = videoProfiles[i].height;
+      FrameRate = videoProfiles[i].min;
+      videoProfileIndex = i;
+      break;
+    }
+  }
+//View the previewprofile with an aspect ratio of 4:3
+  for (let i = 0; i < previewProfiles.length; i++) {
+    if (Math.abs((previewProfiles[i].width / previewProfiles[i].height) - (4 / 3)) < 0.1) {
+      previewProfileWidth = previewProfiles[i].width;
+      previewProfileHeigth = previewProfiles[i].height;
+      previewProfileIndex = i;
+      break;
+    }
+  }
+
+  videoConfig = {
+    audioSourceType : media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC,
+    videoSourceType : media.VideoSourceType.VIDEO_SOURCE_TYPE_SURFACE_ES,
+    profile : {
+      audioBitrate : 48000,
+      audioChannels : 2,
+      audioCodec : media.CodecMimeType.AUDIO_AAC,
+      audioSampleRate : 48000,
+      fileFormat : media.ContainerFormatType.CFT_MPEG_4,
+      videoBitrate : 512000,
+      videoCodec : media.CodecMimeType.VIDEO_AVC,
+      videoFrameWidth : videoProfileWidth,
+      videoFrameHeight : videoProfileHeigth,
+      videoFrameRate : FrameRate
+    },
+    url : 'fd://',
+    rotation : 0,
+  }
+
+  console.log("videoConfig is "+JSON.stringify(videoConfig));
+  console.log("previewProfileIndex is " + previewProfileIndex);
+  await getVideoSurfaceId();
+  if (cameraObj.createVideoOutputByIndex(mVideoSurfaceId, videoProfileIndex)) {
     console.info(TAG + "createVideoOutput FAILED");
     expect().assertFail();
   }
   console.info(TAG + 'Exit createVideoOutput');
 
-  if (cameraObj.createPreviewOutput()) {
+  if (cameraObj.createPreviewOutputByIndex(previewProfileIndex)) {
     console.info(TAG + "createPreviewOutput FAILED");
     expect().assertFail();
   }
@@ -323,7 +378,6 @@ export default function VideoMirrorTest() {
       createCaptureSession();
       beginConfig();
       await createCameraInput();
-      await getVideoSurfaceId();
       await createOutput();
       await startCameraSession();
       console.info('beforeEach case');

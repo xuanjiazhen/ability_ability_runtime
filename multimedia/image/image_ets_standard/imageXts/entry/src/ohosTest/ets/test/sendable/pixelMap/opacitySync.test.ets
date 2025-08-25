@@ -30,7 +30,6 @@ async function opacitySyncPromiseTest(done: Function, testName: string, opts: im
 
     if (sendablePixelMap != undefined) {
       sendablePixelMap.opacitySync(rate);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -49,7 +48,6 @@ async function opacitySyncAbnormalPromiseTest(done: Function, testName: string, 
 
     if (sendablePixelMap != undefined) {
       sendablePixelMap.opacitySync(rate);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

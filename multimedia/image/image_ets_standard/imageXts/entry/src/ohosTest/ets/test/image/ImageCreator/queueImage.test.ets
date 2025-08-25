@@ -36,7 +36,6 @@ async function queueImagePromiseTest(done: Function, testName: string, size: ima
       })
       await creator.queueImage(img).then(() => {
         console.info('Succeeded in queuing the Image.');
-        expect(true).assertTrue();
       }).catch((error: BusinessError) => {
         console.error(`Failed to queue the Image.code ${error.code},message is ${error.message}`);
         expect().assertFail();
@@ -70,7 +69,6 @@ async function queueImageCallbackTest(done: Function, testName: string, size: im
           expect().assertFail();
         } else {
           console.info('Succeeded in queuing the Image.');
-          expect(true).assertTrue();
         }
         done();
       })

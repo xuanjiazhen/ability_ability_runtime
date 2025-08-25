@@ -21,7 +21,7 @@ import router from '@ohos.router'
 import events_emitter from '@ohos.events.emitter';
 import webview from '@ohos.web.webview';
 import Utils from '../../test/Utils.test';
-import { waitForExist} from '../../test/WaitTest.test';
+import { waitForExist, waitForComponent } from '../../test/WaitTest.test';
 import { Driver, ON, MouseButton } from '@ohos.UiTest';
 const TAG = 'ContextMenu';
 
@@ -36,17 +36,22 @@ struct WebComponent {
   @State showMenu: boolean = false;
   @State emitKey: string = '';
   @State isReceive: number = -1;
-  @State str:string = ''
+  @State str:string = '';
+  @State isPageEnd: number = -1;
   aboutToAppear() {
 
   }
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 130700,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(130700);
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -136,20 +141,21 @@ struct WebComponent {
           .onClick(async () => {
             console.info("key==>" + this.str)
             await waitForExist(()=>this.isReceive, this.str, 0);
+            await waitForExist(()=>this.isPageEnd, this.str, 0);
+            this.isReceive = -1;
             switch (this.str) {
               case "emitWebviewUndoingRedo": {
                 try {
                   if(!canIUse('SystemCapability.UIDesign.HDSPattern.Standard')) {
                     console.log('pbbbnetment');
-                    Utils.emitEvent(true, 20250528)
+                    Utils.emitEvent(true, 130710)
                   } else {
                     console.log('pbbbnetment333');
                     let driver: Driver = Driver.create();
                     let webRect = Utils.getComponentRect('webviewundoingredokey');
-                    let RedoButton = await driver.waitForComponent(ON.id("webviewundoingredokey"),10000);
+                    let RedoButton = await waitForComponent("webviewundoingredokey", 10000);
                     await RedoButton.click();
                     await driver.triggerKey(2001);
-                    await Utils.sleep(2000);
                     let softKeyBoard = await driver.waitForComponent(ON.type('Canvas'),10000);
                     if (softKeyBoard != null) {
                       await driver.pressBack()
@@ -164,7 +170,7 @@ struct WebComponent {
                         console.info(`emitScrollableTwo runJavaScript error: ` + JSON.stringify(error))
                         return;
                       } else {
-                        Utils.emitEvent(true, 20250528)
+                        Utils.emitEvent(true, 130710)
                       }
                     })
                   }
@@ -173,21 +179,20 @@ struct WebComponent {
                 }
                 break;
               }
-
               case "emitWebviewUndoingRedo002": {
                 try {
                   if(!canIUse('SystemCapability.UIDesign.HDSPattern.Standard')) {
                     console.log('pbbbnetment0000');
-                    Utils.emitEvent(true, 20250529)
+                    Utils.emitEvent(true, 130720)
                   } else {
                     console.log('pbbbnetment444');
                     this.controller.loadUrl("resource://rawfile/index.html");
+                    await waitForExist(()=>this.isPageEnd, this.str, 0);
                     let driver: Driver = Driver.create();
                     let webRect = Utils.getComponentRect('webviewundoingredokey');
-                    let RedoButton = await driver.waitForComponent(ON.id("webviewundoingredokey"),10000);
+                    let RedoButton = await waitForComponent("webviewundoingredokey", 10000);
                     await RedoButton.click();
                     await driver.triggerKey(2001);
-                    await Utils.sleep(2000);
                     let softKeyBoard = await driver.waitForComponent(ON.type('Canvas'),10000);
                     if (softKeyBoard != null) {
                       await driver.pressBack()
@@ -197,7 +202,6 @@ struct WebComponent {
                     await driver.mouseClick({ x: downX, y: downY }, MouseButton.MOUSE_BUTTON_RIGHT);
                     let buttonThree = await driver.waitForComponent(ON.text('撤销'),10000);
                     await buttonThree.click();
-                    await Utils.sleep(1000);
                     await driver.mouseClick({ x: downX, y: downY }, MouseButton.MOUSE_BUTTON_RIGHT);
                     let buttonFour = await driver.waitForComponent(ON.text('重做'),10000);
                     await buttonFour.click();
@@ -206,7 +210,7 @@ struct WebComponent {
                         console.info(`emitScrollableTwo runJavaScript error: ` + JSON.stringify(error))
                         return;
                       } else {
-                        Utils.emitEvent(true, 20250529)
+                        Utils.emitEvent(true, 130720)
                         console.log("emitScrollableTwo runJavaScript.result: "  + result);
                       }
                     })
@@ -253,6 +257,10 @@ struct WebComponent {
               }
             }
           })
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
+        })
     }
   }
 }

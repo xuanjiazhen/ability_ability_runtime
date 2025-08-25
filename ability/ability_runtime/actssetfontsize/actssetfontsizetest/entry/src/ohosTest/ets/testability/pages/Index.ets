@@ -29,18 +29,15 @@ struct Index {
     Row() {
       Column() {
         Text(this.message)
-          .fontSize(50)
+          .fontSize('1%')
           .fontWeight(FontWeight.Bold)
         Button() {
           Text('next page')
-            .fontSize(20)
+            .fontSize('1%')
             .fontWeight(FontWeight.Bold)
         }
         .size({ width: '1%', height: '1%' })
         .type(ButtonType.Capsule)
-        .margin({
-          top: 20
-        })
         .backgroundColor('#0D9FFB')
         .width('35%')
         .height('5%')

@@ -19,13 +19,7 @@
     "type": "feature",
     "description": "$string:phone_entry_dsc",
     "mainElement": "MainAbility",
-    "deviceTypes": [
-      "wearable",
-      "tablet",
-      "default",
-      "phone",
-      "2in1"
-    ],
+    "deviceTypes": [],
     "deliveryWithInstall": true,
     "installationFree": false,
     "pages": "$profile:test_pages",
@@ -54,13 +48,31 @@
     ],
     "requestPermissions": [
       {
-        "name": "ohos.permission.SYSTEM_FLOAT_WINDOW"
+        "name": "ohos.permission.SYSTEM_FLOAT_WINDOW",
+        "reason": "$string:ceshi",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ]
+        }
       },
       {
-        "name": "ohos.permission.CAPTURE_SCREEN"
+        "name": "ohos.permission.CAPTURE_SCREEN",
+        "reason": "$string:ceshi",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ]
+        }
       },
       {
-        "name": "ohos.permission.PRIVACY_WINDOW"
+        "name": "ohos.permission.PRIVACY_WINDOW",
+        "reason": "$string:ceshi",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ]
+        }
       }
     ]
   }

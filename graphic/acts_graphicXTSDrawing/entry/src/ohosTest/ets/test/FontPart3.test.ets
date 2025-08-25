@@ -718,7 +718,7 @@ export default function fontPart3Test() {
         expect().assertFail();
       } catch (e) {
         console.info(msg + `measureSingleCharacterWithFeatures 1 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
-        expect(e.code).assertEqual(401);
+        expect(e.code).assertEqual(25900001);
       }
       try {
         font.measureSingleCharacterWithFeatures("aa", fontFeatures);
@@ -726,7 +726,7 @@ export default function fontPart3Test() {
         expect().assertFail();
       } catch (e) {
         console.info(msg + `measureSingleCharacterWithFeatures 2 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
-        expect(e.code).assertEqual(401);
+        expect(e.code).assertEqual(25900001);
       }
     })
   });

@@ -29,7 +29,6 @@ async function scalePromiseTest(done: Function, testName: string, opts: image.In
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.scale(scaleX, scaleY);
-      expect(true).assertTrue();
       done();
     } else {
       expect().assertFail();
@@ -50,7 +49,6 @@ async function scaleAbnormalPromiseTest(done: Function, testName: string, opts: 
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.scale(scaleX, scaleY);
-      expect(true).assertTrue();
       done();
     } else {
       expect().assertFail();

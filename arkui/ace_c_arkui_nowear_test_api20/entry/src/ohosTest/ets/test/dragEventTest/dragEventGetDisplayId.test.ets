@@ -53,5 +53,33 @@ export default function dragEventGetDisplayIdTest() {
     console.info('dragEventGetDisplayId_0001 END');
     done();
   });
+
+   /*
+   * @tc.number     : SUB_ARKUI_CAPI_OH_ARKUI_DRAGEVENT_GETTOUCHPOINTGLOBALDISPLAY_0100
+   * @tc.name       : dragEventTouchPointDisplayXY0001
+   * @tc.desc       : testing dragEvent getGlobalDisplay
+   * @tc.size       : MediumTest
+   * @tc.type       : Function
+   * @tc.level      : Level 1
+   */
+
+  it('dragEventTouchPointDisplayXY0001', Level.LEVEL1, async (done: Function) => {
+  console.info('dragEventGetDisplayId0001 START');
+  let PAGE_TAG = 'dragEventGetGlobalDisplay';
+  await Utils.pushPage(`dragEvent/dragEventGetGlobalDisplay`)
+  await Utils.sleep(2000)
+  let driver = await Driver.create();
+  let grid = await driver.findComponent(ON.id('image'));
+  let button = await driver.findComponent(ON.id('dragArea'));
+  await grid.dragTo(button);
+  await Utils.sleep(1000);
+  let strJson = getInspectorByKey('image');
+  let obj: ESObject = JSON.parse(strJson);
+  console.info("[dragEventGetDisplayId_0001]:" + JSON.stringify(obj.$attrs.backgroundColor));
+  expect(obj.$attrs.backgroundColor).assertEqual('#FF00FF00');
+  await Utils.sleep(1000)
+  console.info('dragEventGetDisplayId_0001 END');
+  done();
+});
   })
 }

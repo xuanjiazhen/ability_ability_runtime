@@ -914,7 +914,7 @@ function testSetAutoUnlockAfterReboot() {
       expect(rel).assertTrue();
     } catch (error) {
       errorCode = error.code;
-      expect(error.code == 801 || false).assertTrue();
+      expect(error.code == 801).assertTrue();
     } finally {
       if (errorCode == 0){
         systemManager.setAutoUnlockAfterReboot(SELFWANT, false);
@@ -939,7 +939,7 @@ function testSetAutoUnlockAfterReboot() {
       let rel: boolean = systemManager.getAutoUnlockAfterReboot(SELFWANT)
       expect(rel).assertFalse();
     } catch (error) {
-      expect(error.code == 801 || false).assertTrue();
+      expect(error.code == 801).assertTrue();
     } finally {
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }

@@ -55,6 +55,7 @@ struct Tabs_barWidHei {
         .fontWeight(this.currentIndex === index ? 500 : 400)
         .lineHeight(40)
     }.width('100%').height('100%').key('Tabs_barWidHei_' + name)
+     .backgroundColor(Color.Pink)
   }
 
   build() {

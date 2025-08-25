@@ -35,7 +35,6 @@ async function getAssetsCallbackTest(done: Function, fetchOps: photoAccessHelper
         if (albumFetchResult !== undefined) {
           const albumCount = await albumFetchResult.getCount()
           console.info(TAG, 'album getAssets successfully, getCount: ', albumCount);
-          expect(true).assertTrue();
         } else {
           console.error(TAG, `album getAssets failed with error: ${err.code}, ${err.message}`);
           expect().assertFail();
@@ -65,7 +64,6 @@ async function getAssetsPromiseTest(done: Function, fetchOps: photoAccessHelper.
       let album: photoAccessHelper.Album = await albumList.getFirstObject();
       album.getAssets(fetchOps).then((albumFetchResult) => {
         console.info('album getAssets successfully, getCount: ' + albumFetchResult.getCount());
-        expect(true).assertTrue();
       }).catch((err: BusinessError) => {
         console.error(`album getAssets failed with error: ${err.code}, ${err.message}`);
         expect().assertFail();

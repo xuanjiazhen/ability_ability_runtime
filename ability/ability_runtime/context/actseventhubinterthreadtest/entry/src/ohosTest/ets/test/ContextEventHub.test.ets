@@ -31,6 +31,7 @@ export default function ContextEventHubTest() {
     let event6: string = 'com.example.eventhubinterthreadtest.event6';
     let event7: string = 'com.example.eventhubinterthreadtest.event7';
     let event8: string = 'com.example.eventhubinterthreadtest.event8';
+    let delay: number = 500;
   
     /*
      * @tc.number: SUB_Ability_AbilityRuntime_setEventHubMultithreadingEnabled_0100
@@ -186,7 +187,7 @@ export default function ContextEventHubTest() {
         worker1.postMessageWithSharedSendable(sendData);
         setTimeout(() => {
           context?.eventHub.emit(event1, emitData1);
-        }, 200);
+        }, delay);
         hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} end`);
       }
     })
@@ -242,7 +243,7 @@ export default function ContextEventHubTest() {
         worker1.postMessageWithSharedSendable(sendData);
         setTimeout(() => {
           context?.eventHub.emit(event2, emitData2);
-        }, 200);
+        }, delay);
       }
     })
     
@@ -326,7 +327,7 @@ export default function ContextEventHubTest() {
           hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} event3 triggered`);
           context?.eventHub.emit(event4, emitData4);
           hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} event4 triggered`);
-        }, 200);
+        }, delay);
       }
     })
 
@@ -370,7 +371,7 @@ export default function ContextEventHubTest() {
           worker2.postMessageWithSharedSendable(sendData);
           sendData = new SendableObject(sendableContext, contextName, event5, "emit", emitData1);
           worker2.postMessageWithSharedSendable(sendData);
-        }, 200);
+        }, delay);
       }
     })
     
@@ -431,7 +432,7 @@ export default function ContextEventHubTest() {
           worker2.postMessageWithSharedSendable(sendData);
           sendData = new SendableObject(sendableContext, contextName, event6, "emit", emitData2);
           worker2.postMessageWithSharedSendable(sendData);
-        }, 200);
+        }, delay);
       }
     })
     
@@ -520,7 +521,7 @@ export default function ContextEventHubTest() {
           worker2.postMessageWithSharedSendable(sendData);
           sendData = new SendableObject(sendableContext, contextName, event8, "emit", emitData4);
           worker2.postMessageWithSharedSendable(sendData);
-        }, 200);
+        }, delay);
       }
     })
   

@@ -46,6 +46,10 @@ set(src_sec
     ${OPENHARMONY_ROOT_PATH}/third_party/bounds_checking_function/src/wscanf_s.c
 )
 
+if(DEFINED PACKAGE_FIND_FILE)
+    include(${PACKAGE_FIND_FILE})
+endif()
+
 include_directories(${OPENHARMONY_ROOT_PATH}/third_party/bounds_checking_function/include
                     ${OPENHARMONY_ROOT_PATH}/third_party/bounds_checking_function/src
                     ${OPENHARMONY_ROOT_PATH}/third_party/node/src

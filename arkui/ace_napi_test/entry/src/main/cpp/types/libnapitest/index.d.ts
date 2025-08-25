@@ -759,4 +759,3 @@ export const NapiWrapEnhanceTest9: () => boolean;
 export const NapiWrapEnhanceTest10: () => boolean;
 export const NapiWrapEnhanceTest11: () => boolean;
 export const NapiWrapEnhanceTest12: () => boolean;
-

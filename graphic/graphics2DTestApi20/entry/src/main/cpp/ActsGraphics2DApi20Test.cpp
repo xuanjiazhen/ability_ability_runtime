@@ -13,20 +13,36 @@
  * limitations under the License.
  */
 
-
-#include "ActsGraphics2DApi20Test.h"
+#include "BrushPointRecordTest.h"
+#include "RectFontTest.h"
+#include "CanvasPenTest.h"
+#include "EffectTest.h"
+#include "BufferTextTest.h"
+#include "ColorSpaceNameTest.h"
+#include "NativeBufferTest.h"
+#include "ExternalWindowTest.h"
+#include "ErrorCodeTest.h"
+#include "VSyncFenceTest.h"
+#include "EffectShareTest.h"
+#include <vector>
 
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
-    napi_property_descriptor desc[] = {
-        {"drawingBrushGetAlphaFloatSuccess", nullptr, OH_Drawing_BrushGetAlphaFloatSuccess,
-            nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"drawingBrushGetAlphaFloatFail", nullptr, OH_Drawing_BrushGetAlphaFloatFail,
-            nullptr, nullptr, nullptr, napi_default, nullptr},
-    };
-
-    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
+    std::vector<napi_property_descriptor> descData;
+    addCanvasPenTest(descData);
+    addRectTest(descData);
+    AddFontTest(descData);
+    addBrushPointRecordTest(descData);
+    addEffectTest(descData);
+    addBufferTextTest(descData);
+    addNativeBufferTest(descData);
+    addColorSpaceNameTest(descData);
+    addExternalWindowTest(descData);
+    addVSyncFenceTest(descData);
+    addErrorCodeTest(descData);
+    addEffectShareTest(descData);
+    napi_define_properties(env, exports, descData.size(), descData.data());
     return exports;
 }
 

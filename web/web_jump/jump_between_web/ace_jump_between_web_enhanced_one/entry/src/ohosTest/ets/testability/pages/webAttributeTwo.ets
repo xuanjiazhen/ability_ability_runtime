@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 import events_emitter from '@ohos.events.emitter';
 import Utils from '../../test/Utils';
 import { JsProxyObject } from '../../test/Interfaces';
+import { waitForExist } from '../../test/WaitTest.test';
 import webView from '@ohos.web.webview';
 
 @CustomDialog
@@ -31,7 +32,7 @@ build() {
           if (this.controller) {
             this.controller.close()
           }
-          Utils.emitEvent(true, 300750)
+          Utils.emitEvent(true, 133960);
         })
       }
   }
@@ -82,17 +83,20 @@ struct webAttributeTwo {
   @State testAllowWindowOpenMethod: boolean = true;
   @State OnWindowNewCallBack: boolean = false
   @State OnWindowExtCallBack: boolean = false
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
+  @State isNewPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 133950,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(133950)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -101,6 +105,7 @@ struct webAttributeTwo {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -110,6 +115,9 @@ struct webAttributeTwo {
     Column() {
       Row() {
         Button("WebAttributeTwo click").key('WebAttributeButton').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str)
           switch (this.str) {
 
@@ -120,12 +128,14 @@ struct webAttributeTwo {
                 this.javaScriptAccess = true;
                 this.testAllowWindowOpenMethod = true;
                 this.testMultiWindowAccess = true;
+                this.isPageEnd = -1;
                 this.controller.loadUrl({ url: "resource://rawfile/onWindowExit.html" });
-                await Utils.sleep(2000)
-                this.controller.runJavaScript({ script: "OpenWindowAllTwo()", callback: (res) => {
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.isNewPageEnd = -1;
+                this.controller.runJavaScript({ script: "openWindowAllTwo()", callback: (res) => {
                   console.log('OpenWindowAll: ' + JSON.stringify(res));
                 } })
-                await Utils.sleep(2000)
+                await waitForExist(() => this.isNewPageEnd, this.str, 0);
                 
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -171,6 +181,11 @@ struct webAttributeTwo {
           console.log('bxb6');
           event.handler.setWebController(popController)
           console.log('bxb7');
+          this.isNewPageEnd = 0;
+        })
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
         })
     }
   }

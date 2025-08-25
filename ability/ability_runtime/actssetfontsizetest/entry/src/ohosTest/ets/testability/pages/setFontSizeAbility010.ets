@@ -32,13 +32,13 @@ struct setFontSizeAbility010 {
       Column() {
         Button() {
           Text('show font')
-            .fontSize(20)
+            .fontSize('1%')
             .fontWeight(FontWeight.Bold)
         }
         .id('show')
         .type(ButtonType.Capsule)
         .margin({
-          top: 20
+          top: '1%'
         })
         .backgroundColor('#0D9FFB')
         .width('1%')
@@ -60,16 +60,16 @@ struct setFontSizeAbility010 {
           } catch(error) {
             console.log(`${caseName} zhuhan err ` + error.code);
           }
-        })
+        }).fontSize('1%')
         Button() {
           Text('set font 9999999')
-            .fontSize(20)
+            .fontSize('2%')
             .fontWeight(FontWeight.Bold)
         }
         .id('set')
         .type(ButtonType.Capsule)
         .margin({
-          top: 20
+          top: '1%'
         })
         .backgroundColor('#0D9FFB')
         .width('1%')
@@ -84,7 +84,7 @@ struct setFontSizeAbility010 {
           }
         })
         Text(this.message)
-          .fontSize(50)
+          .fontSize('2%')
           .fontWeight(FontWeight.Bold)
       }
       .width('100%')

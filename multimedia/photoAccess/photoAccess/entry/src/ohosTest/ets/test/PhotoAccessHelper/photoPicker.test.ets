@@ -60,7 +60,6 @@ export default function photoPickerTest() {
           console.info(`${testNum}::select err: ${JSON.stringify(err)}`);
           done();
         })
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.info(`${testNum}::select error: ${JSON.stringify(error)}`);
@@ -83,7 +82,6 @@ export default function photoPickerTest() {
           console.info(`${testNum}::expectIsSelectOriginal: ${isSelectOriginal}, actual: ${result.isOriginalPhoto}`);
           done();
         });
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.info(`${testNum}::select error: ${JSON.stringify(error)}`);
@@ -103,7 +101,6 @@ export default function photoPickerTest() {
           console.info(`${testNum}::selectWithOption err: ${JSON.stringify(err)}`);
           done();
         })
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.info(`${testNum}::selectWithOption error: ${JSON.stringify(error)}`);
@@ -125,7 +122,6 @@ export default function photoPickerTest() {
           console.info(`${testNum}::expectSelectNum: ${expectSelectNum}, actual: ${result.photoUris.length}`);
           done();
         });
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.info(`${testNum}::selectWithOption error: ${JSON.stringify(error)}`);

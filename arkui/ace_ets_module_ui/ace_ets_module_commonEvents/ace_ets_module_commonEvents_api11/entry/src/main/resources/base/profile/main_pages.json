@@ -70,6 +70,7 @@
         "MainAbility/pages/TapGesture/priorityGesture",
         "MainAbility/pages/TapGesture/parallelGesture",
         "MainAbility/pages/motionPath",
-        "MainAbility/pages/DragController/dragAdaptation"
+        "MainAbility/pages/DragController/dragAdaptation",
+        "MainAbility/pages/componentUtils/Utils"
     ]
 }

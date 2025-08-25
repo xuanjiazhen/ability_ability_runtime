@@ -32,7 +32,8 @@ export default function abilityTest() {
     })
     beforeEach(() => {
     })
-    afterEach(() => {
+    afterEach(async () => {
+      await sleep(3000)
     })
     afterAll(() => {
     })
@@ -73,6 +74,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context1.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -138,6 +140,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('0');
+                globalThis.context2.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -161,6 +164,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
@@ -204,6 +208,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('2');
+                globalThis.context3.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -228,6 +233,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
@@ -271,6 +277,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('9999999');
+                globalThis.context4.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -295,6 +302,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
         await sleep(4000);
@@ -339,6 +347,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context5.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -403,6 +412,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context6.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -468,6 +478,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context7.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -534,6 +545,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('0');
+                globalThis.context8.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -557,6 +569,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
@@ -600,6 +613,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('2');
+                globalThis.context9.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -623,6 +637,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
@@ -666,6 +681,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('9999999');
+                globalThis.context10.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -689,6 +705,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
@@ -732,6 +749,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context11.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -796,6 +814,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context12.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);

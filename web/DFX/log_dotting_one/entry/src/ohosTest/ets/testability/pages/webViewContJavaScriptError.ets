@@ -14,17 +14,15 @@
  */
 
 import events_emitter from '@ohos.events.emitter';
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
-import { Hypium, TestType } from '@ohos/hypium';
-import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
+
+const EVENT_ID_SET_EMIT_KEY = 111530;
 
 interface objectCss {
   code: number;
   message: string;
 }
-
 
 class testObj {
   constructor() {
@@ -43,13 +41,14 @@ class testObj {
     return "no";
   }
 }
+
 @Entry
 @Component
 struct webViewContJavaScriptError {
   controller: web_webview.WebviewController = new web_webview.WebviewController();
   @State testObjtest: testObj = new testObj();
   controllerTwo: web_webview.WebviewController = new web_webview.WebviewController();
-  @State str: string = "emitRegisterJavaScriptProxyInitErr";
+  @State str: string = "";
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
   @State javaScriptAccess: boolean = true;
@@ -62,18 +61,19 @@ struct webViewContJavaScriptError {
   @State errorMsg: string = 'failed';
   @State webResult: string = '';
   @State name: string = 'UnExistObj';
-
-
-
-
-
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -82,6 +82,7 @@ struct webViewContJavaScriptError {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 1;
       }
     }
   }
@@ -89,8 +90,11 @@ struct webViewContJavaScriptError {
   build() {
     Column() {
       Row() {
-        Button("javaScriptErrorTest").key('webViewContJavaScriptError').onClick(() => {
+        Button("javaScriptErrorTest").key('webViewContJavaScriptError').onClick(async () => {
+          await Utils.waitForExist(()=>this.isPageEnd, 'webViewContJavaScriptErrorIsPageEnd', 1, 1000);
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContJavaScriptErrorIsReceive', 1, 1000);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
             case "emitRegisterJavaScriptProxyInitErr": {
               try {
@@ -101,8 +105,8 @@ struct webViewContJavaScriptError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 650)
-              Utils.emitEvent(this.errorMsg, 651)
+              Utils.emitEvent(this.errorCode, 111540)
+              Utils.emitEvent(this.errorMsg, 111550)
               break;
             }
             case "emitRunJavaScriptCallbackInitErr": {
@@ -126,8 +130,8 @@ struct webViewContJavaScriptError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 652)
-              Utils.emitEvent(this.errorMsg, 653)
+              Utils.emitEvent(this.errorCode, 111560)
+              Utils.emitEvent(this.errorMsg, 111570)
               break;
             }
             case "emitRunJavaScriptPromiseInitErr": {
@@ -146,8 +150,8 @@ struct webViewContJavaScriptError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 654)
-              Utils.emitEvent(this.errorMsg, 655)
+              Utils.emitEvent(this.errorCode, 111580)
+              Utils.emitEvent(this.errorMsg, 111590)
               break;
             }
             case "emitRunJavaScriptExtCallbackInitErr": {
@@ -170,8 +174,8 @@ struct webViewContJavaScriptError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 656)
-              Utils.emitEvent(this.errorMsg, 657)
+              Utils.emitEvent(this.errorCode, 111600)
+              Utils.emitEvent(this.errorMsg, 111610)
               break;
             }
             case "emitRunJavaScriptExtPromiseInitErr": {
@@ -190,8 +194,8 @@ struct webViewContJavaScriptError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 658)
-              Utils.emitEvent(this.errorMsg, 659)
+              Utils.emitEvent(this.errorCode, 111620)
+              Utils.emitEvent(this.errorMsg, 111630)
               break;
             }
             case "emitDeleteJavaScriptRegisterInitErr": {
@@ -204,8 +208,8 @@ struct webViewContJavaScriptError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 660)
-              Utils.emitEvent(this.errorMsg, 661)
+              Utils.emitEvent(this.errorCode, 111640)
+              Utils.emitEvent(this.errorMsg, 111650)
               break;
             }
             case "emitDeleteJavaScriptRegisterNameErr": {
@@ -220,8 +224,8 @@ struct webViewContJavaScriptError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 662)
-              Utils.emitEvent(this.errorMsg, 663)
+              Utils.emitEvent(this.errorCode, 111660)
+              Utils.emitEvent(this.errorMsg, 111670)
               break;
             }
           }
@@ -236,6 +240,10 @@ struct webViewContJavaScriptError {
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
+        .onPageEnd((event) => {
+          console.log('onPageEnd url:' + event.url);
+          this.isPageEnd = 1;
+        })
     }
   }
 }

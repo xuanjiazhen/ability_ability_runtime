@@ -40,7 +40,7 @@ export default function napiBufferTest() {
 
     /**
     * @tc.number    SUB_ACE_BASIC_ETS_NAPI_0001
-    * @tc.name      napiBufferTest001
+    * @tc.name      napiBufferTest002
     * @tc.desc      aceNapiEtsTest
     */
     it('napiBufferTest002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {

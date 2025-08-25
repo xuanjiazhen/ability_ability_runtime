@@ -1092,7 +1092,6 @@ export default function graphicTextClass() {
       let paragraph: text.Paragraph = buildParagraph();
       await paragraph.layout(100).then((data) => {
         console.log(msg + `layout success !  ${JSON.stringify(data)}`);
-        expect(true).assertTrue();
       }).catch((error: BusinessError) => {
         console.log(msg + `layout failed ! error: ${JSON.stringify(error, ['code', 'message'])}`);
         expect(false).assertTrue();
@@ -1176,7 +1175,6 @@ export default function graphicTextClass() {
       let paragraph: text.Paragraph = buildParagraph();
       await paragraph.layout(110.05).then((data) => {
         console.log(msg + `layout success !  ${JSON.stringify(data)}`);
-        expect(true).assertTrue();
       }).catch((error: BusinessError) => {
         console.log(msg + `layout failed ! error: ${JSON.stringify(error, ['code', 'message'])}`);
         expect(false).assertTrue();
@@ -1197,7 +1195,6 @@ export default function graphicTextClass() {
       let paragraph: text.Paragraph = buildParagraph();
       await paragraph.layout(Number.MAX_VALUE).then((data) => {
         console.log(msg + `layout success !  ${JSON.stringify(data)}`);
-        expect(true).assertTrue();
       }).catch((error: BusinessError) => {
         console.log(msg + `layout failed ! error: ${JSON.stringify(error, ['code', 'message'])}`);
         expect(false).assertTrue();
@@ -1218,7 +1215,6 @@ export default function graphicTextClass() {
       let paragraph: text.Paragraph = buildParagraph();
       await paragraph.layout(Number.MIN_VALUE).then((data) => {
         console.log(msg + `layout success !  ${JSON.stringify(data)}`);
-        expect(true).assertTrue();
       }).catch((error: BusinessError) => {
         console.log(msg + `layout failed ! error: ${JSON.stringify(error, ['code', 'message'])}`);
         expect(false).assertTrue();
@@ -1239,7 +1235,6 @@ export default function graphicTextClass() {
       let paragraph: text.Paragraph = buildParagraph();
       await paragraph.layout(Number.MAX_SAFE_INTEGER).then((data) => {
         console.log(msg + `layout success !  ${JSON.stringify(data)}`);
-        expect(true).assertTrue();
       }).catch((error: BusinessError) => {
         console.log(msg + `layout failed ! error: ${JSON.stringify(error, ['code', 'message'])}`);
         expect(false).assertTrue();

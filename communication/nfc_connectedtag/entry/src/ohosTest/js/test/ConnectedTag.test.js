@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,7 +49,7 @@ export default function ConnectedTagTest() {
          * @tc.type Function
          * @tc.level Level 0
          */
-        it('SUB_Communication_NFC_nfcConnectedTag_js_0100', Level.LEVEL0, function ()  {
+        it('SUB_Communication_NFC_nfcConnectedTag_js_0100', Level.LEVEL0, function (done)  {
             var isAccessToken = canIUse("SystemCapability.Communication.ConnectedTag");
             console.info("testSysCaps01 test.syscap.param.001 : " + isAccessToken);
             if (!isAccessToken) {
@@ -134,7 +134,7 @@ export default function ConnectedTagTest() {
                 expect(isAccessToken).assertFalse()
                 done();
             } else {
-                let rawData="010203"
+                let rawData="010203";
                 await connectedTag.writeNdefTag(rawData).then(result => {
                     console.info("[NFC_test] ConnectedTag4 writeNdefTag result: " + result );
                     expect(true).assertTrue();

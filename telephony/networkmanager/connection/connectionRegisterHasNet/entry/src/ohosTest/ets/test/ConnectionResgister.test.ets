@@ -40,20 +40,16 @@ let netConnOnEvent6 =async  (caseName: string,netConn: connection.NetConnection)
     ListenTimes+=10;
     console.info(caseName + " ===on netCapabilitiesChange " + JSON.stringify(value));
   });
-  netConn.on('netConnectionPropertiesChange', (value) => {
-    ListenTimes+=100;
-    console.info(caseName +" ===on netConnectionPropertiesChange" + JSON.stringify(value));
-  });
   netConn.on('netLost', (value) => {
-    ListenTimes+=1000;
+    ListenTimes+=100;
     console.info(caseName +" ===on netLost" + JSON.stringify(value));
   });
   netConn.on('netUnavailable', (value) => {
-    ListenTimes+=10000;
+    ListenTimes+=1000;
     console.info(caseName +" ===on netUnavailable " + JSON.stringify(value));
   });
   netConn.on('netBlockStatusChange', (value) => {
-    ListenTimes+=100000;
+    ListenTimes+=10000;
     console.info(caseName +" ===on netBlockStatusChange " + JSON.stringify(value));
   });
   console.info(caseName + ": ==  Subscribing to Events end  === ")
@@ -68,12 +64,25 @@ let netConnOnEvent4 =async  (caseName: string,netConn: connection.NetConnection)
     ListenTimes+=10;
     console.info(caseName + " ===on netCapabilitiesChange " + JSON.stringify(value));
   });
-  netConn.on('netConnectionPropertiesChange', (value) => {
+  netConn.on('netLost', (value) => {
     ListenTimes+=100;
+    console.info(caseName +" ===on netLost" + JSON.stringify(value));
+  });
+  console.info(caseName + ": ==  Subscribing to Events end  === ");;
+}
+
+let netConnOnEvent3 =async  (caseName: string,netConn: connection.NetConnection) =>{
+  console.info(caseName + ": ==  Subscribing to Events start  === ")
+  netConn.on('netAvailable', (value) => {
+    ListenTimes+=1;
+    console.info(caseName+ " ===on netAvailable " + JSON.stringify(value));
+  });
+  netConn.on('netConnectionPropertiesChange', (value) => {
+    ListenTimes+=10;
     console.info(caseName +" ===on netConnectionPropertiesChange" + JSON.stringify(value));
   });
   netConn.on('netLost', (value) => {
-    ListenTimes+=1000;
+    ListenTimes+=100;
     console.info(caseName +" ===on netLost" + JSON.stringify(value));
   });
   console.info(caseName + ": ==  Subscribing to Events end  === ");;
@@ -142,7 +151,7 @@ export default function ConnectionRegisterTest() {
             } else {
               console.info(caseName + " unregister success ");
               console.info(caseName + " ListenTimes is :" +ListenTimes);
-              ExpectTrue(caseName, ListenTimes == 111);
+              ExpectTrue(caseName, ListenTimes == 11);
             }
             console.info(`${caseName}---End`);
             done();
@@ -194,7 +203,7 @@ export default function ConnectionRegisterTest() {
             } else {
               console.info(caseName + " unregister success ");
               console.info(caseName + " ListenTimes is :" +ListenTimes);
-              ExpectTrue(caseName, ListenTimes == 111);
+              ExpectTrue(caseName, ListenTimes == 11);
             }
             console.info(`${caseName}---End`);
             done();
@@ -1166,7 +1175,7 @@ export default function ConnectionRegisterTest() {
             } else {
               console.info(caseName + " unregister success ");
               console.info(caseName + " ListenTimes is :" +ListenTimes);
-              ExpectTrue(caseName, ListenTimes == 111);
+              ExpectTrue(caseName, ListenTimes == 11);
             }
             console.info(`${caseName}---End`);
             done();
@@ -1234,5 +1243,150 @@ export default function ConnectionRegisterTest() {
       }
       });
 
-      })
+    /**
+     * @tc.number SUB_NetworkManager_Register_Async_2500
+     * @tc.name testNetworkManagerRegisterAsync2500
+     * @tc.desc activate the default network, and see if the callback information is generated
+     * @tc.level Level0
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it('testNetworkManagerRegisterAsync2500', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = 'testNetworkManagerRegisterAsync2500';
+      console.info(`${caseName}---Start`);
+      try {
+        let netConn = connection.createNetConnection();
+        console.info(caseName+ " register start");
+        netConn.register(async (error) => {
+          if (error) {
+            console.info(caseName + " register fail: " + JSON.stringify(error));
+            ExpectFail(caseName);
+            console.info(`${caseName}---End`);
+            done();
+          }else{
+            console.info(caseName+ " register success");
+          }
+        });
+        await netConnOnEvent3(caseName, netConn);
+        await sleep(500);
+        console.info(caseName+ " unregister start");
+        netConn.unregister(async (error) => {
+          if (error) {
+            console.info(caseName + "unregister fail: " + JSON.stringify(error));
+            ExpectFail(caseName);
+          } else {
+            console.info(caseName + " unregister success ");
+            console.info(caseName + " ListenTimes is :" +ListenTimes);
+            ExpectTrue(caseName, ListenTimes == 11);
+          }
+          console.info(`${caseName}---End`);
+          done();
+        });
+      } catch (err) {
+        console.info(`${caseName} catch err is `, JSON.stringify(err));
+        ExpectFail(caseName);
+        console.info(`${caseName} --test end`);
+        done();
+      }
+    });
+    
+    /**
+     * @tc.number SUB_NetworkManager_Register_Async_2600
+     * @tc.name testNetworkManagerRegisterAsync2600
+     * @tc.desc activate the default network, and see if the callback information is generated
+     * @tc.level Level0
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it('testNetworkManagerRegisterAsync2600', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = 'testNetworkManagerRegisterAsync2600';
+      console.info(`${caseName}---Start`);
+      try {
+        let netSpecifier: connection.NetSpecifier = {
+          netCapabilities: {
+            bearerTypes: [NetBearTypeBEARER_WIFI,NetBearTypeBEARER_CELLULAR],
+          }
+        }
+        let netConn = connection.createNetConnection(netSpecifier, TIMEOUT);
+        console.info(caseName+ " register start");
+        netConn.register(async (error) => {
+          if (error) {
+            console.info(caseName + " register fail: " + JSON.stringify(error));
+            ExpectFail(caseName);
+            console.info(`${caseName}---End`);
+            done();
+          }else{
+            console.info(caseName+ " register success");
+          }
+        });
+        await netConnOnEvent3(caseName, netConn)
+        await sleep(500);
+        console.info(caseName+ " unregister start");
+        netConn.unregister(async (error) => {
+          if (error) {
+            console.info(caseName + " unregister fail: " + JSON.stringify(error));
+            ExpectFail(caseName);
+          } else {
+            console.info(caseName + " unregister success ");
+            console.info(caseName + " ListenTimes is :" +ListenTimes);
+            ExpectTrue(caseName, ListenTimes == 11);
+          }
+          console.info(`${caseName}---End`);
+          done();
+        });
+      } catch (err) {
+        console.info(`${caseName} catch err is `, JSON.stringify(err));
+        ExpectFail(caseName);
+        console.info(`${caseName} --test end`);
+        done();
+      }
+    });
+
+    /**
+     *@tc.number SUB_NetworkManager_Register_Async_2700
+     *@tc.name testNetworkManagerRegisterAsync2700
+     *@tc.desc  activate the default network ,and see if the callback information is generated
+     * @tc.level Level0
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it('testNetworkManagerRegisterAsync2700', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName = 'testNetworkManagerRegisterAsync2700';
+      console.info(`${caseName}---Start`);
+      try{
+        let netConn = connection.createNetConnection();
+        console.info(caseName+ " register start");
+        netConn.register(async (error) => {
+          if (error) {
+            console.info(caseName + " register fail: " + JSON.stringify(error));
+            ExpectFail(caseName);
+            console.info(`${caseName}---End`);
+            done();
+          }else{
+            console.info(caseName+ " register success");
+          }
+        });
+        await netConnOnEvent3(caseName, netConn)
+        await sleep(500);
+        console.info(caseName+ " unregister start");
+        netConn.unregister(async (error) => {
+          if (error) {
+            console.info(caseName + " unregister fail: " + JSON.stringify(error));
+            ExpectFail(caseName);
+          } else {
+            console.info(caseName + " unregister success ");
+            console.info(caseName + " ListenTimes is :" +ListenTimes);
+            ExpectTrue(caseName, ListenTimes == 11);
+          }
+          console.info(`${caseName}---End`);
+          done();
+        });
+      }catch (err){
+        console.info(`${caseName} catch err is `,JSON.stringify(err));
+        ExpectFail(caseName);
+        console.info(`${caseName} --test end`);
+        done();
+      }
+    });
+ })
 }

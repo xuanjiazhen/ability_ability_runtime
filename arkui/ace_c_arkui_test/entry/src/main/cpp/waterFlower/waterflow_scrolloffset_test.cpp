@@ -21,14 +21,15 @@
 #define SCROLL_0 0.0f
 #define SCROLL_130 130.0f
 #define SCROLL_100000 100000.0f
+#define PARAM_20 20
 
 namespace ArkUICapiTest {
 
-std::vector<double> WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo = {};
+std::vector<double> WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo(PARAM_20);
 
-using ScrollTo2CallBack = std::function<void(std::shared_ptr<WaterFlowComponent>, float, float, bool)>;
+using ScrollTo2CallBack = std::function<void(std::shared_ptr<WaterFlowComponent>, float, float, bool, int)>;
 using ScrollToBySectionOptionCallBack = std::function<void(
-    std::shared_ptr<WaterFlowComponent>, std::vector<WaterFlowSection>, float hOffset, float vOffset, bool)>;
+    std::shared_ptr<WaterFlowComponent>, std::vector<WaterFlowSection>, float hOffset, float vOffset, bool, int)>;
 static std::vector<WaterFlowSection> WATER_FLOW_DEFAULT_INDEX_SECTION {
     { PARAM_4, PARAM_2, PARAM_0, PARAM_0, { PARAM_0, PARAM_0, PARAM_0, PARAM_0 }, nullptr, nullptr },
     { PARAM_6, PARAM_3, PARAM_0, PARAM_0, { PARAM_0, PARAM_0, PARAM_0, PARAM_0 }, nullptr, nullptr },
@@ -50,9 +51,9 @@ static napi_value SetArrayNapiDataWithGesture(const std::vector<double>& data, n
     return array;
 };
 
-static void PushBackFloatToData(std::vector<double>& data, double value)
+static void PushBackFloatToData(std::vector<double>& data, double value, int index)
 {
-    data.push_back(value);
+    data[index] = value;
 }
 
 static std::shared_ptr<ColumnComponent> CreateReloadColumn()
@@ -87,26 +88,31 @@ static auto CreateWaterFlowScrollOffsetNode(std::vector<std::shared_ptr<ColumnCo
     return column;
 }
 
-ScrollTo2CallBack change = [](std::shared_ptr<WaterFlowComponent> waterFlow, float hOffset, float vOffset, bool isRow) {
+ScrollTo2CallBack change = [](std::shared_ptr<WaterFlowComponent> waterFlow,
+                                   float hOffset, float vOffset, bool isRow, int index) {
     if (isRow) {
         waterFlow->SetLayoutDirection(ArkUI_FlexDirection::ARKUI_FLEX_DIRECTION_ROW);
     }
     waterFlow->SetWaterFlowScrollToIndex(PARAM_6, PARAM_0, ARKUI_SCROLL_ALIGNMENT_START);
     waterFlow->SetScrollTo(hOffset, vOffset, {});
     std::thread th(
-        [](std::shared_ptr<WaterFlowComponent> waterFlow, float hOffset, float vOffset, bool isRow) {
+        [](std::shared_ptr<WaterFlowComponent> waterFlow, float hOffset, float vOffset, bool isRow, int index) {
             std::this_thread::sleep_for(std::chrono::milliseconds(PARAM_2000));
             auto item = waterFlow->getAttribute(NODE_SCROLL_OFFSET);
-            PushBackFloatToData(WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo, item->value[0].f32);
-            PushBackFloatToData(WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo, item->value[1].f32);
+            PushBackFloatToData(WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo, item->value[0].f32, index*2);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "WaterFlow", "index_x=%{public}d", index*2);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "WaterFlow", "offsetx=%{public}f", item->value[0].f32);
+            PushBackFloatToData(WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo, item->value[1].f32, index*2 + 1);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "WaterFlow", "index_y=%{public}d", index*2 + 1);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "WaterFlow", "offsety=%{public}f", item->value[1].f32);
         },
-        waterFlow, hOffset, vOffset, isRow);
+        waterFlow, hOffset, vOffset, isRow, index);
     th.detach();
 };
 
 static ScrollToBySectionOptionCallBack AddSectionOption = [](std::shared_ptr<WaterFlowComponent> waterFlow,
                                                               std::vector<WaterFlowSection> sections, float hOffset,
-                                                              float vOffset, bool isRow) {
+                                                              float vOffset, bool isRow, int index) {
     if (isRow) {
         waterFlow->SetLayoutDirection(ArkUI_FlexDirection::ARKUI_FLEX_DIRECTION_ROW);
     }
@@ -125,13 +131,17 @@ static ScrollToBySectionOptionCallBack AddSectionOption = [](std::shared_ptr<Wat
     waterFlow->SetScrollTo(hOffset, vOffset, {});
     // getAttribute
     std::thread th(
-        [](std::shared_ptr<WaterFlowComponent> waterFlow, float hOffset, float vOffset, bool isRow) {
+        [](std::shared_ptr<WaterFlowComponent> waterFlow, float hOffset, float vOffset, bool isRow, int index) {
             std::this_thread::sleep_for(std::chrono::milliseconds(PARAM_2000));
             auto item = waterFlow->getAttribute(NODE_SCROLL_OFFSET);
-            PushBackFloatToData(WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo, item->value[PARAM_0].f32);
-            PushBackFloatToData(WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo, item->value[PARAM_1].f32);
+            PushBackFloatToData(WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo, item->value[0].f32, index*2);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "WaterFlow", "index_x=%{public}d", index*2);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "WaterFlow", "offsetx=%{public}f", item->value[0].f32);
+            PushBackFloatToData(WaterFlowScrollOffsetTest::waterFlowScrollOffsetInfo, item->value[1].f32, index*2 + 1);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "WaterFlow", "index_y=%{public}d", index*2 + 1);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "WaterFlow", "offsety=%{public}f", item->value[1].f32);
         },
-        waterFlow, hOffset, vOffset, isRow);
+        waterFlow, hOffset, vOffset, isRow, index);
     th.detach();
 };
 
@@ -153,18 +163,18 @@ napi_value WaterFlowScrollOffsetTest::CreateNativeNode(napi_env env, napi_callba
         return nullptr;
     }
 
-    auto col1 = CreateWaterFlow<SIZE_50>(change, SCROLL_NEGATIVE_20, SCROLL_0, true);
-    auto col2 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_0, true);
-    auto col3 = CreateWaterFlow<SIZE_50>(change, SCROLL_130, SCROLL_0, true);
-    auto col4 = CreateWaterFlow<SIZE_50>(change, SCROLL_100000, SCROLL_0, true);
-    auto col5 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_NEGATIVE_20, false);
-    auto col6 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_0, false);
-    auto col7 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_130, false);
-    auto col8 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_100000, false);
+    auto col1 = CreateWaterFlow<SIZE_50>(change, SCROLL_NEGATIVE_20, SCROLL_0, true, 0);
+    auto col2 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_0, true, 1);
+    auto col3 = CreateWaterFlow<SIZE_50>(change, SCROLL_130, SCROLL_0, true, 2);
+    auto col4 = CreateWaterFlow<SIZE_50>(change, SCROLL_100000, SCROLL_0, true, 3);
+    auto col5 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_NEGATIVE_20, false, 4);
+    auto col6 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_0, false, 5);
+    auto col7 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_130, false, 6);
+    auto col8 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_100000, false, 7);
     auto col9 =
-        CreateWaterFlow<SIZE_30>(AddSectionOption, WATER_FLOW_DEFAULT_INDEX_SECTION, SCROLL_0, SCROLL_130, false);
+        CreateWaterFlow<SIZE_30>(AddSectionOption, WATER_FLOW_DEFAULT_INDEX_SECTION, SCROLL_0, SCROLL_130, false, 8);
     auto col10 =
-        CreateWaterFlow<SIZE_30>(AddSectionOption, WATER_FLOW_DEFAULT_INDEX_SECTION, SCROLL_130, SCROLL_0, true);
+        CreateWaterFlow<SIZE_30>(AddSectionOption, WATER_FLOW_DEFAULT_INDEX_SECTION, SCROLL_130, SCROLL_0, true, 9);
     std::vector<std::shared_ptr<ColumnComponent>> cols1 = { col1, col2, col3, col4 };
     std::vector<std::shared_ptr<ColumnComponent>> cols2 = { col5, col6, col7, col8 };
     std::vector<std::shared_ptr<ColumnComponent>> cols3 = { col9, col10 };

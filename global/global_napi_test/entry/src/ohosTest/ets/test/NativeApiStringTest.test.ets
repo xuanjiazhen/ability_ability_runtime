@@ -959,5 +959,20 @@ export default function abilityTest() {
       console.log("testGetDoublePluralStringByName142" + value);
       expect(value).assertTrue();
     })
+
+    /* *
+    * @tc.number    : SUB_GLOBAL_getResourceConfiguration_0100
+    * @tc.name      : getResourceConfiguration_nativeTest_0100
+    * @tc.desc      : getResourceConfiguration with object
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 0
+    */
+    it('getResourceConfiguration_nativeTest_0100', Level.LEVEL0, () => {
+      console.log("getResourceConfiguration_nativeTest_0100 1");
+      let value = nativeTest.getResourceConfiguration(resManager.resourceManager);
+      console.log("getResourceConfiguration_nativeTest_0100" + value);
+      expect(value).assertTrue();
+    })
   })
 }

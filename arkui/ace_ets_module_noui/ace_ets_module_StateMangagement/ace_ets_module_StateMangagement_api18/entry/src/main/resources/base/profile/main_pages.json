@@ -12,6 +12,7 @@
         "MainAbility/pages/Reusable/repeatReusableTrue",
         "MainAbility/pages/consumer/Consumer0130",
         "MainAbility/pages/consumer/Consumer0140",
-        "MainAbility/pages/consumer/Consumer0170"
+        "MainAbility/pages/consumer/Consumer0170",
+        "MainAbility/pages/useRes/Rawfile0140"
     ]
 }

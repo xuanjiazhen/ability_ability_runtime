@@ -34,7 +34,7 @@ export default class EntryAbility extends UIAbility {
     this.onCreateFlag = true
   }
 
-  onDestroy(): void {
+  async onDestroy(): Promise<void> {
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onDestroy');
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onBackground');
     this.onDestroyFlag = true;
@@ -51,7 +51,7 @@ export default class EntryAbility extends UIAbility {
     commonEventManager.publish(`${this.TEST_CASE_NAME}_onDestroyHap_1`, commonEventData, (result) => {
       hilog.info(0x0000, 'testTag', '%{public}s', `onConnect, 50==: ${JSON.stringify(result)}`);
     });
-
+    await this.sleep(1000);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {

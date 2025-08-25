@@ -99,6 +99,7 @@ function ConnectStateChanged(state : bluetoothBle.BLEConnectionChangeState) {
   let connectState : bluetoothBle.ProfileConnectionState = state.state;
   console.info('[bluetooth_js] state changed' + connectState)
   expect(true).assertEqual(connectState != null);
+  console.log('bluetooth BLEConnectionChangeState reason:' + state.reason);
 }
 function getRssi() {
   return new Promise<void>((resolve,reject) => {
@@ -1648,6 +1649,35 @@ function wrDescriptorVal() {
                 } else {
                     expect(Number(err.code)).assertEqual(2900099);
                 }
+            }
+            done();
+          })
+
+          /**
+           * @tc.number SUB_COMMUNICATION_BLUETOOTH_BLECONSTANT_GATTDISCONNECTREASON_0100
+           * @tc.name SUB_COMMUNICATION_BLUETOOTH_BLECONSTANT_GATTDISCONNECTREASON_0100
+           * @tc.desc Test BLE Constant Api20 GattDisconnectReason
+           * @tc.type Function
+           * @tc.size MediumTest
+           * @tc.level Level 0
+           */
+          it('SUB_COMMUNICATION_BLUETOOTH_BLECONSTANT_GATTDISCONNECTREASON_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done : Function) =>  {
+            try {
+              let CONN_TIMEOUT = bluetoothBle.GattDisconnectReason.CONN_TIMEOUT;
+              console.info("CONN_TIMEOUT:" + CONN_TIMEOUT);
+              expect(CONN_TIMEOUT).assertEqual(1);
+              let CONN_TERMINATE_PEER_USER = bluetoothBle.GattDisconnectReason.CONN_TERMINATE_PEER_USER;
+              console.info("CONN_TERMINATE_PEER_USER:" + CONN_TERMINATE_PEER_USER);
+              expect(CONN_TERMINATE_PEER_USER).assertEqual(2);
+              let CONN_TERMINATE_LOCAL_HOST = bluetoothBle.GattDisconnectReason.CONN_TERMINATE_LOCAL_HOST;
+              console.info("CONN_TERMINATE_LOCAL_HOST:" + CONN_TERMINATE_LOCAL_HOST);
+              expect(CONN_TERMINATE_LOCAL_HOST).assertEqual(3);
+              let CONN_UNKNOWN = bluetoothBle.GattDisconnectReason.CONN_UNKNOWN;
+              console.info("CONN_UNKNOWN:" + CONN_UNKNOWN);
+              expect(CONN_UNKNOWN).assertEqual(4);
+            } catch (error) {
+              console.error("GattDisconnectReason get error:" + JSON.stringify(error));
+              expect().assertFail();
             }
             done();
           })

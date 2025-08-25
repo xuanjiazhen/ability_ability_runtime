@@ -68,7 +68,6 @@ async function marshallingPromiseTest(done: Function, testName: string, opts: im
       // 反序列化 rpc获取到data。
       let ret: MySequence = new MySequence(pixelMap);
       data.readParcelable(ret);
-      expect(true).assertTrue();
       done();
     } else {
       expect().assertFail();
@@ -101,7 +100,6 @@ async function marshallingAbnormalPromiseTest(done: Function, testName: string, 
       // 反序列化 rpc获取到data。
       let ret: MySequence = new MySequence(pixelMap);
       data.readParcelable(ret);
-      expect(true).assertTrue();
       done();
     } else {
       expect().assertFail();

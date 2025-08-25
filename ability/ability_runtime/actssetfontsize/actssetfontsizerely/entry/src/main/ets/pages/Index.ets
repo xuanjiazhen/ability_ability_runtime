@@ -37,7 +37,7 @@ struct IndexEntry {
     Row() {
       Column() {
         Text("Hello Entry")
-          .fontSize(50)
+          .fontSize('1%')
           .fontWeight(FontWeight.Bold)
 
         Button('getFontSizeScale')
@@ -61,7 +61,6 @@ struct IndexEntry {
               }
             });
           })
-          .margin({top: 10})
 
         Button('setFontSizeScale')
           .id('setFontSizeScaleButton')
@@ -70,7 +69,6 @@ struct IndexEntry {
             let applicationContext = this.context.getApplicationContext();
             applicationContext.setFontSizeScale(1.3);
             let config = this.context.config;
-            this.message = JSON.stringify(config);
             let options: commonEventManager.CommonEventPublishData = {
               code: 1,
               parameters: {
@@ -86,9 +84,6 @@ struct IndexEntry {
               }
             });
           })
-          .margin({top: 10})
-        Text(this.message)
-          .margin({top: 20})
 
         Button('start feature')
           .id('startFeatureButton')
@@ -111,7 +106,6 @@ struct IndexEntry {
               hilog.info(0x0000, this.TAG, "[%{public}s] rely's button: failed. Code is %{public}s, message is %{public}s", this.TAG, paramError.code, paramError.message);
             }
           })
-          .margin({top: 20})
 
         Button('terminate')
           .id('terminateEntryButton')
@@ -129,7 +123,6 @@ struct IndexEntry {
               hilog.info(0x0000, this.TAG, "[%{public}s] terminateSelf failed, paramErr: %{public}s", this.TAG, JSON.stringify(paramErr));
             }
           })
-          .margin({top: 10})
       }
       .width('100%')
     }

@@ -152,6 +152,11 @@ async function onErrorListen(testName: string) {
 async function commitPreconfigCallback(done: Function, testName: string, type: camera.PreconfigType,
   ratio: camera.PreconfigRatio) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -195,6 +200,11 @@ async function commitPreconfigCallback(done: Function, testName: string, type: c
 async function commitPreconfigCallbackAbnormal(done: Function, testName: string,
   type: camera.PreconfigType | undefined | null, ratio: camera.PreconfigRatio | undefined | null) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -238,6 +248,11 @@ async function commitPreconfigCallbackAbnormal(done: Function, testName: string,
 async function commitPreconfigPromise(done: Function, testName: string, type: camera.PreconfigType,
   ratio: camera.PreconfigRatio) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -279,6 +294,11 @@ async function commitPreconfigPromise(done: Function, testName: string, type: ca
 async function commitPreconfigPromiseAbnormal(done: Function, testName: string,
   type: camera.PreconfigType | undefined | null, ratio: camera.PreconfigRatio | undefined | null) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -320,6 +340,11 @@ async function commitPreconfigPromiseAbnormal(done: Function, testName: string,
 async function addOutputPreview(done: Function, testName: string, type: camera.PreconfigType | undefined | null,
   ratio: camera.PreconfigRatio | undefined | null) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -393,6 +418,11 @@ export default function CameraPhotoSessionBackTest() {
     it('beginConfig_photo_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'beginConfig_photo_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -423,6 +453,11 @@ export default function CameraPhotoSessionBackTest() {
     it('addInput_removeInput_photo_back_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'addInput_removeInput_photo_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -900,6 +935,11 @@ export default function CameraPhotoSessionBackTest() {
     it('start_photo_callback_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'start_photo_callback_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -942,6 +982,11 @@ export default function CameraPhotoSessionBackTest() {
     it('start_photo_promise_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'start_photo_promise_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1072,6 +1117,11 @@ export default function CameraPhotoSessionBackTest() {
     it('stop_photo_callback_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'stop_photo_callback_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1116,6 +1166,11 @@ export default function CameraPhotoSessionBackTest() {
     it('stop_photo_promise_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'stop_photo_promise_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1157,6 +1212,11 @@ export default function CameraPhotoSessionBackTest() {
     it('release_photo_session_callback_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'release_photo_session_callback_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1193,6 +1253,11 @@ export default function CameraPhotoSessionBackTest() {
     it('release_photo_session_promise_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'release_photo_session_promise_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1228,6 +1293,11 @@ export default function CameraPhotoSessionBackTest() {
     it('on_off_error_listen_photo_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_error_listen_photo_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1258,6 +1328,11 @@ export default function CameraPhotoSessionBackTest() {
     it('on_off_error_listen_photo_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_error_listen_photo_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1291,6 +1366,11 @@ export default function CameraPhotoSessionBackTest() {
     it('beginConfig_photo_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'beginConfig_photo_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1324,6 +1404,11 @@ export default function CameraPhotoSessionBackTest() {
     it('commitConfig_photo_callback_abnormal_back_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'commitConfig_photo_callback_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1410,6 +1495,11 @@ export default function CameraPhotoSessionBackTest() {
     it('commitConfig_photo_promise_abnormal_back_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'commitConfig_photo_promise_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');

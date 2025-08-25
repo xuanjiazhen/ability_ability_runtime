@@ -19,7 +19,6 @@ import { window } from '@kit.ArkUI';
 import { BusinessError } from '@kit.BasicServicesKit';
 import commonEventManger from '@ohos.commonEventManager';
 import ParamManager from '../common/Param';
-import { expect, Level } from '@ohos/hypium';
 
 let param = new ParamManager();
 

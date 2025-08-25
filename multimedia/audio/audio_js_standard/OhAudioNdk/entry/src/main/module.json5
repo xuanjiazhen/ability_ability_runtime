@@ -22,9 +22,21 @@
     "requestPermissions": [
       {
         "name": 'ohos.permission.MICROPHONE',
+        "reason": "$string:ceshi",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ]
+        }
       },
       {
-        "name": "record_audio"
+        "name": "record_audio",
+        "reason": "$string:ceshi",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ]
+        }
       }
     ],
     "deliveryWithInstall": true,

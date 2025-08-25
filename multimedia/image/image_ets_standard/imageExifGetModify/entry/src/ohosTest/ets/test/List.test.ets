@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 import imageExifGetModifyTest from './ImageExifGetModify.test';
+import imageExifGetSyncTest from './ImageExifGetSync.test';
 
 export default function testsuite() {
   imageExifGetModifyTest();
+  imageExifGetSyncTest();
 }

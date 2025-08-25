@@ -47,6 +47,9 @@ protected:
     const char *INP_DIR_1080_20 = "/data/test/media/1920_1080_20M_30.h265";
     const char *inpDirVivid = "/data/test/media/hlg_vivid_4k.h265";
     const char *INP_DIR_VVC_1080 = "/data/test/media/1920_1080_10bit.vvc";
+    const char *INP_DIR_IPB_265_10bit = "/data/test/media/176_144_Main10.h265";
+    const char *INP_DIR_IPB_265_8bit = "/data/test/media/720_1280_25_8bit.h265";
+    const char *INP_DIR_IPB_264_8bit = "/data/test/media/720_1280_25_avcc.h264";
 };
 } // namespace Media
 } // namespace OHOS
@@ -773,6 +776,201 @@ HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_H266_BLANK_FRAME_0030, TestSize.Level0)
         vDecSample->DEFAULT_FRAME_RATE = 30;
         vDecSample->enbleBlankFrame = 1;
         ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameVVC));
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0001
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0001
+ * @tc.desc      : function test
+ */
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0001, TestSize.Level2)
+{
+    if (cap != nullptr) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = INP_DIR_IPB_264_8bit;
+        vDecSample->DEFAULT_WIDTH = 720;
+        vDecSample->DEFAULT_HEIGHT = 1280;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        vDecSample->enableLowLatency = true;
+        vDecSample->lowLatency = 0;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecName));
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0002
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0002
+ * @tc.desc      : function test
+ */
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0002, TestSize.Level0)
+{
+    if (cap != nullptr) {
+        if (OH_AVCapability_IsFeatureSupported(cap, VIDEO_LOW_LATENCY)) {
+            auto vDecSample = make_shared<VDecAPI11Sample>();
+            vDecSample->INP_DIR = INP_DIR_IPB_264_8bit;
+            vDecSample->DEFAULT_WIDTH = 720;
+            vDecSample->DEFAULT_HEIGHT = 1280;
+            vDecSample->DEFAULT_FRAME_RATE = 30;
+            vDecSample->isChecklowLatency = true;
+            vDecSample->enableLowLatency = true;
+            vDecSample->lowLatency = 1;
+            ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecName));
+            vDecSample->WaitForEOS();
+            ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+        }
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0003
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0003
+ * @tc.desc      : function test
+ */
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0003, TestSize.Level2)
+{
+    if (cap != nullptr) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = INP_DIR_IPB_264_8bit;
+        vDecSample->DEFAULT_WIDTH = 720;
+        vDecSample->DEFAULT_HEIGHT = 1280;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecName));
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0004
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0004
+ * @tc.desc      : function test
+ */
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0004, TestSize.Level2)
+{
+    if (cap_hevc != nullptr) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = INP_DIR_IPB_265_8bit;
+        vDecSample->DEFAULT_WIDTH = 720;
+        vDecSample->DEFAULT_HEIGHT = 1280;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        vDecSample->enableLowLatency = true;
+        vDecSample->lowLatency = 0;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHEVC));
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0005
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0005
+ * @tc.desc      : function test
+ */
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0005, TestSize.Level2)
+{
+    if (cap_hevc != nullptr) {
+        if (OH_AVCapability_IsFeatureSupported(cap_hevc, VIDEO_LOW_LATENCY)) {
+            auto vDecSample = make_shared<VDecAPI11Sample>();
+            vDecSample->INP_DIR = INP_DIR_IPB_265_8bit;
+            vDecSample->DEFAULT_WIDTH = 720;
+            vDecSample->DEFAULT_HEIGHT = 1280;
+            vDecSample->DEFAULT_FRAME_RATE = 30;
+            vDecSample->isChecklowLatency = true;
+            vDecSample->enableLowLatency = true;
+            vDecSample->lowLatency = 1;
+            ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHEVC));
+            vDecSample->WaitForEOS();
+            ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+        }
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0006
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0006
+ * @tc.desc      : function test
+ */
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0006, TestSize.Level2)
+{
+    if (cap_hevc != nullptr) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = INP_DIR_IPB_265_8bit;
+        vDecSample->DEFAULT_WIDTH = 720;
+        vDecSample->DEFAULT_HEIGHT = 1280;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHEVC));
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0007
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0007
+ * @tc.desc      : function test
+ */
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0007, TestSize.Level2)
+{
+    if (cap_hevc != nullptr && !access("/system/lib64/media/", 0)) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = INP_DIR_IPB_265_10bit;
+        vDecSample->DEFAULT_WIDTH = 176;
+        vDecSample->DEFAULT_HEIGHT = 144;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        vDecSample->enableLowLatency = true;
+        vDecSample->lowLatency = 0;
+        vDecSample->is8bitYuv = false;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHEVC));
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0008
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0008
+ * @tc.desc      : function test
+ */
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0008, TestSize.Level2)
+{
+    if (cap_hevc != nullptr && !access("/system/lib64/media/", 0)) {
+        if (OH_AVCapability_IsFeatureSupported(cap_hevc, VIDEO_LOW_LATENCY)) {
+            auto vDecSample = make_shared<VDecAPI11Sample>();
+            vDecSample->INP_DIR = INP_DIR_IPB_265_10bit;
+            vDecSample->DEFAULT_WIDTH = 176;
+            vDecSample->DEFAULT_HEIGHT = 144;
+            vDecSample->DEFAULT_FRAME_RATE = 30;
+            vDecSample->isChecklowLatency = true;
+            vDecSample->enableLowLatency = true;
+            vDecSample->lowLatency = 1;
+            vDecSample->is8bitYuv = false;
+            ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHEVC));
+            vDecSample->WaitForEOS();
+            ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+        }
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_LOW_LATENCY_0009
+ * @tc.name      : VIDEO_DECODE_LOW_LATENCY_0009
+ * @tc.desc      : function test
+ */
+HWTEST_F(HwdecFunc2NdkTest, VIDEO_DECODE_LOW_LATENCY_0009, TestSize.Level2)
+{
+    if (cap_hevc != nullptr && !access("/system/lib64/media/", 0)) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = INP_DIR_IPB_265_10bit;
+        vDecSample->DEFAULT_WIDTH = 176;
+        vDecSample->DEFAULT_HEIGHT = 144;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        vDecSample->is8bitYuv = false;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHEVC));
         vDecSample->WaitForEOS();
         ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
     }

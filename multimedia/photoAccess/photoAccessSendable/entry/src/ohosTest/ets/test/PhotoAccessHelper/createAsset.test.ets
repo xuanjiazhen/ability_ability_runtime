@@ -69,7 +69,6 @@ export default function createAssetTest () {
         done();
       } catch (error) {
         console.info(`${testNum} failed; error: ${error}`);
-        expect(true).assertTrue();
         done();
       }
     }

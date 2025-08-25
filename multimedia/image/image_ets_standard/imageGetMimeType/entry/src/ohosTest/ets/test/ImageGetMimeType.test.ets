@@ -298,7 +298,6 @@ export default function ImageGetMimeTypeTest() {
             async (done: Function) => {
             if (!isSupportHEIFDecode) {
                 console.info("device is not support heif decode");
-                expect(true).assertTrue();
                 done();
             } else {
                 await imageSourceGetMimeTypeTest(done, "SUB_MULTIMEDIA_IMAGE_SOURCE_IMAGESOURCEGETMIMETYPE_0900",
@@ -618,7 +617,6 @@ export default function ImageGetMimeTypeTest() {
             async (done: Function) => {
             if (!isSupportHEIFDecode) {
                 console.info("device is not support heif decode");
-                expect(true).assertTrue();
                 done();
             } else {
                 await imageSourceGetMimeTypeTest(done,

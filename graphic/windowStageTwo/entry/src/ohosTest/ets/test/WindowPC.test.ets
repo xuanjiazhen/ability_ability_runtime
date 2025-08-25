@@ -3173,6 +3173,374 @@ export default function windowPCTest() {
         }
       })
     })
+    /**
+     * @tc.number     : testSetDragKeyFramePolicy_0100
+     * @tc.name       : testSetDragKeyFramePolicy_EnableWithDefaultValue
+     * @tc.desc       : Test the function when enable with default value
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level3
+     */
+    it('testSetDragKeyFramePolicy_EnableWithDefaultValue', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const message = 'testSetDragKeyFramePolicy_EnableWithDefaultValue';
+      console.log(message + ' begin.');
+      if (isPCStatus == '') {
+        console.info(`${message} not pc, skip`);
+        expect(true).assertTrue();
+        done();
+        return;
+      }
+      let keyFramePolicy: window.KeyFramePolicy = {
+        enable: true
+      };
+      try {
+        let windowClass: window.Window = windowStage.getMainWindowSync();
+        windowClass.setDragKeyFramePolicy(keyFramePolicy).then((ret: window.KeyFramePolicy) => {
+          console.info(`${message} Succeeded in setting key frame: ${JSON.stringify(ret)}`);
+          expect(ret.enable).assertEqual(keyFramePolicy.enable);
+          done();
+        }).catch((err: BusinessError) => {
+          console.error(`${message} Failed to set key frame, error: ${JSON.stringify(err)}`);
+          if (err.code == 801) {
+            console.info(`${message} Capability not supported. Failed to call the API due to limited device capabilities.`);
+          } else {
+            expect().assertFail();
+          }
+          done();
+        });
+      } catch (err) {
+        console.error(`${message} Failed with error: ${JSON.stringify(err)}`);
+        expect().assertFail();
+        done();
+      }
+    })
+    /**
+     * @tc.number     : testSetDragKeyFramePolicy_0200
+     * @tc.name       : testSetDragKeyFramePolicy_EnableWithNotDefaultValue
+     * @tc.desc       : Test the function when enable with not default value
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level3
+     */
+    it('testSetDragKeyFramePolicy_EnableWithNotDefaultValue', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const message = 'testSetDragKeyFramePolicy_EnableWithNotDefaultValue';
+      console.log(message + ' begin.');
+      if (isPCStatus == '') {
+        console.info(`${message} not pc, skip`);
+        expect(true).assertTrue();
+        done();
+        return;
+      }
+      let keyFramePolicy: window.KeyFramePolicy = {
+        enable: true,
+        interval: 200,
+        distance: 2000,
+        animationDuration: 200,
+        animationDelay: 200
+      };
+      try {
+        let windowClass: window.Window = windowStage.getMainWindowSync();
+        windowClass.setDragKeyFramePolicy(keyFramePolicy).then((ret: window.KeyFramePolicy) => {
+          console.info(`${message} Succeeded in setting key frame: ${JSON.stringify(ret)}`);
+          expect(ret.enable).assertEqual(keyFramePolicy.enable);
+          expect(ret.interval).assertEqual(keyFramePolicy.interval);
+          expect(ret.distance).assertEqual(keyFramePolicy.distance);
+          expect(ret.animationDuration).assertEqual(keyFramePolicy.animationDuration);
+          expect(ret.animationDelay).assertEqual(keyFramePolicy.animationDelay);
+          done();
+        }).catch((err: BusinessError) => {
+          console.error(`${message} Failed to set key frame, error: ${JSON.stringify(err)}`);
+          if (err.code == 801) {
+            console.info(`${message} Capability not supported. Failed to call the API due to limited device capabilities.`);
+          } else {
+            expect().assertFail();
+          }
+          done();
+        });
+      } catch (err) {
+        console.error(`${message} Failed with error: ${JSON.stringify(err)}`);
+        expect().assertFail();
+        done();
+      }
+    })
+    /**
+     * @tc.number     : testSetDragKeyFramePolicy_0300
+     * @tc.name       : testSetDragKeyFramePolicy_EnableWithFloatValue
+     * @tc.desc       : Test the function when enable with not float value
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level3
+     */
+    it('testSetDragKeyFramePolicy_EnableWithFloatValue', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const message = 'testSetDragKeyFramePolicy_EnableWithFloatValue';
+      console.log(message + ' begin.');
+      if (isPCStatus == '') {
+        console.info(`${message} not pc, skip`);
+        expect(true).assertTrue();
+        done();
+        return;
+      }
+      let keyFramePolicy: window.KeyFramePolicy = {
+        enable: true,
+        interval: 200.0,
+        distance: 2000.9,
+        animationDuration: 200.4,
+        animationDelay: 200.5
+      };
+      try {
+        let windowClass: window.Window = windowStage.getMainWindowSync();
+        windowClass.setDragKeyFramePolicy(keyFramePolicy).then((ret: window.KeyFramePolicy) => {
+          console.info(`${message} Succeeded in setting key frame: ${JSON.stringify(ret)}`);
+          expect(ret.enable).assertEqual(keyFramePolicy.enable);
+          expect(ret.interval).assertEqual(Math.floor(keyFramePolicy.interval === undefined ? 0 : keyFramePolicy.interval));
+          expect(ret.distance).assertEqual(Math.floor(keyFramePolicy.distance === undefined ? 0 : keyFramePolicy.distance));
+          expect(ret.animationDuration).assertEqual(Math.floor(keyFramePolicy.animationDuration === undefined ? 0 : keyFramePolicy.animationDuration));
+          expect(ret.animationDelay).assertEqual(Math.floor(keyFramePolicy.animationDelay === undefined ? 0 : keyFramePolicy.animationDelay));
+          done();
+        }).catch((err: BusinessError) => {
+          console.error(`${message} Failed to set key frame, error: ${JSON.stringify(err)}`);
+          if (err.code == 801) {
+            console.info(`${message} Capability not supported. Failed to call the API due to limited device capabilities.`);
+          } else {
+            expect().assertFail();
+          }
+          done();
+        });
+      } catch (err) {
+        console.error(`${message} Failed with error: ${JSON.stringify(err)}`);
+        expect().assertFail();
+        done();
+      }
+    })
+    /**
+     * @tc.number     : testSetDragKeyFramePolicy_0400
+     * @tc.name       : testSetDragKeyFramePolicy_NegativeValueFail
+     * @tc.desc       : Test the function when failed with negative value
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level3
+     */
+    it('testSetDragKeyFramePolicy_NegativeValueFail', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const message = 'testSetDragKeyFramePolicy_NegativeValueFail';
+      console.log(message + ' begin.');
+      if (isPCStatus == '') {
+        console.info(`${message} not pc, skip`);
+        expect(true).assertTrue();
+        done();
+        return;
+      }
+      let keyFramePolicy: window.KeyFramePolicy = {
+        enable: true,
+        interval: -200,
+        distance: -2000,
+        animationDuration: -200,
+        animationDelay: -200
+      };
+      try {
+        let windowClass: window.Window = windowStage.getMainWindowSync();
+        windowClass.setDragKeyFramePolicy(keyFramePolicy).then((ret: window.KeyFramePolicy) => {
+          console.info(`${message} Succeeded in setting key frame: ${JSON.stringify(ret)}`);
+          expect().assertFail();
+          done();
+        }).catch((err: BusinessError) => {
+          console.error(`${message} Failed to set key frame, error: ${JSON.stringify(err)}`);
+          if (err.code == 801) {
+            console.info(`${message} Capability not supported. Failed to call the API due to limited device capabilities.`);
+          } else {
+            expect().assertFail();
+          }
+          done();
+        });
+      } catch (err) {
+        console.error(`${message} Failed with error: ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(1300016);
+        done();
+      }
+    })
+    /**
+     * @tc.number     : testSetDragKeyFramePolicy_0500
+     * @tc.name       : testSetDragKeyFramePolicy_ZeroValueFail
+     * @tc.desc       : Test the function when failed with zero value
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level3
+     */
+    it('testSetDragKeyFramePolicy_ZeroValueFail', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const message = 'testSetDragKeyFramePolicy_ZeroValueFail';
+      console.log(message + ' begin.');
+      if (isPCStatus == '') {
+        console.info(`${message} not pc, skip`);
+        expect(true).assertTrue();
+        done();
+        return;
+      }
+      let keyFramePolicy: window.KeyFramePolicy = {
+        enable: true,
+        interval: 0,
+        distance: 0,
+        animationDuration: 0,
+        animationDelay: 0
+      };
+      try {
+        let windowClass: window.Window = windowStage.getMainWindowSync();
+        windowClass.setDragKeyFramePolicy(keyFramePolicy).then((ret: window.KeyFramePolicy) => {
+          console.info(`${message} Succeeded in setting key frame: ${JSON.stringify(ret)}`);
+          expect().assertFail();
+          done();
+        }).catch((err: BusinessError) => {
+          console.error(`${message} Failed to set key frame, error: ${JSON.stringify(err)}`);
+          if (err.code == 801) {
+            console.info(`${message} Capability not supported. Failed to call the API due to limited device capabilities.`);
+          } else {
+            expect().assertFail();
+          }
+          done();
+        });
+      } catch (err) {
+        console.error(`${message} Failed with error: ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(1300016);
+        done();
+      }
+    })
+    /**
+     * @tc.number     : testSetDragKeyFramePolicy_0600
+     * @tc.name       : testSetDragKeyFramePolicy_SubWindowFail
+     * @tc.desc       : Test the function when failed with subWindow
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level3
+     */
+    it('testSetDragKeyFramePolicy_SubWindowFail', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const message = 'testSetDragKeyFramePolicy_SubWindowFail';
+      console.log(message + ' begin.');
+      if (isPCStatus == '') {
+        console.info(`${message} not pc, skip`);
+        expect(true).assertTrue();
+        done();
+        return;
+      }
+      let keyFramePolicy: window.KeyFramePolicy = {
+        enable: true
+      };
+      let subWindowClass: window.Window | undefined = await windowStage.createSubWindow(message);
+      if (subWindowClass === undefined) {
+        console.error(`${message} Fail to createSubWindow`);
+        expect().assertFail();
+        done();
+        return;
+      }
+      try {
+        subWindowClass.setDragKeyFramePolicy(keyFramePolicy).then((ret: window.KeyFramePolicy) => {
+          console.info(`${message} Succeeded in setting key frame: ${JSON.stringify(ret)}`);
+          expect().assertFail();
+          done();
+        }).catch((err: BusinessError) => {
+          console.error(`${message} Failed to set key frame, error: ${JSON.stringify(err)}`);
+          if (err.code == 801) {
+            console.info(`${message} Capability not supported. Failed to call the API due to limited device capabilities.`);
+          } else {
+            expect(err.code).assertEqual(1300004);
+          }
+          done();
+        });
+      } catch (err) {
+        console.error(`${message} Failed with error: ${JSON.stringify(err)}`);
+        expect().assertFail();
+        done();
+      } finally {
+        await subWindowClass.destroyWindow();
+      }
+    })
+    /**
+     * @tc.number     : testSetDragKeyFramePolicy_0700
+     * @tc.name       : testSetDragKeyFramePolicy_1300002
+     * @tc.desc       : Test the function when failed with 1300002
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level3
+     */
+    it('testSetDragKeyFramePolicy_1300002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const message = 'testSetDragKeyFramePolicy_1300002';
+      console.log(message + ' begin.');
+      if (isPCStatus == '') {
+        console.info(`${message} not pc, skip`);
+        expect(true).assertTrue();
+        done();
+        return;
+      }
+      let keyFramePolicy: window.KeyFramePolicy = {
+        enable: true
+      };
+      let subWindowClass: window.Window | undefined = await windowStage.createSubWindow(message);
+      if (subWindowClass === undefined) {
+        console.error(`${message} Fail to createSubWindow`);
+        expect().assertFail();
+        done();
+        return;
+      }
+      try {
+        await subWindowClass.destroyWindow();
+        await sleep(500);
+        subWindowClass.setDragKeyFramePolicy(keyFramePolicy).then((ret: window.KeyFramePolicy) => {
+          console.info(`${message} Succeeded in setting key frame: ${JSON.stringify(ret)}`);
+          expect().assertFail();
+          done();
+        }).catch((err: BusinessError) => {
+          console.error(`${message} Failed to set key frame, error: ${JSON.stringify(err)}`);
+          if (err.code == 801) {
+            console.info(`${message} Capability not supported. Failed to call the API due to limited device capabilities.`);
+          } else {
+            expect(err.code).assertEqual(1300002);
+          }
+          done();
+        });
+      } catch (err) {
+        console.error(`${message} Failed with error: ${JSON.stringify(err)}`);
+        expect().assertFail();
+        done();
+      }
+    })
+    /**
+     * @tc.number     : testSetDragKeyFramePolicy_0800
+     * @tc.name       : testSetDragKeyFramePolicy_Disable
+     * @tc.desc       : Test the function when disable
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level3
+     */
+    it('testSetDragKeyFramePolicy_Disable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const message = 'testSetDragKeyFramePolicy_Disable';
+      console.log(message + ' begin.');
+      if (isPCStatus == '') {
+        console.info(`${message} not pc, skip`);
+        expect(true).assertTrue();
+        done();
+        return;
+      }
+      let keyFramePolicy: window.KeyFramePolicy = {
+        enable: false
+      };
+      try {
+        let windowClass: window.Window = windowStage.getMainWindowSync();
+        windowClass.setDragKeyFramePolicy(keyFramePolicy).then((ret: window.KeyFramePolicy) => {
+          console.info(`${message} Succeeded in setting key frame: ${JSON.stringify(ret)}`);
+          expect(ret.enable).assertEqual(keyFramePolicy.enable);
+          done();
+        }).catch((err: BusinessError) => {
+          console.error(`${message} Failed to set key frame, error: ${JSON.stringify(err)}`);
+          if (err.code == 801) {
+            console.info(`${message} Capability not supported. Failed to call the API due to limited device capabilities.`);
+          } else {
+            expect().assertFail();
+          }
+          done();
+        });
+      } catch (err) {
+        console.error(`${message} Failed with error: ${JSON.stringify(err)}`);
+        expect().assertFail();
+        done();
+      }
+    })
 
   })
 }

@@ -135,7 +135,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_0010', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -195,7 +195,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_00101', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -255,7 +255,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_00102', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -311,7 +311,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_00103', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -369,7 +369,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_00104', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -429,7 +429,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_00105', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -487,7 +487,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_00106', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -549,7 +549,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_00107', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -609,7 +609,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_00108', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -669,7 +669,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_00109', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -727,7 +727,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_002', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -783,7 +783,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_0021', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -841,7 +841,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_0022', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -899,7 +899,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_0023', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -957,7 +957,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_0024', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -1017,7 +1017,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_0025', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -1075,7 +1075,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_0026', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -1137,7 +1137,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_0027', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -1197,7 +1197,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_0028', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -1252,7 +1252,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_003', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -1314,7 +1314,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_004', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -1385,7 +1385,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_005', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -1454,7 +1454,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_006', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }
@@ -1513,7 +1513,7 @@ export default function OhAVRecorderNDKMp4Test() { // L2
     it('testOhAvRecorder_mp4_success_007', Level.LEVEL0,async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info("Failed to obtain the default  object.Not support usb camera");
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFalse();
         done();
         return;
       }

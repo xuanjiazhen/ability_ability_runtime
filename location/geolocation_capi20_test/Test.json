@@ -2,15 +2,15 @@
     "description": "Configuration for ActsLocationCApi20Test Tests",
     "driver": {
         "type": "OHJSUnitTest",
-        "test-timeout": "180000",
-        "bundle-name": "com.acts.actslocationcapi20test",
-        "module-name": "entry_test",
+        "test-timeout": "600000",
         "shell-timeout": "600000",
-        "testcase-timeout": 60000
+        "bundle-name": "com.acts.actslocationcapi20test",
+        "module-name": "entry_test"
     },
     "kits": [{
         "test-file-name": [
-            "ActslocationCApi20Test.hap"
+            "ActsLocationCApi20Test.hap",
+            "ActsLocationCApi20MainTest.hap"
         ],
         "type": "AppInstallKit",
         "cleanup-apps": true

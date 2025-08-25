@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,11 +17,11 @@ import events_emitter from '@ohos.events.emitter';
 import Utils from './Utils';
 import router from '@ohos.router';
 import emitter from '@ohos.events.emitter';
+import { waitForComponent } from './WaitTest.test';
 import { accessibility, config } from '@kit.AccessibilityKit';
+
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
-// @ts-nocheck
-let emitKey = ""
 
 export default function ActsAceWebViewIncognitoMode1() {
   describe('ActsAceWebViewIncognitoMode1', () => {
@@ -32,19 +32,18 @@ export default function ActsAceWebViewIncognitoMode1() {
       }
 
       try {
-        await Utils.sleep(1000)
         router.clear();
         let pages = router.getState();
         console.info('get webViewIncognitoMode1 state success ' + JSON.stringify(pages));
         if (!('webViewIncognitoMode1' == pages.name)) {
           console.info('get webViewIncognitoMode1 state success ' + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(1000);
           console.info('push webViewIncognitoMode1 state success ' + JSON.stringify(result));
         }
       } catch (err) {
         console.error('push webViewIncognitoMode1 page error:' + err);
       }
+      await waitForComponent("webViewIncognitoModeButton1");
       done()
     });
 
@@ -54,11 +53,8 @@ export default function ActsAceWebViewIncognitoMode1() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(1000);
       done();
     })
-
-
 
     /*
      *@tc.number SUB_ACE_WEB_INCOGNITOMODE_API_0005
@@ -69,12 +65,9 @@ export default function ActsAceWebViewIncognitoMode1() {
      *@tc.level Level 0
      */
     it('testWebViewClearAllCookiesSyncIncognito', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = 'emitWebViewIncognitoMode05'
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent('testWebViewIncognitoMode05', 'success', 8023, done);
+      Utils.emitEvent('emitWebViewIncognitoMode05', 134200);
+      Utils.registerEvent('emitWebViewIncognitoMode05', 'success', 134210, done);
       sendEventByKey('webViewIncognitoModeButton1', 10, '');
     })
-
-
   })
 }

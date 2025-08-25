@@ -33,7 +33,6 @@ async function packToFilePromiseTest(done: Function, testName: string, pathUri: 
     await imagePackerApi.packToFile(imageSourceApi, file.fd, packOpts);
     await imageSourceApi.release();
     await imagePackerApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -53,7 +52,6 @@ async function packToFileAbnormalPromiseTest(done: Function, testName: string, p
     await imagePackerApi.packToFile(imageSourceApi, file.fd, packOpts);
     await imageSourceApi.release();
     await imagePackerApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -76,7 +74,6 @@ async function packToFileCallbackTest(done: Function, testName: string, pathUri:
         expect().assertFail();
       } else {
         console.info(TAG, 'Succeeded in packing the image to file.');
-        expect(true).assertTrue();
       }
       imageSourceApi.release();
       imagePackerApi.release();
@@ -103,7 +100,6 @@ async function packToFileAbnormalCallbackTest(done: Function, testName: string, 
         expect().assertFail();
       } else {
         console.info(TAG, 'Succeeded in packing the image to file.');
-        expect(true).assertTrue();
       }
       imageSourceApi.release();
       imagePackerApi.release();
@@ -128,7 +124,6 @@ async function packToFilePixelMapPromiseTest(done: Function, testName: string, p
     const imagePackerApi: image.ImagePacker = await image.createImagePacker();
     let file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
     await imagePackerApi.packToFile(pixelmap, file.fd, packOpts);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -149,7 +144,6 @@ async function packToFilePixelMapAbnormalPromiseTest(done: Function, testName: s
     const imagePackerApi: image.ImagePacker = await image.createImagePacker();
     let file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
     await imagePackerApi.packToFile(pixelmap, file.fd, packOpts);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -174,7 +168,6 @@ async function packToFilePixelMapCallbackTest(done: Function, testName: string, 
         console.error(TAG, `Failed to pack the image to file.code ${err.code},message is ${err.message}`);
         expect().assertFail();
       } else {
-        expect(true).assertTrue();
         console.info(TAG, 'Succeeded in packing the image to file.');
       }
       done();
@@ -202,7 +195,6 @@ async function packToFilePixelMapAbnormalCallbackTest(done: Function, testName: 
         console.error(TAG, `Failed to pack the image to file.code ${err.code},message is ${err.message}`);
         expect().assertFail();
       } else {
-        expect(true).assertTrue();
         console.info(TAG, 'Succeeded in packing the image to file.');
       }
       done();
@@ -232,7 +224,6 @@ async function packToFilePicturePromiseTest(done: Function, testName: string, pa
     let funcName = "PackToFile";
     await imagePackerApi.packToFile(pictureObj, file.fd, packOpts).then(() => {
       console.info(TAG, funcName, 'Succeeded in packing the image to file.');
-      expect(true).assertTrue();
     }).catch((error: BusinessError) => {
       console.error(TAG, funcName, `Failed to pack the image to file.code ${error.code},message is ${error.message}`);
       expect().assertFail();

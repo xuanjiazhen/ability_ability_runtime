@@ -346,5 +346,24 @@ export default function PowerManagerServiceTest() {
         done();
       }
     });
+
+    /**
+     * @tc.number SUB_PowerSystem_PowerManagerService_JSTest_0160
+     * @tc.name testPowerManagerServiceTest_1600
+     * @tc.desc PowerManagerService stop test
+     * @tc.level: Level 3
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     */
+    it('testPowerManagerServiceTest_1600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done) => {
+      let TAG = 'testPowerManagerServiceTest_1600';
+      try {
+        power.refreshActivity(TAG);
+      } catch (error) {
+        console.error(`${TAG} error: ${JSON.stringify(error)}`);
+        expect(error.code).assertEqual(4900101);
+        done();
+      }
+    });
   });
 }

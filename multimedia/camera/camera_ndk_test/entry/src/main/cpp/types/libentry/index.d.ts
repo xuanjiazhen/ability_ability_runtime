@@ -125,6 +125,11 @@ interface colorSpacesSize {
   colorSpacesSize: number;
 }
 
+interface effectTypeSize {
+  errorCode: number;
+  effectTypeSize: number;
+}
+
 interface activeColorSpace {
   errorCode: number;
   activeColorSpace: number;
@@ -144,6 +149,20 @@ interface autoDeviceSwitchSupportInfo {
 interface MacroSupportedinfo {
   errorCode: number;
   isMacroSupported: boolean;
+}
+
+interface profile {
+  format: number;
+  height: number;
+  width: number;
+}
+
+interface videoProfile {
+  format: number;
+  height: number;
+  width: number;
+  min: number;
+  max: number;
 }
 
 export const initCamera: (surfaceId: string) => number;
@@ -275,6 +294,18 @@ export const sessionSetExposureBias: (a: number) => number;
 export const sessionGetExposureBias: () => number; // return exposureBias
 
 export const sessionIsFocusModeSupported: (a: number) => boolean;
+
+export const sessionIsControlCenterSupported: () => boolean;
+
+export const sessionGetSupportedEffectTypes: (index: number) => effectTypeSize;
+
+export const sessionDeleteSupportedEffectTypes: (index: number) => number;
+
+export const sessionEnableControlCenter: (enable: boolean) => number;
+
+export const sessionRegisterControlCenterEffectStatusChange: (index:number) => number;
+ 
+export const sessionUnregisterControlCenterEffectStatusChange: (index:number) => number;
 
 export const sessionGetPhotoRotation: (a: number) => number;
 
@@ -481,3 +512,11 @@ export const oHCameraInputOpenConcurrentCameras: (index:number) => number;
 export const sessionIsMacroSupported: (a: number) => MacroSupportedinfo;
 
 export const sessionEnableMacro: (index: number, enable: boolean) => number;
+
+export const getPreviewProfiles: () => Array<profile>;
+
+export const getVideoProfiles: () => Array<videoProfile>;
+
+export const createVideoOutputByIndex: (surfaceId: string, index: number) => number;
+
+export const createPreviewOutputByIndex: (index: number) => number;

@@ -29,7 +29,6 @@ async function onCallbackTest(done: Function, testName: string, size: image.Size
         expect().assertFail();
       } else {
         console.info(TAG, 'Succeeded in getting imageRelease callback.');
-        expect(true).assertTrue();
       }
 
       let callbackFunc = () => {

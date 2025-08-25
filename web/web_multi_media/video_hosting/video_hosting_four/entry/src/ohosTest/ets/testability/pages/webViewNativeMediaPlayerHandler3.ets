@@ -52,12 +52,24 @@ interface AVPlayerListener {
     onVideoSizeChanged(width: number, height: number) : void
 }
 
+interface PlayCommand {
+    func: Function;
+    name?: string;
+}
+
+interface CheckPlayCommandResult {
+    ignore: boolean;
+    index_to_remove: number;
+}
+
 class AVPlayerDemo {
     private surfaceID: string = '';
     private isSeek: boolean = true;
     private fd: number = 0;
     private listener?: AVPlayerListener
     public avPlayer?: media.AVPlayer;
+    prepared: boolean = false;
+    commands: PlayCommand[] = [];
 
     setSfID(surfaceId: string) {
         this.surfaceID = surfaceId;
@@ -83,42 +95,45 @@ class AVPlayerDemo {
         // 状态机变化回调函数
         avPlayer.on('stateChange', async (state: string, reason: media.StateChangeReason) => {
             switch (state) {
-              case 'idle': // 成功调用reset接口后触发该状态机上报
-                console.info('AVPlayer state idle called.');
-                avPlayer.release(); // 调用release接口销毁实例对象
-                break;
-              case 'initialized': // avplayer 设置播放源后触发该状态上报
-                console.info('AVPlayer state initialized called. ');
-                avPlayer.surfaceId = this.surfaceID; // 设置显示画面，当播放的资源为纯音频时无需设置
-                avPlayer.prepare();
-                break;
-              case 'prepared': // prepare调用成功后上报该状态机
-                isPlaying = true
-                console.info('AVPlayer state prepared called.');
-                break;
-              case 'playing': // play成功调用后触发该状态机上报
-                isPlaying = true
-                console.info('AVPlayer state playing called.');
-                listener?.onPlaying();
-                break;
-              case 'paused': // pause成功调用后触发该状态机上报
-                console.info('AVPlayer state paused called.');
-                listener?.onPaused();
-                break;
-              case 'completed': // 播放结束后触发该状态机上报
-                console.info('AVPlayer state completed called.');
-                avPlayer.stop(); // 调用播放结束接口
-                break;
-              case 'stopped': // stop接口成功调用后触发该状态机上报
-                console.info('AVPlayer state stopped called.');
-                listener?.onEnded();
-                break;
-              case 'released':
-                console.info('AVPlayer state released called.');
-                break;
-              default:
-                console.info('AVPlayer state unknown called.');
-                break;
+                case 'idle': // 成功调用reset接口后触发该状态机上报
+                    console.info('AVPlayer state idle called.');
+                    avPlayer.release(); // 调用release接口销毁实例对象
+                    break;
+                case 'initialized': // avplayer 设置播放源后触发该状态上报
+                    console.info('AVPlayer state initialized called. ');
+                    avPlayer.surfaceId = this.surfaceID; // 设置显示画面，当播放的资源为纯音频时无需设置
+                    avPlayer.prepare();
+                    break;
+                case 'prepared': // prepare调用成功后上报该状态机
+                    isPlaying = true
+                    console.info('AVPlayer state prepared called.');
+                    this.prepared = true;
+                    this.schedule();
+                    break;
+                case 'playing': // play成功调用后触发该状态机上报
+                    isPlaying = true
+                    console.info('AVPlayer state playing called.');
+                    listener?.onPlaying();
+                    break;
+                case 'paused': // pause成功调用后触发该状态机上报
+                    console.info('AVPlayer state paused called.');
+                    listener?.onPaused();
+                    break;
+                case 'completed': // 播放结束后触发该状态机上报
+                    console.info('AVPlayer state completed called.');
+                    avPlayer.stop(); // 调用播放结束接口
+                    break;
+                case 'stopped': // stop接口成功调用后触发该状态机上报
+                    console.info('AVPlayer state stopped called.');
+                    listener?.onEnded();
+                    break;
+                case 'released':
+                    this.prepared = false;
+                    console.info('AVPlayer state released called.');
+                    break;
+                default:
+                    console.info('AVPlayer state unknown called.');
+                    break;
             }
         })
         avPlayer.on('durationUpdate', (duration: number) => {
@@ -176,31 +191,138 @@ class AVPlayerDemo {
         this.avPlayer.fdSrc = avFileDescriptor;
     }
 
+    schedule() {
+        if (!this.avPlayer) {
+            return;
+        }
+        if (!this.prepared) {
+            return;
+        }
+        if (this.commands.length > 0) {
+            let command = this.commands.shift();
+            if (command) {
+                command.func();
+            }
+            if (this.commands.length > 0) {
+                setTimeout(() => {
+                    this.schedule();
+                });
+            }
+        }
+    }
+    private checkCommand(selfName: string, oppositeName: string) {
+        let index_to_remove = -1;
+        let ignore_this_action = false;
+        let index = this.commands.length - 1;
+        while (index >= 0) {
+            if (this.commands[index].name == selfName) {
+                ignore_this_action = true;
+                break;
+            }
+            if (this.commands[index].name == oppositeName) {
+                index_to_remove = index;
+                break;
+            }
+            index--;
+        }
+
+        let result : CheckPlayCommandResult = {
+            ignore: ignore_this_action,
+            index_to_remove: index_to_remove,
+        };
+        return result;
+    }
+
     play() {
-        console.info('AVPlayer.play()');
-        this.avPlayer?.play()
+        let commandName = 'play';
+        let checkResult = this.checkCommand(commandName, 'pause');
+        if (checkResult.ignore) {
+            console.log(`AVPlayer ${commandName} ignored.`);
+            this.schedule();
+            return;
+        }
+        if (checkResult.index_to_remove >= 0) {
+            let removedCommand = this.commands.splice(checkResult.index_to_remove, 1);
+            console.log(`AVPlayer ${JSON.stringify(removedCommand)} removed.`);
+            return;
+        }
+        this.commands.push({ func: ()=>{
+            console.info('AVPlayer.play()');
+            this.avPlayer?.play();
+        }, name: commandName});
+        this.schedule();
     }
     pause() {
-        console.info('AVPlayer.pause()');
-        this.avPlayer?.pause()
+        let commandName = 'pause';
+        let checkResult = this.checkCommand(commandName, 'play');
+        console.log(`checkResult:${JSON.stringify(checkResult)}`);
+        if (checkResult.ignore) {
+            console.log(`AVPlayer ${commandName} ignored.`);
+            this.schedule();
+            return;
+        }
+        if (checkResult.index_to_remove >= 0) {
+            let removedCommand = this.commands.splice(checkResult.index_to_remove, 1);
+            console.log(`AVPlayer ${JSON.stringify(removedCommand)} removed.`);
+            return;
+        }
+        this.commands.push({ func: ()=>{
+            console.info('AVPlayer.pause()');
+            this.avPlayer?.pause();
+        }, name: commandName});
+        this.schedule();
     }
     release() {
-        console.info('AVPlayer.release()');
-        this.avPlayer?.release();
+        this.commands.push({ func: ()=>{
+            console.info('AVPlayer.release()');
+            this.avPlayer?.release();
+        }});
+        this.schedule();
     }
     seek(time: number) {
-        console.info('AVPlayer.seek (' + time + ')');
-        this.listener?.onSeeking();
-        this.avPlayer?.seek(time * 1000);
+        this.commands.push({ func: ()=>{
+            console.info(`AVPlayer.seek(${time})`);
+            this.avPlayer?.seek(time * 1000);
+        }});
+        this.schedule();
     }
-    setVolume(number: number) {
-        console.info('AVPlayer.setVolume(' + number + ')');
-        this.avPlayer?.setVolume(number)
+    setVolume(volume: number) {
+        this.commands.push({ func: ()=>{
+            console.info(`AVPlayer.setVolume(${volume})`);
+            this.avPlayer?.setVolume(volume);
+        }});
+        this.schedule();
+    }
+    setPlaybackRate(playbackRate: number) {
+        let speed = media.PlaybackSpeed.SPEED_FORWARD_1_00_X;
+        let delta = 0.05;
+        playbackRate += delta;
+        if (playbackRate < 1) {
+            speed = media.PlaybackSpeed.SPEED_FORWARD_0_75_X;
+        } else if (playbackRate < 1.25) {
+            speed = media.PlaybackSpeed.SPEED_FORWARD_1_00_X;
+        } else if (playbackRate < 1.5) {
+            speed = media.PlaybackSpeed.SPEED_FORWARD_1_25_X;
+        } else if (playbackRate < 2) {
+            speed = media.PlaybackSpeed.SPEED_FORWARD_1_75_X;
+        } else {
+            speed = media.PlaybackSpeed.SPEED_FORWARD_2_00_X;
+        }
+        this.commands.push({ func: ()=>{
+            console.info(`AVPlayer.setSpeed(${speed})`);
+            this.avPlayer?.setSpeed(speed);
+        }});
+        this.schedule();
     }
     setSpeed(speed: number){
-        this.avPlayer?.setSpeed(speed)
+        this.commands.push({ func: ()=>{
+            console.info(`AVPlayer.setSpeed(${speed})`);
+            this.avPlayer?.setSpeed(speed);
+        }});
+        this.schedule();
     }
 }
+
 class NativeMediaPlayerHandlerImpl implements webview.NativeMediaPlayerHandler {
 
     private rawHandler: webview.NativeMediaPlayerHandler;
@@ -1202,7 +1324,7 @@ struct WebComponent {
                       case 'emitWebViewNativeMediaPlayerNetworkStateError': {
                         networkState = 3
                         this.controller.loadUrl($rawfile('nativeMediaError.html'))
-                        await Utils.sleep(5000)
+                        await Utils.sleep(1000)
                         this.controller.runJavaScript('buttonPlay()', (error, result) => {
                             console.error(`The buttonPlay() return error is: ${error}`);
                             console.log(`The buttonPlay() return value is: ${result}`);

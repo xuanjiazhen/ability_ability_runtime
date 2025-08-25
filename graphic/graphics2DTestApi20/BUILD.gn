@@ -13,6 +13,13 @@
 
 import("//test/xts/tools/build/suite.gni")
 
+ohos_js_app_suite("ActsGraphics2DApi20MainTest") {
+  testonly = true
+  certificate_profile = "./signature/openharmony_sx.p7b"
+  hap_name = "ActsGraphics2DApi20MainTest"
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
 ohos_js_app_suite("ActsGraphics2DApi20Test") {
   test_hap = true
   testonly = true

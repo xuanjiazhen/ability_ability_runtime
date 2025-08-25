@@ -91,17 +91,32 @@ struct WebViewMenuShowResult {
               let webRect = Utils.getComponentRect('WebViewMenuShowResultTestWebView');
               let X = Utils.getRectHorizontalCenterX(webRect)
               let Y = Utils.getRectVerticalCenterY(webRect)
-              await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              if ((this.userAgentPC).includes("PC")) {
+                //点击第二个input框copy聚焦
+                await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              } else {
+                let buttonOne = await driver.findComponent(ON.text('1301234'));
+                let point = await buttonOne.getBoundsCenter();
+                await driver.mouseClick(point, MouseButton.MOUSE_BUTTON_RIGHT);
+              }
               await Utils.sleep(2000);
               this.menuShowState = 'Copy'
-              await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              if ((this.userAgentPC).includes("PC")) {
+                //点击第二个input框copy聚焦
+                await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              } else {
+                let buttonOne = await driver.findComponent(ON.text('1301234'));
+                let point = await buttonOne.getBoundsCenter();
+                await driver.mouseClick(point, MouseButton.MOUSE_BUTTON_RIGHT);
+              }
               await Utils.sleep(2000);
               this.menuShowState = 'copyPastetest'
               await Utils.sleep(2000);
               if ((this.userAgentPC).includes("PC")) {
                 await driver.mouseClick({ x: webRect.left + 120, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT)
               } else {
-                await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 40 }, MouseButton.MOUSE_BUTTON_RIGHT)
+                //点击第一个input框粘贴
+                await driver.mouseClick({ x: webRect.left + 160, y: webRect.top + 40 }, MouseButton.MOUSE_BUTTON_RIGHT)
               }
               await Utils.sleep(2000);
               break;
@@ -143,16 +158,31 @@ struct WebViewMenuShowResult {
               let webRect = Utils.getComponentRect('WebViewMenuShowResultTestWebView');
               let X = Utils.getRectHorizontalCenterX(webRect)
               let Y = Utils.getRectVerticalCenterY(webRect)
-              await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              if ((this.userAgentPC).includes("PC")) {
+                await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              } else {
+                //点击第二个input框copy聚焦
+                let buttonOne = await driver.findComponent(ON.text('1301234'));
+                let point = await buttonOne.getBoundsCenter();
+                await driver.mouseClick(point, MouseButton.MOUSE_BUTTON_RIGHT);
+              }
               await Utils.sleep(2000);
               this.menuShowState = 'Copy'
-              await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              if ((this.userAgentPC).includes("PC")) {
+                await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              } else {
+                //点击第二个input框copy聚焦
+                let buttonOne = await driver.findComponent(ON.text('1301234'));
+                let point = await buttonOne.getBoundsCenter();
+                await driver.mouseClick(point, MouseButton.MOUSE_BUTTON_RIGHT);
+              }
               await Utils.sleep(2000);
               this.menuShowState = 'copyPaste'
               await Utils.sleep(2000);
               if ((this.userAgentPC).includes("PC")) {
                 await driver.mouseClick({ x: webRect.left + 120, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT)
               } else {
+                //点击第一个input框粘贴
                 await driver.mouseClick({ x: webRect.left + 120, y: webRect.top + 40 }, MouseButton.MOUSE_BUTTON_RIGHT)
               }
               await Utils.sleep(2000);
@@ -179,10 +209,23 @@ struct WebViewMenuShowResult {
               let driver = Driver.create();
               let X = Utils.getRectHorizontalCenterX(webRect)
               let Y = Utils.getRectVerticalCenterY(webRect)
-              await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              if ((this.userAgentPC).includes("PC")) {
+                await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              } else {
+                let buttonOne = await driver.findComponent(ON.text('1301234'));
+                let point = await buttonOne.getBoundsCenter();
+                await driver.mouseClick(point, MouseButton.MOUSE_BUTTON_RIGHT);
+              }
               await Utils.sleep(2000);
               this.menuShowState = 'Cut'
-              await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              if ((this.userAgentPC).includes("PC")) {
+                await driver.mouseClick({ x: X, y: Y }, MouseButton.MOUSE_BUTTON_RIGHT);
+              } else {
+                //点击第二个input框copy聚焦
+                let buttonOne = await driver.findComponent(ON.text('1301234'));
+                let point = await buttonOne.getBoundsCenter();
+                await driver.mouseClick(point, MouseButton.MOUSE_BUTTON_RIGHT);
+              }
               await Utils.sleep(2000);
               this.menuShowState = 'cutPaste'
               await Utils.sleep(2000);

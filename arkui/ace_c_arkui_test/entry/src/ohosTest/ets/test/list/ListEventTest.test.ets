@@ -50,7 +50,7 @@ async function mouseScrollV(key: string, isDown: boolean, done?: Function) {
   let centerY = Math.round(globalThis.winTop + Utils.getRectVerticalCenterY(rect));
   await driver.mouseScroll({
     x: centerX, y: centerY
-  }, isDown, 10);
+  }, isDown, 1);
   if (done) {
     done();
   }
@@ -69,6 +69,8 @@ export default function listEventTest() {
     * @tc.level      : Level 1
     */
     it('testListOnScroll003', Level.LEVEL1, async (done: Function) => {
+      await Utils.pushPage(`list/ListEmptyTest`)
+      await Utils.sleep(2000)
       await Utils.pushPage(`list/ListOnScrollTest`);
       // Scroll the mouse backwards
       await mouseScrollV('list', true, () => {

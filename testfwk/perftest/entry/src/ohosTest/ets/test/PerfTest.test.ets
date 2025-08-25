@@ -285,7 +285,8 @@ export default function PerfTestTest() {
       }
       let metrics: Array<PerfMetric> = [PerfMetric.DURATION, PerfMetric.APP_START_RESPONSE_TIME, PerfMetric.APP_START_COMPLETE_TIME]
       let actionCode = async (finish: Callback<boolean>) => {
-        await btn1.click()
+        let point = await btn1.getBoundsCenter()
+        await driver.click(point.x , point.y - 50)
         await driver.delayMs(1000)
         finish(true)
       }

@@ -15,8 +15,11 @@
 
 import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@ohos/hypium';
 import router from '@ohos.router';
+import { Driver, ON } from '@kit.TestKit';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { waitForComponent } from './WaitTest.test';
+
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 
@@ -35,12 +38,12 @@ export default function webResourceResponseSet() {
         if (!("webController" == pages.name)) {
           console.info("get webResourceResponseSet state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push webResourceResponseSet page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webResourceResponseSet page error: " + err);
       }
+      await waitForComponent('"WebResourceResponseSetButton"');
       done()
     });
 
@@ -50,7 +53,6 @@ export default function webResourceResponseSet() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("webResourceResponseSet beforeEach start");
       done();
     })
@@ -64,9 +66,8 @@ export default function webResourceResponseSet() {
     * @tc.level      : Level 0
     */
     it('testSetResponseData001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent("testSetResponseData001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetResponseData001", true, 36010, done);
+      Utils.emitEvent("testSetResponseData001", 14049)
+      Utils.registerEvent("testSetResponseData001", true, 14050, done);
       sendEventByKey('WebResourceResponseSetButton', 10, '');
     })
 
@@ -79,9 +80,8 @@ export default function webResourceResponseSet() {
     * @tc.level      : Level 1
     */
     it('testSetResponseEncoding001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testSetResponseEncoding001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetResponseEncoding001", '', 36011, done);
+      Utils.emitEvent("testSetResponseEncoding001", 14049)
+      Utils.registerEvent("testSetResponseEncoding001", '', 14051, done);
       sendEventByKey('WebResourceResponseSetButton', 10, '');
     })
 
@@ -94,9 +94,8 @@ export default function webResourceResponseSet() {
     * @tc.level      : Level 1
     */
     it('testSetResponseMimeType001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testSetResponseMimeType001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetResponseMimeType001", "text/html", 36012, done);
+      Utils.emitEvent("testSetResponseMimeType001", 14049)
+      Utils.registerEvent("testSetResponseMimeType001", "text/html", 14052, done);
       sendEventByKey('WebResourceResponseSetButton', 10, '');
     })
 
@@ -109,9 +108,8 @@ export default function webResourceResponseSet() {
     * @tc.level      : Level 1
     */
     it('testSetReasonMessage001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testSetReasonMessage001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetReasonMessage001", "OK", 36013, done);
+      Utils.emitEvent("testSetReasonMessage001", 14049)
+      Utils.registerEvent("testSetReasonMessage001", "OK", 14053, done);
       sendEventByKey('WebResourceResponseSetButton', 10, '');
     })
 
@@ -124,9 +122,8 @@ export default function webResourceResponseSet() {
     * @tc.level      : Level 1
     */
     it('testSetResponseHeader001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testSetResponseHeader001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetResponseHeader001", true, 36014, done);
+      Utils.emitEvent("testSetResponseHeader001", 14049)
+      Utils.registerEvent("testSetResponseHeader001", true, 14054, done);
       sendEventByKey('WebResourceResponseSetButton', 10, '');
     })
 
@@ -139,9 +136,8 @@ export default function webResourceResponseSet() {
     * @tc.level      : Level 1
     */
     it('testSetResponseCode001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testSetResponseCode001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetResponseCode001", 403, 36015, done);
+      Utils.emitEvent("testSetResponseCode001", 14049)
+      Utils.registerEvent("testSetResponseCode001", 403, 14055, done);
       sendEventByKey('WebResourceResponseSetButton', 10, '');
     })
 
@@ -154,9 +150,8 @@ export default function webResourceResponseSet() {
     * @tc.level      : Level 1
     */
     it('testSetResponseIsReady001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testSetResponseIsReady001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetResponseIsReady001", 'test', 36016, done);
+      Utils.emitEvent("testSetResponseIsReady001", 14049)
+      Utils.registerEvent("testSetResponseIsReady001", 'test', 14056, done);
       sendEventByKey('WebResourceResponseSetButton', 10, '');
     })
 
@@ -169,9 +164,8 @@ export default function webResourceResponseSet() {
     * @tc.level      : Level 1
     */
     it('testSetResponseIsReady002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testSetResponseIsReady002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testSetResponseIsReady002", "intercept test", 36017, done);
+      Utils.emitEvent("testSetResponseIsReady002", 14049)
+      Utils.registerEvent("testSetResponseIsReady002", "intercept test", 14057, done);
       sendEventByKey('WebResourceResponseSetButton', 10, '');
     })
 

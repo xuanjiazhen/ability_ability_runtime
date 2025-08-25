@@ -18,6 +18,8 @@ import { Driver, ON, MatchPattern } from '@ohos.UiTest'
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
 import { abilityAccessCtrl, PermissionRequestResult, Permissions } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { resourceManager } from '@kit.LocalizationKit';
+import common from '@ohos.app.ability.common';
 
 const Tag = 'audio_ndk_test:'
 const TEST_PASS = 0; // success result
@@ -66,11 +68,15 @@ let driveFn = async () => {
   await sleep(500);
 }
 
+let sleepForPermissions = async () => {
+  console.info('getPermission sleep start: 10000ms')
+  await sleep(10000)
+  console.info('getPermission sleep end: 10000ms')
+}
+
 export default function audioNDK() {
   describe('audioNDKTest', () => {
-    beforeAll(async () => {
-      await getPermission();
-      await driveFn();
+    beforeAll(() => {      
       console.info('beforeAll case');
     })
 
@@ -112,6 +118,20 @@ export default function audioNDK() {
     it('SUB_MULTIMEDIA_AUDIO_NDK_GENERATE_CAPTURER_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let result = myaudioNdk.audioCaptureGenerate();
       console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_GENERATE_CAPTURER_0100 audioCapture builder result: ${result}`);
+      expect(result).assertEqual(0)
+      done()
+    })
+    /* *
+        * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_WORK_GROUP_0100
+        * @tc.name      : generate audioCapturer with OH_AudioStreamBuilder_GenerateCapturer
+        * @tc.desc      : test OH_AudioStreamBuilder_GenerateCapturer
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        * @tc.level     : Level 0
+    */
+    it('SUB_MULTIMEDIA_AUDIO_NDK_WORK_GROUP_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioWorkGroup();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_WORK_GROUP_0100 audioWorkGroup builder result: ${result}`);
       expect(result).assertEqual(0)
       done()
     })
@@ -4287,5 +4307,97 @@ export default function audioNDK() {
       expect(result).assertEqual(TEST_PASS)
       done()
     })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIORENDERER_WRITEONCALLBACKENHANCE_0100
+     * @tc.name      : SUB_MULTIMEDIA_AUDIORENDERER_WRITEONCALLBACKENHANCE_0100
+     * @tc.desc      : test WRITEONCALLBACKENHANCE
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIORENDERER_WRITEONCALLBACKENHANCE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
+      async (done: Function) => {
+        let testContext = AppStorage.get<common.UIAbilityContext>('testContext') as common.UIAbilityContext;
+        let resMgr: resourceManager.ResourceManager = testContext!.resourceManager;
+        let fileList: Array<String> = myaudioNdk.getFileList(resMgr, '');
+
+        let fileName: string = fileList.filter((file: String) => {return file === 'S16LE.pcm';})?.[0] as string;
+
+        try {
+          let fileSize: number = 6156288;
+          let getRawFileContent: number = myaudioNdk.GetRawFileContent(resMgr, fileName).byteLength;
+          expect(getRawFileContent).assertEqual(fileSize);
+        } catch (error) {
+          console.info(`getRawFileContent ERROR: ${error.message}`);
+          expect().assertFail();
+        }
+
+        try {
+          let res: number = myaudioNdk.AudioLowLatencyOut();
+          expect(Boolean(res)).assertTrue();
+        } catch (error) {
+          console.info(`AudioLowLatencyOut ERROR: ${error.message}`);
+          expect().assertFail();
+        }
+
+        try {
+          myaudioNdk.StartAudioRenderer();
+        } catch (error) {
+          console.info(`StartAudioRenderer ERROR: ${error.message}`);
+          expect().assertFail();
+        }
+
+        await sleep(1000);
+
+        myaudioNdk.StopAndReleaseRenderer();
+        expect(true).assertTrue();
+        done();
+      })
+      /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIORENDERER_AUDIOWORKGROUPSET_0100
+     * @tc.name      : SUB_MULTIMEDIA_AUDIORENDERER_AUDIOWORKGROUPSET_0100
+     * @tc.desc      : test WRITEONCALLBACKENHANCE
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIORENDERER_AUDIOWORKGROUPSET_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
+      async (done: Function) => {
+        let testContext = AppStorage.get<common.UIAbilityContext>('testContext') as common.UIAbilityContext;
+        let resMgr: resourceManager.ResourceManager = testContext!.resourceManager;
+        let fileList: Array<String> = myaudioNdk.getFileList(resMgr, '');
+
+        let fileName: string = fileList.filter((file: String) => {return file === 'S16LE.pcm';})?.[0] as string;
+
+        try {
+          let fileSize: number = 6156288;
+          let getRawFileContent: number = myaudioNdk.GetRawFileContent(resMgr, fileName).byteLength;
+          expect(getRawFileContent).assertEqual(fileSize);
+        } catch (error) {
+          console.info(`getRawFileContent ERROR: ${error.message}`);
+          expect().assertFail();
+        }
+
+        try {
+          let res: number = myaudioNdk.AudioWorkGroupSet();
+          expect(Boolean(res)).assertTrue();
+        } catch (error) {
+          console.info(`AudioWorkGroupSet ERROR: ${error.message}`);
+          expect().assertFail();
+        }
+
+        try {
+          myaudioNdk.StartAudioRenderer();
+        } catch (error) {
+          console.info(`StartAudioRenderer ERROR: ${error.message}`);
+          expect().assertFail();
+        }
+        await sleep(1000);
+        myaudioNdk.StopAndReleaseRenderer();
+        console.info(`Tag: SUB_MULTIMEDIA_AUDIORENDERER_AUDIOWORKGROUPSET_0100 StopAndReleaseRenderer`);
+        expect(true).assertTrue();
+        done();
+      })
   })
 }

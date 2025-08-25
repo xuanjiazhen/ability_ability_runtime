@@ -173,26 +173,22 @@ async function getVideoSurfaceId() {
 }
 
 async function videoSessionCommitConfig(testName: string) {
-  if (isEmpty(mPreviewProfile)) {
-    console.info(TAG, testName + ' no same resolution preview.');
-    expect(isEmpty(mPreviewProfile)).assertTrue();
-  } else {
-    await getVideoSurfaceId();
-    mPreviewOutput = mCameraManager.createPreviewOutput(mPreviewProfile, mVideoSurfaceId);
-    mVideoOutput = mCameraManager.createVideoOutput(mVideoProfile, mVideoSurfaceId);
-    mVideoSession.beginConfig();
-    console.info(TAG, testName + ' beginConfig passed.');
-    mVideoSession.addInput(mCameraInput);
-    console.info(TAG, testName + ' addInput passed.');
-    await mCameraInput.open();
-    console.info(TAG, testName + ' camera open passed.');
-    mVideoSession.addOutput(mPreviewOutput);
-    console.info(TAG, testName + ' addOutput previewOutput passed.');
-    mVideoSession.addOutput(mVideoOutput);
-    console.info(TAG, testName + ' addOutput videoOutput passed.');
-    await mVideoSession.commitConfig();
-    console.info(TAG, testName + ' session commitConfig successfully.');
-  }
+  console.info(TAG, 'videoSessionCommitConfig.');
+  await getVideoSurfaceId();
+  mPreviewOutput = mCameraManager.createPreviewOutput(mPreviewProfile, mVideoSurfaceId);
+  mVideoOutput = mCameraManager.createVideoOutput(mVideoProfile, mVideoSurfaceId);
+  mVideoSession.beginConfig();
+  console.info(TAG, testName + ' beginConfig passed.');
+  mVideoSession.addInput(mCameraInput);
+  console.info(TAG, testName + ' addInput passed.');
+  await mCameraInput.open();
+  console.info(TAG, testName + ' camera open passed.');
+  mVideoSession.addOutput(mPreviewOutput);
+  console.info(TAG, testName + ' addOutput previewOutput passed.');
+  mVideoSession.addOutput(mVideoOutput);
+  console.info(TAG, testName + ' addOutput videoOutput passed.');
+  await mVideoSession.commitConfig();
+  console.info(TAG, testName + ' session commitConfig successfully.');
 }
 
 async function beforeCommit(testName: string, previewOutput: camera.PreviewOutput, videoOutput: camera.VideoOutput) {
@@ -232,6 +228,11 @@ async function onErrorListen(testName: string) {
 async function commitPreconfigCallback(done: Function, testName: string, type: camera.PreconfigType,
   ratio: camera.PreconfigRatio) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -275,6 +276,11 @@ async function commitPreconfigCallback(done: Function, testName: string, type: c
 async function commitPreconfigCallbackAbnormal(done: Function, testName: string,
   type: camera.PreconfigType | undefined | null, ratio: camera.PreconfigRatio | undefined | null) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -318,6 +324,11 @@ async function commitPreconfigCallbackAbnormal(done: Function, testName: string,
 async function commitPreconfigPromise(done: Function, testName: string, type: camera.PreconfigType,
   ratio: camera.PreconfigRatio) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -359,6 +370,11 @@ async function commitPreconfigPromise(done: Function, testName: string, type: ca
 async function commitPreconfigPromiseAbnormal(done: Function, testName: string,
   type: camera.PreconfigType | undefined | null, ratio: camera.PreconfigRatio | undefined | null) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -400,6 +416,11 @@ async function commitPreconfigPromiseAbnormal(done: Function, testName: string,
 async function addOutputPreview(done: Function, testName: string, type: camera.PreconfigType | undefined | null,
   ratio: camera.PreconfigRatio | undefined | null) {
   console.info(TAG, testName + ' begin.');
+  if (!checkBackCamera()) {
+    console.info(TAG, testName + ' the current device does not have a rear camera.');
+    done();
+    return;
+  }
   try {
     if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
       console.info(TAG, testName + ' cameraManager is null.');
@@ -410,6 +431,7 @@ async function addOutputPreview(done: Function, testName: string, type: camera.P
       let result = mVideoSession.canPreconfig(type as camera.PreconfigType, ratio as camera.PreconfigRatio);
       if (!result) {
         console.info(TAG, testName + ' the camera of this device does not support pre configuration.');
+        await mVideoSession.release();
         done();
         return;
       }
@@ -474,6 +496,11 @@ export default function CameraVideoSessionBackTest() {
     it('beginConfig_video_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'beginConfig_video_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -504,6 +531,11 @@ export default function CameraVideoSessionBackTest() {
     it('addInput_removeInput_video_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'addInput_removeInput_video_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -613,6 +645,11 @@ export default function CameraVideoSessionBackTest() {
     it('commitConfig_video_callback_back_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'commitConfig_video_callback_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -661,6 +698,11 @@ export default function CameraVideoSessionBackTest() {
     it('commitConfig_video_promise_back_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'commitConfig_video_promise_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -801,6 +843,11 @@ export default function CameraVideoSessionBackTest() {
     it('addOutput_video_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'addOutput_video_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -845,6 +892,11 @@ export default function CameraVideoSessionBackTest() {
     it('removeOutput_video_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'removeOutput_video_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -898,23 +950,27 @@ export default function CameraVideoSessionBackTest() {
           console.info(TAG, testName + ' cameraManager is null.');
           expect().assertFail();
         } else {
-          expect(isEmpty(mVideoSession)).assertFalse();
-          console.info(TAG, testName + ' session created successfully.');
-          await videoSessionCommitConfig(testName);
-          mVideoSession.start((error) => {
-            if (error !== undefined && error.code !== 0) {
-              console.error(TAG,
-                testName + ' failed to start, err: ' + error.code + ', msg: ' + error.message);
-              expect(error.code == cameraErrorCode.SESSION_NOT_CONFIG).assertFail();
-              done();
-            } else {
-              console.info(TAG, testName + ' session start passed.');
-              expect(true).assertTrue();
-            }
-          });
-          await mVideoSession.stop();
-          console.info(TAG, testName + ' session stop passed.');
-          await mVideoSession.release();
+          if (isEmpty(mPreviewProfile)) {
+            console.info(TAG, testName + ' no same resolution preview.');
+            expect(isEmpty(mPreviewProfile)).assertTrue();
+          } else {
+            expect(isEmpty(mVideoSession)).assertFalse();
+            console.info(TAG, testName + ' session created successfully.');
+            await videoSessionCommitConfig(testName);
+            mVideoSession.start((error) => {
+              if (error !== undefined && error.code !== 0) {
+                console.error(TAG, testName + ' failed to start, err: ' + error.code + ', msg: ' + error.message);
+                expect(error.code == cameraErrorCode.SESSION_NOT_CONFIG).assertTrue();
+                done();
+              } else {
+                console.info(TAG, testName + ' session start passed.');
+                expect(true).assertTrue();
+              }
+            });
+            await mVideoSession.stop();
+            console.info(TAG, testName + ' session stop passed.');
+            await mVideoSession.release();
+          }
         }
         done();
       } catch (error) {
@@ -946,21 +1002,25 @@ export default function CameraVideoSessionBackTest() {
           console.info(TAG, testName + ' cameraManager is null.');
           expect().assertFail();
         } else {
-          expect(isEmpty(mVideoSession)).assertFalse();
-          console.info(TAG, testName + ' session created successfully.');
-          await videoSessionCommitConfig(testName);
-          await mVideoSession.start().then(() => {
-            console.info(TAG, testName + ' session start passed.');
-            expect(true).assertTrue();
-          }).catch((error: BusinessError) => {
-            console.error(TAG,
-              testName + ' failed to start, err: ' + error.code + ', msg: ' + error.message);
-            expect().assertFail();
-            done();
-          })
-          await mVideoSession.stop();
-          console.info(TAG, testName + ' session stop passed.');
-          await mVideoSession.release();
+          if (isEmpty(mPreviewProfile)) {
+            console.info(TAG, testName + ' no same resolution preview.');
+            expect(isEmpty(mPreviewProfile)).assertTrue();
+          } else {
+            expect(isEmpty(mVideoSession)).assertFalse();
+            console.info(TAG, testName + ' session created successfully.');
+            await videoSessionCommitConfig(testName);
+            await mVideoSession.start().then(() => {
+              console.info(TAG, testName + ' session start passed.');
+              expect(true).assertTrue();
+            }).catch((error: BusinessError) => {
+              console.error(TAG, testName + ' failed to start, err: ' + error.code + ', msg: ' + error.message);
+              expect().assertFail();
+              done();
+            })
+            await mVideoSession.stop();
+            console.info(TAG, testName + ' session stop passed.');
+            await mVideoSession.release();
+          }
         }
         done();
       } catch (error) {
@@ -982,6 +1042,11 @@ export default function CameraVideoSessionBackTest() {
     it('start_video_callback_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'start_video_callback_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -989,11 +1054,12 @@ export default function CameraVideoSessionBackTest() {
         } else {
           expect(isEmpty(mVideoSession)).assertFalse();
           console.info(TAG, testName + ' session created successfully.');
-          mVideoSession.start((error) => {
+          mVideoSession.start(async (error) => {
             if (error !== undefined && error.code !== 0) {
               console.error(TAG,
                 testName + ' failed to start, err: ' + error.code + ', msg: ' + error.message);
               expect(error.code == cameraErrorCode.SESSION_NOT_CONFIG).assertTrue();
+              await mVideoSession.release();
               done();
             } else {
               console.info(TAG, testName + ' session start passed.');
@@ -1007,8 +1073,8 @@ export default function CameraVideoSessionBackTest() {
         done();
       } catch (error) {
         console.error(TAG, testName + ' failed. err: ' + error.code + ', msg: ' + error.message);
-        expect().assertFail();
         await mVideoSession.release();
+        expect().assertFail();
         done();
       }
     })
@@ -1024,6 +1090,11 @@ export default function CameraVideoSessionBackTest() {
     it('start_video_promise_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'start_video_promise_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1066,23 +1137,27 @@ export default function CameraVideoSessionBackTest() {
           console.info(TAG, testName + ' cameraManager is null.');
           expect().assertFail();
         } else {
-          expect(isEmpty(mVideoSession)).assertFalse();
-          console.info(TAG, testName + ' session created successfully.');
-          await videoSessionCommitConfig(testName);
-          await mVideoSession.start();
-          console.info(TAG, testName + ' session start successfully.');
-          mVideoSession.stop((error) => {
-            if (error !== undefined && error.code !== 0) {
-              console.error(TAG,
-                testName + ' failed to stop, err: ' + error.code + ', msg: ' + error.message);
-              expect(error.code == cameraErrorCode.SESSION_NOT_CONFIG).assertTrue();
-              done();
-            } else {
-              console.info(TAG, testName + ' session stop passed.');
-              expect(true).assertTrue();
-            }
-          });
-          await mVideoSession.release();
+          if (isEmpty(mPreviewProfile)) {
+            console.info(TAG, testName + ' no same resolution preview.');
+            expect(isEmpty(mPreviewProfile)).assertTrue();
+          } else {
+            expect(isEmpty(mVideoSession)).assertFalse();
+            console.info(TAG, testName + ' session created successfully.');
+            await videoSessionCommitConfig(testName);
+            await mVideoSession.start();
+            console.info(TAG, testName + ' session start successfully.');
+            mVideoSession.stop((error) => {
+              if (error !== undefined && error.code !== 0) {
+                console.error(TAG, testName + ' failed to stop, err: ' + error.code + ', msg: ' + error.message);
+                expect(error.code == cameraErrorCode.SESSION_NOT_CONFIG).assertTrue();
+                done();
+              } else {
+                console.info(TAG, testName + ' session stop passed.');
+                expect(true).assertTrue();
+              }
+            });
+            await mVideoSession.release();
+          }
         }
         done();
       } catch (error) {
@@ -1114,20 +1189,24 @@ export default function CameraVideoSessionBackTest() {
           console.info(TAG, testName + ' cameraManager is null.');
           expect().assertFail();
         } else {
-          expect(isEmpty(mVideoSession)).assertFalse();
-          console.info(TAG, testName + ' session created successfully.');
-          await videoSessionCommitConfig(testName);
-          await mVideoSession.start();
-          await mVideoSession.stop().then(() => {
-            console.info(TAG, testName + ' session start passed.');
-            expect(true).assertTrue();
-          }).catch((error: BusinessError) => {
-            console.error(TAG,
-              testName + ' failed to stop, err: ' + error.code + ', msg: ' + error.message);
-            expect().assertFail();
-            done();
-          });
-          await mVideoSession.release();
+          if (isEmpty(mPreviewProfile)) {
+            console.info(TAG, testName + ' no same resolution preview.');
+            expect(isEmpty(mPreviewProfile)).assertTrue();
+          } else {
+            expect(isEmpty(mVideoSession)).assertFalse();
+            console.info(TAG, testName + ' session created successfully.');
+            await videoSessionCommitConfig(testName);
+            await mVideoSession.start();
+            await mVideoSession.stop().then(() => {
+              console.info(TAG, testName + ' session start passed.');
+              expect(true).assertTrue();
+            }).catch((error: BusinessError) => {
+              console.error(TAG, testName + ' failed to stop, err: ' + error.code + ', msg: ' + error.message);
+              expect().assertFail();
+              done();
+            });
+            await mVideoSession.release();
+          }
         }
         done();
       } catch (error) {
@@ -1149,6 +1228,11 @@ export default function CameraVideoSessionBackTest() {
     it('stop_video_callback_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'stop_video_callback_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1193,6 +1277,11 @@ export default function CameraVideoSessionBackTest() {
     it('stop_video_promise_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'stop_video_promise_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1234,6 +1323,11 @@ export default function CameraVideoSessionBackTest() {
     it('release_video_session_callback_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'release_video_session_callback_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1270,6 +1364,11 @@ export default function CameraVideoSessionBackTest() {
     it('release_video_session_promise_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'release_video_session_promise_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1305,6 +1404,11 @@ export default function CameraVideoSessionBackTest() {
     it('on_off_error_listen_video_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_error_listen_video_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1335,6 +1439,11 @@ export default function CameraVideoSessionBackTest() {
     it('on_off_error_listen_video_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_error_listen_video_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1368,6 +1477,11 @@ export default function CameraVideoSessionBackTest() {
     it('beginConfig_video_abnormal_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'beginConfig_video_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1401,6 +1515,11 @@ export default function CameraVideoSessionBackTest() {
     it('commitConfig_video_callback_abnormal_back_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'commitConfig_video_callback_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1441,26 +1560,36 @@ export default function CameraVideoSessionBackTest() {
     it('commitConfig_video_callback_abnormal_back_002', Level.LEVEL2, async (done: Function) => {
       const testName = 'commitConfig_video_callback_abnormal_back_002';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
           expect().assertFail();
         } else {
-          expect(isEmpty(mVideoSession)).assertFalse();
-          console.info(TAG, testName + ' session created successfully.');
-          await videoSessionCommitConfig(testName);
-          mVideoSession.commitConfig((error) => {
-            if (error !== undefined && error.code !== 0) {
-              console.error(TAG,
-                testName + ' failed to commitConfig, err: ' + error.code + ', msg: ' + error.message);
-              expect(error.code == cameraErrorCode.OPERATION_NOT_ALLOWED).assertTrue();
-              done();
-            } else {
-              console.info(TAG, testName + ' session commitConfig passed.');
-              expect(true).assertTrue();
-            }
-          });
-          await mVideoSession.release();
+          if (isEmpty(mPreviewProfile)) {
+            console.info(TAG, testName + ' no same resolution preview.');
+            expect(isEmpty(mPreviewProfile)).assertTrue();
+          } else {
+            expect(isEmpty(mVideoSession)).assertFalse();
+            console.info(TAG, testName + ' session created successfully.');
+            await videoSessionCommitConfig(testName);
+            mVideoSession.commitConfig((error) => {
+              if (error !== undefined && error.code !== 0) {
+                console.error(TAG,
+                  testName + ' failed to commitConfig, err: ' + error.code + ', msg: ' + error.message);
+                expect(error.code == cameraErrorCode.OPERATION_NOT_ALLOWED).assertTrue();
+                done();
+              } else {
+                console.info(TAG, testName + ' session commitConfig passed.');
+                expect(true).assertTrue();
+              }
+            });
+            await mVideoSession.release();
+          }
         }
         done();
       } catch (error) {
@@ -1482,6 +1611,11 @@ export default function CameraVideoSessionBackTest() {
     it('commitConfig_video_promise_abnormal_back_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'commitConfig_video_promise_abnormal_back_001';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
@@ -1519,24 +1653,34 @@ export default function CameraVideoSessionBackTest() {
     it('commitConfig_video_promise_abnormal_back_002', Level.LEVEL2, async (done: Function) => {
       const testName = 'commitConfig_video_promise_abnormal_back_002';
       console.info(TAG, testName + ' begin.');
+      if (!checkBackCamera()) {
+        console.info(TAG, testName + ' the current device does not have a rear camera.');
+        done();
+        return;
+      }
       try {
         if (isEmpty(mCameraManager) && isEmpty(mSupportedModes)) {
           console.info(TAG, testName + ' cameraManager is null.');
           expect().assertFail();
         } else {
-          expect(isEmpty(mVideoSession)).assertFalse();
-          console.info(TAG, testName + ' session created successfully.');
-          await videoSessionCommitConfig(testName);
-          await mVideoSession.commitConfig().then(async () => {
-            console.info(TAG, testName + ' session commitConfig successfully.');
-            expect(true).assertTrue();
-          }).catch((error: BusinessError) => {
-            console.error(TAG,
-              testName + ' failed to commit the config, err: ' + error.code + ', msg: ' + error.message);
-            expect(error.code == cameraErrorCode.OPERATION_NOT_ALLOWED).assertTrue();
-            done();
-          });
-          await mVideoSession.release();
+          if (isEmpty(mPreviewProfile)) {
+            console.info(TAG, testName + ' no same resolution preview.');
+            expect(isEmpty(mPreviewProfile)).assertTrue();
+          } else {
+            expect(isEmpty(mVideoSession)).assertFalse();
+            console.info(TAG, testName + ' session created successfully.');
+            await videoSessionCommitConfig(testName);
+            await mVideoSession.commitConfig().then(async () => {
+              console.info(TAG, testName + ' session commitConfig successfully.');
+              expect(true).assertTrue();
+            }).catch((error: BusinessError) => {
+              console.error(TAG,
+                testName + ' failed to commit the config, err: ' + error.code + ', msg: ' + error.message);
+              expect(error.code == cameraErrorCode.OPERATION_NOT_ALLOWED).assertTrue();
+              done();
+            });
+            await mVideoSession.release();
+          }
         }
         done();
       } catch (error) {

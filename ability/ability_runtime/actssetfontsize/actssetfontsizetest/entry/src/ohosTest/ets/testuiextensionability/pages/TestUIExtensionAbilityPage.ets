@@ -22,7 +22,7 @@ struct TestUIExtensionAbilityPage {
     Row() {
       Column() {
         Text(this.message)
-          .fontSize(15)
+          .fontSize('1%')
           .fontWeight(FontWeight.Bold)
           .onClick(() => {
             this.message = 'Welcome';

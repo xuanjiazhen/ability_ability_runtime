@@ -32,7 +32,6 @@ async function closePromiseTest(done: Function, testName: string, fetchOps: phot
       done();
     }
     fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `${testName} failed; error: ${error}`);

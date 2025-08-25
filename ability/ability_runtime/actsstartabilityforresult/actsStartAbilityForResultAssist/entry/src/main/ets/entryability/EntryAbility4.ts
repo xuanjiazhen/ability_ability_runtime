@@ -30,7 +30,21 @@ export default class EntryAbility4 extends UIAbility {
       hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbilityForResult_5000 publish EntryAbility4_onCreate');
     });
   }
-
+  onNewWant(want, launchParam):void {
+    hilog.info(0x0000, 'testTag', '%{public}s', 'EntryAbility4 onNewWant');
+    commonEventManager.publish('entryAbility4_onNewWant', function () {
+      hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbilityForResult_5000 publish entryAbility4_onNewWant');
+    });
+    hilog.info(0x0000, 'testTag', '%{public}s', 'EntryAbility4 execute router.back!');
+    try {
+      router.back();
+      hilog.info(0x0000, 'testTag', '%{public}s', 'EntryAbility4 router.back success!');
+    } catch (err) {
+      let code = (err as BusinessError).code;
+      let message = (err as BusinessError).message;
+      hilog.info(0x0000, 'testTag', '%{public}s', `EntryAbility4 router.back failed, error.code: ${code}, error.message: ${message}`);
+    }
+  }
   onDestroy():void {
     hilog.info(0x0000, 'testTag', '%{public}s', 'EntryAbility4 onDestroy');
   }
@@ -72,10 +86,13 @@ export default class EntryAbility4 extends UIAbility {
           }
           // 执行正常业务
           hilog.info(0x0000, 'testTag', '%{public}s', 'EntryAbility4 startAbilityForResult success!');
-          commonEventManager.publish('entryAbility4_onForeground_01', function () {
-            hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbilityForResult_5000 publish entryAbility4_onForeground_01');
-          });
         });
+        commonEventManager.publish('entryAbility4_onForeground_01', function () {
+          hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbilityForResult_5000 publish entryAbility4_onForeground_01');
+        });
+        setTimeout(()=>{
+          globalThis.abilityAssist4.terminateSelf()
+        }, 3000)
       } catch (err) {
         // 处理入参错误异常
         let code = (err as BusinessError).code;
@@ -102,14 +119,11 @@ export default class EntryAbility4 extends UIAbility {
   onBackground():void {
     // Ability has back to background
     hilog.info(0x0000, 'testTag', '%{public}s', 'EntryAbility4 onBackground');
-    if (backSet === 1) {
       commonEventManager.publish('entryAbility4_onBackground_01', function () {
         hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbilityForResult_5000 publish entryAbility4_onBackground_01');
       });
-    } else if (backSet === 2) {
-      commonEventManager.publish('entryAbility4_onBackground_02', function () {
+      commonEventManager.publish('ACTS_TEST_DESTROY', function () {
         hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbilityForResult_5000 publish entryAbility4_onBackground_02');
       });
-    }
   }
 }

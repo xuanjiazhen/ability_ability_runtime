@@ -44,7 +44,6 @@ export default function graphicTextCTest() {
           console.log(msg + ' Succeed in text.getSystemFontFullNamesByType  ' + JSON.stringify(data) )
           console.log(msg + ' Succeed in text.getSystemFontFullNamesByType  ' + data )
           console.info(msg + ` then font list size: ${data.length}`)
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(msg + ` Failed to get font fullNames by type, error: ${JSON.stringify(error)}`);
@@ -77,7 +76,6 @@ export default function graphicTextCTest() {
           console.log(msg + ' Succeed in text.getFontDescriptorByFullName  ' + JSON.stringify(fontdecriptor) )
           console.log(msg + ' Succeed in text.getFontDescriptorByFullName  ' + fontdecriptor )
           console.info(msg + ` desc: ${JSON.stringify(fontdecriptor)}`)
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(msg + ` Failed to get fontDescriptor by fullName, error: ${JSON.stringify(error)}`);
@@ -110,7 +108,6 @@ export default function graphicTextCTest() {
         promise.then((data) => {
           console.info(msg + ` Font descriptor array size: ${data.length}`);
           console.info(msg + ` Font descriptor result: ${JSON.stringify(data)}`)
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(msg + ` Failed to match the font descriptor, error: ${JSON.stringify(error)}`);
@@ -139,7 +136,6 @@ export default function graphicTextCTest() {
       try {
         console.info(msg + ' Succeeded in SystemFontType.');
         expect(text.WordBreak.BREAK_HYPHEN == 3).assertTrue()
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in text.WordBreak " + JSON.stringify(err))
@@ -200,7 +196,6 @@ export default function graphicTextCTest() {
           try {
             let paragraphGraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
             console.log(msg + ' Succeed in text.ParagraphBuilder')
-            expect(true).assertTrue()
             done()
           } catch (err) {
             console.info(msg + ' Failed in fontCollection.ParagraphBuilder.    Cause: ' + JSON.stringify(err));
@@ -244,7 +239,6 @@ export default function graphicTextCTest() {
         expect(text.SystemFontType.STYLISH == 4).assertTrue()
         expect(text.SystemFontType.INSTALLED == 8).assertTrue()
         expect(text.SystemFontType.CUSTOMIZED == 16).assertTrue()
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in text.SystemFontType " + JSON.stringify(err))
@@ -342,7 +336,6 @@ export default function graphicTextCTest() {
           try {
             let paragraphGraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
             console.log(msg + ' Succeed in text.ParagraphBuilder')
-            expect(true).assertTrue()
             done()
           } catch (err) {
             console.info(msg + ' Failed in fontCollection.ParagraphBuilder.    Cause: ' + JSON.stringify(err));
@@ -502,7 +495,6 @@ export default function graphicTextCTest() {
               if(error.code == 401){
                 console.log(msg + ' Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;2. Incorrect parameter types. ')
                 console.log(msg + ' Case End Successfully')
-                expect(true).assertTrue()
                 done()
               }else{
                 console.error(`Failed to do layout, error: ${JSON.stringify(error)} message: ${error.message}`);
@@ -630,7 +622,6 @@ export default function graphicTextCTest() {
               if(error.code == 401){
                 console.log(msg + ' Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;2. Incorrect parameter types. ')
                 console.log(msg + ' Case End Successfully')
-                expect(true).assertTrue()
                 done()
               }else{
                 console.error(`Failed to do getLineBreak, error: ${JSON.stringify(error)} message: ${error.message}`);
@@ -759,7 +750,6 @@ export default function graphicTextCTest() {
               if(error.code == 401){
                 console.log(msg + ' Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;2. Incorrect parameter types. ')
                 console.log(msg + ' Case End Successfully')
-                expect(true).assertTrue()
                 done()
               }else{
                 console.error(`Failed to do createLine, error: ${JSON.stringify(error)} message: ${error.message}`);

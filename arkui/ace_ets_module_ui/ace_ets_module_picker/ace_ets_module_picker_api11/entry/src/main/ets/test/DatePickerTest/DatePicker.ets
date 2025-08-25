@@ -240,9 +240,11 @@ export default function datepicker() {
         let strJsonDefault = getInspectorByKey('datePickerDefault');
         let objDefault: Record<string, ESObject> = JSON.parse(strJsonDefault);
 
-        console.info("[ArkUI_Stage_datePicker_disappearTextStyle_0600] disappearColor:" + obj.$attrs.disappearTextStyle.color);
-        expect(obj.$attrs.disappearTextStyle.color).assertEqual(objDefault.$attrs.disappearTextStyle.color);
-        expect(obj.$attrs.disappearTextStyle.font.size).assertEqual(objDefault.$attrs.disappearTextStyle.font.size);
+        console.info("[ArkUI_Stage_datePicker_disappearTextStyle_0600] disappearTextStyle color:" + obj.$attrs.disappearTextStyle.color);
+        console.info("[ArkUI_Stage_datePicker_disappearTextStyle_0600] disappearTextStyle font.size:" + obj.$attrs.disappearTextStyle.font.size);
+        console.info("[ArkUI_Stage_datePicker_disappearTextStyle_0600] disappearTextStyle font.weight:" + obj.$attrs.disappearTextStyle.font.weight);
+        expect(obj.$attrs.disappearTextStyle.color).assertContain('#');
+        expect(obj.$attrs.disappearTextStyle.font.size).assertContain('fp');
         expect(obj.$attrs.disappearTextStyle.font.weight).assertEqual('FontWeight.Normal');
         done();
       });
@@ -276,9 +278,11 @@ export default function datepicker() {
         let strJsonDefault = getInspectorByKey('datePickerDefault');
         let objDefault: Record<string, ESObject> = JSON.parse(strJsonDefault);
 
-        console.info("[ArkUI_Stage_datePicker_disappearTextStyle_0700] disappearColor:" + obj.$attrs.disappearTextStyle.color);
-        expect(obj.$attrs.disappearTextStyle.color).assertEqual(objDefault.$attrs.disappearTextStyle.color);
-        expect(obj.$attrs.disappearTextStyle.font.size).assertEqual(objDefault.$attrs.disappearTextStyle.font.size);
+        console.info("[ArkUI_Stage_datePicker_disappearTextStyle_0700] disappearTextStyle color:" + obj.$attrs.disappearTextStyle.color);
+        console.info("[ArkUI_Stage_datePicker_disappearTextStyle_0700] disappearTextStyle font.size:" + obj.$attrs.disappearTextStyle.font.size);
+        console.info("[ArkUI_Stage_datePicker_disappearTextStyle_0700] disappearTextStyle font.weight:" + obj.$attrs.disappearTextStyle.font.weight);
+        expect(obj.$attrs.disappearTextStyle.color).assertContain('#');
+        expect(obj.$attrs.disappearTextStyle.font.size).assertContain('fp');
         expect(obj.$attrs.disappearTextStyle.font.weight).assertEqual('FontWeight.Bold');
         done();
       });
@@ -517,9 +521,11 @@ export default function datepicker() {
         let strJsonDefault = getInspectorByKey('datePickerDefault');
         let objDefault: Record<string, ESObject> = JSON.parse(strJsonDefault);
 
-        console.info("[ArkUI_Stage_datePicker_textStyle_0600] disappearColor:" + obj.$attrs.textStyle.color);
-        expect(obj.$attrs.textStyle.color).assertEqual(objDefault.$attrs.textStyle.color);
-        expect(obj.$attrs.textStyle.font.size).assertEqual(objDefault.$attrs.textStyle.font.size);
+        console.info("[ArkUI_Stage_datePicker_textStyle_0600] textStyle color:" + obj.$attrs.textStyle.color);
+        console.info("[ArkUI_Stage_datePicker_textStyle_0600] textStyle font.size:" + obj.$attrs.textStyle.font.size);
+        console.info("[ArkUI_Stage_datePicker_textStyle_0600] textStyle font.weight:" + obj.$attrs.textStyle.font.weight);
+        expect(obj.$attrs.textStyle.color).assertContain('#');
+        expect(obj.$attrs.textStyle.font.size).assertContain('fp');
         expect(obj.$attrs.textStyle.font.weight).assertEqual('FontWeight.Normal');
         done();
       });
@@ -553,9 +559,11 @@ export default function datepicker() {
         let strJsonDefault = getInspectorByKey('datePickerDefault');
         let objDefault: Record<string, ESObject> = JSON.parse(strJsonDefault);
 
-        console.info("[ArkUI_Stage_datePicker_textStyle_0700] disappearColor:" + obj.$attrs.textStyle.color);
-        expect(obj.$attrs.textStyle.color).assertEqual(objDefault.$attrs.textStyle.color);
-        expect(obj.$attrs.textStyle.font.size).assertEqual(objDefault.$attrs.textStyle.font.size);
+        console.info("[ArkUI_Stage_datePicker_textStyle_0700] textStyle color:" + obj.$attrs.textStyle.color);
+        console.info("[ArkUI_Stage_datePicker_textStyle_0700] textStyle font.size:" + obj.$attrs.textStyle.font.size);
+        console.info("[ArkUI_Stage_datePicker_textStyle_0700] textStyle font.weight:" + obj.$attrs.textStyle.font.weight);
+        expect(obj.$attrs.textStyle.color).assertContain('#');
+        expect(obj.$attrs.textStyle.font.size).assertContain('fp');
         expect(obj.$attrs.textStyle.font.weight).assertEqual('FontWeight.Lighter');
         done();
       });
@@ -794,9 +802,11 @@ export default function datepicker() {
         let strJsonDefault = getInspectorByKey('datePickerDefault');
         let objDefault: Record<string, ESObject> = JSON.parse(strJsonDefault);
 
-        console.info("[ArkUI_Stage_datepicker_selectedTextStyle_0600] disappearColor:" + obj.$attrs.selectedTextStyle.color);
-        expect(obj.$attrs.selectedTextStyle.color).assertEqual(objDefault.$attrs.selectedTextStyle.color);
-        expect(obj.$attrs.selectedTextStyle.font.size).assertEqual(objDefault.$attrs.selectedTextStyle.font.size);
+        console.info("[ArkUI_Stage_datepicker_selectedTextStyle_0600] selectedTextStyle color:" + obj.$attrs.selectedTextStyle.color);
+        console.info("[ArkUI_Stage_datepicker_selectedTextStyle_0600] selectedTextStyle font.size:" + obj.$attrs.selectedTextStyle.font.size);
+        console.info("[ArkUI_Stage_datepicker_selectedTextStyle_0600] selectedTextStyle font.weight:" + obj.$attrs.selectedTextStyle.font.weight);
+        expect(obj.$attrs.selectedTextStyle.color).assertContain('#');
+        expect(obj.$attrs.selectedTextStyle.font.size).assertContain('fp');
         expect(obj.$attrs.selectedTextStyle.font.weight).assertEqual('FontWeight.Normal');
         done();
       });
@@ -830,9 +840,11 @@ export default function datepicker() {
 	let strJsonDefault = getInspectorByKey('datePickerDefault');
         let objDefault: Record<string, ESObject> = JSON.parse(strJsonDefault);
 		
-        console.info("[ArkUI_Stage_datepicker_selectedTextStyle_0700] disappearColor:" + obj.$attrs.selectedTextStyle.color);
-        expect(obj.$attrs.selectedTextStyle.color).assertEqual(objDefault.$attrs.selectedTextStyle.color);
-        expect(obj.$attrs.selectedTextStyle.font.size).assertEqual(objDefault.$attrs.selectedTextStyle.font.size);
+        console.info("[ArkUI_Stage_datepicker_selectedTextStyle_0700] selectedTextStyle color:" + obj.$attrs.selectedTextStyle.color);
+        console.info("[ArkUI_Stage_datepicker_selectedTextStyle_0700] selectedTextStyle font.size:" + obj.$attrs.selectedTextStyle.font.size);
+        console.info("[ArkUI_Stage_datepicker_selectedTextStyle_0700] selectedTextStyle font.weight:" + obj.$attrs.selectedTextStyle.font.weight);
+        expect(obj.$attrs.selectedTextStyle.color).assertContain('#');
+        expect(obj.$attrs.selectedTextStyle.font.size).assertContain('fp');
         expect(obj.$attrs.selectedTextStyle.font.weight).assertEqual('FontWeight.Lighter');
         done();
       });

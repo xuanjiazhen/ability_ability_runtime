@@ -264,7 +264,6 @@ async function doTestForReceiver(done: Function, cameraManager: camera.CameraMan
     while (threadExitFlags != THREAD_COUNT) {
       await promiseCase();
     }
-    expect(true).assertTrue()
     done();
   } catch (error) {
     console.info('Case error, ' + JSON.stringify(error.message));
@@ -305,7 +304,6 @@ async function doTestForCreator(done: Function, name: string, runner: string) {
     while (threadExitFlags != THREAD_COUNT) {
       await promiseCase();
     }
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info('Case error, ' + JSON.stringify(error.message));
@@ -396,14 +394,12 @@ export default function multiThreadTest() {
      */
     it('SUB_MULTIMEDIA_IMAGE_RECEIVER_MULTI_THREAD_0200', Level.LEVEL0, async (done: Function) => {
       if(getCameraSupportDevicesCount() < 3){
-        expect(true).assertTrue();
         done()
         return
       }
       let isSupportedCamerasResult = isSupportedCameras(); 
       if(!isSupportedCamerasResult){
         console.info('Failed to obtain the default camera or device object.Not support usb camera');
-        expect(true).assertTrue();
         done();
       }
       let testContext: common.UIAbilityContext = AppStorage.get<common.UIAbilityContext>('testContext') as common.UIAbilityContext
