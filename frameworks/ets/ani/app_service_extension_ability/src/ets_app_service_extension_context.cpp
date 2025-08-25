@@ -289,7 +289,7 @@ void EtsAppServiceExtensionContext::OnTerminateSelf(ani_env *env, ani_object obj
         ret = context->TerminateSelf();
     }
     AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)),
-    nullptr);
+        nullptr);
 }
 
 ani_int EtsAppServiceExtensionContext::OnConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj,
@@ -367,13 +367,13 @@ void EtsAppServiceExtensionContext::OnDisconnectAppServiceExtensionAbility(ani_e
     }
         if (connection == nullptr) {
         TAG_LOGW(AAFwkTag::APP_SERVICE_EXT, "null connection");
-        AppExecFwk::AsyncCallback(env, callback, 
+        AppExecFwk::AsyncCallback(env, callback,
             EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ERR_INVALID_VALUE)), nullptr);
         return;
     }
     
     ErrCode errCode = context->DisconnectAbility(want, connection, accountId);
-    AppExecFwk::AsyncCallback(env, callback, 
+    AppExecFwk::AsyncCallback(env, callback,
         EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
 }
 

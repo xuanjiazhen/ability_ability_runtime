@@ -19,7 +19,9 @@
 #include "ani_enum_convert.h"
 #include "running_process_info.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 #include "securec.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -182,19 +184,6 @@ bool SetFieldStringByName(ani_env *env, ani_class cls, ani_object object, const 
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
-
-    if (value.empty()) {
-        ani_ref nullRef = nullptr;
-        if ((status = env->GetNull(&nullRef)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
-            return false;
-        }
-        if ((status = env->Object_SetField_Ref(object, field, nullRef)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
-            return false;
-        }
-        return true;
-    }
     ani_string aniStr = nullptr;
     if ((status = env->String_NewUTF8(value.c_str(), value.size(), &aniStr)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
@@ -245,8 +234,18 @@ bool SetFieldIntByName(ani_env *env, ani_class cls, ani_object object, const cha
         return false;
     }
     ani_status status = ANI_ERROR;
-    if ((status = env->Object_SetFieldByName_Int(object, name, value)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_SetFieldByName_Int status: %{public}d", status);
+    ani_field field = nullptr;
+    if ((status = env->Class_FindField(cls, name, &field)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return false;
+    }
+    ani_object obj = CreateInt(env, value);
+    if (obj == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "CreateInt failed");
+        return false;
+    }
+    if ((status = env->Object_SetField_Ref(object, field, reinterpret_cast<ani_ref>(obj))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
     return true;
@@ -1066,7 +1065,7 @@ bool GetStringArrayProperty(ani_env *env, ani_object param, const char *name, st
     for (int i = 0; i < static_cast<int>(length); i++) {
         ani_ref stringEntryRef;
         status = env->Object_CallMethodByName_Ref(reinterpret_cast<ani_object>(arrayObj),
-            "$_get", "I:Lstd/core/Object;", &stringEntryRef, (ani_int)i);
+            "$_get", "i:C{std.core.Object}", &stringEntryRef, (ani_int)i);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::ANI, "status: %{public}d, index: %{public}d", status, i);
             return false;
@@ -1203,6 +1202,29 @@ bool GetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref &v
     return !isUndefined;
 }
 
+bool GetBooleanPropertyObject(ani_env *env, ani_object param, const char *name, bool &value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return false;
+    }
+
+    ani_ref obj = nullptr;
+    ani_status status = ANI_ERROR;
+    if (!GetRefProperty(env, param, name, obj)) {
+        TAG_LOGW(AAFwkTag::ANI, "%{public}s : undefined", name);
+        return false;
+    }
+    ani_boolean aniValue = ANI_FALSE;
+    if ((status = env->Object_CallMethodByName_Boolean(
+        reinterpret_cast<ani_object>(obj), "unboxed", nullptr, &aniValue)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return false;
+    }
+    value = aniValue;
+    return true;
+}
+
 bool SetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double value)
 {
     if (env == nullptr) {
@@ -1293,7 +1315,7 @@ bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, co
         return false;
     }
 
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -1313,7 +1335,7 @@ bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, co
             return false;
         }
 
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", i, string);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", i, string);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
             return false;
@@ -1378,6 +1400,80 @@ bool GetStaticFieldString(ani_env *env, ani_class classObj, const char *fieldNam
         return false;
     }
     return true;
+}
+
+bool IsValidProperty(ani_env *env, ani_ref param)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return false;
+    }
+    ani_status status = ANI_ERROR;
+    ani_boolean isNull = false;
+    if ((status = env->Reference_IsNullishValue(param, &isNull)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return false;
+    }
+    ani_boolean isUndefined = false;
+    if ((status = env->Reference_IsUndefined(param, &isUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return false;
+    }
+    if (isUndefined || isNull) {
+        return false;
+    }
+    return true;
+}
+
+bool CheckCallerIsSystemApp()
+{
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        TAG_LOGE(AAFwkTag::ANI, "Non-system app forbidden to call");
+        return false;
+    }
+    return true;
+}
+
+ani_object WrapLocale(ani_env *env, const std::string &locale)
+{
+    TAG_LOGD(AAFwkTag::ANI, "WrapLocale called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "env is nullptr");
+        return nullptr;
+    }
+    if (locale.empty()) {
+        TAG_LOGE(AAFwkTag::ANI, "Locale string is empty");
+        return nullptr;
+    }
+    ani_class localClass = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->FindClass("Lstd/core/Intl/Locale;", &localClass)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "Find class failed, status: %{public}d", status);
+        return nullptr;
+    }
+    ani_method localCtor = nullptr;
+    if ((status = env->Class_FindMethod(localClass, "<ctor>",
+        "X{C{std.core.Intl.Locale}C{std.core.String}}C{std.core.Intl.LocaleOptions}:", &localCtor)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "Find Locale constructor failed, status: %{public}d", status);
+        return nullptr;
+    }
+    ani_ref undefinedRef;
+    if ((status = env->GetUndefined(&undefinedRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "GetUndefined failed, status: %{public}d", status);
+        return nullptr;
+    }
+    ani_object localStrObj = GetAniString(env, locale);
+    if (localStrObj == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "Get ani string failed");
+        return nullptr;
+    }
+    ani_object localeObj = nullptr;
+    if ((status = env->Object_New(localClass, localCtor, &localeObj, localStrObj, undefinedRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "Object_New failed, status: %{public}d", status);
+        return nullptr;
+    }
+    return localeObj;
 }
 } // namespace AppExecFwk
 } // namespace OHOS

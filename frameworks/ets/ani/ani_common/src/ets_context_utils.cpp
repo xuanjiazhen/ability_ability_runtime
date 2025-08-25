@@ -386,12 +386,6 @@ std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
     return weakContext != nullptr ? weakContext->lock() : nullptr;
 }
 
-bool CheckCallerIsSystemApp()
-{
-    auto selfToken = IPCSkeleton::GetSelfTokenID();
-    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken);
-}
-
 ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
     ani_string bundleName, ani_string moduleName)
 {
@@ -409,7 +403,7 @@ ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return nullptr;
     }
-    if (!CheckCallerIsSystemApp()) {
+    if (!AppExecFwk::CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::APPKIT, "not system-app");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
         return nullptr;
@@ -471,12 +465,12 @@ ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long 
     auto context = GetBaseContext(env, aniObj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return reinterpret_cast<ani_object>(undefRef);
     }
     if (displayId < 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "displayId is invalid, less than 0");
-        EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return reinterpret_cast<ani_object>(undefRef);
     }
     uint64_t validDisplayId = static_cast<uint64_t>(displayId);

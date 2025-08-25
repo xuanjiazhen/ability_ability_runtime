@@ -38,7 +38,7 @@ public:
         ani_object connectOptionsObj);
     static void DisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
         ani_object callback);
-    static void StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj,ani_object startOptionsObj,
+    static void StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj,
         ani_object call);
     static EtsAppServiceExtensionContext *GetEtsAbilityContext(ani_env *env, ani_object obj);
     std::weak_ptr<AppServiceExtensionContext> GetAbilityContext()

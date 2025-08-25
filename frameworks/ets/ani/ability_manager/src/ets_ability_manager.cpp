@@ -119,9 +119,7 @@ void EtsAbilityManager::GetTopAbility(ani_env *env, ani_object callback)
     auto selfToken = IPCSkeleton::GetSelfTokenID();
     if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not system app");
-        AppExecFwk::AsyncCallback(env, callback,
-            EtsErrorUtil::CreateErrorByNativeErr(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP)), nullptr);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
         return;
     }
     AppExecFwk::ElementName elementName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility();
@@ -183,7 +181,7 @@ void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextOb
 
 void EtsAbilityManager::NativeOn(ani_env *env, ani_string aniType, ani_object aniObserver)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "nativeOn called %{public}p", aniObserver);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "nativeOn called");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
         return;
@@ -229,7 +227,7 @@ void EtsAbilityManager::NativeOn(ani_env *env, ani_string aniType, ani_object an
 
 void EtsAbilityManager::NativeOff(ani_env *env, ani_string aniType, ani_object aniObserver)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "nativeOff called %{public}p", aniObserver);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "nativeOff called");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
         return;
