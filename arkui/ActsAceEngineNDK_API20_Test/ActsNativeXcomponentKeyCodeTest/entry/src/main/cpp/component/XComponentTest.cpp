@@ -196,13 +196,13 @@ void OnUIKeyEvent(ArkUI_NodeEvent* event)
 {
     ArkUI_UIInputEvent* uiInputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
     if (OH_ArkUI_UIInputEvent_GetType(uiInputEvent) == ARKUI_UIINPUTEVENT_TYPE_KEY) {
-        ArkUI_KeyCode keyCode = ArkUI_KeyCode(-2);
+        ArkUI_KeyCode keyCode = ArkUI_KeyCode(PARAM_NEGATIVE_2);
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "OnUIKeyEvent",
                      "OH_ArkUI_KeyEvent_GetKeyCode keyCode: %{public}d", keyCode);
         keyCode = ArkUI_KeyCode(OH_ArkUI_KeyEvent_GetKeyCode(uiInputEvent));
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "OnUIKeyEvent",
                      "OH_ArkUI_KeyEvent_GetKeyCode keyCode: %{public}d", keyCode);
-        if (keyCode != -2) {
+        if (keyCode != PARAM_NEGATIVE_2) {
             ArkUI_AttributeItem item = { .string = std::to_string(keyCode).data() };
             g_textComponent.setAttribute(NODE_TEXT_CONTENT, &item);
         }
