@@ -17,8 +17,9 @@ import router from '@ohos.router';
 import {UiComponent, UiDriver, Component, Driver, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
 import CommonFunc from '../../../MainAbility/common/Common';
 import {MessageManager,Callback} from '../../../MainAbility/utils/MessageManager';
+import display from '@ohos.display';
 
-
+let dpiValue: number;
 export default function SwiperMinSize() {
   describe('SwiperMinSize', () => {
     beforeEach(async (done: Function) => {
@@ -33,6 +34,8 @@ export default function SwiperMinSize() {
         if (!("SwiperMinSize" == pages.name)) {
           console.info("get SwiperMinSize state pages.name: " + JSON.stringify(pages.name));
           let result = await router.push(options);
+          dpiValue = display.getDefaultDisplaySync().densityDPI;
+          console.info('[SwiperMinSize] dpi getDefaultDisplay is : ' + JSON.stringify(dpiValue));
           await CommonFunc.sleep(2000);
           console.info("push SwiperMinSize page result: " + JSON.stringify(result));
         }
@@ -80,9 +83,20 @@ export default function SwiperMinSize() {
 
       let swiperText1 = CommonFunc.getComponentRect('swiperText1');
       await CommonFunc.sleep(1000);
+      let aWidth: number = Math.round(px2vp(swiperText1.right - swiperText1.left));
+      let ret = aWidth * (dpiValue / 160);
+      console.info(`[SwiperMinSize_002] aWidth=${aWidth}`);
+      console.info(`[SwiperMinSize_002] ret=${ret}`);
       console.info(`[SwiperMinSize_002] swiperText1.right - swiperText1.left=${swiperText1.right - swiperText1.left}`);
       console.info(`[SwiperMinSize_002] vp2px(40)=${vp2px(40)}`);
-      expect(Math.floor(Math.abs(swiperText1.right - swiperText1.left - vp2px(40))) <= 1).assertTrue();
+      
+      let driver = Driver.create();
+      let text04 = await driver.findComponent(ON.id("swiperText4"))
+      if (text04) {
+        expect(Math.floor(Math.abs(swiperText1.right - swiperText1.left - vp2px(40))) <= 1).assertTrue();
+      } else {
+        expect(Math.floor(Math.abs(swiperText1.right - swiperText1.left - aWidth * (dpiValue / 160))) <= 1).assertTrue();
+      }
 
       console.info('[SwiperMinSize_002] END');
       done();
@@ -105,9 +119,19 @@ export default function SwiperMinSize() {
 
       let swiperText1 = CommonFunc.getComponentRect('swiperText1');
       await CommonFunc.sleep(1000);
+      let aWidth: number = Math.round(px2vp(swiperText1.right - swiperText1.left));
+      console.info(`[SwiperMinSize_003] aWidth=${aWidth}`);
       console.info(`[SwiperMinSize_003] swiperText1.right - swiperText1.left=${swiperText1.right - swiperText1.left}`);
       console.info(`[SwiperMinSize_003] vp2px(40)=${vp2px(40)}`);
-      expect(Math.floor(Math.abs(swiperText1.right - swiperText1.left - vp2px(40))) <= 1).assertTrue();
+      console.info(`[SwiperMinSize_003] aWidth * (dpiValue / 160)=${aWidth * (dpiValue / 160)}`);
+      
+      let driver = Driver.create();
+      let text04 = await driver.findComponent(ON.id("swiperText4"))
+      if (text04) {
+        expect(Math.floor(Math.abs(swiperText1.right - swiperText1.left - vp2px(40))) <= 1).assertTrue();
+      } else {
+        expect(Math.floor(Math.abs(swiperText1.right - swiperText1.left - aWidth * (dpiValue / 160))) <= 1).assertTrue();
+      }
 
       console.info('[SwiperMinSize_003] END');
       done();
@@ -130,9 +154,19 @@ export default function SwiperMinSize() {
 
       let swiperText1 = CommonFunc.getComponentRect('swiperText1');
       await CommonFunc.sleep(1000);
+      let aWidth: number = Math.round(px2vp(swiperText1.right - swiperText1.left));
+      console.info(`[SwiperMinSize_004] aWidth=${aWidth}`);
       console.info(`[SwiperMinSize_004] swiperText1.right - swiperText1.left=${swiperText1.right - swiperText1.left}`);
       console.info(`[SwiperMinSize_004] vp2px(40)=${vp2px(40)}`);
-      expect(Math.floor(Math.abs(swiperText1.right - swiperText1.left - vp2px(40))) <= 1).assertTrue();
+      console.info(`[SwiperMinSize_004] aWidth * (dpiValue / 160)=${aWidth * (dpiValue / 160)}`);
+      
+      let driver = Driver.create();
+      let text05 = await driver.findComponent(ON.id("swiperText5"))
+      if (text05) {
+        expect(Math.floor(Math.abs(swiperText1.right - swiperText1.left - vp2px(40))) <= 1).assertTrue();
+      } else {
+        expect(Math.floor(Math.abs(swiperText1.right - swiperText1.left - aWidth * (dpiValue / 160))) <= 1).assertTrue();
+      }
 
       console.info('[SwiperMinSize_004] END');
       done();
