@@ -81,8 +81,8 @@ export default function onVisibleAreaApproximateChangeTest() {
       expect(obj.$attrs.content).assertEqual('Test Text is completely invisible');
       await CommonFunc.sleep(1000);
 
-      // 从完全可见滑动到完全不可见
-      await driver.swipe(Math.round(left + width*0.5),Math.round(top + height*0.08),Math.round(left + width*0.5),Math.round(bottom - height*0.08));
+      // 从完全不可见滑动到完全可见
+      await driver.swipe(Math.round(left + width*0.5),Math.round(top + height*0.08),Math.round(left + width*0.5),Math.round(bottom));
       await CommonFunc.sleep(3000);
       strJson = getInspectorByKey('onVisibleAreaApproximateChange_column_id');
       await CommonFunc.sleep(1000);
