@@ -16,7 +16,7 @@
 #include "common/common.h"
 
 #define MIN_ABNORMAL_VALUE (-1)
-#define MAX_ABNORMAL_VALUE 15
+#define MAX_ABNORMAL_VALUE 16
 
 namespace ArkUICapiTest {
 
