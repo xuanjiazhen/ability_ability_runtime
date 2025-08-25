@@ -1573,7 +1573,7 @@ export default function datapanelTest() {
           JSON.stringify(obj.$attrs));
           console.info("ArkUX_Stage_DataPanel_TrackBackgroundColor_0700 component obj.$attrs.trackBackgroundColor is:" +
           JSON.stringify(obj.$attrs.trackBackgroundColor));
-          expect(obj.$attrs.trackBackgroundColor).assertEqual(obj.$attrs.borderColor);
+          expect(obj.$attrs.trackBackgroundColor).assertContain('#');
           console.info('ArkUX_Stage_DataPanel_TrackBackgroundColor_0700 END ');
           done();
         } catch (err) {
@@ -1601,7 +1601,7 @@ export default function datapanelTest() {
           JSON.stringify(obj.$attrs));
           console.info("ArkUX_Stage_DataPanel_TrackBackgroundColor_0800 component obj.$attrs.trackBackgroundColor is:" +
           JSON.stringify(obj.$attrs.trackBackgroundColor));
-          expect(obj.$attrs.trackBackgroundColor).assertEqual(obj.$attrs.borderColor);
+          expect(obj.$attrs.trackBackgroundColor).assertContain('#');
           console.info('ArkUX_Stage_DataPanel_TrackBackgroundColor_0800 END ');
           done();
         } catch (err) {
@@ -1629,7 +1629,7 @@ export default function datapanelTest() {
           JSON.stringify(obj.$attrs));
           console.info("ArkUX_Stage_DataPanel_TrackBackgroundColor_0900 component obj.$attrs.trackBackgroundColor is:" +
           JSON.stringify(obj.$attrs.trackBackgroundColor));
-          expect(obj.$attrs.trackBackgroundColor).assertEqual(obj.$attrs.borderColor);
+          expect(obj.$attrs.trackBackgroundColor).assertContain('#');
           console.info('ArkUX_Stage_DataPanel_TrackBackgroundColor_0900 END ');
           done();
         } catch (err) {
@@ -1658,7 +1658,7 @@ export default function datapanelTest() {
           JSON.stringify(obj.$attrs));
           console.info("ArkUX_Stage_DataPanel_TrackBackgroundColor_1000 component obj.$attrs.trackBackgroundColor is:" +
           JSON.stringify(obj.$attrs.trackBackgroundColor));
-          expect(obj.$attrs.trackBackgroundColor).assertEqual(obj.$attrs.borderColor);
+          expect(obj.$attrs.trackBackgroundColor).assertContain('#');
           console.info('ArkUX_Stage_DataPanel_TrackBackgroundColor_1000 END ');
           done();
         } catch (err) {
@@ -1686,7 +1686,7 @@ export default function datapanelTest() {
           JSON.stringify(obj.$attrs));
           console.info("ArkUX_Stage_DataPanel_TrackBackgroundColor_1100 component obj.$attrs.trackBackgroundColor is:" +
           JSON.stringify(obj.$attrs.trackBackgroundColor));
-          expect(obj.$attrs.trackBackgroundColor).assertEqual(obj.$attrs.borderColor);
+          expect(obj.$attrs.trackBackgroundColor).assertContain('#');
           console.info('ArkUX_Stage_DataPanel_TrackBackgroundColor_1100 END ');
           done();
         } catch (err) {

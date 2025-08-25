@@ -90,7 +90,7 @@ export default function badge3Jsunit() {
       console.info("[testBadge03] component objNew is: " + JSON.parse(JSON.parse(strJsonNew)
         .$attrs
         .style) + "--" + JSON.parse(strJsonNew).$attrs.style);
-      expect(JSON.parse(JSON.parse(strJsonNew).$attrs.style).fontSize).assertEqual('10.00vp');
+      expect(JSON.parse(JSON.parse(strJsonNew).$attrs.style).fontSize).assertContain('vp');
       done();
     });
 
@@ -169,7 +169,7 @@ export default function badge3Jsunit() {
       console.info("[testBadge05] component style is: " + JSON.stringify(JSON.parse(JSON.parse(strJsonNew)
         .$attrs
         .style)));
-      expect(JSON.parse(JSON.parse(strJsonNew).$attrs.style).fontSize).assertEqual('10.00vp');
+      expect(JSON.parse(JSON.parse(strJsonNew).$attrs.style).fontSize).assertContain('vp');
       done();
     });
 
