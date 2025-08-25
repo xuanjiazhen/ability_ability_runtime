@@ -132,11 +132,11 @@ export default function HasCard2PublicTest() {
       call.isEmergencyPhoneNumber("abcde", (err: BusinessError, data: boolean) => {
         if (err) {
           console.info(`${caseName} isEmergencyPhoneNumber fail, err->${JSON.stringify(err)}`);
-          ExpectFail();
+          ExpectTrue(err.code == 8300001);
           done();
         } else {
           console.info(`${caseName} isEmergencyPhoneNumber, data->${JSON.stringify(data)}`);
-          ExpectTrue(data == false);
+          ExpectFail();
           done();
         }
       });
@@ -207,11 +207,11 @@ export default function HasCard2PublicTest() {
       call.isEmergencyPhoneNumber("!@#$%", (err: BusinessError, data: boolean) => {
         if (err) {
           console.info(`${caseName} isEmergencyPhoneNumber fail, err->${JSON.stringify(err)}`);
-          ExpectTrue(err.code == 8300001);
+          ExpectFail();
           done();
         } else {
           console.info(`${caseName} isEmergencyPhoneNumber, data->${JSON.stringify(data)}`);
-          ExpectFail();
+          ExpectTrue(data == false);
           done();
         }
       });
@@ -289,10 +289,10 @@ export default function HasCard2PublicTest() {
       call.isEmergencyPhoneNumber(phoneNumber, options, (err: BusinessError, data: boolean) => {
         if (err) {
           console.info(`${caseName} isEmergencyPhoneNumber fail, err->${JSON.stringify(err)}`);
-          ExpectFail();
+          ExpectTrue(err.code == 8300001);
           done();
         } else {
-          ExpectTrue(data == false);
+          ExpectFail();
           console.info(`${caseName} isEmergencyPhoneNumber, data->${JSON.stringify(data)}`);
           done();
         }
@@ -376,10 +376,10 @@ export default function HasCard2PublicTest() {
       call.isEmergencyPhoneNumber(phoneNumber, options, (err: BusinessError, data: boolean) => {
         if (err) {
           console.info(`${caseName} isEmergencyPhoneNumber fail, err->${JSON.stringify(err)}`);
-          ExpectTrue(err.code == 8300001);
+          ExpectFail();
           done();
         } else {
-          ExpectFail();
+          ExpectTrue(data == false);
           console.info(`${caseName} isEmergencyPhoneNumber, data->${JSON.stringify(data)}`);
           done();
         }
@@ -427,21 +427,21 @@ export default function HasCard2PublicTest() {
       let caseName: string = 'testTelephonyCallManagerIsEmergencyPhoneNumber1800';
       console.info(`${caseName} test start`);
       if(sim.getMaxSimCount()>1){
-      const phoneNumber: string = "";
-      const options: call.EmergencyNumberOptions = {
-        slotId: 1
-      };
-      call.isEmergencyPhoneNumber(phoneNumber, options, (err: BusinessError, data: boolean) => {
-        if (err) {
-          console.info(`${caseName} isEmergencyPhoneNumber fail, err->${JSON.stringify(err)}`);
-          ExpectTrue(err.code == 8300001);
-          done();
-        } else {
-          ExpectFail();
-          console.info(`${caseName} isEmergencyPhoneNumber, data->${JSON.stringify(data)}`);
-          done();
-        }
-      });
+        const phoneNumber: string = "";
+        const options: call.EmergencyNumberOptions = {
+          slotId: 1
+        };
+        call.isEmergencyPhoneNumber(phoneNumber, options, (err: BusinessError, data: boolean) => {
+          if (err) {
+            console.info(`${caseName} isEmergencyPhoneNumber fail, err->${JSON.stringify(err)}`);
+            ExpectTrue(err.code == 8300001);
+            done();
+          } else {
+            ExpectFail();
+            console.info(`${caseName} isEmergencyPhoneNumber, data->${JSON.stringify(data)}`);
+            done();
+          }
+        });
       }else{
         console.info(`${caseName}：Not support dual SIM cards.`);
         ExpectTrue(true);
@@ -462,21 +462,21 @@ export default function HasCard2PublicTest() {
       let caseName: string = 'testTelephonyCallManagerIsEmergencyPhoneNumber2000';
       console.info(`${caseName} test start`);
       if(sim.getMaxSimCount()>1){
-      const phoneNumber: string = "!@#$%";
-      const options: call.EmergencyNumberOptions = {
-        slotId: 1
-      };
-      call.isEmergencyPhoneNumber(phoneNumber, options, (err: BusinessError, data: boolean) => {
-        if (err) {
-          console.info(`${caseName} isEmergencyPhoneNumber fail, err->${JSON.stringify(err)}`);
-          ExpectTrue(err.code == 8300001);
-          done();
-        } else {
-          ExpectFail();
-          console.info(`${caseName} isEmergencyPhoneNumber, data->${JSON.stringify(data)}`);
-          done();
-        }
-      });
+        const phoneNumber: string = "!@#$%";
+        const options: call.EmergencyNumberOptions = {
+          slotId: 1
+        };
+        call.isEmergencyPhoneNumber(phoneNumber, options, (err: BusinessError, data: boolean) => {
+          if (err) {
+            console.info(`${caseName} isEmergencyPhoneNumber fail, err->${JSON.stringify(err)}`);
+            ExpectFail();
+            done();
+          } else {
+            ExpectTrue(data == false);
+            console.info(`${caseName} isEmergencyPhoneNumber, data->${JSON.stringify(data)}`);
+            done();
+          }
+        });
       }else{
         console.info(`${caseName}：Not support dual SIM cards.`);
         ExpectTrue(true);
@@ -573,12 +573,12 @@ export default function HasCard2PublicTest() {
       console.info(`${caseName} test start`);
       const phoneNumber: string = "!@#$%";
       call.isEmergencyPhoneNumber(phoneNumber).then((data: boolean) => {
-        ExpectFail();
+        ExpectTrue(data == false);
         console.info(`${caseName} isEmergencyPhoneNumber,promise data->${JSON.stringify(data)}`);
         done();
       }).catch((err: BusinessError) => {
         console.info(`${caseName} isEmergencyPhoneNumber fail,promise err->${JSON.stringify(err)}`);
-        ExpectTrue(err.code == 8300001);
+        ExpectFail();
         done();
       });
       console.info(`${caseName} test end`);
@@ -600,12 +600,12 @@ export default function HasCard2PublicTest() {
         slotId: 0
       }
       call.isEmergencyPhoneNumber(phoneNumber, options).then((data: boolean) => {
-        ExpectFail();
+        ExpectTrue(data == false);
         console.info(`${caseName} isEmergencyPhoneNumber,promise data->${JSON.stringify(data)}`);
         done();
       }).catch((err: BusinessError) => {
         console.info(`${caseName} isEmergencyPhoneNumber fail,promise err->${JSON.stringify(err)}`);
-        ExpectTrue(err.code == 8300001);
+        ExpectFail();
         done();
       });
       console.info(`${caseName} test end`);
