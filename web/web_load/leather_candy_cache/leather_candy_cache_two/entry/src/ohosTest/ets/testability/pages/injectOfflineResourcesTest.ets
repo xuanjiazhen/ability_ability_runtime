@@ -55,18 +55,18 @@ class TestObj {
   }
 
   test(data1: string, data2: string, data3: string): string {
-    console.log("data1:" + data1)
-    console.log("data2:" + data2)
-    console.log("data3:" + data3)
-    return "AceString"
+    console.log('data1:' + data1)
+    console.log('data2:' + data2)
+    console.log('data3:' + data3)
+    return 'AceString';
   }
 
   asyncTest(data: string): void {
-    console.log("async data:" + data)
+    console.log('async data:' + data)
   }
 
   toString(): void {
-    console.log('toString' + "interface instead.")
+    console.log('toString' + 'interface instead.')
   }
 }
 
@@ -76,12 +76,12 @@ struct injectOfflineResourcesTest {
   controller: webView.WebviewController = new webView.WebviewController();
   controllerNull: webView.WebviewController = new webView.WebviewController();
   message: webView.WebMessageExt = new webView.WebMessageExt();
-  @State str: string = ""
+  @State str: string = ''
   @State javaScriptAccess: boolean = true;
   testObj = new TestObj();
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 148311,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
@@ -89,13 +89,13 @@ struct injectOfflineResourcesTest {
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(148311)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
-    console.info("web page valueChangeCallBack");
+    console.info('web page valueChangeCallBack');
     if (eventData != null) {
-      console.info("valueChangeCallBack:" + JSON.stringify(eventData));
+      console.info('valueChangeCallBack:' + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
       }
@@ -111,9 +111,9 @@ struct injectOfflineResourcesTest {
               let msg = "testInjectOfflineResources001"
               try {
                 this.controller.injectOfflineResources(await getData ());
-                Utils.emitEvent(true, 20001)
+                Utils.emitEvent(true, 148360)
               } catch (err) {
-                console.error(msg + "injectOfflineResources error: " + err.code + " message " + err.message);
+                console.error(msg + 'injectOfflineResources error: ' + err.code + ' message ' + err.message);
               }
               break;
             }
@@ -122,8 +122,8 @@ struct injectOfflineResourcesTest {
               try {
                 this.controller.injectOfflineResources(undefined);
               } catch (err) {
-                console.error(msg + "injectOfflineResources error: " + err.code + " message " + err.message);
-                Utils.emitEvent(err.code, 20002)
+                console.error(msg + 'injectOfflineResources error: ' + err.code + ' message ' + err.message);
+                Utils.emitEvent(err.code, 148370)
               }
               break;
             }
@@ -132,8 +132,8 @@ struct injectOfflineResourcesTest {
               try {
                 this.controller.injectOfflineResources(null);
               } catch (err) {
-                console.error(msg + "injectOfflineResources error: " + err.code + " message " + err.message);
-                Utils.emitEvent(err.code, 20003)
+                console.error(msg + 'injectOfflineResources error: ' + err.code + ' message ' + err.message);
+                Utils.emitEvent(err.code, 148380)
               }
               break;
             }
@@ -142,8 +142,8 @@ struct injectOfflineResourcesTest {
               try {
                 this.controller.injectOfflineResources(await getData(['xxxx']));
               } catch (err) {
-                console.error(msg + "injectOfflineResources error: " + err.code + " message " + err.message);
-                Utils.emitEvent(err.code, 20004)
+                console.error(msg + 'injectOfflineResources error: ' + err.code + ' message ' + err.message);
+                Utils.emitEvent(err.code, 148390)
               }
               break;
             }
@@ -152,8 +152,8 @@ struct injectOfflineResourcesTest {
               try {
                 this.controllerNull.injectOfflineResources(await getData ());
               } catch (err) {
-                console.error(msg + "injectOfflineResources error: " + err.code + " message " + err.message);
-                Utils.emitEvent(err.code, 20005)
+                console.error(msg + 'injectOfflineResources error: ' + err.code + ' message ' + err.message);
+                Utils.emitEvent(err.code, 148400)
               }
               break;
             }

@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
-import { beforeAll, beforeEach, describe, it, TestType, Size, Level } from '@ohos/hypium';
+import { beforeAll, beforeEach, describe, it, TestType, Size, Level, expect } from '@ohos/hypium';
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver } from '@kit.TestKit';
+import events_emitter from '@ohos.events.emitter';
+
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
-
+const driver = Driver.create();
 export default function injectOfflineResourcesTest() {
 
   describe('injectOfflineResourcesTest', () => {
@@ -31,15 +34,14 @@ export default function injectOfflineResourcesTest() {
       try {
         router.clear();
         let pages = router.getState();
-        console.info("get injectOfflineResourcesTest state success " + JSON.stringify(pages));
-        if (!("injectOfflineResourcesTest" == pages.name)) {
-          console.info("get injectOfflineResourcesTest state success " + JSON.stringify(pages.name));
+        console.info('get injectOfflineResourcesTest state success ' + JSON.stringify(pages));
+        if (!('injectOfflineResourcesTest' == pages.name)) {
+          console.info('get injectOfflineResourcesTest state success ' + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(900);
-          console.info("push injectOfflineResourcesTest page success " + JSON.stringify(result));
+          console.info('push injectOfflineResourcesTest page success ' + JSON.stringify(result));
         }
       } catch (err) {
-        console.error("push injectOfflineResourcesTest page error: " + err);
+        console.error('push injectOfflineResourcesTest page error: ' + err);
       }
       done()
     });
@@ -50,8 +52,7 @@ export default function injectOfflineResourcesTest() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(500);
-      console.info("injectOfflineResourcesTest beforeEach start");
+      console.info('injectOfflineResourcesTest beforeEach start');
       done();
     })
 
@@ -64,10 +65,12 @@ export default function injectOfflineResourcesTest() {
     * @tc.level      : Level 1
     */
     it('testInjectOfflineResources001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testInjectOfflineResources001", 10)
-      await Utils.sleep(500);
-      Utils.registerEvent("testInjectOfflineResources001", true, 20001, done);
-      sendEventByKey('injectOfflineResourcesTestButton', 10, '');
+      Utils.emitEvent("testInjectOfflineResources001", 148311)
+      Utils.registerBaseEvent("testInjectOfflineResources001", true, 148360, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected)
+        });
+      Utils.waitAndClickComponent('injectOfflineResourcesTestButton',driver)
     })
     /*
     * @tc.number     : SUB_WEB_WEBVIEWCONTROLLER_INJECTOFFLINERESOURCES_0200
@@ -78,10 +81,12 @@ export default function injectOfflineResourcesTest() {
     * @tc.level      : Level 1
     */
     it('testInjectOfflineResources002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testInjectOfflineResources002", 10)
-      await Utils.sleep(500);
-      Utils.registerEvent("testInjectOfflineResources002", '401', 20002, done);
-      sendEventByKey('injectOfflineResourcesTestButton', 10, '');
+      Utils.emitEvent("testInjectOfflineResources002", 148311)
+      Utils.registerBaseEvent("testInjectOfflineResources002", '401', 148370, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected)
+        });
+      Utils.waitAndClickComponent('injectOfflineResourcesTestButton',driver)
     })
     /*
     * @tc.number     : SUB_WEB_WEBVIEWCONTROLLER_INJECTOFFLINERESOURCES_0300
@@ -92,10 +97,12 @@ export default function injectOfflineResourcesTest() {
     * @tc.level      : Level 1
     */
     it('testInjectOfflineResources003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testInjectOfflineResources003", 10)
-      await Utils.sleep(500);
-      Utils.registerEvent("testInjectOfflineResources003", '401', 20003, done);
-      sendEventByKey('injectOfflineResourcesTestButton', 10, '');
+      Utils.emitEvent("testInjectOfflineResources003", 148311)
+      Utils.registerBaseEvent("testInjectOfflineResources003", '401', 148380, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected)
+        });
+      Utils.waitAndClickComponent('injectOfflineResourcesTestButton',driver)
     })
     /*
     * @tc.number     : SUB_WEB_WEBVIEWCONTROLLER_INJECTOFFLINERESOURCES_0400
@@ -106,10 +113,12 @@ export default function injectOfflineResourcesTest() {
     * @tc.level      : Level 1
     */
     it('testInjectOfflineResources004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testInjectOfflineResources004", 10)
-      await Utils.sleep(500);
-      Utils.registerEvent("testInjectOfflineResources004", '17100002', 20004, done);
-      sendEventByKey('injectOfflineResourcesTestButton', 10, '');
+      Utils.emitEvent("testInjectOfflineResources004", 148311)
+      Utils.registerBaseEvent("testInjectOfflineResources004", '17100002', 148390, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected)
+        });
+      Utils.waitAndClickComponent('injectOfflineResourcesTestButton',driver)
     })
     /*
     * @tc.number     : SUB_WEB_WEBVIEWCONTROLLER_INJECTOFFLINERESOURCES_0500
@@ -120,10 +129,12 @@ export default function injectOfflineResourcesTest() {
     * @tc.level      : Level 1
     */
     it('testInjectOfflineResources005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testInjectOfflineResources005", 10)
-      await Utils.sleep(500);
-      Utils.registerEvent("testInjectOfflineResources005", '17100001', 20005, done);
-      sendEventByKey('injectOfflineResourcesTestButton', 10, '');
+      Utils.emitEvent("testInjectOfflineResources005", 148311)
+      Utils.registerBaseEvent("testInjectOfflineResources005", '17100001', 148400, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected)
+        });
+      Utils.waitAndClickComponent('injectOfflineResourcesTestButton',driver)
     })
   })
 }

@@ -28,7 +28,7 @@ import webView from '@ohos.web.webview';
 struct clearPrefetchedResourceTest {
   controller: webView.WebviewController = new webView.WebviewController();
   message: webView.WebMessageExt = new webView.WebMessageExt();
-  @State str: string = ""
+  @State str: string = ''
   @State javaScriptAccess: boolean = true;
   responseweb: WebResourceResponse = new WebResourceResponse()
   scheme1: webView.WebCustomScheme = {
@@ -44,7 +44,7 @@ struct clearPrefetchedResourceTest {
   }
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 148301,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
@@ -52,13 +52,13 @@ struct clearPrefetchedResourceTest {
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(148301)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
-    console.info("web page valueChangeCallBack");
+    console.info('web page valueChangeCallBack');
     if (eventData != null) {
-      console.info("valueChangeCallBack:" + JSON.stringify(eventData));
+      console.info('valueChangeCallBack:' + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
       }
@@ -66,13 +66,13 @@ struct clearPrefetchedResourceTest {
   }
   private jsObj: JsProxyObject = {
     test: (res: object) => {
-      console.info("ets toString:" + String(res));
+      console.info('ets toString:' + String(res));
     },
     toString: (str: string) => {
-      console.info("ets toString:" + String(str));
+      console.info('ets toString:' + String(str));
     },
     register: (res: object) => {
-      return "clearPrefetchedResourceTest test"
+      return 'clearPrefetchedResourceTest test';
     }
   }
 
@@ -103,9 +103,9 @@ struct clearPrefetchedResourceTest {
               }
               try {
                 webView.WebviewController.clearPrefetchedResource(["KeyX"]);
-                Utils.emitEvent(true, 10112)
+                Utils.emitEvent(true, 148300)
               } catch (err) {
-                console.error(msg + "clearPrefetchedResource error: " + err.code + " Message: " + err.message);
+                console.error(msg + 'clearPrefetchedResource error: ' + err.code + ' Message: ' + err.message);
               }
               break;
             }
@@ -114,8 +114,8 @@ struct clearPrefetchedResourceTest {
               try {
                 webView.WebviewController.clearPrefetchedResource([" "]);
               } catch (err) {
-                console.error(msg + "clearPrefetchedResource error: " + err.code + " Message: " + err.message);
-                Utils.emitEvent(err.code, 10113)
+                console.error(msg + 'clearPrefetchedResource error: ' + err.code + ' Message: ' + err.message);
+                Utils.emitEvent(err.code, 148310)
               }
               break;
             }
@@ -124,8 +124,8 @@ struct clearPrefetchedResourceTest {
               try {
                 webView.WebviewController.clearPrefetchedResource(undefined);
               } catch (err) {
-                console.error(msg + "clearPrefetchedResource error: " + err.code + " Message: " + err.message);
-                Utils.emitEvent(err.code, 10114)
+                console.error(msg + 'clearPrefetchedResource error: ' + err.code + ' Message: ' + err.message);
+                Utils.emitEvent(err.code, 148320)
               }
               break;
             }
@@ -134,8 +134,8 @@ struct clearPrefetchedResourceTest {
               try {
                 webView.WebviewController.clearPrefetchedResource(null);
               } catch (err) {
-                console.error(msg + "clearPrefetchedResource error: " + err.code + " Message: " + err.message);
-                Utils.emitEvent(err.code, 10115)
+                console.error(msg + 'clearPrefetchedResource error: ' + err.code + ' Message: ' + err.message);
+                Utils.emitEvent(err.code, 148330)
               }
               break;
             }
@@ -144,8 +144,8 @@ struct clearPrefetchedResourceTest {
               try {
                 webView.WebviewController.clearPrefetchedResource(['中——文']);
               } catch (err) {
-                console.error(msg + "clearPrefetchedResource error: " + err.code + " Message: " + err.message);
-                Utils.emitEvent(err.code, 10116)
+                console.error(msg + 'clearPrefetchedResource error: ' + err.code + ' Message: ' + err.message);
+                Utils.emitEvent(err.code, 148340)
               }
               break;
             }
@@ -154,8 +154,8 @@ struct clearPrefetchedResourceTest {
               try {
                 webView.WebviewController.customizeSchemes([this.scheme1])
               } catch (err) {
-                console.error(msg + "customizeSchemes error: " + err.code + " Message: " + err.message);
-                Utils.emitEvent(err.code, 10117)
+                console.error(msg + 'customizeSchemes error: ' + err.code + ' Message: ' + err.message);
+                Utils.emitEvent(err.code, 148350)
               }
               break;
             }
