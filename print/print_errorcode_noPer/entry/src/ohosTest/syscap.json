@@ -5,8 +5,7 @@
         "custom": [
             {
                 "xts": [
-                    "SystemCapability.Account.AppAccount",
-                    "SystemCapability.Account.OsAccount",
+                    "SystemCapability.MultimodalInput.Input.Core",
                     "SystemCapability.Print.PrintFramework"
                 ]
             }

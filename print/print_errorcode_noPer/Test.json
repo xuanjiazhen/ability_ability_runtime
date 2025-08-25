@@ -1,5 +1,5 @@
 {
-    "description": "Configuration for ActsOsAccountNdkTest Tests",
+    "description": "Configuration for ActsPrintNdkTest Tests",
     "driver": {
         "type": "OHJSUnitTest",
         "test-timeout": "600000",

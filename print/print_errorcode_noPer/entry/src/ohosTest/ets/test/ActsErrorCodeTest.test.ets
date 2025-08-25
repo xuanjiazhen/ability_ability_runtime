@@ -14,10 +14,9 @@
  */
 
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
-import osAccountNdk from 'libprinterrorcode.so'
-import printer from '@ohos.print';
+import printNdk from 'libprinterrorcode.so'
 
-const OS_ACCOUNT_ERR_OK = 0;
+const PRINT_ERR_OK = 0;
 
 export default function ActsErrorCodeTest() {
   describe('ActsErrorCodeTest', () => {
@@ -33,13 +32,13 @@ export default function ActsErrorCodeTest() {
     it('testOHPrintInit1', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       try {
         console.info("====>testOHPrintInit1 start====");
-        let result = osAccountNdk.OH_Print_Init1();
+        let result = printNdk.OH_Print_Init1();
         console.info("====>testOHPrintInit1 result: " + result);
         expect(201).assertEqual(result);
         done()
       } catch (err) {
         console.error("====>testOHPrintInit1 catch err: " + err);
-        expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
+        expect(false).assertEqual(PRINT_ERR_OK);
       }
     })
 
@@ -54,13 +53,13 @@ export default function ActsErrorCodeTest() {
     it('testOHPrintInit2', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       try {
         console.info("====>testOHPrintInit2 start====");
-        let result = osAccountNdk.OH_Print_Init1();
+        let result = printNdk.OH_Print_Init1();
         console.info("====>testOHPrintInit2 result: " + result);
         expect(201).assertEqual(result);
         done()
       } catch (err) {
         console.error("====>testOHPrintInit2 catch err: " + err);
-        expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
+        expect(false).assertEqual(PRINT_ERR_OK);
       }
     })
 
@@ -76,13 +75,13 @@ export default function ActsErrorCodeTest() {
       async (done: Function) => {
         try {
           console.info("====>testOHPrintStartPrinterDiscovery1 start====");
-          let result = osAccountNdk.OH_Print_StartPrinterDiscovery1();
+          let result = printNdk.OH_Print_StartPrinterDiscovery1();
           console.info("====>testOHPrintStartPrinterDiscovery1 result: " + result);
           expect(201).assertEqual(result);
           done()
         } catch (err) {
           console.error("====>testOHPrintStartPrinterDiscovery1 catch err: " + err);
-          expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
+          expect(false).assertEqual(PRINT_ERR_OK);
         }
       })
 
@@ -97,13 +96,13 @@ export default function ActsErrorCodeTest() {
     it('testOHPrintConnectPrinter1', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       try {
         console.info("====>testOHPrintConnectPrinter1 start====");
-        let result = osAccountNdk.OH_Print_ConnectPrinter1();
+        let result = printNdk.OH_Print_ConnectPrinter1();
         console.info("====>testOHPrintConnectPrinter1 result: " + result);
         expect(201).assertEqual(result);
         done()
       } catch (err) {
         console.error("====>testOHPrintConnectPrinter1 catch err: " + err);
-        expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
+        expect(false).assertEqual(PRINT_ERR_OK);
       }
     })
   })
