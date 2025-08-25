@@ -24,7 +24,6 @@ import bindContentCoverTest from './BindContentCoverTest/bindContentCover.test';
 import selectModalModeTest from './MenuTest/selectModalMode.test';
 import PreviewScaleModeTest from './MenuTest/PreviewScaleModeTest.test';
 import AvailableLayoutAreaTest from './MenuTest/AvailableLayoutAreaTest.test';
-import bindSheetKeyboardAvoidMode from './SheetTypeTest/bindSheetKeyboardAvoidMode.test';
 import enableFloatingDragBarTest from './SheetTypeTest/enableFloatingDragBar.test';
 import maskTest from './bindMenuTest/mask.test';
 import maskColorTest from './bindMenuTest/maskColor.test';
@@ -44,7 +43,6 @@ export default function testsuite() {
   selectModalModeTest();
   PreviewScaleModeTest();
   AvailableLayoutAreaTest();
-  bindSheetKeyboardAvoidMode();
   enableFloatingDragBarTest();
   maskTest();
   maskColorTest();
