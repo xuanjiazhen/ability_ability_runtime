@@ -84,10 +84,8 @@ HWTEST_F(ChildProcessCapiTest, OH_Ability_CreateNativeChildProcess_001, TestSize
     ret = OH_Ability_CreateNativeChildProcess("test.so", ChildProcessCapiTest::OnNativeChildProcessStarted);
     if (!AAFwk::AppUtils::GetInstance().IsMultiProcessModel()) {
         EXPECT_EQ(ret, NCP_ERR_SERVICE_ERROR);
-        return;
     } else if (!AAFwk::AppUtils::GetInstance().IsSupportNativeChildProcess()) {
         EXPECT_EQ(ret, NCP_ERR_MULTI_PROCESS_DISABLED);
-        return;
     }
 
     GTEST_LOG_(INFO) << "OH_Ability_CreateNativeChildProcess return " << ret;
@@ -134,10 +132,8 @@ HWTEST_F(ChildProcessCapiTest, OH_Ability_CreateNativeChildProcessWithConfigs, T
         ChildProcessCapiTest::OnNativeChildProcessStarted);
     if (!AAFwk::AppUtils::GetInstance().IsMultiProcessModel()) {
         EXPECT_EQ(ret, NCP_ERR_SERVICE_ERROR);
-        return;
     } else if (!AAFwk::AppUtils::GetInstance().IsSupportNativeChildProcess()) {
         EXPECT_EQ(ret, NCP_ERR_MULTI_PROCESS_DISABLED);
-        return;
     }
 
     GTEST_LOG_(INFO) << "OH_Ability_CreateNativeChildProcess return " << ret;
