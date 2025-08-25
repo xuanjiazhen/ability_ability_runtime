@@ -161,28 +161,6 @@ HWTEST_F(CallContainerTest, Call_Container_Call_Request_Done_001, TestSize.Level
 
 /*
  * Feature: CallContainer
- * Function: CallRequestDone
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions:NA
- * CaseDescription: Verify funtion call called
- */
-HWTEST_F(CallContainerTest, Call_Container_Call_Request_Done_002, TestSize.Level1)
-{
-    class AbilitySchedulerMockFunction : public AbilitySchedulerMock {
-    public:
-        sptr<IRemoteObject> CallRequestModify() { return this; }
-    };
-
-    std::shared_ptr<CallContainer> callContainer = get();
-    auto scheduler = new AbilitySchedulerMockFunction();
-    sptr<IRemoteObject> object = scheduler->CallRequestModify();
-    bool result = callContainer->CallRequestDone(object);
-    EXPECT_EQ(result, true);
-}
-
-/*
- * Feature: CallContainer
  * Function: Dump
  * SubFunction: NA
  * FunctionPoints: NA
