@@ -40,10 +40,10 @@ export default function ArkUIKeyCodeNdkTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('ARKUI_KEYCODE_UNKNOWN_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testGetArkUIKeyCodeEventUnknown0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>ARKUI_KEYCODE_UNKNOWN_0100 start====");
+          console.info("====>testGetArkUIKeyCodeEventUnknown0100 start====");
           globalThis.keyCode = -1;
           await button.click();
           do {
@@ -54,7 +54,7 @@ export default function ArkUIKeyCodeNdkTest() {
           expect(KEY_CODE_SAME).assertEqual(KeyResult == -1);
           done();
         } catch (err) {
-          console.error("====>ARKUI_KEYCODE_UNKNOWN_0100 catch err: " + err);
+          console.error("====>testGetArkUIKeyCodeEventUnknown0100 catch err: " + err);
           expect(false).assertEqual(KEY_CODE_ERROR);
           done();
         }
