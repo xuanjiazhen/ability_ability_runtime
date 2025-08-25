@@ -17,12 +17,13 @@
 #define OHOS_AAFWK_HILOG_TAG_WRAPPER_H
 
 #include <cinttypes>
+#include <filesystem>
 #include <map>
 
 #include "hilog/log.h"
 
 #ifndef AAFWK_FUNC_FMT
-#define AAFWK_FUNC_FMT "[%{public}s:%{public}d]"
+#define AAFWK_FUNC_FMT "[%{public}s]"
 #endif
 
 #ifndef AAFWK_FILE_NAME
@@ -31,7 +32,7 @@
 #endif
 
 #ifndef AAFWK_FUNC_INFO
-#define AAFWK_FUNC_INFO AAFWK_FILE_NAME, __LINE__
+#define AAFWK_FUNC_INFO std::filesystem::path(AAFWK_FILE_NAME).replace_extension().c_str()
 #endif
 
 
