@@ -147,13 +147,13 @@ export default function HidebugrawTest() {
         console.info("output path: " + path);
         let freeSize = await statfs.getFreeSize(path);
         if (freeSize > 30 * 1024 * 1024 * 1024) {
-          let filename1 = await hidebug.dumpJsRawHeapData()
+          let filename1 = await hidebug.dumpJsRawHeapData();
           console.info(`testHidebugraw_0400 success filename1 is ${filename1}`)
           let stat1 = fs.statSync(filename1);
           let filesize1 = stat1.size
           console.info("testHidebugraw_0400 success filezize1 is " + filesize1);
-          hidebug.setJsRawHeapTrimLevel(1)
-          let filename2 = await hidebug.dumpJsRawHeapData()
+          hidebug.setJsRawHeapTrimLevel(1);
+          let filename2 = await hidebug.dumpJsRawHeapData();
           console.info(`testHidebugraw_0400 success filename2 is ${filename2}`)
           let stat2 = fs.statSync(filename2);
           let filesize2 = stat2.size
@@ -162,8 +162,9 @@ export default function HidebugrawTest() {
           console.info("testHidebugraw_0400 success 1/4 filezize2 is " + 1/4 * filesize1);
           expect(Math.abs(filesize2-filesize1) > 1/4 * filesize2 ).assertTrue();
           hidebug.setJsRawHeapTrimLevel(0)
-          done()
+          done();
         }
+        done();
       }catch (err) {
         console.info(`testHidebugraw_0400 > error code: ${err.code}, error msg: ${err.message}`);
         expect(false).assertTrue();
@@ -187,13 +188,13 @@ export default function HidebugrawTest() {
         console.info("output path: " + path);
         let freeSize = await statfs.getFreeSize(path);
         if (freeSize > 30 * 1024 * 1024 * 1024) {
-          hidebug.setJsRawHeapTrimLevel(1)
+          hidebug.setJsRawHeapTrimLevel(1);
           let filename1 = await hidebug.dumpJsRawHeapData()
           console.info(`testHidebugraw_0500 success filename1 is ${filename1}`)
           let stat1 = fs.statSync(filename1);
           let filesize1 = stat1.size
           console.info("testHidebugraw_0500 success filezize1 is " + filesize1);
-          hidebug.setJsRawHeapTrimLevel(0)
+          hidebug.setJsRawHeapTrimLevel(0);
           let filename2 = await hidebug.dumpJsRawHeapData()
           console.info(`testHidebugraw_0500 success filename2 is ${filename2}`)
           let stat2 = fs.statSync(filename2);
@@ -202,8 +203,9 @@ export default function HidebugrawTest() {
           console.info("testHidebugraw_0500 success filezize2 - filesize2 is " + Math.abs(filesize1-filesize2));
           console.info("testHidebugraw_0500 success 1/4 filezize2 is " + 1/4 * filesize2);
           expect(Math.abs(filesize1-filesize2) > 1/4 * filesize2 ).assertTrue();
-          done()
+          done();
         }
+        done();
       }catch (err) {
         console.info(`testHidebugraw_0500 > error code: ${err.code}, error msg: ${err.message}`);
         expect(false).assertTrue();
@@ -265,8 +267,9 @@ export default function HidebugrawTest() {
           console.info("testHidebugraw_0700 success 1/4 filezize2 is " + 1/5 * filesize1);
           expect(Math.abs(filesize2-filesize1) > 1/5 * filesize2 ).assertTrue();
           hidebug.setJsRawHeapTrimLevel(hidebug.JsRawHeapTrimLevel.TRIM_LEVEL_1);
-          done()
+          done();
         }
+        done();
       }catch (err) {
         console.info(`testHidebugraw_0700 > error code: ${err.code}, error msg: ${err.message}`);
         expect(false).assertTrue();
