@@ -16,3 +16,16 @@
 export const CreateBufferCopy: () => object;
 export const IsBuffer: (buffer) => boolean;
 export const GetBufferInfo: (buffer) => boolean;
+export const CreateExternalBufferTest: () => object;
+export const createBufferSizeZeroTest: () => object;
+export const CreateBufferMaxLength: () => object;
+export const CreateBufferExceedMaxLength: () => object;
+export const CreateBufferInvalidEnv: () => object;
+export const CreateBufferInvalidData: () => object;
+export const CreateBufferInvalidResult: () => object;
+export const CreateInt32Test: () => object;
+export const GetBufferInfoNonBuffer: (object) => object;
+export const TestMultipleOperations: () => object;
+export const TestExternalArrayBuffer: () => object;
+export const TestArrayBufferThreadSafety: () => boolean;
+export const TestArrayBufferComparison: () => number;

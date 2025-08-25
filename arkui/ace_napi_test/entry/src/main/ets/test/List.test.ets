@@ -27,9 +27,9 @@ export default function testsuite() {
   napiBufferTest();
   napiSendableTest();
   napiApiTest();
-  napiCheckExTest();
   napiTaskApiTest();
   napiSendableTaskTest();
   napiWorkerTest();
   napiWorkerGCTest();
+  napiCheckExTest();
 }
