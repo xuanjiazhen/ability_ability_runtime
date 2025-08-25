@@ -44,16 +44,8 @@ ani_int test_PromiseResolver_Resolve([[maybe_unused]] ani_env *env, [[maybe_unus
 
 ani_int test_PromiseResolver_Reject([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
 {
-    ani_object promise {};
-    ani_resolver resolver {};
-
-    ASSERT_EQ(env->Promise_New(&resolver, &promise), ANI_OK);
-
-    std::string rejected = "rejected";
-    ani_string rejection = nullptr;
-    ASSERT_EQ(env->String_NewUTF8(rejected.c_str(), rejected.size(), &rejection), ANI_OK);
-
-    ASSERT_EQ(env->PromiseResolver_Reject(resolver, reinterpret_cast<ani_error>(rejection)), ANI_OK);
+    ani_error error {};
+    ASSERT_EQ(env->PromiseResolver_Reject(nullptr, error), ANI_INVALID_ARGS);
     return ANI_TRUE;
 }
 
