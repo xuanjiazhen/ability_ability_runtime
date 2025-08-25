@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,13 +60,18 @@ struct Index {
   @State isHttpErrorReceive: boolean = false;
   @State isLargeThan: boolean = false;
   @State isComplete: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 133750,
       priority: events_emitter.EventPriority.LOW
     };
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack);
+  }
+
+  onPageHide() {
+    events_emitter.off(133750)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -75,6 +80,7 @@ struct Index {
       console.info('valueChangeCallBack:' + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -98,52 +104,75 @@ struct Index {
     Hypium.hypiumTest(abilityDelegator, abilityDelegatorArguments, testsuite);
   }
 
+  private async execTestCasePre() {
+    this.isComplete = -1;
+    this.controller.loadUrl({ url: 'resource://rawfile/index.html' });
+    await waitForExist(() => this.isComplete, this.str, 0);
+
+    this.controller.clearHistory();
+
+    this.isComplete = -1;
+    this.controller.loadUrl({ url: 'resource://rawfile/second.html' });
+    await waitForExist(() => this.isComplete, this.str, 0);
+  }
+
   build() {
     Column() {
       Row() {
         Button('web click').key('webcomponent').onClick(async () => {
           console.info('key==>' + this.str);
-          await waitForExist(()=>this.isComplete, 'ActsAceWebDevTest', 0, 1000)
+          await waitForExist(() => this.isComplete, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           switch (this.str) {
             case 'emitOnRefreshAccessedHistory': {
+              this.isComplete = -1;
               this.controller.loadUrl({ url: 'resource://rawfile/second.html' });
-              setTimeout(() => {
-                Utils.emitEvent(this.newUrl, 116);
-              }, 3000)
+              await waitForExist(() => this.isComplete, this.str, 0);
+              Utils.emitEvent(this.newUrl, 133760);
               break;
             }
             case 'emitAccessBackward': {
+              await this.execTestCasePre();
               let isCan = this.controller.accessBackward() + '';
-              Utils.emitEvent(isCan, 128);
+              Utils.emitEvent(isCan, 133770);
               break;
             }
             case 'emitAccessForward': {
+              await this.execTestCasePre();
               let isCan = this.controller.accessForward() + '';
-              Utils.emitEvent(isCan, 130);
+              Utils.emitEvent(isCan, 133780);
               break;
             }
             case 'emitAccessStep': {
+              await this.execTestCasePre();
               let isCan = this.controller.accessStep(-1) + '';
-              Utils.emitEvent(isCan, 132);
+              Utils.emitEvent(isCan, 133790);
               break;
             }
             case 'emitBackward': {
-              this.controller.backward()
-              this.controller.loadUrl({ url: 'resource://rawfile/index.html' });
-              setTimeout(() => {
-                this.controller.runJavaScript({
-                  script: 'getTitle()', callback: (res) => {
-                    Utils.emitEvent(res, 134);
-                  }
-                })
-              }, 3000)
+              await this.execTestCasePre();
+              this.isComplete = -1;
+              this.controller.backward();
+              await waitForExist(() => this.isComplete, this.str, 0);
+              this.controller.runJavaScript({
+                script: 'getTitle()', callback: (res) => {
+                  Utils.emitEvent(res, 133800);
+                }
+              });
               break;
             }
             case 'emitForward': {
+              await this.execTestCasePre();
+
+              this.isComplete = -1;
+              this.controller.backward();
+              await waitForExist(() => this.isComplete, this.str, 0);
+
+              this.isComplete = -1;
               this.controller.forward();
-              setTimeout(() => {
-                Utils.emitEvent(this.newUrl, 136);
-              }, 3000);
+              await waitForExist(() => this.isComplete, this.str, 0);
+              Utils.emitEvent(this.newUrl, 133810);
               break;
             }
             default:
