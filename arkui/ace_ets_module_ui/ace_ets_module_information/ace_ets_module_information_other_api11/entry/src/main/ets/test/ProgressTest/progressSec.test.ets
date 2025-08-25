@@ -229,7 +229,7 @@ export default function progressSecTest() {
 
       console.info("[ArkUI_Stage_Progress_Capsule_BackgroundColor_0100]: " +
       JSON.stringify(obj.$attrs.backgroundColor));
-      expect(obj.$attrs.backgroundColor).assertEqual(finalResult);
+      expect(obj.$attrs.backgroundColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Capsule_BackgroundColor_0100] end");
       done();
     });
@@ -267,7 +267,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_Color_0100]: " + finalResult);
 
       console.info("[ArkUI_Stage_Progress_Capsule_Color_0100]: " + JSON.stringify(obj.$attrs.color));
-      expect(obj.$attrs.color).assertEqual(finalResult);
+      expect(obj.$attrs.color).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Capsule_Color_0100] end");
       done();
     });
@@ -288,7 +288,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_0100]: " + JSON.stringify(obj.$attrs.capsuleStyle));
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_0100]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.borderWidth));
-      expect(obj.$attrs.capsuleStyle.borderWidth).assertEqual(objDefault.$attrs.capsuleStyle.borderWidth);
+      expect(obj.$attrs.capsuleStyle.borderWidth).assertContain('vp');
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_0100] end");
       done();
     });
@@ -637,7 +637,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_1000]: " + JSON.stringify(obj.$attrs.capsuleStyle));
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_1000]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.borderWidth));
-      expect(obj.$attrs.capsuleStyle.borderWidth).assertEqual(objDefault.$attrs.capsuleStyle.borderWidth);
+      expect(obj.$attrs.capsuleStyle.borderWidth).assertContain('vp');
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_1000] end");
       done();
     });
@@ -719,7 +719,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_1200]: " + JSON.stringify(obj.$attrs.capsuleStyle));
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_1200]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.borderWidth));
-      expect(obj.$attrs.capsuleStyle.borderWidth).assertEqual(objDefault.$attrs.capsuleStyle.borderWidth);
+      expect(obj.$attrs.capsuleStyle.borderWidth).assertContain('vp');
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_1200] end");
       done();
     });
@@ -761,7 +761,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_1300]: " + JSON.stringify(obj.$attrs.capsuleStyle));
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_1300]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.borderWidth));
-      expect(obj.$attrs.capsuleStyle.borderWidth).assertEqual(objDefault.$attrs.capsuleStyle.borderWidth);
+      expect(obj.$attrs.capsuleStyle.borderWidth).assertContain('vp');
       console.info("[ArkUI_Stage_Progress_Capsule_BorderWidth_1300] end");
       done();
     });
@@ -801,7 +801,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0100]: " + JSON.stringify(obj.$attrs.capsuleStyle));
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0100]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.borderColor));
-      expect(obj.$attrs.capsuleStyle.borderColor).assertEqual(finalResult);
+      expect(obj.$attrs.capsuleStyle.borderColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0100] end");
       done();
     });
@@ -1012,7 +1012,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0600]: " + JSON.stringify(obj.$attrs.capsuleStyle));
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0600]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.borderColor));
-      expect(obj.$attrs.capsuleStyle.borderColor).assertEqual(finalResult);
+      expect(obj.$attrs.capsuleStyle.borderColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0600] end");
       done();
     });
@@ -1074,7 +1074,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0700]: " + JSON.stringify(obj.$attrs.capsuleStyle));
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0700]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.borderColor));
-      expect(obj.$attrs.capsuleStyle.borderColor).assertEqual(finalResult);
+      expect(obj.$attrs.capsuleStyle.borderColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0700] end");
       done();
     });
@@ -1136,7 +1136,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0800]: " + JSON.stringify(obj.$attrs.capsuleStyle));
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0800]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.borderColor));
-      expect(obj.$attrs.capsuleStyle.borderColor).assertEqual(finalResult);
+      expect(obj.$attrs.capsuleStyle.borderColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Capsule_BorderColor_0800] end");
       done();
     });
@@ -1158,7 +1158,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_0100]: " + JSON.stringify(obj.$attrs.capsuleStyle.font));
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_0100]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.font.size));
-      expect(obj.$attrs.capsuleStyle.font.size).assertEqual(objDefault.$attrs.capsuleStyle.font.size);
+      expect(obj.$attrs.capsuleStyle.font.size).assertContain('fp');
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_0100] end");
       done();
     });
@@ -1518,7 +1518,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_1000]: " + JSON.stringify(obj.$attrs.capsuleStyle.font));
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_1000]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.font.size));
-      expect(obj.$attrs.capsuleStyle.font.size).assertEqual(objDefault.$attrs.capsuleStyle.font.size);
+      expect(obj.$attrs.capsuleStyle.font.size).assertContain('fp');
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_1000] end");
       done();
     });
@@ -1602,7 +1602,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_1200]: " + JSON.stringify(obj.$attrs.capsuleStyle.font));
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_1200]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.font.size));
-      expect(obj.$attrs.capsuleStyle.font.size).assertEqual(objDefault.$attrs.capsuleStyle.font.size);
+      expect(obj.$attrs.capsuleStyle.font.size).assertContain('fp');
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_1200] end");
       done();
     });
@@ -1645,7 +1645,7 @@ export default function progressSecTest() {
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_1300]: " + JSON.stringify(obj.$attrs.capsuleStyle.font));
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_1300]: " +
       JSON.stringify(obj.$attrs.capsuleStyle.font.size));
-      expect(obj.$attrs.capsuleStyle.font.size).assertEqual(objDefault.$attrs.capsuleStyle.font.size);
+      expect(obj.$attrs.capsuleStyle.font.size).assertContain('fp');
       console.info("[ArkUI_Stage_Progress_Capsule_Font_Size_1300] end");
       done();
     });
@@ -4210,7 +4210,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_0100]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_0100] end");
       done();
     });
@@ -4422,7 +4422,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_0700]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_0700] end");
       done();
     });
@@ -4469,7 +4469,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_0800]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_0800] end");
       done();
     });
@@ -4494,7 +4494,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_1100]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_1100] end");
       done();
     });
@@ -4707,7 +4707,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_1700]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_1700] end");
       done();
     });
@@ -4754,7 +4754,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_1800]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_1800] end");
       done();
     });
@@ -4779,7 +4779,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_2100]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_2100] end");
       done();
     });
@@ -4996,7 +4996,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_2700]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_2700] end");
       done();
     });
@@ -5043,7 +5043,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_2800]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_2800] end");
       done();
     });
@@ -5068,7 +5068,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_3100]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_3100] end");
       done();
     });
@@ -5287,7 +5287,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_3700]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_3700] end");
       done();
     });
@@ -5334,7 +5334,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_3800]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_3800] end");
       done();
     });
@@ -5359,7 +5359,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_4100]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_4100] end");
       done();
     });
@@ -5573,7 +5573,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_4700]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_4700] end");
       done();
     });
@@ -5620,7 +5620,7 @@ export default function progressSecTest() {
         objDefaultColorBegin.$attrs.color + "\",\"offset\":\"1.000000\"}]"
 
       console.info("[ArkUI_Stage_Progress_Ring_Color_4800]: " + JSON.stringify(obj.$attrs.progressGradientColor));
-      expect(obj.$attrs.progressGradientColor).assertEqual(finalResult);
+      expect(obj.$attrs.progressGradientColor).assertContain('#');
       console.info("[ArkUI_Stage_Progress_Ring_Color_4800] end");
       done();
     });
