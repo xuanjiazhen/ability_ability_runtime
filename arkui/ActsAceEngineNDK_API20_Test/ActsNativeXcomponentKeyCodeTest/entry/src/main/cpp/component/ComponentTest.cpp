@@ -381,7 +381,6 @@ void Component::RegisterOnKey(const std::function<void(ArkUI_NodeEvent* event)>&
     };
     eventMap_[NODE_ON_KEY_EVENT] = onKeyCallback;
     _nodeAPI->registerNodeEvent(_component, NODE_ON_KEY_EVENT, PARAM_0, _xcomponent);
-    
 }
 
 // 注册触摸事件回调
