@@ -75,33 +75,70 @@ struct webErrorPageTest {
                   console.error(this.emitKey + ' ErrorCode：' + error.code + ' Message：' + error.message);
                   Utils.emitEvent(error.message, 2025081413);
                 }
+                this.isPageEnd = -1;
+                break;
+              }
+              case 'emitOnSslErrorEventAbortLoadingTrue': {
+                try {
+                  let result = await waitForExist(()=>this.isPageEnd, this.emitKey, 0, 1000);
+                  console.log('result==>' + result);
+                  Utils.emitEvent(result, 2025082601);
+                } catch (error) {
+                  console.error(this.emitKey + ' ErrorCode：' + error.code + ' Message：' + error.message);
+                  Utils.emitEvent(error.message, 2025082601);
+                }
                 break;
               }
             }
          })
       }
-      Web({ src: URL, controller: this.controller })
-        .onPageBegin((event) => {
-          console.log('onPageBegin url：' + event.url);
-        })
-        .onPageEnd((event) => {
-          console.log('onPageEnd url：' + event.url);
-          this.isPageEnd = 0;
-          this.url = event.url;
-        })
-        .onSslErrorEvent((event: SslErrorEvent) => {
-          if (event) {
-            console.log('onSslErrorEvent url: ' + event.url);
-            console.log('onSslErrorEvent error: ' + event.error);
-            console.log('onSslErrorEvent originalUrl: ' + event.originalUrl);
-            console.log('onSslErrorEvent referrer: ' + event.referrer);
-            console.log('onSslErrorEvent isFatalError: ' + event.isFatalError);
-            console.log('onSslErrorEvent isMainFrame: ' + event.isMainFrame);
-            event.handler.handleCancel(false);
-          }
-        })
-        .width('100%')
-        .height('100%')
+      if (this.emitKey == 'emitOnSslErrorEventAbortLoadingFalse') {
+        Web({ src: URL, controller: this.controller })
+          .onPageBegin((event) => {
+            console.log('onPageBegin url：' + event.url);
+          })
+          .onPageEnd((event) => {
+            console.log('onPageEnd url：' + event.url);
+            this.isPageEnd = 0;
+            this.url = event.url;
+          })
+          .onSslErrorEvent((event: SslErrorEvent) => {
+            if (event) {
+              console.log('onSslErrorEvent url: ' + event.url);
+              console.log('onSslErrorEvent error: ' + event.error);
+              console.log('onSslErrorEvent originalUrl: ' + event.originalUrl);
+              console.log('onSslErrorEvent referrer: ' + event.referrer);
+              console.log('onSslErrorEvent isFatalError: ' + event.isFatalError);
+              console.log('onSslErrorEvent isMainFrame: ' + event.isMainFrame);
+              event.handler.handleCancel(false);
+            }
+          })
+          .width('100%')
+          .height('100%')
+      } else if (this.emitKey == 'emitOnSslErrorEventAbortLoadingTrue') {
+        Web({ src: URL, controller: this.controller })
+          .onPageBegin((event) => {
+            console.log('onPageBegin url：' + event.url);
+          })
+          .onPageEnd((event) => {
+            console.log('onPageEnd url：' + event.url);
+            this.isPageEnd = 0;
+            this.url = event.url;
+          })
+          .onSslErrorEvent((event: SslErrorEvent) => {
+            if (event) {
+              console.log('onSslErrorEvent url: ' + event.url);
+              console.log('onSslErrorEvent error: ' + event.error);
+              console.log('onSslErrorEvent originalUrl: ' + event.originalUrl);
+              console.log('onSslErrorEvent referrer: ' + event.referrer);
+              console.log('onSslErrorEvent isFatalError: ' + event.isFatalError);
+              console.log('onSslErrorEvent isMainFrame: ' + event.isMainFrame);
+              event.handler.handleCancel(true);
+            }
+          })
+          .width('100%')
+          .height('100%')
+      }
     }
   }
 }

@@ -78,6 +78,21 @@ export default function onSslErrorEventTwoTest() {
       });
       sendEventByKey('OnSslErrorEventTwoButton', 10, '');
     })
+    /*
+   * @tc.number     : SUB_ACE_WEB_ONSSLERROREVENT_ABORTLOADING_API_0002
+   * @tc.name       : testOnSslErrorEventAbortLoadingTrue
+   * @tc.desc       : test onSslErrorEvent handleCancel abortLoading true
+   * @tc.size       : MediumTest
+   * @tc.type       : Function
+   * @tc.level      : Level 1
+   */
+    it('testOnSslErrorEventAbortLoadingTrue', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      Utils.emitEvent('emitOnSslErrorEventAbortLoadingTrue', 22);
+      Utils.registerBaseEvent('testOnSslErrorEventAbortLoadingTrue', -1, 2025082601, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
+      sendEventByKey('OnSslErrorEventTwoButton', 10, '');
+    })
 
 
   })

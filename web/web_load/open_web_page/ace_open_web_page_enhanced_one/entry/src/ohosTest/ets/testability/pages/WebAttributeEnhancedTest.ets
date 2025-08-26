@@ -123,6 +123,38 @@ struct WebAttributeEnhancedTest {
                 }
                 break;
               }
+              case 'emitOnTitleReceiveIsRealTitle005': {
+                try {
+                  this.isRealTitle = -1;
+                  this.isPageEnd = -1;
+                  this.controller.loadUrl($rawfile('titleEmptyTag.html'));
+                  await waitForExist(()=>this.isPageEnd, this.str, 0);
+                  let check = (v1: number, v2: number): boolean => {
+                    return v1 == v2 ? true:false;
+                  }
+                  await waitForAssert(()=>this.isRealTitle, check, 0, 2025082602, this.str);
+                  console.log(this.str + ' isRealTitle==>' + this.isRealTitle);
+                } catch (error) {
+                  console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
+                }
+                break;
+              }
+              case 'emitOnTitleReceiveIsRealTitle006': {
+                try {
+                  this.isRealTitle = -1;
+                  this.isPageEnd = -1;
+                  this.controller.loadUrl($rawfile('titleEmptyString.html'));
+                  await waitForExist(()=>this.isPageEnd, this.str, 0);
+                  let check = (v1: number, v2: number): boolean => {
+                    return v1 == v2 ? true:false;
+                  }
+                  await waitForAssert(()=>this.isRealTitle, check, 1, 2025082603, this.str);
+                  console.log(this.str + ' isRealTitle==>' + this.isRealTitle);
+                } catch (error) {
+                  console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
+                }
+                break;
+              }
             }
           })
 

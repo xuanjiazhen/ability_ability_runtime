@@ -128,6 +128,38 @@ export default function webAttributeEnhancedTest() {
         });
       sendEventByKey('OnTitleReceiveIsRealTitleButton', 10, '');
     })
+    /*
+     * @tc.number      : SUB_WEB_ONTITLERECEIVE_ISREALTITLE_0500
+     * @tc.name        : testOnTitleReceiveIsRealTitle005
+     * @tc.desc        : test onTitleReceive empty title tag
+     * @tc.size        : MediumTest
+     * @tc.type        : Function
+     * @tc.level       : Level 1
+     */
+    it('testOnTitleReceiveIsRealTitle005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      Utils.emitEvent('emitOnTitleReceiveIsRealTitle005', 127);
+      Utils.registerBaseEvent('testOnTitleReceiveIsRealTitle005', 0, 2025082602, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected);
+        });
+      sendEventByKey('OnTitleReceiveIsRealTitleButton', 10, '');
+    })
+    /*
+     * @tc.number      : SUB_WEB_ONTITLERECEIVE_ISREALTITLE_0600
+     * @tc.name        : testOnTitleReceiveIsRealTitle006
+     * @tc.desc        : test onTitleReceive title empty string
+     * @tc.size        : MediumTest
+     * @tc.type        : Function
+     * @tc.level       : Level 1
+     */
+    it('testOnTitleReceiveIsRealTitle006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      Utils.emitEvent('emitOnTitleReceiveIsRealTitle006', 127);
+      Utils.registerBaseEvent('testOnTitleReceiveIsRealTitle006', 1, 2025082603, done,
+        (backData: events_emitter.EventData, expected: Object) => {
+          expect(backData?.data?.ACTION).assertEqual(expected);
+        });
+      sendEventByKey('OnTitleReceiveIsRealTitleButton', 10, '');
+    })
 
   })
 }
