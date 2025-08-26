@@ -18,6 +18,7 @@ import rpc from '@ohos.rpc';
 import transfer from '@ohos.transfer';
 import { BusinessError } from '@ohos.base';
 import { Callee, CalleeCallback } from '@ohos.app.ability.UIAbility';
+import { concurrency as cnc } from 'std/core';
 
 const domainID = 0x0000;
 const TAG = 'UIAbility';
@@ -81,7 +82,7 @@ class CalleeFromJs implements Callee {
       });
       return;
     }
-    EAWorker.postToMain<void>((): void => {
+    cnc.EAWorker.postToMain<void>((): void => {
       ESValue.wrap(this.jsObj).invokeMethod('on', method, (seq: Any): EstParcelable => {
         let data = transfer.transferStatic(seq, 'rpc.MessageSequence') as rpc.MessageSequence;
         return new EstParcelable(callback(data));
@@ -125,7 +126,7 @@ class CalleeFromEts {
         }
         return new JsParcelable(retData);
       }
-      let job = EAWorker.postToMain<Any>((): Any => {
+      let job = cnc.EAWorker.postToMain<Any>((): Any => {
         // Expect user to read data as js Parcelable.
         return callback(transfer.transferDynamic(indata, 'rpc.MessageSequence'));
       });
