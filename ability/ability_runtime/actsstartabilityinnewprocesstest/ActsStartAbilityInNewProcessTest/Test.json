@@ -20,9 +20,6 @@
         {
             "type": "ShellKit",
             "run-command": [
-                "mount -o rw,remount /",
-                "target mount",
-                "sed -i 's/enforcing/permissive/g' /system/etc/selinux/config",
                 "param set persist.sys.abilityms.support.start_other_app true",
                 "reboot",
                 "power-shell wakeup",
@@ -33,9 +30,6 @@
                 "power-shell timeout -o 2147483647"
             ],
             "teardown-command": [
-                "mount -o rw,remount /",
-                "target mount",
-                "sed -i 's/permissive/enforcing/g' /system/etc/selinux/config",
                 "param set persist.sys.abilityms.support.start_other_app true",
                 "reboot",
                 "power-shell wakeup",
