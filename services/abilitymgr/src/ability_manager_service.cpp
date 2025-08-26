@@ -334,6 +334,7 @@ constexpr const char* LIFE_CYCLE_PRELOAD = "preload";
 constexpr uint32_t TARGET_TYPE_INIT = 100;
 constexpr int64_t USER_SWITCH_TIMEOUT = 3 * 1000; // 3s
 constexpr const char* SUPPORT_LINKAGE_SCENE = "const.window.supportLinkageScene";
+constexpr const char* ALLOW_DEBUG_PERMISSION = "persist.sys.abilityms.allow_debug_permission";
 
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<AbilityManagerService>::GetInstance().get());
@@ -12372,9 +12373,15 @@ int32_t AbilityManagerService::AttachAppDebug(const std::string &bundleName, boo
 
     int32_t err = ERR_OK;
     int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
-    if ((err = StartAbilityUtils::CheckAppProvisionMode(bundleName, userId)) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "CheckAppProvisionMode returns errcode=%{public}d", err);
-        return err;
+    AppExecFwk::ApplicationInfo appInfo;
+    if (!StartAbilityUtils::GetApplicationInfo(bundleName, userId, appInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Get application info failed: %{public}s", bundleName.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!IsAllowAttachOrDetachAppDebug(appInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "release application or check permission error");
+        return ERR_NOT_IN_APP_PROVISION_MODE;
     }
 
     ConnectInitAbilityDebugDeal();
@@ -12401,9 +12408,15 @@ int32_t AbilityManagerService::DetachAppDebug(const std::string &bundleName, boo
 
     int32_t err = ERR_OK;
     int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
-    if ((err = StartAbilityUtils::CheckAppProvisionMode(bundleName, userId)) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "CheckAppProvisionMode returns errcode=%{public}d", err);
-        return err;
+    AppExecFwk::ApplicationInfo appInfo;
+    if (!StartAbilityUtils::GetApplicationInfo(bundleName, userId, appInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Get application info failed: %{public}s", bundleName.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!IsAllowAttachOrDetachAppDebug(appInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "release application or check permission error");
+        return ERR_NOT_IN_APP_PROVISION_MODE;
     }
 
     return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->DetachAppDebug(bundleName));
@@ -15368,6 +15381,19 @@ int32_t AbilityManagerService::ProcessUdmfKey(
         return AbilityRuntime::UdmfUtils::ProcessUdmfKey(key, targetTokenId);
     }
     return ERR_OK;
+}
+
+bool AbilityManagerService::IsAllowAttachOrDetachAppDebug(AppExecFwk::ApplicationInfo &appInfo)
+{
+    if (appInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+        return true;
+    }
+    bool isDebugEnabled = OHOS::system::GetBoolParameter(ALLOW_DEBUG_PERMISSION, false);
+    if (isDebugEnabled && AccessTokenKit::VerifyAccessToken(appInfo.accessTokenId,
+        PermissionConstants::PERMISSION_ALL_DEBUG , false) == AppExecFwk::Constants::PERMISSION_GRANTED) {
+        return true;
+    }
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
