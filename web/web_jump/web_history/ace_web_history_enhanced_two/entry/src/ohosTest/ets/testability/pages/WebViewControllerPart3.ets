@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@ import { JsProxyObject } from '../../test/Interfaces';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
+import { waitForExist } from '../../test/WaitTest.test';
 
 @Entry
 @Component
@@ -46,17 +47,20 @@ struct WebViewControllerPart3 {
   @State onMessageEventCallBack: boolean = false
   @State ports: webView.WebMessagePort[] = [];
   @State userAgentPC:string = "";
+  @State isReceive: number = -1;
+  @State isPageOneEnd: number = -1;
+  @State isPageTwoEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 133200,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(133200)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -65,6 +69,7 @@ struct WebViewControllerPart3 {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
         if (this.controller) {
           this.controller.loadUrl("resource://rawfile/index.html");
           this.controller.clearHistory()
@@ -98,24 +103,25 @@ struct WebViewControllerPart3 {
     Column() {
       Row() {
         Button("WebViewController click").key('WebViewControllerTestButton').onClick(async () => {
+          await waitForExist(() => this.isPageOneEnd, this.str, 0);
+          await waitForExist(() => this.isPageTwoEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str)
           switch (this.str) {
-
             case "testRestoreWebState001": {
               try {
                 this.controller.clearHistory()
-                await Utils.sleep(2000)
+                this.isPageOneEnd = -1;
                 this.controller.loadUrl("resource://rawfile/index.html")
-                await Utils.sleep(2000)
+                await waitForExist(() => this.isPageOneEnd, this.str, 0);
                 let state = this.controller.serializeWebState()
-                await Utils.sleep(2000)
                 this.controller.clearHistory()
-                await Utils.sleep(2000)
                 this.controller.restoreWebState(state)
                 let list = this.controller.getBackForwardEntries();
                 let historyItem = list.getItemAtIndex(list.currentIndex);
                 console.log('testRestoreWebState001 result is :' + historyItem['title']);
-                Utils.emitEvent(historyItem['title'], 100083)
+                Utils.emitEvent(historyItem['title'], 133210)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -133,6 +139,10 @@ struct WebViewControllerPart3 {
         .domStorageAccess(this.domStorageAccess)
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
+        .onPageEnd((event) => {
+          console.log('web pageOneEnd==>' + event.url);
+          this.isPageOneEnd = 0;
+        })
       Web({ src: $rawfile('indexTwo.html'), controller: this.controllerTwo })
         .id('2')
         .key('web2')
@@ -142,6 +152,10 @@ struct WebViewControllerPart3 {
         .domStorageAccess(this.domStorageAccess)
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
+        .onPageEnd((event) => {
+          console.log('web pageTwoEnd==>' + event.url);
+          this.isPageTwoEnd = 0;
+        })
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import webView from '@ohos.web.webview';
 import Utils from '../../test/Utils';
 import events_emitter from '@ohos.events.emitter';
 import cert from '@ohos.security.cert';
+import { waitForExist } from '../../test/WaitTest.test';
 
 function Uint8ArrayToString(dataArray: Uint8Array) {
   let dataString = ''
@@ -73,17 +74,19 @@ struct WebAttributeTest {
   @State title: string = ''
   @State onRequestSelectedCalled: boolean = false
   @State testConsole: boolean = false
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 133000,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(133000)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -92,6 +95,7 @@ struct WebAttributeTest {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
         try {
           this.controller.loadUrl("resource://rawfile/index.html");
         } catch (error) {
@@ -115,14 +119,18 @@ struct WebAttributeTest {
             console.log("onBlur==>")
           })
           .onClick(async () => {
+            await waitForExist(() => this.isPageEnd, this.str, 0);
+            await waitForExist(() => this.isReceive, this.str, 0);
+            this.isReceive = -1;
             console.info("key==>" + this.str)
             switch (this.str) {
               case "emitOnRefreshAccessedHistory001": {
                 try {
+                  this.isPageEnd = -1;
                   this.controller.loadUrl('resource://rawfile/second.html');
-                  await Utils.sleep(3000)
-                  Utils.emitEvent(this.newUrl, 60116)
-                  Utils.emitEvent(this.isRefreshed, 60117)
+                  await waitForExist(() => this.isPageEnd, this.str, 0);
+                  Utils.emitEvent(this.newUrl, 133010)
+                  Utils.emitEvent(this.isRefreshed, 133020)
                 } catch (error) {
                   console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
                 }
@@ -130,12 +138,14 @@ struct WebAttributeTest {
               }
               case "emitOnRefreshAccessedHistory002": {
                 try {
+                  this.isPageEnd = -1;
                   this.controller.loadUrl('resource://rawfile/second.html');
-                  await Utils.sleep(2000)
+                  await waitForExist(() => this.isPageEnd, this.str, 0);
+                  this.isPageEnd = -1;
                   this.controller.refresh();
-                  await Utils.sleep(3000)
-                  Utils.emitEvent(this.newUrl, 60118)
-                  Utils.emitEvent(this.isRefreshed, 60119)
+                  await waitForExist(() => this.isPageEnd, this.str, 0);
+                  Utils.emitEvent(this.newUrl, 133030)
+                  Utils.emitEvent(this.isRefreshed, 133040)
                 } catch (error) {
                   console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
                 }
@@ -163,6 +173,10 @@ struct WebAttributeTest {
               this.newUrl = event.url
               this.isRefreshed = event.isRefreshed
             }
+          })
+          .onPageEnd((event) => {
+            console.log('web pageEnd==>' + event.url);
+            this.isPageEnd = 0;
           })
       }
       .width('100%')

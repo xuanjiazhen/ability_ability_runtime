@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,17 +28,18 @@ struct webConfigCookieCharacter {
   controller: webView.WebviewController = new webView.WebviewController();
   @State str: string = '';
   @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 133450,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(133450)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -57,7 +58,9 @@ struct webConfigCookieCharacter {
     Column() {
       Row() {
         Button('ConfigCookie click').key('webConfigCookieCharacterButton').onClick(async () => {
-          await waitForExist(()=>this.isReceive, this.str, 0);
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info('key==>' + this.str);
           webView.WebCookieManager.clearAllCookies((error) => {
             if (error) {
@@ -72,18 +75,18 @@ struct webConfigCookieCharacter {
                     console.log('configCookie success!');
                     let value = webView.WebCookieManager.fetchCookieSync(URL);
                     console.log(this.str + 'fetchCookieSync cookie = ' + value);
-                    Utils.emitEvent(value,2025060401);
+                    Utils.emitEvent(value,133460);
                   })
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('a=b',2025060401);
+                      Utils.emitEvent('a=b',133460);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('a=b',2025060401);
+                  Utils.emitEvent('a=b',133460);
                 }
               }
               break;
@@ -99,15 +102,15 @@ struct webConfigCookieCharacter {
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('17100005',2025060402);
+                      Utils.emitEvent('17100005',133470);
                     } else {
-                      Utils.emitEvent(String(error.code),2025060402);
+                      Utils.emitEvent(String(error.code),133470);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('17100005',2025060402);
+                  Utils.emitEvent('17100005',133470);
                 }
               }
               break;
@@ -119,18 +122,18 @@ struct webConfigCookieCharacter {
                     console.log('configCookie success!');
                     let value = webView.WebCookieManager.fetchCookieSync(URL);
                     console.log(this.str + 'fetchCookieSync cookie = ' + value);
-                    Utils.emitEvent(value,2025060403);
+                    Utils.emitEvent(value,133480);
                   })
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('a=b',2025060403);
+                      Utils.emitEvent('a=b',133480);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('a=b',2025060403);
+                  Utils.emitEvent('a=b',133480);
                 }
               }
               break;
@@ -142,18 +145,18 @@ struct webConfigCookieCharacter {
                     console.log('configCookie success!');
                     let value = webView.WebCookieManager.fetchCookieSync(URL);
                     console.log(this.str + 'fetchCookieSync cookie = ' + value);
-                    Utils.emitEvent(value,2025060404);
+                    Utils.emitEvent(value,133490);
                   })
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('a=b',2025060404);
+                      Utils.emitEvent('a=b',133490);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('a=b',2025060404);
+                  Utils.emitEvent('a=b',133490);
                 }
               }
               break;
@@ -165,18 +168,18 @@ struct webConfigCookieCharacter {
                     console.log('configCookie success!');
                     let value = webView.WebCookieManager.fetchCookieSync(URL);
                     console.log(this.str + 'fetchCookieSync cookie = ' + value);
-                    Utils.emitEvent(value,2025060405);
+                    Utils.emitEvent(value,133500);
                   })
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('a=b',2025060405);
+                      Utils.emitEvent('a=b',133500);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('a=b',2025060405);
+                  Utils.emitEvent('a=b',133500);
                 }
               }
               break;
@@ -192,15 +195,15 @@ struct webConfigCookieCharacter {
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('17100005',2025060406);
+                      Utils.emitEvent('17100005',133510);
                     } else {
-                      Utils.emitEvent(String(error.code),2025060406);
+                      Utils.emitEvent(String(error.code),133510);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('17100005',2025060406);
+                  Utils.emitEvent('17100005',133510);
                 }
               }
               break;
@@ -212,18 +215,18 @@ struct webConfigCookieCharacter {
                     console.log('configCookie success!');
                     let value = webView.WebCookieManager.fetchCookieSync(URL);
                     console.log(this.str + 'fetchCookieSync cookie = ' + value);
-                    Utils.emitEvent(value,2025060407);
+                    Utils.emitEvent(value,133520);
                   })
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('a=b',2025060407);
+                      Utils.emitEvent('a=b',133520);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('a=b',2025060407);
+                  Utils.emitEvent('a=b',133520);
                 }
               }
               break;
@@ -235,18 +238,18 @@ struct webConfigCookieCharacter {
                     console.log('configCookie success!');
                     let value = webView.WebCookieManager.fetchCookieSync(URL);
                     console.log(this.str + 'fetchCookieSync cookie = ' + value);
-                    Utils.emitEvent(value,2025060408);
+                    Utils.emitEvent(value,133530);
                   })
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('a=b',2025060408);
+                      Utils.emitEvent('a=b',133530);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('a=b',2025060408);
+                  Utils.emitEvent('a=b',133530);
                 }
               }
               break;
@@ -257,19 +260,19 @@ struct webConfigCookieCharacter {
                   if (error) {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('a=b',2025060409);
+                      Utils.emitEvent('a=b',133540);
                     }
                   } else {
                     console.log('configCookie success!');
                     let value = webView.WebCookieManager.fetchCookieSync(URL);
                     console.log(this.str + 'fetchCookieSync cookie = ' + value);
-                    Utils.emitEvent(value,2025060409);
+                    Utils.emitEvent(value,133540);
                   }
                 })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('a=b',2025060409);
+                  Utils.emitEvent('a=b',133540);
                 }
               }
               break;
@@ -281,18 +284,18 @@ struct webConfigCookieCharacter {
                     console.log('configCookie success!');
                     let value = webView.WebCookieManager.fetchCookieSync(URL, true);
                     console.log(this.str + 'fetchCookieSync cookie = ' + value);
-                    Utils.emitEvent(value,2025060410);
+                    Utils.emitEvent(value,133550);
                   })
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('a=b',2025060410);
+                      Utils.emitEvent('a=b',133550);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('a=b',2025060410);
+                  Utils.emitEvent('a=b',133550);
                 }
               }
               break;
@@ -304,18 +307,18 @@ struct webConfigCookieCharacter {
                     console.log('configCookie success!');
                     let value = webView.WebCookieManager.fetchCookieSync(URL, true);
                     console.log(this.str + 'fetchCookieSync cookie = ' + value);
-                    Utils.emitEvent(value,2025060411);
+                    Utils.emitEvent(value,133560);
                   })
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('a=b',2025060411);
+                      Utils.emitEvent('a=b',133560);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('a=b',2025060411);
+                  Utils.emitEvent('a=b',133560);
                 }
               }
               break;
@@ -326,6 +329,10 @@ struct webConfigCookieCharacter {
       }
 
       Web({ src: $rawfile('index.html'), controller: this.controller })
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
+        })
     }
   }
 }

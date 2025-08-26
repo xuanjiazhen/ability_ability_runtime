@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,17 +28,18 @@ struct webClearAllCookiesCharacter {
   controller: webView.WebviewController = new webView.WebviewController();
   @State str: string = '';
   @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 133350,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(133350)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -57,7 +58,9 @@ struct webClearAllCookiesCharacter {
     Column() {
       Row() {
         Button('clearAllCookies click').key('webClearAllCookiesCharacterButton').onClick(async () => {
-          await waitForExist(()=>this.isReceive, this.str, 0);
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info('key==>' + this.str);
           switch (this.str) {
             case 'emitClearAllCookiesCharacterCallback': {
@@ -71,7 +74,7 @@ struct webClearAllCookiesCharacter {
                   if (error) {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('success',2025060422);
+                      Utils.emitEvent('success',133360);
                     }
                   } else {
                     console.log('configCookie success!');
@@ -85,9 +88,9 @@ struct webClearAllCookiesCharacter {
                     let value2 = webView.WebCookieManager.fetchCookieSync(URL);
                     console.log(this.str + 'fetchCookieSync cookie value2= ' + value2);
                     if (value1 == 'a=b' && !value2) {
-                      Utils.emitEvent('success',2025060422);
+                      Utils.emitEvent('success',133360);
                     } else {
-                      Utils.emitEvent('fail',2025060422);
+                      Utils.emitEvent('fail',133360);
                     }
 
                   }
@@ -95,7 +98,7 @@ struct webClearAllCookiesCharacter {
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('success',2025060422);
+                  Utils.emitEvent('success',133360);
                 }
               }
               break;
@@ -124,19 +127,19 @@ struct webClearAllCookiesCharacter {
                     let value2 = webView.WebCookieManager.fetchCookieSync(URL);
                     console.log(this.str + 'fetchCookieSync cookie value2= ' + value2);
                     if (value1 == 'a=b' && !value2) {
-                      Utils.emitEvent('success',2025060423);
+                      Utils.emitEvent('success',133370);
                     }
                   })
                   .catch((error: business_error.BusinessError) => {
                     console.log(this.str + 'error: ' + JSON.stringify(error));
                     if (error.code == 801) {
-                      Utils.emitEvent('success',2025060423);
+                      Utils.emitEvent('success',133370);
                     }
                   })
               } catch (error) {
                 console.error(this.str + `Errorcode: ${error.code}, Message: ${error.message}`);
                 if (error.code == 801) {
-                  Utils.emitEvent('success',2025060423);
+                  Utils.emitEvent('success',133370);
                 }
               }
               break;
@@ -148,6 +151,10 @@ struct webClearAllCookiesCharacter {
       }
 
       Web({ src: $rawfile('index.html'), controller: this.controller })
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
+        })
     }
   }
 }
