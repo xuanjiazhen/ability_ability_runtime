@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 import HiAppEventPamTest from './HiAppEventPam.test';
+import HiAppEventSetConfigTest from './HiAppEventConfig.test';
 
 export default function testsuite() {
   HiAppEventPamTest();
+  HiAppEventSetConfigTest();
 }
