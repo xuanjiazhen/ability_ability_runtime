@@ -25,9 +25,9 @@
 
 namespace RelationalStoreTest {
 const char *g_rdbTest = "/data/storage/el2/database/com.acts.acttransactiontest/";
-char g_rdbStoreName[] = "rdb_store_test.db";
-char g_bundleName[] = "com.acts.acttransactiontest";
-char g_moduleName[] = "";
+char g_rdbStoreName[20] = "rdb_store_test.db";
+char g_bundleName[100] = "com.acts.acttransactiontest";
+char g_moduleName[100] = "";
 OH_Rdb_Config g_config_;
 } // namespace RelationalStoreTest
 
@@ -536,8 +536,8 @@ napi_value TestUpdateWithConflictResolutionSuccess(napi_env env, napi_callback_i
     predicates->equalTo(predicates, "score", valueObject);
 
     OH_VBucket *updateBucket = OH_Rdb_CreateValuesBucket();
-    int64_t scoreValue = 90;
-    updateBucket->putInt64(updateBucket, "score", scoreValue);
+    int64_t scoreValue1 = 90;
+    updateBucket->putInt64(updateBucket, "score", scoreValue1);
 
     Rdb_ConflictResolution resolution = Rdb_ConflictResolution::RDB_CONFLICT_ROLLBACK;
     int64_t changes = 0;

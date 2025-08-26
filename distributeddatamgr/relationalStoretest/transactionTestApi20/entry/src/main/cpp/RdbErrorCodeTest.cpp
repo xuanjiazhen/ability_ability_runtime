@@ -30,13 +30,13 @@ int g_rNoRowInQueryCode = 14800018;
 
 namespace RdbErrorCodeTest {
     const char* g_rdbTest = "/data/storage/el2/database/com.acts.acttransactiontest/";
-    char g_rdbStoreName[] = "rdb_store_test.db";
-    char g_bundleName[] = "com.acts.acttransactiontest";
-    char g_moduleName[] = "";
+    char g_rdbStoreName[20] = "rdb_store_test.db";
+    char g_bundleName[100] = "com.acts.acttransactiontest";
+    char g_moduleName[100] = "";
     OH_Rdb_Config g_config_;
 }
 
-void InitRdbConfig()
+void InitRdbErrorCodeConfig()
 {
     RdbErrorCodeTest::g_config_.dataBaseDir = RdbErrorCodeTest::g_rdbTest;
     RdbErrorCodeTest::g_config_.storeName = RdbErrorCodeTest::g_rdbStoreName;
@@ -45,6 +45,18 @@ void InitRdbConfig()
     RdbErrorCodeTest::g_config_.securityLevel = OH_Rdb_SecurityLevel::S1;
     RdbErrorCodeTest::g_config_.isEncrypt = false;
     RdbErrorCodeTest::g_config_.selfSize = sizeof(OH_Rdb_Config);
+}
+
+void InitRdbErrorCodeConfigV2(OH_Rdb_ConfigV2 *configV2)
+{
+    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
+    OH_Rdb_SetEncrypted(configV2, false);
+    OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
+    OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
+    OH_Rdb_SetDbType(configV2, RDB_CAYLEY);
 }
 
 void AddRdbErrorCodeTest(std::vector<napi_property_descriptor> &descData)
@@ -63,7 +75,7 @@ void AddRdbErrorCodeTest(std::vector<napi_property_descriptor> &descData)
 napi_value TestRdbError(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    InitRdbConfig();
+    InitRdbErrorCodeConfig();
     
     OH_Rdb_Store *testRdbStore = nullptr;
     
@@ -135,14 +147,7 @@ napi_value TestInvalidColumnType(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::g_rdbTest);
-    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_rdbStoreName);
-    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
-    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
-    OH_Rdb_SetEncrypted(configV2, false);
-    OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
-    OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
-    OH_Rdb_SetDbType(configV2, RDB_CAYLEY);
+    InitRdbErrorCodeConfigV2(configV2);
     OH_Rdb_Store *store = nullptr;
     int errCode = 0;
     store = OH_Rdb_CreateOrOpen(configV2, &errCode);

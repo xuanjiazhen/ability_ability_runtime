@@ -28,9 +28,9 @@
 
 namespace TransactionTest {
     extern const char* g_rdbTest;
-    extern char g_rdbStoreName[];
-    extern char g_bundleName[];
-    extern char g_moduleName[];
+    extern char g_rdbStoreName[20];
+    extern char g_bundleName[100];
+    extern char g_moduleName[100];
     extern OH_Rdb_Config g_config_;
 }
 
@@ -39,6 +39,8 @@ namespace TransactionTest {
 extern int g_tSInvalidParamCode;
 extern int g_tSAlreadyClosedCode;
 extern int g_tSErrorCode;
+
+void InitRdbTransConfigV2(OH_Rdb_ConfigV2 *configV2);
 
 void AddTransactionTest(std::vector<napi_property_descriptor> &descData);
 

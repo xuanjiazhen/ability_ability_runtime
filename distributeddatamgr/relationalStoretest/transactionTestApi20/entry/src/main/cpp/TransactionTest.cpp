@@ -29,14 +29,25 @@ int g_tSInvalidParamCode = 14800001;
 int g_tSAlreadyClosedCode = 14800050;
 int g_tSErrorCode = 14800000;
 
-namespace TransactionTest
-{
+namespace TransactionTest {
 const char *g_rdbTest = "/data/storage/el2/database/com.acts.acttransactiontest/";
-char g_rdbStoreName[] = "rdb_store_test.db";
-char g_bundleName[] = "com.acts.acttransactiontest";
-char g_moduleName[] = "";
+char g_rdbStoreName[20] = "rdb_store_test.db";
+char g_bundleName[100] = "com.acts.acttransactiontest";
+char g_moduleName[100] = "";
 OH_Rdb_Config g_config_;
 } // namespace TransactionTest
+
+void InitRdbTransConfigV2(OH_Rdb_ConfigV2 *configV2)
+{
+    OH_Rdb_SetDatabaseDir(configV2, TransactionTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
+    OH_Rdb_SetEncrypted(configV2, false);
+    OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
+    OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
+    OH_Rdb_SetDbType(configV2, RDB_SQLITE);
+}
 
 void AddTransactionTest1(std::vector<napi_property_descriptor> &descData)
 {
@@ -932,18 +943,10 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
 {
     napi_value result;
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2, TransactionTest::g_rdbTest);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::g_rdbStoreName);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
-    OH_Rdb_SetEncrypted(configV2, false);
-    OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
-    OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
-    OH_Rdb_SetDbType(configV2, RDB_SQLITE);
+    InitRdbTransConfigV2(configV2);
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
-
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
                                  "data1 TEXT, "
@@ -951,28 +954,22 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
                                  "data3 INT64)";
 
     OH_Rdb_Execute(testRdbStore, createTableSql);
-
     OH_Rdb_Transaction *trans = nullptr;
     OH_RDB_TransOptions *options = OH_RdbTrans_CreateOptions();
-
     OH_Rdb_CreateTransaction(testRdbStore, options, &trans);
-
     OH_VBucket *valueBucket = OH_Rdb_CreateValuesBucket();
-
     valueBucket->putInt64(valueBucket, "id", 1);
     valueBucket->putText(valueBucket, "data1", "ZhangSan");
     double data2Value = 99.9;
     valueBucket->putReal(valueBucket, "data2", data2Value);
     int64_t data3Value = 100;
     valueBucket->putInt64(valueBucket, "data3", data3Value);
-
     char table[] = "test";
     int64_t rowId = -1;
     OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
     char table1[] = "test1";
     OH_Predicates *predicates = OH_Rdb_CreatePredicates(table1);
     OH_VObject *valueObject = OH_Rdb_CreateValueObject();
-
     const char *value = "LiSi";
     valueObject->putText(valueObject, value);
     predicates->equalTo(predicates, "data1", valueObject);
@@ -985,7 +982,6 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
     OH_RdbTrans_DestroyOptions(options);
     valueBucket->destroy(valueBucket);
     valueObject->destroy(valueObject);
-
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_tSErrorCode : -1, &result);
     return result;
 }
@@ -994,14 +990,7 @@ napi_value TestTransUpdateWithConflictResolutionDatabaseClosed(napi_env env, nap
 {
     napi_value result;
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2, TransactionTest::g_rdbTest);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::g_rdbStoreName);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
-    OH_Rdb_SetEncrypted(configV2, false);
-    OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
-    OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
-    OH_Rdb_SetDbType(configV2, RDB_SQLITE);
+    InitRdbTransConfigV2(configV2);
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
@@ -1075,28 +1064,16 @@ napi_value TestTransDeleteInvalidParam(napi_env env, napi_callback_info info)
 napi_value TestTransDeleteError(napi_env env, napi_callback_info info)
 {
     napi_value result;
-
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
-
-    OH_Rdb_SetDatabaseDir(configV2, TransactionTest::g_rdbTest);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::g_rdbStoreName);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
-    OH_Rdb_SetEncrypted(configV2, false);
-    OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
-    OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
-    OH_Rdb_SetDbType(configV2, RDB_SQLITE);
-
+    InitRdbTransConfigV2(configV2);
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
-
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
                                  "data1 TEXT, "
                                  "data2 FLOAT, "
                                  "data3 INT64)";
-
     OH_Rdb_Execute(testRdbStore, createTableSql);
     OH_Rdb_Transaction *trans = nullptr;
     OH_RDB_TransOptions *options = OH_RdbTrans_CreateOptions();
