@@ -14,50 +14,116 @@
  */
 import hilog from '@ohos.hilog';
 import web_webview from '@ohos.web.webview';
+import testnapi from 'libweberrorcodetest.so';
+import events_emitter from '@ohos.events.emitter';
+import Utils from '../../test/UtilsTest';
+import { waitForExist } from '../../test/WaitTest.test';
+import { UIAbility, AbilityConstant, Want, common } from '@kit.AbilityKit';
 
 @Entry
 @Component
 struct Index {
   @State webTag: string = 'web1211';
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
+  @State emitKey: string = '';
   controller: web_webview.WebviewController = new web_webview.WebviewController(this.webTag);
+
   aboutToAppear() {
-    hilog.info(0x0000, 'testTag', '%{public}s', 'TestAbility index aboutToAppear');
-    web_webview.WebviewController.setWebDebuggingAccess(true);
+    console.info('start run testcase!!!')
+    web_webview.WebviewController.initializeWebEngine();
+    testnapi.setSchemeHandler();
   }
+
+  onPageShow() {
+    let valueChangeEvent: events_emitter.InnerEvent = {
+      eventId: 825,
+      priority: events_emitter.EventPriority.LOW
+    }
+    events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(825)
+  }
+
+  private valueChangeCallBack = (eventData: events_emitter.EventData) => {
+    console.info('web page valueChangeCallBack');
+    if (eventData != null) {
+      console.info('valueChangeCallBack:' + JSON.stringify(eventData));
+      if (eventData.data != null && eventData.data.ACTION != null) {
+        this.emitKey = eventData.data.ACTION;
+        this.isReceive = 1
+      }
+    }
+  }
+
  @State message: string = 'Hello Worldxx'
    build() {
-         Row() {
-           Column() {
-             Text(this.message)
-               .fontSize(50)
-               .fontWeight(FontWeight.Bold)
-             Button() {
-               Text('next page')
-                 .fontSize(20)
-                 .fontWeight(FontWeight.Bold)
-             }.type(ButtonType.Capsule)
-             .margin({
-               top: 20
-             })
-             .backgroundColor('#0D9FFB')
-             .width('35%')
-             .height('5%')
-             .onClick(()=>{
-             })
-             Web({ src: 'https' +
-               '://www.baidu.com', controller: this.controller })
-               .domStorageAccess(true)
-               .databaseAccess(true)
-               .imageAccess(true)
-               .onlineImageAccess(true)
-               .zoomAccess(true)
-               .javaScriptAccess(true)
-               .overviewModeAccess(true)
-               .pinchSmooth(true)
-               .fileAccess(true)
+     Column() {
+       Row() {
+         Button('ArkWebHttpBodyStreamButton').key('ArkWebHttpBodyStreamTest').onClick(
+           async () => {
+             console.info('===chenbo start textPost key==>' + this.emitKey)
+             console.info('===chenbo start textPost this.isReceive==>' + this.isReceive)
+             console.info('===chenbo start textPost this.isPageEnd==>' + this.isPageEnd)
+             await waitForExist(() => this.isReceive, 'ArkWebHttpBodyStreamTest_isReceive', 1, 1000)
+             await waitForExist(() => this.isPageEnd, 'ArkWebHttpBodyStreamTest_isPageEnd', 1, 1000)
+             console.info('===chenbo textPost key==>' + this.emitKey)
+             this.isReceive = -1
+             switch (this.emitKey) {
+               case 'OH_ArkWebHttpBodyStream_SetAsyncReadCallback001': {
+                 this.isPageEnd = -1
+                 try {
+                   this.controller.loadUrl('https://www.example.com/post_data.html')
+                 } catch (e) {
+                   console.error('===chenbo loadUrl: https://www.example.com/post_data.html, e:' + e)
+                 }
+
+                 this.controller.runJavaScript("textPost('https://www.example.com/xhr','BYTES')", (error, result) => {
+                   if (error) {
+                     console.error('===chenbo textPost(xhr,BYTES) return error:' + error)
+                   }
+                   if (result) {
+                     console.info('===chenbo textPost(xhr,BYTES) return result:' + result)
+                   }
+                 })
+
+                 // await waitForExist(()=>testnapi.requestStop(), 'OH_ArkWebHttpBodyStream_SetAsyncReadCallback001_requestStop', 1, 1000)
+                 testnapi.requestStop()
+                 let setAsyncReadCallback: number = testnapi.setAsyncReadCallback()
+                 console.info('===chenbo setAsyncReadCallback:' + String(setAsyncReadCallback))
+                 Utils.emitEvent(setAsyncReadCallback, 20250825)
+                 break
+               }
+
+               default:
+                 break
+             }
            }
-             .width('100%')
-         }
-             .height('100%')
+         )
+       }
+       .width('100%')
+       Web({ src: $rawfile("test.html"), controller: this.controller })
+         .width('50%')
+         .height('100%')
+         .javaScriptAccess(true)
+         .databaseAccess(true)
+         .fileAccess(true)
+         .domStorageAccess(true)
+         .cacheMode(CacheMode.Default)
+         .onControllerAttached(() => {
+           console.log('==chenbo onControllerAttached webId:' + this.controller.getWebId())
+         })
+         .onPageBegin(event => {
+           console.log('==chenbo onPageBegin url:' + event.url)
+         })
+         .onPageEnd((event) => {
+           testnapi.initResourceManager(this.getUIContext().getHostContext()!.resourceManager)
+           this.isPageEnd = 1;
+           console.log('==chenbo onPageEnd url:' + event.url)
+           console.log('==chenbo onPageEnd this.isPageEnd:' + this.isPageEnd)
+         })
+     }
    }
- }
+  }

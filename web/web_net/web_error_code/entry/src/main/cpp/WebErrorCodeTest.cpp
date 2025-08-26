@@ -85,12 +85,14 @@ static napi_value WebErrorUnknow(napi_env env, napi_callback_info info)
     OH_LOG_DEBUG(LOG_APP, "WebErrorUnknow start..");
     ArkWeb_HttpBodyStream *httpBodyStream = nullptr;
     ArkWeb_HttpBodyStreamAsyncReadCallback readCallback;
-    int ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback);
+    int ret = ArkWeb_ErrorCode::ARKWEB_ERROR_UNKNOWN;
     napi_value result;
-    if (ret == ArkWeb_ErrorCode::ARKWEB_ERROR_UNKNOWN) {
-        napi_create_int32(env, ret, &result);
+    if (ArkWeb_ErrorCode::ARKWEB_ERROR_UNKNOWN ==
+        OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback)) {
+        OH_LOG_DEBUG(LOG_APP, "OH_ArkWebHttpBodyStream_SetAsyncReadCallback error unknown");            
     }
 
+    napi_create_int32(env, ret, &result);
     OH_LOG_DEBUG(LOG_APP, "WebErrorUnknow end..");
     return result;
 }
@@ -442,6 +444,12 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("webNativeJavaScriptValue", WebNativeJavaScriptValue),
         DECLARE_NAPI_FUNCTION("webArkWebNetError", WebArkWebNetError),
         DECLARE_NAPI_FUNCTION("webRegisterCustomSchemes", WebRegisterCustomSchemes),
+        DECLARE_NAPI_FUNCTION("initResourceManager", InitResourceManager),
+        DECLARE_NAPI_FUNCTION("setSchemeHandler", SetSchemeHandler),
+        DECLARE_NAPI_FUNCTION("webSchemeHandlerProcess", WebSchemeHandlerProcess),
+        DECLARE_NAPI_FUNCTION("registerCustomSchemes", RegisterCustomSchemes),
+        DECLARE_NAPI_FUNCTION("requestStop", RequestStop),
+        DECLARE_NAPI_FUNCTION("setAsyncReadCallback", SetAsyncReadCallback),
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import { resourceManager } from '@kit.LocalizationKit';
+
 export const webErrCodeSuccess: () => number;
 export const webInitError: () => number;
 export const webErrorUnknow: () => number;
@@ -38,7 +40,7 @@ export const webNativeWebMessage: () => number;
 export const webNativeCookieManger: () => number;
 export const webNativeJavaScriptValue: () => number;
 export const webArkWebNetError: (errName: string) => number;
-export const webRegisterCustomSchemes: (errName: string) => number;
+export const webRegisterCustomSchemes: (shemName: string) => number;
 export const NativeArkWebLoadDataInitError: () => number;
 export const loadData: (webName: string, caseNum: number) => number;
 export const GetBlanklessInfo: (webName: string, key: string) => number;
@@ -59,3 +61,9 @@ export const WebStructComponentAPI: (caseNum: number) => number;
 export const WebStructMessagePortAPI: (caseNum: number) => number;
 export const WebStructCookieManagerAPI: (caseNum: number) => number;
 export const WebStructJavaScriptValueAPI: (caseNum: number) => number;
+export const webSchemeHandlerProcess: (funName: string, retVale: string) => number;
+export const setSchemeHandler:() => number;
+export const initResourceManager: (resmgr: resourceManager.ResourceManager) => void;
+export const registerCustomSchemes:() => void;
+export const requestStop: () => number;
+export const setAsyncReadCallback: () => number;
