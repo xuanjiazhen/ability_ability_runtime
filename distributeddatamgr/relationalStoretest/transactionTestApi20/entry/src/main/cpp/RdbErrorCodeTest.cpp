@@ -29,30 +29,30 @@ int g_rNoTransInSessionCode = 14800016;
 int g_rNoRowInQueryCode = 14800018;
 
 namespace RdbErrorCodeTest {
-    const char* g_rdbTest = "/data/storage/el2/database/com.acts.acttransactiontest/";
-    char g_rdbStoreName[20] = "rdb_store_test.db";
-    char g_bundleName[100] = "com.acts.acttransactiontest";
-    char g_moduleName[100] = "";
-    OH_Rdb_Config g_config_;
+    const char* RDB_TEST = "/data/storage/el2/database/com.acts.acttransactiontest/";
+    char RDB_STORE_NAME[20] = "rdb_store_test.db";
+    char BUNDLE_NAME[100] = "com.acts.acttransactiontest";
+    char MODULE_NAME[100] = "";
+    OH_Rdb_Config RDB_CONFIG;
 }
 
 void InitRdbErrorCodeConfig()
 {
-    RdbErrorCodeTest::g_config_.dataBaseDir = RdbErrorCodeTest::g_rdbTest;
-    RdbErrorCodeTest::g_config_.storeName = RdbErrorCodeTest::g_rdbStoreName;
-    RdbErrorCodeTest::g_config_.bundleName = RdbErrorCodeTest::g_bundleName;
-    RdbErrorCodeTest::g_config_.moduleName = RdbErrorCodeTest::g_moduleName;
-    RdbErrorCodeTest::g_config_.securityLevel = OH_Rdb_SecurityLevel::S1;
-    RdbErrorCodeTest::g_config_.isEncrypt = false;
-    RdbErrorCodeTest::g_config_.selfSize = sizeof(OH_Rdb_Config);
+    RdbErrorCodeTest::RDB_CONFIG.dataBaseDir = RdbErrorCodeTest::RDB_TEST;
+    RdbErrorCodeTest::RDB_CONFIG.storeName = RdbErrorCodeTest::RDB_STORE_NAME;
+    RdbErrorCodeTest::RDB_CONFIG.bundleName = RdbErrorCodeTest::BUNDLE_NAME;
+    RdbErrorCodeTest::RDB_CONFIG.moduleName = RdbErrorCodeTest::MODULE_NAME;
+    RdbErrorCodeTest::RDB_CONFIG.securityLevel = OH_Rdb_SecurityLevel::S1;
+    RdbErrorCodeTest::RDB_CONFIG.isEncrypt = false;
+    RdbErrorCodeTest::RDB_CONFIG.selfSize = sizeof(OH_Rdb_Config);
 }
 
 void InitRdbErrorCodeConfigV2(OH_Rdb_ConfigV2 *configV2)
 {
-    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::g_rdbTest);
-    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_rdbStoreName);
-    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
-    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
+    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::RDB_TEST);
+    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::RDB_STORE_NAME);
+    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::BUNDLE_NAME);
+    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::MODULE_NAME);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -82,7 +82,7 @@ napi_value TestRdbError(napi_env env, napi_callback_info info)
     int errCode = 0;
     char table[] = "test";
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RdbErrorCodeTest::g_config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RdbErrorCodeTest::RDB_CONFIG, &errCode);
 
     OH_VBucket *valueBucket = OH_Rdb_CreateValuesBucket();
     valueBucket->putInt64(valueBucket, "id", 1);
@@ -96,7 +96,7 @@ napi_value TestRdbError(napi_env env, napi_callback_info info)
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_ERR ? -1 : 1, &result);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RdbErrorCodeTest::g_config_);
+    OH_Rdb_DeleteStore(&RdbErrorCodeTest::RDB_CONFIG);
     valueBucket->destroy(valueBucket);
     return result;
 }
@@ -107,10 +107,10 @@ napi_value TestEmptyTableName(napi_env env, napi_callback_info info)
     
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
     
-    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::g_rdbTest);
-    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_rdbStoreName);
-    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
-    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
+    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::RDB_TEST);
+    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::RDB_STORE_NAME);
+    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::BUNDLE_NAME);
+    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::MODULE_NAME);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -195,10 +195,10 @@ napi_value TestNoRowInQuery(napi_env env, napi_callback_info info)
     
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
     
-    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::g_rdbTest);
-    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_rdbStoreName);
-    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
-    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
+    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::RDB_TEST);
+    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::RDB_STORE_NAME);
+    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::BUNDLE_NAME);
+    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::MODULE_NAME);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -234,10 +234,10 @@ napi_value TestNoTransactionInSession(napi_env env, napi_callback_info info)
     
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
     
-    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::g_rdbTest);
-    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_rdbStoreName);
-    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
-    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
+    OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::RDB_TEST);
+    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::RDB_STORE_NAME);
+    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::BUNDLE_NAME);
+    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::MODULE_NAME);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);

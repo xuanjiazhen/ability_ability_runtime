@@ -27,11 +27,11 @@
 #define TRANSACTION_TEST_H
 
 namespace TransactionTest {
-    extern const char* g_rdbTest;
-    extern char g_rdbStoreName[20];
-    extern char g_bundleName[100];
-    extern char g_moduleName[100];
-    extern OH_Rdb_Config g_config_;
+    extern const char* RDB_TEST;
+    extern char RDB_STORE_NAME[20];
+    extern char BUNDLE_NAME[100];
+    extern char MODULE_NAME[100];
+    extern OH_Rdb_Config RDB_CONFIG;
 }
 
 #endif // TRANSACTION_TEST_H
