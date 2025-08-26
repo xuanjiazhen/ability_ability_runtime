@@ -25,10 +25,10 @@ static napi_value Init(napi_env env, napi_value exports)
 {
     std::vector<napi_property_descriptor> descData;
     
-    addValuesBucketTest(descData);
-    addTransactionTest(descData);
-    addRdbErrorCodeTest(descData);
-    addRelationStoreTest(descData);
+    AddValuesBucketTest(descData);
+    AddTransactionTest(descData);
+    AddRdbErrorCodeTest(descData);
+    AddRelationStoreTest(descData);
     
     napi_define_properties(env, exports, descData.size(), descData.data());
     return exports;

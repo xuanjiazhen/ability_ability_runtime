@@ -42,7 +42,7 @@ static void InitRdbConfig()
     RdbErrorCodeTest::config_.selfSize = sizeof(OH_Rdb_Config);
 }
 
-void addRdbErrorCodeTest(std::vector<napi_property_descriptor> &descData)
+void AddRdbErrorCodeTest(std::vector<napi_property_descriptor> &descData)
 {
     descData.push_back({"testRdbError", nullptr, TestRdbError, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back(
@@ -97,7 +97,7 @@ napi_value TestEmptyTableName(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_CAYLEY );
     
-    OH_Rdb_Store * store = nullptr;
+    OH_Rdb_Store *store = nullptr;
     int errCode = 0;
     store = OH_Rdb_CreateOrOpen(configV2, &errCode);
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  OH_Rdb_CreateOrOpen:%{public}d", errCode);
@@ -139,7 +139,7 @@ napi_value TestInvalidColumnType(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_CAYLEY );
     
-    OH_Rdb_Store * store = nullptr;
+    OH_Rdb_Store *store = nullptr;
     int errCode = 0;
     store = OH_Rdb_CreateOrOpen(configV2, &errCode);
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  OH_Rdb_CreateOrOpen:%{public}d", errCode);
@@ -236,7 +236,7 @@ napi_value TestNoRowInQuery(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_CAYLEY );
     
-    OH_Rdb_Store * store = nullptr;
+    OH_Rdb_Store *store = nullptr;
     int errCode = 0;
     store = OH_Rdb_CreateOrOpen(configV2, &errCode);
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  OH_Rdb_CreateOrOpen:%{public}d", errCode);

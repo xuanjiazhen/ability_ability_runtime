@@ -23,7 +23,9 @@
 #include <database/rdb/oh_values_bucket.h>
 #include <database/data/data_asset.h>
 
-void addValuesBucketTest(std::vector<napi_property_descriptor> &descData)
+int g_vBInvalidParamCode = 14800001;
+
+void AddValuesBucketTest(std::vector<napi_property_descriptor> &descData)
 {
     descData.push_back({"testPutAssetInvalidParam", nullptr, TestPutAssetInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -48,7 +50,7 @@ napi_value TestPutAssetInvalidParam(napi_env env, napi_callback_info info)
 
     int ret = OH_VBucket_PutAsset(vBucket, "data", asset1);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_vBInvalidParamCode : -1, &result);
     
     OH_Data_Asset_DestroyOne(asset1);
     return result;
@@ -88,7 +90,7 @@ napi_value TestPutAssetsInvalidParam(napi_env env, napi_callback_info info)
     uint32_t cnt = 2;
     int ret = OH_VBucket_PutAssets(vBucket, "data", assets, cnt);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_vBInvalidParamCode : -1, &result);
     
     OH_Data_Asset_DestroyOne(assets[0]);
     OH_Data_Asset_DestroyOne(assets[1]);
@@ -130,7 +132,7 @@ napi_value TestPutFloatVectorInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_VBucket_PutFloatVector(vBucket, "data1", arr, arrLen);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_vBInvalidParamCode : -1, &result);
     
     return result;
 }
@@ -148,7 +150,7 @@ napi_value TestPutUnlimitedIntInvalidParam(napi_env env, napi_callback_info info
     
     int ret = OH_VBucket_PutUnlimitedInt(vBucket, "data1", sign, arr, arrLen);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_vBInvalidParamCode : -1, &result);
     
     return result;
 }

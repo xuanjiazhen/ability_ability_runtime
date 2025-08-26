@@ -25,9 +25,7 @@
 #ifndef RELATIONAL_STORE_TEST_H
 #define RELATIONAL_STORE_TEST_H
 
-// 定义专属命名空间
 namespace RelationalStoreTest {
-    // 声明变量（不初始化）
     extern const char* RDB_TEST_PATH;
     extern char RDB_STORE_NAME[];
     extern char BUNDLE_NAME[];
@@ -37,9 +35,12 @@ namespace RelationalStoreTest {
 
 #endif // RELATIONAL_STORE_TEST_H
 
+extern int g_rSInvalidParamCode;
+extern int g_notSupportedCode;
+
 static void InitRdbConfig();
 
-void addRelationStoreTest(std::vector<napi_property_descriptor> &descData);
+void AddRelationStoreTest(std::vector<napi_property_descriptor> &descData);
 
 napi_value TestSetDbType(napi_env env, napi_callback_info info);
 napi_value TestSetCryptoParam(napi_env env, napi_callback_info info);

@@ -21,7 +21,9 @@
 #include <napi/native_api.h>
 #include <vector>
 
-void addValuesBucketTest(std::vector<napi_property_descriptor> &descData);
+extern int g_vBInvalidParamCode;
+
+void AddValuesBucketTest(std::vector<napi_property_descriptor> &descData);
 
 napi_value TestPutAssetInvalidParam(napi_env env, napi_callback_info info);
 napi_value TestPutAssetSuccess(napi_env env, napi_callback_info info);

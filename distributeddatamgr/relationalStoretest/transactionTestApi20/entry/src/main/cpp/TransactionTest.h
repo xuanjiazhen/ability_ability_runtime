@@ -26,9 +26,7 @@
 #ifndef TRANSACTION_TEST_H
 #define TRANSACTION_TEST_H
 
-// 定义专属命名空间
 namespace TransactionTest {
-    // 声明变量（不初始化）
     extern const char* RDB_TEST_PATH;
     extern char RDB_STORE_NAME[];
     extern char BUNDLE_NAME[];
@@ -38,9 +36,11 @@ namespace TransactionTest {
 
 #endif // TRANSACTION_TEST_H
 
-static void InitRdbConfig();
+extern int g_tSInvalidParamCode;
+extern int g_tSAlreadyClosedCode;
+extern int g_tSErrorCode;
 
-void addTransactionTest(std::vector<napi_property_descriptor> &descData);
+void AddTransactionTest(std::vector<napi_property_descriptor> &descData);
 
 napi_value TestDestroyOptionsInvalidParam(napi_env env, napi_callback_info info);
 napi_value TestDestroyOptionsSuccess(napi_env env, napi_callback_info info);

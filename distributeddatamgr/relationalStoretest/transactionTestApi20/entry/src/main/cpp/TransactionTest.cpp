@@ -25,6 +25,10 @@
 #include <database/data/oh_data_values.h>
 #include <hilog/log.h>
 
+int g_tSInvalidParamCode = 14800001;
+int g_tSAlreadyClosedCode = 14800050;
+int g_tSErrorCode = 14800000;
+
 namespace TransactionTest {
     const char* RDB_TEST_PATH = "/data/storage/el2/database/com.acts.acttransactiontest/";
     char RDB_STORE_NAME[] = "rdb_store_test.db";
@@ -33,7 +37,7 @@ namespace TransactionTest {
     OH_Rdb_Config config_; 
 }
 
-void addTransactionTest(std::vector<napi_property_descriptor> &descData)
+void AddTransactionTest1(std::vector<napi_property_descriptor> &descData)
 {
     descData.push_back({"testDestroyOptionsInvalidParam", nullptr, TestDestroyOptionsInvalidParam, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
@@ -67,6 +71,10 @@ void addTransactionTest(std::vector<napi_property_descriptor> &descData)
                         napi_default, nullptr});
     descData.push_back({"testTransBatchInsertDatabaseClosed", nullptr, TestTransBatchInsertDatabaseClosed, nullptr,
                         nullptr, nullptr, napi_default, nullptr});
+}
+
+void AddTransactionTest2(std::vector<napi_property_descriptor> &descData)
+{
     descData.push_back(
         {"testUpdateInvalidParam", nullptr, TestUpdateInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back(
@@ -97,6 +105,12 @@ void addTransactionTest(std::vector<napi_property_descriptor> &descData)
                         napi_default, nullptr});
 }
 
+void AddTransactionTest(std::vector<napi_property_descriptor> &descData)
+{
+    AddTransactionTest1(descData);
+    AddTransactionTest2(descData);
+}
+
 napi_value TestDestroyOptionsInvalidParam(napi_env env, napi_callback_info info)
 {
     
@@ -105,7 +119,7 @@ napi_value TestDestroyOptionsInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_RdbTrans_DestroyOptions(options);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     return result;
     
 }
@@ -131,7 +145,7 @@ napi_value TestTransCommitInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_RdbTrans_Commit(trans);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     
     return result;
 }
@@ -151,7 +165,7 @@ napi_value TestCommitTransDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
     
@@ -190,7 +204,7 @@ napi_value TestCommitTransDatabaseClosed(napi_env env, napi_callback_info info)
     OH_RdbTrans_DestroyOptions(options);
     valueBucket->destroy(valueBucket);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? 14800050 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? g_tSAlreadyClosedCode : -1, &result);
     return result;
 }
 
@@ -201,7 +215,7 @@ napi_value TestTransRollbackInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_RdbTrans_Rollback(trans);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     
     return result;
 }
@@ -221,7 +235,7 @@ napi_value TestTransRollbackDatabaseClosed(napi_env env, napi_callback_info info
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -242,7 +256,8 @@ napi_value TestTransRollbackDatabaseClosed(napi_env env, napi_callback_info info
     
     valueBucket->putInt64(valueBucket, "id", 1);
     valueBucket->putText(valueBucket, "data1", "ZhangSan");
-    valueBucket->putReal(valueBucket, "data2", 99.9);
+    double data2Value = 99.9;
+    valueBucket->putReal(valueBucket, "data2", data2Value);
     valueBucket->putInt64(valueBucket, "data3", 100);
     
     char table[] = "test";
@@ -262,7 +277,7 @@ napi_value TestTransRollbackDatabaseClosed(napi_env env, napi_callback_info info
     OH_RdbTrans_DestroyOptions(options);
     valueBucket->destroy(valueBucket);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? 14800050 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? g_tSAlreadyClosedCode : -1, &result);
     return result;
 }
 
@@ -280,7 +295,7 @@ napi_value TestInsertInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_RdbTrans_Insert(trans, table, ValueBucket, &rowId);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     
     ValueBucket->destroy(ValueBucket);
     return result;
@@ -303,7 +318,7 @@ napi_value TestInsertDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -336,7 +351,7 @@ napi_value TestInsertDatabaseClosed(napi_env env, napi_callback_info info)
     OH_RdbTrans_DestroyOptions(options);
     valueBucket->destroy(valueBucket);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? 14800050 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? g_tSAlreadyClosedCode : -1, &result);
     return result;
 }
 
@@ -356,7 +371,7 @@ napi_value TestTransInsertError(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -388,7 +403,7 @@ napi_value TestTransInsertError(napi_env env, napi_callback_info info)
     OH_RdbTrans_DestroyOptions(options);
     valueBucket->destroy(valueBucket);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_tSErrorCode : -1, &result);
     return result;
 }
 
@@ -407,7 +422,7 @@ napi_value TestTransInsertWithConflictResolutionSuccess(napi_env env, napi_callb
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
     
@@ -462,7 +477,7 @@ napi_value TestInsertWithConflictResolutionError(napi_env env, napi_callback_inf
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
     
@@ -497,7 +512,7 @@ napi_value TestInsertWithConflictResolutionError(napi_env env, napi_callback_inf
     OH_RdbTrans_DestroyOptions(options);
     valueBucket->destroy(valueBucket);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_tSErrorCode : -1, &result);
     return result;
 }
 
@@ -516,7 +531,7 @@ napi_value TestInsertWithConflictResolutionDatabaseClosed(napi_env env, napi_cal
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
     
@@ -552,7 +567,7 @@ napi_value TestInsertWithConflictResolutionDatabaseClosed(napi_env env, napi_cal
     OH_RdbTrans_DestroyOptions(options);
     valueBucket->destroy(valueBucket);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? 14800050 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? g_tSAlreadyClosedCode : -1, &result);
     return result;
 }
 
@@ -571,7 +586,7 @@ napi_value TestTransBatchInsertInvalidParam(napi_env env, napi_callback_info inf
     
     int ret = OH_RdbTrans_BatchInsert(trans, table, rows, resolution, &rowId);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     
     OH_VBuckets_Destroy(rows);
     return result;
@@ -592,7 +607,7 @@ napi_value TestTransBatchInsertError(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
     
@@ -632,7 +647,7 @@ napi_value TestTransBatchInsertError(napi_env env, napi_callback_info info)
     OH_RdbTrans_DestroyOptions(options);
     valueBucket->destroy(valueBucket);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_tSErrorCode : -1, &result);
     return result;
 }
 
@@ -651,7 +666,7 @@ napi_value TestTransBatchInsertDatabaseClosed(napi_env env, napi_callback_info i
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
     
@@ -693,7 +708,7 @@ napi_value TestTransBatchInsertDatabaseClosed(napi_env env, napi_callback_info i
     OH_RdbTrans_DestroyOptions(options);
     valueBucket->destroy(valueBucket);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? 14800050 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? g_tSAlreadyClosedCode : -1, &result);
     return result;
 }
 
@@ -728,7 +743,7 @@ napi_value TestUpdateInvalidParam(napi_env env, napi_callback_info info)
     int64_t changes = 0;
     int ret = OH_RdbTrans_Update(trans, valueBucket, predicates, &changes);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
@@ -752,7 +767,7 @@ napi_value TestTransUpdateError(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -801,7 +816,7 @@ napi_value TestTransUpdateError(napi_env env, napi_callback_info info)
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_tSErrorCode : -1, &result);
     return result;
 }
 
@@ -820,7 +835,7 @@ napi_value TestTransUpdateDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -870,7 +885,7 @@ napi_value TestTransUpdateDatabaseClosed(napi_env env, napi_callback_info info)
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? 14800050 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? g_tSAlreadyClosedCode : -1, &result);
     return result;
 }
 
@@ -907,7 +922,7 @@ napi_value TestUpdateWithConflictResolutionInvalidParam(napi_env env, napi_callb
     int64_t changes = 0;
     int ret = OH_RdbTrans_UpdateWithConflictResolution(trans, valueBucket, predicates, resolution, &changes);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
@@ -931,7 +946,7 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -952,7 +967,8 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
     
     valueBucket->putInt64(valueBucket, "id", 1);
     valueBucket->putText(valueBucket, "data1", "ZhangSan");
-    valueBucket->putReal(valueBucket, "data2", 99.9);
+    double data2Value = 99.9;
+    valueBucket->putReal(valueBucket, "data2", data2Value);
     valueBucket->putInt64(valueBucket, "data3", 100);
     
     char table[] = "test";
@@ -984,7 +1000,7 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
     valueBucket->destroy(valueBucket);
     valueObject->destroy(valueObject);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_tSErrorCode : -1, &result);
     return result;
 }
 
@@ -1003,7 +1019,7 @@ napi_value TestTransUpdateWithConflictResolutionDatabaseClosed(napi_env env, nap
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -1023,7 +1039,8 @@ napi_value TestTransUpdateWithConflictResolutionDatabaseClosed(napi_env env, nap
     OH_VBucket *valueBucket = OH_Rdb_CreateValuesBucket();
     valueBucket->putInt64(valueBucket, "id", 1);
     valueBucket->putText(valueBucket, "data1", "ZhangSan");
-    valueBucket->putReal(valueBucket, "data2", 99.9);
+    double data2Value = 99.9;
+    valueBucket->putReal(valueBucket, "data2", data2Value);
     valueBucket->putInt64(valueBucket, "data3", 100);
     
     char table[] = "test";
@@ -1055,12 +1072,9 @@ napi_value TestTransUpdateWithConflictResolutionDatabaseClosed(napi_env env, nap
     valueObject->destroy(valueObject);
     predicates->destroy(predicates);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? 14800050 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? g_tSAlreadyClosedCode : -1, &result);
     return result;
 }
-
-
-
 
 napi_value TestTransDeleteInvalidParam(napi_env env, napi_callback_info info)
 {
@@ -1081,7 +1095,7 @@ napi_value TestTransDeleteInvalidParam(napi_env env, napi_callback_info info)
     int64_t changes = 0;
     int ret = OH_RdbTrans_Delete(trans, predicates, &changes);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
@@ -1105,7 +1119,7 @@ napi_value TestTransDeleteError(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -1126,7 +1140,8 @@ napi_value TestTransDeleteError(napi_env env, napi_callback_info info)
     
     valueBucket->putInt64(valueBucket, "id", 1);
     valueBucket->putText(valueBucket, "data1", "ZhangSan");
-    valueBucket->putReal(valueBucket, "data2", 99.9);
+    double data2Value = 99.9;
+    valueBucket->putReal(valueBucket, "data2", data2Value);
     valueBucket->putInt64(valueBucket, "data3", 100);
     
     char table[] = "test";
@@ -1156,7 +1171,7 @@ napi_value TestTransDeleteError(napi_env env, napi_callback_info info)
     valueObject->destroy(valueObject);
     predicates->destroy(predicates);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_tSErrorCode : -1, &result);
     return result;
 }
 
@@ -1175,7 +1190,7 @@ napi_value TestTransDeleteDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -1196,7 +1211,8 @@ napi_value TestTransDeleteDatabaseClosed(napi_env env, napi_callback_info info)
     
     valueBucket->putInt64(valueBucket, "id", 1);
     valueBucket->putText(valueBucket, "data1", "ZhangSan");
-    valueBucket->putReal(valueBucket, "data2", 99.9);
+    double data2Value = 99.9;
+    valueBucket->putReal(valueBucket, "data2", data2Value);
     valueBucket->putInt64(valueBucket, "data3", 100);
     
     char table[] = "test";
@@ -1225,7 +1241,7 @@ napi_value TestTransDeleteDatabaseClosed(napi_env env, napi_callback_info info)
     valueObject->destroy(valueObject);
     predicates->destroy(predicates);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? 14800050 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? g_tSAlreadyClosedCode : -1, &result);
     return result;
 }
 
@@ -1246,7 +1262,7 @@ napi_value TestTransExecuteInvalidParam(napi_env env, napi_callback_info info)
 
     int ret = OH_RdbTrans_Execute(trans, insertSql, values, &outValue);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     OH_Values_Destroy(values);
     return result;
 }
@@ -1267,7 +1283,7 @@ napi_value TestTransExecuteError(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -1288,7 +1304,8 @@ napi_value TestTransExecuteError(napi_env env, napi_callback_info info)
     
     valueBucket->putInt64(valueBucket, "id", 1);
     valueBucket->putText(valueBucket, "data1", "ZhangSan");
-    valueBucket->putReal(valueBucket, "data2", 99.9);
+    double data2Value = 99.9;
+    valueBucket->putReal(valueBucket, "data2", data2Value);
     valueBucket->putInt64(valueBucket, "data3", 100);
     
     char table[] = "test";
@@ -1314,7 +1331,7 @@ napi_value TestTransExecuteError(napi_env env, napi_callback_info info)
     valueBucket->destroy(valueBucket);
     OH_Values_Destroy(values);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_tSErrorCode : -1, &result);
     return result;
 }
 
@@ -1333,7 +1350,7 @@ napi_value TestTransExecuteDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
     
-    OH_Rdb_Store * testRdbStore = nullptr;
+    OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
 
@@ -1354,7 +1371,8 @@ napi_value TestTransExecuteDatabaseClosed(napi_env env, napi_callback_info info)
     
     valueBucket->putInt64(valueBucket, "id", 1);
     valueBucket->putText(valueBucket, "data1", "ZhangSan");
-    valueBucket->putReal(valueBucket, "data2", 99.9);
+    double data2Value = 99.9;
+    valueBucket->putReal(valueBucket, "data2", data2Value);
     valueBucket->putInt64(valueBucket, "data3", 100);
     
     char table[] = "test";
@@ -1381,7 +1399,7 @@ napi_value TestTransExecuteDatabaseClosed(napi_env env, napi_callback_info info)
     valueBucket->destroy(valueBucket);
     OH_Values_Destroy(values);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? 14800050 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ALREADY_CLOSED ? g_tSAlreadyClosedCode : -1, &result);
     return result;
 }
 
@@ -1392,6 +1410,6 @@ napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
     
     int ret = OH_RdbTrans_Destroy(trans);
     
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? 14800001 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_tSInvalidParamCode : -1, &result);
     return result;
 }

@@ -25,9 +25,7 @@
 #ifndef RDB_ERROR_CODE_TEST_H
 #define RDB_ERROR_CODE_TEST_H
 
-// 定义专属命名空间
 namespace RdbErrorCodeTest {
-    // 声明变量（不初始化）
     extern const char* RDB_TEST_PATH;
     extern char RDB_STORE_NAME[];
     extern char BUNDLE_NAME[];
@@ -39,7 +37,7 @@ namespace RdbErrorCodeTest {
 
 static void InitRdbConfig();
 
-void addRdbErrorCodeTest(std::vector<napi_property_descriptor> &descData);
+void AddRdbErrorCodeTest(std::vector<napi_property_descriptor> &descData);
 
 napi_value TestRdbError(napi_env env, napi_callback_info info);
 napi_value TestEmptyTableName(napi_env env, napi_callback_info info);
