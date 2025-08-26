@@ -299,7 +299,7 @@ export default function CameraSessionControlCenterTest() {
           "with effectTypeSize is: " + effectTypeSizeData.effectTypeSize);
       } else {
         console.info(TAG + "Entering testOHSessionGetSupportedEffectTypeTest100 FAILED");
-        expect().assertFail();
+        expect(effectTypeSizeData.errorCode).assertEqual(CAMERA_INVALID_ARGUMENT);
       }
       console.info(TAG + "Entering testOHSessionGetSupportedEffectTypeTest100 ends here");
     })
