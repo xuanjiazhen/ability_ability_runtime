@@ -85,13 +85,11 @@ public:
      *
      * @param want The want.
      * @param userId The user id.
-     * @param appIndex The app index.
      * @param callerToken The caller token.
      * @param isScbCall The scb call.
      * @return Whether the app is either multi-instance or app-clone.
      */
-    int32_t CheckMultiInstanceAndAppClone(Want &want, int32_t userId, int32_t appIndex,
-        sptr<IRemoteObject> callerToken, bool isScbCall);
+    int32_t CheckMultiInstanceAndAppClone(Want &want, int32_t userId, sptr<IRemoteObject> callerToken, bool isScbCall);
 
     /**
      * CheckMultiInstanceKeyForExtension, check multi-instance key for extension.
