@@ -1643,7 +1643,6 @@ export default function testsuite() {
   imageSpanOnClickTest()
   spanOnClickTest()
   textDataDetectorConfigTest()
-  imageDraggableEventTest()
   commonAttrsSaturateTest()
   commonAttrsBlurTest()
   commonAttrsZIndexTest()

@@ -23,6 +23,7 @@ import textInputOnCutTest from './textinput/TextInputOnCutTest.test'
 import textInputOnPasteTest from './textinput/TextInputOnPasteTest.test'
 import calendarPickerSelectedDateTest from './calendarpicker/CalendarPickerSelectedDateTest.test'
 import textInputMethodTest from './textinput/TextInputMethodTest.test'
+import imageDraggableEventTest from './image/ImageDraggableEventTest.test'
 
 export default function testsuite() {
   textInputMethodTest()
@@ -36,4 +37,5 @@ export default function testsuite() {
   textAreaOnPasteTest()
   textInputOnCutTest()
   textInputOnPasteTest()
+  imageDraggableEventTest()
 }

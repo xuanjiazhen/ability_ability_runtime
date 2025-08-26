@@ -48,19 +48,19 @@ static void CreateChildNode(const std::string &id)
     };
     for (int i = 0; i < PARAM_5; ++i) {
         auto item = OH_ArkUI_ImageAnimatorFrameInfo_CreateFromString(const_cast<char*>(imageUrls[i]));
-        OH_ArkUI_ImageAnimatorFrameInfo_SetWidth(item, SIZE_300);
-        OH_ArkUI_ImageAnimatorFrameInfo_SetHeight(item, SIZE_200);
+        OH_ArkUI_ImageAnimatorFrameInfo_SetWidth(item, SIZE_100);
+        OH_ArkUI_ImageAnimatorFrameInfo_SetHeight(item, SIZE_80);
         OH_ArkUI_ImageAnimatorFrameInfo_SetTop(item, SIZE_10);
-        OH_ArkUI_ImageAnimatorFrameInfo_SetLeft(item, SIZE_30);
+        OH_ArkUI_ImageAnimatorFrameInfo_SetLeft(item, SIZE_10);
         OH_ArkUI_ImageAnimatorFrameInfo_SetDuration(item, SIZE_1000);
         vec.push_back(item);
     }
     imageAnimator_ = std::make_shared<ImageAnimatorComponent>();
     imageAnimator_->SetImage(vec);
     imageAnimator_->SetBackgroundColor(0xFFFFFFFF);
-    imageAnimator_->SetWidth(SIZE_300);
-    imageAnimator_->SetHeight(SIZE_200);
-    imageAnimator_->SetMargin(PARAM_20);
+    imageAnimator_->SetWidth(SIZE_100);
+    imageAnimator_->SetHeight(SIZE_80);
+    imageAnimator_->SetMargin(PARAM_10);
     imageAnimator_->SetDuration(SIZE_2000);
     imageAnimator_->SetId(id);
 }
