@@ -23,6 +23,7 @@
 #include "textinput/textinput_oncut_test.h"
 #include "textinput/textinput_onpaste_test.h"
 #include "textinput/textinput_method_test.h"
+#include "image/image_draggableEvent_test.h"
 
 
 namespace ArkUICapiTest {
