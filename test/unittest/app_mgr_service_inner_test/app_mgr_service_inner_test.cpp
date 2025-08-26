@@ -4490,7 +4490,7 @@ HWTEST_F(AppMgrServiceInnerTest, AttachAppDebug_001, TestSize.Level2)
     std::string bundleName;
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
     appMgrServiceInner->appDebugManager_ = std::make_shared<AppDebugManager>();
-    auto result = appMgrServiceInner->AttachAppDebug(bundleName, false);
+    auto result = appMgrServiceInner->AttachAppDebug(bundleName, true);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -4506,7 +4506,7 @@ HWTEST_F(AppMgrServiceInnerTest, AttachAppDebug_002, TestSize.Level2)
     std::string bundleName;
     appMgrServiceInner->appRunningManager_ = nullptr;
     appMgrServiceInner->appDebugManager_ = std::make_shared<AppDebugManager>();
-    auto result = appMgrServiceInner->AttachAppDebug(bundleName, false);
+    auto result = appMgrServiceInner->AttachAppDebug(bundleName, true);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
 

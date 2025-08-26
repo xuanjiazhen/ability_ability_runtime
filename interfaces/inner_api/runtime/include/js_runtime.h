@@ -201,6 +201,7 @@ private:
     void PostPreload(const Options& options);
     void LoadAotFile(const Options& options);
     void SetRequestAotCallback();
+    bool IsAllowStartWithDebug(const DebugOption debugOption);
 
     std::string GetSystemKitPath();
     std::vector<panda::HmsMap> GetSystemKitsMap(uint32_t version);

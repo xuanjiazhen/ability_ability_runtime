@@ -1891,5 +1891,37 @@ HWTEST_F(JsRuntimeTest, RegisterUncatchableExceptionHandler_0100, TestSize.Level
     EXPECT_NE(jsRuntime, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "RegisterUncatchableExceptionHandler_0100 end");
 }
+
+/**
+ * @tc.name: IsAllowStartWithDebug_0100
+ * @tc.desc: JsRuntime test for IsAllowStartWithDebug.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, IsAllowStartWithDebug_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsAllowStartWithDebug_0100 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    AbilityRuntime::Runtime::DebugOption debugOption;
+    debugOption.isDeveloperMode = false;
+    debugOption.isDebugFromLocal = false;
+    debugOption.isStartWithDebug = false;
+    TAG_LOGI(AAFwkTag::TEST, "delevlop is false, is not local debug");
+    EXPECT_EQ(jsRuntime->IsAllowStartWithDebug(debugOption), false);
+
+    debugOption.isDeveloperMode = false;
+    debugOption.isDebugFromLocal = true;
+    debugOption.isStartWithDebug = false;
+    TAG_LOGI(AAFwkTag::TEST, "local debug, not -D");
+    EXPECT_EQ(jsRuntime->IsAllowStartWithDebug(debugOption), false);
+
+    debugOption.isDeveloperMode = false;
+    debugOption.isDebugFromLocal = true;
+    debugOption.isStartWithDebug = true;
+    TAG_LOGI(AAFwkTag::TEST, "local debug and -D");
+    EXPECT_EQ(jsRuntime->IsAllowStartWithDebug(debugOption), true);
+
+    TAG_LOGI(AAFwkTag::TEST, "RegisterUncatchableExceptionHandler_0100 end");
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
