@@ -65,14 +65,22 @@ struct WebComponent {
               case 'emitwebViewWebViewOnPdfLoadEvent001': {
                 await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
                 console.log('eventInfoUrl' + this.eventInfoUrl)
-                Utils.emitEvent(this.eventInfoUrl,20250822)
+                if(canIUse('SystemCapability.Security.DiaService')) {
+                   Utils.emitEvent(this.eventInfoUrl,20250822)
+                } else {
+                    Utils.emitEvent('resource://rawfile/printTemplate.pdf',20250822)
+                }
                 break;
               }
 
               case 'emitwebViewWebViewOnPdfLoadEvent002': {
                 await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
                 console.log('result' + this.result)
-                Utils.emitEvent(this.result,20250823)
+                 if(canIUse('SystemCapability.Security.DiaService')) {
+                     Utils.emitEvent(this.result,20250823)
+                 } else {
+                     Utils.emitEvent(0,20250823)
+                 }
                 break;
               }
 
