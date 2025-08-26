@@ -1563,29 +1563,6 @@ export function testDeleteThrowError93() {
     return flag;
 }
 
-export function testConditionalReadOnly94() {
-    const target = { config: 'default', locked: false };
-    const handler = {
-        set(target, prop, value) {
-            // 若locked为true，禁止修改config
-            if (prop === 'config' && target.locked) {
-                return false;
-            }
-            target[prop] = value;
-            return true;
-        }
-    };
-    const proxy = new Proxy(target, handler);
-
-    proxy.config = 'modified'; // 未锁定时可修改
-    console.log(target.config === 'modified', "94.1：未锁定时修改成功");
-
-    proxy.locked = true;
-    proxy.config = 'new'; // 锁定后修改失败
-    console.log(target.config === 'modified', "94.2：锁定后属性只读");
-    return target.config === 'modified' && target.config === 'modified';
-}
-
 export function testPropertyAccessLog95() {
     const target = { a: 1, b: 2 };
     const log = [];

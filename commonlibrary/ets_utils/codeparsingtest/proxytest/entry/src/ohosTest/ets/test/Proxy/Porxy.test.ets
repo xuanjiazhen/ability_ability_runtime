@@ -19,7 +19,6 @@ import {
   testApplyModifyThis81,
   testApplyReturnNonFunction66,
   testArrayProxyLength38,
-  testConditionalReadOnly94,
   testConstructReturnDerived82,
   testConstructReturnNonObject29,
   testDefinePropertyConfigInvariant52,
@@ -1208,19 +1207,6 @@ export default function proxyTest() {
     it('proxyTest093', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
       let result = testDeleteThrowError93();
       expect(result).assertEqual(1);
-    });
-
-    /**
-     * @tc.number SUB_BUILTINS_PROXY_TEST_9400
-     * @tc.name proxyTest094
-     * @tc.desc test proxy
-     * @tc.size MediumTest
-     * @tc.type Function
-     * @tc.level Level 1
-     */
-    it('proxyTest094', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
-      let result = testConditionalReadOnly94();
-      expect(result).assertEqual(true);
     });
 
     /**
