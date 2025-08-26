@@ -499,7 +499,8 @@ export default function ActsTransactionTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_RdbTrans_Delete_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('SUB_DistributedData_RelationalStore_SDK_OH_RdbTrans_Delete_2200',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_DistributedData_RelationalStore_SDK_OH_RdbTrans_Delete_2200 start====");
         let result: number = testNapi.testTransDeleteInvalidParam();

@@ -33,10 +33,10 @@ namespace RdbErrorCodeTest {
     char g_rdbStoreName[] = "rdb_store_test.db";
     char g_bundleName[] = "com.acts.acttransactiontest";
     char g_moduleName[] = "";
-    OH_Rdb_Config g_config_; 
+    OH_Rdb_Config g_config_;
 }
 
-static void InitRdbConfig()
+void InitRdbConfig()
 {
     RdbErrorCodeTest::g_config_.dataBaseDir = RdbErrorCodeTest::g_rdbTest;
     RdbErrorCodeTest::g_config_.storeName = RdbErrorCodeTest::g_rdbStoreName;
@@ -134,9 +134,7 @@ napi_value TestEmptyTableName(napi_env env, napi_callback_info info)
 napi_value TestInvalidColumnType(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
-    
     OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::g_rdbTest);
     OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_rdbStoreName);
     OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
@@ -153,7 +151,6 @@ napi_value TestInvalidColumnType(napi_env env, napi_callback_info info)
                                  "data1 TEXT, "
                                  "data2 INT64, "
                                  "data3 REAL)";
-
     OH_Rdb_Execute(store, createTableSql);
     OH_VBucket *valueBucket = OH_Rdb_CreateValuesBucket();
     valueBucket->putInt64(valueBucket, "id", 1);
@@ -167,36 +164,17 @@ napi_value TestInvalidColumnType(napi_env env, napi_callback_info info)
     OH_Data_Values *values = OH_Values_Create();
     OH_Cursor *cursor = OH_Rdb_ExecuteQueryV2(store, sql, values);
     cursor->goToNextRow(cursor);
-    
     int cnt = 0;
     cursor->getColumnCount(cursor, &cnt);
-    
     int rowCnt = 0;
     cursor->getRowCount(cursor, &rowCnt);
-    
     int columnIndex = 0;
     const char *name = "data3";
     cursor->getColumnIndex(cursor, name, &columnIndex);
     OH_ColumnType type;
     cursor->getColumnType(cursor, columnIndex, &type);
-    const char *typeStr;
-    switch (type) {
-        case TYPE_INT64:
-            typeStr = "TYPE_INT64";
-            break;
-        case TYPE_REAL:
-            typeStr = "TYPE_REAL";
-            break;
-        case TYPE_TEXT:
-            typeStr = "TYPE_TEXT";
-            break;
-        default:
-            typeStr = "unKnown";
-            break;
-    } 
     size_t size = 0;
     int ret = cursor->getSize(cursor, columnIndex, &size);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  getSize:%{public}d", ret);
     OH_Rdb_CloseStore(store);
     OH_Rdb_DeleteStoreV2(configV2);
     valueBucket->destroy(valueBucket);
@@ -224,7 +202,6 @@ napi_value TestNoRowInQuery(napi_env env, napi_callback_info info)
     OH_Rdb_Store *store = nullptr;
     int errCode = 0;
     store = OH_Rdb_CreateOrOpen(configV2, &errCode);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  OH_Rdb_CreateOrOpen:%{public}d", errCode);
     
     const char* createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -264,7 +241,6 @@ napi_value TestNoTransactionInSession(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_GetOrOpen:%{public}s", (char *)testRdbStore);
     
     int ret = OH_Rdb_RollBack(testRdbStore);
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_RollBack:%{public}d", ret);
@@ -272,7 +248,8 @@ napi_value TestNoTransactionInSession(napi_env env, napi_callback_info info)
     OH_Rdb_CloseStore(testRdbStore);
     OH_Rdb_DeleteStoreV2(configV2);
     OH_Rdb_DestroyConfig(configV2);
-    
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_NO_TRANSACTION_IN_SESSION ? g_rNoTransInSessionCode : -1, &result);
+
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_NO_TRANSACTION_IN_SESSION ? g_rNoTransInSessionCode : -1,
+                      &result);
     return result;
 }

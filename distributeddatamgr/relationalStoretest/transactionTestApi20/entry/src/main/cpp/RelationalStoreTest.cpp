@@ -536,7 +536,8 @@ napi_value TestUpdateWithConflictResolutionSuccess(napi_env env, napi_callback_i
     predicates->equalTo(predicates, "score", valueObject);
 
     OH_VBucket *updateBucket = OH_Rdb_CreateValuesBucket();
-    updateBucket->putInt64(updateBucket, "score", 90);
+    int64_t scoreValue = 90;
+    updateBucket->putInt64(updateBucket, "score", scoreValue);
 
     Rdb_ConflictResolution resolution = Rdb_ConflictResolution::RDB_CONFLICT_ROLLBACK;
     int64_t changes = 0;

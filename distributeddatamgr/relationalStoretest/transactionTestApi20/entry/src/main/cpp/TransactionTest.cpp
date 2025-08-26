@@ -29,7 +29,8 @@ int g_tSInvalidParamCode = 14800001;
 int g_tSAlreadyClosedCode = 14800050;
 int g_tSErrorCode = 14800000;
 
-namespace TransactionTest {
+namespace TransactionTest
+{
 const char *g_rdbTest = "/data/storage/el2/database/com.acts.acttransactiontest/";
 char g_rdbStoreName[] = "rdb_store_test.db";
 char g_bundleName[] = "com.acts.acttransactiontest";
@@ -37,7 +38,8 @@ char g_moduleName[] = "";
 OH_Rdb_Config g_config_;
 } // namespace TransactionTest
 
-void AddTransactionTest1(std::vector<napi_property_descriptor> &descData) {
+void AddTransactionTest1(std::vector<napi_property_descriptor> &descData)
+{
     descData.push_back({"testDestroyOptionsInvalidParam", nullptr, TestDestroyOptionsInvalidParam, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
     descData.push_back({"testDestroyOptionsSuccess", nullptr, TestDestroyOptionsSuccess, nullptr, nullptr, nullptr,
@@ -72,7 +74,8 @@ void AddTransactionTest1(std::vector<napi_property_descriptor> &descData) {
                         nullptr, nullptr, napi_default, nullptr});
 }
 
-void AddTransactionTest2(std::vector<napi_property_descriptor> &descData) {
+void AddTransactionTest2(std::vector<napi_property_descriptor> &descData)
+{
     descData.push_back(
         {"testUpdateInvalidParam", nullptr, TestUpdateInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back(
@@ -103,12 +106,14 @@ void AddTransactionTest2(std::vector<napi_property_descriptor> &descData) {
                         napi_default, nullptr});
 }
 
-void AddTransactionTest(std::vector<napi_property_descriptor> &descData) {
+void AddTransactionTest(std::vector<napi_property_descriptor> &descData)
+{
     AddTransactionTest1(descData);
     AddTransactionTest2(descData);
 }
 
-napi_value TestDestroyOptionsInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestDestroyOptionsInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_RDB_TransOptions *options = nullptr;
 
@@ -118,7 +123,8 @@ napi_value TestDestroyOptionsInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value TestDestroyOptionsSuccess(napi_env env, napi_callback_info info) {
+napi_value TestDestroyOptionsSuccess(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_RDB_TransOptions *options = OH_RdbTrans_CreateOptions();
 
@@ -129,7 +135,8 @@ napi_value TestDestroyOptionsSuccess(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestTransCommitInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestTransCommitInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_Transaction *trans = nullptr;
 
@@ -140,7 +147,8 @@ napi_value TestTransCommitInvalidParam(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestCommitTransDatabaseClosed(napi_env env, napi_callback_info info) {
+napi_value TestCommitTransDatabaseClosed(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -198,7 +206,8 @@ napi_value TestCommitTransDatabaseClosed(napi_env env, napi_callback_info info) 
     return result;
 }
 
-napi_value TestTransRollbackInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestTransRollbackInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_Transaction *trans = nullptr;
 
@@ -209,7 +218,8 @@ napi_value TestTransRollbackInvalidParam(napi_env env, napi_callback_info info) 
     return result;
 }
 
-napi_value TestTransRollbackDatabaseClosed(napi_env env, napi_callback_info info) {
+napi_value TestTransRollbackDatabaseClosed(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -251,15 +261,9 @@ napi_value TestTransRollbackDatabaseClosed(napi_env env, napi_callback_info info
 
     char table[] = "test";
     int64_t rowId = -1;
-    int res = OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Insert:%{public}d", res);
-
-    int ccc = OH_RdbTrans_Commit(trans);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Commit:%{public}d", ccc);
-
+    OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
+    OH_RdbTrans_Commit(trans);
     int ret = OH_RdbTrans_Rollback(trans);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Rollback:%{public}d", ret);
-
     OH_Rdb_CloseStore(testRdbStore);
     OH_Rdb_DeleteStoreV2(configV2);
     OH_RdbTrans_Destroy(trans);
@@ -270,7 +274,8 @@ napi_value TestTransRollbackDatabaseClosed(napi_env env, napi_callback_info info
     return result;
 }
 
-napi_value TestInsertInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestInsertInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_Transaction *trans = nullptr;
 
@@ -288,7 +293,8 @@ napi_value TestInsertInvalidParam(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestInsertDatabaseClosed(napi_env env, napi_callback_info info) {
+napi_value TestInsertDatabaseClosed(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -340,7 +346,8 @@ napi_value TestInsertDatabaseClosed(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestTransInsertError(napi_env env, napi_callback_info info) {
+napi_value TestTransInsertError(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -391,7 +398,8 @@ napi_value TestTransInsertError(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestTransInsertWithConflictResolutionSuccess(napi_env env, napi_callback_info info) {
+napi_value TestTransInsertWithConflictResolutionSuccess(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -434,8 +442,6 @@ napi_value TestTransInsertWithConflictResolutionSuccess(napi_env env, napi_callb
     Rdb_ConflictResolution resolution = RDB_CONFLICT_NONE;
 
     int ret = OH_RdbTrans_InsertWithConflictResolution(trans, table, valueBucket, resolution, &rowId);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_InsertWithConflictResolution:%{public}d",
-                 ret);
     OH_Rdb_CloseStore(testRdbStore);
     OH_Rdb_DeleteStoreV2(configV2);
     OH_RdbTrans_Destroy(trans);
@@ -446,7 +452,8 @@ napi_value TestTransInsertWithConflictResolutionSuccess(napi_env env, napi_callb
     return result;
 }
 
-napi_value TestInsertWithConflictResolutionError(napi_env env, napi_callback_info info) {
+napi_value TestInsertWithConflictResolutionError(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -500,7 +507,8 @@ napi_value TestInsertWithConflictResolutionError(napi_env env, napi_callback_inf
     return result;
 }
 
-napi_value TestInsertWithConflictResolutionDatabaseClosed(napi_env env, napi_callback_info info) {
+napi_value TestInsertWithConflictResolutionDatabaseClosed(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -555,7 +563,8 @@ napi_value TestInsertWithConflictResolutionDatabaseClosed(napi_env env, napi_cal
     return result;
 }
 
-napi_value TestTransBatchInsertInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestTransBatchInsertInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_Transaction *trans = nullptr;
 
@@ -575,7 +584,8 @@ napi_value TestTransBatchInsertInvalidParam(napi_env env, napi_callback_info inf
     return result;
 }
 
-napi_value TestTransBatchInsertError(napi_env env, napi_callback_info info) {
+napi_value TestTransBatchInsertError(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -634,7 +644,8 @@ napi_value TestTransBatchInsertError(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestTransBatchInsertDatabaseClosed(napi_env env, napi_callback_info info) {
+napi_value TestTransBatchInsertDatabaseClosed(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -696,7 +707,8 @@ napi_value TestTransBatchInsertDatabaseClosed(napi_env env, napi_callback_info i
 }
 
 
-napi_value TestUpdateInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestUpdateInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_Transaction *trans = nullptr;
 
@@ -735,7 +747,8 @@ napi_value TestUpdateInvalidParam(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestTransUpdateError(napi_env env, napi_callback_info info) {
+napi_value TestTransUpdateError(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -803,7 +816,8 @@ napi_value TestTransUpdateError(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestTransUpdateDatabaseClosed(napi_env env, napi_callback_info info) {
+napi_value TestTransUpdateDatabaseClosed(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -872,7 +886,8 @@ napi_value TestTransUpdateDatabaseClosed(napi_env env, napi_callback_info info) 
     return result;
 }
 
-napi_value TestUpdateWithConflictResolutionInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestUpdateWithConflictResolutionInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_Transaction *trans = nullptr;
 
@@ -913,11 +928,10 @@ napi_value TestUpdateWithConflictResolutionInvalidParam(napi_env env, napi_callb
     return result;
 }
 
-napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callback_info info) {
+napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callback_info info)
+{
     napi_value result;
-
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
-
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::g_rdbTest);
     OH_Rdb_SetStoreName(configV2, TransactionTest::g_rdbStoreName);
     OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
@@ -926,7 +940,6 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
     OH_Rdb_SetDbType(configV2, RDB_SQLITE);
-
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
@@ -955,9 +968,7 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
 
     char table[] = "test";
     int64_t rowId = -1;
-    int res = OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Insert:%{public}d", res);
-
+    OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
     char table1[] = "test1";
     OH_Predicates *predicates = OH_Rdb_CreatePredicates(table1);
     OH_VObject *valueObject = OH_Rdb_CreateValueObject();
@@ -965,15 +976,9 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
     const char *value = "LiSi";
     valueObject->putText(valueObject, value);
     predicates->equalTo(predicates, "data1", valueObject);
-
     Rdb_ConflictResolution resolution = RDB_CONFLICT_NONE;
-
     int64_t changes = 0;
-
     int ret = OH_RdbTrans_UpdateWithConflictResolution(trans, valueBucket, predicates, resolution, &changes);
-
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Update:%{public}d", ret);
-
     OH_Rdb_CloseStore(testRdbStore);
     OH_Rdb_DeleteStoreV2(configV2);
     OH_RdbTrans_Destroy(trans);
@@ -985,7 +990,8 @@ napi_value TestTransUpdateWithConflictResolutionError(napi_env env, napi_callbac
     return result;
 }
 
-napi_value TestTransUpdateWithConflictResolutionDatabaseClosed(napi_env env, napi_callback_info info) {
+napi_value TestTransUpdateWithConflictResolutionDatabaseClosed(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::g_rdbTest);
@@ -1038,7 +1044,8 @@ napi_value TestTransUpdateWithConflictResolutionDatabaseClosed(napi_env env, nap
     return result;
 }
 
-napi_value TestTransDeleteInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestTransDeleteInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_Transaction *trans = nullptr;
 
@@ -1065,7 +1072,8 @@ napi_value TestTransDeleteInvalidParam(napi_env env, napi_callback_info info) {
 }
 
 
-napi_value TestTransDeleteError(napi_env env, napi_callback_info info) {
+napi_value TestTransDeleteError(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -1122,7 +1130,8 @@ napi_value TestTransDeleteError(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestTransDeleteDatabaseClosed(napi_env env, napi_callback_info info) {
+napi_value TestTransDeleteDatabaseClosed(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::g_rdbTest);
@@ -1173,7 +1182,8 @@ napi_value TestTransDeleteDatabaseClosed(napi_env env, napi_callback_info info) 
     return result;
 }
 
-napi_value TestTransExecuteInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestTransExecuteInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_Transaction *trans = nullptr;
 
@@ -1181,7 +1191,8 @@ napi_value TestTransExecuteInvalidParam(napi_env env, napi_callback_info info) {
 
     OH_Data_Values *values = OH_Values_Create();
 
-    OH_Values_PutInt(values, 10);
+    int64_t intValue = 10;
+    OH_Values_PutInt(values, intValue);
 
     OH_Data_Value *outValue = nullptr;
 
@@ -1192,7 +1203,8 @@ napi_value TestTransExecuteInvalidParam(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestTransExecuteError(napi_env env, napi_callback_info info) {
+napi_value TestTransExecuteError(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -1259,7 +1271,8 @@ napi_value TestTransExecuteError(napi_env env, napi_callback_info info) {
     return result;
 }
 
-napi_value TestTransExecuteDatabaseClosed(napi_env env, napi_callback_info info) {
+napi_value TestTransExecuteDatabaseClosed(napi_env env, napi_callback_info info)
+{
     napi_value result;
 
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
@@ -1327,7 +1340,8 @@ napi_value TestTransExecuteDatabaseClosed(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info) {
+napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
+{
     napi_value result;
     OH_Rdb_Transaction *trans = nullptr;
 
