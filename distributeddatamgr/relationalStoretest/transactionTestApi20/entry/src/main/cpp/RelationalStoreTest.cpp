@@ -24,26 +24,27 @@
 #include <napi/native_api.h>
 
 namespace RelationalStoreTest {
-const char *RDB_TEST_PATH = "/data/storage/el2/database/com.acts.acttransactiontest/";
-char RDB_STORE_NAME[] = "rdb_store_test.db";
-char BUNDLE_NAME[] = "com.acts.acttransactiontest";
-char MODULE_NAME[] = "";
-OH_Rdb_Config config_;
+const char *g_rdbTest = "/data/storage/el2/database/com.acts.acttransactiontest/";
+char g_rdbStoreName[] = "rdb_store_test.db";
+char g_bundleName[] = "com.acts.acttransactiontest";
+char g_moduleName[] = "";
+OH_Rdb_Config g_config_;
 } // namespace RelationalStoreTest
 
+int g_rSErrorCode = 14800000;
 int g_rSInvalidParamCode = 14800001;
 int g_notSupportedCode = 801;
 
-static void InitRdbConfig()
+void InitRdbConfig()
 {
-    RelationalStoreTest::config_.dataBaseDir = RelationalStoreTest::RDB_TEST_PATH;
-    RelationalStoreTest::config_.storeName = RelationalStoreTest::RDB_STORE_NAME;
-    RelationalStoreTest::config_.bundleName = RelationalStoreTest::BUNDLE_NAME;
+    RelationalStoreTest::g_config_.dataBaseDir = RelationalStoreTest::g_rdbTest;
+    RelationalStoreTest::g_config_.storeName = RelationalStoreTest::g_rdbStoreName;
+    RelationalStoreTest::g_config_.bundleName = RelationalStoreTest::g_bundleName;
     ;
-    RelationalStoreTest::config_.moduleName = RelationalStoreTest::MODULE_NAME;
-    RelationalStoreTest::config_.securityLevel = OH_Rdb_SecurityLevel::S1;
-    RelationalStoreTest::config_.isEncrypt = false;
-    RelationalStoreTest::config_.selfSize = sizeof(OH_Rdb_Config);
+    RelationalStoreTest::g_config_.moduleName = RelationalStoreTest::g_moduleName;
+    RelationalStoreTest::g_config_.securityLevel = OH_Rdb_SecurityLevel::S1;
+    RelationalStoreTest::g_config_.isEncrypt = false;
+    RelationalStoreTest::g_config_.selfSize = sizeof(OH_Rdb_Config);
 }
 
 void AddRelationStoreTest1(std::vector<napi_property_descriptor> &descData)
@@ -136,7 +137,7 @@ void AddRelationStoreTest2(std::vector<napi_property_descriptor> &descData)
 void AddRelationStoreTest(std::vector<napi_property_descriptor> &descData)
 {
     AddRelationStoreTest1(descData);
-    AddRelationStoreTest2(descData); 
+    AddRelationStoreTest2(descData);
 }
 
 napi_value TestSetDbType(napi_env env, napi_callback_info info)
@@ -254,7 +255,7 @@ napi_value TestDeleteStoreSuccess(napi_env env, napi_callback_info info)
     napi_value result;
     InitRdbConfig();
 
-    int ret = OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    int ret = OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
 
@@ -271,7 +272,7 @@ napi_value TestInsertError(napi_env env, napi_callback_info info)
     int errCode = 0;
     char table[] = "test";
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     OH_VBucket *valueBucket = OH_Rdb_CreateValuesBucket();
     valueBucket->putInt64(valueBucket, "id", 1);
@@ -286,7 +287,7 @@ napi_value TestInsertError(napi_env env, napi_callback_info info)
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_ERR ? -1 : 1, &result);
     valueBucket->destroy(valueBucket);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -298,7 +299,7 @@ napi_value TestInsertWithConflictResolutionSuccess(napi_env env, napi_callback_i
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -323,7 +324,7 @@ napi_value TestInsertWithConflictResolutionSuccess(napi_env env, napi_callback_i
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
     valueBucket->destroy(valueBucket);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -335,7 +336,7 @@ napi_value TestInsertWithConflictResolutionAbnormalError(napi_env env, napi_call
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -358,10 +359,10 @@ napi_value TestInsertWithConflictResolutionAbnormalError(napi_env env, napi_call
    
     int ret = OH_Rdb_InsertWithConflictResolution(testRdbStore, "test1", valueBucket, resolution, &rowId);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_rSErrorCode : -1, &result);
     valueBucket->destroy(valueBucket);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -373,7 +374,7 @@ napi_value TestBatchInsertInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -405,7 +406,7 @@ napi_value TestBatchInsertInvalidParam(napi_env env, napi_callback_info info)
     valueBucket->destroy(valueBucket);
     OH_VBuckets_Destroy(valueBuckets);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -417,7 +418,7 @@ napi_value TestBatchInsertError(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -445,11 +446,11 @@ napi_value TestBatchInsertError(napi_env env, napi_callback_info info)
     int64_t changes = 0;
     int ret = OH_Rdb_BatchInsert(testRdbStore, "test_data", valueBuckets, resolution, &changes);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_rSErrorCode : -1, &result);
     valueBucket->destroy(valueBucket);
     OH_VBuckets_Destroy(valueBuckets);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -461,7 +462,7 @@ napi_value TestUpdateFailed(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -499,7 +500,7 @@ napi_value TestUpdateFailed(napi_env env, napi_callback_info info)
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -511,7 +512,7 @@ napi_value TestUpdateWithConflictResolutionSuccess(napi_env env, napi_callback_i
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -549,7 +550,7 @@ napi_value TestUpdateWithConflictResolutionSuccess(napi_env env, napi_callback_i
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
     return result;
 }
 
@@ -560,7 +561,7 @@ napi_value TestUpdateWithConflictResolutionError(napi_env env, napi_callback_inf
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -591,7 +592,7 @@ napi_value TestUpdateWithConflictResolutionError(napi_env env, napi_callback_inf
     int64_t changes = 0;
     int ret = OH_Rdb_UpdateWithConflictResolution(testRdbStore, updateBucket, predicates, resolution, &changes);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_rSErrorCode : -1, &result);
 
     insertBucket->destroy(insertBucket);
     updateBucket->destroy(updateBucket);
@@ -599,7 +600,7 @@ napi_value TestUpdateWithConflictResolutionError(napi_env env, napi_callback_inf
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -611,7 +612,7 @@ napi_value TestDeleteInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -643,7 +644,7 @@ napi_value TestDeleteInvalidParam(napi_env env, napi_callback_info info)
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -655,7 +656,7 @@ napi_value TestDeleteFailed(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -687,7 +688,7 @@ napi_value TestDeleteFailed(napi_env env, napi_callback_info info)
     predicates->destroy(predicates);
     valueObject->destroy(valueObject);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -699,7 +700,7 @@ napi_value TestExecuteInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -711,7 +712,7 @@ napi_value TestExecuteInvalidParam(napi_env env, napi_callback_info info)
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_rSInvalidParamCode : -1, &result);
 
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -723,7 +724,7 @@ napi_value TestExecuteV2InvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -741,7 +742,7 @@ napi_value TestExecuteV2InvalidParam(napi_env env, napi_callback_info info)
     OH_Values_Destroy(args);
     OH_Value_Destroy(result1);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -753,7 +754,7 @@ napi_value TestExecuteV2Error(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -764,19 +765,18 @@ napi_value TestExecuteV2Error(napi_env env, napi_callback_info info)
 
     OH_Rdb_ExecuteV2(testRdbStore, createTableSql, nullptr, &result1);
 
-
     const char *invalidSql = "SELECT * FROM non_existent_table";
 
     OH_Data_Value *invalidResult = nullptr;
 
     int ret = OH_Rdb_ExecuteV2(testRdbStore, invalidSql, nullptr, &invalidResult);
 
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? 14800000 : -1, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_ERROR ? g_rSErrorCode : -1, &result);
 
     OH_Value_Destroy(result1);
     OH_Value_Destroy(invalidResult);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -788,14 +788,14 @@ napi_value TestBeginTransactionInvalidParam(napi_env env, napi_callback_info inf
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     int ret = OH_Rdb_BeginTransaction(nullptr);
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_rSInvalidParamCode : -1, &result);
 
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
     return result;
 }
 
@@ -806,14 +806,14 @@ napi_value TestBeginTransactionSuccess(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     int ret = OH_Rdb_BeginTransaction(testRdbStore);
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
 
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
     return result;
 }
 
@@ -824,8 +824,7 @@ napi_value TestRollBackInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
-
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -848,7 +847,7 @@ napi_value TestRollBackInvalidParam(napi_env env, napi_callback_info info)
 
     insertBucket->destroy(insertBucket);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -860,7 +859,7 @@ napi_value TestRollBackSuccess(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -885,7 +884,7 @@ napi_value TestRollBackSuccess(napi_env env, napi_callback_info info)
 
     insertBucket->destroy(insertBucket);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -897,7 +896,7 @@ napi_value TestCommitInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -922,7 +921,7 @@ napi_value TestCommitInvalidParam(napi_env env, napi_callback_info info)
 
     insertBucket->destroy(insertBucket);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -934,7 +933,7 @@ napi_value TestCommitSuccess(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -959,7 +958,7 @@ napi_value TestCommitSuccess(napi_env env, napi_callback_info info)
 
     insertBucket->destroy(insertBucket);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -972,10 +971,10 @@ napi_value TestBackupInvalidParam(napi_env env, napi_callback_info info)
 
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST_PATH);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1018,10 +1017,10 @@ napi_value TestBackupSuccess(napi_env env, napi_callback_info info)
 
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST_PATH);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1064,10 +1063,10 @@ napi_value TestRestoreInvalidParam(napi_env env, napi_callback_info info)
 
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST_PATH);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1117,10 +1116,10 @@ napi_value TestRestoreSuccess(napi_env env, napi_callback_info info)
 
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST_PATH);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1168,10 +1167,10 @@ napi_value TestGetVersionInvalidParam(napi_env env, napi_callback_info info)
 
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST_PATH);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1197,10 +1196,10 @@ napi_value TestGetVersionSuccess(napi_env env, napi_callback_info info)
 
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST_PATH);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1226,10 +1225,10 @@ napi_value TestSetVersionInvalidParam(napi_env env, napi_callback_info info)
 
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST_PATH);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1255,10 +1254,10 @@ napi_value TestSetVersionSuccess(napi_env env, napi_callback_info info)
 
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
-    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST_PATH);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::g_rdbTest);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_rdbStoreName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1283,7 +1282,7 @@ napi_value TestLockRowInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_GetOrOpen:%{public}s", (char *)testRdbStore);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
@@ -1317,7 +1316,7 @@ napi_value TestLockRowInvalidParam(napi_env env, napi_callback_info info)
     predicates->destroy(predicates);
     insertBucket->destroy(insertBucket);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
     return result;
 }
 
@@ -1328,7 +1327,7 @@ napi_value TestUnlockRowInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -1359,7 +1358,7 @@ napi_value TestUnlockRowInvalidParam(napi_env env, napi_callback_info info)
     predicates->destroy(predicates);
     insertBucket->destroy(insertBucket);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }
@@ -1373,13 +1372,13 @@ napi_value TestCreateTransactionInvalidParam(napi_env env, napi_callback_info in
     OH_RDB_TransOptions *g_options = OH_RdbTrans_CreateOptions();
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     int ret = OH_Rdb_CreateTransaction(nullptr, g_options, &trans);
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_E_INVALID_ARGS ? g_rSInvalidParamCode : -1, &result);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
     OH_RdbTrans_DestroyOptions(g_options);
     return result;
 }
@@ -1391,7 +1390,7 @@ napi_value TestSetLocaleSuccess(napi_env env, napi_callback_info info)
     OH_Rdb_Store *testRdbStore = nullptr;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::g_config_, &errCode);
 
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_GetOrOpen:%{public}d", errCode);
 
@@ -1401,7 +1400,7 @@ napi_value TestSetLocaleSuccess(napi_env env, napi_callback_info info)
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
     OH_Rdb_CloseStore(testRdbStore);
-    OH_Rdb_DeleteStore(&RelationalStoreTest::config_);
+    OH_Rdb_DeleteStore(&RelationalStoreTest::g_config_);
 
     return result;
 }

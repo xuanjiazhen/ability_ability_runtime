@@ -26,19 +26,20 @@
 #define RELATIONAL_STORE_TEST_H
 
 namespace RelationalStoreTest {
-    extern const char* RDB_TEST_PATH;
-    extern char RDB_STORE_NAME[];
-    extern char BUNDLE_NAME[];
-    extern char MODULE_NAME[];
-    extern OH_Rdb_Config config_;
+    extern const char* g_rdbTest;
+    extern char g_rdbStoreName[];
+    extern char g_bundleName[];
+    extern char g_moduleName[];
+    extern OH_Rdb_Config g_config_;
 }
 
 #endif // RELATIONAL_STORE_TEST_H
 
 extern int g_rSInvalidParamCode;
 extern int g_notSupportedCode;
+extern int g_rSErrorCode;
 
-static void InitRdbConfig();
+void InitRdbConfig();
 
 void AddRelationStoreTest(std::vector<napi_property_descriptor> &descData);
 

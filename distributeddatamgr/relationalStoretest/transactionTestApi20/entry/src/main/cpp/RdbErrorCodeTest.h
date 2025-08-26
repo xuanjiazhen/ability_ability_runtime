@@ -26,14 +26,19 @@
 #define RDB_ERROR_CODE_TEST_H
 
 namespace RdbErrorCodeTest {
-    extern const char* RDB_TEST_PATH;
-    extern char RDB_STORE_NAME[];
-    extern char BUNDLE_NAME[];
-    extern char MODULE_NAME[];
-    extern OH_Rdb_Config config_;
+    extern const char* g_rdbTest;
+    extern char g_rdbStoreName[];
+    extern char g_bundleName[];
+    extern char g_moduleName[];
+    extern OH_Rdb_Config g_config_;
 }
 
 #endif // RDB_ERROR_CODE_TEST_H
+
+extern int g_rEmptyTableNameCode;
+extern int g_rInvalidColumnTypeCode;
+extern int g_rNoRowInQueryCode;
+extern int g_rNoTransInSessionCode;
 
 static void InitRdbConfig();
 
