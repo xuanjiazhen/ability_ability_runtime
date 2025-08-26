@@ -75,7 +75,7 @@ export default function WebViewBypassVsyncCondition() {
     */
     it('emitBypassVsyncCondition01', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       Utils.emitEvent("emitBypassVsyncCondition01", 10)
-      Utils.registerEvent("emitBypassVsyncCondition01", 'WebBypassVsyncCondition.SCROLLBY_FROM_ZERO_OFFSET', 20250729, done);
+      Utils.registerEvent("emitBypassVsyncCondition01", WebBypassVsyncCondition.SCROLLBY_FROM_ZERO_OFFSET, 20250729, done);
       sendEventByKey('BypassVsyncConditionButton', 10, '');
     })
 
@@ -89,7 +89,7 @@ export default function WebViewBypassVsyncCondition() {
     */
     it('emitBypassVsyncCondition02', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       Utils.emitEvent("emitBypassVsyncCondition02", 10)
-      Utils.registerEvent("emitBypassVsyncCondition02", 'WebBypassVsyncCondition.NONE', 20250730, done);
+      Utils.registerEvent("emitBypassVsyncCondition02", WebBypassVsyncCondition.NONE, 20250730, done);
       sendEventByKey('BypassVsyncConditionButton', 10, '');
     })
 

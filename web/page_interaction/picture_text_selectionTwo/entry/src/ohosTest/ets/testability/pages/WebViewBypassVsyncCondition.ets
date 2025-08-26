@@ -8,7 +8,7 @@ import { waitForExist} from '../../test/WaitTest.test';
 @Component
 struct WebComponent {
   controller: webview.WebviewController = new webview.WebviewController();
-  condition: string[] = ['WebBypassVsyncCondition.SCROLLBY_FROM_ZERO_OFFSET','WebBypassVsyncCondition.NONE'];
+  condition: WebBypassVsyncCondition[] = [WebBypassVsyncCondition.SCROLLBY_FROM_ZERO_OFFSET,WebBypassVsyncCondition.NONE];
   @State emitKey: string = '';
   @State isReceive: number = -1;
   @State str:string = ''
