@@ -1786,7 +1786,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
           }).catch((err: BusinessError) => {
             console.error(`${message} Failed to start pip. Cause:${err.code}, message:${err.message}`);
             if(err.code == 801){
-              expect(error.message!=null).assertTrue();
+              expect(err.message!=null).assertTrue();
               console.info(`${message} The current device type does not support to start pip`);
               expect(true).assertTrue();
               done();
@@ -1798,7 +1798,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }).catch((err: BusinessError) => {
           console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(err.code)+':msg:'+JSON.stringify(err.message));
           if(err.code == 801){
-            expect(error.message!=null).assertTrue();
+            expect(err.message!=null).assertTrue();
             console.info(`${message} The current device type does not support to create pipController`);
             expect(true).assertTrue();
             done();
@@ -1898,7 +1898,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
       } catch (error) {
         console.info(`${message} Failed to create pipController. Cause` + JSON.stringify(error.code)+':msg:'+JSON.stringify(error.message));
         if(error.code == 801){
-          expect(err.message!=null).assertTrue();
+          expect(error.message!=null).assertTrue();
           console.info(`${message} The current device type does not support to create pipController`);
           expect(true).assertTrue();
           done();
@@ -2405,7 +2405,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         console.error(`${caseName} Error. Cause code: ${exception.code}, message: ${exception.message}`);
         if(exception.code == 1300002) {
           console.info(`${caseName}: This window state is abnormal.`);
-          expect(error.message!=null).assertTrue();
+          expect(exception.message!=null).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -3529,7 +3529,7 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         context: context1,
         componentController: mXComponentController,
         navigationId: navId,
-        templateType: pipWindow.PiPTemplateType.VIDEO_LIVE,
+        templateType: pipWindow.PiPTemplateType.VIDEO_PLAY,
         contentWidth: 500,
         contentHeight: 500
       };
@@ -3561,8 +3561,9 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             await driver.findComponent(ON.id('SCBPipSceneOverlay')).then(async (component) => {
               await component.click();
               await sleep(1000);
-              await driver.click(x, bottom - 98);
-              console.log(`${message} click position x: ${x}, y: ${bottom - 98}`);
+              let button2 = await driver.findComponent(ON.id('control_play'));
+              console.log(`${message} button2: ${JSON.stringify(button2)}`);
+              await button2.click();
             })
             await sleep(1000);
             expect(controlParam).assertEqual(undefined);

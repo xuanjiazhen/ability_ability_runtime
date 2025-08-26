@@ -956,7 +956,7 @@ export default function windowPropertiesTest() {
                 expect(false).assertTrue();
                 done();
             } catch (exception) {
-              console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${err.code}, message: ${err.message}`);
+              console.error(`${caseName} Failed to set gesture back enabled. Cause code: ${exception.code}, message: ${exception.message}`);
                 if (exception.code == 801) {
                     console.info(`${caseName} The current device type does not support to getGestureBackEnabled.`);
                     expect(exception.message!=null).assertTrue();
@@ -1305,7 +1305,7 @@ export default function windowPropertiesTest() {
                     } catch (error) {
                         if (error.code === 801) {
                             console.info(`${caseName} The current device type does not support to getWindowStatus`);
-                            expect(err.message!=null).assertTrue();
+                            expect(error.message!=null).assertTrue();
                             windowClass.off('windowSizeChange');
                             done();
                         } else {
@@ -6357,7 +6357,7 @@ export default function windowPropertiesTest() {
             await subWindowClass?.destroyWindow();
             done();
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
+            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
             if (isPCStatus != '' || isAutoWindow == 'true') {
               await mainWindow.recover();
             }
@@ -6420,7 +6420,7 @@ export default function windowPropertiesTest() {
               await subWindowClass?.destroyWindow();
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
               if (isPCStatus != '' || isAutoWindow == 'true') {
                 await mainWindow.recover();
               }
@@ -6434,7 +6434,7 @@ export default function windowPropertiesTest() {
               }
             });
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to createWindow. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
+            console.error(`${caseName} Failed to createWindow. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
             await subWindowClass?.destroyWindow();
             if (err.code === 1300002) {
               expect(err.message!=null).assertTrue();
@@ -6548,7 +6548,7 @@ export default function windowPropertiesTest() {
               await pipController?.stopPiP();
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
               if (isMaximize) {
                 await mainWindow.recover();
               }
@@ -6562,7 +6562,7 @@ export default function windowPropertiesTest() {
             });
           }
         } catch (error) {
-          console.error(`${caseName} Failed2 to call getGlobalWindowMode. Cause: ${JSON.stringify(error.code)},message: ${JSON.stringify(error.massage)}`);
+          console.error(`${caseName} Failed2 to call getGlobalWindowMode. Cause: ${JSON.stringify(error.code)},message: ${JSON.stringify(error.message)}`);
           if (isMaximize) {
             await mainWindow.recover();
           }
@@ -6616,14 +6616,14 @@ export default function windowPropertiesTest() {
               await mainWindow.recover();
               done()
             }catch (err) {
-              console.error(`${caseName} recover failed. data: ${err.code},message: ${JSON.stringify(err.massage)}`);
+              console.error(`${caseName} recover failed. data: ${err.code},message: ${JSON.stringify(err.message)}`);
               if(err.code == 801){
                 expect(err.message!=null).assertTrue();
                 done()
               }
             }
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
+            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
             if (isPCStatus != '' || isAutoWindow == 'true') {
               await mainWindow.recover();
             }
@@ -6670,7 +6670,7 @@ export default function windowPropertiesTest() {
               await terminateAbility3(caseName);
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
               await terminateAbility3(caseName);
               if (err.code === 801) {
                 expect(err.message!=null).assertTrue();
@@ -6713,7 +6713,7 @@ export default function windowPropertiesTest() {
             }
             done();
           }).catch(async (err: BusinessError) => {
-            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
+            console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
             if (err.code === 801) {
               expect(err.message!=null).assertTrue();
               done();
@@ -6766,7 +6766,7 @@ export default function windowPropertiesTest() {
 
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
               await pipController?.stopPiP();
               if (err.code === 801) {
                 expect(err.message!=null).assertTrue();
@@ -6842,7 +6842,7 @@ export default function windowPropertiesTest() {
               }
               done();
             }).catch(async (err: BusinessError) => {
-              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.massage)}`);
+              console.error(`${caseName} Failed to call getGlobalWindowMode. Cause: ${JSON.stringify(err.code)},message: ${JSON.stringify(err.message)}`);
               if (err.code === 801) {
                 expect(err.message!=null).assertTrue();
                 done();

@@ -996,7 +996,7 @@ export default function windowPropertiesTest2() {
           await subWindowClass!.destroyWindow();
           if (err.code == 801) {
             console.info(`${caseName} The current device type does not support to setWindowCornerRadius`);
-            expect(exception.message!=null).assertTrue();
+            expect(err.message!=null).assertTrue();
           } else {
             expect().assertFail();
           }
@@ -1104,7 +1104,7 @@ export default function windowPropertiesTest2() {
         } else {
           expect().assertFail();
         }
-        done()''
+        done();
       }
     })
 

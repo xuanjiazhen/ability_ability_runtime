@@ -141,7 +141,7 @@ export default function abilityTest() {
       } catch(e) {
         console.error( CaseName+  `Failed to test_Create_1300019. Cause:${e.code}, message:${e.message}`);
         expect(e.code).assertEqual(1300019);
-        expect(err.message!=null).assertTrue();
+        expect(e.message!=null).assertTrue();
         done();
       }
     })
@@ -226,7 +226,7 @@ export default function abilityTest() {
         done();
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
-        expect(err.message!=null).assertTrue();
+        expect(e.message!=null).assertTrue();
         if(e.code == 801){
           done();
         }else{
