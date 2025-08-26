@@ -4,7 +4,8 @@
         "custom": [
             {
                 "xts": [
-                    "SystemCapability.Communication.WiFi.STA"
+                    "SystemCapability.Communication.WiFi.STA",
+                    "SystemCapability.Communication.Bluetooth.Core"
                 ]
             }
         ]
