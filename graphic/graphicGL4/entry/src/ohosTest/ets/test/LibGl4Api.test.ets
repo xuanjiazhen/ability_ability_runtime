@@ -88,5 +88,32 @@ export default function gl4ApiTest() {
       done();
     });
 
-  })
+    /**
+     * @tc.number     : SUB_GRAPHIC_GRAPHIC_2D_LIBGL4_GLLINESTIPPLE_002
+     * @tc.name       : testGLLineStippleMaxFactor
+     * @tc.desc       : test glLineStippleMaxFactor
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('testGLLineStippleMaxFactor', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      let result: number = gl4api.glLineStippleMaxFactor();
+      expect(result).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number     : SUB_GRAPHIC_GRAPHIC_2D_LIBGL4_GLLINESTIPPLE_003
+     * @tc.name       : testGLLineStippleDottedPattern
+     * @tc.desc       : test glLineStippleDottedPattern
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('testGLLineStippleDottedPattern', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      let result: number = gl4api.glLineStippleDottedPattern();
+      expect(result).assertEqual(0);
+      done();
+    });
+  }) // describe
 }
