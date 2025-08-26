@@ -163,7 +163,7 @@ export default function AudioRoutingManagerTest() {
             inputDeviceExist = true;
           }
           if (deviceRole == audio.DeviceRole.OUTPUT_DEVICE){
-            outputDeviceExist == true;
+            outputDeviceExist = true;
           }
         }
         if (outputDeviceExist == false || inputDeviceExist == false){
