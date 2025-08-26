@@ -21,7 +21,7 @@ import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
 import image from "@ohos.multimedia.image"
 import business_error from '@ohos.base'
-
+const EVENT_ID_SET_EIMIT_KEY = 142500;
 
 class testObj {
   constructor() {
@@ -79,10 +79,11 @@ struct Index {
   @State checkEleResult3: string = "";
   @State cookieResult: string = "";
   @State testObjtest: testObj = new testObj();
+  @State isPageEnd:number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EIMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
@@ -112,21 +113,23 @@ struct Index {
         Button("web click").key('webcomponent').onClick(async () => {
           console.info("key==>" + this.str)
           switch (this.str) {
-            case "emitpageDown": {
+            case "testPageDown": {
               try {
+                this.isPageEnd = -1;
                 this.controller.loadUrl($rawfile('indexCopyTwo.html'))
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("Tablet")) {
                   this.controller.loadUrl($rawfile('indexCopyTwoTablet.html'))
-                  await Utils.sleep(3000)
+                  // await Utils.sleep(3000)
                 }
-                await Utils.sleep(18000)
+                await Utils.waitForExist(() => this.isPageEnd, this.str, 1, 1000)
+                this.isPageEnd = -1;
                 this.controller.runJavaScript("checkVisible()", (error, result) => {
                   this.checkEleResult = JSON.parse(result)
                   console.log(`The checkVisible() return value is: ${result}`);
                 })
                 this.controller.pageDown(false);
-                await Utils.sleep(3000)
+                await Utils.waitForExist(() => this.isPageEnd, this.str, 1, 1000)
                 this.controller.runJavaScript("checkVisible()", (error, result) => {
                   this.checkEleResultAgain = JSON.parse(result)
                   console.log(`The checkVisible() again return value is: ${result}`);
@@ -146,18 +149,19 @@ struct Index {
               this.controller.runJavaScript("test()", (res) => {
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("tablet")) {
-                  Utils.emitEvent(true, 106)
+                  Utils.emitEvent(true, 142510)
                 } else {
-                  Utils.emitEvent(this.pageResult, 106)
+                  Utils.emitEvent(this.pageResult, 142510)
                 }
               })
               break;
             }
-            case "emitSetNetworkAvailable": {
+            case "testSetNetworkAvailable": {
               try {
+                this.isPageEnd = -1;
                 this.controller.loadUrl($rawfile('indexCopy.html'))
                 this.controller.setNetworkAvailable(false);
-                await Utils.sleep(18000)
+                await Utils.waitForExist(() => this.isPageEnd, this.str, 1, 1000)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -171,15 +175,16 @@ struct Index {
                   let pageResult2 = result;
                   console.log("the status of navigator.onLine: " + this.pageResult2 + result);
                 }
-                Utils.emitEvent(this.pageResult2, 122)
+                Utils.emitEvent(this.pageResult2, 142520)
               })
               break;
             }
-            case "emitSetNetworkAvailableAgain": {
+            case "testSetNetworkAvailableAgain": {
               try {
+                this.isPageEnd = -1;
                 this.controller.loadUrl($rawfile('indexCopy.html'))
                 this.controller.setNetworkAvailable(true);
-                await Utils.sleep(18000)
+                await Utils.waitForExist(() => this.isPageEnd, this.str, 1, 1000)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -189,11 +194,12 @@ struct Index {
                   return;
                 }
                 if (result) {
+                  this.pageResult = true;
                   console.log("result:" + result + JSON.stringify(result))
                   let pageResult = result;
                   console.log("the status of navigator.onLine: " + this.pageResult + result);
                 }
-                Utils.emitEvent(this.pageResult, 124)
+                Utils.emitEvent(this.pageResult, 142530)
               })
               break;
             }
@@ -210,6 +216,9 @@ struct Index {
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
         .overScrollMode(OverScrollMode.NEVER)
+        .onPageEnd(() => {
+          this.isPageEnd = 1;
+        })
 
       Web({ src: $rawfile('indexTwo.html'), controller: this.controllerTwo })
         .id('2')

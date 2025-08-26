@@ -19,13 +19,14 @@ import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
+const EVENT_ID_SET_EIMIT_KEY = 142501;
 
 @Entry
 @Component
 struct webViewOnSslError {
   controller: web_webview.WebviewController = new web_webview.WebviewController();
   @State str: string = "emitOnsslerroreventreceive";
-  @State firstId: number = 320;
+  @State firstId: number = 142511;
   @State javaScriptAccess: boolean = true;
   @State fileAccess: boolean = true;
   @State domStorageAccess: boolean = false;
@@ -35,10 +36,11 @@ struct webViewOnSslError {
   @State sslerrorText: string = "no call error"
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
+  @State isPageEnd:number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EIMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
@@ -62,8 +64,9 @@ struct webViewOnSslError {
           switch (this.str) {
             case "emitOnsslerroreventreceive": {
               try {
+                this.isPageEnd = -1;
                 this.controller.clearSslCache();
-                await Utils.sleep(2000)
+                await Utils.waitForExist(() => this.isPageEnd, this.str, 1, 1000);
                 this.controller.loadUrl("https://wrong.host.badssl.com");
                 console.log("action of emitOnsslerroreventreceive is loadUrl");
               } catch (error) {
@@ -93,6 +96,9 @@ struct webViewOnSslError {
           console.log('getErrorInfo:' + event.error.getErrorInfo())
           console.log('getErrorCode:' + event.error.getErrorCode())
           console.log('url:' + event.request.getRequestUrl())
+        })
+        .onPageEnd(() => {
+          this.isPageEnd = 1;
         })
     }
   }

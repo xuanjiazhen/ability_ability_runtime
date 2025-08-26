@@ -17,9 +17,14 @@ import { describe, beforeEach, afterEach, it, expect , TestType, Size, Level } f
 import events_emitter from '@ohos.events.emitter';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
+
 let emitKey = "emitpageDown";
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
+const EVENT_ID_SET_EIMIT_KEY = 142500;
+const driver = Driver.create();
+
 export default function webViewControllerJsunit() {
   describe('ActsAceWebDevWebViewControllerTest',  () => {
     beforeEach(async  (done: Function) =>{
@@ -28,39 +33,23 @@ export default function webViewControllerJsunit() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(6000);
+      await driver.waitForComponent(ON.id("ActsAceWebDevWebViewControllerTest"),10000)
       console.info("web beforeEach start");
       done();
     })
-    afterEach(async  (done: Function) =>{
-      console.info("web afterEach start:"+emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent: events_emitter.InnerEvent = {
-          eventId:10,
-          priority:events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
-      done();
-    })
+
     /*
      *tc.number SUB_ACE_BASIC_ETS_API_0400
      *tc.name testPageDown
      *tc.desc Go pageDown
      */
     it('testPageDown',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,async (done: Function) =>{
-      emitKey="emitSetNetworkAvailable";
-      Utils.registerEvent("testPageDown",true,106,done);
-      sendEventByKey('webcomponent',10,'');
+      Utils.emitEvent("testPageDown", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("testPageDown",true,142510,() =>{isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "webcomponent");
+      await Utils.waitForExist(()=>isReturn, "testPageDown_checkReturn", 1, 1000);
+      done();
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWCONTROLLERJSUNIT_API_1101
@@ -68,9 +57,12 @@ export default function webViewControllerJsunit() {
      *tc.desc test for setNetworkAvailable
      */
     it('testSetNetworkAvailable',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,async (done: Function) =>{
-      emitKey="emitSetNetworkAvailableAgain";
-      Utils.registerEvent("testSetNetworkAvailable",false,122,done);
-      sendEventByKey('webcomponent',10,'');
+      Utils.emitEvent("testSetNetworkAvailable", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("testSetNetworkAvailable",false,142520,() =>{isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "webcomponent");
+      await Utils.waitForExist(()=>isReturn, "testSetNetworkAvailable_checkReturn", 1, 1000);
+      done();
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_API_1200
@@ -78,9 +70,12 @@ export default function webViewControllerJsunit() {
      *tc.desc test for setNetworkAvailable again
      */
     it('testSetNetworkAvailableAgain',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,async (done: Function) =>{
-      emitKey="emitSetNetworkAvailableAgain";
-      Utils.registerEvent("testSetNetworkAvailableAgain",true,124,done);
-      sendEventByKey('webcomponent',10,'');
+      Utils.emitEvent("testSetNetworkAvailableAgain", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("emitSetNetworkAvailableAgain",true,142530,() =>{isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "webcomponent");
+      await Utils.waitForExist(()=>isReturn, "testSetNetworkAvailableAgain_checkReturn", 1, 1000);
+      done();
     })
   })
 }
