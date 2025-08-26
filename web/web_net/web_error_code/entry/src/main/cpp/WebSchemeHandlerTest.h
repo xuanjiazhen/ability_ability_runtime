@@ -49,6 +49,4 @@ napi_value RegisterCustomSchemes(napi_env env, napi_callback_info info);
 napi_value RequestStop(napi_env env, napi_callback_info info);
 napi_value SetAsyncReadCallback(napi_env env, napi_callback_info info);
 
-
-
 #endif //WEB_ERROR_CODE_WEBSCHEMEHANDLERTEST_H

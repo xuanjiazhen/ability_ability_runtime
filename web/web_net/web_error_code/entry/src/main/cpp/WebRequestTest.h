@@ -31,12 +31,10 @@ public:
                    const NativeResourceManager* resourceManager);
     ~WebRequestTest();
 
-
     void Start();
     void Stop();
     void ReadRawfileThread();
     void ReadDataOnWorkerThread();
-
 
     const ArkWeb_ResourceHandler *resourceHandler() { return resourceHandler_; }
     const ArkWeb_ResourceRequest *resourceRequest() { return resourceRequest_; }
@@ -58,7 +56,6 @@ public:
     void DidFinish();
     void DidFailWithError(ArkWeb_NetError errorCode);
     void DidFailWithErrorV2(ArkWeb_NetError errorCode, bool completeIfNoResponse);
-
 
 private:
     const ArkWeb_ResourceRequest *resourceRequest_{nullptr};

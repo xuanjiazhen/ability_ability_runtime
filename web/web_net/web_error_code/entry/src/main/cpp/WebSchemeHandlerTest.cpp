@@ -33,7 +33,7 @@ int32_t g_testSetAsyncReadCallback = -1;
 const int BUFF_LEN = 5;
 
 namespace  {
-  static int g_registerCustomSchemes = -1;
+    static int g_registerCustomSchemes = -1;
 };
 
 ArkWeb_CustomSchemeOption GetSchemeOptionByName(const std::string name)
@@ -60,10 +60,11 @@ const std::map<std::string, ArkWebHandlerFunc> FunctionMap = {
     {"OH_ArkWebHttpBodyStream_SetReadCallback_ARKWEB_NET_OK", ArkWebHttpBodyStreamSetReadCallbackOK},
     {"OH_ArkWebHttpBodyStream_SetReadCallback_ARKWEB_INVALID_PARAM", ArkWebHttpBodyStreamSetReadCallbackInvalidParam},
     {"OH_ArkWebHttpBodyStream_SetAsyncReadCallback_ARKWEB_NET_OK", ArkWebHttpBodyStreamSetReadCallbackOK},
-    {"OH_ArkWebHttpBodyStream_SetAsyncReadCallback_ARKWEB_INVALID_PARAM", ArkWebHttpBodyStreamSetAsyncReadCallbackInvalidParam},
+    {"OH_ArkWebHttpBodyStream_SetAsyncReadCallback_ARKWEB_INVALID_PARAM",
+        ArkWebHttpBodyStreamSetAsyncReadCallbackInvalidParam},
     {"OH_ArkWebHttpBodyStream_Init_ARKWEB_NET_OK", ArkWebHttpBodyStreamSetReadCallbackOK},
     {"OH_ArkWebHttpBodyStream_Init_ARKWEB_INVALID_PARAM", ArkWebHttpBodyStreamInitInvalidParam},
-    {"OH_ArkWeb_RegisterCustomSchemes_ARKWEB_NET_OK",ArkWebRegisterCustomSchemesOK},
+    {"OH_ArkWeb_RegisterCustomSchemes_ARKWEB_NET_OK", ArkWebRegisterCustomSchemesOK},
     {"OH_ArkWebHttpBodyStream_AsyncRead_API", ArkWebHttpBodyStreamAsyncRead},
     {"OH_ArkWebResourceRequest_Destroy_ARKWEB_NET_OK", ArkWebHttpBodyStreamSetReadCallbackOK},
     {"OH_ArkWebResourceRequest_Destroy_ARKWEB_INVALID_PARAM", ArkWebResourceRequestDestroyInvalidParam},
@@ -179,7 +180,7 @@ napi_value WebRegisterCustomSchemes(napi_env env, napi_callback_info info)
     ArkWeb_CustomSchemeOption optionEnum = GetSchemeOptionByName(param.get());
     int ret = OH_ArkWeb_RegisterCustomSchemes("custom1", optionEnum);
     if (ret == ARKWEB_SCHEME_REGISTER_FAILED) {
-         ret = 0;
+        ret = 0;
     }
     napi_value result;
     napi_create_int32(env, ret, &result);
@@ -222,7 +223,7 @@ napi_value WebSchemeHandlerProcess(napi_env env, napi_callback_info info)
     key.append("_");
     key.append(parmaters.second.get());
     auto it = FunctionMap.find(key);
-    if(it != FunctionMap.end()) {
+    if (it != FunctionMap.end()) {
         return it->second(env, info);
     } else {
         OH_LOG_ERROR(LOG_APP, "ArkWebTest WebSchemeHandlerProcess find %{public}s failed....", key.c_str());
@@ -339,7 +340,7 @@ napi_value ArkWebHttpBodyStreamAsyncRead(napi_env env, napi_callback_info info)
     OH_ArkWebHttpBodyStream_AsyncRead(httpBodyStream1, buffer, bufLen);
     
     bool isEof = OH_ArkWebHttpBodyStream_IsEof(httpBodyStream1);
-    if (0 == isEof) {
+    if (isEof == false) {
         OH_LOG_INFO(LOG_APP, "ArkWebTest  OH_ArkWebHttpBodyStream_IsEof:%{public}d", isEof);
         ret = 0;
     }

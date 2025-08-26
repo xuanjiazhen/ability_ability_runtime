@@ -138,11 +138,11 @@ const int BLOCK_SIZE = 1024 * 8;
 WebRequestTest::WebRequestTest(const ArkWeb_ResourceRequest *resourceRequest,
                                const ArkWeb_ResourceHandler *resourceHandler,
                                const NativeResourceManager* resourceManager)
-        : resourceRequest_(resourceRequest),
-          resourceHandler_(resourceHandler),
-          resourceManager_(resourceManager) {}
+                               : resourceRequest_(resourceRequest),resourceHandler_(resourceHandler),
+                               resourceManager_(resourceManager) {}
 
-WebRequestTest::~WebRequestTest() {
+WebRequestTest::~WebRequestTest()
+{
     if (stream_) {
         OH_ArkWebResourceRequest_DestroyHttpBodyStream(stream_);
     }
@@ -321,11 +321,11 @@ void WebRequestTest::Stop()
     }
     int ret = OH_ArkWebResourceRequest_Destroy(resourceRequest_);
     if (ret == ARKWEB_NET_OK) {
-        OH_LOG_DEBUG(LOG_APP, "DidReceiveData");
+        OH_LOG_DEBUG(LOG_APP, "OH_ArkWebResourceRequest_Destroy");
     }
     ret = OH_ArkWebResourceHandler_Destroy(resourceHandler_);
     if (ret == ARKWEB_NET_OK) {
-       OH_LOG_DEBUG(LOG_APP, "DidReceiveData");
+        OH_LOG_DEBUG(LOG_APP, "OH_ArkWebResourceHandler_Destroy");
     }
 }
 

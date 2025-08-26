@@ -29,8 +29,8 @@ struct Index {
   @State emitKey: string = '';
   controller: web_webview.WebviewController = new web_webview.WebviewController(this.webTag);
 
-  URL1: string = "https://"
-  URL2: string = "www.example.com"
+  URL1: string = 'https://'
+  URL2: string = 'www.example.com'
   URL_EXAMPLE_HTTPS: string = this.URL1 + this.URL2
 
   aboutToAppear() {

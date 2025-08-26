@@ -90,7 +90,7 @@ static napi_value WebErrorUnknow(napi_env env, napi_callback_info info)
     napi_value result;
     if (ArkWeb_ErrorCode::ARKWEB_ERROR_UNKNOWN ==
         OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback)) {
-        OH_LOG_DEBUG(LOG_APP, "OH_ArkWebHttpBodyStream_SetAsyncReadCallback error unknown");            
+        OH_LOG_DEBUG(LOG_APP, "OH_ArkWebHttpBodyStream_SetAsyncReadCallback error unknown");
     }
 
     napi_create_int32(env, ret, &result);
@@ -827,9 +827,9 @@ static void AddExFunction(std::vector<napi_property_descriptor> &descVector)
         DECLARE_NAPI_FUNCTION("OH_ArkWebResourceHandler_DidFailWithErrorV20100",
                               OH_ArkWebResourceHandler_DidFailWithErrorV20100),
     };
-    
+
     for (const auto& desc : descEx) {
-        descVector.push_back(desc);    
+        descVector.push_back(desc);
     }
 }
 
