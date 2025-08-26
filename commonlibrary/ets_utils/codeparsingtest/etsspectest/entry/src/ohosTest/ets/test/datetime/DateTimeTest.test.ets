@@ -543,7 +543,7 @@ export default function dateTimeTest() {
     /**
      * @tc.number SUB_BUILDINS_DATE_TEST_0033
      * @tc.name DateTest0033
-     * @tc.verify that getUTCHours() differs from getHours() in non-UTC timezone
+     * @tc.desc verify that getUTCHours() differs from getHours() in non-UTC timezone
      * @tc.size SmallTest
      * @tc.type FUNCTION
      * @tc.level Level 2

@@ -1285,7 +1285,6 @@ line2`;
         Done();
       });
 
-
     /**
      * @tc.number SUB_BUILDINS_STRING_TEST_0088
      * @tc.name StringTest0088
@@ -2054,7 +2053,7 @@ line2`;
     /**
      * @tc.number SUB_BUILDINS_STRING_TEST_0140
      * @tc.name StringTest0140
-     * @tc.verify that padStart with negative target length returns original string
+     * @tc.desc verify that padStart with negative target length returns original string
      * @tc.size SmallTest
      * @tc.type FUNCTION
      * @tc.level Level 2

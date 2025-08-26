@@ -1411,7 +1411,7 @@ export default function numberTest() {
     /**
      @tc.number SUB_BUILDINS_NUMBER_TEST_0096
      @tc.name NumberTest0096
-     @tc.desc Verify toFixed with zero decimal places
+     @tc.desc 123 Verify toFixed with zero Test
      @tc.size SmallTest
      @tc.type Function
      @tc.level Level 1
@@ -4918,7 +4918,7 @@ export default function numberTest() {
     /**
      * @tc.number SUB_BUILDINS_NUMBER_TEST_0348
      * @tc.name NumberTest0348
-     * @tc.desc Verify toFixed with very large decimal places
+     * @tc.desc 123.45 Verify toFixed with 20
      * @tc.size SmallTest
      * @tc.type Function
      * @tc.level Level 1
