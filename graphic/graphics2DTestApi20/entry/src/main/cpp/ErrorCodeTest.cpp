@@ -371,7 +371,7 @@ napi_value OH_Drawing_LineTypographyGetLineBreakInvalue(napi_env env, napi_callb
     OH_Drawing_SetTypographyTextMaxLines(typoStyle, lineNumber);
     OH_Drawing_FontCollection* fc = OH_Drawing_CreateSharedFontCollection();
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
-    OH_Drawing_TypographyHandlerAddText(handler,"HelloWorld");
+    OH_Drawing_TypographyHandlerAddText(handler, "HelloWorld");
     OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(handler);
     size_t size = OH_Drawing_LineTypographyGetLineBreak(lineTypography, 1, 10);
     double width = 0;
@@ -389,7 +389,7 @@ napi_value OH_Drawing_LineTypographyCreateLineInvalue(napi_env env, napi_callbac
     OH_Drawing_SetTypographyTextMaxLines(typoStyle, lineNumber);
     OH_Drawing_FontCollection* fc = OH_Drawing_CreateSharedFontCollection();
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
-    OH_Drawing_TypographyHandlerAddText(handler,"HelloWorld");
+    OH_Drawing_TypographyHandlerAddText(handler, "HelloWorld");
     OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(handler);
     OH_Drawing_TextLine* pLine = OH_Drawing_LineTypographyCreateLine(lineTypography, 0, 0);
 

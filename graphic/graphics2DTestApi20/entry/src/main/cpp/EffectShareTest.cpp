@@ -29,8 +29,8 @@ void addEffectShareTest(std::vector<napi_property_descriptor>& descData)
         OH_Drawing_ShaderEffectCreatePixelMapShaderSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"shaderEffectCreatePixelMapShaderInvalue", nullptr,
         OH_Drawing_ShaderEffectCreatePixelMapShaderInvalue, nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"imageFilterCreateBlurWithCropSuccess", nullptr, OH_Drawing_ImageFilterCreateBlurWithCropSuccess,
-            nullptr, nullptr, nullptr, napi_default, nullptr});    
+    descData.push_back({"imageFilterCreateBlurWithCropSuccess", nullptr,
+        OH_Drawing_ImageFilterCreateBlurWithCropSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
 napi_value OH_Drawing_ShaderEffectCreatePixelMapShaderSuccess(napi_env env, napi_callback_info info)
@@ -82,7 +82,7 @@ napi_value OH_Drawing_ShaderEffectCreatePixelMapShaderInvalue(napi_env env, napi
     OH_Drawing_ImageFilter* input;
     OH_Drawing_Rect* rect;
     OH_Drawing_TileMode mode;
-    OH_Drawing_ImageFilter* iFile = OH_Drawing_ImageFilterCreateBlurWithCrop(sigmaX,sigmaY,MIRROR,input,rect);
+    OH_Drawing_ImageFilter* iFile = OH_Drawing_ImageFilterCreateBlurWithCrop(sigmaX, sigmaY, MIRROR, input, rect);
     napi_create_int32(env, iFile != nullptr, &result);
     return result;
 }

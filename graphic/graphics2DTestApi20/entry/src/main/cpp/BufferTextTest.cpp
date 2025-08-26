@@ -57,13 +57,13 @@ void addBufferTextTest1(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"nativeBufferPlaneCount", nullptr, OH_NativeBuffer_PlaneCount,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"nativeBuffer_PlaneOffset", nullptr, OH_NativeBuffer_PlaneOffset,
-            nullptr, nullptr, nullptr, napi_default, nullptr});    
+            nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"nativeBuffer_PlaneColumnStride", nullptr, OH_NativeBuffer_PlaneColumnStride,
-            nullptr, nullptr, nullptr, napi_default, nullptr}); 
+            nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"nativeBuffer_PlaneRowStride", nullptr, OH_NativeBuffer_PlaneRowStride,
-            nullptr, nullptr, nullptr, napi_default, nullptr}); 
+            nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"nativeBuffer_PlanesSuccess2", nullptr, OH_NativeBuffer_PlanesSuccess2,
-            nullptr, nullptr, nullptr, napi_default, nullptr}); 
+            nullptr, nullptr, nullptr, napi_default, nullptr});
 
 }
 void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
@@ -524,7 +524,7 @@ napi_value BufferHandleReserve(napi_env env, napi_callback_info info)
 OH_NativeBuffer_Planes newPlanes()
 {
     OH_NativeBuffer_Planes p;
-    p.planeCount = 4;
+    p.planeCount = 4; // four plan
     for (int i = 0; i < p.planeCount; i++) {
         p.planes[i].columnStride = 0;
         p.planes[i].offset = 0;
