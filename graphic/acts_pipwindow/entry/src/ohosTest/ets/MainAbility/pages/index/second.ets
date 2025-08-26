@@ -244,7 +244,7 @@ struct Second {
           .id('CreatePipWindow3')
           .backgroundColor('#0D9FFB')
           .height('100%')
-          .height('20%')
+          .width('20%')
           .onClick(()=>{
             let promise : Promise<pipWindow.PiPController> = pipWindow.create(config3);
             promise.then(async (data : pipWindow.PiPController) => {
@@ -267,7 +267,7 @@ struct Second {
           .id('GetPiPWindowInfo3')
           .backgroundColor('#0D9FFB')
           .height('100%')
-          .height('20%')
+          .width('20%')
           .onClick(()=>{
             pipController3!.getPiPWindowInfo().then(async (data : pipWindow.PiPWindowInfo) => {
               this.isSupported = 0
@@ -287,7 +287,7 @@ struct Second {
           .id('StopPiPWindow3')
           .backgroundColor('#0D9FFB')
           .height('100%')
-          .height('20%')
+          .width('20%')
           .onClick(()=>{
             pipController3!.stopPiP().then(async () => {
               this.isSupported = 0
