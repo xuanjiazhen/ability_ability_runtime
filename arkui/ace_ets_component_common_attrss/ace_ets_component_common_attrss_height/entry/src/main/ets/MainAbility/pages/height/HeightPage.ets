@@ -46,6 +46,9 @@ struct heightPage {
   commonStyle(){
     .height(this._height)
     .key(this.componentKey)
+    .borderWidth(0)
+    .padding(0)
+    .margin(0)
   }
 
   build() {
@@ -61,6 +64,7 @@ struct heightPage {
         Row() {
           Blank().color(this.BackGroundColor).commonStyle()
         }.width(this.parentWidth).height(this.parentHeight).key(this.parentComponentKey)
+        .borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'BlankColumn') {
         Blank().color(this.BackGroundColor).commonStyle().width(100)
       } else if (this.targetView == 'Checkbox') {
@@ -233,6 +237,7 @@ struct heightPage {
           ListItem() {
           }.commonStyle()
         }.width(this.parentWidth).height(this.parentHeight).key(this.parentComponentKey)
+        .borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'Panel') {
         Panel(true) {
           Column() {
@@ -305,20 +310,24 @@ struct heightPage {
             Text('Page One')
           }.commonStyle()
         }.key(this.parentComponentKey).width(this.parentWidth).height(this.parentHeight)
+        .borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'FlowItem') {
         WaterFlow() {
           FlowItem().commonStyle()
         }.key(this.parentComponentKey).width(this.parentWidth).height(this.parentHeight)
+        .borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'GridCol') {
         GridRow() {
           GridCol({ span: { xs: 1, sm: 2, md: 3, lg: 4 } }) {
             Row().width('100%').height('20vp')
           }.commonStyle()
         }.key(this.parentComponentKey).width(this.parentWidth).height(this.parentHeight)
+        .borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'GridItem') {
         Grid() {
           GridItem().commonStyle()
         }.key(this.parentComponentKey).width(this.parentWidth).height(this.parentHeight)
+        .borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'RelativeContainer') {
         RelativeContainer() {
           Row()
@@ -340,27 +349,26 @@ struct heightPage {
         Row() {
           Menu() {
             MenuItem({ startIcon: $r('app.media.icon'), content: 'MenuItem' })
-              .height(this._height)
-              .key(this.componentKey)
+              .commonStyle()
           }
           .backgroundColor(this.BackGroundColor)
           .width(this.parentWidth)
           .height(this.parentHeight)
           .key(this.parentComponentKey)
-          .padding(0)
+          .borderWidth(0).padding(0).margin(0)
         }
       } else if (this.targetView == 'MenuItemGroup') {
         Row() {
           Menu() {
             MenuItemGroup({ header: 'MenuItemGroup' }) {
               MenuItem({ startIcon: $r('app.media.icon'), content: 'MenuItem' })
-            }.key(this.componentKey).height(this._height)
+            }.commonStyle()
           }
           .backgroundColor(Color.Yellow)
           .height(this.parentHeight)
           .width(this.parentWidth)
           .key(this.parentComponentKey)
-          .padding(0)
+          .borderWidth(0).padding(0).margin(0)
         }
       }
     }
