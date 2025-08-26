@@ -541,5 +541,89 @@ export default function BufferTextTest() {
           console.error("====>SUB_OH_NativeBuffer_PlanesSuccess_0100 catch err: " + err);
         }
       })
+
+    /**
+     * @tc.number  : SUB_OH_NativeBuffer_PlaneCount_0100
+     * @tc.name    : SUB_OH_NativeBuffer_PlaneCount_0100
+     * @tc.desc    : test SUB_OH_NativeBuffer_PlaneCount success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeBuffer_PlaneCount_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_NativeBuffer_PlaneCount_0100 start====");
+          let result: number = libGraphics2DApi20.nativeBufferPlaneCount();
+          console.info("====>SUB_OH_NativeBuffer_PlaneCount_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_NativeBuffer_PlaneCount_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_NativeBuffer_PlaneOffset_0100
+     * @tc.name    : SUB_OH_NativeBuffer_PlaneOffset_0100
+     * @tc.desc    : test SUB_OH_NativeBuffer_PlaneOffset success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeBuffer_PlaneOffset_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_NativeBuffer_PlaneOffset_0100 start====");
+          let result: number = libGraphics2DApi20.nativeBuffer_PlaneOffset();
+          console.info("====>SUB_OH_NativeBuffer_PlaneOffset_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_NativeBuffer_PlaneOffset_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_NativeBuffer_PlaneColumnStride_0100
+     * @tc.name    : SUB_OH_NativeBuffer_PlaneColumnStride_0100
+     * @tc.desc    : test SUB_OH_NativeBuffer_PlaneColumnStride success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeBuffer_PlaneColumnStride_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_NativeBuffer_PlaneColumnStride_0100 start====");
+          let result: number = libGraphics2DApi20.nativeBuffer_PlaneColumnStride();
+          console.info("====>SUB_OH_NativeBuffer_PlaneColumnStride_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_NativeBuffer_PlaneColumnStride_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_NativeBuffer_PlaneRowStride_0100
+     * @tc.name    : SUB_OH_NativeBuffer_PlaneRowStride_0100
+     * @tc.desc    : test SUB_OH_NativeBuffer_PlaneRowStride success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeBuffer_PlaneRowStride_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_NativeBuffer_PlaneRowStride_0100 start====");
+          let result: number = libGraphics2DApi20.nativeBuffer_PlaneRowStride();
+          console.info("====>SUB_OH_NativeBuffer_PlaneRowStride_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_NativeBuffer_PlaneRowStride_0100 catch err: " + err);
+        }
+      })
   })
 }

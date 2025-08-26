@@ -187,6 +187,48 @@ export default function ErrorCodeTest() {
       })
 
     /**
+     * @tc.number  : SUB_OH_NativeImage_ErrCodeBUFFER_STATE_INVALID
+     * @tc.name    : SUB_OH_NativeImage_ErrCodeBUFFER_STATE_INVALID
+     * @tc.desc    : test SUB_OH_NativeImage_ErrCodeBUFFER_STATE_INVALID Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeImage_ErrCodeBUFFER_STATE_INVALID', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_NativeImage_ErrCodeBUFFER_STATE_INVALID start====");
+          let result: number = libGraphics2DApi20.OHNativeImageErrCodeBUFFER_STATE_INVALID();
+          console.info("====>SUB_OH_NativeImage_ErrCodeBUFFER_STATE_INVALID result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_NativeImage_ErrCodeBUFFER_STATE_INVALID catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE
+     * @tc.name    : SUB_OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE
+     * @tc.desc    : test SUB_OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE start====");
+          let result: number = libGraphics2DApi20.OHNativeImage_ErrCodeBUFFER_NOT_IN_CACHE();
+          console.info("====>SUB_OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE catch err: " + err);
+        }
+      })
+
+    /**
      * @tc.number  : SUB_OH_OHNativeErrorCodeVSync_0100
      * @tc.name    : SUB_OH_OHNativeErrorCodeVSync_0100
      * @tc.desc    : test SUB_OH_OHNativeErrorCodeVSync ok Scene
@@ -335,6 +377,28 @@ export default function ErrorCodeTest() {
       })
 
     /**
+     * @tc.number  : SUB_OH_Drawing_LineTypographyCreateLineInvalue_0100
+     * @tc.name    : SUB_OH_Drawing_LineTypographyCreateLineInvalue_0100
+     * @tc.desc    : test SUB_OH_Drawing_LineTypographyCreateLineInvalue invalue Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_Drawing_LineTypographyCreateLineInvalue_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_Drawing_LineTypographyCreateLineInvalue_0100 start====");
+          let result: number = libGraphics2DApi20.OHDrawingLineTypographyCreateLineInvalue();
+          console.info("====>SUB_OH_Drawing_LineTypographyCreateLineInvalue_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_Drawing_LineTypographyCreateLineInvalue_0100 catch err: " + err);
+          done();
+        }
+      })
+
+    /**
      * @tc.number  : SUB_OH_EffectTileModeREPEATSuccess_0100
      * @tc.name    : SUB_OH_EffectTileModeREPEATSuccess_0100
      * @tc.desc    : test SUB_OH_EffectTileModeREPEAT Success Scene
@@ -396,7 +460,6 @@ export default function ErrorCodeTest() {
           console.error("====>SUB_OH_EffectTileModeDECAL_0100 catch err: " + err);
         }
       })
-
 
     /**
      * @tc.number  : SUB_OH_Drawing_SamplingOptionsCopy_0100

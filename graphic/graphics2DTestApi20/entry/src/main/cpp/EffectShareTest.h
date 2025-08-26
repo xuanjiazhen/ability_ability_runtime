@@ -24,5 +24,5 @@ void addEffectShareTest(std::vector<napi_property_descriptor> &descData);
 
 napi_value OH_Drawing_ShaderEffectCreatePixelMapShaderSuccess(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_ShaderEffectCreatePixelMapShaderInvalue(napi_env env, napi_callback_info info);
-
+napi_value OH_Drawing_ImageFilterCreateBlurWithCropSuccess(napi_env env, napi_callback_info info);
 #endif //EFFECT_SHARE_TEST_H

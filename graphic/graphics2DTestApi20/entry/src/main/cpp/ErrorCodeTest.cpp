@@ -19,8 +19,6 @@
 #include <native_image/native_image.h>
 #include <native_vsync/graphic_error_code.h>
 #include <native_vsync/native_vsync.h>
-#include <native_drawing/drawing_error_code.h>
-#include <native_drawing/drawing_record_cmd.h>
 #include <native_buffer/native_buffer.h>
 #include <native_drawing/drawing_text_lineTypography.h>
 #include <native_drawing/drawing_text_typography.h>
@@ -64,6 +62,10 @@ void addErrorCodeTest(std::vector<napi_property_descriptor>& descData)
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHNativeErrorCodeImageNoBuffer", nullptr, OH_OHNativeErrorCodeImageNoBuffer,
         nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHNativeImageErrCodeBUFFER_STATE_INVALID", nullptr, OH_NativeImage_ErrCodeBUFFER_STATE_INVALID,
+        nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHNativeImage_ErrCodeBUFFER_NOT_IN_CACHE", nullptr, OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE,
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHNativeErrorCodeVSyncOk", nullptr, OH_OHNativeErrorCodeVSyncOk,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHNativeErrorCodeVSyncInvalid", nullptr, OH_OHNativeErrorCodeVSyncInvalid,
@@ -78,6 +80,8 @@ void addErrorCodeTest(std::vector<napi_property_descriptor>& descData)
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHDrawingLineTypographyGetLineBreakInvalue", nullptr,
         OH_Drawing_LineTypographyGetLineBreakInvalue, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHDrawingLineTypographyCreateLineInvalue", nullptr,
+        OH_Drawing_LineTypographyCreateLineInvalue, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"EffectTileModeREPEATSuccess", nullptr, EffectTileModeREPEATSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"EffectTileModeMIRRORSuccess", nullptr, EffectTileModeMIRRORSuccess,
@@ -90,7 +94,7 @@ void addErrorCodeTest(std::vector<napi_property_descriptor>& descData)
         nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
- napi_value OH_OHNativeErrorCodeOK(napi_env env, napi_callback_info info)
+napi_value OH_OHNativeErrorCodeOK(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_NativeImage* image = OH_NativeImage_Create(0, 0);
@@ -100,7 +104,7 @@ void addErrorCodeTest(std::vector<napi_property_descriptor>& descData)
     return result;
 }
 
- napi_value OH_OHNativeErrorCodeInvalid(napi_env env, napi_callback_info info)
+napi_value OH_OHNativeErrorCodeInvalid(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_NativeImage* image = nullptr;
@@ -175,7 +179,7 @@ napi_value OH_OHNativeErrorCodeImageSupport(napi_env env, napi_callback_info inf
     napi_value result;
     OH_NativeImage* pimg = OH_ConsumerSurface_Create();
     int32_t res =  OH_ConsumerSurface_SetDefaultUsage(pimg, 800000000000);
-    
+
     napi_create_int32(env, res == NATIVE_ERROR_OK, &result);
     return result;
 }
@@ -187,7 +191,89 @@ napi_value OH_OHNativeErrorCodeImageNoBuffer(napi_env env, napi_callback_info in
     OHNativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = 0;
     int32_t  errorCode = OH_NativeImage_AcquireNativeWindowBuffer(image, &nativeWindowBuffer, &fenceFd);
-    napi_create_int32(env,  errorCode == NATIVE_ERROR_NO_BUFFER, &result);
+    napi_create_int32(env, errorCode == NATIVE_ERROR_NO_BUFFER, &result);
+    return result;
+}
+
+napi_value OH_NativeImage_ErrCodeBUFFER_STATE_INVALID(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    GLuint textureId = 0;
+    OH_NativeImage *nativeImage = OH_NativeImage_Create(textureId, GL_TEXTURE_BINDING_2D);
+    OH_NativeImage_AttachContext(nativeImage, textureId);
+    OH_OnFrameAvailableListener listener;
+    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage, listener);
+    OHNativeWindow *nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
+    
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t height = 0x100;
+    int32_t width = 0x100;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, height, width);
+    code = SET_FORMAT;
+    int32_t format = NATIVEBUFFER_PIXEL_FMT_BGRA_8888;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
+
+    OHNativeWindowBuffer *windowBuffer = nullptr;
+    int fd;
+    int pCount = 4;
+    float matrix[16] = {
+        0, -0.5, 0, 0,
+        -0.5, 0, 0, 0,
+        0, 0, 1, 0,
+        1, 1, 0, 1
+    };
+    OH_NativeBuffer* nativebuffer = nullptr;
+    int fenceFd = 0;
+    int32_t err0 = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &windowBuffer, &fd);
+    int32_t errCode = OH_NativeImage_ReleaseNativeWindowBuffer(nativeImage, windowBuffer, fenceFd);
+    napi_create_int32(env, errCode == NATIVE_ERROR_BUFFER_STATE_INVALID, &result);
+    return result;
+}
+
+napi_value OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    OH_NativeImage* newImage = OH_NativeImage_Create(0, 0);
+    OHNativeWindow* newNativeWindow = OH_NativeImage_AcquireNativeWindow(newImage);
+
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t width = 0x100;
+    int32_t height = 0x100;
+    int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(newNativeWindow, code, width, height);
+
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->x = 0x100;
+    rect->y = 0x100;
+    rect->w = 0x100;
+    rect->h = 0x100;
+    region->rects = rect;
+
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    int fenceFd = -1;
+
+    ret = OH_NativeImage_AcquireNativeWindowBuffer(newImage, &nativeWindowBuffer, &fenceFd);
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(newNativeWindow, &nativeWindowBuffer, &fenceFd);
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(newNativeWindow, nativeWindowBuffer, fenceFd, *region);
+    ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage, nativeWindowBuffer, fenceFd);
+    OH_NativeImage* newImage1 = OH_NativeImage_Create(0, 0);
+
+    OHNativeWindow* newNativeWindow1 = OH_NativeImage_AcquireNativeWindow(newImage1);
+    code = SET_BUFFER_GEOMETRY;
+    width = 0x100;
+    height = 0x100;
+    ret = OH_NativeWindow_NativeWindowHandleOpt(newNativeWindow1, code, width, height);
+    NativeWindowBuffer* nativeWindowBuffer1 = nullptr;
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(newNativeWindow1, &nativeWindowBuffer1, &fenceFd);
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(newNativeWindow1, nativeWindowBuffer1, fenceFd, *region);
+    ret = OH_NativeImage_AcquireNativeWindowBuffer(newImage1, &nativeWindowBuffer1, &fenceFd);
+    ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage, nativeWindowBuffer1, fenceFd);
+
+    delete rect;
+    delete region;
+    OH_NativeImage_Destroy(&newImage);
+    OH_NativeImage_Destroy(&newImage1);
+    napi_create_int32(env, ret == NATIVE_ERROR_BUFFER_NOT_IN_CACHE, &result);
     return result;
 }
 
@@ -280,14 +366,16 @@ napi_value OH_Drawing_LineTypographyGetLineBreakInvalue(napi_env env, napi_callb
     napi_value result;
     int lineNumber = 3;
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_CENTER);
     OH_Drawing_SetTypographyTextMaxLines(typoStyle, lineNumber);
     OH_Drawing_FontCollection* fc = OH_Drawing_CreateSharedFontCollection();
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
+    OH_Drawing_TypographyHandlerAddText(handler,"HelloWorld");
     OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(handler);
-    size_t startIndex = 0;
+    size_t size = OH_Drawing_LineTypographyGetLineBreak(lineTypography, 1, 10);
     double width = 0;
-    napi_create_int32(env, 1, &result);
+    napi_create_int32(env, size != 0, &result);
     return result;
 }
 
@@ -295,16 +383,17 @@ napi_value OH_Drawing_LineTypographyCreateLineInvalue(napi_env env, napi_callbac
 {
     napi_value result;
     int lineNumber = 3;
+    
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_CENTER);
     OH_Drawing_SetTypographyTextMaxLines(typoStyle, lineNumber);
     OH_Drawing_FontCollection* fc = OH_Drawing_CreateSharedFontCollection();
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
+    OH_Drawing_TypographyHandlerAddText(handler,"HelloWorld");
     OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(handler);
-    size_t startIndex = 0;
-    double width = 3;
-    size_t size = 0;
-    napi_create_int32(env, size == 0, &result);
+    OH_Drawing_TextLine* pLine = OH_Drawing_LineTypographyCreateLine(lineTypography, 0, 0);
+
+    napi_create_int32(env, pLine != nullptr, &result);
     return result;
 }
 
@@ -333,7 +422,7 @@ napi_value EffectTileModeREPEATSuccess(napi_env env, napi_callback_info info)
     OH_Filter_CreateEffect(pixelMapNative, &filter);
     EffectErrorCode errCode = OH_Filter_BlurWithTileMode(filter, radius, REPEAT);
     OH_Filter_Blur(filter, radius);
-    napi_create_int32(env,  errCode == EFFECT_SUCCESS, &result);
+    napi_create_int32(env, errCode == EFFECT_SUCCESS, &result);
     return result;
 }
 
@@ -362,7 +451,7 @@ napi_value EffectTileModeMIRRORSuccess(napi_env env, napi_callback_info info)
     OH_Filter_CreateEffect(pixelMapNative, &filter);
     EffectErrorCode errCode = OH_Filter_BlurWithTileMode(filter, radius, MIRROR);
     OH_Filter_Blur(filter, radius);
-    napi_create_int32(env,  errCode == EFFECT_SUCCESS, &result);
+    napi_create_int32(env, errCode == EFFECT_SUCCESS, &result);
     return result;
 }
 
@@ -391,7 +480,7 @@ napi_value EffectTileModeDECALSuccess(napi_env env, napi_callback_info info)
     OH_Filter_CreateEffect(pixelMapNative, &filter);
     EffectErrorCode errCode = OH_Filter_BlurWithTileMode(filter, radius, DECAL);
     OH_Filter_Blur(filter, radius);
-    napi_create_int32(env,  errCode == EFFECT_SUCCESS, &result);
+    napi_create_int32(env, errCode == EFFECT_SUCCESS, &result);
     return result;
 }
 
@@ -401,7 +490,7 @@ napi_value OH_Drawing_SamplingOptionsCopySuccess(napi_env env, napi_callback_inf
     OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(FILTER_MODE_LINEAR,
         MIPMAP_MODE_LINEAR);
     OH_Drawing_SamplingOptions* amp2 = OH_Drawing_SamplingOptionsCopy(samplingOptions);
-    napi_create_int32(env,  amp2 != nullptr, &result);
+    napi_create_int32(env, amp2 != nullptr, &result);
     return result;
 }
 
@@ -409,6 +498,6 @@ napi_value OH_Drawing_SamplingOptionsCopyInvalue(napi_env env, napi_callback_inf
 {
     napi_value result;
     OH_Drawing_SamplingOptions* amp2 = OH_Drawing_SamplingOptionsCopy(nullptr);
-    napi_create_int32(env,  amp2 == nullptr, &result);
+    napi_create_int32(env, amp2 == nullptr, &result);
     return result;
 }

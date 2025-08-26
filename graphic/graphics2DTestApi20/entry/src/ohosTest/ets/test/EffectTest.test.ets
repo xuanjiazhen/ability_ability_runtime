@@ -223,5 +223,6 @@ export default function EffectTest() {
           console.error("====>SUB_OH_NativeImage_SetDropBufferMode_0100 catch err: " + err);
         }
       })
+
   })
 }

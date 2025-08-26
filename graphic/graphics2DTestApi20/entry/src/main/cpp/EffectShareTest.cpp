@@ -21,6 +21,7 @@
 #include <multimedia/image_framework/image/pixelmap_native.h>
 #include <native_drawing/drawing_sampling_options.h>
 #include <native_buffer/native_buffer.h>
+#include <native_drawing/drawing_image_filter.h>
 
 void addEffectShareTest(std::vector<napi_property_descriptor>& descData)
 {
@@ -28,6 +29,8 @@ void addEffectShareTest(std::vector<napi_property_descriptor>& descData)
         OH_Drawing_ShaderEffectCreatePixelMapShaderSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"shaderEffectCreatePixelMapShaderInvalue", nullptr,
         OH_Drawing_ShaderEffectCreatePixelMapShaderInvalue, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"imageFilterCreateBlurWithCropSuccess", nullptr, OH_Drawing_ImageFilterCreateBlurWithCropSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr});    
 }
 
 napi_value OH_Drawing_ShaderEffectCreatePixelMapShaderSuccess(napi_env env, napi_callback_info info)
@@ -69,5 +72,17 @@ napi_value OH_Drawing_ShaderEffectCreatePixelMapShaderInvalue(napi_env env, napi
     OH_Drawing_ShaderEffect* peffect = OH_Drawing_ShaderEffectCreatePixelMapShader(nullptr, tileMode, tileMode,
         nullptr, nullptr);
     napi_create_int32(env, peffect == nullptr, &result);
+    return result;
+}
+ napi_value OH_Drawing_ImageFilterCreateBlurWithCropSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    float sigmaX;
+    float sigmaY;
+    OH_Drawing_ImageFilter* input;
+    OH_Drawing_Rect* rect;
+    OH_Drawing_TileMode mode;
+    OH_Drawing_ImageFilter* iFile = OH_Drawing_ImageFilterCreateBlurWithCrop(sigmaX,sigmaY,MIRROR,input,rect);
+    napi_create_int32(env, iFile != nullptr, &result);
     return result;
 }

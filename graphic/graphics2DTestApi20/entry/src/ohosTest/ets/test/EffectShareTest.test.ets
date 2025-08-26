@@ -59,5 +59,26 @@ export default function EffectShareTest() {
           console.error("====>SUB_OH_Drawing_ShaderEffectCreatePixelMapShader_0200 catch err: " + err);
         }
       })
+
+    /**
+     * @tc.number  : SUB_OH_Drawing_ImageFilterCreateBlurWithCrop_0100
+     * @tc.name    : SUB_OH_Drawing_ImageFilterCreateBlurWithCrop_0100
+     * @tc.desc    : test SUB_OH_Drawing_ImageFilterCreateBlurWithCrop success Scene
+     * @tc.level   : Level3
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_Drawing_ImageFilterCreateBlurWithCrop_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_OH_Drawing_ImageFilterCreateBlurWithCrop_0100 start====");
+          let result: number = libGraphics2DApi20.imageFilterCreateBlurWithCropSuccess();
+          console.info("====>SUB_OH_Drawing_ImageFilterCreateBlurWithCrop_0100 result====", result);
+          expect(result).assertEqual(1);
+          done();
+        } catch (err) {
+          console.error("====>SUB_OH_Drawing_ImageFilterCreateBlurWithCrop_0100 catch err: " + err);
+        }
+      })
   })
 }
