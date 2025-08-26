@@ -523,7 +523,7 @@ napi_value BufferHandleReserve(napi_env env, napi_callback_info info)
 OH_NativeBuffer_Planes newPlanes()
 {
     OH_NativeBuffer_Planes p;
-    p.planeCount = 0;
+    p.planeCount = sizeof(p.planes) / sizeof(OH_NativeBuffer_Plane); 
     for (int i = 0; i < p.planeCount; i++) {
         p.planes[i].columnStride = 0;
         p.planes[i].offset = 0;
@@ -551,7 +551,7 @@ napi_value OH_NativeBuffer_PlanesSuccess(napi_env env, napi_callback_info info)
     
     OHNativeWindowBuffer *windowBuffer = nullptr;
     int fd;
-    int pCount = 0;
+    int pCount = 4;
     float matrix[16] = {
         0, -0.5, 0, 0,
         -0.5, 0, 0, 0,
@@ -588,7 +588,7 @@ napi_value OH_NativeBuffer_PlaneCount(napi_env env, napi_callback_info info)
     
     OHNativeWindowBuffer *windowBuffer = nullptr;
     int fd;
-    int pCount = 4;
+    int pCount = 0;
     float matrix[16] = {
         0, -0.5, 0, 0,
         -0.5, 0, 0, 0,
