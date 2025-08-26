@@ -298,5 +298,19 @@ export default function webViewContGetUrlAndOthersError() {
       Utils.registerEvent("testSetAudioMutedInitErr", "Init error. The WebviewController must be associated with a Web component", 111520, done);
       await Utils.waitAndClickComponent(driver, "webViewContGetUrlAndOthersError");
     })
+    /*
+     *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_7700
+     *tc.name testSetAudioMutedInitErr
+     *tc.desc test interface of setAudioMuted with not been associated with specific Web Components
+     */
+    it('emitAvoidVisibleViewportBottomErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      emitKey = "emitAvoidVisibleViewportBottomErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("emitAvoidVisibleViewportBottomErr", "17100001", 20250827, null);
+      Utils.registerEvent("emitAvoidVisibleViewportBottomErr", "Init error. The WebviewController must be associated with a Web component", 20250828, done);
+      await Utils.waitAndClickComponent(driver, "webViewContGetUrlAndOthersError");
+    })
+
+
   })
 }

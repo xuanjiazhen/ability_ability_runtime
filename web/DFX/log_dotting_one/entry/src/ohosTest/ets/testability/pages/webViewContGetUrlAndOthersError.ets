@@ -398,6 +398,22 @@ struct webViewContGetUrlAndOthersError {
               Utils.emitEvent(this.errorMsg, 111520)
               break;
             }
+            case "emitAvoidVisibleViewportBottomErr": {
+              try {
+                this.errorCode = '0';
+                this.errorMsg = 'failed';
+                this.controllerTwo.avoidVisibleViewportBottom(111);
+              } catch (error) {
+                console.error(`emitAvoidVisibleViewportBottomErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                this.errorCode = error.code;
+                this.errorMsg = error.message;
+              }
+              Utils.emitEvent(this.errorCode, 20250827)
+              Utils.emitEvent(this.errorMsg, 20250828)
+              break;
+            }
+
+
           }
         })
       }
