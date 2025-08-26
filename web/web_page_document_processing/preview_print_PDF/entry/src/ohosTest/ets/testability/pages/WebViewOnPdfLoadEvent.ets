@@ -67,6 +67,7 @@ struct WebComponent {
                 console.log('eventInfoUrl' + this.eventInfoUrl)
                 if(canIUse('SystemCapability.Security.DiaService')) {
                    Utils.emitEvent(this.eventInfoUrl,20250822)
+                   console.log('emitwebViewWebViewOnPdfLoadEvent001'+this.eventInfoUrl)
                 } else {
                     Utils.emitEvent('resource://rawfile/printTemplate.pdf',20250822)
                 }
@@ -78,6 +79,7 @@ struct WebComponent {
                 console.log('result' + this.result)
                  if(canIUse('SystemCapability.Security.DiaService')) {
                      Utils.emitEvent(this.result,20250823)
+                     console.log('emitwebViewWebViewOnPdfLoadEvent002'+this.eventInfoUrl)
                  } else {
                      Utils.emitEvent(0,20250823)
                  }
