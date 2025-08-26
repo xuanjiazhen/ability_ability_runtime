@@ -131,7 +131,7 @@ void InitCallback(const ArkWeb_HttpBodyStream *httpBodyStream, ArkWeb_NetError r
     }
 }
 
-const int blockSize = 1024 * 8;
+const int BLOCK_SIZE = 1024 * 8;
 
 }  // namespace
 
@@ -189,16 +189,11 @@ void WebRequestTest::Start()
     OH_LOG_INFO(LOG_APP, "RawfileRequest start a rawfile request.");
     g_setAsyncReadCallback = -1;
     g_asyncRead = -1;
-    g_asyncReadMore = -1;
-    g_asyncReadCallback = -1;
     g_readBuffer = nullptr;
     g_workerPid = -1;
     g_asyncPid = -1;
-    OH_LOG_INFO(LOG_APP, "RawfileRequest Start  httpBodyStreamNullptr_ :%{public}d", httpBodyStreamNullptr_);
-    OH_LOG_INFO(LOG_APP, "RawfileRequest Start  bufLen :%{public}d", bufLen_);
     g_httpBodyStreamNullptr = httpBodyStreamNullptr_;
     g_bufLen = bufLen_;
-    OH_LOG_INFO(LOG_APP, "RawfileRequest Start  g_httpBodyStreamNullptr :%{public}d", g_httpBodyStreamNullptr);
     OH_LOG_INFO(LOG_APP, "RawfileRequest Start  g_bufLen :%{public}d", g_bufLen);
 
     char* url;
@@ -208,14 +203,11 @@ void WebRequestTest::Start()
     if (position != std::string::npos) {
         rawfilePath_ = urlStr.substr(position + 1);
     }
-    OH_LOG_INFO(LOG_APP, "RawfileRequest Start  url :%{public}s", url);
-    OH_LOG_INFO(LOG_APP, "RawfileRequest Start  rawfilePath_ :%{public}s", rawfilePath_.c_str());
     OH_ArkWeb_ReleaseString(url);
 
     OH_ArkWeb_CreateResponse(&response_);
     OH_ArkWebResourceRequest_GetHttpBodyStream(resourceRequest(), &stream_);
     if (stream_) {
-        OH_LOG_ERROR(LOG_APP, "RawfileRequest Start have http body stream");
         OH_ArkWebHttpBodyStream_SetUserData(stream_, this);
         ArkWeb_HttpBodyStreamAsyncReadCallback httpBodyStreamAsyncReadCallback = ReadCallback;
         int ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(stream_, httpBodyStreamAsyncReadCallback);
@@ -228,7 +220,6 @@ void WebRequestTest::Start()
         }
         g_setAsyncReadCallback = 1;
         OH_LOG_INFO(LOG_APP, "RawfileRequest Start  g_setAsyncReadCallback :%{public}d", g_setAsyncReadCallback);
-        OH_LOG_INFO(LOG_APP, "RawfileRequest Start OH_ArkWebHttpBodyStream_SetAsyncReadCallback end");
         ret = OH_ArkWebHttpBodyStream_Init(stream_, InitCallback);
         if (ARKWEB_NET_OK == ret) {
             OH_LOG_INFO(LOG_APP, "OH_ArkWebHttpBodyStream_Init success.");
@@ -264,7 +255,7 @@ void WebRequestTest::ReadDataOnWorkerThread()
 const struct UrlInfo {
     std::string resource;
     std::string mimeType;
-} 
+}
 
 URL_INFOS[] = {
     {"test.html", "text/html"},
@@ -279,7 +270,7 @@ void WebRequestTest::ReadRawfileThread()
         return;
     }
 
-    RawFile *rawfile = OH_ResourceManager_OpenRawFile(resourceManager(), rawfilePath().c_str());
+    RawFile *rawfile = OH_ResourceManager_OpenRawFile(resourceManager(), RawfilePath().c_str());
     if (!rawfile) {
         OH_LOG_INFO(LOG_APP, "ReadRawfileThread OH_ArkWebResponse_SetStatus 404.");
         const int httpNotFound = 404;
@@ -291,7 +282,7 @@ void WebRequestTest::ReadRawfileThread()
     }
 
     for (auto &urlInfo : URL_INFOS) {
-        if (urlInfo.resource == rawfilePath()) {
+        if (urlInfo.resource == RawfilePath()) {
             OH_ArkWebResponse_SetMimeType(response(), urlInfo.mimeType.c_str());
             break;
         }
@@ -303,9 +294,9 @@ void WebRequestTest::ReadRawfileThread()
     DidReceiveResponse();
 
     long consumed = 0;
-    uint8_t buffer[blockSize];
+    uint8_t buffer[BLOCK_SIZE];
     while (consumed < len) {
-        int ret = OH_ResourceManager_ReadRawFile(rawfile, buffer, blockSize);
+        int ret = OH_ResourceManager_ReadRawFile(rawfile, buffer, BLOCK_SIZE);
         OH_LOG_INFO(LOG_APP, "read rawfile %{public}d bytes.", ret);
         if (ret == 0) {
             break;
@@ -313,7 +304,7 @@ void WebRequestTest::ReadRawfileThread()
         consumed += ret;
         OH_ResourceManager_SeekRawFile(rawfile, consumed, 0);
         DidReceiveData(buffer, ret);
-        std::fill_n(buffer, blockSize, 0);
+        std::fill_n(buffer, BLOCK_SIZE, 0);
     }
 
     OH_ResourceManager_CloseRawFile(rawfile);

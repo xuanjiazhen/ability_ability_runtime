@@ -43,7 +43,7 @@ public:
     const NativeResourceManager *resourceManager() { return resourceManager_; }
     ArkWeb_Response *response() { return response_; }
     ArkWeb_HttpBodyStream *stream() { return stream_; }
-    const std::string rawfilePath() { return rawfilePath_; }
+    const std::string RawfilePath() { return rawfilePath_; }
     int32_t GetAsyncReadCallback();
     int32_t AsyncRead();
     int32_t AsyncReadMore();

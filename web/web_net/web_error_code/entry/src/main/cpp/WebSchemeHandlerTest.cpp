@@ -33,7 +33,7 @@ int32_t g_testSetAsyncReadCallback = -1;
 const int BUFF_LEN = 5;
 
 namespace  {
-  static int g_RegisterCustomSchemes = -1;   
+  static int g_registerCustomSchemes = -1;
 };
 
 ArkWeb_CustomSchemeOption GetSchemeOptionByName(const std::string name)
@@ -163,7 +163,7 @@ napi_value RegisterCustomSchemes(napi_env env, napi_callback_info info)
     OH_LOG_INFO(LOG_APP, "register custom schemes");
     if (ARKWEB_NET_OK ==
         OH_ArkWeb_RegisterCustomSchemes("custom", ARKWEB_SCHEME_OPTION_STANDARD | ARKWEB_SCHEME_OPTION_CORS_ENABLED)) {
-        g_RegisterCustomSchemes = ARKWEB_NET_OK;
+        g_registerCustomSchemes = ARKWEB_NET_OK;
     }
 
     OH_ArkWeb_RegisterCustomSchemes("custom-local", ARKWEB_SCHEME_OPTION_LOCAL);
@@ -320,7 +320,7 @@ napi_value ArkWebRegisterCustomSchemesOK(napi_env env, napi_callback_info info)
 {
     napi_value result;
     int ret = -1;
-    if (g_RegisterCustomSchemes == ARKWEB_NET_OK) {
+    if (g_registerCustomSchemes == ARKWEB_NET_OK) {
         ret = 0;
     }
     napi_create_int32(env, ret, &result);

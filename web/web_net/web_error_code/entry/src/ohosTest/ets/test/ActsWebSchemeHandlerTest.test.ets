@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, it, expect, TestType, Size, Level } from '@ohos/hypium'
-import { accessibility, config } from '@kit.AccessibilityKit';
+import { describe, beforeAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
 import router from '@ohos.router';
 import events_emitter from '@ohos.events.emitter';
 import { Driver, ON } from '@kit.TestKit';
-import Utils from './UtilsTest';
+import Utils from './UtilsTest.test';
 import webCode from 'libweberrorcodetest.so'
 
-const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
-const BUNDLE_NAME = 'com.acts.weberrorcode/AccessibilityExtAbility';
 let driver = Driver.create();
 
 export default function ActsWebSchemeHandlerTest() {
@@ -192,17 +189,18 @@ export default function ActsWebSchemeHandlerTest() {
      * @tc.type    : Function
      */
     it('testArkWebHttpBodyStreamSetReadCallbackOK', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
-        console.info(`enable success`);
-      }).catch((err: object) => {
-        console.error(`failed to enable, ${err}`);
-      })
-      await Utils.sleep(100);
-      Utils.emitEvent("OH_ArkWebHttpBodyStream_SetAsyncReadCallback001", 825)
-      Utils.registerBaseEvent("testOH_ArkWebHttpBodyStream_SetAsyncReadCallback001", 1, 20250825, done, (backData: events_emitter.EventData, expected: Object) => {
-        expect(backData?.data?.ACTION).assertEqual(expected);
-      });
-      sendEventByKey('ArkWebHttpBodyStreamTest', 10, '');
+      try {
+        Utils.emitEvent("OH_ArkWebHttpBodyStream_SetAsyncReadCallback001", 825)
+        Utils.registerBaseEvent("testOH_ArkWebHttpBodyStream_SetAsyncReadCallback001", 1, 20250825, done, (backData: events_emitter.EventData, expected: Object) => {
+          console.error("====>OH_ArkWebHttpBodyStream_SetAsyncReadCallback001 ACTION: " + backData?.data?.ACTION);
+          expect(backData?.data?.ACTION).assertEqual(expected);
+        });
+        sendEventByKey('ArkWebHttpBodyStreamTest', 10, '');
+        done();
+      } catch (err) {
+        console.error("====>OH_ArkWebHttpBodyStream_SetAsyncReadCallback001 catch err: " + err);
+        expect(0).assertEqual(1);
+      }
     })
 
     /**

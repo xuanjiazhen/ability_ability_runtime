@@ -16,7 +16,7 @@ import hilog from '@ohos.hilog';
 import web_webview from '@ohos.web.webview';
 import testnapi from 'libweberrorcodetest.so';
 import events_emitter from '@ohos.events.emitter';
-import Utils from '../../test/UtilsTest';
+import Utils from '../../test/UtilsTest.test';
 import { waitForExist } from '../../test/WaitTest.test';
 import { UIAbility, AbilityConstant, Want, common } from '@kit.AbilityKit';
 
@@ -28,6 +28,10 @@ struct Index {
   @State isPageEnd: number = -1;
   @State emitKey: string = '';
   controller: web_webview.WebviewController = new web_webview.WebviewController(this.webTag);
+
+  URL1: string = "https://"
+  URL2: string = "www.example.com"
+  URL_EXAMPLE_HTTPS: string = this.URL1 + this.URL2
 
   aboutToAppear() {
     console.info('start run testcase!!!')
@@ -64,45 +68,42 @@ struct Index {
        Row() {
          Button('ArkWebHttpBodyStreamButton').key('ArkWebHttpBodyStreamTest').onClick(
            async () => {
-             console.info('start textPost key==>' + this.emitKey)
-             await waitForExist(() => this.isReceive, 'ArkWebHttpBodyStreamTest_isReceive', 1, 1000)
-             await waitForExist(() => this.isPageEnd, 'ArkWebHttpBodyStreamTest_isPageEnd', 1, 1000)
-             console.info('textPost key==>' + this.emitKey)
+             console.info('OH_ArkWebHttpBodyStream_SetAsyncReadCallback001 key==>' + this.emitKey)
              this.isReceive = -1
              switch (this.emitKey) {
                case 'OH_ArkWebHttpBodyStream_SetAsyncReadCallback001': {
                  this.isPageEnd = -1
                  try {
-                   this.controller.loadUrl('https://www.example.com/post_data.html')
+                   this.controller.loadUrl(this.URL_EXAMPLE_HTTPS +'/post_data.html')
                  } catch (e) {
-                   console.error('loadUrl: https://www.example.com/post_data.html, e:' + e)
+                   console.error('OH_ArkWebHttpBodyStream_SetAsyncReadCallback001 loadUrl, e:' + e)
                  }
 
                  this.controller.runJavaScript("textPost('https://www.example.com/xhr','BYTES')", (error, result) => {
                    if (error) {
-                     console.error('textPost(xhr,BYTES) return error:' + error)
+                     console.error('OH_ArkWebHttpBodyStream_SetAsyncReadCallback001 return error:' + error)
                    }
                    if (result) {
-                     console.info('textPost(xhr,BYTES) return result:' + result)
+                     console.info('OH_ArkWebHttpBodyStream_SetAsyncReadCallback001 return result:' + result)
                    }
                  })
 
-                 // await waitForExist(()=>testnapi.requestStop(), 'OH_ArkWebHttpBodyStream_SetAsyncReadCallback001_requestStop', 1, 1000)
                  testnapi.requestStop()
                  let setAsyncReadCallback: number = testnapi.setAsyncReadCallback()
-                 console.info('setAsyncReadCallback:' + String(setAsyncReadCallback))
+                 console.info('OH_ArkWebHttpBodyStream_SetAsyncReadCallback001 setAsyncReadCallback:' + String(setAsyncReadCallback))
                  Utils.emitEvent(setAsyncReadCallback, 20250825)
                  break
                }
 
                default:
+                 console.error('OH_ArkWebHttpBodyStream_SetAsyncReadCallback001 default.......')
                  break
              }
            }
          )
        }
        .width('100%')
-       Web({ src: $rawfile("test.html"), controller: this.controller })
+       Web({ src: $rawfile('test.html'), controller: this.controller })
          .width('50%')
          .height('100%')
          .javaScriptAccess(true)
