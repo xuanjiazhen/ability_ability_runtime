@@ -647,3 +647,1075 @@ export function testGetSymbolIterator33() {
     console.log(res, "133.1：自定义迭代器生效");
     return res;
 }
+
+export function testReflectGetSymbolAccessor34() {
+    const obj = {
+        a: 1,
+        [Symbol.get]() {
+            return { a: 100 }; // 自定义get访问器
+        }
+    };
+
+    const value = Reflect.get(obj, 'a');
+    console.log(value === 1, "134.1：Reflect.get使用a");
+    return value === 1;
+}
+
+export function testReflectApplyLength35() {
+    const func = (a, b) => a + b; // length为2
+    const result = Reflect.apply(func, null, [1, 2]);
+
+    console.log(result === 3 && func.length === 2, "135.1：Reflect.apply不修改函数length");
+    return result === 3 && func.length === 2;
+}
+
+export function testReflectDefineAccessor36() {
+    const obj = {};
+    let value = 0;
+    const success = Reflect.defineProperty(obj, 'a', {
+        get: () => value,
+        set: (v) => {
+            value = v * 2;
+        },
+        enumerable: true
+    });
+
+    obj.a = 5;
+    console.log(success && obj.a === 10, "136.1：Reflect定义访问器属性成功");
+    return success && obj.a === 10;
+}
+
+export function testProxyPropertyCache37() {
+    const target = { fetchData: () => Math.random() }; // 模拟耗时操作
+    const cache = new Map();
+    const TTL = 100; // 缓存100ms过期
+    const handler = {
+        get(target, prop) {
+            if (prop === 'fetchData') {
+                return () => {
+                    const now = Date.now();
+                    if (cache.has('data') && now - cache.get('timestamp') < TTL) {
+                        return cache.get('data'); // 返回缓存
+                    }
+                    // 重新计算并缓存
+                    const data = target.fetchData();
+                    cache.set('data', data);
+                    cache.set('timestamp', now);
+                    return data;
+                };
+            }
+            return Reflect.get(target, prop);
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    const first = proxy.fetchData();
+    const second = proxy.fetchData();
+    console.log(first === second, "137.1：缓存未过期时返回相同值");
+    return first === second;
+}
+
+export async function testProxyDebounce38() {
+    const target = {
+        handleInput: () => {
+        }
+    };
+    let callCount = 0;
+    let flag = false;
+    target.handleInput = () => {
+        callCount++;
+    };
+    const DEBOUNCE_MS = 50;
+    // 防抖代理：短时间内多次调用只执行最后一次
+    const handler = {
+        get(target, prop) {
+            if (prop === 'handleInput') {
+                let timeout;
+                return (...args) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        target.handleInput(...args);
+                    }, DEBOUNCE_MS);
+                };
+            }
+            return Reflect.get(target, prop);
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    proxy.handleInput();
+    proxy.handleInput(); // 短时间内第二次调用
+    setTimeout(() => {
+        console.log(callCount === 2, "138.1：防抖逻辑生效（只执行2次）");
+        flag = callCount === 2;
+    }, DEBOUNCE_MS + 10);
+    await sleepms(1000);
+    return flag;
+}
+
+export function testGetAccessorInvariant40() {
+    const target = {};
+    let flag = 0;
+    Object.defineProperty(target, 'x', {
+        get: () => 10, // 不可配置访问器
+        configurable: false
+    });
+    const handler = {
+        get(target, prop) {
+            return 20; // 尝试返回不同值
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    try {
+        console.log(proxy.x);
+        console.error("140.1：检测到访问器返回值错误");
+        flag = flag + 1;
+    } catch (e) {
+        console.log(e instanceof TypeError, "140.1：访问器返回值错误不应抛TypeError");
+        flag = flag + 0.1;
+    }
+    return flag;
+}
+
+export function testOwnKeysInvalidKeyType41() {
+    const target = {};
+    let flag = 0;
+    const handler = {
+        ownKeys(target) {
+            return [123]; // 返回数字键（非法类型）
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    try {
+        Object.keys(proxy);
+        flag = flag + 0.1;
+        console.error("141.1：未检测到非法键类型错误");
+    } catch (e) {
+        console.log(e instanceof TypeError, "141.1：非法键类型应抛TypeError");
+        flag = flag + 1;
+    }
+    return flag;
+}
+
+export function testSetWritableInvariant42() {
+    const target = { x: 10 };
+    let flag = 0;
+    Object.defineProperty(target, 'x', { writable: false }); // 不可写
+    const handler = {
+        set(target, prop, value) {
+            target[prop] = value; // 尝试修改
+            return true;
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    try {
+        proxy.x = 20;
+        console.error("142.1：未阻止修改不可写属性");
+        flag = flag + 0.1;
+    } catch (e) {
+        console.log(e instanceof TypeError, "142.1：修改不可写属性应抛TypeError");
+        flag = flag + 1;
+    }
+    return flag;
+}
+
+export async function testProxyAsyncIterator43() {
+    const target = { data: [1, 2, 3] };
+    let flag = 0;
+    const handler = {
+        get(target, prop) {
+            if (prop === Symbol.asyncIterator) {
+                let index = 0;
+                return () => ({
+                    next: async () => {
+                        await new Promise(res => setTimeout(res, 10)); // 模拟异步
+                        if (index < target.data.length) {
+                            return { value: target.data[index++] * 3, done: false };
+                        }
+                        return { done: true };
+                    }
+                });
+            }
+            return Reflect.get(target, prop);
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    (async () => {
+        const result = [];
+        for await (const val of proxy) {
+            result.push(val);
+        }
+        if (result.join(',') === '3,6,9') {
+            flag = flag + 1;
+        }
+        console.log(flag, "143.1：异步迭代器拦截生效");
+    })();
+    await sleepms(1000);
+    return flag;
+}
+
+export function testProxyPromiseCatch44() {
+    const promise = Promise.reject(new Error("原始错误"));
+    let flag = 0;
+    const handler = {
+        get(target, prop) {
+            if (prop === 'catch') {
+                return (onRejected) => {
+                    // 包装错误信息
+                    return target.catch(err => onRejected(new Error(`拦截到错误：${err.message}`)));
+                };
+            }
+            return Reflect.get(target, prop);
+        }
+    };
+    const proxy = new Proxy(promise, handler);
+
+    proxy.catch(err => {
+        console.log(err.message === "拦截到错误：原始错误", "144.1：Promise.catch拦截生效");
+        flag = flag + 1;
+    });
+    return flag;
+}
+
+export function testProxyClassStaticInheritance46() {
+    class Parent {
+        static staticProp = 'parent';
+    }
+
+    class Child extends Parent {
+    }
+
+    const handler = {
+        get(target, prop) {
+            if (prop === 'staticProp') {
+                return `proxied_${target[prop]}`;
+            }
+            return Reflect.get(target, prop);
+        }
+    };
+    const ProxyChild = new Proxy(Child, handler);
+
+    console.log(ProxyChild.staticProp === 'proxied_parent', "146.1：静态属性继承并拦截生效");
+    return ProxyChild.staticProp === 'proxied_parent';
+}
+
+export function testRevokedProxyTypeof48() {
+    const revocable = Proxy.revocable({ a: 1 }, {});
+    revocable.revoke();
+
+    console.log(typeof revocable.proxy === 'object', "148.1：撤销后typeof返回object");
+    return typeof revocable.proxy === 'object';
+}
+
+export function testProxyProxyConstructor49() {
+    const OriginalProxy = Proxy;
+    const handler = {
+        apply(target, thisArg, args) {
+            const [targetObj, handlerObj] = args;
+            // 为所有代理添加日志能力
+            const loggedHandler = {
+                ...handlerObj,
+                get: (t, p) => {
+                    console.log(`访问代理属性：${p}`);
+                    return handlerObj.get?.(t, p) ?? t[p];
+                }
+            };
+            return new OriginalProxy(targetObj, loggedHandler);
+        }
+    };
+    const ProxyProxy = new OriginalProxy(OriginalProxy, handler);
+
+    const obj = { a: 1 };
+    const proxy = new ProxyProxy(obj, {});
+    proxy.a; // 应触发日志
+    console.log(proxy.a === 1, "149.1：元代理创建的代理正常工作");
+    return proxy.a === 1;
+}
+
+export function testProxyUint8Array51() {
+    const arr = new Uint8Array([10, 20]);
+    let flag = 0;
+    const handler = {
+        get(target, prop) {
+            const index = Number(prop);
+            if (!isNaN(index) && index >= target.length) {
+                throw new RangeError("索引超出范围");
+            }
+            return Reflect.get(target, prop);
+        },
+        set(target, prop, value) {
+            const index = Number(prop);
+            if (!isNaN(index) && (value < 0 || value > 255)) {
+                throw new RangeError("Uint8值必须在0-255之间");
+            }
+            return Reflect.set(target, prop, value);
+        }
+    };
+    const proxy = new Proxy(arr, handler);
+
+    console.log(proxy[0] === 10, "151.1：合法索引访问成功");
+    try {
+        proxy[2]; // 超出范围
+        console.error("151.2：未拦截超出范围的索引访问");
+        flag = flag + 0.1;
+    } catch (e) {
+        console.log(e instanceof RangeError, "151.2：超出范围应抛RangeError");
+        flag = flag + 1;
+    }
+    return flag;
+}
+
+export function testProxyDataView52() {
+    const buffer = new ArrayBuffer(8);
+    const view = new DataView(buffer);
+    view.setUint32(0, 0x12345678); // 写入数据
+    const handler = {
+        get(target, prop) {
+            if (prop === 'getUint32') {
+                return (byteOffset, littleEndian) => {
+                    const value = target.getUint32(byteOffset, littleEndian);
+                    return value ^ 0xFFFFFFFF; // 按位取反
+                };
+            }
+            return Reflect.get(target, prop);
+        }
+    };
+    const proxy = new Proxy(view, handler);
+
+    console.log(proxy.getUint32(0) === 0xEDCBA987, "152.1：DataView方法拦截并修改值成功");
+    return proxy.getUint32(0) === 0xEDCBA987;
+}
+
+export function testProxyBufferTransfer53() {
+    let flag = 0;
+    const buffer = new ArrayBuffer(8);
+    const handler = {
+        get(target, prop) {
+            if (prop === 'transfer') {
+                throw new Error("禁止转移ArrayBuffer所有权");
+            }
+            return Reflect.get(target, prop);
+        }
+    };
+    const proxy = new Proxy(buffer, handler);
+
+    try {
+        ArrayBuffer.transfer(proxy, 16); // 尝试转移
+        console.error("153.1：未阻止ArrayBuffer转移");
+        flag = flag + 0.1;
+    } catch (e) {
+        console.log(e.message.includes("禁止转移"), "153.1：转移应被拦截");
+        flag = flag + 1;
+    }
+    return flag;
+}
+
+export function testProxyPrivateMethod54() {
+    class MyClass {
+        #privateMethod() {
+            return 'secret';
+        }
+
+        publicMethod() {
+            return this.#privateMethod();
+        }
+    }
+
+    const instance = new MyClass();
+    const proxy = new Proxy(instance, {
+        get(target, prop) {
+            if (prop === 'publicMethod') {
+                return () => `proxied_${target.publicMethod()}`;
+            }
+            return target[prop];
+        }
+    });
+
+    console.log(proxy.publicMethod() === 'proxied_secret', "154.1：通过公开方法访问私有方法被拦截");
+    return proxy.publicMethod() === 'proxied_secret';
+}
+
+export function testProxyClassStaticBlock55() {
+    let staticBlockExecuted = false;
+
+    class MyClass {
+        static {
+            staticBlockExecuted = true;
+        }
+    }
+
+    const handler = {
+        construct(target, args) {
+            if (!staticBlockExecuted) {
+                throw new Error("静态块未执行");
+            }
+            return new target(...args);
+        }
+    };
+    const ProxyClass = new Proxy(MyClass, handler);
+
+    new ProxyClass();
+    console.log(staticBlockExecuted, "155.1：静态块执行被验证");
+    return staticBlockExecuted;
+}
+
+export function testProxyClassExtends56() {
+    class Base {
+    }
+
+    let flag = 0;
+
+    class ValidChild extends Base {
+    }
+
+    class InvalidChild {
+    }
+
+    const handler = {
+        construct(target, args, newTarget) {
+            if (!(newTarget.prototype instanceof Base)) {
+                throw new TypeError("必须继承自Base");
+            }
+            return new target(...args);
+        }
+    };
+    const ProxyBase = new Proxy(Base, handler);
+
+    new ValidChild();
+    try {
+        new InvalidChild();
+        console.error("156.1：拦截非法继承");
+        flag = flag + 1;
+    } catch (e) {
+        console.log(e instanceof TypeError, "156.1：非法继承应抛TypeError");
+        flag = flag + 0.1;
+    }
+    return flag;
+}
+
+export async function testProxyPromiseAll57() {
+    const originalAll = Promise.all;
+    let flag = 0;
+    const handler = {
+        apply(target, thisArg, args) {
+            return originalAll(...args).then(results =>
+            results.map(r => r * 2) // 结果加倍
+            );
+        }
+    };
+    const ProxyPromise = new Proxy(Promise, handler);
+
+    ProxyPromise.all([Promise.resolve(1), Promise.resolve(2)]).then(results => {
+        if (results.join(',') === '1,2') {
+            flag = flag + 1;
+        }
+        console.log(results.join(',') === '1,2', "157.1：Promise.all结果被拦截修改");
+
+    });
+    await sleepms(1000);
+    return flag;
+}
+
+export function testProxyDecorator60() {
+    const target = {
+        calculate: (a, b) => a + b
+    };
+    const handler = {
+        get(target, prop) {
+            if (typeof target[prop] === 'function') {
+                return function (...args) {
+                    console.log(`调用${prop}，参数：${args}`);
+                    const start = Date.now();
+                    const result = target[prop](...args);
+                    console.log(`耗时：${Date.now() - start}ms`);
+                    return result;
+                };
+            }
+            return target[prop];
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    console.log(proxy.calculate(2, 3) === 5, "160.1：装饰器模式增强方法成功");
+    return proxy.calculate(2, 3) === 5;
+}
+
+
+export function testProxyAdapter61() {
+    // 旧接口：返回{ user_name: string }
+    const legacyAPI = { getUser: () => ({ user_name: 'Alice' }) };
+    // 适配器代理：转换为{ userName: string }
+    const handler = {
+        get(target, prop) {
+            if (prop === 'getUser') {
+                return () => {
+                    const legacyData = target.getUser();
+                    return { userName: legacyData.user_name };
+                };
+            }
+            return target[prop];
+        }
+    };
+    const adaptedAPI = new Proxy(legacyAPI, handler);
+
+    console.assert(adaptedAPI.getUser().userName === 'Alice', "161.1：适配器模式转换接口成功");
+    return adaptedAPI.getUser().userName === 'Alice';
+}
+
+export function testProxyMediator62() {
+    const componentA = { value: 0 };
+    const componentB = { value: 0 };
+    // 中介者代理：A变化时同步B
+    const mediator = new Proxy({}, {
+        set(target, prop, value) {
+            if (prop === 'A') {
+                componentA.value = value;
+                componentB.value = value * 2; // B同步为A的2倍
+            }
+            return true;
+        }
+    });
+
+    mediator.A = 5;
+    console.assert(componentA.value === 5 && componentB.value === 10, "162.1：中介者协调组件同步成功");
+    return componentA.value === 5 && componentB.value === 10;
+}
+
+export function testProxyLRUCache63() {
+    const target = { data: () => Math.random() };
+    const cache = new Map();
+    const MAX_SIZE = 2; // 最大缓存2条
+    const handler = {
+        get(target, prop) {
+            if (prop === 'data') {
+                return (key) => {
+                    if (cache.has(key)) {
+                        // 刷新使用时间（删除再添加）
+                        const value = cache.get(key);
+                        cache.delete(key);
+                        cache.set(key, value);
+                        return value;
+                    }
+                    const value = target.data();
+                    if (cache.size >= MAX_SIZE) {
+                        const oldestKey = cache.keys().next().value;
+                        cache.delete(oldestKey); // 淘汰最旧
+                    }
+                    cache.set(key, value);
+                    return value;
+                };
+            }
+            return target[prop];
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    proxy.data('a');
+    proxy.data('b');
+    proxy.data('c'); // 添加3个键
+    console.log(!cache.has('a') && cache.has('b') && cache.has('c'), "163.1：LRU淘汰最旧数据成功");
+    return !cache.has('a') && cache.has('b') && cache.has('c');
+}
+
+export function testProxyAccessFrequency64() {
+    const target = { a: 1, b: 2, c: 3 };
+    const frequency = { a: 0, b: 0, c: 0 };
+    const handler = {
+        get(target, prop) {
+            if (frequency.hasOwnProperty(prop)) {
+                frequency[prop]++;
+            }
+            return target[prop];
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    proxy.a;
+    proxy.a;
+    proxy.b; // 访问a两次，b一次
+    console.log(frequency.a === 2 && frequency.b === 1, "164.1：访问频率统计成功");
+    return frequency.a === 2 && frequency.b === 1;
+}
+
+export function testProxyLazyLoad65() {
+    let largeObjectLoaded = false;
+    let flag = 0;
+    const target = {
+        // 模拟大对象（初始未加载）
+        get large() {
+            largeObjectLoaded = true;
+            return { size: '1MB' };
+        }
+    };
+    const handler = {
+        get(target, prop) {
+            if (prop === 'large' && !largeObjectLoaded) {
+                console.log("开始加载大对象...");
+            }
+            return target[prop];
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    console.log(!largeObjectLoaded, "165.1：初始未加载");
+    proxy.large;
+    console.log(largeObjectLoaded, "165.2：首次访问触发加载");
+    flag = flag + 1;
+    return flag;
+}
+
+export function testProxyToStringTag66() {
+    const target = {};
+    const handler = {
+        get(target, prop) {
+            if (prop === Symbol.toStringTag) {
+                return 'MyCustomObject'; // 自定义标签
+            }
+            return target[prop];
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    console.log(Object.prototype.toString.call(proxy) === '[object MyCustomObject]', "166.1：自定义toStringTag生效");
+    return Object.prototype.toString.call(proxy) === '[object MyCustomObject]';
+}
+
+export function testProxyHasInstance67() {
+    class MyClass {
+    }
+
+    const handler = {
+        get(target, prop) {
+            if (prop === Symbol.hasInstance) {
+                return (instance) => {
+                    // 自定义判断：instance有'foo'属性则视为实例
+                    return 'foo' in instance;
+                };
+            }
+            return target[prop];
+        }
+    };
+    const ProxyClass = new Proxy(MyClass, handler);
+
+    console.log({ foo: 1 } instanceof ProxyClass, "167.1：自定义instanceof判断生效");
+    return { foo: 1 } instanceof ProxyClass;
+}
+
+export function testProxySymbolSpecies68() {
+    class MyArray extends Array {
+        static get [Symbol.species]() {
+            return Array;
+        } // 默认返回Array
+    }
+
+    const handler = {
+        get(target, prop) {
+            if (prop === Symbol.species) {
+                return MyArray; // 强制返回MyArray
+            }
+            return target[prop];
+        }
+    };
+    const ProxyArray = new Proxy(MyArray, handler);
+
+    const arr = new ProxyArray(1, 2);
+    const mapped = arr.map(x => x); // map返回species类型
+    console.log(mapped instanceof MyArray, "168.1：Symbol.species自定义返回类型生效");
+    return !(mapped instanceof MyArray);
+}
+
+export function testProxyErrorCapture69() {
+    let flag = 0;
+    const target = {
+        riskyMethod: () => {
+            throw new Error("原始错误");
+        }
+    };
+    const handler = {
+        get(target, prop) {
+            if (typeof target[prop] === 'function') {
+                return function (...args) {
+                    try {
+                        return target[prop](...args);
+                    } catch (e) {
+                        throw new Error(`代理捕获：${e.message}`); // 统一包装
+                    }
+                };
+            }
+            return target[prop];
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    try {
+        proxy.riskyMethod();
+        console.error("169.1：未捕获方法错误");
+        flag = flag + 0.1;
+    } catch (e) {
+        console.log(e.message === "代理捕获：原始错误", "169.1：错误被统一包装");
+        flag = flag + 1;
+    }
+    return flag;
+}
+
+export async function testProxySyncAsyncError70() {
+    let flag = 0;
+    const target = {
+        syncError: () => {
+            throw new Error("同步错误");
+        },
+        asyncError: async () => {
+            throw new Error("异步错误");
+        }
+    };
+    const handler = {
+        get(target, prop) {
+            if (prop === 'syncError') {
+                return () => {
+                    try {
+                        return target.syncError();
+                    } catch (e) {
+                        throw new Error(`同步捕获：${e.message}`);
+                    }
+                };
+            }
+            if (prop === 'asyncError') {
+                return async () => {
+                    try {
+                        return await target.asyncError();
+                    } catch (e) {
+                        throw new Error(`异步捕获：${e.message}`);
+                    }
+                };
+            }
+            return target[prop];
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    try {
+        proxy.syncError();
+    } catch (e) {
+        console.log(e.message === "同步捕获：同步错误", "170.1：同步错误处理");
+        flag = flag + 1;
+    }
+    proxy.asyncError().catch(e => {
+        console.log(e.message === "异步捕获：异步错误", "170.2：异步错误处理");
+        flag = flag + 1;
+    });
+    await sleepms(1000);
+    return flag;
+}
+
+export async function testProxyErrorRetry71() {
+    let attempt = 0;
+    let flag = 0;
+    const target = {
+        flakyMethod: () => {
+            attempt++;
+            if (attempt < 3) {
+                throw new Error("临时失败");
+            }
+            return "成功";
+        }
+    };
+    const handler = {
+        get(target, prop) {
+            if (prop === 'flakyMethod') {
+                return async (...args) => {
+                    const maxRetries = 3;
+                    let retries = 0;
+                    while (retries < maxRetries) {
+                        try {
+                            return target.flakyMethod(...args);
+                        } catch (e) {
+                            retries++;
+                            if (retries === maxRetries) {
+                                throw e;
+                            }
+                        }
+                    }
+                };
+            }
+            return target[prop];
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    proxy.flakyMethod().then(result => {
+        if (result === "成功" && attempt === 3) {
+            flag = flag + 1;
+        }
+        console.log(result === "成功" && attempt === 3, "171.1：重试机制成功");
+    });
+    await sleepms(1000)
+    return flag;
+}
+
+export function testProxyMapIterator72() {
+    const map = new Map([['a', 1], ['b', 2]]);
+    const handler = {
+        get(target, prop) {
+            if (prop === Symbol.iterator) {
+                return () => {
+                    const iterator = target[Symbol.iterator]();
+                    return {
+                        next: () => {
+                            const result = iterator.next();
+                            return result.done ? result : { ...result, value: [result.value[0], result.value[1] * 2] };
+                        }
+                    };
+                };
+            }
+            return Reflect.get(target, prop);
+        }
+    };
+    const proxy = new Proxy(map, handler);
+
+    const entries = [...proxy];
+    console.log(entries[0][1] === 2 && entries[1][1] === 4, "172.1：Map迭代器值被修改");
+    return entries[0][1] === 2 && entries[1][1] === 4;
+}
+
+export function testGetVsGetPrototypeOf78() {
+    const target = {};
+    const proto1 = {};
+    const proto2 = {};
+    const handler = {
+        get(target, prop) {
+            if (prop === '__proto__') {
+                return proto1;
+            } // get陷阱
+        },
+        getPrototypeOf(target) {
+            return proto2; // getPrototypeOf陷阱
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    console.log(Object.getPrototypeOf(proxy) === proto2, "178.1：getPrototypeOf优先级更高");
+    console.log(proxy.__proto__ === proto2, "178.2：__proto__访问遵循getPrototypeOf");
+    return !(proxy.__proto__ === proto2);
+}
+
+export function testSetVsDefineProperty79() {
+    const target = {};
+    let setCalled = false;
+    let defineCalled = false;
+    const handler = {
+        set(target, prop, value) {
+            setCalled = true;
+            return true;
+        },
+        defineProperty(target, prop, desc) {
+            defineCalled = true;
+            return Reflect.defineProperty(target, prop, desc);
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    Object.defineProperty(proxy, 'a', { value: 1 }); // 触发defineProperty
+    console.log(defineCalled && !setCalled, "179.1：defineProperty优先于set");
+    return defineCalled && !setCalled;
+}
+
+export function testOwnKeysVsHas80() {
+    const target = { a: 1 };
+    let flag = 0;
+    const handler = {
+        ownKeys(target) {
+            return ['a', 'b'];
+        }, // 返回b（不存在）
+        has(target, prop) {
+            return prop === 'a';
+        } // 不认可b
+    };
+    const proxy = new Proxy(target, handler);
+
+    try {
+        Object.keys(proxy); // 触发ownKeys与has冲突
+        console.error("180.1：检测到ownKeys与has冲突");
+        flag = flag + 1;
+    } catch (e) {
+        console.log(e instanceof TypeError, "180.1：冲突不应抛TypeError");
+        flag = flag + 0.1;
+    }
+    return flag;
+}
+
+export function testProxyDataBinding87() {
+    const data = { name: 'Alice' };
+    const view = { element: { textContent: '' } };
+    // 数据代理：变化时更新视图
+    const dataProxy = new Proxy(data, {
+        set(target, prop, value) {
+            target[prop] = value;
+            view.element.textContent = value; // 更新视图
+            return true;
+        }
+    });
+
+    dataProxy.name = 'Bob';
+    console.log(view.element.textContent === 'Bob', "187.1：数据变化同步视图成功");
+    return view.element.textContent === 'Bob';
+}
+
+export function testProxyAccessControl88() {
+    const user = { name: 'Alice', role: 'user', salary: 10000 };
+    let flag = 0;
+    const handler = {
+        get(target, prop) {
+            // 普通用户不能访问salary
+            if (prop === 'salary' && target.role === 'user') {
+                throw new Error("无权限访问薪资");
+            }
+            return target[prop];
+        }
+    };
+    const proxy = new Proxy(user, handler);
+
+    console.log(proxy.name === 'Alice', "188.1：合法属性访问成功");
+    try {
+        proxy.salary;
+        console.error("188.2：未拦截无权限访问");
+        flag = flag + 0.1;
+    } catch (e) {
+        console.log(e.message.includes("无权限"), "188.2：无权限访问被拦截");
+        flag = flag + 1;
+    }
+    return flag;
+}
+
+export function testProxyCommandPattern89() {
+    const target = { value: 0 };
+    const history = []; // 记录操作历史
+    const handler = {
+        set(target, prop, value) {
+            if (prop === 'value') {
+                history.push({
+                    type: 'set',
+                    prop,
+                    oldValue: target[prop],
+                    newValue: value
+                });
+            }
+            target[prop] = value;
+            return true;
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    proxy.value = 1;
+    proxy.value = 2;
+    // 撤销最后一次操作
+    const lastOp = history.pop();
+    if (lastOp) {
+        target[lastOp.prop] = lastOp.oldValue;
+    }
+    console.log(target.value === 1, "189.1：命令模式支持撤销操作");
+    return target.value === 1;
+}
+
+export function testProxyArrayAt90() {
+    const arr = [10, 20, 30];
+    const handler = {
+        get(target, prop) {
+            if (prop === 'at') {
+                return (index) => {
+                    const value = target.at(index);
+                    return value ? value * 2 : value; // 加倍值
+                };
+            }
+            return Reflect.get(target, prop);
+        }
+    };
+    const proxy = new Proxy(arr, handler);
+
+    console.log(proxy.at(1) === 40 && proxy.at(-1) === 60, "190.1：at方法被拦截修改");
+    return proxy.at(1) === 40 && proxy.at(-1) === 60;
+}
+
+export function testProxyObjectHasOwn91() {
+    const target = { a: 1 };
+    const handler = {
+        getOwnPropertyDescriptor(target, prop) {
+            if (prop === 'a') {
+                return undefined;
+            } // 隐藏a的描述符
+            return Reflect.getOwnPropertyDescriptor(target, prop);
+        }
+    };
+    const proxy = new Proxy(target, handler);
+
+    console.log(!Object.hasOwn(proxy, 'a'), "191.1：Object.hasOwn受代理影响");
+    return !Object.hasOwn(proxy, 'a');
+}
+
+export function testProxyErrorCause92() {
+    const handler = {
+        construct(target, args) {
+            const [message, options] = args;
+            // 添加统一错误原因
+            return new target(message, { ...options, cause: '代理添加的原因' });
+        }
+    };
+    const ProxyError = new Proxy(Error, handler);
+
+    const err = new ProxyError("测试错误");
+    console.log(err.cause === '代理添加的原因', "192.1：错误cause被拦截修改");
+    return err.cause === '代理添加的原因';
+}
+
+export function testProxyRecursive95() {
+    let proxy; // 先声明
+    const handler = {
+        get(target, prop) {
+            if (prop === 'self') {
+                return proxy;
+            } // 返回自身
+            return target[prop];
+        }
+    };
+    proxy = new Proxy({}, handler); // 初始化代理
+
+    console.log(proxy.self === proxy, "195.1：代理可引用自身");
+    return proxy.self === proxy;
+}
+
+export function testProxySandbox100() {
+    let flag = 0;
+    const sandboxGlobal = {
+        console: {
+            log: () => {
+            }
+        }, // 受限console
+        Math: Math, // 允许Math
+        // 禁止全局变量访问
+    };
+    const handler = {
+        has: () => false, // 隐藏所有全局属性
+        get(target, prop) {
+            if (prop in target) {
+                return target[prop];
+            }
+            throw new Error(`沙箱中禁止访问${prop}`);
+        }
+    };
+    const sandboxProxy = new Proxy(sandboxGlobal, handler);
+
+    // 模拟沙箱执行代码
+    const code = `console.log(Math.PI); window;`;
+    try {
+        new Function('global', code)(sandboxProxy);
+        console.error("200.1：沙箱未阻止非法访问");
+        flag = flag + 0.1;
+    } catch (e) {
+        console.log(e.message.includes("禁止访问window"), "200.1：沙箱成功隔离");
+        flag = flag + 1;
+    }
+    return flag;
+}
