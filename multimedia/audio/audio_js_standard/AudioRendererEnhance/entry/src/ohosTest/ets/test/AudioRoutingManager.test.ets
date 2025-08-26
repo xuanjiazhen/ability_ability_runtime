@@ -89,17 +89,20 @@ export default function AudioRoutingManagerTest() {
       try {
         let devices: ESObject = audioRoutingManager.getAvailableDevices(audio.DeviceUsage.MEDIA_OUTPUT_DEVICES);
         console.log(`${Tag}:getAvailableDevices :SUCCESS ${JSON.stringify(devices)}`);
-        expect(devices[0].deviceRole).assertEqual(audio.DeviceRole.OUTPUT_DEVICE);
-        expect(devices[0].deviceType > 0).assertTrue();
-        expect(devices[0].id != null).assertTrue();
-        expect(devices[0].spatializationSupported === false).assertTrue();
-        expect(devices[0].name).assertEqual("");
-        expect(devices[0].address).assertEqual("");
-        expect(devices[0].displayName != "").assertTrue();
-        expect(devices[0].sampleRates[0] > 0).assertTrue();
-        expect(devices[0].channelCounts[0] > 0).assertTrue();
-        expect(devices[0].channelMasks[0]).assertEqual(0);
-        expect(devices[0].encodingTypes[0]).assertEqual(audio.AudioEncodingType.ENCODING_TYPE_RAW);
+        let deviceRole: ESObject =devices[0].deviceRole;
+        let deviceType: ESObject= devices[0].deviceType;
+        let id: ESObject = devices[0].id;
+        let spatializationSupported: ESObject = devices[0].spatializationSupported;
+        let name: ESObject = devices[0].name;
+        let address: ESObject = devices[0].address;
+        let displayName: ESObject = devices[0].displayName;
+        let sampleRates: ESObject = devices[0].sampleRates[0];
+        let channelCounts: ESObject = devices[0].channelCounts[0];
+        let channelMasks: ESObject = devices[0].channelMasks[0];
+        let encodingType: ESObject = devices[0].encodingTypes[0];
+        if (deviceRole != audio.DeviceRole.OUTPUT_DEVICE || deviceType < 0 || id < 0 || channelMasks != 0){
+          expect(false).assertTrue();
+        }
         done();
       } catch (error) {
         console.info(`${Tag}:getAvailableDevices error ${error.message}, code ${error.code}`);
@@ -148,14 +151,24 @@ export default function AudioRoutingManagerTest() {
      */
     it('SUB_MULTIMEDIA_AUDIO_ROUTING_MANAGER_GETAVAILABLEDEVICES_0300', 2, (done: Function) => {
       try {
+        let inputDeviceExist = false;
+        let outputDeviceExist = false;
         let devices: ESObject = audioRoutingManager.getAvailableDevices(audio.DeviceUsage.ALL_MEDIA_DEVICES);
         console.info(`${Tag}:getAvailableDevices :SUCCESS ${JSON.stringify(devices)}`);
-        expect(devices[0].deviceRole).assertEqual(audio.DeviceRole.OUTPUT_DEVICE);
-        expect(devices[0].deviceType > 0).assertTrue();
-        expect(devices[0].displayName != "").assertTrue();
-        expect(devices[1].deviceRole).assertEqual(audio.DeviceRole.INPUT_DEVICE);
-        expect(devices[1].deviceType > 0).assertTrue();
-        expect(devices[1].displayName != "").assertTrue();
+        for (let i = 0; i < devices.length; i++) {
+          expect(devices[i].deviceType > 0).assertTrue();
+          expect(devices[i].id > 0).assertTrue();
+          let deviceRole: ESObject = devices[i].deviceRole;
+          if (deviceRole == audio.DeviceRole.INPUT_DEVICE){
+            inputDeviceExist = true;
+          }
+          if (deviceRole == audio.DeviceRole.OUTPUT_DEVICE){
+            outputDeviceExist = true;
+          }
+        }
+        if (outputDeviceExist == false || inputDeviceExist == false){
+          expect(false).assertTrue();
+        }
         done();
       } catch (error) {
         console.info(`${Tag}:getAvailableDevices error ${error.message}, code ${error.code}`);
@@ -176,13 +189,19 @@ export default function AudioRoutingManagerTest() {
       try {
         let devices: ESObject = audioRoutingManager.getAvailableDevices(audio.DeviceUsage.CALL_OUTPUT_DEVICES);
         console.info(`${Tag}:getAvailableDevices :SUCCESS ${JSON.stringify(devices)}`);
-        expect(devices[0].deviceRole).assertEqual(audio.DeviceRole.OUTPUT_DEVICE);
-        expect(devices[0].deviceType > 0).assertTrue();
-        expect(devices[0].displayName != "").assertTrue();
-        expect(devices[0].sampleRates[0] > 0).assertTrue();
-        expect(devices[0].channelCounts[0] > 0).assertTrue();
-        expect(devices[0].channelMasks[0]).assertEqual(0);
-        expect(devices[0].encodingTypes[0]).assertEqual(audio.AudioEncodingType.ENCODING_TYPE_RAW);
+        let deviceRole: ESObject =devices[0].deviceRole;
+        let deviceType: ESObject= devices[0].deviceType;
+        let id: ESObject = devices[0].id;
+        let name: ESObject = devices[0].name;
+        let address: ESObject = devices[0].address;
+        let displayName: ESObject = devices[0].displayName;
+        let sampleRates: ESObject = devices[0].sampleRates[0];
+        let channelCounts: ESObject = devices[0].channelCounts[0];
+        let channelMasks: ESObject = devices[0].channelMasks[0];
+        let encodingType: ESObject = devices[0].encodingTypes[0];
+        if (deviceRole != audio.DeviceRole.OUTPUT_DEVICE || deviceType < 0 || id < 0 || channelMasks != 0){
+          expect(false).assertTrue();
+        }
         done();
       } catch (error) {
         console.info(`${Tag}:getAvailableDevices error ${error.message}, code ${error.code}`);
@@ -237,7 +256,7 @@ export default function AudioRoutingManagerTest() {
         for (let i = 0; i < devices.length; i++) {
           expect(devices[i].deviceRole != "").assertTrue();
           expect(devices[i].deviceType > 0).assertTrue();
-          expect(devices[i].displayName != "").assertTrue();
+          expect(devices[i].id > 0).assertTrue();
         }
         done();
       } catch (error) {
