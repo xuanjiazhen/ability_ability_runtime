@@ -172,6 +172,153 @@ export default function napiCheckExTest() {
       // 所有测试通过应该返回 0 (napi_ok)
       expect(comparisonResult).assertDeepEquals(1);
     })
+
+    /**
+     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_ARRAYBUFFER_0001
+     * @tc.name      : testArrayBufferTest0001
+     * @tc.desc      : Testing NapiWrapEnhanceTest multi object binding testing.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('testArrayBufferTest0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      console.info('testArrayBufferTest0001 START');
+      try {
+        let result:boolean = napitestex.NapiArrayBufferTest01();
+        console.info('testArrayBufferTest0001 test result: ' + result);
+        expect(result).assertEqual(true);
+      } catch (err) {
+        console.error(`testArrayBufferTest0001 err msg: ${err.message}`);
+        expect().assertFail();
+      }
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_ARRAYBUFFER_0002
+     * @tc.name      : testArrayBufferTest0002
+     * @tc.desc      : Testing ArrayBuffer creation and basic operations.
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('testArrayBufferTest0002', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL1, async (done: Function) => {
+      console.info('testArrayBufferTest0002 START');
+      try {
+        const result: boolean = napitestex.NapiArrayBufferTest02();
+        console.info('testArrayBufferTest0002 test result: ' + result);
+        expect(result).assertEqual(true);
+      } catch (err) {
+        console.error(`testArrayBufferTest0002 err msg: ${err.message}`);
+        expect().assertFail();
+      }
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_ARRAYBUFFER_0003
+     * @tc.name      : testArrayBufferTest0003
+     * @tc.desc      : Testing ArrayBuffer data writing and verification.
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('testArrayBufferTest0003', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL1, async (done: Function) => {
+      console.info('testArrayBufferTest0003 START');
+      try {
+        const result: boolean = napitestex.NapiArrayBufferTest04();
+        console.info('testArrayBufferTest0003 test result: ' + result);
+        expect(result).assertEqual(true);
+      } catch (err) {
+        console.error(`testArrayBufferTest0003 err msg: ${err.message}`);
+        expect().assertFail();
+      }
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_ARRAYBUFFER_0004
+     * @tc.name      : testArrayBufferTest0004
+     * @tc.desc      : Testing ArrayBuffer detach operations.
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('testArrayBufferTest0004', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL1, async (done: Function) => {
+      console.info('testArrayBufferTest0004 START');
+      try {
+        const result: boolean = napitestex.NapiArrayBufferTest04();
+        console.info('testArrayBufferTest0004 test result: ' + result);
+        expect(result).assertEqual(true);
+      } catch (err) {
+        console.error(`testArrayBufferTest0004 err msg: ${err.message}`);
+        expect().assertFail();
+      }
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_ARRAYBUFFER_0005
+     * @tc.name      : testArrayBufferTest0005
+     * @tc.desc      : Testing zero-length ArrayBuffer operations.
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('testArrayBufferTest0005', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL1, async (done: Function) => {
+      console.info('testArrayBufferTest0005 START');
+      try {
+        const result: boolean = napitestex.NapiArrayBufferTest05();
+        console.info('testArrayBufferTest0005 test result: ' + result);
+        expect(result).assertEqual(true);
+      } catch (err) {
+        console.error(`testArrayBufferTest0005 err msg: ${err.message}`);
+        expect().assertFail();
+      }
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_ARRAYBUFFER_0006
+     * @tc.name      : testArrayBufferTest0006
+     * @tc.desc      : Testing ArrayBuffer multiple detach operations.
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('testArrayBufferTest0006', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL1, async (done: Function) => {
+      console.info('testArrayBufferTest0006 START');
+      try {
+        const result: boolean = napitestex.NapiArrayBufferTest06();
+        console.info('testArrayBufferTest0006 test result: ' + result);
+        expect(result).assertEqual(true);
+      } catch (err) {
+        console.error(`testArrayBufferTest0006 err msg: ${err.message}`);
+        expect().assertFail();
+      }
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_ARRAYBUFFER_0007
+     * @tc.name      : testArrayBufferTest0007
+     * @tc.desc      : Testing ArrayBuffer thread safety operations.
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('testArrayBufferTest0007', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL1, async (done: Function) => {
+      console.info('testArrayBufferThreadSafety START');
+      try {
+        const result: boolean = napitestex.NapiArrayBufferTest07();
+        console.info('ArrayBuffer thread safety test result: ' + result);
+        expect(result).assertEqual(true);
+      } catch (err) {
+        console.error(`ArrayBuffer thread safety test failed: ${err.message}`);
+        expect().assertFail();
+      }
+      done();
+    });
   })
 
 }
