@@ -17,8 +17,11 @@ import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@oh
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
+const EVENT_ID_SET_EIMIT_KEY = 142016;
+const driver = Driver.create();
 
 export default function webController() {
 
@@ -35,7 +38,6 @@ export default function webController() {
         if (!("webController" == pages.name)) {
           console.info("get webController state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push webController page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -50,7 +52,6 @@ export default function webController() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("webController beforeEach start");
       done();
     })
@@ -65,10 +66,9 @@ export default function webController() {
     * @tc.level      : Level 0
     */
     it('testStop001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent("testStop001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testStop001", true, 31007, done);
-      sendEventByKey('WebControllerButton', 10, '');
+      Utils.emitEvent("testStop001", EVENT_ID_SET_EIMIT_KEY)
+      Utils.registerEvent("testStop001", true, 142026, done);
+      Utils.waitAndClickComponent(driver, "WebControllerButton");
     })
 
   })

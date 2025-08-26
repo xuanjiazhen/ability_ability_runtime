@@ -17,8 +17,11 @@ import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@oh
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
+const EVENT_ID_SET_EIMIT_KEY = 142015;
+const driver = Driver.create();
 
 export default function httpAuthHandler() {
 
@@ -35,7 +38,6 @@ export default function httpAuthHandler() {
         if (!("httpAuthHandler" == pages.name)) {
           console.info("get httpAuthHandler state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push httpAuthHandler page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -50,39 +52,8 @@ export default function httpAuthHandler() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("httpAuthHandler beforeEach start");
       done();
-    })
-
-    /*
-    * @tc.number     : SUB_WEB_HTTPAUTHHANDLER_CANCEL_0100
-    * @tc.name       : testHttpAuthHandlerCancel001
-    * @tc.desc       : test HttpAuthHandler cancel
-    * @tc.size       : MediumTest
-    * @tc.type       : Function
-    * @tc.level      : Level 1
-    */
-    it('testHttpAuthHandlerCancel001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHttpAuthHandlerCancel001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHttpAuthHandlerCancel001", 401, 32041, done);
-      sendEventByKey('HttpAuthHandlerButton', 10, '');
-    })
-
-    /*
-    * @tc.number     : SUB_WEB_HTTPAUTHHANDLER_CONFIRM_0100
-    * @tc.name       : testHttpAuthHandlerConfirm001
-    * @tc.desc       : test HttpAuthHandler confirm
-    * @tc.size       : MediumTest
-    * @tc.type       : Function
-    * @tc.level      : Level 1
-    */
-    it('testHttpAuthHandlerConfirm001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHttpAuthHandlerConfirm001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHttpAuthHandlerConfirm001", true, 32040, done);
-      sendEventByKey('HttpAuthHandlerButton', 10, '');
     })
 
     /*
@@ -94,10 +65,47 @@ export default function httpAuthHandler() {
     * @tc.level      : Level 1
     */
     it('testHttpAuthHandlerIsHttpAuthInfoSaved001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHttpAuthHandlerIsHttpAuthInfoSaved001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHttpAuthHandlerIsHttpAuthInfoSaved001", false, 32042, done);
-      sendEventByKey('HttpAuthHandlerButton', 10, '');
+      Utils.emitEvent("testHttpAuthHandlerIsHttpAuthInfoSaved001", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("testHttpAuthHandlerIsHttpAuthInfoSaved001", false, 142045, () => {isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "HttpAuthHandlerButton");
+      await Utils.waitForExist(()=>isReturn, "testHttpAuthHandlerIsHttpAuthInfoSaved001_checkReturn", 1);
+      done();
+    })
+
+
+    /*
+    * @tc.number     : SUB_WEB_HTTPAUTHHANDLER_CANCEL_0100
+    * @tc.name       : testHttpAuthHandlerCancel001
+    * @tc.desc       : test HttpAuthHandler cancel
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 1
+    */
+    it('testHttpAuthHandlerCancel001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      Utils.emitEvent("testHttpAuthHandlerCancel001", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("testHttpAuthHandlerCancel001", 401, 142025, () => {isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "HttpAuthHandlerButton");
+      await Utils.waitForExist(()=>isReturn, "testHttpAuthHandlerCancel001_checkReturn", 1);
+      done();
+    })
+
+    /*
+    * @tc.number     : SUB_WEB_HTTPAUTHHANDLER_CONFIRM_0100
+    * @tc.name       : testHttpAuthHandlerConfirm001
+    * @tc.desc       : test HttpAuthHandler confirm
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 1
+    */
+    it('testHttpAuthHandlerConfirm001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      Utils.emitEvent("testHttpAuthHandlerConfirm001", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("testHttpAuthHandlerConfirm001", true, 142035, () => {isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "HttpAuthHandlerButton");
+      await Utils.waitForExist(()=>isReturn, "testHttpAuthHandlerConfirm001_checkReturn", 1);
+      done();
     })
 
   })
