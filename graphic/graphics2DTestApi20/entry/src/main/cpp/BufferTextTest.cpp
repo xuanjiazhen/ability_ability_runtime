@@ -64,7 +64,6 @@ void addBufferTextTest1(std::vector<napi_property_descriptor>& descData)
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"nativeBuffer_PlanesSuccess2", nullptr, OH_NativeBuffer_PlanesSuccess2,
             nullptr, nullptr, nullptr, napi_default, nullptr});
-
 }
 void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
 {
@@ -524,7 +523,7 @@ napi_value BufferHandleReserve(napi_env env, napi_callback_info info)
 OH_NativeBuffer_Planes newPlanes()
 {
     OH_NativeBuffer_Planes p;
-    p.planeCount = 4; // four plan
+    p.planeCount = 0;
     for (int i = 0; i < p.planeCount; i++) {
         p.planes[i].columnStride = 0;
         p.planes[i].offset = 0;
@@ -552,7 +551,7 @@ napi_value OH_NativeBuffer_PlanesSuccess(napi_env env, napi_callback_info info)
     
     OHNativeWindowBuffer *windowBuffer = nullptr;
     int fd;
-    int pCount = 4;
+    int pCount = 0;
     float matrix[16] = {
         0, -0.5, 0, 0,
         -0.5, 0, 0, 0,
