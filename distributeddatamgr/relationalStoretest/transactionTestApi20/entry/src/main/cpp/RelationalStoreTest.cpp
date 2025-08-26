@@ -25,9 +25,9 @@
 
 namespace RelationalStoreTest {
 const char *RDB_TEST = "/data/storage/el2/database/com.acts.acttransactiontest/";
-char RDB_STORE_NAME[20] = "rdb_store_test.db";
-char BUNDLE_NAME[100] = "com.acts.acttransactiontest";
-char MODULE_NAME[100] = "";
+char g_storeName[20] = "rdb_store_test.db";
+char g_bundleName[100] = "com.acts.acttransactiontest";
+char g_moduleName[100] = "";
 OH_Rdb_Config RDB_CONFIG;
 } // namespace RelationalStoreTest
 
@@ -38,10 +38,10 @@ int g_notSupportedCode = 801;
 void InitRdbConfig()
 {
     RelationalStoreTest::RDB_CONFIG.dataBaseDir = RelationalStoreTest::RDB_TEST;
-    RelationalStoreTest::RDB_CONFIG.storeName = RelationalStoreTest::RDB_STORE_NAME;
-    RelationalStoreTest::RDB_CONFIG.bundleName = RelationalStoreTest::BUNDLE_NAME;
+    RelationalStoreTest::RDB_CONFIG.storeName = RelationalStoreTest::g_storeName;
+    RelationalStoreTest::RDB_CONFIG.bundleName = RelationalStoreTest::g_bundleName;
     ;
-    RelationalStoreTest::RDB_CONFIG.moduleName = RelationalStoreTest::MODULE_NAME;
+    RelationalStoreTest::RDB_CONFIG.moduleName = RelationalStoreTest::g_moduleName;
     RelationalStoreTest::RDB_CONFIG.securityLevel = OH_Rdb_SecurityLevel::S1;
     RelationalStoreTest::RDB_CONFIG.isEncrypt = false;
     RelationalStoreTest::RDB_CONFIG.selfSize = sizeof(OH_Rdb_Config);
@@ -973,9 +973,9 @@ napi_value TestBackupInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1019,9 +1019,9 @@ napi_value TestBackupSuccess(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1065,9 +1065,9 @@ napi_value TestRestoreInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1118,9 +1118,9 @@ napi_value TestRestoreSuccess(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1169,9 +1169,9 @@ napi_value TestGetVersionInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1198,9 +1198,9 @@ napi_value TestGetVersionSuccess(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1227,9 +1227,9 @@ napi_value TestSetVersionInvalidParam(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);
@@ -1256,9 +1256,9 @@ napi_value TestSetVersionSuccess(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2_ = nullptr;
     configV2_ = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2_, RelationalStoreTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2_, RelationalStoreTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2_, RelationalStoreTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2_, RelationalStoreTest::g_moduleName);
     OH_Rdb_SetDbType(configV2_, RDB_SQLITE);
     OH_Rdb_SetEncrypted(configV2_, false);
     OH_Rdb_SetSecurityLevel(configV2_, OH_Rdb_SecurityLevel::S1);

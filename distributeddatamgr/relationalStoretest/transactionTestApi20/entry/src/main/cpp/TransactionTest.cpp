@@ -31,18 +31,18 @@ int g_tSErrorCode = 14800000;
 
 namespace TransactionTest {
 const char *RDB_TEST = "/data/storage/el2/database/com.acts.acttransactiontest/";
-char RDB_STORE_NAME[20] = "rdb_store_test.db";
-char BUNDLE_NAME[100] = "com.acts.acttransactiontest";
-char MODULE_NAME[100] = "";
+char g_storeName[20] = "rdb_store_test.db";
+char g_bundleName[100] = "com.acts.acttransactiontest";
+char g_moduleName[100] = "";
 OH_Rdb_Config RDB_CONFIG;
 } // namespace TransactionTest
 
 void InitRdbTransConfigV2(OH_Rdb_ConfigV2 *configV2)
 {
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -165,9 +165,9 @@ napi_value TestCommitTransDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -236,9 +236,9 @@ napi_value TestTransRollbackDatabaseClosed(napi_env env, napi_callback_info info
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -311,9 +311,9 @@ napi_value TestInsertDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -364,9 +364,9 @@ napi_value TestTransInsertError(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -416,9 +416,9 @@ napi_value TestTransInsertWithConflictResolutionSuccess(napi_env env, napi_callb
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -470,9 +470,9 @@ napi_value TestInsertWithConflictResolutionError(napi_env env, napi_callback_inf
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -525,9 +525,9 @@ napi_value TestInsertWithConflictResolutionDatabaseClosed(napi_env env, napi_cal
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -602,9 +602,9 @@ napi_value TestTransBatchInsertError(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -662,9 +662,9 @@ napi_value TestTransBatchInsertDatabaseClosed(napi_env env, napi_callback_info i
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -765,9 +765,9 @@ napi_value TestTransUpdateError(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -834,9 +834,9 @@ napi_value TestTransUpdateDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -1112,9 +1112,9 @@ napi_value TestTransDeleteDatabaseClosed(napi_env env, napi_callback_info info)
     napi_value result;
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -1187,9 +1187,9 @@ napi_value TestTransExecuteError(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -1255,9 +1255,9 @@ napi_value TestTransExecuteDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
 
     OH_Rdb_SetDatabaseDir(configV2, TransactionTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, TransactionTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, TransactionTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, TransactionTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, TransactionTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, TransactionTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, TransactionTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);

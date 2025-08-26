@@ -30,18 +30,18 @@ int g_rNoRowInQueryCode = 14800018;
 
 namespace RdbErrorCodeTest {
     const char* RDB_TEST = "/data/storage/el2/database/com.acts.acttransactiontest/";
-    char RDB_STORE_NAME[20] = "rdb_store_test.db";
-    char BUNDLE_NAME[100] = "com.acts.acttransactiontest";
-    char MODULE_NAME[100] = "";
+    char g_storeName[20] = "rdb_store_test.db";
+    char g_bundleName[100] = "com.acts.acttransactiontest";
+    char g_moduleName[100] = "";
     OH_Rdb_Config RDB_CONFIG;
 }
 
 void InitRdbErrorCodeConfig()
 {
     RdbErrorCodeTest::RDB_CONFIG.dataBaseDir = RdbErrorCodeTest::RDB_TEST;
-    RdbErrorCodeTest::RDB_CONFIG.storeName = RdbErrorCodeTest::RDB_STORE_NAME;
-    RdbErrorCodeTest::RDB_CONFIG.bundleName = RdbErrorCodeTest::BUNDLE_NAME;
-    RdbErrorCodeTest::RDB_CONFIG.moduleName = RdbErrorCodeTest::MODULE_NAME;
+    RdbErrorCodeTest::RDB_CONFIG.storeName = RdbErrorCodeTest::g_storeName;
+    RdbErrorCodeTest::RDB_CONFIG.bundleName = RdbErrorCodeTest::g_bundleName;
+    RdbErrorCodeTest::RDB_CONFIG.moduleName = RdbErrorCodeTest::g_moduleName;
     RdbErrorCodeTest::RDB_CONFIG.securityLevel = OH_Rdb_SecurityLevel::S1;
     RdbErrorCodeTest::RDB_CONFIG.isEncrypt = false;
     RdbErrorCodeTest::RDB_CONFIG.selfSize = sizeof(OH_Rdb_Config);
@@ -50,9 +50,9 @@ void InitRdbErrorCodeConfig()
 void InitRdbErrorCodeConfigV2(OH_Rdb_ConfigV2 *configV2)
 {
     OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -108,9 +108,9 @@ napi_value TestEmptyTableName(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
     
     OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -196,9 +196,9 @@ napi_value TestNoRowInQuery(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
     
     OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
@@ -235,9 +235,9 @@ napi_value TestNoTransactionInSession(napi_env env, napi_callback_info info)
     OH_Rdb_ConfigV2 *configV2 = OH_Rdb_CreateConfig();
     
     OH_Rdb_SetDatabaseDir(configV2, RdbErrorCodeTest::RDB_TEST);
-    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::RDB_STORE_NAME);
-    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::BUNDLE_NAME);
-    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::MODULE_NAME);
+    OH_Rdb_SetStoreName(configV2, RdbErrorCodeTest::g_storeName);
+    OH_Rdb_SetBundleName(configV2, RdbErrorCodeTest::g_bundleName);
+    OH_Rdb_SetModuleName(configV2, RdbErrorCodeTest::g_moduleName);
     OH_Rdb_SetEncrypted(configV2, false);
     OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
     OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
