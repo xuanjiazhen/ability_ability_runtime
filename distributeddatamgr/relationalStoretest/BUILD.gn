@@ -28,6 +28,7 @@ group("relationalStoretest") {
       "relationalStoreSendabletest:relationalstoreSendable_ets_test",
       "relationalStoreStagetest:relationalstore_ets_test",
       "relationalStoreTestApi20:ActsRelationalStoreTest",
+      "transactionTestApi20:ActTransActionTest"
     ]
   }
 }
