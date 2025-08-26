@@ -27,4 +27,5 @@ ohos_js_app_suite("ActsGraphics2DApi20Test") {
   hap_name = "ActsGraphics2DApi20Test"
   subsystem_name = "graphic"
   part_name = "graphic_2d"
+  deps = [ ":ActsGraphics2DApi20MainTest" ]
 }
