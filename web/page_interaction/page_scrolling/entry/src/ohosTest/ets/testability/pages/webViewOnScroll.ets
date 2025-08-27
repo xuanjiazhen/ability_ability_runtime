@@ -24,6 +24,7 @@ import web_webview from '@ohos.web.webview';
 @Component
 struct webViewOnScroll {
   controller: web_webview.WebviewController = new web_webview.WebviewController();
+  @State webHeight: number = 0
   @State str: string = "emitOnscroll";
   @State textX: number = 100;
   @State textY: number = 100;
@@ -44,6 +45,9 @@ struct webViewOnScroll {
   @State checkEleResult: number[] = [];
   @State databaseAccess: boolean = true;
   @State flag: boolean = false;
+  @State isWebBottom:Boolean = false;
+  @State isWebTop:Boolean = false;
+
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
 
@@ -62,6 +66,34 @@ struct webViewOnScroll {
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
       }
+    }
+  }
+
+  getWebHeight() {
+    try {
+      this.controller?.runJavaScriptExt('window.innerHeight',
+        (error, result) => {
+          if (error || !result) {
+            return;
+          }
+          if (result.getType() === web_webview.JsMessageType.NUMBER) {
+            this.webHeight = result.getNumber()
+          }
+        })
+    } catch (error) {
+    }
+  }
+
+  checkScrollPosition() {
+    console.log("y:" + this.controller.getScrollOffset().y + ",webHeight :" + this.webHeight + ",getPageHeight:" +
+    this.controller.getPageHeight());
+    if (this.controller.getScrollOffset().y + this.webHeight >= this.controller.getPageHeight()) {
+      this.isWebBottom = true;
+      console.log("页面已经滑动到底部");
+    }
+    else if(this.controller.getScrollOffset().y == 0) {
+      this.isWebTop = true;
+      console.log("页面已经滑动到顶部");
     }
   }
 
@@ -165,59 +197,32 @@ struct webViewOnScroll {
             }
             case "emitpageDownAgain": {
               try {
-                this.controller.runJavaScript("checkVIsible()", (error, result) => {
-                  this.checkEleResult = JSON.parse(result)
-                  console.log(`The checkVIsible() return value is: ${result}`);
-                })
                 this.controller.pageDown(true);
                 await Utils.sleep(3000)
-                this.controller.runJavaScript("checkVIsible()", (error, result) => {
-                  this.checkEleResultAgain = JSON.parse(result)
-                  console.log(`The checkVIsible() again return value is: ${result}`);
-                  if ((JSON.parse(result)[1] / 2) < JSON.parse(result)[3] && JSON.parse(result)[3] <
-                  JSON.parse(result)[1]) {
-                    this.pageResult = true;
-                    console.log('emitpageDownAgain result is :' + this.pageResult);
-                  } else {
-                    this.pageResult = false;
-                    console.log('emitpageDownAgain result is :' + this.pageResult);
-                  }
-                })
+                if (this.isWebBottom) {
+                  console.log("页面已经滑动到底部");
+                  Utils.emitEvent(true, 110)
+                } else {
+                  Utils.emitEvent(false, 110)
+                }
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                this.pageResult = false;
               }
-              this.controller.runJavaScript("test()", (res) => {
-                Utils.emitEvent(this.pageResult, 110)
-              })
               break;
             }
             case "emitpageUpAgain": {
               try {
-                this.controller.runJavaScript("checkVIsible()", (error, result) => {
-                  this.checkEleResult = JSON.parse(result)
-                  console.log(`The checkVIsible() return value is: ${result}`);
-                })
-                this.controller.pageUp(true);
-                await Utils.sleep(3000)
-                this.controller.runJavaScript("checkVIsible()", (error, result) => {
-                  this.checkEleResultAgain = JSON.parse(result)
-                  console.log(`The checkVIsible() again return value is: ${result}`);
-                  if (JSON.parse(result)[3] == 0 && this.checkEleResult[3] > (JSON.parse(result)[1] / 2)) {
-                    this.pageResult = true;
-                    console.log('emitpageUpAgain result is :' + this.pageResult);
+                  this.controller.pageUp(true);
+                  await Utils.sleep(3000)
+                  if (this.isWebTop) {
+                    console.log("页面已经滑动到顶部");
+                    Utils.emitEvent(true, 112);
                   } else {
-                    this.pageResult = false;
-                    console.log('emitpageUpAgain result is :' + this.pageResult);
+                    Utils.emitEvent(false, 112);
                   }
-                })
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                this.pageResult = false;
               }
-              this.controller.runJavaScript("test()", (res) => {
-                Utils.emitEvent(this.pageResult, 112)
-              })
               break;
             }
           }
@@ -233,6 +238,7 @@ struct webViewOnScroll {
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
         .onScroll((event) => {
+          this.checkScrollPosition();
           if(this.flag){
             console.info("x = " + event.xOffset + this.firstId)
             Utils.emitEvent(event.xOffset, this.firstId)
