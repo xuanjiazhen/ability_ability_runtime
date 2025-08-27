@@ -44,9 +44,12 @@ napi_value AttachWantAgentFunc(napi_env env, void *value, void *)
         TAG_LOGI(AAFwkTag::WANTAGENT, "wantAgent not support multi thread current");
         return jsObject;
     }
-
-    auto wantAgent = new (std::nothrow) AbilityRuntime::WantAgent::WantAgent(
-        reinterpret_cast<AbilityRuntime::WantAgent::WantAgent*>(value)->GetPendingWant());
+    auto ptr = reinterpret_cast<std::weak_ptr<AbilityRuntime::WantAgent::WantAgent> *>(value)->lock();
+    if (ptr == nullptr) {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "get wantAgent failed");
+        return jsObject;
+    }
+    auto wantAgent = new (std::nothrow) std::weak_ptr<AbilityRuntime::WantAgent::WantAgent>(ptr);
     if (wantAgent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "new wantAgent failed");
         return jsObject;
@@ -86,6 +89,12 @@ napi_value AttachWantAgentFunc(napi_env env, void *value, void *)
     return result;
 }
 
+void DetachFinalizeWantAgent(void* detachedObject, void*)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "Finalizer detached ability context");
+    delete static_cast<std::weak_ptr<AbilityRuntime::WantAgent::WantAgent> *>(detachedObject);
+}
+
 napi_value WrapWantAgent(napi_env env, AbilityRuntime::WantAgent::WantAgent* wantAgent, napi_finalize finalizeCb)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "called");
@@ -110,8 +119,9 @@ napi_value WrapWantAgent(napi_env env, AbilityRuntime::WantAgent::WantAgent* wan
         return nullptr;
     }
 
-    napi_coerce_to_native_binding_object(env, result, DetachCallbackFunc, AttachWantAgentFunc, wantAgent, nullptr);
-
+    auto weakAgent = new (std::nothrow) std::weak_ptr<AbilityRuntime::WantAgent::WantAgent>(wantAgent->shared_from_this());
+    napi_coerce_to_native_binding_object(env, result, DetachCallbackFunc, AttachWantAgentFunc, weakAgent, nullptr);
+    napi_add_detached_finalizer(env, result, DetachFinalizeWantAgent, nullptr);
     napi_finalize finalize = [](napi_env env, void* data, void* hint) {
         TAG_LOGD(AAFwkTag::WANTAGENT, "delete wantAgent");
         if (data != nullptr) {
@@ -124,9 +134,10 @@ napi_value WrapWantAgent(napi_env env, AbilityRuntime::WantAgent::WantAgent* wan
         finalize = finalizeCb;
     }
 
-    auto res = napi_wrap(env, result, reinterpret_cast<void*>(wantAgent), finalize, nullptr, nullptr);
+    auto res = napi_wrap(env, result, reinterpret_cast<void*>(weakAgent), finalize, nullptr, nullptr);
     if (res != napi_ok && wantAgent != nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "napi_wrap failed:%{public}d", res);
+        delete weakAgent;
         return nullptr;
     }
     return result;
