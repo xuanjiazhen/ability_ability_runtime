@@ -28,7 +28,7 @@ napi_value StartSelfUIAbilityPermissionDenied(napi_env env, napi_callback_info i
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
-    element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
+    element.bundleName = const_cast<char *>("com.acts.actscapinopermissiontest");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
@@ -49,7 +49,7 @@ napi_value StartSelfUIAbilityWithStartOptionsPermissionDenied(napi_env env, napi
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
-    element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
+    element.bundleName = const_cast<char *>("com.acts.actscapinopermissiontest");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
@@ -70,7 +70,7 @@ napi_value AbilityRuntimeErrorCodePermissionDeniedCode(napi_env env, napi_callba
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
-    element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
+    element.bundleName = const_cast<char *>("com.acts.actscapinopermissiontest");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);

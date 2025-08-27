@@ -27,7 +27,7 @@ napi_value StartSelfUIAbilityWithStartOptionsInstanceNotSupport(napi_env env, na
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
-    element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
+    element.bundleName = const_cast<char *>("com.acts.actscapimulinstancenotsupport");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     OH_AbilityBase_SetWantBoolParam(want, "ohos.extra.param.key.createAppInstance", true);
@@ -50,11 +50,12 @@ napi_value AbiliRuntimeErrorMultiInstanceNotSupportCode(napi_env env, napi_callb
 {
     AbilityBase_Element element;
     element.abilityName = const_cast<char *>("EntryAbility");
-    element.bundleName = const_cast<char *>("com.acts.actscapistartselfuiabilitytest20test");
+    element.bundleName = const_cast<char *>("com.acts.actscapimulinstancenotsupport");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     OH_AbilityBase_SetWantBoolParam(want, "ohos.extra.param.key.createAppInstance", true);
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
+    AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
     if (ret == ABILITY_RUNTIME_ERROR_MULTI_INSTANCE_NOT_SUPPORTED) {
         napi_value napiRet;

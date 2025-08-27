@@ -61,7 +61,8 @@ napi_value AbilityRuntimeErrorCodeMultiAppNotSupportCode(napi_env env, napi_call
     const char* key = "ohos.extra.param.key.appInstance";
     const char* value = "app_instance_0";
     OH_AbilityBase_SetWantCharParam(want, key, value);
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbility(want);
+    AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(want, options);
     OH_AbilityBase_DestroyWant(want);
     if (ret == ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED) {
         napi_value napiRet;

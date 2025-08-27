@@ -254,7 +254,11 @@ napi_property_descriptor desc[] = {
     {"AbilityRuntimeErrorCodeUpperLimitReachedCode",
         nullptr, AbilityRuntimeErrorCodeUpperLimitReachedCode, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"AbilityRuntimeErrorAppInstanceKeyNotSupportCode",
-        nullptr, AbilityRuntimeErrorAppInstanceKeyNotSupportCode, nullptr, nullptr, nullptr, napi_default, nullptr}
+        nullptr, AbilityRuntimeErrorAppInstanceKeyNotSupportCode, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"ApplicationContextGetVersionCodeNoError",
+        nullptr, ApplicationContextGetVersionCodeNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"ApplicationContextGetVersionCodeParamInvalid",
+        nullptr, ApplicationContextGetVersionCodeParamInvalid, nullptr, nullptr, nullptr, napi_default, nullptr}
 };
 
 EXTERN_C_START

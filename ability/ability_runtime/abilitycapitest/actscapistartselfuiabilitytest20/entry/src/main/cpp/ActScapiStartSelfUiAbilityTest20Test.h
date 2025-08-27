@@ -136,5 +136,7 @@ napi_value AbilityRuntimeErrorVisibilitySettingDisabledCode(napi_env env, napi_c
 napi_value AbilityRuntimeErrorCodeInvalidAppInstanceKeyCode(napi_env env, napi_callback_info info);
 napi_value AbilityRuntimeErrorCodeUpperLimitReachedCode(napi_env env, napi_callback_info info);
 napi_value AbilityRuntimeErrorAppInstanceKeyNotSupportCode(napi_env env, napi_callback_info info);
+napi_value ApplicationContextGetVersionCodeNoError(napi_env env, napi_callback_info info);
+napi_value ApplicationContextGetVersionCodeParamInvalid(napi_env env, napi_callback_info info);
 
 #endif //ACTSCAPISTARTSELFUIABILITYTEST20_ACTSCAPISTARTSELFUIABILITYTEST20TEST_H
