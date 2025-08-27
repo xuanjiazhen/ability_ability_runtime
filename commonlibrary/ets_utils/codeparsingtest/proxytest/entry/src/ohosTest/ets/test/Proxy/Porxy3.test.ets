@@ -617,8 +617,6 @@ export default function proxy3Test() {
     it('proxy3Test059', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
       let result: boolean = testProxyStateMachine59();
       expect(result).assertEqual(true);
-
     });
-
   })
 }
