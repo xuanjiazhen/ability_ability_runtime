@@ -13,8 +13,8 @@
 * limitations under the License.
 */
 
-#ifndef OHOS_ABILITY_RUNTIME_UDMF_UTIL_H
-#define OHOS_ABILITY_RUNTIME_UDMF_UTIL_H
+#ifndef OHOS_ABILITY_RUNTIME_UDMF_UTIL_MOCK_H
+#define OHOS_ABILITY_RUNTIME_UDMF_UTIL_MOCK_H
 
 #include <cstdint>
 #include <string>
@@ -30,4 +30,4 @@ private:
 };
 } // AAFwk
 } // OHOS
-#endif // OHOS_ABILITY_RUNTIME_UDMF_UTIL_H
+#endif // OHOS_ABILITY_RUNTIME_UDMF_UTIL_MOCK_H
