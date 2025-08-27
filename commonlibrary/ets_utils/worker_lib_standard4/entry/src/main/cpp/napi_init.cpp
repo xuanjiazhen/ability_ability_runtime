@@ -71,16 +71,13 @@ static void *CreateArkRuntimeFunc(void *arg)
     std::mutex mutexlock;
     std::condition_variable condition;
     std::unique_lock<std::mutex> lock(mutexlock);
-    
     {
         std::lock_guard<std::mutex> lock(g_threadInfoMutex)
         g_threadInfoMap[pthread_self()] = &condition;
     }
-    
     SAMPLE_LOGI("NAPI: g_threadInfoMap add %{public}p", &condition);
     condition.wait_for(lock, std::chrono::microseconds(runtime*NUM_1000));
     napi_destroy_ark_runtime(&env);
-    
     {
         std::lock_guard<std::mutex> lock(g_threadInfoMutex)
         auto iter = g_threadInfoMap.find(pthread_self());
