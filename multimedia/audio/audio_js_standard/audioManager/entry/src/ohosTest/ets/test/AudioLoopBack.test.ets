@@ -542,7 +542,7 @@ export default function audioLoopBack() {
 
           let reverb: audio.AudioLoopbackReverbPreset = audioLoopback.getReverbPreset();
           console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_GETREVERBPRESET_0100 equalizer: ${reverb}`);
-          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.THEATRE);
+          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.THEATER);
 
           audioLoopback.enable(false).then((isSuccess) => {
             if (isSuccess) {
@@ -768,11 +768,11 @@ export default function audioLoopBack() {
             expect(Number(err.code)).assertEqual(201);
           });
 
-          let res: boolean = audioLoopback.setReverbPreset(audio.AudioLoopbackReverbPreset.THEATRE);
+          let res: boolean = audioLoopback.setReverbPreset(audio.AudioLoopbackReverbPreset.THEATER);
           expect(res).assertTrue();
           let reverb: audio.AudioLoopbackReverbPreset = audioLoopback.getReverbPreset();
           console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0300 reverb: ${reverb}`);
-          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.THEATRE);
+          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.THEATER);
 
           audioLoopback.enable(false).then((isSuccess) => {
             if (isSuccess) {
@@ -1300,11 +1300,11 @@ export default function audioLoopBack() {
           });
 
           for (let i = 0; i < 2000; ++i) {
-            let res: boolean = audioLoopback.setReverbPreset(audio.AudioLoopbackReverbPreset.THEATRE);
+            let res: boolean = audioLoopback.setReverbPreset(audio.AudioLoopbackReverbPreset.THEATER);
             expect(res).assertTrue();
             let reverb: audio.AudioLoopbackReverbPreset = audioLoopback.getReverbPreset();
             console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0012 reverb: ${reverb}`);
-            expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.THEATRE);
+            expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.THEATER);
           }
 
           audioLoopback.enable(false).then((isSuccess) => {
@@ -1431,11 +1431,11 @@ export default function audioLoopBack() {
           console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0014 reverb: ${reverb}`);
           expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.KTV);
 
-          res = audioLoopback.setReverbPreset(audio.AudioLoopbackReverbPreset.THEATRE);
+          res = audioLoopback.setReverbPreset(audio.AudioLoopbackReverbPreset.THEATER);
           expect(res).assertTrue();
           reverb = audioLoopback.getReverbPreset();
           console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0014 reverb: ${reverb}`);
-          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.THEATRE);
+          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.THEATER);
 
           res = audioLoopback.setReverbPreset(audio.AudioLoopbackReverbPreset.CONCERT);
           expect(res).assertTrue();
