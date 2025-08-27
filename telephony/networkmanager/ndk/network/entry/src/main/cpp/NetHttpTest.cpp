@@ -484,6 +484,7 @@ napi_value Http_ProxyProxy(napi_env env, napi_callback_info info)
     request->options = (Http_RequestOptions *)calloc(1, sizeof(Http_RequestOptions));
     
     Http_Proxy httpProxy;
+    std::fill_n(reinterpret_cast<unsigned char*>(&httpProxy), sizeof(httpProxy), '\0');
     httpProxy.proxyType = Http_ProxyType::HTTP_PROXY_CUSTOM;
     request->options->httpProxy = &httpProxy;
     httpProxy.customProxy.host = "host test";
