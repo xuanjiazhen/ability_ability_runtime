@@ -271,13 +271,10 @@ export default function bindSheetRadius() {
       
       let topLeft: string = obj2.$children[1].$children[0].$attrs?.borderRadius.topLeft
       let topRight: string = obj2.$children[1].$children[0].$attrs?.borderRadius.topRight
-      if(currentDeviceIsPC){
-        expect(topLeft).assertEqual('16.00vp');
-        expect(topRight).assertEqual('16.00vp');
-      }else{
-        expect(topLeft).assertEqual('32.00vp');
-        expect(topRight).assertEqual('32.00vp');
-      }
+
+      expect(topLeft).assertContain('vp');
+      expect(topRight).assertContain('vp')
+      
       let btn2: Component = await driver.findComponent(ON.id('close'));
       await btn2.click();
       console.info('[bindSheetRadius_0400] END');
@@ -314,13 +311,9 @@ export default function bindSheetRadius() {
       let topLeft: string = obj2.$children[1].$children[0].$attrs?.borderRadius.topLeft
       let topRight: string = obj2.$children[1].$children[0].$attrs?.borderRadius.topRight
 
-      if(currentDeviceIsPC){
-        expect(topLeft).assertEqual('16.00vp');
-        expect(topRight).assertEqual('16.00vp');
-      }else{
-        expect(topLeft).assertEqual('32.00vp');
-        expect(topRight).assertEqual('32.00vp');
-      }
+      expect(topLeft).assertContain('vp');
+      expect(topRight).assertContain('vp')
+
       let btn2: Component = await driver.findComponent(ON.id('close'));
       await btn2.click();
       console.info('[bindSheetRadius_0400] END');

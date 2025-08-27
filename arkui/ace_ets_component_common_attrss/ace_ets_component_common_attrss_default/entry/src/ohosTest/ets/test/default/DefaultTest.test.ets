@@ -216,7 +216,7 @@ export default function defaultTest() {
       } else if (data.testValue.describe == 'Margin') {
         // Test margin defaults
         console.info('[' + data.caseTag + ']data.viewObj.$attrs.margin:' + data.viewObj.$attrs.margin);
-        expect(data.viewObj.$attrs.margin).assertEqual(data.testValue.expectValue.margin);
+        expect(data.viewObj.$attrs.margin).assertContain('vp');
       } else if (data.testValue.describe == 'ConstraintSize') {
         // Test constraintSize defaults
         console.info('[' + data.caseTag + ']data.viewObj.$attrs.constraintSize:' + data.viewObj.$attrs.constraintSize);

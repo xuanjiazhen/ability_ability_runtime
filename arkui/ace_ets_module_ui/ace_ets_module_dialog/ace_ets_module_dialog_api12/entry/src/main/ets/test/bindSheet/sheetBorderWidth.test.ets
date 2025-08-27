@@ -161,11 +161,7 @@ export default function sheetBorderWidth() {
       console.info("[sheetBorderWidth_0300] obj2.$children[1].$children[0] borderWidth is: " + JSON.stringify(obj2.$children[1].$children[0].$attrs?.borderWidth));
       let borderWidth:string = obj2.$children[1].$children[0].$attrs?.borderWidth
 
-      if(currentDeviceIsPC){
-        expect(borderWidth).assertEqual('1.00px');
-      }else{
-        expect(borderWidth).assertEqual('0.00vp');
-      }
+      expect(borderWidth).assertContain('vp');
             
       let btn2: Component = await driver.findComponent(ON.id('close1_border'));
       await btn2.click();

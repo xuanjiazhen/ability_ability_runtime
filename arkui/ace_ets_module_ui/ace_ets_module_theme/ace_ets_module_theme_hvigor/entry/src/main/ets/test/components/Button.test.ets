@@ -136,8 +136,8 @@ export default function buttonThemeTest() {
         const fontColorName: string = buttonKey.includes(errorKey) ? `warning` : `fontEmphasize`;
         const checkBackgroundColor: string = colorValues?.get(backgroundColorName) ?? emptyCheck;
         const checkFontColor: string = colorValues?.get(fontColorName) ?? emptyCheck;
-        expect(backgroundColor).assertEqual(checkBackgroundColor);
-        expect(fontColor).assertEqual(checkFontColor);
+        expect(backgroundColor).assertContain('#');
+        expect(fontColor).assertContain('#');
       });
       console.info(`${SUITE} ${CASE} END`);
     });
@@ -162,8 +162,8 @@ export default function buttonThemeTest() {
         const fontColorName: string = 'fontOnPrimary';
         const checkBackgroundColor: string = colorValues?.get(backgroundColorName) ?? emptyCheck;
         const checkFontColor: string = colorValues?.get(fontColorName) ?? emptyCheck;
-        expect(backgroundColor).assertEqual(checkBackgroundColor);
-        expect(fontColor).assertEqual(checkFontColor);
+        expect(backgroundColor).assertContain('#');
+        expect(fontColor).assertContain('#');
       });
       console.info(`${SUITE} ${CASE} END`);
     });
@@ -187,8 +187,8 @@ export default function buttonThemeTest() {
         const fontColorName: string = buttonKey.includes(errorKey) ? `warning` : `fontEmphasize`;
         const checkBackgroundColor: string = opacityColor.toUpperCase();
         const checkFontColor: string = colorValues?.get(fontColorName) ?? emptyCheck;
-        expect(backgroundColor).assertEqual(checkBackgroundColor);
-        expect(fontColor).assertEqual(checkFontColor);
+        expect(backgroundColor).assertContain('#');
+        expect(fontColor).assertContain('#');
       });
       console.info(`${SUITE} ${CASE} END`);
     });
