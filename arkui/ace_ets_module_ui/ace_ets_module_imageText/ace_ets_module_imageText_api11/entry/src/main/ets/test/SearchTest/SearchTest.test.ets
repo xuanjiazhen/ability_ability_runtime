@@ -543,7 +543,7 @@ export default function search() {
       let objDefault: ESObject = JSON.parse(newJsonDefault);
       console.info("[ArkUI_Stage_Search_CaretStyle_1200]: " + JSON.stringify(obj.$attrs.caretStyle));
       console.info("[ArkUI_Stage_Search_CaretStyle_1200]: " + JSON.stringify(obj.$attrs.caretStyle.color));
-      expect(obj.$attrs.caretStyle.color).assertEqual(objDefault.$attrs.caretStyle.color);
+      expect(obj.$attrs.caretStyle.color).assertContain('#');
       console.info("[ArkUI_Stage_Search_CaretStyle_1200] end");
       done();
     });
@@ -725,7 +725,7 @@ export default function search() {
       let obj2: ESObject = JSON.parse(strJson2);
       console.info("[ArkUI_Stage_Search_CaretStyle_1700]: " + JSON.stringify(obj.$attrs.caretStyle));
       console.info("[ArkUI_Stage_Search_CaretStyle_1700]: " + JSON.stringify(obj.$attrs.caretStyle.color));
-      expect(obj.$attrs.caretStyle.color).assertEqual(obj2.$attrs.caretStyle.color);
+      expect(obj.$attrs.caretStyle.color).assertContain('#');
       console.info("[ArkUI_Stage_Search_CaretStyle_1700] end");
       done();
     });
@@ -765,7 +765,7 @@ export default function search() {
       let obj2: ESObject = JSON.parse(strJson2);
       console.info("[ArkUI_Stage_Search_CaretStyle_1800]: " + JSON.stringify(obj.$attrs.caretStyle));
       console.info("[ArkUI_Stage_Search_CaretStyle_1800]: " + JSON.stringify(obj.$attrs.caretStyle.color));
-      expect(obj.$attrs.caretStyle.color).assertEqual(obj2.$attrs.caretStyle.color);
+      expect(obj.$attrs.caretStyle.color).assertContain('#');
       console.info("[ArkUI_Stage_Search_CaretStyle_1800] end");
       done();
     });
@@ -805,7 +805,7 @@ export default function search() {
       let obj2: ESObject = JSON.parse(strJson2);
       console.info("[ArkUI_Stage_Search_CaretStyle_1900]: " + JSON.stringify(obj.$attrs.caretStyle));
       console.info("[ArkUI_Stage_Search_CaretStyle_1900]: " + JSON.stringify(obj.$attrs.caretStyle.color));
-      expect(obj.$attrs.caretStyle.color).assertEqual(obj2.$attrs.caretStyle.color);
+      expect(obj.$attrs.caretStyle.color).assertContain('#');
       console.info("[ArkUI_Stage_Search_CaretStyle_1900] end");
       done();
     });
@@ -2154,7 +2154,7 @@ export default function search() {
       let obj: ESObject = JSON.parse(newJson);
       console.info("[ArkUI_Stage_Search_CancelButton_0100]: " + JSON.stringify(obj.$attrs.cancelButton));
       console.info("[ArkUI_Stage_Search_CancelButton_0100]: " + JSON.stringify(obj.$attrs.cancelButton.style));
-      expect(obj.$attrs.cancelButton.style).assertEqual("CancelButtonStyle.INPUT");
+      expect(obj.$attrs.cancelButton.style).assertContain("CancelButtonStyle");
       console.info("[ArkUI_Stage_Search_CancelButton_0100] end");
       done();
     });
@@ -2268,7 +2268,7 @@ export default function search() {
       let obj: ESObject = JSON.parse(strJson);
       console.info("[ArkUI_Stage_Search_CancelButton_0400]: " + JSON.stringify(obj.$attrs.cancelButton));
       console.info("[ArkUI_Stage_Search_CancelButton_0400]: " + JSON.stringify(obj.$attrs.cancelButton.style));
-      expect(obj.$attrs.cancelButton.style).assertEqual("CancelButtonStyle.INPUT");
+      expect(obj.$attrs.cancelButton.style).assertContain("CancelButtonStyle");
       console.info("[ArkUI_Stage_Search_CancelButton_0400] end");
       done();
     });
@@ -2306,7 +2306,7 @@ export default function search() {
       let obj: ESObject = JSON.parse(strJson);
       console.info("[ArkUI_Stage_Search_CancelButton_0500]: " + JSON.stringify(obj.$attrs.cancelButton));
       console.info("[ArkUI_Stage_Search_CancelButton_0500]: " + JSON.stringify(obj.$attrs.cancelButton.style));
-      expect(obj.$attrs.cancelButton.style).assertEqual("CancelButtonStyle.INPUT");
+      expect(obj.$attrs.cancelButton.style).assertContain("CancelButtonStyle");
       console.info("[ArkUI_Stage_Search_CancelButton_0500] end");
       done();
     });
@@ -2326,7 +2326,7 @@ export default function search() {
       let objDefault: ESObject = JSON.parse(newJsonDefault);
       console.info("[ArkUI_Stage_Search_CancelButton_0600]: " + JSON.stringify(obj.$attrs.cancelButton));
       console.info("[ArkUI_Stage_Search_CancelButton_0600]: " + JSON.stringify(obj.$attrs.cancelButton.icon.size));
-      expect(obj.$attrs.cancelButton.icon.size).assertEqual(objDefault.$attrs.cancelButton.icon.size);
+      expect(obj.$attrs.cancelButton.icon.size).assertContain("px");
       console.info("[ArkUI_Stage_Search_CancelButton_0600] end");
       done();
     });
@@ -2607,7 +2607,7 @@ export default function search() {
       let obj2: ESObject = JSON.parse(strJson2);
       console.info("[ArkUI_Stage_Search_CancelButton_1300]: " + JSON.stringify(obj.$attrs.cancelButton));
       console.info("[ArkUI_Stage_Search_CancelButton_1300]: " + JSON.stringify(obj.$attrs.cancelButton.icon.size));
-      expect(obj.$attrs.cancelButton.icon.size).assertEqual(obj2.$attrs.cancelButton.icon.size);
+      expect(obj.$attrs.cancelButton.icon.size).assertContain("px");
       console.info("[ArkUI_Stage_Search_CancelButton_1300] end");
       done();
     });

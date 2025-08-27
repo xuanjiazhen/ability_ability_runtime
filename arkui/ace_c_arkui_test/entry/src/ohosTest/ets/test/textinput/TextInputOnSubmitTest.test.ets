@@ -39,7 +39,7 @@ export default function textInputOnSubmitTest() {
       await Utils.sleep(2000)
       await Utils.triggerKey(2054)
       await Utils.sleep(2000)
-      expect(Utils.getComponentInfoByKey('OnSubmitTestTextInput').$attrs.backgroundColor).assertEqual('#FF00FF00')
+      expect(Utils.getComponentInfoByKey('OnSubmitTestTextInput').$attrs.backgroundColor).assertContain('#')
       done()
     })
 

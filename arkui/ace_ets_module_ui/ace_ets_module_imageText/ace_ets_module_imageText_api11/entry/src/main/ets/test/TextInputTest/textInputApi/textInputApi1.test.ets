@@ -16,9 +16,35 @@ import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level
 import router from '@ohos.router';
 import CommonFunc from "../../../MainAbility/common/Common";
 import {UiComponent, UiDriver, Component, Driver, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
-
+import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import commoneventmanager from '@ohos.commonEventManager';
+import inputMethod from '@ohos.inputMethod';
+import { BusinessError } from '@ohos.base'
 export default function textInputApi1() {
   describe('textInputApi1', () => {
+    const delegator:AbilityDelegatorRegistry.AbilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
+    beforeAll(async (done: Function) => {
+      console.info('====>beforeAll inputMethod_enable start!')
+      try {
+        await delegator.executeShellCommand('ime -e com.arkui.ace.imageText -f').then(result =>{
+          console.info(`ime -e com.arkui.ace.imageText -f finished, result = ${JSON.stringify(result)}`);
+            delegator.executeShellCommand('ime -s com.arkui.ace.imageText').then(result => {
+              console.info(`ime -s com.arkui.ace.imageText finished, result = ${JSON.stringify(result)}`);
+              done();
+            }).catch((err: Error) => {
+              console.info(`ime -s com.arkui.ace.imageText failed, err = ${JSON.stringify(err)}`);
+              done();
+            })
+          }).catch((err: Error) => {
+            console.info(`ime -e com.arkui.ace.imageText -f failed, err = ${JSON.stringify(err)}`);
+            done();
+        })  
+        console.info('====>beforeAll inputMethod_enable success');
+      } catch (err) {
+        console.info('====>beforeAll throw err:' + JSON.stringify(err.message))
+        done();
+      }
+    })
     beforeEach(async (done: Function) => {
       console.info("textInputApi1 beforeEach start");
       let options: router.RouterOptions = {
@@ -44,6 +70,22 @@ export default function textInputApi1() {
       await CommonFunc.sleep(1000);
       console.info("textInputApi1 after each called");
     });
+    afterAll(async (done: Function) =>{
+      console.info('====>afterAll reset inputMethod!')
+      try {
+        await delegator.executeShellCommand('ime -s com.huawei.hmos.inputmethod').then(result =>{
+          console.info(`ime -s com.huawei.hmos.inputmethod finished, result = ${JSON.stringify(result)}`);
+          }).catch((err: Error) => {
+            console.info(`ime -s com.huawei.hmos.inputmethod failed, err = ${JSON.stringify(err)}`);
+            done();
+        })  
+        console.info('====>afterAll reset inputMethod success!');
+        done();
+      } catch (err) {
+        console.info('====>afterAll throw err:' + JSON.stringify(err.message))
+        done();
+      }
+    });
     /* *
         * @tc.number: SUB_ACE_TextArea_onSubmit_001
         * @tc.name  : textInputApi1_001
@@ -60,8 +102,26 @@ export default function textInputApi1() {
       await text.inputText('9');
       await CommonFunc.sleep(1000);
       //回车点击
-      await driver.triggerKey(2054);
-      await CommonFunc.sleep(1000);
+      await driver.triggerKey(2070)
+      await CommonFunc.sleep(500);
+      let stopEditBtn = await driver.findComponent(ON.id('stopEditBtn'));
+      await CommonFunc.sleep(500);
+      await stopEditBtn.click()
+      await CommonFunc.sleep(500);
+      //前置回调定义
+      let publishCallback = async (err: BusinessError) => {
+        console.log('onSubmitTest_0010  ---------- publishCallback START ')
+        //点击触发
+        await CommonFunc.sleep(200);
+        await text.click()
+        console.log('onSubmitTest_0010  ---------- publishCallback END ')
+      }
+      //挂载输入法事件
+      let commonEventPublishData: commoneventmanager.CommonEventPublishData = {
+        code: 10
+      }
+      commoneventmanager.publish('InputMethodWindManageTest', commonEventPublishData, publishCallback);
+      await CommonFunc.sleep(3000);
       let strJson = getInspectorByKey('textInputApi1_text');
       await CommonFunc.sleep(200);
       let obj: ESObject = JSON.parse(strJson);

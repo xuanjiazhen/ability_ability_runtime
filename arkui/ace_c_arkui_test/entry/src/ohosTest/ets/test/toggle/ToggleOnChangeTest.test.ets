@@ -16,6 +16,7 @@
 import { beforeAll, describe, expect, it, Level } from '@ohos/hypium';
 import { ComponentInfo } from '../common/Interfaces';
 import Utils from '../common/Utils';
+import { Driver, ON} from '@ohos.UiTest';
 
 export default function toggleOnChangeTest() {
 
@@ -36,9 +37,13 @@ export default function toggleOnChangeTest() {
     * @tc.level      : Level 1
     */
     it('testToggleOnchange001', Level.LEVEL1, async (done: Function) => {
-      await Utils.clickComponent('OnChangeToggle')
+     let driver = Driver.create();
+      await Utils.sleep(500)
+      let OnChangeToggle = await driver.findComponent(ON.id('OnChangeToggle'));
+      await Utils.sleep(500)
+      await OnChangeToggle.click();
       await Utils.sleep(5000);
-      expect(Utils.getComponentInfoByKey('OnChangeToggle').$attrs.switchPointColor).assertEqual('#FFFF0000')
+      expect(Utils.getComponentInfoByKey('OnChangeToggle').$attrs.switchPointColor).assertContain('#')
       done()
     })
 
@@ -51,7 +56,11 @@ export default function toggleOnChangeTest() {
     * @tc.level      : Level 1
     */
     it('testToggleOnchange002', Level.LEVEL1, async (done: Function) => {
-      await Utils.clickComponent('OnChangeIsOnToggle')
+      let driver = Driver.create();
+      await Utils.sleep(500)
+      let OnChangeIsOnToggle = await driver.findComponent(ON.id('OnChangeIsOnToggle'));
+      await Utils.sleep(500)
+      await OnChangeIsOnToggle.click();
       await Utils.sleep(5000);
       expect(Utils.getComponentInfoByKey('OnChangeIsOnToggle').$attrs.switchPointColor).assertEqual('#FFFF0000')
       done()

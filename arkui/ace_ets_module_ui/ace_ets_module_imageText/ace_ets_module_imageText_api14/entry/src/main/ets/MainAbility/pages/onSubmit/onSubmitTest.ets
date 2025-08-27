@@ -23,6 +23,8 @@ struct onSubmitTest {
   @State isCallKeepEditableState :boolean = false
   @State textAreaIsEditing :boolean = false
   @State searchIsEditing :boolean = false
+  textAreaController:TextAreaController = new TextAreaController()
+  searchController:SearchController = new SearchController()
 
   @Builder
 
@@ -53,11 +55,12 @@ struct onSubmitTest {
           .borderWidth(1)
           .borderColor(Color.Blue)
           .id('searchIsEditing')
-        Search()
+        Search({controller:this.searchController})
           .height('10%')
           .border({ width: 1 })
           .borderWidth(1)
           .borderColor(Color.Red)
+          .enterKeyType(EnterKeyType.Send)
           .onSubmit((searchContent: string, event: SubmitEvent) => {
             this.searchText = searchContent
             this.searchEventText = event.text
@@ -72,6 +75,15 @@ struct onSubmitTest {
           })
           .id('Search')
       }
+      Row(){
+          Button('isCallKeepEditableState:'+this.isCallKeepEditableState).onClick(()=>{
+            this.isCallKeepEditableState = !this.isCallKeepEditableState
+          }).id('changeIsCallKeepEditableState')
+          Button('stopEditBtn').onClick(()=>{
+            this.textAreaController.stopEditing()
+            this.searchController.stopEditing()
+          }).id('stopEditBtn')
+        }.height('5%')
       Column(){
         Text(this.enterKeyType+'')
           .height('10%')
@@ -97,14 +109,14 @@ struct onSubmitTest {
           .borderWidth(1)
           .borderColor(Color.Blue)
           .id('TextAreaIsEdit')
-        TextArea()
+        TextArea({controller:this.textAreaController})
           .width('100%')
           .height('10%')
           .fontSize(10)
           .border({ width: 1 })
           .borderWidth(1)
           .borderColor(Color.Red)
-          .enterKeyType(EnterKeyType.Done)
+          .enterKeyType(EnterKeyType.Go)
           .onSubmit((enterKeyType: EnterKeyType, event: SubmitEvent) => {
             this.enterKeyType = enterKeyType
             this.textAreaEventText = event.text
@@ -120,9 +132,6 @@ struct onSubmitTest {
           })
           .id('TextArea')
       }
-      Button('isCallKeepEditableState:'+this.isCallKeepEditableState).onClick(()=>{
-        this.isCallKeepEditableState = !this.isCallKeepEditableState
-      }).id('changeIsCallKeepEditableState').height('5%')
     }.height('100%')
   }
 }

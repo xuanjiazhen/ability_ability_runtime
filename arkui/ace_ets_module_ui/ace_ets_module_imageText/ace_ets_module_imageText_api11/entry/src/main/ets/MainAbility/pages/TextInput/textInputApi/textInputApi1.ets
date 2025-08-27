@@ -18,9 +18,10 @@ struct textInputApi1 {
   @State value: string = ''
   @State text1: string = ''
   @State TextError: string = ''
+  textInputController:TextInputController = new TextInputController()
   build() {
     Column() {
-      TextInput({ placeholder: '请输入用户名', text: this.text1 })
+      TextInput({ placeholder: '请输入用户名', text: this.text1 ,controller:this.textInputController})
         .id('textInputApi1')
         .showUnderline(true)
         .width(380)
@@ -30,7 +31,9 @@ struct textInputApi1 {
           this.value = EnterKeyType[enter]
         })
 
-
+      Button('stopEditBtn').onClick(()=>{
+        this.textInputController.stopEditing()
+      }).id('stopEditBtn')
       Text( this.value ).height('60%').width('100%') .key('textInputApi1_text')
     }
   }
