@@ -367,6 +367,7 @@ public:
     Camera_ErrorCode WhiteBalanceTest(void);
     Camera_ErrorCode CreatePreviewOutputByIndex(int index);
     Camera_ErrorCode CreateVideoOutputByIndex(char* videoId, int index);
+    Camera_ErrorCode MacroStatusChangeTest(void);
 
     // test aid
     Camera_ErrorCode SetSceneMode(int useCaseCode);

@@ -480,5 +480,21 @@ export default function CameraSessionMacroTest() {
     }
     console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SESSION_ENABLE_MACRO_PROMISE_005 ends here");
     });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_SESSION_MACRO_STATUS_PROMISE_001
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_SESSION_MACRO_STATUS_PROMISE_001
+     * @tc.desc      : Check capture session enable macro  with promise
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_SESSION_MACRO_STATUS_PROMISE_001', Level.LEVEL0, async () => {
+      console.info(TAG + "--------------SUB_MULTIMEDIA_CAMERA_SESSION_MACRO_STATUS_PROMISE_001--------------");
+      let ret = cameraObj.getMacroStatusChangeTest();
+      console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SESSION_MACRO_STATUS_PROMISE_001 ret is "+ ret);
+      expect(ret).assertEqual(CAMERA_OK);
+      console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SESSION_MACRO_STATUS_PROMISE_001 ends here");
+    });
   })
 }
