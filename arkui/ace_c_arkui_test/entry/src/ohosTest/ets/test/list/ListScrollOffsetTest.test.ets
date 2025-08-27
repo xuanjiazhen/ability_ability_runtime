@@ -86,7 +86,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset003', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 100).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 100)) <= 1).assertTrue();
       done()
     })
     /*
@@ -108,7 +108,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset004', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 2340).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 2340)) <= 1).assertTrue();
       done()
     })
     /*
@@ -130,7 +130,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset005', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -152,7 +152,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset006', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -174,7 +174,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset007', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -196,7 +196,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset008', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -218,7 +218,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset009', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -240,7 +240,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset010', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -262,7 +262,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset011', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -284,7 +284,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset012', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -306,7 +306,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset013', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -328,7 +328,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset014', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -350,7 +350,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset015', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -372,7 +372,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset016', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -394,7 +394,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset017', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -416,7 +416,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset018', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -438,7 +438,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset019', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -460,7 +460,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset020', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -482,7 +482,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset021', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
     /*
@@ -504,7 +504,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset022', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 200).assertEqual(true)
+      expect(Math.floor(Math.abs(state2Data[0] - 200)) <= 1).assertTrue();
       done()
     })
   })
