@@ -266,14 +266,12 @@ static uint32_t ReadHttpReqCodeThree(uint32_t errorCode)
 static uint32_t ReadHttpReqCode(uint32_t errorCode)
 {
     uint32_t ret = ReadHttpReqCodeOne(errorCode);
-    if (ret != 0)
-    {
+    if (ret != 0) {
         return ret;
     }
     
     ret = ReadHttpReqCodeTwo(errorCode);
-    if (ret != 0)
-    {
+    if (ret != 0) {
         return ret;
     }
     
@@ -298,11 +296,11 @@ static void ResponseCallback(struct Http_Response *response, uint32_t errCode)
     if (response == nullptr) {
         return;
     }
-    if(ReadHttpReqCode(errCode) != 0) {
+    if (ReadHttpReqCode(errCode) != 0) {
         g_httpErrorCode = errCode;
         return;
     }
-    if(ReadResponseCode(response->responseCode) != 0) {
+    if (ReadResponseCode(response->responseCode) != 0) {
         g_respErrorCode = response->responseCode;
         return;
     }
