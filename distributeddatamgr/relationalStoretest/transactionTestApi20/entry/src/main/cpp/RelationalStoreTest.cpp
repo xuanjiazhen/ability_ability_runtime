@@ -1146,15 +1146,11 @@ napi_value TestRestoreSuccess(napi_env env, napi_callback_info info)
 
     char dbPath[] = "backup.db";
     std::string testPath1 = std::string(RelationalStoreTest::RDB_TEST) + std::string(dbPath);
-    int ba = OH_Rdb_Backup(testStore, testPath1.c_str());
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}s", testPath1.c_str());
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}d", ba);
+    OH_Rdb_Backup(testStore, testPath1.c_str());
     OH_Predicates *predicates = OH_Rdb_CreatePredicates("test");
     errCode = OH_Rdb_Delete(testStore, predicates);
 
-    int ret = OH_Rdb_Restore(testStore, testPath1.c_str());
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Restore:%{public}s", testPath1.c_str());
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Restore:%{public}d", ret);
+    OH_Rdb_Restore(testStore, testPath1.c_str());
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
     insertBucket->destroy(insertBucket);
@@ -1289,15 +1285,13 @@ napi_value TestLockRowInvalidParam(napi_env env, napi_callback_info info)
     int errCode = 0;
 
     testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::RDB_CONFIG, &errCode);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_GetOrOpen:%{public}s", (char *)testRdbStore);
 
     const char *createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
                                  "name TEXT, "
                                  "score INT64)";
 
-    int ex = OH_Rdb_Execute(testRdbStore, createTableSql);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_Execute:%{public}d", ex);
+    OH_Rdb_Execute(testRdbStore, createTableSql);
 
     OH_VBucket *insertBucket = OH_Rdb_CreateValuesBucket();
     insertBucket->putInt64(insertBucket, "id", 1);
@@ -1305,8 +1299,7 @@ napi_value TestLockRowInvalidParam(napi_env env, napi_callback_info info)
     int64_t scoreValue = 60;
     insertBucket->putInt64(insertBucket, "score", scoreValue);
 
-    int is = OH_Rdb_Insert(testRdbStore, "test", insertBucket);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_Insert:%{public}d", is);
+    OH_Rdb_Insert(testRdbStore, "test", insertBucket);
 
     OH_Predicates *predicates = OH_Rdb_CreatePredicates("test");
     OH_VObject *valueObject = OH_Rdb_CreateValueObject();
@@ -1398,11 +1391,7 @@ napi_value TestSetLocaleSuccess(napi_env env, napi_callback_info info)
 
     testRdbStore = OH_Rdb_GetOrOpen(&RelationalStoreTest::RDB_CONFIG, &errCode);
 
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_GetOrOpen:%{public}d", errCode);
-
     int ret = OH_Rdb_SetLocale(testRdbStore, "zh");
-
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_SetLocale:%{public}d", ret);
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
     OH_Rdb_CloseStore(testRdbStore);

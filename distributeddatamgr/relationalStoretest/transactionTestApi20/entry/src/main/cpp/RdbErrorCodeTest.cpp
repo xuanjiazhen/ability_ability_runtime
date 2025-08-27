@@ -119,7 +119,6 @@ napi_value TestEmptyTableName(napi_env env, napi_callback_info info)
     OH_Rdb_Store *store = nullptr;
     int errCode = 0;
     store = OH_Rdb_CreateOrOpen(configV2, &errCode);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  OH_Rdb_CreateOrOpen:%{public}d", errCode);
     
     const char* createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
@@ -127,12 +126,10 @@ napi_value TestEmptyTableName(napi_env env, napi_callback_info info)
                                  "data2 INT64, "
                                  "data3 REAL)";
 
-    int ree = OH_Rdb_Execute(store, createTableSql);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  OH_Rdb_Execute:%{public}d", ree);
+    OH_Rdb_Execute(store, createTableSql);
     
     OH_Predicates *predicates = OH_Rdb_CreatePredicates("");
     int ret = OH_Rdb_LockRow(store, predicates);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  OH_Rdb_LockRow:%{public}d", ret);
     
     OH_Rdb_CloseStore(store);
     OH_Rdb_DeleteStoreV2(configV2);
@@ -214,12 +211,10 @@ napi_value TestNoRowInQuery(napi_env env, napi_callback_info info)
                                  "data2 INT64, "
                                  "data3 REAL)";
 
-    int ree = OH_Rdb_Execute(store, createTableSql);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  OH_Rdb_Execute:%{public}d", ree);
+    OH_Rdb_Execute(store, createTableSql);
     
     OH_Predicates *predicates = OH_Rdb_CreatePredicates("test");
     int ret = OH_Rdb_LockRow(store, predicates);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkWeb", "=======zzzhh  OH_Rdb_LockRow:%{public}d", ret);
     OH_Rdb_CloseStore(store);
     OH_Rdb_DeleteStoreV2(configV2);
     predicates->destroy(predicates);
@@ -248,7 +243,6 @@ napi_value TestNoTransactionInSession(napi_env env, napi_callback_info info)
     testRdbStore = OH_Rdb_CreateOrOpen(configV2, &errCode);
     
     int ret = OH_Rdb_RollBack(testRdbStore);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_RollBack:%{public}d", ret);
     
     OH_Rdb_CloseStore(testRdbStore);
     OH_Rdb_DeleteStoreV2(configV2);

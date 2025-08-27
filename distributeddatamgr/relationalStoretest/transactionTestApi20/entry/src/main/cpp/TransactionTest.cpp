@@ -635,8 +635,7 @@ napi_value TestTransBatchInsertError(napi_env env, napi_callback_info info)
 
     OH_Data_VBuckets *valueBuckets = OH_VBuckets_Create();
 
-    int pt = OH_VBuckets_PutRow(valueBuckets, valueBucket);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_VBuckets_PutRow:%{public}d", pt);
+    OH_VBuckets_PutRow(valueBuckets, valueBucket);
 
     char table[] = "test1";
     int64_t rowId = -1;
@@ -695,16 +694,14 @@ napi_value TestTransBatchInsertDatabaseClosed(napi_env env, napi_callback_info i
 
     OH_Data_VBuckets *valueBuckets = OH_VBuckets_Create();
 
-    int pt = OH_VBuckets_PutRow(valueBuckets, valueBucket);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_VBuckets_PutRow:%{public}d", pt);
+    OH_VBuckets_PutRow(valueBuckets, valueBucket);
 
     char table[] = "test1";
     int64_t rowId = -1;
 
     Rdb_ConflictResolution resolution = RDB_CONFLICT_NONE;
 
-    int cl = OH_Rdb_CloseStore(testRdbStore);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_Rdb_CloseStore:%{public}d", cl);
+    OH_Rdb_CloseStore(testRdbStore);
 
     int ret = OH_RdbTrans_BatchInsert(trans, table, valueBuckets, resolution, &rowId);
 
@@ -798,8 +795,7 @@ napi_value TestTransUpdateError(napi_env env, napi_callback_info info)
 
     char table[] = "test";
     int64_t rowId = -1;
-    int res = OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Insert:%{public}d", res);
+    OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
 
     char table1[] = "test1";
     OH_Predicates *predicates = OH_Rdb_CreatePredicates(table1);
@@ -812,8 +808,6 @@ napi_value TestTransUpdateError(napi_env env, napi_callback_info info)
     int64_t changes = 0;
 
     int ret = OH_RdbTrans_Update(trans, valueBucket, predicates, &changes);
-
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Update:%{public}d", ret);
 
     OH_Rdb_CloseStore(testRdbStore);
     OH_Rdb_DeleteStoreV2(configV2);
@@ -867,8 +861,7 @@ napi_value TestTransUpdateDatabaseClosed(napi_env env, napi_callback_info info)
 
     char table[] = "test";
     int64_t rowId = -1;
-    int res = OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Insert:%{public}d", res);
+    OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
 
     char table1[] = "test";
     OH_Predicates *predicates = OH_Rdb_CreatePredicates(table1);
@@ -883,8 +876,6 @@ napi_value TestTransUpdateDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_CloseStore(testRdbStore);
 
     int ret = OH_RdbTrans_Update(trans, valueBucket, predicates, &changes);
-
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Update:%{public}d", ret);
 
     OH_Rdb_DeleteStoreV2(configV2);
     OH_RdbTrans_Destroy(trans);
@@ -1223,8 +1214,7 @@ napi_value TestTransExecuteError(napi_env env, napi_callback_info info)
 
     char table[] = "test";
     int64_t rowId = -1;
-    int res = OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Insert:%{public}d", res);
+    OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
 
     const char *insertSql = "INSERT INTO test1 (data3) VALUES (?)";
 
@@ -1234,8 +1224,6 @@ napi_value TestTransExecuteError(napi_env env, napi_callback_info info)
     OH_Data_Value *outValue = 0;
 
     int ret = OH_RdbTrans_Execute(trans, insertSql, values, &outValue);
-
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Execute:%{public}d", ret);
 
     OH_Rdb_CloseStore(testRdbStore);
     OH_Rdb_DeleteStoreV2(configV2);
@@ -1291,8 +1279,7 @@ napi_value TestTransExecuteDatabaseClosed(napi_env env, napi_callback_info info)
 
     char table[] = "test";
     int64_t rowId = -1;
-    int res = OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Insert:%{public}d", res);
+    OH_RdbTrans_Insert(trans, table, valueBucket, &rowId);
 
     const char *insertSql = "INSERT INTO test (data3) VALUES (?)";
 
@@ -1304,8 +1291,6 @@ napi_value TestTransExecuteDatabaseClosed(napi_env env, napi_callback_info info)
     OH_Rdb_CloseStore(testRdbStore);
 
     int ret = OH_RdbTrans_Execute(trans, insertSql, values, &outValue);
-
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  OH_RdbTrans_Execute:%{public}d", ret);
 
     OH_Rdb_DeleteStoreV2(configV2);
     OH_RdbTrans_Destroy(trans);
