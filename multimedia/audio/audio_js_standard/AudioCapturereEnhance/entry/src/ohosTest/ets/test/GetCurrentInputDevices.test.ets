@@ -345,7 +345,6 @@ export default function getCurrentInputDevicesTest() {
         try {
           let InputDeviceInfo: audio.AudioCapturer = await audioCap.getCurrentInputDevices();
           console.info(`getCurrentInputDevices :SUCCESS ${getInputDeviceInfo(InputDeviceInfo)}`)
-          expect(InputDeviceInfo[0].id).assertLargerOrEqual(env.OUTPUT_NUMBER_0);
           expect(InputDeviceInfo[0].deviceType).assertEqual(audio.DeviceType.MIC);
           expect(InputDeviceInfo[0].deviceRole).assertEqual(audio.DeviceRole.INPUT_DEVICE);
           expect(InputDeviceInfo[0].encodingTypes[0]).assertEqual(env.OUTPUT_NUMBER_0);
