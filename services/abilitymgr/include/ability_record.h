@@ -39,6 +39,7 @@
 #include "ipc_skeleton.h"
 #include "lifecycle_deal.h"
 #include "lifecycle_state_info.h"
+#include "open_link_options.h"
 #include "session_info.h"
 #include "ui_extension_window_command.h"
 #include "uri.h"
@@ -285,6 +286,7 @@ struct AbilityRequest {
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo appInfo;
     StartOptions startOptions;
+    OpenLinkOptions openLinkOptions;
     std::pair<bool, LaunchReason> IsContinuation() const
     {
         auto flags = want.GetFlags();
