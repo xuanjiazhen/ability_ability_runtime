@@ -15,8 +15,10 @@
 
 import proxyTest from './Proxy/Porxy.test';
 import proxy2Test from './Proxy/Porxy2.test';
+import proxy3Test from './Proxy/Porxy3.test';
 
 export default function testsuite() {
   proxyTest();
   proxy2Test();
+  proxy3Test();
 }
