@@ -69,9 +69,228 @@ static int32_t GetInt(napi_env env, napi_callback_info info, uint32_t index)
     return ret;
 }
 
+static uint32_t ReadResponseOne(uint32_t responseCode)
+{
+    switch (responseCode) {
+        case OH_HTTP_OK:
+            break;
+        case OH_HTTP_CREATED:
+            break;
+        case OH_HTTP_ACCEPTED:
+            break;
+        case OH_HTTP_NON_AUTHORITATIVE_INFO:
+            break;
+        case OH_HTTP_NO_CONTENT:
+            break;
+        case OH_HTTP_RESET:
+            break;
+        case OH_HTTP_PARTIAL:
+            break;
+        case OH_HTTP_MULTI_CHOICE:
+            break;
+        case OH_HTTP_MOVED_PERM:
+            break;
+        case OH_HTTP_MOVED_TEMP:
+            break;
+        case OH_HTTP_SEE_OTHER:
+            break;
+        case OH_HTTP_NOT_MODIFIED:
+            break;
+        case OH_HTTP_USE_PROXY:
+            break;
+        default:
+            return 0;
+    }
+    return responseCode;
+}
+
+static uint32_t ReadResponseTwo(uint32_t responseCode)
+{
+    switch (responseCode) {
+        case OH_HTTP_BAD_REQUEST:
+            break;
+        case OH_HTTP_UNAUTHORIZED:
+            break;
+        case OH_HTTP_PAYMENT_REQUIRED:
+            break;
+        case OH_HTTP_FORBIDDEN:
+            break;
+        case OH_HTTP_NOT_FOUND:
+            break;
+        case OH_HTTP_BAD_METHOD:
+            break;
+        case OH_HTTP_NOT_ACCEPTABLE:
+            break;
+        case OH_HTTP_PROXY_AUTH:
+            break;
+        case OH_HTTP_CLIENT_TIMEOUT:
+            break;
+        case OH_HTTP_CONFLICT:
+            break;
+        case OH_HTTP_GONE:
+            break;
+        case OH_HTTP_LENGTH_REQUIRED:
+            break;
+        default:
+            return 0;
+    }
+    return responseCode;
+}
+
+static uint32_t ReadResponseThree(uint32_t responseCode)
+{
+    switch (responseCode) {
+        case OH_HTTP_PRECON_FAILED:
+            break;
+        case OH_HTTP_ENTITY_TOO_LARGE:
+            break;
+        case OH_HTTP_REQUEST_TOO_LONG:
+            break;
+        case OH_HTTP_UNSUPPORTED_TYPE:
+            break;
+        case OH_HTTP_RANGE_NOT_MET:
+            break;
+        case OH_HTTP_INTERNAL_ERROR:
+            break;
+        case OH_HTTP_NOT_IMPLEMENTED:
+            break;
+        case OH_HTTP_BAD_GATEWAY:
+            break;
+        case OH_HTTP_UNAVAILABLE:
+            break;
+        case OH_HTTP_GATEWAY_TIMEOUT:
+            break;
+        case OH_HTTP_VERSION:
+            break;
+        default:
+            return 0;
+    }
+    return responseCode;
+}
+
+static uint32_t ReadHttpReqCodeOne(uint32_t errorCode)
+{
+    switch (errorCode) {
+        case OH_HTTP_RESULT_OK:
+            break;
+        case OH_HTTP_PARAMETER_ERROR:
+            break;
+        case OH_HTTP_PERMISSION_DENIED:
+            break;
+        case OH_HTTP_NETSTACK_E_BASE:
+            break;
+        case OH_HTTP_UNSUPPORTED_PROTOCOL:
+            break;
+        case OH_HTTP_INVALID_URL:
+            break;
+        case OH_HTTP_RESOLVE_PROXY_FAILED:
+            break;
+        case OH_HTTP_RESOLVE_HOST_FAILED:
+            break;
+        case OH_HTTP_CONNECT_SERVER_FAILED:
+            break;
+        case OH_HTTP_INVALID_SERVER_RESPONSE:
+            break;
+        case OH_HTTP_ACCESS_REMOTE_DENIED:
+            break;
+        case OH_HTTP_HTTP2_FRAMING_ERROR:
+            break;
+        default:
+            return 0;
+    }
+    return errorCode;
+}
+
+static uint32_t ReadHttpReqCodeTwo(uint32_t errorCode)
+{
+    switch (errorCode) {
+        case OH_HTTP_TRANSFER_PARTIAL_FILE:
+            break;
+        case OH_HTTP_WRITE_DATA_FAILED:
+            break;
+        case OH_HTTP_UPLOAD_FAILED:
+            break;
+        case OH_HTTP_OPEN_LOCAL_DATA_FAILED:
+            break;
+        case OH_HTTP_OUT_OF_MEMORY:
+            break;
+        case OH_HTTP_OPERATION_TIMEOUT:
+            break;
+        case OH_HTTP_TOO_MANY_REDIRECTIONS:
+            break;
+        case OH_HTTP_SERVER_RETURNED_NOTHING:
+            break;
+        case OH_HTTP_SEND_DATA_FAILED:
+            break;
+        case OH_HTTP_RECEIVE_DATA_FAILED:
+            break;
+        default:
+            return 0;
+    }
+    return errorCode;
+}
+
+static uint32_t ReadHttpReqCodeThree(uint32_t errorCode)
+{
+    switch (errorCode) {
+        case OH_HTTP_SSL_CERTIFICATE_ERROR:
+            break;
+        case OH_HTTP_SSL_CIPHER_USED_ERROR:
+            break;
+        case OH_HTTP_INVALID_SSL_PEER_CERT:
+            break;
+        case OH_HTTP_INVALID_ENCODING_FORMAT:
+            break;
+        case OH_HTTP_FILE_TOO_LARGE:
+            break;
+        case OH_HTTP_REMOTE_DISK_FULL:
+            break;
+        case OH_HTTP_REMOTE_FILE_EXISTS:
+            break;
+        case OH_HTTP_SSL_CA_NOT_EXIST:
+            break;
+        case OH_HTTP_REMOTE_FILE_NOT_FOUND:
+            break;
+        case OH_HTTP_AUTHENTICATION_ERROR:
+            break;
+        case OH_HTTP_ACCESS_DOMAIN_NOT_ALLOWED:
+            break;
+        case OH_HTTP_UNKNOWN_ERROR:
+            break;
+        default:
+            return 0;
+    }
+    return errorCode;
+}
+
+static uint32_t ReadHttpReqCode(uint32_t errorCode)
+{
+    uint32_t ret = ReadHttpReqCodeOne(errorCode);
+    if (ret != 0)
+    {
+        return ret;
+    }
+    
+    ret = ReadHttpReqCodeTwo(errorCode);
+    if (ret != 0)
+    {
+        return ret;
+    }
+    
+    return ReadHttpReqCodeThree(errorCode);
+}
+
 static uint32_t ReadResponseCode(uint32_t responseCode)
 {
-    return responseCode;
+    uint32_t ret = ReadResponseOne(responseCode);
+    if (ret != 0) {
+        return ret;
+    }
+    ret = ReadResponseTwo(responseCode);
+    if (ret != 0) {
+        return ret;
+    }
+    return ReadResponseThree(responseCode);
 }
 
 static void ResponseCallback(struct Http_Response *response, uint32_t errCode)
@@ -79,7 +298,14 @@ static void ResponseCallback(struct Http_Response *response, uint32_t errCode)
     if (response == nullptr) {
         return;
     }
-    g_httpErrorCode = ReadResponseCode(errCode);
+    if(ReadHttpReqCode(errCode) != 0) {
+        g_httpErrorCode = errCode;
+        return;
+    }
+    if(ReadResponseCode(response->responseCode) != 0) {
+        g_respErrorCode = response->responseCode;
+        return;
+    }
 }
 
 napi_value Http_RequestRequest(napi_env env, napi_callback_info info)
@@ -107,7 +333,6 @@ napi_value Http_RequestRequest(napi_env env, napi_callback_info info)
         std::this_thread::sleep_for(std::chrono::seconds(g_sleepSecs));
         returnValue = g_httpErrorCode;
     } else {
-        Http_RequestOptions reqOptions;
         returnValue = ReadResponseCode(index);
     }
     napi_value result = nullptr;
