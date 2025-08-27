@@ -72,20 +72,22 @@ static void *CreateArkRuntimeFunc(void *arg)
     std::condition_variable condition;
     std::unique_lock<std::mutex> lock(mutexlock);
     
-    g_threadInfoMutex.lock();
-    g_threadInfoMap[pthread_self()] = &condition;
-    g_threadInfoMutex.unlock();
+    {
+        std::lock_guard<std::mutex> lock(g_threadInfoMutex)
+        g_threadInfoMap[pthread_self()] = &condition;
+    }
     
     SAMPLE_LOGI("NAPI: g_threadInfoMap add %{public}p", &condition);
     condition.wait_for(lock, std::chrono::microseconds(runtime*NUM_1000));
     napi_destroy_ark_runtime(&env);
     
-    g_threadInfoMutex.lock();
-    auto iter = g_threadInfoMap.find(pthread_self());
-    if (iter != g_threadInfoMap.end()) {
-        g_threadInfoMap.erase(iter);
+    {
+        std::lock_guard<std::mutex> lock(g_threadInfoMutex)
+        auto iter = g_threadInfoMap.find(pthread_self());
+        if (iter != g_threadInfoMap.end()) {
+            g_threadInfoMap.erase(iter);
+        }
     }
-    g_threadInfoMutex.unlock();
     SAMPLE_LOGI("NAPI: CreateArkRuntimeFunc exit");
     return nullptr;
 }
