@@ -285,6 +285,7 @@ struct AbilityRequest {
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo appInfo;
     StartOptions startOptions;
+    OpenLinkOptions openLinkOptions;
     std::pair<bool, LaunchReason> IsContinuation() const
     {
         auto flags = want.GetFlags();
@@ -326,13 +327,14 @@ struct AbilityRequest {
 
     void Voluation(const Want &srcWant, int srcRequestCode,
         const sptr<IRemoteObject> &srcCallerToken, const std::shared_ptr<AbilityStartSetting> srcStartSetting = nullptr,
-        int srcCallerUid = -1)
+        int srcCallerUid = -1, const AAFwk::OpenLinkOptions &opt = {})
     {
         want = srcWant;
         requestCode = srcRequestCode;
         callerToken = srcCallerToken;
         startSetting = srcStartSetting;
         callerUid = srcCallerUid == -1 ? IPCSkeleton::GetCallingUid() : srcCallerUid;
+        openLinkOptions = opt;
     }
 };
 

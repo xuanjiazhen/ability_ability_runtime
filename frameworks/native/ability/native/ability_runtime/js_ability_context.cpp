@@ -983,21 +983,21 @@ napi_value JsAbilityContext::OnOpenLink(napi_env env, NapiCallbackInfo& info)
         TAG_LOGD(AAFwkTag::CONTEXT, "completionHandler is used");
         CreateOpenLinkTask(env, info.argv[INDEX_TWO], want, requestCode);
     }
-    return OnOpenLinkInner(env, want, requestCode, startTime, linkValue);
+    return OnOpenLinkInner(env, want, requestCode, startTime, linkValue, openLinkOptions);
 }
 
-napi_value JsAbilityContext::OnOpenLinkInner(napi_env env, const AAFwk::Want& want,
-    int requestCode, const std::string& startTime, const std::string& url)
+napi_value JsAbilityContext::OnOpenLinkInner(napi_env env, const AAFwk::Want& want, int requestCode,
+    const std::string& startTime, const std::string& url, const AAFwk::OpenLinkOptions &opt)
 {
     auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
-    NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, innerErrCode, requestCode]() {
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, innerErrCode, requestCode, opt]() {
         auto context = weak.lock();
         if (!context) {
             TAG_LOGW(AAFwkTag::CONTEXT, "null context");
             *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
             return;
         }
-        *innerErrCode = context->OpenLink(want, requestCode);
+        *innerErrCode = context->OpenLink(want, requestCode, opt);
     };
     napi_value result = nullptr;
     AddFreeInstallObserver(env, want, nullptr, &result, false, true);

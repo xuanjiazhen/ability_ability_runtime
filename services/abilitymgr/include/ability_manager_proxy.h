@@ -1537,8 +1537,8 @@ public:
      * @param requestCode Ability request code.
      * @return Returns ERR_OK on success, others on failure.
     */
-    virtual int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE) override;
+    virtual int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken, int32_t userId = DEFAULT_INVAL_VALUE,
+        int requestCode = DEFAULT_INVAL_VALUE, const AAFwk::OpenLinkOptions &opt = {}) override;
 
     /**
      * Terminate the mission.
