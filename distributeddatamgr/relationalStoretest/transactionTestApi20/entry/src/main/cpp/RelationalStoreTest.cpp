@@ -1145,7 +1145,7 @@ napi_value TestRestoreSuccess(napi_env env, napi_callback_info info)
 
     char dbPath[] = "backup.db";
     char backupPath[100];
-    sprintf(backupPath, "%s%s", RelationalStoreTest::RDB_TEST, dbPath);
+    snprintf(backupPath, sizeof(backupPath), "%s%s", RelationalStoreTest::RDB_TEST, dbPath);
     OH_Rdb_Backup(testStore, backupPath);
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}s", backupPath);
 
