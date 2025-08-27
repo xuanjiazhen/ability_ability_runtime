@@ -1143,13 +1143,17 @@ napi_value TestRestoreSuccess(napi_env env, napi_callback_info info)
 
     OH_Rdb_Insert(testStore, "test", insertBucket);
 
+    char dbPath[] = "backup.db";
     char backupPath[100];
+    sprintf(backupPath, "%s%s", RelationalStoreTest::RDB_TEST, dbPath);
     OH_Rdb_Backup(testStore, backupPath);
+    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}s", backupPath);
 
     OH_Predicates *predicates = OH_Rdb_CreatePredicates("test");
     errCode = OH_Rdb_Delete(testStore, predicates);
 
     int ret = OH_Rdb_Restore(testStore, backupPath);
+    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Restore:%{public}d", ret);
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
     insertBucket->destroy(insertBucket);
