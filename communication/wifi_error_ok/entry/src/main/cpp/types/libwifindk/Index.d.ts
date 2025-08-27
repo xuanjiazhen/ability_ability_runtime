@@ -13,3 +13,14 @@
  * limitations under the License.
  */
 export const GetWifiStatus: ()=> number;
+export const GetWifiStatus0101: ()=> number;
+export const GetWifiStatus0102: ()=> number;
+export const GetWifiStatus0103: ()=> number;
+export const GetBluetoothSwitchState0100: () => number;
+export const GetBluetoothSwitchState0101: () => number;
+export const GetBluetoothSwitchState0102: () => number;
+export const GetBluetoothSwitchState0103: () => number;
+export const GetBluetoothSwitchState0104: () => number;
+export const GetBluetoothSwitchState0105: () => number;
+export const GetBluetoothSwitchState0106: () => number;
+export const GetBluetoothSwitchState0107: () => number;

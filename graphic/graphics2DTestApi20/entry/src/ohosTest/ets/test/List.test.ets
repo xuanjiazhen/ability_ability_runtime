@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import BrushPointRecordTest from './BrushPointRecordTest.test'
 import CanvasPenTest from './CanvasPenTest.test.ets'
 import RectFontTest from './RectFontTest.test.ets'
@@ -25,6 +25,8 @@ import ErrorCodeTest from './ErrorCodeTest.test.ets'
 import VSyncFenceTest from './VSyncFenceTest.test.ets'
 import EffectShareTest from './EffectShareTest.test.ets'
 import ErrorCodeWindowTest from './ErrorCodeWindowTest.test.ets'
+import TypographyTest from './TypographyTest.test.ets'
+
 export default function testsuite() {
   BrushPointRecordTest()
   CanvasPenTest()
@@ -38,4 +40,5 @@ export default function testsuite() {
   VSyncFenceTest()
   EffectShareTest()
   ErrorCodeWindowTest()
+  TypographyTest()
 }

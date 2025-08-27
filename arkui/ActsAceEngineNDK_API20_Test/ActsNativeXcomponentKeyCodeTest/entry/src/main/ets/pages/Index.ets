@@ -14,7 +14,7 @@
  */
 import { NodeContent } from '@kit.ArkUI';
 import { IntentionCode } from '@kit.InputKit';
-import nativexcomopnentkeycode from 'libnativexcomopnentkeycode.so';
+import ArkUIkeyCodeNdk from 'libarkuikeycodendk.so';
 
 @Entry
 @Component
@@ -24,8 +24,8 @@ struct Index {
   private nodeContent: NodeContent = new NodeContent();
   aboutToAppear():void{
     // 通过C-API创建节点，并添加到管理器nodeContent上
-    if (nativexcomopnentkeycode) {
-      nativexcomopnentkeycode.XComponentCreate(this.nodeContent);
+    if (ArkUIkeyCodeNdk) {
+      ArkUIkeyCodeNdk.CreateArkUINode(this.nodeContent);
     }
   }
 

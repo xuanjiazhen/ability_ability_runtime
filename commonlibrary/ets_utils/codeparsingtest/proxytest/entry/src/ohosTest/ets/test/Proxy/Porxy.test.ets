@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the 'License');
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -16,59 +16,94 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, Level, Size, TestType } from '@ohos/hypium';
 import {
   testApplyInterceptCall28,
+  testApplyModifyThis81,
+  testApplyReturnNonFunction66,
   testArrayProxyLength38,
+  testConstructReturnDerived82,
   testConstructReturnNonObject29,
   testDefinePropertyConfigInvariant52,
   testDefinePropertyInvariant21,
+  testDeleteNonExistentProperty68,
+  testDeleteThrowError93,
   testGetArrayIndex41,
+  testGetDescCustom69,
   testGetInheritedProperty24,
   testGetInvariant25,
   testGetOwnPropertyDescriptorInvariant19,
   testGetOwnPropertyDescriptorTrap18,
   testGetPrototypeOfInvariant12,
   testGetPrototypeOfTrap11,
+  testGetRecursion64,
   testGetSymbolProperty42,
   testGetThisBinding40,
+  testGetTrapError91,
+  testGetUndefinedProperty73,
+  testHasHideEnumerable77,
   testHasInheritedProperty47,
   testHasInvariantExtensible48,
+  testHasSymbolIterator78,
+  testHasVirtualProperty97,
   testIsExtensibleInvariant16,
+  testMultiLayerProxy100,
+  testMultiLevelProxyPrototype63,
   testNestedProxy37,
+  testOwnKeysDynamicKeys98,
   testOwnKeysFilterNonEnumerable49,
   testOwnKeysFilterSymbols39,
   testOwnKeysInvariant10,
   testOwnKeysInvariant23,
+  testOwnKeysOnlySymbols79,
   testOwnKeysSymbolInvariant50,
   testPreventExtensionsTrap17,
+  testPropertyAccessLog95,
+  testPropertyAlias96,
   testProxyApplyTrap5,
+  testProxyArrayBuffer72,
+  testProxyAsPrototype62,
+  testProxyClassInstanceMethod90,
+  testProxyClassStaticMethod89,
   testProxyConstructTrap6,
   testProxyDateObject60,
   testProxyDeleteProperty4,
   testProxyFunctionPrototype59,
   testProxyGetTrap1,
   testProxyHasTrap3,
+  testProxyMapGet61,
+  testProxyPromiseThen99,
+  testProxyRegExpTest71,
   testProxySetTrap2,
   testReflectApply30,
   testReflectApplyNoArgs56,
   testReflectConstruct31,
+  testReflectConstructNewTarget83,
   testReflectDefineProperty9,
   testReflectDelete33,
+  testReflectDeleteArray86,
   testReflectForwarding8,
   testReflectGetDesc34,
   testReflectGetInherited55,
+  testReflectGetReceiver84,
   testReflectHas32,
   testReflectIsExtensible54,
+  testReflectSetAccessor85,
   testReflectSetPrototype53,
   testRevocableProxy7,
+  testRevokedGetDesc87,
   testRevokedProxyApply35,
   testRevokedProxyConstruct36,
   testRevokedProxyHas57,
   testRevokedProxyOwnKeys58,
+  testRevokedSetPrototype88,
   testSetAccessorInvariant46,
+  testSetAndDefine92,
   testSetArrayIndex44,
   testSetInheritedProperty26,
+  testSetModifyOtherProperty65,
   testSetPrototypeOfInvariant14,
   testSetPrototypeOfTrap13,
-  testSetStrictMode27
+  testSetStrictMode27,
+  testSetSymbolProperty75,
+  testSetValueRange74
 } from './Proxy';
 
 function sleep(time: number) {
@@ -669,7 +704,31 @@ export default function proxyTest() {
       let result = testOwnKeysFilterNonEnumerable49();
       expect(result).assertEqual(true);
     });
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_5000
+     * @tc.name proxyTest050
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest050', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testOwnKeysSymbolInvariant50();
+      expect(result).assertEqual(1);
+    });
 
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_5200
+     * @tc.name proxyTest052
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest052', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testDefinePropertyConfigInvariant52();
+      expect(result).assertEqual(1);
+    });
     /**
      * @tc.number SUB_BUILTINS_PROXY_TEST_5300
      * @tc.name proxyTest053
@@ -771,6 +830,460 @@ export default function proxyTest() {
      */
     it('proxyTest060', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
       let result = testProxyDateObject60();
+      expect(result).assertEqual(true);
+    });
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_6100
+     * @tc.name proxyTest061
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest061', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyMapGet61();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_6200
+     * @tc.name proxyTest062
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest062', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyAsPrototype62();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_6300
+     * @tc.name proxyTest063
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest063', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testMultiLevelProxyPrototype63();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_6400
+     * @tc.name proxyTest064
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest064', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetRecursion64();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_6500
+     * @tc.name proxyTest065
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest065', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetModifyOtherProperty65();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_6600
+     * @tc.name proxyTest066
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest066', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testApplyReturnNonFunction66();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_6800
+     * @tc.name proxyTest068
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest068', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testDeleteNonExistentProperty68();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_6900
+     * @tc.name proxyTest069
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest069', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetDescCustom69();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_7100
+     * @tc.name proxyTest071
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest071', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyRegExpTest71();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_7200
+     * @tc.name proxyTest072
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest072', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyArrayBuffer72();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_7300
+     * @tc.name proxyTest073
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest073', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetUndefinedProperty73();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_7400
+     * @tc.name proxyTest074
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest074', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetValueRange74();
+      expect(result).assertEqual(2);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_7500
+     * @tc.name proxyTest075
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest075', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetSymbolProperty75();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_7700
+     * @tc.name proxyTest077
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest077', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testHasHideEnumerable77();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_7800
+     * @tc.name proxyTest078
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest078', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testHasSymbolIterator78();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_7900
+     * @tc.name proxyTest079
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest079', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testOwnKeysOnlySymbols79();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_8100
+     * @tc.name proxyTest081
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest081', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testApplyModifyThis81();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_8200
+     * @tc.name proxyTest082
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest082', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testConstructReturnDerived82();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_8300
+     * @tc.name proxyTest083
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest083', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectConstructNewTarget83();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_8400
+     * @tc.name proxyTest084
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest084', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectGetReceiver84();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_8500
+     * @tc.name proxyTest085
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest085', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectSetAccessor85();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_8600
+     * @tc.name proxyTest086
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest086', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testReflectDeleteArray86();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_8700
+     * @tc.name proxyTest087
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest087', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testRevokedGetDesc87();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_8800
+     * @tc.name proxyTest088
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest088', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testRevokedSetPrototype88();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_8900
+     * @tc.name proxyTest089
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest089', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyClassStaticMethod89();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_9000
+     * @tc.name proxyTest090
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest090', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testProxyClassInstanceMethod90();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_9100
+     * @tc.name proxyTest091
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest091', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testGetTrapError91();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_9200
+     * @tc.name proxyTest092
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest092', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testSetAndDefine92();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_9300
+     * @tc.name proxyTest093
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest093', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testDeleteThrowError93();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_9500
+     * @tc.name proxyTest095
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest095', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testPropertyAccessLog95();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_9600
+     * @tc.name proxyTest096
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest096', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testPropertyAlias96();
+      expect(result).assertEqual(false);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_9700
+     * @tc.name proxyTest097
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest097', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testHasVirtualProperty97();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_9800
+     * @tc.name proxyTest098
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest098', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testOwnKeysDynamicKeys98();
+      expect(result).assertEqual(true);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_9900
+     * @tc.name proxyTest099
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest099', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async () => {
+      let result = await testProxyPromiseThen99();
+      expect(result).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_BUILTINS_PROXY_TEST_10000
+     * @tc.name proxyTest100
+     * @tc.desc test proxy
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('proxyTest100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      let result = testMultiLayerProxy100();
       expect(result).assertEqual(true);
     });
 

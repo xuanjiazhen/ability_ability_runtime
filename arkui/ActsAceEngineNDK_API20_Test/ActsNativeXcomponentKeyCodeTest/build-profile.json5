@@ -24,7 +24,8 @@
         "runtimeOS": "OpenHarmony"
       }
     ],
-    "signingConfigs": []
+    "signingConfigs": [
+    ]
   },
   "modules": [
     {

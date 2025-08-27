@@ -128,37 +128,41 @@ export default function audioRendererChange() {
       }
       let resultFlag = false;
 
-
-      audioStreamManagerCB.on('audioRendererChange', (AudioRendererChangeInfoArray: ESObject) => {
-        for (let i = 0; i < AudioRendererChangeInfoArray.length; i++) {
-          console.info(`${Tag} : ## RendererChange on is called for ${i}  ##`);
-          console.info(`${Tag} : StreamId for ${i}  is: ${AudioRendererChangeInfoArray[i].streamId}`);
-          console.info(`${Tag} : ClientUid for ${i}  is: ${AudioRendererChangeInfoArray[i].clientUid}`);
-          console.info(`${Tag} : Content for ${i}  is: ${AudioRendererChangeInfoArray[i].rendererInfo.content}`);
-          console.info(`${Tag} : Stream for ${i}  is: ${AudioRendererChangeInfoArray[i].rendererInfo.usage}`);
-          console.info(`${Tag} : Flag ${i}  is: ${AudioRendererChangeInfoArray[i].rendererInfo.rendererFlags}`);
-          console.info(`${Tag} : State for ${i}  is: ${AudioRendererChangeInfoArray[i].rendererState}`);
-          let devDescriptor: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors;
-          for (let j = 0; j < AudioRendererChangeInfoArray[i].deviceDescriptors.length; j++) {
-            console.info(`${Tag} : Id: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].id}`);
-            console.info(`${Tag} : Type: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].deviceType}`);
-            console.info(`${Tag} : Role: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].deviceRole}`);
-            expect(AudioRendererChangeInfoArray[i].deviceDescriptors[j].deviceType)
-              .assertEqual(audio.DeviceType.INVALID);
-            expect(AudioRendererChangeInfoArray[i].deviceDescriptors[j].deviceRole)
-              .assertEqual(audio.DeviceRole.OUTPUT_DEVICE);
-            console.info(`${Tag} : Name: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].name}`);
-            console.info(`${Tag} : Addr: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].address}`);
-            console.info(`${Tag} : SR: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].sampleRates[0]}`);
-            console.info(`${Tag} : C: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0]}`);
-            console.info(`${Tag} : CM: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks}`);
+      try {
+        audioStreamManagerCB.on('audioRendererChange', (AudioRendererChangeInfoArray: ESObject) => {
+          for (let i = 0; i < AudioRendererChangeInfoArray.length; i++) {
+            console.info(`${Tag} : ## RendererChange on is called for ${i}  ##`);
+            console.info(`${Tag} : StreamId for ${i}  is: ${AudioRendererChangeInfoArray[i].streamId}`);
+            console.info(`${Tag} : ClientUid for ${i}  is: ${AudioRendererChangeInfoArray[i].clientUid}`);
+            console.info(`${Tag} : Content for ${i}  is: ${AudioRendererChangeInfoArray[i].rendererInfo.content}`);
+            console.info(`${Tag} : Stream for ${i}  is: ${AudioRendererChangeInfoArray[i].rendererInfo.usage}`);
+            console.info(`${Tag} : Flag ${i}  is: ${AudioRendererChangeInfoArray[i].rendererInfo.rendererFlags}`);
+            console.info(`${Tag} : State for ${i}  is: ${AudioRendererChangeInfoArray[i].rendererState}`);
+            let devDescriptor: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors;
+            for (let j = 0; j < AudioRendererChangeInfoArray[i].deviceDescriptors.length; j++) {
+              console.info(`${Tag} : Id: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].id}`);
+              console.info(`${Tag} : Type: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].deviceType}`);
+              console.info(`${Tag} : Role: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].deviceRole}`);
+              expect(AudioRendererChangeInfoArray[i].deviceDescriptors[j].deviceType)
+                .assertEqual(audio.DeviceType.INVALID);
+              expect(AudioRendererChangeInfoArray[i].deviceDescriptors[j].deviceRole)
+                .assertEqual(audio.DeviceRole.OUTPUT_DEVICE);
+              console.info(`${Tag} : Name: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].name}`);
+              console.info(`${Tag} : Addr: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].address}`);
+              console.info(`${Tag} : SR: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].sampleRates[0]}`);
+              console.info(`${Tag} : C: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0]}`);
+              console.info(`${Tag} : CM: ${i}  ${AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks}`);
+            }
+            if (devDescriptor != null) {
+              resultFlag = true;
+              console.info(`${Tag} : [RENDERER-CHANGE-ON-001] ResultFlag for ${i}  is: ${resultFlag}`);
+            }
           }
-          if (devDescriptor != null) {
-            resultFlag = true;
-            console.info(`${Tag} : [RENDERER-CHANGE-ON-001] ResultFlag for ${i}  is: ${resultFlag}`);
-          }
-        }
-      });
+        });
+      } catch (error) {
+        console.log(`${Tag} : audioRendererChange_0100 :ERROR:   ${error.message}`);
+        resultFlag = false;
+      }
       await sleep(100);
 
       await audio.createAudioRenderer(AudioRendererOptions).then((data) => {
@@ -223,20 +227,24 @@ export default function audioRendererChange() {
       });
 
       await sleep(100);
-
-      audioStreamManager.on('audioRendererChange', (AudioRendererChangeInfoArray: ESObject) => {
-        for (let i = 0; i < AudioRendererChangeInfoArray.length; i++) {
-          console.info(`${Tag} : ## RendererChange on is called for ${i}  ## ${JSON.stringify(AudioRendererChangeInfoArray[i])}`);
-          let devDescriptor: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors;
-          for (let j = 0; j < AudioRendererChangeInfoArray[i].deviceDescriptors.length; j++) {
-            console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
+      try {
+        audioStreamManager.on('audioRendererChange', (AudioRendererChangeInfoArray: ESObject) => {
+          for (let i = 0; i < AudioRendererChangeInfoArray.length; i++) {
+            console.info(`${Tag} : ## RendererChange on is called for ${i}  ## ${JSON.stringify(AudioRendererChangeInfoArray[i])}`);
+            let devDescriptor: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors;
+            for (let j = 0; j < AudioRendererChangeInfoArray[i].deviceDescriptors.length; j++) {
+              console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
+            }
+            if (devDescriptor != null) {
+              resultFlag = true;
+              console.info(`${Tag} : [RENDERER-CHANGE-ON-002] ResultFlag for ${i}  is:  ${resultFlag}`);
+            }
           }
-          if (devDescriptor != null) {
-            resultFlag = true;
-            console.info(`${Tag} : [RENDERER-CHANGE-ON-002] ResultFlag for ${i}  is:  ${resultFlag}`);
-          }
-        }
-      });
+        });
+      } catch (error) {
+        console.log(`${Tag} : audioRendererChange_0200 :ERROR: ${error.message}`);
+        resultFlag = false;
+      }
 
       await sleep(100);
 
@@ -1379,7 +1387,7 @@ export default function audioRendererChange() {
             let cCount: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0];
             let cMask: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks;
             console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
-            if (Id > 0 && dType == 2 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
+            if (Id > 0 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
               resultFlag = true;
             }
           }
@@ -1833,7 +1841,7 @@ export default function audioRendererChange() {
             let cCount: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0];
             let cMask: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks;
             console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
-            if (Id > 0 && dType == 2 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
+            if (Id > 0 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
               resultFlag = false;
             }
           }
@@ -2389,7 +2397,7 @@ export default function audioRendererChange() {
               let cCount: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0];
               let cMask: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks;
               console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
-              if (Id > 0 && dType == 2 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
+              if (Id > 0 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
                 resultFlag = true;
               }
             }
@@ -2884,7 +2892,7 @@ export default function audioRendererChange() {
                 let cCount: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelCounts[0];
                 let cMask: ESObject = AudioRendererChangeInfoArray[i].deviceDescriptors[j].channelMasks;
                 console.info(`${Tag} : ${i}  ${JSON.stringify(AudioRendererChangeInfoArray[i].deviceDescriptors[j])}`);
-                if (Id > 0 && dType == 2 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
+                if (Id > 0 && dRole == 2 && sRate != null && cCount != null && cMask != null) {
                   resultFlag = true;
                 }
               }

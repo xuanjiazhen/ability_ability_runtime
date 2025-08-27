@@ -14,17 +14,18 @@
  */
 
 #include "BrushPointRecordTest.h"
-#include "RectFontTest.h"
-#include "CanvasPenTest.h"
-#include "EffectTest.h"
 #include "BufferTextTest.h"
+#include "CanvasPenTest.h"
 #include "ColorSpaceNameTest.h"
-#include "NativeBufferTest.h"
-#include "ExternalWindowTest.h"
-#include "ErrorCodeTest.h"
-#include "VSyncFenceTest.h"
 #include "EffectShareTest.h"
 #include "ErrorCodeWindowTest.h"
+#include "EffectTest.h"
+#include "ErrorCodeTest.h"
+#include "ExternalWindowTest.h"
+#include "NativeBufferTest.h"
+#include "RectFontTest.h"
+#include "TypographyTest.h"
+#include "VSyncFenceTest.h"
 #include <vector>
 
 EXTERN_C_START
@@ -44,6 +45,7 @@ static napi_value Init(napi_env env, napi_value exports)
     addErrorCodeTest(descData);
     addEffectShareTest(descData);
     addErrorCodeWindowTest(descData);
+    addTypographyTest(descData);
     napi_define_properties(env, exports, descData.size(), descData.data());
     return exports;
 }

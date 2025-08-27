@@ -18,6 +18,10 @@ import Utils from './Utils';
 // import router from '@system.router';
 import router from '@ohos.router';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
+let driver = Driver.create();
+const EVENT_ID_SET_EIMIT_KEY = 142501;
+
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 // @ts-nocheck
@@ -35,7 +39,7 @@ export default function webViewOnSslError() {
         if (!("webViewOnSslError" == pages.name)) {
           console.info("get webViewOnSslError state success " + JSON.stringify(pages.name));
           let result = await router.push(options);
-          await Utils.sleep(2000);
+          await driver.waitForComponent(ON.id("ActsAceWebDevWebViewOnSslErrorTest"), 10000);
           console.info("push webViewOnSslError page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -43,45 +47,30 @@ export default function webViewOnSslError() {
       }
       done()
     });
+
     beforeEach(async (done: Function) => {
       config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
         console.info(`enable success`);
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
+      await driver.waitForComponent(ON.id("ActsAceWebDevWebViewOnSslErrorTest"), 10000);
       console.info("webViewOnSslError beforeEach start");
       done();
     })
-    afterEach(async (done: Function) =>{
-      console.info("webViewOnSslError afterEach start:" + emitKey);
-      try {
-            let backData: events_emitter.EventData = {
-                data: {
-                    "ACTION": emitKey
-                }
-            }
-            let backEvent: events_emitter.InnerEvent = {
-                eventId:10,
-                priority:events_emitter.EventPriority.LOW
-            }
-            console.info("start send emitKey");
-            events_emitter.emit(backEvent, backData);
-      } catch (err) {
-            console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
-      done();
-    })
+
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWPATR4_API_0100
      *tc.name testOnsslerroreventreceive
      *tc.desc onsslerroreventreceive after load http://http.badssl.com/
      */
     it('testOnsslerroreventreceive',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) =>{
-      emitKey="emitOnsslerroreventreceive";
-      Utils.registerEvent("testOnsslerroreventreceive","1",320,done);
-      sendEventByKey('webViewOnSslError',10,'');
+      Utils.emitEvent("testOnsslerroreventreceive", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("testOnsslerroreventreceive",true,142511,() =>{isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "webViewOnSslError");
+      await Utils.waitForExist(()=>isReturn, "testOnsslerroreventreceive_checkReturn", 1, 1000);
+      done();
     })
   })
 }
