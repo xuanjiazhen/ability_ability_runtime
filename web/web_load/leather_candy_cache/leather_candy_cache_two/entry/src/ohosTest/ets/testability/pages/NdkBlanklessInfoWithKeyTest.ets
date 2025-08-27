@@ -85,6 +85,7 @@ struct ndkBlanklessInfoWithKeyTest {
               await waitForExist(() => this.isPageEnd, this.str, 0);
               console.log(msg, 'first loadUrl finish');
               num1 = testNapi.doblankless_Success(this.webTag);
+              console.log(msg, `预期值：0`,`实际值${num1}`);
               console.log(msg, 'testNapi.doblankless_SUCCESS:' + num1);
               if (num1 != 801) {
                 this.isPageEnd = -1;
@@ -92,6 +93,7 @@ struct ndkBlanklessInfoWithKeyTest {
                 await waitForExist(() => this.isPageEnd, this.str, 0);
                 console.log(msg, 'second loadUrl finish');
                 num2 = testNapi.doblankless_Success(this.webTag);
+                console.log(msg, `预期值：0`,`实际值${num2}`);
                 console.log(msg, 'testNapi.doblankless_SUCCESS:' + num2);
                 if (num2 != 801) {
                   this.isPageEnd = -1;
@@ -99,6 +101,7 @@ struct ndkBlanklessInfoWithKeyTest {
                   await waitForExist(() => this.isPageEnd, this.str, 0);
                   console.log(msg, 'third loadUrl finish');
                   num3 = testNapi.doblankless_Success(this.webTag);
+                  console.log(msg, `预期值：0`,`实际值${num3}`);
                   console.log(msg, 'testNapi.doblankless_SUCCESS:' + num1);
                   if (num3 != 801) {
                     Utils.emitEvent(num3, 148110)
@@ -116,6 +119,7 @@ struct ndkBlanklessInfoWithKeyTest {
             case 'testndkBlanklessInfoWithKey002': {
               let msg = 'testndkBlanklessInfoWithKey002';
               let num: number = testNapi.doblankless_INVALID_ARGS(this.webTag);
+              console.log(msg, `预期值：-2`,`实际值${num}`);
               console.log(msg, 'testNapi.doblankless_INVALID_ARGS:' + num);
               if (num == 801) {
                 Utils.emitEvent(-2, 148120)
@@ -127,6 +131,7 @@ struct ndkBlanklessInfoWithKeyTest {
             case 'testndkBlanklessInfoWithKey003': {
               let msg = 'testndkBlanklessInfoWithKey003'
               let num: number = testNapi.doblankless_CONTROLLER_NOT_INITED(this.webTag);
+              console.log(msg, `预期值：-3`,`实际值${num}`);
               console.log(msg, 'testNapi.CONTROLLER_NOT_INITED:' + num);
               if (num == 801) {
                 Utils.emitEvent(-3, 148130)
@@ -138,6 +143,7 @@ struct ndkBlanklessInfoWithKeyTest {
             case 'testndkBlanklessInfoWithKey004': {
               let msg = 'testndkBlanklessInfoWithKey004'
               let num: number = testNapi.doblankless_ERR_KEY_NOT_MATCH(this.webTag);
+              console.log(msg, `预期值：-4`,`实际值${num}`);
               console.log(msg, 'testNapi.doblankless_ERR_KEY_NOT_MATCH:' + num);
               if (num == 801) {
                 Utils.emitEvent(-4, 148140)
@@ -161,6 +167,7 @@ struct ndkBlanklessInfoWithKeyTest {
               await waitForExist(() => this.isPageEnd, this.str, 0);
               console.log(`${msg}`, 'second loadUrl finish');
               num = testNapi.doblankless_Success(this.webTag);
+              console.log(msg, `预期值：-5`,`实际值${num}`);
               console.log(`${msg}`, 'testNapi.doblankless_SUCCESS0:' + num);
               if (num == 801) {
                 Utils.emitEvent(-5, 148150)

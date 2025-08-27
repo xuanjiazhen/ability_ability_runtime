@@ -89,7 +89,8 @@ struct blankLessInfoWithKeyTest {
                 await waitForExist(() => this.isPageEnd, this.str, 0);
                 console.log(msg, 'first loadUrl finish');
                 let infoOne = this.controller.getBlanklessInfoWithKey(key);
-                console.log(msg, 'getBlanklessInfoWithKey info1:' + JSON.stringify(infoOne));
+                console.log(msg, `入参:${key}`,`返回值:${JSON.stringify(infoOne)}`,`预期值：0`,`实际值${infoOne.errCode}`);
+                console.log(msg, 'getBlanklessInfoWithKey loadingTime:' + infoOne.loadingTime);
                 if (infoOne.similarity >= 0.33) {
                   Utils.emitEvent(infoOne.errCode, 148010)
                   return;
@@ -100,6 +101,7 @@ struct blankLessInfoWithKeyTest {
                 await waitForExist(() => this.isPageEnd, this.str, 0);
                 console.log(msg, 'first loadUrl finish');
                 let infoTwo = this.controller.getBlanklessInfoWithKey(key);
+                console.log(msg, `入参:${key}`,`返回值:${JSON.stringify(infoTwo)}`,`预期值：0`,`实际值${infoTwo.errCode}`);
                 console.log(msg, 'getBlanklessInfoWithKey info2:' + JSON.stringify(infoTwo));
                 if (infoTwo.similarity >= 0.33) {
                   Utils.emitEvent(infoTwo.errCode, 148010)
@@ -111,6 +113,7 @@ struct blankLessInfoWithKeyTest {
                 await waitForExist(() => this.isPageEnd, this.str, 0);
                 console.log(msg, 'first loadUrl finish');
                 let infoThree = this.controller.getBlanklessInfoWithKey(key);
+                console.log(msg, `入参:${key}`,`返回值:${JSON.stringify(infoThree)}`,`预期值：0`,`实际值${infoThree.errCode}`);
                 console.log(msg, 'getBlanklessInfoWithKey info3:' + JSON.stringify(infoThree));
                 if (infoThree.similarity >= 0.33) {
                   Utils.emitEvent(infoThree.errCode, 148010)
@@ -122,6 +125,7 @@ struct blankLessInfoWithKeyTest {
                 await waitForExist(() => this.isPageEnd, this.str, 0);
                 console.log(msg, 'first loadUrl finish');
                 let infoFour = this.controller.getBlanklessInfoWithKey(key);
+                console.log(msg, `入参:${key}`,`返回值:${JSON.stringify(infoFour)}`,`预期值：0`,`实际值${infoFour.errCode}`);
                 console.log(msg, 'getBlanklessInfoWithKey info4:' + JSON.stringify(infoFour));
                 if (infoFour.similarity >= 0.33) {
                   Utils.emitEvent(infoFour.errCode, 148010)
@@ -133,6 +137,7 @@ struct blankLessInfoWithKeyTest {
                 await waitForExist(() => this.isPageEnd, this.str, 0);
                 console.log(msg, 'third loadUrl finish');
                 let infoFive = this.controller.getBlanklessInfoWithKey(key);
+                console.log(msg, `入参:${key}`,`返回值:${JSON.stringify(infoFive)}`,`预期值：0`,`实际值${infoFive.errCode}`);
                 console.log(msg, 'getBlanklessInfoWithKey info5:' + JSON.stringify(infoFive));
                 if (infoFive.errCode == webview.WebBlanklessErrorCode.SUCCESS) {
                   if (infoFive.similarity >= 0.33) {
@@ -161,7 +166,8 @@ struct blankLessInfoWithKeyTest {
                 console.log(msg, 'getBlanklessInfoWithKey info:' + JSON.stringify(infoOne));
                 if (infoOne.errCode === webview.WebBlanklessErrorCode.ERR_INVALID_PARAM) {
                   Utils.emitEvent(infoOne.errCode, 148020)
-                  this.controller.setBlanklessLoadingWithKey(key, false);
+                  console.log(msg, `入参:${key}`,`返回值:${JSON.stringify(infoOne)}`,`预期值：-2`,`实际值${infoOne.errCode}`);
+                  this.controller.setBlanklessLoadingWithKey(key, true);
                   console.log(msg, 'setBlanklessLoadingWithKey faild')
                 } else {
                   console.log(msg, 'getBlanklessInfoWithKey info err');
@@ -184,6 +190,7 @@ struct blankLessInfoWithKeyTest {
                 console.log(msg, 'getBlanklessInfoWithKey info:' + JSON.stringify(infoOne));
                 if (infoOne.errCode === webview.WebBlanklessErrorCode.ERR_CONTROLLER_NOT_INITED) {
                   this.newController.setBlanklessLoadingWithKey(key, false);
+                  console.log(msg, `入参:${key}`,`返回值:${JSON.stringify(infoOne)}`,`预期值：-3`,`实际值${infoOne.errCode}`);
                   Utils.emitEvent(infoOne.errCode, 148030)
                   console.log(msg, 'setBlanklessLoadingWithKey faild')
                 } else {
@@ -218,8 +225,9 @@ struct blankLessInfoWithKeyTest {
                 let infoOne: webview.BlanklessInfo = this.controller.getBlanklessInfoWithKey(key);
                 console.log(msg, 'getBlanklessInfoWithKey info:' + JSON.stringify(infoOne));
                 if (infoOne.errCode === webview.WebBlanklessErrorCode.SUCCESS) {
-                  let errcode = this.controller.setBlanklessLoadingWithKey(newKey, false);
+                  let errcode = this.controller.setBlanklessLoadingWithKey(newKey, true);
                   if (errcode == webview.WebBlanklessErrorCode.ERR_KEY_NOT_MATCH) {
+                    console.log(msg, `入参:${key}`,`返回值:${JSON.stringify(infoOne)}`,`预期值：-4`,`实际值${infoOne.errCode}`);
                     Utils.emitEvent(errcode, 148050)
                   }
                   console.log(msg, 'setBlanklessLoadingWithKey faild')
@@ -255,6 +263,7 @@ struct blankLessInfoWithKeyTest {
                 if (infoOne.errCode === webview.WebBlanklessErrorCode.SUCCESS) {
                   let newInfo = this.controller.setBlanklessLoadingWithKey(key, true);
                   if (newInfo === webview.WebBlanklessErrorCode.ERR_SIGNIFICANT_CHANGE) {
+                    console.log(msg, `入参:${key}`,`返回值:${JSON.stringify(infoOne)}`,`预期值：-5`,`实际值${infoOne.errCode}`);
                     Utils.emitEvent(newInfo, 148060)
                   }
                 }
@@ -275,7 +284,7 @@ struct blankLessInfoWithKeyTest {
                 let key = 'blankLessInfoWithKey';
                 let infoOne: webview.BlanklessInfo = this.controller.getBlanklessInfoWithKey(key);
                 console.log('${msg}', 'info:' + JSON.stringify(infoOne))
-                this.controller.setBlanklessLoadingWithKey(null, false);
+                this.controller.setBlanklessLoadingWithKey(null, true);
               } catch (error) {
                 Utils.emitEvent(401, 148070)
                 console.error(`${msg} ErrorCode: ${error.code},  Message: ${error.message}`);
