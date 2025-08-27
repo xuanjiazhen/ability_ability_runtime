@@ -1150,7 +1150,7 @@ napi_value TestRestoreSuccess(napi_env env, napi_callback_info info)
     OH_Predicates *predicates = OH_Rdb_CreatePredicates("test");
     errCode = OH_Rdb_Delete(testStore, predicates);
 
-    OH_Rdb_Restore(testStore, testPath1.c_str());
+    int ret = OH_Rdb_Restore(testStore, testPath1.c_str());
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
     insertBucket->destroy(insertBucket);
