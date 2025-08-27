@@ -954,13 +954,12 @@ napi_value CreateNativeChildProcessNoError(napi_env env, napi_callback_info info
         return napiRet;
     }
     return nullptr;
-
 }
 
 napi_value CreateNativeChildProcessInvalidParam(napi_env env, napi_callback_info info)
 {
     int32_t ret = OH_Ability_CreateNativeChildProcess(nullptr, OnNativeChildProcessStarted);
-    if(ret == NCP_ERR_INVALID_PARAM){
+    if (ret == NCP_ERR_INVALID_PARAM) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
