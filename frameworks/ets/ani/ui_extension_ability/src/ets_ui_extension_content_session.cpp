@@ -297,7 +297,8 @@ ani_status EtsUIExtensionContentSession::BindNativeMethod(ani_env *env, ani_clas
             reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetWindowPrivacyMode)}
     };
     ani_status status = ANI_ERROR;
-    if ((status = env->Class_BindNativeMethods(cls, methods.data(), methods.size())) != ANI_OK) {
+    if ((status = env->Class_BindNativeMethods(cls, methods.data(), methods.size())) != ANI_OK
+        && status != ANI_ALREADY_BINDED) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return status;
     }
