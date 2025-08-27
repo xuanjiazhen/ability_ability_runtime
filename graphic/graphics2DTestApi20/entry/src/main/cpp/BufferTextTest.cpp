@@ -588,7 +588,7 @@ napi_value OH_NativeBuffer_PlaneCount(napi_env env, napi_callback_info info)
     
     OHNativeWindowBuffer *windowBuffer = nullptr;
     int fd;
-    int pCount = 0;
+    int pCount = 4;
     float matrix[16] = {
         0, -0.5, 0, 0,
         -0.5, 0, 0, 0,
