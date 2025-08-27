@@ -89,12 +89,12 @@ struct Second {
   @State getPipWindowInfoText4: string = '';
   @State isSupported: number = 0;
   build() {
-    Row() {
+    Stack() {
       Column() {
         Button(this.isSupported.toString())
           .id('isSupported')
-          .height('2%')
-          .margin({top: '70%'})
+          .height('5%')
+          .fontSize(10)
         Row() {
           Button() {
             Text('Create1')
@@ -103,7 +103,8 @@ struct Second {
           }.type(ButtonType.Capsule)
           .id('CreatePipWindow1')
           .backgroundColor('#0D9FFB')
-          .height('2%')
+          .height('100%')
+          .width('20%')
           .onClick(()=>{
             let promise : Promise<pipWindow.PiPController> = pipWindow.create(config1);
             promise.then(async (data : pipWindow.PiPController) => {
@@ -125,7 +126,8 @@ struct Second {
           }.type(ButtonType.Capsule)
           .id('GetPiPWindowInfo1')
           .backgroundColor('#0D9FFB')
-          .height('2%')
+          .height('100%')
+          .width('20%')
           .onClick(()=>{
             pipController!.getPiPWindowInfo().then(async (data : pipWindow.PiPWindowInfo) => {
               this.isSupported = 0
@@ -144,7 +146,8 @@ struct Second {
           }.type(ButtonType.Capsule)
           .id('StopPiPWindow1')
           .backgroundColor('#0D9FFB')
-          .height('2%')
+          .height('100%')
+          .width('20%')
           .onClick(()=>{
             pipController!.stopPiP().then(async () => {
               this.isSupported = 0
@@ -154,11 +157,13 @@ struct Second {
               console.error(`Failed to stopPiP. Cause:${err.code}, message:${err.message}`);
             });
           })
-        }
-        Button(this.getPipWindowInfoText1)
-          .id('PipWindowInfoText1')
-          .width('30%')
-          .height('2%')
+          Button(this.getPipWindowInfoText1)
+            .id('PipWindowInfoText1')
+            .width('30%')
+            .height('100%')
+            .fontSize(10)
+        }.height('5%')
+        
 
         Row() {
           Button() {
@@ -168,7 +173,8 @@ struct Second {
           }.type(ButtonType.Capsule)
           .id('CreatePipWindow2')
           .backgroundColor('#0D9FFB')
-          .height('2%')
+          .height('100%')
+          .width('20%')
           .onClick(()=>{
             let promise : Promise<pipWindow.PiPController> = pipWindow.create(config2);
             promise.then(async (data : pipWindow.PiPController) => {
@@ -190,7 +196,8 @@ struct Second {
           }.type(ButtonType.Capsule)
           .id('GetPiPWindowInfo2')
           .backgroundColor('#0D9FFB')
-          .height('2%')
+          .height('100%')
+          .width('20%')
           .onClick(()=>{
             pipController2!.getPiPWindowInfo().then(async (data : pipWindow.PiPWindowInfo) => {
               this.isSupported = 0
@@ -209,7 +216,8 @@ struct Second {
           }.type(ButtonType.Capsule)
           .id('StopPiPWindow2')
           .backgroundColor('#0D9FFB')
-          .height('2%')
+          .height('100%')
+          .width('20%')
           .onClick(()=>{
             pipController2!.stopPiP().then(async () => {
               this.isSupported = 0
@@ -219,11 +227,13 @@ struct Second {
               console.error(`Failed to stopPiP. Cause:${err.code}, message:${err.message}`);
             });
           })
-        }
-        Button(this.getPipWindowInfoText2)
-          .id('PipWindowInfoText2')
-          .width('30%')
-          .height('2%')
+          Button(this.getPipWindowInfoText2)
+            .id('PipWindowInfoText2')
+            .width('30%')
+            .height('100%')
+            .fontSize(10)
+        }.height('5%')
+        
 
         Row() {
           Button() {
@@ -233,7 +243,8 @@ struct Second {
           }.type(ButtonType.Capsule)
           .id('CreatePipWindow3')
           .backgroundColor('#0D9FFB')
-          .height('2%')
+          .height('100%')
+          .width('20%')
           .onClick(()=>{
             let promise : Promise<pipWindow.PiPController> = pipWindow.create(config3);
             promise.then(async (data : pipWindow.PiPController) => {
@@ -255,7 +266,8 @@ struct Second {
           }.type(ButtonType.Capsule)
           .id('GetPiPWindowInfo3')
           .backgroundColor('#0D9FFB')
-          .height('2%')
+          .height('100%')
+          .width('20%')
           .onClick(()=>{
             pipController3!.getPiPWindowInfo().then(async (data : pipWindow.PiPWindowInfo) => {
               this.isSupported = 0
@@ -274,7 +286,8 @@ struct Second {
           }.type(ButtonType.Capsule)
           .id('StopPiPWindow3')
           .backgroundColor('#0D9FFB')
-          .height('2%')
+          .height('100%')
+          .width('20%')
           .onClick(()=>{
             pipController3!.stopPiP().then(async () => {
               this.isSupported = 0
@@ -284,79 +297,88 @@ struct Second {
               console.error(`Failed to stopPiP. Cause:${err.code}, message:${err.message}`);
             });
           })
-        }
-        Button(this.getPipWindowInfoText3)
-          .id('PipWindowInfoText3')
-          .width('30%')
-          .height('2%')
-
-      Row() {
-        Button() {
-          Text('Create4')
+          Button(this.getPipWindowInfoText3)
+            .id('PipWindowInfoText3')
+            .width('30%')
+            .height('100%')
             .fontSize(10)
-            .fontWeight(FontWeight.Bold)
-        }.type(ButtonType.Capsule)
-        .id('CreatePipWindow4')
-        .backgroundColor('#0D9FFB')
-        .height('2%')
-        .onClick(()=>{
-          let promise : Promise<pipWindow.PiPController> = pipWindow.create(config4);
-          promise.then(async (data : pipWindow.PiPController) => {
-            this.isSupported = 0
-            pipController4 = data;
-            console.info(`Succeeded in creating pip controller. Data:${data}`);
-            await pipController4.startPiP();
-            console.log(`Succeeded startPiP`);
-          }).catch((err: BusinessError) => {
-            this.isSupported = err.code;
-            console.error(`Failed to create pip controller. Cause:${err.code}, message:${err.message}`);
-          });
-        })
+        }.height('5%')
+        
 
-        Button() {
-          Text('GetInfo4')
-            .fontSize(10)
-            .fontWeight(FontWeight.Bold)
-        }.type(ButtonType.Capsule)
-        .id('GetPiPWindowInfo4')
-        .backgroundColor('#0D9FFB')
-        .height('2%')
-        .onClick(()=>{
-          pipController4!.getPiPWindowInfo().then(async (data : pipWindow.PiPWindowInfo) => {
-            this.isSupported = 0
-            this.getPipWindowInfoText4 = data.size.scale.toString()
-            console.info(`Succeeded in getPiPWindowInfo. Data:${JSON.stringify(data)}`);
-          }).catch((err: BusinessError) => {
-            this.isSupported = err.code;
-            console.error(`Failed to getPiPWindowInfo. Cause:${err.code}, message:${err.message}`);
-          });
-        })
+        Row() {
+          Button() {
+            Text('Create4')
+              .fontSize(10)
+              .fontWeight(FontWeight.Bold)
+          }.type(ButtonType.Capsule)
+          .id('CreatePipWindow4')
+          .backgroundColor('#0D9FFB')
+          .height('100%')
+          .width('20%')
+          .onClick(()=>{
+            let promise : Promise<pipWindow.PiPController> = pipWindow.create(config4);
+            promise.then(async (data : pipWindow.PiPController) => {
+              this.isSupported = 0
+              pipController4 = data;
+              console.info(`Succeeded in creating pip controller. Data:${data}`);
+              await pipController4.startPiP();
+              console.log(`Succeeded startPiP`);
+            }).catch((err: BusinessError) => {
+              this.isSupported = err.code;
+              console.error(`Failed to create pip controller. Cause:${err.code}, message:${err.message}`);
+            });
+          })
 
-        Button() {
-          Text('Stop4')
+          Button() {
+            Text('GetInfo4')
+              .fontSize(10)
+              .fontWeight(FontWeight.Bold)
+          }.type(ButtonType.Capsule)
+          .id('GetPiPWindowInfo4')
+          .backgroundColor('#0D9FFB')
+          .height('100%')
+          .width('20%')
+          .onClick(()=>{
+            pipController4!.getPiPWindowInfo().then(async (data : pipWindow.PiPWindowInfo) => {
+              this.isSupported = 0
+              this.getPipWindowInfoText4 = data.size.scale.toString()
+              console.info(`Succeeded in getPiPWindowInfo. Data:${JSON.stringify(data)}`);
+            }).catch((err: BusinessError) => {
+              this.isSupported = err.code;
+              console.error(`Failed to getPiPWindowInfo. Cause:${err.code}, message:${err.message}`);
+            });
+          })
+
+          Button() {
+            Text('Stop4')
+              .fontSize(10)
+              .fontWeight(FontWeight.Bold)
+          }.type(ButtonType.Capsule)
+          .id('StopPiPWindow4')
+          .backgroundColor('#0D9FFB')
+          .height('100%')
+          .width('20%')
+          .onClick(()=>{
+            pipController4!.stopPiP().then(async () => {
+              this.isSupported = 0
+              console.info(`Succeeded in stopPiP.`);
+            }).catch((err: BusinessError) => {
+              this.isSupported = err.code;
+              console.error(`Failed to stopPiP. Cause:${err.code}, message:${err.message}`);
+            });
+          })
+          Button(this.getPipWindowInfoText4)
+            .id('PipWindowInfoText4')
+            .width('30%')
+            .height('100%')
             .fontSize(10)
-            .fontWeight(FontWeight.Bold)
-        }.type(ButtonType.Capsule)
-        .id('StopPiPWindow4')
-        .backgroundColor('#0D9FFB')
-        .height('2%')
-        .onClick(()=>{
-          pipController4!.stopPiP().then(async () => {
-            this.isSupported = 0
-            console.info(`Succeeded in stopPiP.`);
-          }).catch((err: BusinessError) => {
-            this.isSupported = err.code;
-            console.error(`Failed to stopPiP. Cause:${err.code}, message:${err.message}`);
-          });
-        })
-      }
-        Button(this.getPipWindowInfoText4)
-          .id('PipWindowInfoText4')
-          .width('30%')
-          .height('2%')
+        }.height('5%')
+        
 
       }
       .width('100%')
+      .position({bottom:'0%'})
+
     }
     .height('100%')
   }
