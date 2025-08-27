@@ -523,7 +523,7 @@ napi_value BufferHandleReserve(napi_env env, napi_callback_info info)
 OH_NativeBuffer_Planes newPlanes()
 {
     OH_NativeBuffer_Planes p;
-    p.planeCount = sizeof(p.planes) / sizeof(OH_NativeBuffer_Plane); 
+    p.planeCount = sizeof(p.planes) / sizeof(OH_NativeBuffer_Plane);
     for (int i = 0; i < p.planeCount; i++) {
         p.planes[i].columnStride = 0;
         p.planes[i].offset = 0;
