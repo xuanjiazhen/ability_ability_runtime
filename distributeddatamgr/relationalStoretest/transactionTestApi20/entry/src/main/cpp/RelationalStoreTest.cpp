@@ -1145,14 +1145,15 @@ napi_value TestRestoreSuccess(napi_env env, napi_callback_info info)
 
     char dbPath[] = "backup.db";
     char backupPath[100];
-    snprintf(backupPath, sizeof(backupPath), "%s%s", RelationalStoreTest::RDB_TEST, dbPath);
-    OH_Rdb_Backup(testStore, backupPath);
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}s", backupPath);
-
+    std::string testpath1 = std::string(backupPath) + std::string(RelationalStoreTest::RDB_TEST) + std::string(dbPath);
+    int ba = OH_Rdb_Backup(testStore, testpath1.c_str());
+    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}s", testpath1.c_str());
+    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}d", ba);
     OH_Predicates *predicates = OH_Rdb_CreatePredicates("test");
     errCode = OH_Rdb_Delete(testStore, predicates);
 
-    int ret = OH_Rdb_Restore(testStore, backupPath);
+    int ret = OH_Rdb_Restore(testStore, testpath1.c_str());
+    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Restore:%{public}s", testpath1.c_str());
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Restore:%{public}d", ret);
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
