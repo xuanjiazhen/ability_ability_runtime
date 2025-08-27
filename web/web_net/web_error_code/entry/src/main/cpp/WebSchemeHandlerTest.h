@@ -32,7 +32,6 @@ ArkWeb_CustomSchemeOption GetSchemeOptionByName(const std::string name);
 void OnURLRequestStart(const ArkWeb_SchemeHandler *schemeHandler, ArkWeb_ResourceRequest *resourceRequest,
                        const ArkWeb_ResourceHandler *resourceHandler, bool *intercept);
 napi_value InitResourceManager(napi_env env, napi_callback_info info);
-napi_value ArkWebHttpBodyStreamSetUserDataOK(napi_env env, napi_callback_info info);
 napi_value ArkWebHttpBodyStreamSetUserDataInvalidParam(napi_env env, napi_callback_info info);
 napi_value ArkWebHttpBodyStreamSetReadCallbackOK(napi_env env, napi_callback_info info);
 napi_value ArkWebHttpBodyStreamSetReadCallbackInvalidParam(napi_env env, napi_callback_info info);

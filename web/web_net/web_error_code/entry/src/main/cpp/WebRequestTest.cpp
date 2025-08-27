@@ -189,11 +189,8 @@ void WebRequestTest::Start()
     g_setAsyncReadCallback = -1;
     g_asyncRead = -1;
     g_readBuffer = nullptr;
-    g_workerPid = -1;
-    g_asyncPid = -1;
     g_httpBodyStreamNullptr = httpBodyStreamNullptr_;
     g_bufLen = bufLen_;
-    OH_LOG_INFO(LOG_APP, "RawfileRequest Start  g_bufLen :%{public}d", g_bufLen);
 
     char* url;
     OH_ArkWebResourceRequest_GetUrl(resourceRequest_, &url);
@@ -207,9 +204,12 @@ void WebRequestTest::Start()
     OH_ArkWeb_CreateResponse(&response_);
     OH_ArkWebResourceRequest_GetHttpBodyStream(resourceRequest(), &stream_);
     if (stream_) {
-        OH_ArkWebHttpBodyStream_SetUserData(stream_, this);
+        int ret = OH_ArkWebHttpBodyStream_SetUserData(stream_, this);
+        if (ret == ARKWEB_NET_OK) {
+            OH_LOG_DEBUG(LOG_APP, "OH_ArkWebHttpBodyStream_SetUserData success.");
+        }
         ArkWeb_HttpBodyStreamAsyncReadCallback httpBodyStreamAsyncReadCallback = ReadCallback;
-        int ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(stream_, httpBodyStreamAsyncReadCallback);
+        ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(stream_, httpBodyStreamAsyncReadCallback);
         if (ARKWEB_NET_OK == ret) {
             OH_LOG_DEBUG(LOG_APP, "OH_ArkWebHttpBodyStream_SetAsyncReadCallback success.");
         }

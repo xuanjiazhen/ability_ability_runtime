@@ -55,7 +55,7 @@ ArkWeb_CustomSchemeOption GetSchemeOptionByName(const std::string name)
 const std::map<std::string, ArkWebHandlerFunc> FunctionMap = {
     {"OH_ArkWebResourceRequest_SetUserData_ARKWEB_NET_OK", ArkWebResourceRequestSetUserDataOK},
     {"OH_ArkWebResourceRequest_SetUserData_ARKWEB_INVALID_PARAM", ArkWebResourceRequestSetUserDataInvalidParam},
-    {"OH_ArkWebHttpBodyStream_SetUserData_ARKWEB_NET_OK", ArkWebHttpBodyStreamSetUserDataOK},
+    {"OH_ArkWebHttpBodyStream_SetUserData_ARKWEB_NET_OK", ArkWebHttpBodyStreamSetReadCallbackOK},
     {"OH_ArkWebHttpBodyStream_SetUserData_ARKWEB_INVALID_PARAM", ArkWebHttpBodyStreamSetUserDataInvalidParam},
     {"OH_ArkWebHttpBodyStream_SetReadCallback_ARKWEB_NET_OK", ArkWebHttpBodyStreamSetReadCallbackOK},
     {"OH_ArkWebHttpBodyStream_SetReadCallback_ARKWEB_INVALID_PARAM", ArkWebHttpBodyStreamSetReadCallbackInvalidParam},
@@ -231,20 +231,6 @@ napi_value WebSchemeHandlerProcess(napi_env env, napi_callback_info info)
 
     napi_value result;
     napi_create_int32(env, -1, &result);
-    return result;
-}
-
-napi_value ArkWebHttpBodyStreamSetUserDataOK(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    int ret = -1;
-
-    ArkWeb_HttpBodyStream* httpBodyStream;
-    int data = 100;
-    if (ARKWEB_NET_OK == OH_ArkWebHttpBodyStream_SetUserData(httpBodyStream, (void*)&data)) {
-        ret = 0;
-    }
-    napi_create_int32(env, ret, &result);
     return result;
 }
 
