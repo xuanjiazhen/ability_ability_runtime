@@ -17,7 +17,7 @@ _all_test_packages = [
   "${ACTS_ROOT}/ai:ai",
   "${ACTS_ROOT}/web:web",
   "${ACTS_ROOT}/testfwk:testfwk",
-  "${ACTS_ROOT}/global:global",
+  "${ACTS_ROOT}/global:xts_global_acts",
   "${ACTS_ROOT}/security:security",
   "${ACTS_ROOT}/useriam:useriam",
   "${ACTS_ROOT}/multimedia:multimedia",

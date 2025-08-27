@@ -13,7 +13,7 @@
 
 import("//build/ohos_var.gni")
 
-group("global") {
+group("xts_global_acts") {
   testonly = true
   if (is_standard_system) {
     deps = [
