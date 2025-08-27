@@ -22,9 +22,9 @@ import { ShellCmdResult as _ShellCmdResult } from 'application.shellCmdResult';
 export default namespace abilityDelegatorRegistry {
   loadLibrary("ability_delegator_registry_ani_kit.z")
 
-  export native function getAbilityDelegator(): AbilityDelegator;
+  export native function getAbilityDelegator(): AbilityDelegator | null;
 
-  export native function getArguments(): AbilityDelegatorArgs;
+  export native function getArguments(): AbilityDelegatorArgs | null;
 
   export enum AbilityLifecycleState {
     UNINITIALIZED,

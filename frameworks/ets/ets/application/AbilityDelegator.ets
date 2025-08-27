@@ -26,7 +26,7 @@ import AbilityStage from '@ohos.app.ability.AbilityStage';
 export interface AbilityDelegator {
   printSync(msg: string): void;
 
-  getAppContext(): Context;
+  getAppContext(): Context | null;
 
   finishTest(msg: string, code: long, callback: AsyncCallback<void>): void;
 

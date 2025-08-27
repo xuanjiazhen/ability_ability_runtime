@@ -493,6 +493,7 @@ ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long 
     }
     return displayContextObj;
 #else
+    EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     return reinterpret_cast<ani_object>(undefRef);
 #endif
 }

@@ -16,6 +16,7 @@
 #include "ets_ability_delegator_utils.h"
 
 #include <map>
+#include "ani_common_util.h"
 #include "ets_ability_delegator.h"
 #include "hilog_tag_wrapper.h"
 
@@ -24,7 +25,7 @@ namespace AbilityDelegatorEts {
 namespace {
 constexpr const char* ABILITY_DELEGATOR_CLASS_NAME = "Lapplication/AbilityDelegator/AbilityDelegatorInner;";
 constexpr const char* RECORD_CLASS_NAME = "Lescompat/Record;";
-constexpr const char* VOID_CONTEXT = ":Lapplication/Context/Context;";
+constexpr const char* VOID_CONTEXT = ":Lstd/core/Object";
 constexpr const char* STRING_NUMBER_ASYNCCALLBACK = "Lstd/core/String;JLutils/AbilityUtils/AsyncCallbackWrapper;:V";
 constexpr const char* STRING_VOID = "Lstd/core/String;:V";
 constexpr const char* MONITOR_ASYNCCALLBACK_VOID =
@@ -312,14 +313,14 @@ ani_object CreateEtsAbilityDelegatorArguments(
     TAG_LOGD(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegatorArguments");
     if (aniEnv == nullptr || abilityDelegatorArgs == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null aniEnv or abilityDelegatorArgs");
-        return {};
+        return nullptr;
     }
     ani_class arguments = nullptr;
     ani_status status = ANI_ERROR;
     status = aniEnv->FindClass(ARGS_ABILITY_DELEGATOR_CLASS_NAME, &arguments);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "find abilityDelegatorArgs failed status: %{public}d", status);
-        return {};
+        return AppExecFwk::CreateEtsNull(aniEnv);
     }
     TAG_LOGD(AAFwkTag::DELEGATOR, "find AbilityDelegatorArgs success");
 
@@ -327,7 +328,7 @@ ani_object CreateEtsAbilityDelegatorArguments(
     status = aniEnv->Class_FindMethod(arguments, "<ctor>", ":V", &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod ctor failed status: %{public}d", status);
-        return {};
+        return AppExecFwk::CreateEtsNull(aniEnv);
     }
     TAG_LOGD(AAFwkTag::DELEGATOR, "Class_FindMethod ctor success");
 
@@ -335,7 +336,7 @@ ani_object CreateEtsAbilityDelegatorArguments(
     status = aniEnv->Object_New(arguments, method, &argumentObject);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_New failed status: %{public}d", status);
-        return {};
+        return AppExecFwk::CreateEtsNull(aniEnv);
     }
     TAG_LOGD(AAFwkTag::DELEGATOR, "Object_New success");
 
