@@ -455,45 +455,39 @@ ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long 
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return nullptr;
     }
-    ani_ref undefRef = nullptr;
-    ani_status status = env->GetUndefined(&undefRef);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "GetUndefined failed %{public}d", status);
-        return nullptr;
-    }
 #ifdef SUPPORT_GRAPHICS
     auto context = GetBaseContext(env, aniObj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
         EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-        return reinterpret_cast<ani_object>(undefRef);
+        return AppExecFwk::CreateEtsUndefine(env);
     }
     if (displayId < 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "displayId is invalid, less than 0");
         EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-        return reinterpret_cast<ani_object>(undefRef);
+        return AppExecFwk::CreateEtsUndefine(env);
     }
     uint64_t validDisplayId = static_cast<uint64_t>(displayId);
     auto displayContext = context->CreateDisplayContext(validDisplayId);
     if (displayContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "Failed to create displayContext");
-        return reinterpret_cast<ani_object>(undefRef);
+        return AppExecFwk::CreateEtsUndefine(env);
     }
     ani_class contextClass = nullptr;
-    status = env->FindClass(CONTEXT_CLASS_NAME, &contextClass);
+    ani_status status = env->FindClass(CONTEXT_CLASS_NAME, &contextClass);
     if (status != ANI_OK || contextClass == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindClass Context failed, status: %{public}d", status);
         EtsErrorUtil::ThrowInvalidParamError(env, "FindClass failed");
-        return reinterpret_cast<ani_object>(undefRef);
+        return AppExecFwk::CreateEtsUndefine(env);
     }
     ani_object displayContextObj = CreateContextObject(env, contextClass, displayContext);
     if (displayContextObj == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null contextObj");
-        return reinterpret_cast<ani_object>(undefRef);
+        return AppExecFwk::CreateEtsUndefine(env);
     }
     return displayContextObj;
 #else
-    return reinterpret_cast<ani_object>(undefRef);
+    return AppExecFwk::CreateEtsUndefine(env);
 #endif
 }
 
