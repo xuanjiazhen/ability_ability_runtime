@@ -341,7 +341,7 @@ export default function windowModalTest() {
               await buttonOne.click();
               let buttonTwo = await driver.findComponent(ON.text('Hello World'));
               await buttonTwo.click();
-              await sleep(3000);
+              await sleep(4000);
               console.log(msgStr + 'The num is :' + num);
               expect(num).assertEqual(1);
               windowClass.off('noInteractionDetected');

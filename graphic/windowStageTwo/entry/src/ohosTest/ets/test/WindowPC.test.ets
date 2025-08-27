@@ -3448,6 +3448,7 @@ export default function windowPCTest() {
         expect().assertFail();
         done();
       } finally {
+        await sleep(1000);
         await subWindowClass.destroyWindow();
       }
     })
