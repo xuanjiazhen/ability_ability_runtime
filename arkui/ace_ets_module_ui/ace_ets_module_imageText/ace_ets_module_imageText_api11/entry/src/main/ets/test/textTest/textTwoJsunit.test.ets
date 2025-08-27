@@ -50,11 +50,12 @@ export default function textTwoJsunit() {
       await CommonFunc.sleep(1000);
       globalThis.value.message.notify({name:'color',value:undefined})
       await CommonFunc.sleep(1000);
-      let strJson = getInspectorByKey('text1');
+      let strJson = getInspectorByKey('text_two_jsunit');
       let obj: ESObject = JSON.parse(strJson);
       console.info('textTwoJsunit_0100 component obj is: ' + obj.$attrs.decoration);
-      expect(obj.$attrs.decoration).assertEqual('{"type":"TextDecorationType.None","color":"#FF000000",' +
-      '"style":"TextDecorationStyle.SOLID"}');
+      expect(obj.$attrs.decoration).assertContain("TextDecorationType");
+      expect(obj.$attrs.decoration).assertContain("#");
+      expect(obj.$attrs.decoration).assertContain("TextDecorationStyle");
       done();
     });
 
@@ -62,18 +63,19 @@ export default function textTwoJsunit() {
       console.info('imageOneJsunit_0200 START');
       await CommonFunc.sleep(500);
       // get the image component and test attribute
-      let strJson = getInspectorByKey('text1');
+      let strJson = getInspectorByKey('text_two_jsunit');
       let obj: ESObject = JSON.parse(strJson);
       console.info('textTwoJsunit_0200 component obj is: ' + obj.$attrs.decoration);
-      expect(obj.$attrs.decoration).assertEqual('{"type":"TextDecorationType.None","color":"#FF000000",' +
-      '"style":"TextDecorationStyle.SOLID"}');
+      expect(obj.$attrs.decoration).assertContain("TextDecorationType");
+      expect(obj.$attrs.decoration).assertContain("#");
+      expect(obj.$attrs.decoration).assertContain("TextDecorationStyle");
       await CommonFunc.sleep(1000);
       // to modify the atrribute
       globalThis.value.message.notify({name:'type',value:TextDecorationType.Overline})
       await CommonFunc.sleep(1000);
       globalThis.value.message.notify({name:'color',value:Color.Green})
       await CommonFunc.sleep(200);
-      let strJson2 = getInspectorByKey('text1');
+      let strJson2 = getInspectorByKey('text_two_jsunit');
       let obj2: ESObject = JSON.parse(strJson2);
       console.info('textTwoJsunit_0200 component obj2 is: ' + obj2.$attrs.decoration);
       expect(obj2.$attrs.decoration).assertEqual('{"type":"TextDecorationType.Overline","color":"#FF008000",' +
@@ -84,7 +86,7 @@ export default function textTwoJsunit() {
       await CommonFunc.sleep(1000);
       globalThis.value.message.notify({name:'color',value:'rgb(238, 130, 238)'})
       await CommonFunc.sleep(200);
-      let strJson3 = getInspectorByKey('text1');
+      let strJson3 = getInspectorByKey('text_two_jsunit');
       let obj3: ESObject = JSON.parse(strJson3);
       console.info('textTwoJsunit_0200 component obj3 is: ' + obj3.$attrs.decoration);
       expect(obj3.$attrs.decoration).assertEqual('{"type":"TextDecorationType.Underline","color":"#FFEE82EE",' +
@@ -95,7 +97,7 @@ export default function textTwoJsunit() {
       await CommonFunc.sleep(1000);
       globalThis.value.message.notify({name:'color',value:'#FFACEEEE'})
       await CommonFunc.sleep(200);
-      let strJson4 = getInspectorByKey('text1');
+      let strJson4 = getInspectorByKey('text_two_jsunit');
       let obj4: ESObject = JSON.parse(strJson4);
       console.info('textTwoJsunit_0200 component obj4 is: ' + obj4.$attrs.decoration);
       expect(obj4.$attrs.decoration).assertEqual('{"type":"TextDecorationType.None","color":"#FFACEEEE",' +

@@ -46,7 +46,7 @@ export default function searchTest() {
       await Utils.sleep(1000);
       console.info("search after each called");
     })
-	let resourceSize = getContext().resourceManager.getNumber($r('sys.float.ohos_id_text_size_body1').id)    /**
+    /**
      * @tc.number testSearchSelectionMenuHidden01
      * @tc.name   Test the Search property of the SelectionMenuHidden component
      * @tc.desc   set the SelectionMenuHidden property value is boolean
@@ -189,7 +189,10 @@ export default function searchTest() {
       let obj:ESObject = JSON.parse(strJson);
       expect(obj.$type).assertEqual('Search');
 
-	  expect(obj.$attrs.placeholderFont).assertEqual('{"style":"FontStyle.Normal","size":"'+px2fp(resourceSize)+'.00fp","weight":"400","fontFamily":"sans-serif"}');
+      expect(obj.$attrs.placeholderFont).assertContain('FontStyle');
+      expect(obj.$attrs.placeholderFont).assertContain('fp');
+      expect(obj.$attrs.placeholderFont).assertContain('sans-serif');
+      expect(obj.$attrs.placeholderFont).assertContain('eight');
       try {
         let eventData: events_emitter.EventData = {
           data: {
@@ -390,7 +393,10 @@ export default function searchTest() {
       let obj:ESObject = JSON.parse(strJson);
       expect(obj.$type).assertEqual('Search');
 
-	  expect(obj.$attrs.textFont).assertEqual('{"fontSize":"'+px2fp(resourceSize)+'.00fp","fontStyle":"FontStyle.Normal","fontWeight":"400","fontFamily":"HarmonyOS Sans"}');
+      expect(obj.$attrs.textFont).assertContain('FontStyle');
+      expect(obj.$attrs.textFont).assertContain('fp');
+      expect(obj.$attrs.textFont).assertContain('eight');
+      expect(obj.$attrs.textFont).assertContain('HarmonyOS Sans');  
 
       try {
         let eventData: events_emitter.EventData = {

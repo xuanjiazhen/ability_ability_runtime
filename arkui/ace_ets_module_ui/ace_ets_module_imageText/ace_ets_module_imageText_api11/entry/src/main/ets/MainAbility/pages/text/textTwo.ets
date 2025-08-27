@@ -61,7 +61,7 @@ struct TextExample2 {
         .fontSize(12)
         .border({ width: 1 })
         .padding(10)
-        .width('100%').key("text1")
+        .width('100%').key("text_two_jsunit")
 
 
       Text('This is the text content with the decoration set to Overline and the color set to Red.')

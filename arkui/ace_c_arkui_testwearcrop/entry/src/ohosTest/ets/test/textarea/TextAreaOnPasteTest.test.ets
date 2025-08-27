@@ -15,6 +15,7 @@
 
 import { beforeAll, describe, expect, it, Level } from '@ohos/hypium';
 import Utils from '../common/Utils';
+import { Driver, ON} from '@ohos.UiTest';
 
 export default function textAreaOnPasteTest() {
 
@@ -35,22 +36,31 @@ export default function textAreaOnPasteTest() {
     * @tc.level      : Level 1
     */
     it('testTextAreaOnPaste001', Level.LEVEL1, async  (done: Function) => {
+      let driver = Driver.create();
       focusControl.requestFocus('OnPasteTestTextArea')
-      await Utils.sleep(1000)
-      await Utils.longClickComponent('OnPasteTestTextArea')
-      await Utils.sleep(1000)
-      await Utils.clickComponentByText('全选')
-      await Utils.sleep(1000)
-      await Utils.clickComponentByText('剪切')
-      await Utils.sleep(1000)
+      await Utils.sleep(500)
+      let component = await driver.findComponent(ON.id('OnPasteTestTextArea'));
+      await Utils.sleep(500)
+      await component.longClick(); 
+      await Utils.sleep(500)
+      let component4 = await driver.findComponent(ON.text('全选'));
+      await Utils.sleep(500)
+      await component4.click();
+      await Utils.sleep(500)
+      let component1 = await driver.findComponent(ON.text('剪切'));
+      await Utils.sleep(500)
+      await component1.click();
+      await Utils.sleep(500)
       focusControl.requestFocus('OnPasteTestTextAreaCompare')
-      await Utils.sleep(1000)
-      await Utils.longClickComponent('OnPasteTestTextAreaCompare')
-      await Utils.sleep(1000)
-      await Utils.clickComponentByText('全选')
-      await Utils.sleep(1000)
-      await Utils.clickComponentByText('粘贴')
-      await Utils.sleep(1000)
+      await Utils.sleep(500)
+      let component2 = await driver.findComponent(ON.id('OnPasteTestTextAreaCompare'));
+      await Utils.sleep(500)
+      await component2.longClick(); 
+      await Utils.sleep(500)
+      let component3 = await driver.findComponent(ON.text('粘贴'));
+      await Utils.sleep(500)
+      await component3.click();
+      await Utils.sleep(500)
       expect(Utils.getComponentInfoByKey('OnPasteTestTextAreaCompare').$attrs.backgroundColor).assertEqual('#FF00FF00')
       done()
     })
