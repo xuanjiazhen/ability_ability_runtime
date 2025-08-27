@@ -14,7 +14,7 @@
  */
 
 export const NetConn_HasDefaultNet: () => number;
-export const NetConn_GetDefaultNet: () => number;    
+export const NetConn_GetDefaultNet: () => number;
 export const NetConn_IsDefaultNetMetered: () => number;
 export const NetConn_GetConnectionProperties: () => number;
 export const NetConn_GetNetCapabilities: () => number;
@@ -33,9 +33,16 @@ export const Web_Socket_ErrCode: (a: number, b: string) => number;
 export const NetStack_Certificate_PinningKind: (a: string) => number;
 export const NetStack_Hash_Algorithm: (a: string) => number;
 export const Public_KeyHash: (a: string) => number;
-export const NetStack_CertVerification: () => number;
 export const NetStack_IsCleartextPermitted: (a: number) => number;
-export const NetStack_GetPinSetForHostName: (a: number, b: string) => number;
-export const NetStack_GetCertificatesForHostName: (a: number, b: string) => number;
 export const NetStack_IsCleartextPermittedByHostName: (a: number, b: string) => number;
 export const NetConn_Net_Specifier: (a: number) => number;
+export const NetConn_Net_Addr: (a: number, b: string) => number;
+export const NetConn_RouteConn: (a: number, b: string) => number;
+export const NetConn_Http_Proxy: (a: number, b: string) => number;
+export const NetConn_Connection_Properties: (a: number, b: string) => number;
+export const NetConn_NetHandle_List: (a: number) => number;
+export const Register_DnsResolver: (a: number) => number;
+export const Unregister_DnsResolver: (a: number) => number;
+export const Register_DetCallback: (a: number) => number;
+export const NetCon_QueryProResult: (a: number, b: string) => number;
+export const NetConn_QueryTrRout: (a: number, b: string) => number;

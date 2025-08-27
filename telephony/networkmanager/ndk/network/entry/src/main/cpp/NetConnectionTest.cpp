@@ -15,6 +15,7 @@
 
 #include "native_common.h"
 #include <network/netmanager/net_connection.h>
+#include <network/netmanager/net_connection_type.h>
 #include <network/netstack/net_websocket_type.h>
 #include <network/netstack/net_websocket.h>
 #include <network/netstack/net_ssl/net_ssl_c.h>
@@ -22,6 +23,7 @@
 #include "napi/native_api.h"
 #include <js_native_api_types.h>
 #include <string>
+#include <algorithm>
 using namespace std;
 
 static const uint32_t MAX_NAME_LENGTH = 1024;
@@ -44,6 +46,7 @@ static const uint32_t CASE_INDEX_11 = 11;
 static const uint32_t CASE_INDEX_12 = 12;
 static const uint32_t CASE_INDEX_13 = 13;
 static const uint32_t CASE_INDEX_14 = 14;
+static const uint32_t DURATION = 15;
 
 static std::string GetString(napi_env env, napi_callback_info info, uint32_t index)
 {
@@ -139,7 +142,12 @@ napi_value NetConn_GetAllNets(napi_env env, napi_callback_info info)
 napi_value NetConn_SetPacUrl(napi_env env, napi_callback_info info)
 {
     std::string pacUrl = GetString(env, info, 0);
-    int32_t returnValue = OH_NetConn_SetPacUrl(pacUrl.c_str());
+    int32_t returnValue = -1;
+    if (pacUrl.empty()) {
+        returnValue = OH_NetConn_SetPacUrl(nullptr);
+    } else {
+        returnValue = OH_NetConn_SetPacUrl(const_cast<char*>(pacUrl.c_str()));
+    }
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
     return result;
@@ -462,10 +470,13 @@ napi_value NetConn_Net_Specifier(napi_env env, napi_callback_info info)
     specifier.bearerPrivateIdentifier = strdup(identifier.c_str());
     if (index == CASE_INDEX_1) {
         specifier.caps.bearerTypes[0] = NetConn_NetBearerType::NETCONN_BEARER_BLUETOOTH;
+        specifier.caps.bearerTypesSize = 1;
     } else if (index == CASE_INDEX_2) {
         specifier.caps.bearerTypes[0] = NetConn_NetBearerType::NETCONN_BEARER_ETHERNET;
+        specifier.caps.bearerTypesSize = 1;
     } else {
         specifier.caps.bearerTypes[0] = NetConn_NetBearerType::NETCONN_BEARER_VPN;
+        specifier.caps.bearerTypesSize = 1;
     }
     int32_t returnValue = OH_NetConn_RegisterNetConnCallback(&specifier, &netConnCallback, timeout, &callbackId);
     napi_value result = nullptr;
@@ -473,56 +484,293 @@ napi_value NetConn_Net_Specifier(napi_env env, napi_callback_info info)
     return result;
 }
 
+napi_value NetConn_Net_Addr(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    std::string address = GetString(env, info, 1);
+    NetConn_NetAddr netAddr;
+    if (index == CASE_INDEX_1) {
+        netAddr.family = AF_INET;
+    } else if (index == CASE_INDEX_2) {
+        netAddr.prefixlen = 1;
+    } else if (index == CASE_INDEX_3) {
+        netAddr.port = 1;
+    } else {
+        std::copy(address.c_str(), address.c_str() +  address.size() - 1, std::begin(netAddr.address));
+    }
+    NetConn_ConnectionProperties netProperty;
+    netProperty.netAddrList[0] = netAddr;
+    netProperty.netAddrListSize = 1;
+    NetConn_NetHandle netHandle;
+    OH_NetConn_GetDefaultNet(&netHandle);
+    int32_t returnValue = OH_NetConn_GetConnectionProperties(&netHandle, &netProperty);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+napi_value NetConn_RouteConn(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    std::string iface = GetString(env, info, 1);
+    NetConn_Route route;
+    NetConn_NetAddr netAddr;
+    if (index == CASE_INDEX_1) {
+        std::copy(iface.c_str(), iface.c_str() +  iface.size() - 1, std::begin(route.iface));
+    } else if (index == CASE_INDEX_2) {
+        route.destination = netAddr;
+    } else if (index == CASE_INDEX_3) {
+        route.gateway = netAddr;
+    } else if (index == CASE_INDEX_4) {
+        route.hasGateway = 0;
+    } else {
+        route.isDefaultRoute = 0;
+    }
+    NetConn_ConnectionProperties netProperty;
+    netProperty.routeList[0] = route;
+    netProperty.routeListSize = 1;
+    NetConn_NetHandle netHandle;
+    OH_NetConn_GetDefaultNet(&netHandle);
+    int32_t returnValue = OH_NetConn_GetConnectionProperties(&netHandle, &netProperty);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+napi_value NetConn_Http_Proxy(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    std::string host = GetString(env, info, 1);
+    NetConn_HttpProxy httpProxy;
+    if (index == CASE_INDEX_1) {
+        std::copy(host.c_str(), host.c_str() +  host.size() - 1, std::begin(httpProxy.host));
+    } else if (index == CASE_INDEX_2) {
+        std::copy(host.c_str(), host.c_str() +  host.size() - 1, std::begin(httpProxy.exclusionList[0]));
+        httpProxy.exclusionListSize = 1;
+    } else if (index == CASE_INDEX_3) {
+        httpProxy.exclusionListSize = 0;
+    } else {
+        httpProxy.port = 0;
+    }
+    int32_t returnValue = OH_NetConn_GetDefaultHttpProxy(&httpProxy);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+napi_value NetConn_Connection_Properties(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    std::string ifaceName = GetString(env, info, 1);
+    NetConn_ConnectionProperties netProperty;
+    NetConn_NetAddr netAddr;
+    NetConn_NetAddr dnsAddr;
+    NetConn_Route route;
+    NetConn_HttpProxy httpProxy;
+    if (index == CASE_INDEX_1) {
+        std::copy(ifaceName.c_str(), ifaceName.c_str() +  ifaceName.size() - 1, std::begin(netProperty.ifaceName));
+    } else if (index == CASE_INDEX_2) {
+        std::copy(ifaceName.c_str(), ifaceName.c_str() +  ifaceName.size() - 1, std::begin(netProperty.domain));
+    } else if (index == CASE_INDEX_3) {
+        std::copy(ifaceName.c_str(), ifaceName.c_str() +  ifaceName.size() - 1, std::begin(netProperty.tcpBufferSizes));
+    } else if (index == CASE_INDEX_4) {
+        netProperty.mtu = 0;
+    } else if (index == CASE_INDEX_5) {
+        netProperty.netAddrList[0] = netAddr;
+        netProperty.netAddrListSize = 1;
+    } else if (index == CASE_INDEX_6) {
+        netProperty.netAddrListSize = 0;
+    } else if (index == CASE_INDEX_7) {
+        netProperty.dnsList[0] = dnsAddr;
+        netProperty.dnsListSize = 1;
+    } else if (index == CASE_INDEX_8) {
+        netProperty.dnsListSize = 0;
+    } else if (index == CASE_INDEX_9) {
+        netProperty.routeList[0] = route;
+        netProperty.routeListSize = 1;
+    } else if (index == CASE_INDEX_10) {
+        netProperty.routeListSize = 0;
+    } else {
+        netProperty.httpProxy = httpProxy;
+    }
+    NetConn_NetHandle netHandle;
+    OH_NetConn_GetDefaultNet(&netHandle);
+    int32_t returnValue = OH_NetConn_GetConnectionProperties(&netHandle, &netProperty);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+napi_value NetConn_NetHandle_List(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    NetConn_NetHandle netHandle;
+    NetConn_NetHandleList netHandleList;
+    if (index == CASE_INDEX_1) {
+        netHandleList.netHandles[0] = netHandle;
+    } else {
+        netHandleList.netHandles[0] = netHandle;
+        netHandleList.netHandleListSize = 1;
+    }
+    int32_t returnValue = OH_NetConn_GetAllNets(&netHandleList);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+int DnsResolver(const char *host, const char *serv, const struct addrinfo *hint, struct addrinfo **res)
+{
+    return 0;
+}
+
+napi_value Register_DnsResolver(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    int32_t returnValue = 0;
+    if (index == CASE_INDEX_1) {
+        returnValue = OH_NetConn_RegisterDnsResolver(nullptr);
+    } else if (index == CASE_INDEX_2) {
+        returnValue = OHOS_NetConn_RegisterDnsResolver(nullptr);
+    }
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+napi_value Unregister_DnsResolver(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    int32_t returnValue = 0;
+    if (index == CASE_INDEX_1) {
+        returnValue = OHOS_NetConn_UnregisterDnsResolver();
+    } else if (index == CASE_INDEX_2) {
+        OHOS_NetConn_RegisterDnsResolver(DnsResolver);
+        returnValue = OHOS_NetConn_UnregisterDnsResolver();
+    } else if (index == CASE_INDEX_3) {
+        returnValue = OH_NetConn_UnregisterDnsResolver();
+    } else if (index == CASE_INDEX_4) {
+        OHOS_NetConn_RegisterDnsResolver(DnsResolver);
+        returnValue = OH_NetConn_UnregisterDnsResolver();
+    }
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+napi_value Register_DetCallback(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    int32_t returnValue = 0;
+    if (index == CASE_INDEX_1) {
+        NetConn_NetConnCallback netConnCallback = {
+            .onNetCapabilitiesChange = MyNetCapabilitiesChange,
+        };
+        uint32_t callbackId;
+        returnValue = OH_NetConn_RegisterDefaultNetConnCallback(&netConnCallback, &callbackId);
+    } else if (index == CASE_INDEX_2) {
+        NetConn_NetConnCallback netConnCallback = {
+            .onNetCapabilitiesChange = MyNetCapabilitiesChange,
+        };
+        uint32_t callbackId;
+        returnValue = OH_NetConn_RegisterDefaultNetConnCallback(&netConnCallback, &callbackId);
+        returnValue = OH_NetConn_UnregisterNetConnCallback(callbackId);
+    }
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+napi_value NetCon_QueryProResult(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    std::string dest = GetString(env, info, 1);
+    char *destination = const_cast<char *>(dest.c_str());
+    NetConn_ProbeResultInfo* probeResultPtr = nullptr;
+    NetConn_ProbeResultInfo probeResultInfo;
+    int32_t duration = -1;
+    if (index == CASE_INDEX_1) {
+        destination = nullptr;
+        probeResultPtr = nullptr;
+    } else {
+        probeResultPtr = &probeResultInfo;
+        duration = DURATION;
+    }
+    int32_t returnValue = OH_NetConn_QueryProbeResult(destination, duration, probeResultPtr);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+napi_value NetConn_QueryTrRout(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    std::string dest = GetString(env, info, 1);
+    char *destination = nullptr;
+    NetConn_TraceRouteOption* optionPtr = nullptr;
+    NetConn_TraceRouteOption option;
+    NetConn_TraceRouteInfo* traceRouteInfoPtr = nullptr;
+    NetConn_TraceRouteInfo traceRouteInfo;
+    if (index == CASE_INDEX_1) {
+        destination = nullptr;
+        optionPtr = nullptr;
+        traceRouteInfoPtr = nullptr;
+    } else {
+        destination = const_cast<char *>(dest.c_str());
+        optionPtr = &option;
+        traceRouteInfoPtr = &traceRouteInfo;
+    }
+    int32_t returnValue = OH_NetConn_QueryTraceRoute(destination, optionPtr, traceRouteInfoPtr);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"NetConn_HasDefaultNet", nullptr, NetConn_HasDefaultNet, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"NetConn_GetDefaultNet", nullptr, NetConn_GetDefaultNet, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
+        {"NetConn_HasDefaultNet", nullptr, NetConn_HasDefaultNet, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NetConn_GetDefaultNet", nullptr, NetConn_GetDefaultNet, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"NetConn_IsDefaultNetMetered", nullptr, NetConn_IsDefaultNetMetered, nullptr, nullptr, nullptr,
          napi_default, nullptr},
         {"NetConn_GetConnectionProperties", nullptr, NetConn_GetConnectionProperties, nullptr, nullptr,
          nullptr, napi_default, nullptr},
         {"NetConn_GetNetCapabilities", nullptr, NetConn_GetNetCapabilities, nullptr, nullptr, nullptr,
          napi_default, nullptr},
-        {"NetConn_GetAddrInfo", nullptr, NetConn_GetAddrInfo, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"NetConn_GetAllNets", nullptr, NetConn_GetAllNets, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"NetConn_SetPacUrl", nullptr, NetConn_SetPacUrl, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
+        {"NetConn_GetAddrInfo", nullptr, NetConn_GetAddrInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NetConn_GetAllNets", nullptr, NetConn_GetAllNets, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NetConn_SetPacUrl", nullptr, NetConn_SetPacUrl, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"NetConn_NetCapabilities_netCaps", nullptr, NetConn_NetCapabilities_netCaps, nullptr, nullptr,
          nullptr, napi_default, nullptr},
-        {"NetConn_GetPacUrl", nullptr, NetConn_GetPacUrl, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"WebSocket_Close_Result", nullptr, WebSocket_Close_Result, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"WebSocket_Error_Result", nullptr, WebSocket_Error_Result, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"WebSocket_Open_Result", nullptr, WebSocket_Open_Result, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
+        {"NetConn_GetPacUrl", nullptr, NetConn_GetPacUrl, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebSocket_Close_Result", nullptr, WebSocket_Close_Result, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebSocket_Error_Result", nullptr, WebSocket_Error_Result, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebSocket_Open_Result", nullptr, WebSocket_Open_Result, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebSocket_Request_Options", nullptr, WebSocket_Request_Options, nullptr, nullptr, nullptr, napi_default,
          nullptr},
-        {"Web_Socket", nullptr, Web_Socket, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"Web_Socket_ErrCode", nullptr, Web_Socket_ErrCode, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
+        {"Web_Socket", nullptr, Web_Socket, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"Web_Socket_ErrCode", nullptr, Web_Socket_ErrCode, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"NetStack_Certificate_PinningKind", nullptr, NetStack_Certificate_PinningKind, nullptr, nullptr,
          nullptr, napi_default, nullptr},
-        {"NetStack_Hash_Algorithm", nullptr, NetStack_Hash_Algorithm, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"Public_KeyHash", nullptr, Public_KeyHash, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
+        {"NetStack_Hash_Algorithm", nullptr, NetStack_Hash_Algorithm, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"Public_KeyHash", nullptr, Public_KeyHash, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"NetStack_IsCleartextPermittedByHostName", nullptr, NetStack_IsCleartextPermittedByHostName, nullptr, nullptr,
-            nullptr, napi_default, nullptr},
+         nullptr, napi_default, nullptr},
         {"NetStack_IsCleartextPermitted", nullptr, NetStack_IsCleartextPermitted, nullptr, nullptr, nullptr,
-            napi_default, nullptr},
-        {"NetConn_Net_Specifier", nullptr, NetConn_Net_Specifier, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
+         napi_default, nullptr},
+        {"NetConn_Net_Specifier", nullptr, NetConn_Net_Specifier, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NetConn_Net_Addr", nullptr, NetConn_Net_Addr, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NetConn_RouteConn", nullptr, NetConn_RouteConn, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NetConn_Http_Proxy", nullptr, NetConn_Http_Proxy, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NetConn_Connection_Properties", nullptr, NetConn_Connection_Properties, nullptr, nullptr, nullptr,
+         napi_default, nullptr},
+        {"NetConn_NetHandle_List", nullptr, NetConn_NetHandle_List, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"Register_DnsResolver", nullptr, Register_DnsResolver, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"Unregister_DnsResolver", nullptr, Unregister_DnsResolver, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"Register_DetCallback", nullptr, Register_DetCallback, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NetCon_QueryProResult", nullptr, NetCon_QueryProResult, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NetConn_QueryTrRout", nullptr, NetConn_QueryTrRout, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
-
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;
 }
