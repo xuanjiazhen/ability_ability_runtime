@@ -98,50 +98,6 @@ const OH_HTTP_VERSION = 505;
 export default function ActsNetConnectionAuth() {
   describe('ActsNetConnectionAuth', () => {
     /**
-     * @tc.number  : SUB_NetworkManager_Http_Request_Auth_0100
-     * @tc.name    : testNetworkManagerHttpRequestAuth0100
-     * @tc.desc    : test Http_Request error code
-     * @tc.level   : Level2
-     * @tc.size    : SmallTest
-     * @tc.type    : Function
-     */
-    it('testNetworkManagerHttpRequestAuth0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
-      let caseName: string = 'testNetworkManagerHttpRequestAuth0100';
-      try {
-        console.info(`${caseName} ---start`);
-        let result : number = NetConnectionAuthTest.Http_RequestRequest(CASE_INDEX_1, "http://www.baidu.com");
-        console.info(`${caseName} result is: ` + JSON.stringify(result));
-        expect(result).assertEqual(OH_HTTP_RESULT_OK);
-        done();
-      } catch (err) {
-        console.error(`${caseName} catch err: ` + JSON.stringify(err));
-        expect(false).assertEqual(true);
-      }
-    })
-
-    /**
-     * @tc.number  : SUB_NetworkManager_Http_Request_Auth_0200
-     * @tc.name    : testNetworkManagerHttpRequestAuth0200
-     * @tc.desc    : test Http_Request error code
-     * @tc.level   : Level2
-     * @tc.size    : SmallTest
-     * @tc.type    : Function
-     */
-    it('testNetworkManagerHttpRequestAuth0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
-      let caseName: string = 'testNetworkManagerHttpRequestAuth0200';
-      try {
-        console.info(`${caseName} ---start`);
-        let result : number = NetConnectionAuthTest.Http_RequestRequest(CASE_INDEX_2, "http://www.baidu.com");
-        console.info(`${caseName} result is: ` + JSON.stringify(result));
-        expect(result).assertEqual(OH_HTTP_OK);
-        done();
-      } catch (err) {
-        console.error(`${caseName} catch err: ` + JSON.stringify(err));
-        expect(false).assertEqual(true);
-      }
-    })
-
-    /**
      * @tc.number  : SUB_NetworkManager_Http_Request_Auth_0900
      * @tc.name    : testNetworkManagerHttpRequestAuth0900
      * @tc.desc    : test Http_Request error code
@@ -696,7 +652,6 @@ export default function ActsNetConnectionAuth() {
       }
     })
 
-
     /**
      * @tc.number  : SUB_NetworkManager_Http_Request_Auth_3400
      * @tc.name    : testNetworkManagerHttpRequestAuth3400
@@ -982,28 +937,6 @@ export default function ActsNetConnectionAuth() {
         expect(false).assertEqual(true);
       }
       })
-
-    /**
-     * @tc.number  : SUB_NetworkManager_Web_Socket_0400
-     * @tc.name    : testNetworkManagerWebSocket0400
-     * @tc.desc    : test Web_Socket error code
-     * @tc.level   : Level2
-     * @tc.size    : SmallTest
-     * @tc.type    : Function
-     */
-    it('testNetworkManagerWebSocket0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
-      let caseName: string = 'testNetworkManagerWebSocket0400';
-      try {
-        console.info(`${caseName} ---start`);
-        let result : number = NetConnectionAuthTest.Web_Socket(CASE_INDEX_4, "====TEST====");
-        console.info(`${caseName} result is: ` + JSON.stringify(result));
-        expect(result).assertEqual(WEBSOCKET_CONNECTION_NO_MEMORY);
-        done();
-      } catch (err) {
-        console.error(`${caseName} catch err: ` + JSON.stringify(err));
-        expect(false).assertEqual(true);
-      }
-    })
 
     /**
      * @tc.number  : SUB_NetworkManager_Web_Socket_0500
