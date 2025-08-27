@@ -14,14 +14,13 @@
  */
 
 #include "component/XComponent.h"
+#include <arkui/native_key_event.h>
 
 namespace ArkUICapiTest {
 
 static XComponent g_columnComponent = XComponent(ARKUI_NODE_COLUMN);
 static XComponent g_textComponent = XComponent(ARKUI_NODE_TEXT);
 static XComponent* g_xComponent = new XComponent(ARKUI_NODE_XCOMPONENT);
-static bool g_flag = false;
-static int32_t test = -2;
 
 napi_value InitTextComponent(napi_env env, napi_callback_info info)
 {
@@ -65,6 +64,56 @@ napi_value CreateNativeNode(napi_env env, napi_callback_info info)
     g_xComponent->SetFocusDefault(true);
     g_xComponent->PrintXComponentInfo();
     g_xComponent->RegisterOnKey(std::function<void (ArkUI_NodeEvent *)> (OnKeyEvent));
+    std::shared_ptr<Component> ptr = std::make_shared<XComponent>(*g_xComponent);
+    g_columnComponent.AddChild(ptr);
+    ptr = std::make_shared<XComponent>(g_textComponent);
+    g_columnComponent.AddChild(ptr);
+    int32_t ret = OH_ArkUI_NodeContent_SetUserData(nodeContentHandle_, &g_xComponent);
+    if (ret != ARKUI_ERROR_CODE_NO_ERROR) {
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "PluginManager", "setUserData failed error=%{public}d", ret);
+    }
+    ret = OH_ArkUI_NodeContent_AddNode(nodeContentHandle_, g_columnComponent.GetComponent());
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "NodeAttach", "setUserData failed error=%{public}d", ret);
+    return nullptr;
+}
+
+napi_value CreateArkUINode(napi_env env, napi_callback_info info)
+{
+    if ((env == nullptr) || (info == nullptr)) {
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "PluginManager", "CreateNativeNode env or info is null");
+        return nullptr;
+    }
+    size_t argCnt = 1;
+    napi_value args[1] = { nullptr };
+    if (napi_get_cb_info(env, info, &argCnt, args, nullptr, nullptr) != napi_ok) {
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "PluginManager", "CreateNativeNode napi_get_cb_info failed");
+    }
+    if (argCnt != PARAM_1) {
+        napi_throw_type_error(env, NULL, "Wrong number of arguments");
+        return nullptr;
+    }
+    ArkUI_NodeContentHandle nodeContentHandle_ = nullptr;
+    OH_ArkUI_GetNodeContentFromNapiValue(env, args[0], &nodeContentHandle_);
+    g_columnComponent.SetPercentWidth(PARAM_0_POINT_6);
+    g_columnComponent.SetPercentHeight(PARAM_0_POINT_6);
+    g_columnComponent.SetBackgroundColor(0xffff0000);
+    g_textComponent.SetPercentWidth(PARAM_1);
+    g_textComponent.SetHeight(PARAM_200);
+    g_textComponent.SetBackgroundColor(0xff00ff00);
+    ArkUI_AttributeItem item = { .string = "init" };
+    g_textComponent.setAttribute(NODE_TEXT_CONTENT, &item);
+    g_textComponent.SetId("NativeXComponentKeyCodeText");
+    g_xComponent->SetXComponentType(ARKUI_XCOMPONENT_TYPE_SURFACE);
+    g_xComponent->SetXComponentId("TestXComponent");
+    g_xComponent->SetPercentWidth(PARAM_1);
+    g_xComponent->SetPercentHeight(PARAM_1);
+    g_xComponent->SetId("NativeXComponentKeyTest");
+    g_xComponent->SetFocusable(true);
+    g_xComponent->SetFocusDefault(true);
+    g_xComponent->PrintXComponentInfo();
+    g_xComponent->GetNodeApi()->addNodeEventReceiver(g_xComponent->GetComponent(), OnUIKeyEvent);
+    g_xComponent->GetNodeApi()->registerNodeEvent(g_xComponent->GetComponent(), NODE_ON_KEY_EVENT, PARAM_0,
+                                                  g_xComponent->GetXComponent());
     std::shared_ptr<Component> ptr = std::make_shared<XComponent>(*g_xComponent);
     g_columnComponent.AddChild(ptr);
     ptr = std::make_shared<XComponent>(g_textComponent);
@@ -141,7 +190,23 @@ void OnKeyEvent(ArkUI_NodeEvent* event)
         ArkUI_AttributeItem item = { .string = std::to_string(keyCode).data() };
         g_textComponent.setAttribute(NODE_TEXT_CONTENT, &item);
     }
-    g_flag = true;
+}
+
+void OnUIKeyEvent(ArkUI_NodeEvent* event)
+{
+    ArkUI_UIInputEvent* uiInputEvent = OH_ArkUI_NodeEvent_GetInputEvent(event);
+    if (OH_ArkUI_UIInputEvent_GetType(uiInputEvent) == ARKUI_UIINPUTEVENT_TYPE_KEY) {
+        ArkUI_KeyCode keyCode = ArkUI_KeyCode(PARAM_NEGATIVE_2);
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "OnUIKeyEvent",
+                     "OH_ArkUI_KeyEvent_GetKeyCode keyCode: %{public}d", keyCode);
+        keyCode = ArkUI_KeyCode(OH_ArkUI_KeyEvent_GetKeyCode(uiInputEvent));
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "OnUIKeyEvent",
+                     "OH_ArkUI_KeyEvent_GetKeyCode keyCode: %{public}d", keyCode);
+        if (keyCode != PARAM_NEGATIVE_2) {
+            ArkUI_AttributeItem item = { .string = std::to_string(keyCode).data() };
+            g_textComponent.setAttribute(NODE_TEXT_CONTENT, &item);
+        }
+    }
 }
 
 }
