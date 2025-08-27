@@ -22,6 +22,7 @@
 #include <hilog/log.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
+#include <string>
 
 namespace RelationalStoreTest {
 const char *RDB_TEST = "/data/storage/el2/database/com.acts.acttransactiontest/";
@@ -1145,15 +1146,15 @@ napi_value TestRestoreSuccess(napi_env env, napi_callback_info info)
 
     char dbPath[] = "backup.db";
     char backupPath[100];
-    std::string testpath1 = std::string(backupPath) + std::string(RelationalStoreTest::RDB_TEST) + std::string(dbPath);
-    int ba = OH_Rdb_Backup(testStore, testpath1.c_str());
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}s", testpath1.c_str());
+    std::string testPath1 = std::string(backupPath) + std::string(RelationalStoreTest::RDB_TEST) + std::string(dbPath);
+    int ba = OH_Rdb_Backup(testStore, testPath1.c_str());
+    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}s", testPath1.c_str());
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}d", ba);
     OH_Predicates *predicates = OH_Rdb_CreatePredicates("test");
     errCode = OH_Rdb_Delete(testStore, predicates);
 
-    int ret = OH_Rdb_Restore(testStore, testpath1.c_str());
-    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Restore:%{public}s", testpath1.c_str());
+    int ret = OH_Rdb_Restore(testStore, testPath1.c_str());
+    OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Restore:%{public}s", testPath1.c_str());
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Restore:%{public}d", ret);
 
     napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : -1, &result);
