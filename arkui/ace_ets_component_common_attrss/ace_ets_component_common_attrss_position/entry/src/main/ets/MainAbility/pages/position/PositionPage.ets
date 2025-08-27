@@ -56,6 +56,9 @@ struct PositionPage {
   commonStyle(){
     .position(this._position)
     .key(this.componentKey)
+    .borderWidth(0)
+    .padding(0)
+    .margin(0)
   }
 
   build() {
@@ -73,7 +76,7 @@ struct PositionPage {
             .width(this.parentWidth)
             .height(this.parentHeight)
             .key(this.parentComponentKey)
-            .padding(0)
+            .borderWidth(0).padding(0).margin(0)
           }.width('100%').height('100%').backgroundColor(Color.Green)
         } else if (this.targetView == 'MenuItemGroup') {
           Row() {
@@ -89,7 +92,7 @@ struct PositionPage {
             .width(this.parentWidth)
             .height(this.parentHeight)
             .key(this.parentComponentKey)
-            .padding(0)
+            .borderWidth(0).padding(0).margin(0)
           }
           .width('100%')
           .height('100%')
@@ -114,6 +117,7 @@ struct PositionPage {
           .height(this.parentHeight)
           .key(this.parentComponentKey)
           .listDirection(Axis.Vertical)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'ListItemGroup') {
           ListItemGroupView({
             _position: $_position,
@@ -146,6 +150,7 @@ struct PositionPage {
           .width(this.parentWidth)
           .height(this.parentHeight)
           .key(this.parentComponentKey)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'ColumnSplit') {
           Column() {
             Text('The secant line can be dragged').fontSize(9)
@@ -160,12 +165,13 @@ struct PositionPage {
                 .textAlign(TextAlign.Center)
             }
             .commonStyle()
-            .borderWidth(1)
+            .backgroundColor(Color.Pink)
             .width('90%').height('60%')
           }
           .width(this.parentWidth)
           .height(this.parentHeight)
           .key(this.parentComponentKey)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'RowSplit') {
           Column() {
             Text('The second line can be dragged').fontSize(9)
@@ -206,6 +212,7 @@ struct PositionPage {
           .width(this.parentWidth)
           .height(this.parentHeight)
           .key(this.parentComponentKey)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'GridCol') {
           GridRow({
             columns: 5,
@@ -218,8 +225,7 @@ struct PositionPage {
                 .width('100%')
                 .height('20vp')
             }
-            .borderColor(Color.Green)
-            .borderWidth(2)
+            .backgroundColor(Color.Green)
             .commonStyle()
 
             GridCol({ span: { xs: 1, sm: 2, md: 3, lg: 4 } }) {
@@ -227,13 +233,13 @@ struct PositionPage {
                 .width('100%')
                 .height('20vp')
             }
-            .borderColor(Color.Yellow)
-            .borderWidth(2)
+            .backgroundColor(Color.Yellow)
             .key(this.referenceComponentKey)
           }
           .width(this.parentWidth)
           .height(this.parentHeight)
           .key(this.parentComponentKey)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'GridItem') {
           Grid() {
             GridItem() {
@@ -252,7 +258,7 @@ struct PositionPage {
           .width(this.parentWidth)
           .height(this.parentHeight)
           .key(this.parentComponentKey)
-          .padding(0)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'StepperItem') {
           StepperItemView({
             _position: $_position,
@@ -430,7 +436,7 @@ struct PositionPage {
                     Row()
                       .width('100%')
                       .height('20vp')
-                  }.borderColor(color).borderWidth(2)
+                  }.backgroundColor(color)
                 })
               }
               .width('100%')
@@ -630,6 +636,7 @@ struct PositionPage {
           .height(this.parentHeight)
           .key(this.parentComponentKey)
           .backgroundColor(Color.Gray)
+          .borderWidth(0).padding(0).margin(0)
         }
       }
       .width('100%')

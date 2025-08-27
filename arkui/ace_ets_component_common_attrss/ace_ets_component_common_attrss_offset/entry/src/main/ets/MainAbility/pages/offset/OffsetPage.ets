@@ -57,6 +57,9 @@ struct Offset {
   commonStyle(){
     .offset(this._offset)
     .key(this.componentKey)
+    .borderWidth(0)
+    .padding(0)
+    .margin(0)
   }
 
   build() {
@@ -80,6 +83,7 @@ struct Offset {
             }.key(this.referenceComponentKey)
           }.key(this.parentComponentKey)
           .width(this.parentWidth).height(this.parentHeight).listDirection(Axis.Vertical)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'TabContent') {
           Tabs() {
             TabContent() {
@@ -93,6 +97,7 @@ struct Offset {
             .width(this.subassemblyWidth).height(this.subassemblyHeight)
             .key(this.referenceComponentKey)
           }.width(this.parentWidth).height(this.parentHeight).key(this.parentComponentKey)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'GridCol') {
           GridRow({
             columns: 5,
@@ -102,12 +107,13 @@ struct Offset {
           }) {
             GridCol({ span: { xs: 1, sm: 2, md: 3, lg: 4 } }) {
               Row().width('100%').height('20vp')
-            }.borderColor(Color.Green).borderWidth(2).commonStyle()
+            }.backgroundColor(Color.Green).commonStyle()
 
             GridCol({ span: { xs: 1, sm: 2, md: 3, lg: 4 } }) {
               Row().width('100%').height('20vp')
-            }.borderColor(Color.Yellow).borderWidth(2).key(this.referenceComponentKey)
+            }.backgroundColor(Color.Yellow).key(this.referenceComponentKey)
           }.width(this.parentWidth).height(this.parentHeight).key(this.parentComponentKey)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'FlowItem') {
           WaterFlow() {
             FlowItem() {
@@ -118,6 +124,7 @@ struct Offset {
               Text('text').fontSize(12).height('16')
             }.width(this.subassemblyWidth).height(this.subassemblyHeight).key(this.referenceComponentKey)
           }.width(this.parentWidth).height(this.parentHeight).key(this.parentComponentKey)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'StepperItem') {
           StepperItemView({
             _offset: $_offset,
@@ -145,6 +152,7 @@ struct Offset {
           .width(this.parentWidth)
           .height(this.parentHeight)
           .key(this.parentComponentKey)
+          .borderWidth(0).padding(0).margin(0)
         } else if (this.targetView == 'MenuItem') {
           Row() {
             Menu() {
@@ -152,7 +160,7 @@ struct Offset {
               MenuItem({ startIcon: $r('app.media.icon'), content: 'referenceComponent' })
                 .key(this.referenceComponentKey)
             }
-            .padding(0)
+            .borderWidth(0).padding(0).margin(0)
             .backgroundColor(Color.Yellow)
             .width(this.parentWidth)
             .height(this.parentHeight)
@@ -168,7 +176,7 @@ struct Offset {
               MenuItem({ startIcon: $r('app.media.icon'), content: 'referenceComponent' })
                 .key(this.referenceComponentKey)
             }
-            .padding(0)
+            .borderWidth(0).padding(0).margin(0)
             .backgroundColor(Color.Yellow)
             .width(this.parentWidth)
             .height(this.parentHeight)
@@ -474,6 +482,7 @@ struct Offset {
             Button('Button').width(this.subassemblyWidth).height(this.subassemblyHeight)
               .key(this.referenceComponentKey)
           }.width(this.parentWidth).height(this.parentHeight).key(this.parentComponentKey)
+          .borderWidth(0).padding(0).margin(0)
           .backgroundColor(Color.Gray)
         }
       }.width('100%').height('90%').backgroundColor(Color.Red)

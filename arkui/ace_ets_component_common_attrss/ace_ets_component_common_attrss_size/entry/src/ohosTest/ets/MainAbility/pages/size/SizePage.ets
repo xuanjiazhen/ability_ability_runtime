@@ -44,6 +44,9 @@ struct sizePage {
   commonStyle(){
     .size(this._size)
     .key(this.componentKey)
+    .borderWidth(0)
+    .padding(0)
+    .margin(0)
   }
 
   build() {
@@ -61,7 +64,7 @@ struct sizePage {
       } else if (this.targetView == 'BlankColumn') {
         Column() {
           Blank().color(this.BackGroundColor).commonStyle()
-        }.width(this.parentWidth).height(this.parentHeight)
+        }.width(this.parentWidth).height(this.parentHeight).borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'Checkbox') {
         Checkbox().backgroundColor(this.BackGroundColor)
           .commonStyle()
@@ -272,7 +275,7 @@ struct sizePage {
         List() {
           ListItem() {
           }.commonStyle()
-        }.width(this.parentWidth).height(this.parentHeight)
+        }.width(this.parentWidth).height(this.parentHeight).borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'Panel') {
         Panel(true) {
           Column() {
@@ -371,12 +374,14 @@ struct sizePage {
         }
         .width(this.parentWidth)
         .height(this.parentHeight)
+        .borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'FlowItem') {
         WaterFlow() {
           FlowItem().commonStyle()
         }
         .width(this.parentWidth)
         .height(this.parentHeight)
+        .borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'GridCol') {
         GridRow() {
           GridCol({ span: { xs: 1, sm: 2, md: 3, lg: 4 } }) {
@@ -386,7 +391,7 @@ struct sizePage {
       } else if (this.targetView == 'GridItem') {
         Grid() {
           GridItem().commonStyle()
-        }.width(this.parentWidth).height(this.parentHeight)
+        }.width(this.parentWidth).height(this.parentHeight).borderWidth(0).padding(0).margin(0)
       } else if (this.targetView == 'RelativeContainer') {
         RelativeContainer() {
           Row()
@@ -403,22 +408,21 @@ struct sizePage {
       } else if (this.targetView == 'Menu') {
         Menu() {
           MenuItem({ startIcon: $r('app.media.icon'), content: 'Menu' })
-        }.backgroundColor(Color.Yellow).commonStyle().padding(0)
+        }.backgroundColor(Color.Yellow).commonStyle()
       } else if (this.targetView == 'MenuItem') {
         Row() {
           Menu() {
             MenuItem({ startIcon: $r('app.media.icon'), content: 'MenuItem' })
-              .size(this._size)
-              .key(this.componentKey)
-          }.width(this.parentWidth).height(this.parentHeight).padding(0)
+              .commonStyle()
+          }.width(this.parentWidth).height(this.parentHeight).borderWidth(0).padding(0).margin(0)
         }
       } else if (this.targetView == 'MenuItemGroup') {
         Row() {
           Menu() {
             MenuItemGroup({ header: 'MenuItemGroup' }) {
               MenuItem({ startIcon: $r('app.media.icon'), content: 'MenuItem' })
-            }.key(this.componentKey).size(this._size)
-          }.width(this.parentWidth).height(this.parentHeight).padding(0)
+            }.commonStyle()
+          }.width(this.parentWidth).height(this.parentHeight).borderWidth(0).padding(0).margin(0)
         }
       }
     }
