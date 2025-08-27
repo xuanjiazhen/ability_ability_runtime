@@ -328,6 +328,7 @@ constexpr const char* LIFE_CYCLE_MINIMIZE = "minimize";
 constexpr const char* LIFE_CYCLE_TERMINATE = "terminate";
 constexpr const char* LIFE_CYCLE_PRELOAD = "preload";
 constexpr uint32_t TARGET_TYPE_INIT = 100;
+constexpr const char* SUPPORT_LINKAGE_SCENE = "const.window.supportLinkageScene";
 
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<AbilityManagerService>::GetInstance().get());
@@ -2292,6 +2293,157 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         eventHelper_.SendStartAbilityErrorEvent(eventInfo, ret, "missionListManager start errror");
     }
     return ret;
+}
+
+ErrCode AbilityManagerService::StartUIAbilitiesInSplitWindowMode(int32_t primaryWindowId,
+    const AAFwk::Want &secondaryWant, sptr<IRemoteObject> callerToken)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Call StartUIAbilitiesInSplitWindowMode");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!system::GetBoolParameter(SUPPORT_LINKAGE_SCENE, false)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "capability not support");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
+        return ERR_NOT_SYSTEM_APP;
+    }
+
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode is not supported");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    if (callerToken == nullptr || !VerificationAllToken(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode %{public}s verificationAllToken failed", __func__);
+        return ERR_INVALID_CALLER;
+    }
+    
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    int32_t validUserId = GetValidUserId(userId);
+    int32_t oriValidUserId = GetValidUserId(userId);
+    uint32_t specifyTokenId = 0;
+    int32_t requestCode = DEFAULT_INVAL_VALUE;
+    
+    AbilityUtil::RemoveShowModeKey(const_cast<Want &>(secondaryWant));
+
+    if (AbilityRuntime::StartupUtil::IsStartPlugin(secondaryWant)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode not support StartPlugin");
+        return START_UI_ABILITIES_NOT_SUPPORT_START_PLUGIN;
+    }
+    AbilityUtil::RemoveWindowModeKey(const_cast<Want &>(secondaryWant));
+
+    if (secondaryWant.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode not support CREATE_APP_INSTANCE_KEY");
+        return START_UI_ABILITIES_NOT_SUPPORT_CREATE_APP_INSTANCE_KEY;
+    }
+#ifdef WITH_DLP
+    if (AbilityUtil::HandleDlpApp(const_cast<Want &>(secondaryWant))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode not support Dlp");
+        return START_UI_ABILITIES_NOT_SUPPORT_DLP;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "CHECK_DLP");
+    if (!DlpUtils::OtherAppsAccessDlpCheck(callerToken, secondaryWant) ||
+        VerifyAccountPermission(validUserId) == CHECK_PERMISSION_FAILED ||
+        !DlpUtils::DlpAccessOtherAppsCheck(callerToken, secondaryWant)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "StartUIAbilitiesInSplitWindowMode Dlp %{public}s: permission verification failed", __func__);
+        return CHECK_PERMISSION_FAILED;
+    }
+#endif
+    int32_t appIndex = 0;
+    StartAbilityUtils::SetTargetCloneIndexInSameBundle(secondaryWant, callerToken);
+    if (!StartAbilityUtils::GetAppIndex(secondaryWant, callerToken, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode GetAppIndex failed");
+        return ERR_APP_CLONE_INDEX_INVALID;
+    }
+
+    auto checkRet = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(const_cast<Want &>(secondaryWant),
+        validUserId, appIndex, callerToken, false);
+    if (checkRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "CheckMultiInstanceAndAppClone failed: %{public}d", checkRet);
+        return checkRet;
+    }
+
+    StartAbilityInfoWrap threadLocalInfo(secondaryWant, validUserId, appIndex, callerToken);
+
+    if (CheckIfOperateRemote(secondaryWant)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode not support StartRemoteAbility");
+        return START_UI_ABILITIES_NOT_SUPPORT_OPERATE_REMOTE;
+    }   
+
+    if (!JudgeMultiUserConcurrency(validUserId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode multi-user non-concurrent unsatisfied");
+        return ERR_CROSS_USER;
+    }
+
+#ifdef SUPPORT_SCREEN
+    if (ImplicitStartProcessor::IsImplicitStartAction(secondaryWant)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode not support implicit start");
+        return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
+    }
+#endif
+    AbilityRequest abilityRequest;
+    auto result = GenerateAbilityRequest(secondaryWant, requestCode, abilityRequest, callerToken, validUserId);
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    std::string callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode generate ability request local error");
+        return result;
+    }
+
+    UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, callerToken);
+
+    auto abilityInfo = abilityRequest.abilityInfo;
+    if (abilityInfo.type != AbilityType::PAGE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilitiesInSplitWindowMode ability type no UIAbility");
+        return RESOLVE_ABILITY_ERR;
+    }
+
+    result = CheckStaticCfgPermission(abilityRequest, false,
+        abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), false, false, false);
+    if (result != AppExecFwk::Constants::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "StartUIAbilitiesInSplitWindowMode checkStaticCfgPermission error, result:%{public}d", result);
+        return ERR_STATIC_CFG_PERMISSION;
+    }
+    result = CheckCallPermission(secondaryWant, abilityInfo, abilityRequest, false,
+        false, specifyTokenId, callerBundleName);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "StartUIAbilitiesInSplitWindowMode checkCallPermission error, result:%{public}d", result);
+        return result;
+    }
+
+    result = StartUIAbilitiesInterceptorCheck(secondaryWant, abilityRequest, callerToken, appIndex);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "InterceptorCheck error, result:%{public}d", result);
+        return result;
+    }
+
+    Want newWant = abilityRequest.want;
+    bool isReplaceWantExist = newWant.GetBoolParam("queryWantFromErms", false);
+    newWant.RemoveParam("queryWantFromErms");
+
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
+    RemoveUnauthorizedLaunchReasonMessage(secondaryWant, abilityRequest, callerTokenId);
+
+    if (!IsAbilityControllerStart(secondaryWant, abilityInfo.bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, 
+            "StartUIAbilitiesInSplitWindowMode isAbilityControllerStart failed:%{public}s", abilityInfo.bundleName.c_str());
+        return ERR_WOULD_BLOCK;
+    }
+    abilityRequest.want.RemoveParam(SPECIFY_TOKEN_ID);
+    abilityRequest.want.RemoveParam(PARAM_SPECIFIED_PROCESS_FLAG);
+    
+    abilityRequest.userId = oriValidUserId;
+    abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
+    auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    abilityRequest.primaryWindowId = primaryWindowId;
+    abilityRequest.isStartInSplitMode = true;
+    return uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
 }
 
 ErrCode AbilityManagerService::StartUIAbilities(const std::vector<AAFwk::Want> &wantList,
