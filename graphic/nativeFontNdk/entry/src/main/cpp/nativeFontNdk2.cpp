@@ -362,7 +362,7 @@ static int DestoryTypographyTextStyle(OH_Drawing_Typography *typography, OH_Draw
         typography = nullptr;
     }
 
-    if (handler_ != nullptr) {
+    if (handler != nullptr) {
         OH_Drawing_DestroyTypographyHandler(handler);
         handler = nullptr;
     }
