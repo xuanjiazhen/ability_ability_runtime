@@ -49,6 +49,7 @@ const std::string ANCO_PENDING_REQUEST = "ancoPendingRequest";
 const int NFC_CALLER_UID = 1027;
 const int NFC_QUERY_LENGTH = 2;
 const std::string OPEN_LINK_APP_LINKING_ONLY = "appLinkingOnly";
+const std::string OPEN_LINK_WITHOUT_DIALOG = "withoutDialog";
 const std::string HTTP_SCHEME_NAME = "http";
 const std::string HTTPS_SCHEME_NAME = "https";
 const std::string FILE_SCHEME_NAME = "file";
@@ -172,7 +173,8 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     }
 
     if (dialogAppInfos.size() == 0 &&
-        (request.want.GetFlags() & Want::FLAG_START_WITHOUT_TIPS) == Want::FLAG_START_WITHOUT_TIPS) {
+        ((request.want.GetFlags() & Want::FLAG_START_WITHOUT_TIPS) == Want::FLAG_START_WITHOUT_TIPS ||
+        request.want.GetBoolParam(OPEN_LINK_WITHOUT_DIALOG, false))) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "hint dialog generate fail");
             return ERR_IMPLICIT_START_ABILITY_FAIL;
         }
