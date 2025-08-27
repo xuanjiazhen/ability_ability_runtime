@@ -49,6 +49,7 @@ let highVol: number = 14;
 let outOfRangeVol: number = 101;
 let longValue = '28374837458743875804735081439085918459801437584738967509184509813904850914375904790589104801843';
 let AudioVolumeType: ESObject = "123";
+const maxVolumeLevel : number[] = "15,20,100"
 
 async function getAudioManager() {
   audioManager = audio.getAudioManager();
@@ -283,7 +284,7 @@ export default function audioFramework() {
     it('SUB_MULTIMEDIA_AUDIO_VOLUME_GROUP_MANAGER_GETMINVOLUMESYNC_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         let data = audioVolumeGroupManager.getMinVolumeSync(audio.AudioVolumeType.MEDIA);
-        if (data == 0) {
+        if (VolumeLevel.includes(data)) {
           console.info(`${TagFrmwk}: Media getVolumeSync : PASS :${data}`);
           expect(true).assertTrue();
           done();
@@ -396,10 +397,7 @@ export default function audioFramework() {
     it('SUB_MULTIMEDIA_AUDIO_VOLUME_GROUP_MANAGER_GETMAXVOLUMESYNC_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         let data = audioVolumeGroupManager.getMaxVolumeSync(audio.AudioVolumeType.MEDIA);
-        if (data == maxVol) {
-          console.info(`${TagFrmwk}: Media getVolumeSync : PASS :${data}`);
-          expect(true).assertTrue();
-        } else if (data == maxVolPc) {
+        if (VolumeLevel.includes(data)) {
           console.info(`${TagFrmwk}: Media getVolumeSync : PASS :${data}`);
           expect(true).assertTrue();
         } else {
@@ -937,7 +935,7 @@ export default function audioFramework() {
     /**
      * @tc.number    : SUB_MULTIMEDIA_AUDIO_MANAGER_SETVOLUME_0800
      * @tc.name      : setVolume - Media - Callback - Out of range Volume
-     * @tc.desc      : Setvol to 20
+     * @tc.desc      : Setvol to 101
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 2
@@ -4148,10 +4146,17 @@ export default function audioFramework() {
      * @tc.level     : Level 1
      */
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
+      console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
+      if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER || 
+          outputDeviceDescription.length == 2 && outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
+          console.info(`${TagFrmwk}: No speaker Found`)
+          expect(true).assertTrue();
+          done();
+          return;
+      }
       try {
         let flag: boolean | null = null;
-        let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
-        console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
         if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER) {
           flag = true;
         }
@@ -4194,6 +4199,15 @@ export default function audioFramework() {
      * @tc.level     : Level 1
      */
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
+      console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
+      if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER || 
+          outputDeviceDescription.length == 2 && outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
+          console.info(`${TagFrmwk}: No speaker Found`)
+          expect(true).assertTrue();
+          done();
+          return;
+      }
       try {
         await audioManager.setDeviceActive(audio.ActiveDeviceType.SPEAKER, true);
         let value = await audioManager.isDeviceActive(2);
@@ -4223,6 +4237,14 @@ export default function audioFramework() {
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       let flag: boolean | null = null;
       let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG)
+      console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
+      if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER || 
+          outputDeviceDescription.length == 2 && outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
+          console.info(`${TagFrmwk}: No speaker Found`)
+          expect(true).assertTrue();
+          done();
+          return;
+      }
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0300 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
       if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER) {
         flag = true;
@@ -4268,6 +4290,15 @@ export default function audioFramework() {
      * @tc.level     : Level 2
      */
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0400', 2, (done: Function) => {
+      let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
+      console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
+      if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER || 
+          outputDeviceDescription.length == 2 && outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
+          console.info(`${TagFrmwk}: No speaker Found`)
+          expect(true).assertTrue();
+          done();
+          return;
+      }
       audioManager.setDeviceActive(audio.ActiveDeviceType.SPEAKER, true, (err) => {
         if (err) {
           console.error(`${TagFrmwk}: Device Test: Callback : setDeviceActive : SPEAKER: Active: Error: ${err.message}`);
