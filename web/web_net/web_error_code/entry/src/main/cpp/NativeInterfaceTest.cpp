@@ -176,30 +176,38 @@ static napi_value SetBlanklessInfo(napi_env env, napi_callback_info info)
 
     ArkWeb_BlanklessErrorCode retInfo = ARKWEB_BLANKLESS_SUCCESS;
     ArkWeb_BlanklessInfo blankInfo = {ARKWEB_BLANKLESS_SUCCESS, 0, 0};
-    switch (caseNum) {
-        case CASE_NUM_0:
-            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey("new", "xxxx", false);
-            break;
-        case CASE_NUM_1:
-            blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
-            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "0731", false);
-            break;
-        case CASE_NUM_2:
-            blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
-            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "xxxxx", false);
-            break;
-        case CASE_NUM_3:
-            blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
-            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "0731", true);
-            break;
-        case CASE_NUM_4:
-            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey("", "0731", false);
-            break;
-        case CASE_NUM_5:
-            retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "", false);
-            break;
-        default:
-            break;
+    try {
+        switch (caseNum) {
+            case CASE_NUM_0:
+                blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey("new", "xxxx");
+                retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey("new", "xxxx", false);
+                break;
+            case CASE_NUM_1:
+                blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
+                if (blankInfo.errCode == ARKWEB_BLANKLESS_SUCCESS) {
+                    retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "0731", false);
+                }
+                break;
+            case CASE_NUM_2:
+                blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
+                retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "xxxxx", false);
+                break;
+            case CASE_NUM_3:
+                blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "0731");
+                retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "0731", true);
+                break;
+            case CASE_NUM_4:
+                retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey("", "0731", false);
+                break;
+            case CASE_NUM_5:
+                blankInfo = OH_NativeArkWeb_GetBlanklessInfoWithKey(webName, "");
+                retInfo = OH_NativeArkWeb_SetBlanklessLoadingWithKey(webName, "", false);
+                break;
+            default:
+                break;
+        }
+    } catch (std::exception &err) {
+        OH_LOG_ERROR(LOG_APP, "SetBlanklessInfo error:%{public}s", err.what());
     }
 
     napi_value result;
@@ -913,20 +921,24 @@ static napi_value WebSaveCookieSync(napi_env env, napi_callback_info info)
     int32_t caseNum = GetCaseNum(env, info);
 
     ArkWeb_ErrorCode ret = ARKWEB_SUCCESS;
+    napi_value result;
     switch (caseNum) {
         case CASE_NUM_0:
             ret = OH_ArkWebCookieManager_SaveCookieSync();
+            if (ret == ARKWEB_SUCCESS) {
+                napi_create_int32(env, 0, &result);
+            }
             break;
         case CASE_NUM_1:
             // uninit cookie manager
             ret = OH_ArkWebCookieManager_SaveCookieSync();
             ret = ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED;
+            napi_create_int32(env, ret, &result);
             break;
         default:
             break;
     }
-    napi_value result;
-    napi_create_int32(env, ret, &result);
+
     OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync end..");
     return result;
 }

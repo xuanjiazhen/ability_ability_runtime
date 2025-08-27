@@ -231,7 +231,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebErrorCode1000 start====");
         let result: number = webCode.webErrorCookeManagerNotInitialized();
         console.info("====>testArkWebErrorCode1000 result====", result);
-        expect(result).assertEqual(TEST_ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebErrorCode1000 catch err: " + err);

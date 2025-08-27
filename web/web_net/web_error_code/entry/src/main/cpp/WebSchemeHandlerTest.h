@@ -24,6 +24,28 @@
 
 ArkWeb_CustomSchemeOption GetSchemeOptionByName(const std::string name);
 napi_value WebRegisterCustomSchemes(napi_env env, napi_callback_info info);
-
+napi_value WebSchemeHandlerProcess(napi_env env, napi_callback_info info);
+napi_value ArkWebResourceRequestSetUserDataInvalidParam(napi_env env, napi_callback_info info);
+napi_value ArkWebResourceRequestSetUserDataOK(napi_env env, napi_callback_info info);
+napi_value SetSchemeHandler(napi_env env, napi_callback_info info);
+ArkWeb_CustomSchemeOption GetSchemeOptionByName(const std::string name);
+void OnURLRequestStart(const ArkWeb_SchemeHandler *schemeHandler, ArkWeb_ResourceRequest *resourceRequest,
+                       const ArkWeb_ResourceHandler *resourceHandler, bool *intercept);
+napi_value InitResourceManager(napi_env env, napi_callback_info info);
+napi_value ArkWebHttpBodyStreamSetUserDataInvalidParam(napi_env env, napi_callback_info info);
+napi_value ArkWebHttpBodyStreamSetReadCallbackOK(napi_env env, napi_callback_info info);
+napi_value ArkWebHttpBodyStreamSetReadCallbackInvalidParam(napi_env env, napi_callback_info info);
+napi_value ArkWebHttpBodyStreamSetAsyncReadCallbackInvalidParam(napi_env env, napi_callback_info info);
+napi_value ArkWebHttpBodyStreamInitInvalidParam(napi_env env, napi_callback_info info);
+napi_value ArkWebRegisterCustomSchemesOK(napi_env env, napi_callback_info info);
+napi_value ArkWebHttpBodyStreamAsyncRead(napi_env env, napi_callback_info info);
+napi_value ArkWebResourceRequestDestroyInvalidParam(napi_env env, napi_callback_info info);
+napi_value ArkWebRegisterCustomSchemesOK(napi_env env, napi_callback_info info);
+void OnURLRequestStart(const ArkWeb_SchemeHandler *schemeHandler, ArkWeb_ResourceRequest *resourceRequest,
+                       const ArkWeb_ResourceHandler *resourceHandler, bool *intercept);
+void OnURLRequestStop(const ArkWeb_SchemeHandler *schemeHandler, const ArkWeb_ResourceRequest *request);
+napi_value RegisterCustomSchemes(napi_env env, napi_callback_info info);
+napi_value RequestStop(napi_env env, napi_callback_info info);
+napi_value SetAsyncReadCallback(napi_env env, napi_callback_info info);
 
 #endif //WEB_ERROR_CODE_WEBSCHEMEHANDLERTEST_H

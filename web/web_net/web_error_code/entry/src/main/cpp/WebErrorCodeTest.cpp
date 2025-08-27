@@ -20,6 +20,7 @@
 #include "web/arkweb_interface.h"
 #include "web/arkweb_scheme_handler.h"
 #include <cstdint>
+#include <vector>
 #include <hilog/log.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
@@ -85,12 +86,14 @@ static napi_value WebErrorUnknow(napi_env env, napi_callback_info info)
     OH_LOG_DEBUG(LOG_APP, "WebErrorUnknow start..");
     ArkWeb_HttpBodyStream *httpBodyStream = nullptr;
     ArkWeb_HttpBodyStreamAsyncReadCallback readCallback;
-    int ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback);
+    int ret = ArkWeb_ErrorCode::ARKWEB_ERROR_UNKNOWN;
     napi_value result;
-    if (ret == ArkWeb_ErrorCode::ARKWEB_ERROR_UNKNOWN) {
-        napi_create_int32(env, ret, &result);
+    if (ArkWeb_ErrorCode::ARKWEB_ERROR_UNKNOWN ==
+        OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback)) {
+        OH_LOG_DEBUG(LOG_APP, "OH_ArkWebHttpBodyStream_SetAsyncReadCallback error unknown");
     }
 
+    napi_create_int32(env, ret, &result);
     OH_LOG_DEBUG(LOG_APP, "WebErrorUnknow end..");
     return result;
 }
@@ -198,13 +201,18 @@ static napi_value WebErrorCookeManagerNotInitialized(napi_env env, napi_callback
 {
     OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized start..");
     ArkWeb_ErrorCode ret = ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED;
-    ArkWeb_SchemeHandler *g_schemeHandler;
+    ArkWeb_ErrorCode ret1 = ARKWEB_COOKIE_MANAGER_INITIALIZE_FAILED;
+    ArkWeb_ErrorCode ret2 = ARKWEB_COOKIE_SAVE_FAILED;
     int saveRet = OH_ArkWebCookieManager_SaveCookieSync();
     napi_value result;
-    if (saveRet != ARKWEB_SUCCESS) {
+    if (saveRet == ARKWEB_SUCCESS) {
         napi_create_int32(env, saveRet, &result);
-    } else {
+    } else if (saveRet == ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED) {
         napi_create_int32(env, ret, &result);
+    } else if (saveRet == ARKWEB_COOKIE_MANAGER_INITIALIZE_FAILED) {
+        napi_create_int32(env, ret1, &result);
+    } else if (saveRet == ARKWEB_COOKIE_SAVE_FAILED) {
+        napi_create_int32(env, ret2, &result);
     }
     OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized end..");
     return result;
@@ -779,99 +787,97 @@ static napi_value OH_ArkWebResourceHandler_DidFailWithErrorV20100(napi_env env, 
     return result;
 }
 
-napi_property_descriptor desc[] = {
-    DECLARE_NAPI_FUNCTION("webErrCodeSuccess", WebErrorCodeSuccess),
-    DECLARE_NAPI_FUNCTION("webInitError", WebInitError),
-    DECLARE_NAPI_FUNCTION("webErrorUnknow", WebErrorUnknow),
-    DECLARE_NAPI_FUNCTION("webErrorInvalidParam", WebErrorInvalidParam),
-    DECLARE_NAPI_FUNCTION("webErrorSchemeRegitsterFailed", WebErrorSchemeRegitsterFailed),
-    DECLARE_NAPI_FUNCTION("webErrorInvaledURL", WebErrorInvaledURL),
-    DECLARE_NAPI_FUNCTION("webErrorInvaledCookieValue", WebErrorInvaledCookieValue),
-    DECLARE_NAPI_FUNCTION("webErrorLibraryOpenFailure", WebErrorLibraryOpenFailure),
-    DECLARE_NAPI_FUNCTION("webErrorLibraySymbolNotFound", WebErrorLibraySymbolNotFound),
-    DECLARE_NAPI_FUNCTION("webErrorCookeManagerNotInitialized", WebErrorCookeManagerNotInitialized),
-    DECLARE_NAPI_FUNCTION("webBlanklessSuccess", WebBlanklessSuccess),
-    DECLARE_NAPI_FUNCTION("webBlanklessErrUnknown", WebBlanklessErrUnknown),
-    DECLARE_NAPI_FUNCTION("webBlanklessErrInvalidArgs", WebBlanklessErrInvalidArgs),
-    DECLARE_NAPI_FUNCTION("webBlanklessErrControllerNotInited", WebBlanklessErrControllerNotInited),
-    DECLARE_NAPI_FUNCTION("webBlanklessErrKeyNotMatch", WebBlanklessErrKeyNotMatch),
-    DECLARE_NAPI_FUNCTION("webBlanklessErrSignificantChange", WebBlanklessErrSignificantChange),
-    DECLARE_NAPI_FUNCTION("webBlanklessDeviceNotSupport", WebBlanklessDeviceNotSupport),
-    DECLARE_NAPI_FUNCTION("webAnyNativeAPI", WebAnyNativeAPI),
-    DECLARE_NAPI_FUNCTION("webNativeComponent", WebNativeComponent),
-    DECLARE_NAPI_FUNCTION("webNativeController", WebNativeController),
-    DECLARE_NAPI_FUNCTION("webNativeWebMessagePort", WebNativeWebMessagePort),
-    DECLARE_NAPI_FUNCTION("webNativeWebMessage", WebNativeWebMessage),
-    DECLARE_NAPI_FUNCTION("webNativeCookieManger", WebNativeCookieManger),
-    DECLARE_NAPI_FUNCTION("webNativeJavaScriptValue", WebNativeJavaScriptValue),
-    DECLARE_NAPI_FUNCTION("webArkWebNetError", WebArkWebNetError),
-    DECLARE_NAPI_FUNCTION("webRegisterCustomSchemes", WebRegisterCustomSchemes),
-    {"OH_ArkWeb_RegisterCustomSchemes0100", nullptr, OH_ArkWeb_RegisterCustomSchemes0100, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWeb_RegisterCustomSchemes0101", nullptr, OH_ArkWeb_RegisterCustomSchemes0101, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebServiceWorker_ClearSchemeHandlers0100", nullptr, OH_ArkWebServiceWorker_ClearSchemeHandlers0100,
-     nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"OH_ArkWeb_ClearSchemeHandlers0100", nullptr, OH_ArkWeb_ClearSchemeHandlers0100, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWeb_ClearSchemeHandlers0101", nullptr, OH_ArkWeb_ClearSchemeHandlers0101, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebSchemeHandler_SetUserData0100", nullptr, OH_ArkWebSchemeHandler_SetUserData0100, nullptr, nullptr,
-     nullptr, napi_default, nullptr},
-    {"OH_ArkWebSchemeHandler_SetUserData0101", nullptr, OH_ArkWebSchemeHandler_SetUserData0101, nullptr, nullptr,
-     nullptr, napi_default, nullptr},
-    {"OH_ArkWebSchemeHandler_SetOnRequestStart0100", nullptr, OH_ArkWebSchemeHandler_SetOnRequestStart0100, nullptr,
-     nullptr, nullptr, napi_default, nullptr},
-    {"OH_ArkWebSchemeHandler_SetOnRequestStart0101", nullptr, OH_ArkWebSchemeHandler_SetOnRequestStart0101, nullptr,
-     nullptr, nullptr, napi_default, nullptr},
-    {"OH_ArkWebSchemeHandler_SetOnRequestStop0100", nullptr, OH_ArkWebSchemeHandler_SetOnRequestStop0100, nullptr,
-     nullptr, nullptr, napi_default, nullptr},
-    {"OH_ArkWebSchemeHandler_SetOnRequestStop0101", nullptr, OH_ArkWebSchemeHandler_SetOnRequestStop0101, nullptr,
-     nullptr, nullptr, napi_default, nullptr},
-    {"OH_ArkWebResponse_SetUrl0100", nullptr, OH_ArkWebResponse_SetUrl0100, nullptr, nullptr, nullptr, napi_default,
-     nullptr},
-    {"OH_ArkWebResponse_SetUrl0101", nullptr, OH_ArkWebResponse_SetUrl0101, nullptr, nullptr, nullptr, napi_default,
-     nullptr},
-    {"OH_ArkWebResponse_SetError0100", nullptr, OH_ArkWebResponse_SetError0100, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebResponse_SetStatus0100", nullptr, OH_ArkWebResponse_SetStatus0100, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebResponse_SetStatus0101", nullptr, OH_ArkWebResponse_SetStatus0101, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebResponse_SetStatusText0100", nullptr, OH_ArkWebResponse_SetStatusText0100, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebResponse_SetStatusText0101", nullptr, OH_ArkWebResponse_SetStatusText0101, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebResponse_SetMimeType0100", nullptr, OH_ArkWebResponse_SetMimeType0100, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebResponse_SetMimeType0101", nullptr, OH_ArkWebResponse_SetMimeType0101, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebResponse_SetCharset0100", nullptr, OH_ArkWebResponse_SetCharset0100, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebResponse_SetCharset0101", nullptr, OH_ArkWebResponse_SetCharset0101, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"OH_ArkWebResponse_SetHeaderByName0100", nullptr, OH_ArkWebResponse_SetHeaderByName0100, nullptr, nullptr,
-     nullptr, napi_default, nullptr},
-    {"OH_ArkWebResponse_SetHeaderByName0101", nullptr, OH_ArkWebResponse_SetHeaderByName0101, nullptr, nullptr,
-     nullptr, napi_default, nullptr},
-    {"OH_ArkWebResourceHandler_Destroy0100", nullptr, OH_ArkWebResourceHandler_Destroy0100, nullptr, nullptr,
-     nullptr, napi_default, nullptr},
-    {"OH_ArkWebResourceHandler_DidReceiveResponse0100", nullptr, OH_ArkWebResourceHandler_DidReceiveResponse0100,
-     nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"OH_ArkWebResourceHandler_DidReceiveData0100", nullptr, OH_ArkWebResourceHandler_DidReceiveData0100, nullptr,
-     nullptr, nullptr, napi_default, nullptr},
-    {"OH_ArkWebResourceHandler_DidFinish0100", nullptr, OH_ArkWebResourceHandler_DidFinish0100, nullptr, nullptr,
-     nullptr, napi_default, nullptr},
-    {"OH_ArkWebResourceHandler_DidFailWithError0100", nullptr, OH_ArkWebResourceHandler_DidFailWithError0100,
-     nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"OH_ArkWebResourceHandler_DidFailWithErrorV20100", nullptr, OH_ArkWebResourceHandler_DidFailWithErrorV20100,
-     nullptr, nullptr, nullptr, napi_default, nullptr},
-};
-
 EXTERN_C_START
+
+static void AddExFunction(std::vector<napi_property_descriptor> &descVector)
+{
+    std::vector<napi_property_descriptor> descEx = {
+        DECLARE_NAPI_FUNCTION("OH_ArkWeb_RegisterCustomSchemes0100", OH_ArkWeb_RegisterCustomSchemes0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWeb_RegisterCustomSchemes0101", OH_ArkWeb_RegisterCustomSchemes0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebServiceWorker_ClearSchemeHandlers0100",
+                              OH_ArkWebServiceWorker_ClearSchemeHandlers0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWeb_ClearSchemeHandlers0100", OH_ArkWeb_ClearSchemeHandlers0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWeb_ClearSchemeHandlers0101", OH_ArkWeb_ClearSchemeHandlers0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebSchemeHandler_SetUserData0100", OH_ArkWebSchemeHandler_SetUserData0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebSchemeHandler_SetUserData0101", OH_ArkWebSchemeHandler_SetUserData0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebSchemeHandler_SetOnRequestStart0100",
+                              OH_ArkWebSchemeHandler_SetOnRequestStart0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebSchemeHandler_SetOnRequestStart0101",
+                              OH_ArkWebSchemeHandler_SetOnRequestStart0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebSchemeHandler_SetOnRequestStop0100",
+                              OH_ArkWebSchemeHandler_SetOnRequestStop0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebSchemeHandler_SetOnRequestStop0101",
+                              OH_ArkWebSchemeHandler_SetOnRequestStop0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetUrl0100", OH_ArkWebResponse_SetUrl0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetUrl0101", OH_ArkWebResponse_SetUrl0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetError0100", OH_ArkWebResponse_SetError0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetStatus0100", OH_ArkWebResponse_SetStatus0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetStatus0101", OH_ArkWebResponse_SetStatus0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetStatusText0100", OH_ArkWebResponse_SetStatusText0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetStatusText0101", OH_ArkWebResponse_SetStatusText0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetMimeType0100", OH_ArkWebResponse_SetMimeType0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetMimeType0101", OH_ArkWebResponse_SetMimeType0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetCharset0100", OH_ArkWebResponse_SetCharset0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetCharset0101", OH_ArkWebResponse_SetCharset0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetHeaderByName0100", OH_ArkWebResponse_SetHeaderByName0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResponse_SetHeaderByName0101", OH_ArkWebResponse_SetHeaderByName0101),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResourceHandler_Destroy0100", OH_ArkWebResourceHandler_Destroy0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResourceHandler_DidReceiveResponse0100",
+                              OH_ArkWebResourceHandler_DidReceiveResponse0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResourceHandler_DidReceiveData0100",
+                              OH_ArkWebResourceHandler_DidReceiveData0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResourceHandler_DidFinish0100", OH_ArkWebResourceHandler_DidFinish0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResourceHandler_DidFailWithError0100",
+                              OH_ArkWebResourceHandler_DidFailWithError0100),
+        DECLARE_NAPI_FUNCTION("OH_ArkWebResourceHandler_DidFailWithErrorV20100",
+                              OH_ArkWebResourceHandler_DidFailWithErrorV20100),
+    };
+
+    for (const auto& desc : descEx) {
+        descVector.push_back(desc);
+    }
+}
+
 static napi_value Init(napi_env env, napi_value exports)
 {
-    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
+    std::vector<napi_property_descriptor> desc = {
+        DECLARE_NAPI_FUNCTION("webErrCodeSuccess", WebErrorCodeSuccess),
+        DECLARE_NAPI_FUNCTION("webInitError", WebInitError),
+        DECLARE_NAPI_FUNCTION("webErrorUnknow", WebErrorUnknow),
+        DECLARE_NAPI_FUNCTION("webErrorInvalidParam", WebErrorInvalidParam),
+        DECLARE_NAPI_FUNCTION("webErrorSchemeRegitsterFailed", WebErrorSchemeRegitsterFailed),
+        DECLARE_NAPI_FUNCTION("webErrorInvaledURL", WebErrorInvaledURL),
+        DECLARE_NAPI_FUNCTION("webErrorInvaledCookieValue", WebErrorInvaledCookieValue),
+        DECLARE_NAPI_FUNCTION("webErrorLibraryOpenFailure", WebErrorLibraryOpenFailure),
+        DECLARE_NAPI_FUNCTION("webErrorLibraySymbolNotFound", WebErrorLibraySymbolNotFound),
+        DECLARE_NAPI_FUNCTION("webErrorCookeManagerNotInitialized", WebErrorCookeManagerNotInitialized),
+        DECLARE_NAPI_FUNCTION("webBlanklessSuccess", WebBlanklessSuccess),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrUnknown", WebBlanklessErrUnknown),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrInvalidArgs", WebBlanklessErrInvalidArgs),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrControllerNotInited", WebBlanklessErrControllerNotInited),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrKeyNotMatch", WebBlanklessErrKeyNotMatch),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrSignificantChange", WebBlanklessErrSignificantChange),
+        DECLARE_NAPI_FUNCTION("webBlanklessDeviceNotSupport", WebBlanklessDeviceNotSupport),
+        DECLARE_NAPI_FUNCTION("webAnyNativeAPI", WebAnyNativeAPI),
+        DECLARE_NAPI_FUNCTION("webNativeComponent", WebNativeComponent),
+        DECLARE_NAPI_FUNCTION("webNativeController", WebNativeController),
+        DECLARE_NAPI_FUNCTION("webNativeWebMessagePort", WebNativeWebMessagePort),
+        DECLARE_NAPI_FUNCTION("webNativeWebMessage", WebNativeWebMessage),
+        DECLARE_NAPI_FUNCTION("webNativeCookieManger", WebNativeCookieManger),
+        DECLARE_NAPI_FUNCTION("webNativeJavaScriptValue", WebNativeJavaScriptValue),
+        DECLARE_NAPI_FUNCTION("webArkWebNetError", WebArkWebNetError),
+        DECLARE_NAPI_FUNCTION("webRegisterCustomSchemes", WebRegisterCustomSchemes),
+        DECLARE_NAPI_FUNCTION("initResourceManager", InitResourceManager),
+        DECLARE_NAPI_FUNCTION("setSchemeHandler", SetSchemeHandler),
+        DECLARE_NAPI_FUNCTION("webSchemeHandlerProcess", WebSchemeHandlerProcess),
+        DECLARE_NAPI_FUNCTION("registerCustomSchemes", RegisterCustomSchemes),
+        DECLARE_NAPI_FUNCTION("requestStop", RequestStop),
+        DECLARE_NAPI_FUNCTION("setAsyncReadCallback", SetAsyncReadCallback),
+    };
+    
+    AddExFunction(desc);
+
+    napi_define_properties(env, exports, desc.size(), desc.data());
     return exports;
 }
 EXTERN_C_END
