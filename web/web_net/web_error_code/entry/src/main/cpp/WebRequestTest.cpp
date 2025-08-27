@@ -137,9 +137,8 @@ const int BLOCK_SIZE = 1024 * 8;
 
 WebRequestTest::WebRequestTest(const ArkWeb_ResourceRequest *resourceRequest,
                                const ArkWeb_ResourceHandler *resourceHandler,
-                               const NativeResourceManager* resourceManager)
-                               : resourceRequest_(resourceRequest),resourceHandler_(resourceHandler),
-                               resourceManager_(resourceManager) {}
+                               const NativeResourceManager *resourceManager)
+    : resourceRequest_(resourceRequest), resourceHandler_(resourceHandler), resourceManager_(resourceManager) {}
 
 WebRequestTest::~WebRequestTest()
 {

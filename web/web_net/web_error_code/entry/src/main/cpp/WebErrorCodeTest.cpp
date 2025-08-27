@@ -201,13 +201,18 @@ static napi_value WebErrorCookeManagerNotInitialized(napi_env env, napi_callback
 {
     OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized start..");
     ArkWeb_ErrorCode ret = ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED;
-    ArkWeb_SchemeHandler *g_schemeHandler;
+    ArkWeb_ErrorCode ret1 = ARKWEB_COOKIE_MANAGER_INITIALIZE_FAILED;
+    ArkWeb_ErrorCode ret2 = ARKWEB_COOKIE_SAVE_FAILED;
     int saveRet = OH_ArkWebCookieManager_SaveCookieSync();
     napi_value result;
-    if (saveRet != ARKWEB_SUCCESS) {
+    if (saveRet == ARKWEB_SUCCESS) {
         napi_create_int32(env, saveRet, &result);
-    } else {
+    } else if (saveRet == ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED) {
         napi_create_int32(env, ret, &result);
+    } else if (saveRet == ARKWEB_COOKIE_MANAGER_INITIALIZE_FAILED) {
+        napi_create_int32(env, ret1, &result);
+    } else if (saveRet == ARKWEB_COOKIE_SAVE_FAILED) {
+        napi_create_int32(env, ret2, &result);
     }
     OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized end..");
     return result;
