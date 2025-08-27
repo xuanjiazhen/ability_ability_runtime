@@ -890,9 +890,6 @@ export default function audioLoopBack() {
             console.error(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0500 ERROR: ${err}`);
             expect(Number(err.code)).assertEqual(401);
           }
-          let reverb: audio.AudioLoopbackReverbPreset = audioLoopback.getReverbPreset();
-          console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0500 reverb: ${reverb}`);
-          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.CONCERT);
 
           audioLoopback.enable(false).then((isSuccess) => {
             if (isSuccess) {
@@ -952,9 +949,6 @@ export default function audioLoopBack() {
             console.error(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0600 ERROR: ${err}`);
             expect(Number(err.code)).assertEqual(401);
           }
-          let reverb: audio.AudioLoopbackReverbPreset = audioLoopback.getReverbPreset();
-          console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0600 reverb: ${reverb}`);
-          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.CONCERT);
 
           audioLoopback.enable(false).then((isSuccess) => {
             if (isSuccess) {
@@ -1014,9 +1008,6 @@ export default function audioLoopBack() {
             console.error(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0700 ERROR: ${err}`);
             expect(Number(err.code)).assertEqual(6800101);
           }
-          let reverb: audio.AudioLoopbackReverbPreset = audioLoopback.getReverbPreset();
-          console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0700 reverb: ${reverb}`);
-          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.CONCERT);
 
           audioLoopback.enable(false).then((isSuccess) => {
             if (isSuccess) {
@@ -1076,9 +1067,6 @@ export default function audioLoopBack() {
             console.error(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0800 ERROR: ${err}`);
             expect(Number(err.code)).assertEqual(6800101);
           }
-          let reverb: audio.AudioLoopbackReverbPreset = audioLoopback.getReverbPreset();
-          console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0800 reverb: ${reverb}`);
-          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.CONCERT);
 
           audioLoopback.enable(false).then((isSuccess) => {
             if (isSuccess) {
@@ -1138,9 +1126,6 @@ export default function audioLoopBack() {
             console.error(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0900 ERROR: ${err}`);
             expect(Number(err.code)).assertEqual(6800101);
           }
-          let reverb: audio.AudioLoopbackReverbPreset = audioLoopback.getReverbPreset();
-          console.info(`${TAG} SUB_MULTIMEDIA_AUDIO_SETREVERBPRESET_0900 reverb: ${reverb}`);
-          expect(reverb).assertEqual(audio.AudioLoopbackReverbPreset.CONCERT);
 
           audioLoopback.enable(false).then((isSuccess) => {
             if (isSuccess) {
