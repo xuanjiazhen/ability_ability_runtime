@@ -14,6 +14,7 @@
  */
 
 #include "EffectShareTest.h"
+#include <native_drawing/drawing_rect.h>
 #include <multimedia/image_framework/image/pixelmap_native.h>
 #include <native_drawing/drawing_shader_effect.h>
 #include <native_drawing/drawing_matrix.h>
@@ -79,8 +80,12 @@ napi_value OH_Drawing_ShaderEffectCreatePixelMapShaderInvalue(napi_env env, napi
     napi_value result;
     float sigmaX;
     float sigmaY;
-    OH_Drawing_ImageFilter* input;
-    OH_Drawing_Rect* rect;
+    OH_Drawing_ImageFilter* input = nullptr;
+    float left = 10;
+    float top = 10;
+    float right = 10;
+    float bottom = 10;
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(left, top, right, bottom);
     OH_Drawing_TileMode mode;
     OH_Drawing_ImageFilter* iFile = OH_Drawing_ImageFilterCreateBlurWithCrop(sigmaX, sigmaY, MIRROR, input, rect);
     napi_create_int32(env, iFile != nullptr, &result);
