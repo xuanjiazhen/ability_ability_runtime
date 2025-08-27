@@ -1145,8 +1145,7 @@ napi_value TestRestoreSuccess(napi_env env, napi_callback_info info)
     OH_Rdb_Insert(testStore, "test", insertBucket);
 
     char dbPath[] = "backup.db";
-    char backupPath[100];
-    std::string testPath1 = std::string(backupPath) + std::string(RelationalStoreTest::RDB_TEST) + std::string(dbPath);
+    std::string testPath1 = std::string(RelationalStoreTest::RDB_TEST) + std::string(dbPath);
     int ba = OH_Rdb_Backup(testStore, testPath1.c_str());
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}s", testPath1.c_str());
     OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zzzhh  OH_Rdb_Backup:%{public}d", ba);
