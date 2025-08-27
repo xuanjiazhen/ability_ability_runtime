@@ -22,7 +22,7 @@ group("http") {
       "httpDataOptions:ActsNetworkManagerHttpDataOptionsTest",
       "httpRequest:ActsNetworkManagerHttpRequestTest",
       "httpRequestOnAndOff:ActsNetworkManagerHttpRequestOnAndOffTest",
-      "httpEts:ActsNetManagerHttpETSTest",
+      "httpPublic:ActsNetManagerHttpETSTest",
     ]
   }
 }

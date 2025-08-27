@@ -17,7 +17,6 @@ group("telephonyjstest") {
     "actscontactstageapitest:ActsContactStageAPITest",
     "call_manager:call_manager",
     "netmanager_base:netmanager_base",
-    "netmanager_http:ActsNetManagerHttpEtsTest",
     "netmanager_socket:ActsNetManagerSocketEtsTest",
     "netmanager_tlssocket:netmanager_tlssocket",
     "netmanager_websocket:netmanager_websocket",
