@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,14 +30,14 @@ struct webSetAppCustomUserAgent {
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 18,
+      eventId: 174010,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(18)
+    events_emitter.off(174010)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -78,13 +78,13 @@ struct webSetAppCustomUserAgent {
                     if (result) {
                       console.info(`runJavaScript The test() return value is: ${result}`);
                       let isGetResult = result.includes('setAppCustomUserAgent');
-                      Utils.emitEvent(isGetResult, 2025052801)
+                      Utils.emitEvent(isGetResult, 174020)
                     }
                   })
                 } catch (error) {
                   console.error(`catch ErrorCode: ${error.code},  Message: ${error.message}`);
                   if (error.code == 801) {
-                    Utils.emitEvent(true, 2025052801)
+                    Utils.emitEvent(true, 174020)
                   }
                 }
                 this.isReceive = -1;
@@ -96,9 +96,9 @@ struct webSetAppCustomUserAgent {
                 } catch (error) {
                   console.error(`catch ErrorCode: ${error.code},  Message: ${error.message}`);
                   if (error.code == 801) {
-                    Utils.emitEvent('401', 2025052802);
+                    Utils.emitEvent('401', 174030);
                   } else {
-                    Utils.emitEvent(String(error.code), 2025052802);
+                    Utils.emitEvent(String(error.code), 174030);
                   }
                 }
                 this.isReceive = -1;
@@ -110,9 +110,9 @@ struct webSetAppCustomUserAgent {
                 } catch (error) {
                   console.error(`catch ErrorCode: ${error.code},  Message: ${error.message}`);
                   if (error.code == 801) {
-                    Utils.emitEvent('401', 2025052803);
+                    Utils.emitEvent('401', 174040);
                   } else {
-                    Utils.emitEvent(String(error.code), 2025052803);
+                    Utils.emitEvent(String(error.code), 174040);
                   }
                 }
                 break;
