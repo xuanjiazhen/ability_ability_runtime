@@ -237,6 +237,9 @@ struct webViewOnScroll {
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
+        .onPageEnd(() => {
+           this.getWebHeight();
+        })
         .onScroll((event) => {
           this.checkScrollPosition();
           if(this.flag){
