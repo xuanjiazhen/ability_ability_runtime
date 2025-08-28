@@ -39,7 +39,7 @@ struct Repeat0010 {
     'app.media.img2',
     'app.media.img3',
     'app.media.img4'
-  ]
+  ];
   private scroller: Scroller = new Scroller();
 
   aboutToAppear(): void {

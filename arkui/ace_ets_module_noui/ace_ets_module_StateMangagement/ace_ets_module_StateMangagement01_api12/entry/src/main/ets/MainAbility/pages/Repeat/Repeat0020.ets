@@ -37,8 +37,8 @@ struct Repeat0020 {
     'app.media.img2',
     'app.media.img3',
     'app.media.img4'
-  ]
-  private GridScroller: Scroller = new Scroller();
+  ];
+  private gridScroller: Scroller = new Scroller();
 
   aboutToAppear(): void {
     for (let i = 0; i < 50; i++) {
@@ -53,7 +53,7 @@ struct Repeat0020 {
           .id('toIndex[2]')
           .height('3%')
           .onClick(() => {
-            this.GridScroller.scrollToIndex(2)
+            this.gridScroller.scrollToIndex(2)
           })
         Text(this.repeat0020_1)
           .id('repeat0020_1')
@@ -66,7 +66,7 @@ struct Repeat0020 {
           .height('3%')
       }
 
-      Grid(this.GridScroller) {
+      Grid(this.gridScroller) {
         Repeat<DemoGridItemInfo>(this.itemList)
           .each((obj: RepeatItem<DemoGridItemInfo>) => {
             GridItem() {

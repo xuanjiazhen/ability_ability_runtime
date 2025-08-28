@@ -39,7 +39,7 @@ struct Repeat0400 {
     'app.media.img2',
     'app.media.img3',
     'app.media.img4'
-  ]
+  ];
   private swiperController: SwiperController = new SwiperController();
 
   aboutToAppear(): void {
