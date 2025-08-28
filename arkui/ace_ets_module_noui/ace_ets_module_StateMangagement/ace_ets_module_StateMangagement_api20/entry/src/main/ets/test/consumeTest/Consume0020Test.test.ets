@@ -58,10 +58,12 @@ export default function Consume0020Test() {
       console.info('[Consume0020Test_001] START');
       await CommonFunc.sleep(1000);
       let obj: ESObject = JSON.parse(getInspectorByKey('tvConsume0020'));
+      await CommonFunc.sleep(500);
       console.info("[Consume0020Test_001] obj content: " + JSON.stringify(obj.$attrs.content));
       expect(obj.$attrs.content).assertEqual('10');
       await CommonFunc.sleep(1000);
       let obj1: ESObject = JSON.parse(getInspectorByKey('tvChildConsume0020'));
+      await CommonFunc.sleep(500);
       console.info("[Consume0020Test_001] obj1 content: " + JSON.stringify(obj1.$attrs.content));
       expect(obj1.$attrs.content).assertEqual('10');
       await CommonFunc.sleep(1000);
@@ -72,10 +74,12 @@ export default function Consume0020Test() {
       await btn.click();
       await CommonFunc.sleep(1000);
       obj = JSON.parse(getInspectorByKey('tvConsume0020'));
+      await CommonFunc.sleep(500);
       console.info("[Consume0020Test_001] obj content: " + JSON.stringify(obj.$attrs.content));
       expect(obj.$attrs.content).assertEqual('11');
       await CommonFunc.sleep(1000);
       obj1 = JSON.parse(getInspectorByKey('tvChildConsume0020'));
+      await CommonFunc.sleep(500);
       console.info("[Consume0020Test_001] obj1 content: " + JSON.stringify(obj1.$attrs.content));
       expect(obj1.$attrs.content).assertEqual('11');
       await CommonFunc.sleep(1000);
@@ -84,10 +88,12 @@ export default function Consume0020Test() {
       await btn1.click();
       await CommonFunc.sleep(1000);
       obj = JSON.parse(getInspectorByKey('tvConsume0020'));
+      await CommonFunc.sleep(500);
       console.info("[Consume0020Test_001] obj content: " + JSON.stringify(obj.$attrs.content));
       expect(obj.$attrs.content).assertEqual('12');
       await CommonFunc.sleep(1000);
       obj1 = JSON.parse(getInspectorByKey('tvChildConsume0020'));
+      await CommonFunc.sleep(500);
       console.info("[Consume0020Test_001] obj1 content: " + JSON.stringify(obj1.$attrs.content));
       expect(obj1.$attrs.content).assertEqual('12');
       await CommonFunc.sleep(1000);
