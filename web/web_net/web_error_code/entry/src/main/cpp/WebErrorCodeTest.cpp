@@ -784,7 +784,7 @@ static napi_value OH_ArkWebResponse_SetHeaderByName0101(napi_env env, napi_callb
     bool overwrite = true;
     int ret = -1;
     int32_t errcode = OH_ArkWebResponse_SetHeaderByName(nullptr, name, value, overwrite);
-    if (errcode == 17100101) {
+    if (errcode == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
     napi_value result;
@@ -838,7 +838,7 @@ static napi_value OH_ArkWebResourceHandler_DidReceiveData0100(napi_env env, napi
     int64_t bufLen = fixedLen;
     int ret = -1;
     int32_t errcode = OH_ArkWebResourceHandler_DidReceiveData(nullptr, buffer, bufLen);
-    if (errcode == 17100101) {
+    if (errcode == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
     napi_value result;
@@ -858,7 +858,7 @@ static napi_value OH_ArkWebResourceHandler_DidFinish0100(napi_env env, napi_call
     int64_t bufLen = fixedLen;
     int ret = 0;
     int32_t errcode = OH_ArkWebResourceHandler_DidFinish(nullptr);
-    if (errcode == 17100101) {
+    if (errcode == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
     napi_value result;
@@ -878,7 +878,7 @@ static napi_value OH_ArkWebResourceHandler_DidFailWithError0100(napi_env env, na
     int64_t bufLen = fixedLen;
     int ret = 0;
     int32_t errcode = OH_ArkWebResourceHandler_DidFailWithError(nullptr, ARKWEB_NET_OK);
-    if (errcode == 17100101) {
+    if (errcode == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
     napi_value result;
@@ -899,7 +899,7 @@ static napi_value OH_ArkWebResourceHandler_DidFailWithErrorV20100(napi_env env, 
     bool completeIfNoResponse = true;
     int ret = -1;
     int32_t errcode = OH_ArkWebResourceHandler_DidFailWithErrorV2(nullptr, ARKWEB_NET_OK, completeIfNoResponse);
-    if (errcode == 17100101) {
+    if (errcode == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
     napi_value result;

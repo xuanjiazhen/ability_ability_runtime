@@ -239,7 +239,7 @@ napi_value ArkWebHttpBodyStreamSetUserDataInvalidParam(napi_env env, napi_callba
 {
     int ret = -1;
     int data = 0;
-    int retSetUserData = OH_ArkWebHttpBodyStream_SetUserData(nullptr, (void*)&data);
+    int32_t retSetUserData = OH_ArkWebHttpBodyStream_SetUserData(nullptr, static_cast<void*>(&data));
     if (retSetUserData == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
