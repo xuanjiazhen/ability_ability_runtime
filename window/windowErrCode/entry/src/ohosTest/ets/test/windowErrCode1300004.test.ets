@@ -55,11 +55,12 @@ export default function windowErrCode1300004() {
         expect().assertFail();
         done();
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call on_subWindowClose. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         if (exception.code == 801) {
           console.info(msgStr + '此设备不支持on_subWindowClose能力.');
         } else {
           expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         }
         done();
       }
@@ -103,12 +104,14 @@ export default function windowErrCode1300004() {
             console.info(msgStr + '此设备不支持setWindowTitleMoveEnabled能力.');
           } else {
             expect(err.code).assertEqual(1300004);
+        expect(err.message!=null).assertTrue();
           }
           done()
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setRaiseByClickEnabled. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         await (tempWnd! as ohosWindow.Window).destroyWindow();
         done()
       }
@@ -152,8 +155,9 @@ export default function windowErrCode1300004() {
           done()
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call maximize. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         await (win! as ohosWindow.Window).destroyWindow();
         done()
       }
@@ -191,13 +195,13 @@ export default function windowErrCode1300004() {
         await (tempWnd! as ohosWindow.Window).destroyWindow();
         done();
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowTitleMoveEnabled. Cause:' +
-        JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         await (tempWnd! as ohosWindow.Window).destroyWindow();
         if (exception.code == 801) {
           console.info(msgStr + '此设备不支持setWindowTitleMoveEnabled能力.');
         } else {
           expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         }
         done();
       }
@@ -236,12 +240,13 @@ export default function windowErrCode1300004() {
         expect().assertFail();
         done();
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setDecorButtonStyle. Cause:' + JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         await (tempWnd! as ohosWindow.Window).destroyWindow();
         if (exception.code == 801) {
           console.info(msgStr + '此设备不支持setDecorButtonStyle能力.');
         } else {
           expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         }
         done();
       }
@@ -276,7 +281,7 @@ export default function windowErrCode1300004() {
           (win! as ohosWindow.Window).getDecorButtonStyle();
           console.error(msgStr + 'Succeeded in calling getDecorButtonStyle.');
         } catch (exception) {
-          console.error(msgStr + 'Failed to set the call getDecorButtonStyle. Cause:' + JSON.stringify(exception.code));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
           if (exception.code == 801) {
             done();
           } else if (exception.code == 1300004) {
@@ -322,13 +327,13 @@ export default function windowErrCode1300004() {
         await (subWin!! as ohosWindow.Window).destroyWindow();
         done();
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setWindowTitleButtonVisible. Cause:' +
-        JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         await (subWin!! as ohosWindow.Window).destroyWindow();
         if (exception.code == 801) {
           console.info(msgStr + '此设备不支持getDecorButtonStyle能力.');
         } else {
           expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         }
         done();
       }
@@ -366,9 +371,9 @@ export default function windowErrCode1300004() {
         await (win! as ohosWindow.Window).destroyWindow();
         done();
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setImmersiveModeEnabledState. Cause:' +
-        JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         await (win! as ohosWindow.Window).destroyWindow();
         done();
       }
@@ -406,9 +411,9 @@ export default function windowErrCode1300004() {
         await (win! as ohosWindow.Window).destroyWindow();
         done();
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call getImmersiveModeEnabledState. Cause:' +
-        JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         await (win! as ohosWindow.Window).destroyWindow();
         done();
       }
@@ -448,8 +453,9 @@ export default function windowErrCode1300004() {
           expect().assertFail();
           done()
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call createSubWindowWithOptions. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           expect(err.code).assertEqual(1300004);
+        expect(err.message!=null).assertTrue();
           done()
         });
       } catch (exception) {
@@ -459,6 +465,7 @@ export default function windowErrCode1300004() {
           console.info(msgStr + '此设备不支持createSubWindowWithOptions能力.');
         } else {
           expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         }
         done()
       }
@@ -497,12 +504,13 @@ export default function windowErrCode1300004() {
           await (subWin! as ohosWindow.Window).destroyWindow();
           done()
         }).catch(async (err: BusinessError) => {
-          console.error(msgStr + 'Failed to call setTitleAndDockHoverShown. Cause: ' + JSON.stringify(err));
+          console.error(msgStr + 'Failed. Cause:' + JSON.stringify(err.code)+` message:${err.message}`);
           await (subWin! as ohosWindow.Window).destroyWindow();
           if (err.code == 801) {
             console.info(msgStr + '此设备不支持setTitleAndDockHoverShown能力.');
           } else {
             expect(err.code).assertEqual(1300004);
+        expect(err.message!=null).assertTrue();
           }
           done()
         });
@@ -549,10 +557,10 @@ export default function windowErrCode1300004() {
           }
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call setAspectRatio. Cause:' +
-        JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         await (subWin! as ohosWindow.Window).destroyWindow();
         expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })
@@ -591,10 +599,10 @@ export default function windowErrCode1300004() {
           }
         });
       } catch (exception) {
-        console.error(msgStr + 'Failed to set the call resetAspectRatio. Cause:' +
-        JSON.stringify(exception));
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception.code)+` message:${exception.message}`);
         await (subWin! as ohosWindow.Window).destroyWindow();
         expect(exception.code).assertEqual(1300004);
+        expect(exception.message!=null).assertTrue();
         done()
       }
     })

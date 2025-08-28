@@ -126,8 +126,9 @@ export default function startabilityWindowRect() {
 
         done();
       } catch(err) {
-        console.error(`${caseName} fail: ${JSON.stringify(err)}`);
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
         await terminateAbility(caseName);
+        expect(err.message!=null).assertTrue();
         expect().assertFail()
         done()
       }
@@ -196,7 +197,8 @@ export default function startabilityWindowRect() {
 
         done();
       } catch(err) {
-        console.error(`${caseName} fail: ${JSON.stringify(err)}`);
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
+        expect(err.message!=null).assertTrue();
         if (err.code === 801) {
           done()
         } else {
@@ -312,7 +314,8 @@ export default function startabilityWindowRect() {
 
         done();
       } catch(err) {
-        console.error(`${caseName} fail: ${JSON.stringify(err)}`);
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
+        expect(err.message!=null).assertTrue();
         if (err.code === 801) {
           done()
         } else {
@@ -409,7 +412,8 @@ export default function startabilityWindowRect() {
 
         done();
       } catch(err) {
-        console.error(`${caseName} fail: ${JSON.stringify(err)}`);
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
+        expect(err.message!=null).assertTrue();
         if (err.code === 801) {
           done()
         } else {
@@ -507,7 +511,8 @@ export default function startabilityWindowRect() {
 
         done();
       } catch(err) {
-        console.error(`${caseName} fail: ${JSON.stringify(err)}`);
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
+        expect(err.message!=null).assertTrue();
         if (err.code === 801) {
           done()
         } else {
@@ -619,7 +624,8 @@ export default function startabilityWindowRect() {
 
         done();
       } catch(err) {
-        console.error(`${caseName} fail: ${JSON.stringify(err)}`);
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
+        expect(err.message!=null).assertTrue();
         if (err.code === 801) {
           done()
         } else {
@@ -769,7 +775,8 @@ export default function startabilityWindowRect() {
         await terminateAbility(caseName);
         done();
       } catch(err) {
-        console.error(`${caseName} fail: ${JSON.stringify(err)}`);
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
+        expect(err.message!=null).assertTrue();
         if (err.code === 801) {
           done()
         } else {
@@ -982,7 +989,8 @@ export default function startabilityWindowRect() {
 
         done();
       } catch(err) {
-        console.error(`${caseName} fail: ${JSON.stringify(err)}`);
+        console.error(`${caseName}  Failed. Cause code: ${err.code}, message: ${err.message}`);
+        expect(err.message!=null).assertTrue();
         if (err.code === 801) {
           done()
         } else {
