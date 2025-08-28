@@ -123,7 +123,7 @@ export default class UIAbilityContext extends Context {
 
   private native nativeChangeAbilityVisibility(isShow: boolean, callback: AsyncCallbackWrapper<void>): void;
 
-  private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>,
+  private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, RecordData>,
     startCallback: AbilityStartCallback): BusinessError;
 
   private native nativeSetAbilityInstanceInfo(label: string, icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
@@ -444,10 +444,10 @@ export default class UIAbilityContext extends Context {
     this.nativeSetColorMode(colorMode);
   }
 
-  startAbilityByType(type: string, wantParam: RecordData, startCallback: AbilityStartCallback,
+  startAbilityByType(type: string, wantParam: Record<string, RecordData>, startCallback: AbilityStartCallback,
     callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError => {
-      return this.nativeStartAbilityByTypeSync(type, wantParam as Record<string, Object>, startCallback);
+      return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
     });
     p1.then((e: NullishType) => {
       let retError = e as BusinessError;
@@ -495,11 +495,11 @@ hideAbility(): Promise<void> {
   return p;
 }
 
-  startAbilityByType(type: string, wantParam: RecordData,
+  startAbilityByType(type: string, wantParam: Record<string, RecordData>,
     startCallback: AbilityStartCallback): Promise<void> {
     let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError) => void): void => {
       let p1 = taskpool.execute((): BusinessError => {
-        return this.nativeStartAbilityByTypeSync(type, wantParam as Record<string, Object>, startCallback);
+        return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
       });
       p1.then((e: NullishType) => {
         let retError = e as BusinessError;
