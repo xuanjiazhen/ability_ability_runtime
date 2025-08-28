@@ -125,7 +125,7 @@ export default function securityTest() {
       }
       expect(await AbilityUtils.startAbilityImplicitly(testAssistWantInfo, abilityContext)).assertTrue()
       await driver.delayMs(2000)
-      let openButton = await driver.findComponent(ON.text('打开').inWindow('com.acts.pcs.arktstest'))
+      let openButton = await driver.findComponent(ON.within(ON.type('Dialog')).text('打开'))
       if(openButton != undefined) {
         await openButton.click()
         await driver.delayMs(2000)
@@ -1316,7 +1316,7 @@ export default function securityTest() {
       }
       expect(await AbilityUtils.startAbilityImplicitly(testAssistWantInfo, abilityContext)).assertTrue()
       await driver.delayMs(5000)
-      let openButton = await driver.findComponent(ON.text('打开').inWindow('com.acts.pcs.arktstest'))
+      let openButton = await driver.findComponent(ON.within(ON.type('Dialog')).text('打开'))
       if(openButton != undefined && openButton != null) {
         await openButton.click()
         await driver.delayMs(2000)

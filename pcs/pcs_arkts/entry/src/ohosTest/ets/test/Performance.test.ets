@@ -95,7 +95,7 @@ export default function performanceTest() {
         }
         expect(await AbilityUtils.startAbilityImplicitly(testAssistWantInfo, abilityContext)).assertTrue()
         await driver.delayMs(2000)
-        let button = await driver.findComponent(ON.text('打开').inWindow('com.acts.pcs.arktstest'))
+        let button = await driver.findComponent(ON.within(ON.type('Dialog')).text('打开'))
         if(button != undefined) {
           await button.click()
           await driver.delayMs(2000)

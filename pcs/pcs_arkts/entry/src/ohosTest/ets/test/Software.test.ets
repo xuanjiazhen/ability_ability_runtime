@@ -171,6 +171,11 @@ export default function softwareTest() {
       }
       expect(await AbilityUtils.startAbilityImplicitly(filepickerWantInfo1, abilityContext)).assertTrue()
       await driver.delayMs(2000)
+      let openButton = await driver.findComponent(ON.within(ON.type('Dialog')).text('打开'))
+      if(openButton != undefined && openButton != null) {
+        await openButton.click()
+        await driver.delayMs(2000)
+      }
       done()
     })
 
