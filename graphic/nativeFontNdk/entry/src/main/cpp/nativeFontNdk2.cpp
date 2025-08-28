@@ -346,6 +346,35 @@ napi_value OHDrawingFontGetPathForGlyph004(napi_env env, napi_callback_info info
     return result;
 }
 
+static int SetFontSize(OH_Drawing_TextStyle *txtStyle, double size, int weight, OH_Drawing_TextBadgeType badge)
+{
+    OH_Drawing_SetTextStyleFontSize(txtStyle, size);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, weight);
+    OH_Drawing_SetTextStyleBadgeType(txtStyle, badge);
+    return 0;
+}
+
+static int DestoryTypographyTextStyle(OH_Drawing_Typography *typography, OH_Drawing_TypographyCreate *handler,
+    OH_Drawing_TextStyle *txtStyle)
+{
+    if (typography != nullptr) {
+        OH_Drawing_DestroyTypography(typography);
+        typography = nullptr;
+    }
+
+    if (handler != nullptr) {
+        OH_Drawing_DestroyTypographyHandler(handler);
+        handler = nullptr;
+    }
+
+    if (txtStyle != nullptr) {
+        OH_Drawing_DestroyTextStyle(txtStyle);
+        txtStyle = nullptr;
+    }
+
+    return 0;
+}
+
 napi_value OHDrawingSetTextStyleBadgeType001(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
@@ -362,9 +391,7 @@ napi_value OHDrawingSetTextStyleBadgeType001(napi_env env, napi_callback_info in
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
 
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0xFF));
-    OH_Drawing_SetTextStyleFontSize(txtStyle, DEFAULT_FONT_SIZE);
-    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
-    OH_Drawing_SetTextStyleBadgeType(txtStyle, OH_Drawing_TextBadgeType::TEXT_BADGE_NONE);
+    SetFontSize(txtStyle, DEFAULT_FONT_SIZE, FONT_WEIGHT_400, OH_Drawing_TextBadgeType::TEXT_BADGE_NONE);
 
     OH_Drawing_TextStyle *superTxtStyle = OH_Drawing_CreateTextStyle();
     if (superTxtStyle != nullptr) {
@@ -373,9 +400,7 @@ napi_value OHDrawingSetTextStyleBadgeType001(napi_env env, napi_callback_info in
         napi_create_int32(env, FAIL, &result1);
     }
     napi_set_element(env, result, ARR_NUM_0, result1);
-    OH_Drawing_SetTextStyleFontSize(superTxtStyle, DEFAULT_FONT_SIZE);
-    OH_Drawing_SetTextStyleFontWeight(superTxtStyle, FONT_WEIGHT_400);
-    OH_Drawing_SetTextStyleBadgeType(superTxtStyle, OH_Drawing_TextBadgeType::TEXT_SUPERSCRIPT);
+    SetFontSize(superTxtStyle, DEFAULT_FONT_SIZE, FONT_WEIGHT_400, OH_Drawing_TextBadgeType::TEXT_SUPERSCRIPT);
 
     const char *text = "OpenHarmony";
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
@@ -400,13 +425,8 @@ napi_value OHDrawingSetTextStyleBadgeType001(napi_env env, napi_callback_info in
     napi_set_element(env, result, ARR_NUM_2, result3);
     OH_Drawing_TypographyLayout(superTxtTypography, MAX_WIDTH);
 
-    OH_Drawing_DestroyTypography(typography);
-    OH_Drawing_DestroyTypographyHandler(handler);
-    OH_Drawing_DestroyTextStyle(txtStyle);
-
-    OH_Drawing_DestroyTypography(superTxtTypography);
-    OH_Drawing_DestroyTypographyHandler(superTxtHandler);
-    OH_Drawing_DestroyTextStyle(superTxtStyle);
+    DestoryTypographyTextStyle(typography, handler, txtStyle);
+    DestoryTypographyTextStyle(superTxtTypography, superTxtHandler, superTxtStyle);
     return result;
 }
 
