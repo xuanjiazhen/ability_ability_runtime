@@ -13,7 +13,7 @@
 * limitations under the License.
 */
 
-#include "udmf_util.h"
+#include "udmf_utils.h"
 
 #include "ability_manager_errors.h"
 

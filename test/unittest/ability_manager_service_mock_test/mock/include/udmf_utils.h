@@ -13,8 +13,8 @@
 * limitations under the License.
 */
 
-#ifndef OHOS_ABILITY_RUNTIME_UDMF_UTIL_MOCK_H
-#define OHOS_ABILITY_RUNTIME_UDMF_UTIL_MOCK_H
+#ifndef OHOS_ABILITY_RUNTIME_UDMF_UTILS_MOCK_H
+#define OHOS_ABILITY_RUNTIME_UDMF_UTILS_MOCK_H
 
 #include <cstdint>
 #include <string>
@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace AAFwk {
 
-class UdmfUtil final {
+class UdmfUtils final {
 public:
     static int32_t ProcessUdmfKey(const std::string &key, uint32_t targetTokenId);
 private:

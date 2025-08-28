@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 #define private public
-#include "udmf_util.h"
+#include "udmf_utils.h"
 #undef private
 #include "hilog_tag_wrapper.h"
 #include "udmf_client.h"

@@ -30,7 +30,7 @@ ohos_unittest("udmf_util_test") {
   ]
 
   sources = [
-    "${ability_runtime_services_path}/abilitymgr/src/utils/udmf_util.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/utils/udmf_utils.cpp",
     "mock/src/mock_udmf_client.cpp",
     "udmf_util_test.cpp",
   ]

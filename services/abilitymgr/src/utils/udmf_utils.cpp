@@ -13,7 +13,7 @@
 * limitations under the License.
 */
 
-#include "udmf_util.h"
+#include "udmf_utils.h"
 
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
@@ -22,9 +22,9 @@
 #include "udmf_client.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AbilityRuntime {
 
-int32_t UdmfUtil::AddPrivilege(const std::string &key, uint32_t tokenId, const std::string &readPermission)
+int32_t UdmfUtils::AddPrivilege(const std::string &key, uint32_t tokenId, const std::string &readPermission)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "AddPrivilege for tokenId:%{public}u", tokenId);
@@ -37,7 +37,7 @@ int32_t UdmfUtil::AddPrivilege(const std::string &key, uint32_t tokenId, const s
     return ret;
 }
 
-int32_t UdmfUtil::ProcessUdmfKey(const std::string &key, uint32_t targetTokenId)
+int32_t UdmfUtils::ProcessUdmfKey(const std::string &key, uint32_t targetTokenId)
 {
     auto ret = AddPrivilege(key, targetTokenId, "");
     if (ret != ERR_OK) {

@@ -181,7 +181,7 @@ abilityms_files = [
   "src/utils/timeout_state_utils.cpp",
   "src/kiosk_status.cpp",
   "src/kiosk_manager.cpp",
-  "src/utils/udmf_util.cpp",
+  "src/utils/udmf_utils.cpp",
 ]
 
 if (ability_runtime_graphics) {
