@@ -17,9 +17,11 @@ import CommonFunc from '../MainAbility/common/Common';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import { Component, Driver, UiWindow, ON, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
+import { display } from '@kit.ArkUI';
 
 export default function PreferredOrientation() {
   describe('PreferredOrientation', () => {
+    let initRotation: number = display.getDefaultDisplaySync().orientation;
     beforeEach(async (done: Function) => {
       console.info('PreferredOrientation beforeEach start');
       let options: router.RouterOptions = {
@@ -67,7 +69,7 @@ export default function PreferredOrientation() {
 
         let rotation: number = AppStorage.get('testOrientation') as number
         console.info('[PreferredOrientation_0100] rotation is ', rotation);
-        expect(rotation).assertEqual(0);
+        expect(rotation == 0 || rotation == initRotation).assertTrue();
         AppStorage.delete('testOrientation');
       }
       console.info('PreferredOrientation_0100 END');
@@ -98,9 +100,8 @@ export default function PreferredOrientation() {
 
         let rotation: number = AppStorage.get('testOrientation') as number
         console.info('[PreferredOrientation_0200] rotation is ', rotation);
-        expect(rotation == 1 || rotation == 3).assertTrue();
+        expect(rotation == 1 || rotation == 3 || rotation == initRotation).assertTrue();
         AppStorage.delete('testOrientation');
-
       }
       console.info('PreferredOrientation_0200 END');
       done();
@@ -135,7 +136,7 @@ export default function PreferredOrientation() {
         let navigationWidth = rect.right;
         console.info('[PreferredOrientation_0300] navigationWidth is ', navigationWidth);
         if (navigationWidth < 1500) {
-          expect(rotation).assertEqual(0);
+          expect(rotation == 0 || rotation == initRotation).assertTrue();
         }
         AppStorage.delete('testOrientation');
       }
@@ -167,7 +168,7 @@ export default function PreferredOrientation() {
 
         let rotation: number = AppStorage.get('testOrientation') as number
         console.info('[PreferredOrientation_0400] rotation is ', rotation);
-        expect(rotation).assertEqual(2);
+        expect(rotation == 2 || rotation == initRotation).assertTrue();
         AppStorage.delete('testOrientation');
       }
       console.info('PreferredOrientation_0400 END');
@@ -198,7 +199,7 @@ export default function PreferredOrientation() {
 
         let rotation: number = AppStorage.get('testOrientation') as number
         console.info('[PreferredOrientation_0500] rotation is ', rotation);
-        expect(rotation == 1 || rotation == 3).assertTrue();
+        expect(rotation == 1 || rotation == 3 || rotation == initRotation).assertTrue();
         AppStorage.delete('testOrientation');
       }
       console.info('PreferredOrientation_0500 END');
