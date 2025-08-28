@@ -4154,7 +4154,7 @@ export default function audioFramework() {
       const hasSpeaker = outputDeviceDescription.some(device => 
             device.deviceType === audio.DeviceType.DISPLAY_PORT
         );
-      if (!hasSpeaker) {
+      if (hasSpeaker) {
           console.info(`${TagFrmwk}: this device has external device`)
           expect(true).assertTrue();
           done();
@@ -4211,7 +4211,7 @@ export default function audioFramework() {
       const hasSpeaker = outputDeviceDescription.some(device => 
             device.deviceType === audio.DeviceType.DISPLAY_PORT
         );
-      if (!hasSpeaker) {
+      if (hasSpeaker) {
           console.info(`${TagFrmwk}: this device has external device`)
           expect(true).assertTrue();
           done();
@@ -4252,7 +4252,7 @@ export default function audioFramework() {
       const hasSpeaker = outputDeviceDescription.some(device => 
             device.deviceType === audio.DeviceType.DISPLAY_PORT
         );
-      if (!hasSpeaker) {
+      if (hasSpeaker) {
           console.info(`${TagFrmwk}: this device has external device`)
           expect(true).assertTrue();
           done();
@@ -4310,7 +4310,7 @@ export default function audioFramework() {
       const hasSpeaker = outputDeviceDescription.some(device => 
             device.deviceType === audio.DeviceType.DISPLAY_PORT
         );
-      if (!hasSpeaker) {
+      if (hasSpeaker) {
           console.info(`${TagFrmwk}: this device has external device`)
           expect(true).assertTrue();
           done();
