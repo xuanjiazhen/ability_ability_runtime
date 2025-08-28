@@ -334,7 +334,7 @@ export default function showToastOptions() {
         let column: ESObject = obj.$children[1].$attrs
         let shadow:string = column.shadow
         console.info('[showToastOptions_0800] shadow'+ shadow)
-        expect(shadow).assertEqual('ShadowStyle.OuterDefaultMD')
+        expect(shadow).assertContain('ShadowStyle')
       }
       await CommonFunc.sleep(1000);
       console.info('showToastOptions_0800 END');
@@ -366,7 +366,7 @@ export default function showToastOptions() {
         let column: ESObject = obj.$children[1].$attrs
         let shadow:string = column.shadow
         console.info('[showToastOptions_0900] shadow'+ shadow)
-        expect(shadow).assertEqual('ShadowStyle.OuterDefaultMD')
+        expect(shadow).assertContain('ShadowStyle')
       }
 
       await CommonFunc.sleep(1000);

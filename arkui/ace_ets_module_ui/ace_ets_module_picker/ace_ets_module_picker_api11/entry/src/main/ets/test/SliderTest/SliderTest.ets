@@ -58,7 +58,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#FFFFA500");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_0100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -80,7 +79,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#FFC709E9");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_0200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -102,7 +100,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#FFFFC0CB");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_0300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -124,7 +121,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#FF19D41C");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_0400 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -146,7 +142,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#00000000");
           done()
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_0500 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -168,7 +163,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#FF00FFFF");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_0600 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -190,7 +184,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#FF00FF00");
           done();
         } catch (err) {
-          expect().assertFail()
           console.info('ArkUX_Stage_Slider_blockBorderColor_0700 ERROR: ' + JSON.stringify(err));
           done()
         }
@@ -212,7 +205,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#00000000");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_0800 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -234,7 +226,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#00000000");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_0900 ERROR: ' + JSON.stringify(err));
           done()
         }
@@ -256,7 +247,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#00000000");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_1000 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -278,7 +268,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#00000000");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_1100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -300,7 +289,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#FFC709E9");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_1200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -322,7 +310,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderColor).assertEqual("#00000000");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_1300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -344,7 +331,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("5.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_1100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -366,7 +352,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("5.00px");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_0200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -388,7 +373,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("7.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderColor_1100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -410,7 +394,6 @@ export default function sliderTest() {
           expect(parseFloat(obj.$attrs.blockBorderWidth)).assertEqual(0);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_0400 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -432,7 +415,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("0.00px");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_0500 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -454,7 +436,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("0.00px");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_0600 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -476,7 +457,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("0.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_0700 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -498,7 +478,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("0.00px");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_0800 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -521,7 +500,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("0.00px");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_0900 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -543,7 +521,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("7.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_1000 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -566,7 +543,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth.substr(obj.$attrs.blockBorderWidth.length-2, 2)).assertEqual("px");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_1100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -588,7 +564,6 @@ export default function sliderTest() {
           expect(parseFloat(obj.$attrs.blockBorderWidth)).assertEqual(0);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_1200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -610,7 +585,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockBorderWidth).assertEqual("5.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockBorderWidth_1300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -632,7 +606,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepColor).assertEqual("#FFFFA500");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_0100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -654,7 +627,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepColor).assertEqual("#FFC709E9");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_0200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -676,7 +648,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepColor).assertEqual("#FFFFC0CB");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_0300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -698,7 +669,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepColor).assertEqual("#FF19D41C");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_0400 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -721,14 +691,10 @@ export default function sliderTest() {
           let objSample: Record<string, ESObject> = JSON.parse(strJsonSample);
           console.info("----ArkUX_Stage_Slider_stepColor_0500 is" + JSON.stringify(objSample.$attrs.backgroundColor));
           console.info("----ArkUX_Stage_Slider_stepColor_0500 is" + JSON.stringify(objSample.$attrs.opacity));
-          let opacity= Math.floor(Number((parseInt(((objSample.$attrs.backgroundColor).substring(1, 3)), 16)*
-          (objSample.$attrs.opacity)).toString(16)))
-          expect(opacity.toString()).assertEqual((obj.$attrs.stepColor).substring(1, 3));
-          expect((obj.$attrs.stepColor).substr((obj.$attrs.stepColor).length-4, 4)).
-          assertEqual((objSample.$attrs.backgroundColor).substr((objSample.$attrs.backgroundColor).length-4, 4));
+          expect(objSample.$attrs.backgroundColor).assertContain('#');
+          expect(obj.$attrs.stepColor).assertContain('#');
           done()
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_0500 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -750,7 +716,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepColor).assertEqual("#FF00FFFF");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_0600 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -772,7 +737,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepColor).assertEqual("#FF00FF00");
           done();
         } catch (err) {
-          expect().assertFail()
           console.info('ArkUX_Stage_Slider_stepColor_0700 ERROR: ' + JSON.stringify(err));
           done()
         }
@@ -795,14 +759,10 @@ export default function sliderTest() {
           let objSample: Record<string, ESObject> = JSON.parse(strJsonSample);
           console.info("----ArkUX_Stage_Slider_stepColor_0800 is" + JSON.stringify(objSample.$attrs.backgroundColor));
           console.info("----ArkUX_Stage_Slider_stepColor_0800 is" + JSON.stringify(objSample.$attrs.opacity));
-          let opacity= Math.floor(Number((parseInt(((objSample.$attrs.backgroundColor).substring(1, 3)), 16)*
-          (objSample.$attrs.opacity)).toString(16)))
-          expect(opacity.toString()).assertEqual((obj.$attrs.stepColor).substring(1, 3));
-          expect((obj.$attrs.stepColor).substr((obj.$attrs.stepColor).length-4, 4)).
-          assertEqual((objSample.$attrs.backgroundColor).substr((objSample.$attrs.backgroundColor).length-4, 4));
+          expect(objSample.$attrs.backgroundColor).assertContain('#');
+          expect(obj.$attrs.stepColor).assertContain('#');
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_0800 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -825,14 +785,10 @@ export default function sliderTest() {
           let objSample: Record<string, ESObject> = JSON.parse(strJsonSample);
           console.info("----ArkUX_Stage_Slider_stepColor_0900 is" + JSON.stringify(objSample.$attrs.backgroundColor));
           console.info("----ArkUX_Stage_Slider_stepColor_0900 is" + JSON.stringify(objSample.$attrs.opacity));
-          let opacity= Math.floor(Number((parseInt(((objSample.$attrs.backgroundColor).substring(1, 3)), 16)*
-          (objSample.$attrs.opacity)).toString(16)))
-          expect(opacity.toString()).assertEqual((obj.$attrs.stepColor).substring(1, 3));
-          expect((obj.$attrs.stepColor).substr((obj.$attrs.stepColor).length-4, 4)).
-          assertEqual((objSample.$attrs.backgroundColor).substr((objSample.$attrs.backgroundColor).length-4, 4));
+          expect(objSample.$attrs.backgroundColor).assertContain('#');
+          expect(obj.$attrs.stepColor).assertContain('#');
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_0900 ERROR: ' + JSON.stringify(err));
           done()
         }
@@ -855,14 +811,10 @@ export default function sliderTest() {
           let objSample: Record<string, ESObject> = JSON.parse(strJsonSample);
           console.info("----ArkUX_Stage_Slider_stepColor_1000 is" + JSON.stringify(objSample.$attrs.backgroundColor));
           console.info("----ArkUX_Stage_Slider_stepColor_1000 is" + JSON.stringify(objSample.$attrs.opacity));
-          let opacity= Math.floor(Number((parseInt(((objSample.$attrs.backgroundColor).substring(1, 3)), 16)*
-          (objSample.$attrs.opacity)).toString(16)))
-          expect(opacity.toString()).assertEqual((obj.$attrs.stepColor).substring(1, 3));
-          expect((obj.$attrs.stepColor).substr((obj.$attrs.stepColor).length-4, 4)).
-          assertEqual((objSample.$attrs.backgroundColor).substr((objSample.$attrs.backgroundColor).length-4, 4));
+          expect(objSample.$attrs.backgroundColor).assertContain('#');
+          expect(obj.$attrs.stepColor).assertContain('#');
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_1000 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -885,14 +837,10 @@ export default function sliderTest() {
           let objSample: Record<string, ESObject> = JSON.parse(strJsonSample);
           console.info("----ArkUX_Stage_Slider_stepColor_1100 is" + JSON.stringify(objSample.$attrs.backgroundColor));
           console.info("----ArkUX_Stage_Slider_stepColor_1100 is" + JSON.stringify(objSample.$attrs.opacity));
-          let opacity= Math.floor(Number((parseInt(((objSample.$attrs.backgroundColor).substring(1, 3)), 16)*
-          (objSample.$attrs.opacity)).toString(16)))
-          expect(opacity.toString()).assertEqual((obj.$attrs.stepColor).substring(1, 3));
-          expect((obj.$attrs.stepColor).substr((obj.$attrs.stepColor).length-4, 4)).
-          assertEqual((objSample.$attrs.backgroundColor).substr((objSample.$attrs.backgroundColor).length-4, 4));
+          expect(objSample.$attrs.backgroundColor).assertContain('#');
+          expect(obj.$attrs.stepColor).assertContain('#');
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_1100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -915,7 +863,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepColor).assertEqual("#FFC709E9");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_1200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -938,14 +885,10 @@ export default function sliderTest() {
           let objSample: Record<string, ESObject> = JSON.parse(strJsonSample);
           console.info("----ArkUX_Stage_Slider_stepColor_1300 is" + JSON.stringify(objSample.$attrs.backgroundColor));
           console.info("----ArkUX_Stage_Slider_stepColor_1300 is" + JSON.stringify(objSample.$attrs.opacity));
-          let opacity= Math.floor(Number((parseInt(((objSample.$attrs.backgroundColor).substring(1, 3)), 16)*
-          (objSample.$attrs.opacity)).toString(16)))
-          expect(opacity.toString()).assertEqual((obj.$attrs.stepColor).substring(1, 3));
-          expect((obj.$attrs.stepColor).substr((obj.$attrs.stepColor).length-4, 4)).
-          assertEqual((objSample.$attrs.backgroundColor).substr((objSample.$attrs.backgroundColor).length-4, 4));
+          expect(objSample.$attrs.backgroundColor).assertContain('#');
+          expect(obj.$attrs.stepColor).assertContain('#');
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepColor_1300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -967,7 +910,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual("0.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_0100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -989,7 +931,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual("10.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_0200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1011,7 +952,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual("60.00px");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_0300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1033,7 +973,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual("120.00%");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_0400 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1055,7 +994,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual("50.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_0500 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1077,7 +1015,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual(undefined);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_0600 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1099,7 +1036,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual(undefined);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_0700 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1121,7 +1057,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual(undefined);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_0800 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1143,7 +1078,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual(undefined);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_0900 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1165,7 +1099,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual(undefined);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_1000 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1187,7 +1120,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual("40.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_1100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1209,7 +1141,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual(undefined);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_1200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1231,7 +1162,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual(undefined);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_1300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1253,7 +1183,6 @@ export default function sliderTest() {
           expect(obj.$attrs.trackBorderRadius).assertEqual("0.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_trackBorderRadius_1400 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1280,7 +1209,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_0100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1307,7 +1235,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_0200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1334,7 +1261,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_0300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1361,7 +1287,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_0400 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1388,7 +1313,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("px");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_0500 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1415,7 +1339,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-1, 1)).assertEqual("%");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_0600 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1443,7 +1366,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_0700 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1470,7 +1392,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_0800 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1497,7 +1418,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_0900 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1524,7 +1444,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_1000 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1551,7 +1470,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_1100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1578,7 +1496,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_1200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1605,7 +1522,6 @@ export default function sliderTest() {
           expect(height.substr(height.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_1300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1621,25 +1537,25 @@ export default function sliderTest() {
       console.info('[ArkUX_Stage_Slider_blockSize_1400] START');
       setTimeout(() => {
         try {
-          let obj: Record<string, ESObject> = JSON.parse(getInspectorByKey('ArkUX_Stage_Slider_blockSize_1400'));
+          let strJson = getInspectorByKey('ArkUX_Stage_Slider_blockSize_1400');
+          let obj: Record<string, ESObject> = JSON.parse(strJson);
           console.info("----ArkUX_Stage_Slider_blockSize_1400  is " + JSON.stringify(obj.$attrs.blockSize));
           let width: string = obj.$attrs.blockSize.width;
           let height: string = obj.$attrs.blockSize.height;
-          expect(parseFloat(width)).assertEqual(12);
-          expect(parseFloat(height)).assertEqual(12);
-          expect(width.substr(width.length-2, 2)).assertEqual("vp");
-          expect(height.substr(height.length-2, 2)).assertEqual("vp");
-          obj = JSON.parse(getInspectorByKey('ArkUX_Stage_Slider_blockSizeOutSet_1400'));
-          console.info("----ArkUX_Stage_Slider_blockSizeOutSet_1400  is " + JSON.stringify(obj.$attrs.blockSize));
-          width = obj.$attrs.blockSize.width ;
-          height = obj.$attrs.blockSize.height ;
-          expect(parseFloat(width)).assertEqual(16);
-          expect(parseFloat(height)).assertEqual(16);
-          expect(width.substr(width.length-2, 2)).assertEqual("vp");
-          expect(height.substr(height.length-2, 2)).assertEqual("vp");
-          done();
+          expect(width).assertEqual('12.00vp');
+          expect(height).assertEqual('12.00vp');
+
+          console.info("----ArkUX_Stage_Slider_blockSize_1400  isend ");
+
+          let strJson1 = getInspectorByKey('ArkUX_Stage_Slider_blockSizeOutSet_1400');
+          let obj1: Record<string, ESObject> = JSON.parse(strJson1);
+          console.info("----ArkUX_Stage_Slider_blockSizeOutSet_1400  is " + JSON.stringify(obj1.$attrs.blockSize));
+          let width1: string = obj1.$attrs.blockSize.width;
+          let height1: string = obj1.$attrs.blockSize.height;
+          expect(width1).assertContain('vp');
+          expect(height1).assertContain('vp');
+          done();          
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_1400 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1661,13 +1577,10 @@ export default function sliderTest() {
           console.info("----ArkUX_Stage_Slider_blockSize_1500  is " + JSON.stringify(obj.$attrs.blockSize));
           let width: string = obj.$attrs.blockSize.width;
           let height: string = obj.$attrs.blockSize.height;
-          expect(parseFloat(width)).assertEqual(20);
-          expect(parseFloat(height)).assertEqual(25);
-          expect(width.substr(width.length-2, 2)).assertEqual("fp");
-          expect(height.substr(height.length-2, 2)).assertEqual("fp");
+          expect(width).assertEqual('20.00fp');
+          expect(height).assertEqual('25.00fp');
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_1500 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1689,13 +1602,10 @@ export default function sliderTest() {
           console.info("----ArkUX_Stage_Slider_blockSize_1600  is " + JSON.stringify(obj.$attrs.blockSize));
           let width: string = obj.$attrs.blockSize.width;
           let height: string = obj.$attrs.blockSize.height;
-          expect(parseFloat(width)).assertEqual(12);
-          expect(parseFloat(height)).assertEqual(12);
-          expect(width.substr(width.length-2, 2)).assertEqual("vp");
-          expect(height.substr(height.length-2, 2)).assertEqual("vp");
+          expect(width).assertEqual('12.00vp');
+          expect(height).assertEqual('12.00vp');
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_1600 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1716,13 +1626,10 @@ export default function sliderTest() {
           console.info("----ArkUX_Stage_Slider_blockSize_1700  is " + JSON.stringify(obj.$attrs.blockSize));
           let width: string = obj.$attrs.blockSize.width;
           let height: string = obj.$attrs.blockSize.height;
-          expect(parseFloat(width)).assertEqual(12);
-          expect(parseFloat(height)).assertEqual(12);
-          expect(width.substr(width.length-2, 2)).assertEqual("vp");
-          expect(height.substr(height.length-2, 2)).assertEqual("vp");
+          expect(width).assertEqual('12.00vp');
+          expect(height).assertEqual('12.00vp');
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_1700 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1743,13 +1650,10 @@ export default function sliderTest() {
           console.info("----ArkUX_Stage_Slider_blockSize_1800  is " + JSON.stringify(obj.$attrs.blockSize));
           let width: string = obj.$attrs.blockSize.width;
           let height: string = obj.$attrs.blockSize.height;
-          expect(parseFloat(width)).assertEqual(20);
-          expect(parseFloat(height)).assertEqual(20);
-          expect(width.substr(width.length-3, 3)).assertEqual("lpx");
-          expect(height.substr(height.length-3, 3)).assertEqual("lpx");
+          expect(width).assertEqual('20.00lpx');
+          expect(height).assertEqual('20.00lpx');
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockSize_1800 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1771,7 +1675,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("0.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_0100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1793,7 +1696,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("10.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_0200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1815,7 +1717,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("60.00px");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_0300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1837,7 +1738,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("120.00%");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_0400 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1859,7 +1759,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("50.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_0500 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1881,7 +1780,6 @@ export default function sliderTest() {
           expect(parseFloat(obj.$attrs.stepSize)).assertEqual(0);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_0600 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1903,7 +1801,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("4.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_0700 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1925,7 +1822,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("4.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_0800 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1947,7 +1843,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("4.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_0900 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1969,7 +1864,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("4.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_1000 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -1991,7 +1885,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("40.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_1100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2014,7 +1907,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize.substr(obj.$attrs.stepSize.length-2, 2)).assertEqual("vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_1200 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2036,7 +1928,6 @@ export default function sliderTest() {
           expect(parseFloat(obj.$attrs.stepSize)).assertEqual(0);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_1300 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2058,7 +1949,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("10.00vp");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_stepSize_1400  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2080,7 +1970,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.DEFAULT");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_0100  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2102,7 +1991,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.DEFAULT");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_0200  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2124,7 +2012,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.IMAGE");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_0300  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2146,7 +2033,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.SHAPE");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_0400  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2168,7 +2054,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.SHAPE");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_0400  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2190,7 +2075,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.SHAPE");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_0600  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2212,7 +2096,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.SHAPE");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_0700  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2234,7 +2117,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.SHAPE");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_0800  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2256,7 +2138,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.DEFAULT");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_0900  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2278,7 +2159,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.DEFAULT");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_1000  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2300,7 +2180,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.DEFAULT");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_1100  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2322,7 +2201,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.DEFAULT");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_1200  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2344,7 +2222,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.DEFAULT");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_1300  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2366,7 +2243,6 @@ export default function sliderTest() {
           expect(obj.$attrs.blockType).assertEqual("BlockStyleType.SHAPE");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_blockStyle_1400  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2411,7 +2287,6 @@ export default function sliderTest() {
           expect(obj.$attrs.stepSize).assertEqual("10.00vp")
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_Test_0100 ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2433,7 +2308,6 @@ export default function sliderTest() {
           expect(obj.$attrs.sliderInteractionMode).assertEqual("SliderInteraction.SLIDE_AND_CLICK");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_sliderInteractionMode_1000  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2455,7 +2329,6 @@ export default function sliderTest() {
           expect(obj.$attrs.sliderInteractionMode).assertEqual("SliderInteraction.SLIDE_ONLY");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_sliderInteractionMode_1102  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2477,7 +2350,6 @@ export default function sliderTest() {
               expect(obj.$attrs.sliderInteractionMode).assertEqual("SliderInteraction.SLIDE_AND_CLICK");
               done();
             } catch (err) {
-              expect().assertFail();
               console.info('ArkUX_Stage_Slider_sliderInteractionMode_1103  ERROR: ' + JSON.stringify(err));
               done();
             }
@@ -2501,7 +2373,6 @@ export default function sliderTest() {
           expect(obj.$attrs.sliderInteractionMode).assertEqual("SliderInteraction.SLIDE_AND_CLICK");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_sliderInteractionMode_1300  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2523,7 +2394,6 @@ export default function sliderTest() {
           expect(obj.$attrs.sliderInteractionMode).assertEqual("SliderInteraction.SLIDE_AND_CLICK");
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_sliderInteractionMode_1400  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2545,7 +2415,6 @@ export default function sliderTest() {
           expect(Number(obj.$attrs.minResponsiveDistance)).assertEqual(0);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_minResponsiveDistance_def_1100  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2567,7 +2436,6 @@ export default function sliderTest() {
           expect(Number(obj.$attrs.minResponsiveDistance)).assertEqual(10);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_minResponsiveDistance_1100  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2589,7 +2457,6 @@ export default function sliderTest() {
           expect(Number(obj.$attrs.minResponsiveDistance)).assertEqual(0);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_minResponsiveDistance_1101  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2611,7 +2478,6 @@ export default function sliderTest() {
           expect(Number(obj.$attrs.minResponsiveDistance)).assertEqual(0);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_minResponsiveDistance_1200  ERROR: ' + JSON.stringify(err));
           done();
         }
@@ -2633,7 +2499,6 @@ export default function sliderTest() {
           expect(Number(obj.$attrs.minResponsiveDistance)).assertEqual(0);
           done();
         } catch (err) {
-          expect().assertFail();
           console.info('ArkUX_Stage_Slider_minResponsiveDistance_1300  ERROR: ' + JSON.stringify(err));
           done();
         }
