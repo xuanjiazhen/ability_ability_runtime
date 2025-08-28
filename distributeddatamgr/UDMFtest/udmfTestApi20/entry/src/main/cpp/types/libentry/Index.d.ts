@@ -38,20 +38,8 @@ export const testGetStatusInvalidParam: () => number;
 export const testUdmfSkip: () => number;
 export const testUdmfOptionsGetVisibilityProcess: () => number;
 export const testUdmfOptionsGetVisibilityAll: () => number;
+export const testUdmfProgressInfoGetStatus: () => number;
 //database/udmf/uds.h
 export const testSetPixelMapInvalidParam: () => number;
 export const testArrBufferDestroyInvalidParam: () => number;
 export const testGetDataInvalidParam: () => number;
-
-
-
-
-
-
-
-
-
-
-
-
-

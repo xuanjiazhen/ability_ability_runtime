@@ -48,4 +48,6 @@ napi_value TestUpdateUnifiedDataError(napi_env env, napi_callback_info info);
 napi_value TestDeleteUnifiedDataError(napi_env env, napi_callback_info info);
 napi_value TestUdmfOptionsGetVisibilityProcess(napi_env env, napi_callback_info info);
 napi_value TestUdmfOptionsGetVisibilityAll(napi_env env, napi_callback_info info);
+napi_value TestUdmfProgressInfoGetStatus(napi_env env, napi_callback_info info);
+napi_value TestUDMFSkip(napi_env env, napi_callback_info info);
 #endif //UDMFTESTAPI20_UDMFTEST_H
