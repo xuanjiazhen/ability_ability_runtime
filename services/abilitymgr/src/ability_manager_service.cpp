@@ -113,6 +113,7 @@
 #include "utils/update_caller_info_util.h"
 #include "utils/want_utils.h"
 #include "utils/window_options_utils.h"
+#include "utils/udmf_util.h"
 #include "view_data.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ability_first_frame_state_observer_manager.h"
@@ -4044,6 +4045,12 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     validUserId = abilityInfo.applicationInfo.singleton ? U0_USER_ID : validUserId;
     TAG_LOGD(AAFwkTag::UI_EXT, "userId is : %{public}d, singleton is : %{public}d",
         validUserId, static_cast<int>(abilityInfo.applicationInfo.singleton));
+
+    result = ProcessUdmfKey(extensionSessionInfo->want, abilityInfo.applicationInfo.accessTokenId, extensionType);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "ProcessUdmfKey error");
+        return result;
+    }
 
     result = CheckOptExtensionAbility(extensionSessionInfo->want, abilityRequest, validUserId, extensionType);
     if (result != ERR_OK) {
@@ -15118,6 +15125,16 @@ int32_t AbilityManagerService::NotifyStartupExceptionBySCB(int32_t requestId)
 int32_t AbilityManagerService::PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex)
 {
     return PreloadManagerService::GetInstance().PreloadApplication(bundleName, userId, appIndex);
+}
+
+int32_t AbilityManagerService::ProcessUdmfKey(
+    const Want &want, uint32_t &targetTokenId, AppExecFwk::ExtensionAbilityType extensionType)
+{
+    std::string key = want.GetStringParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY);
+    if (UIExtensionUtils::IsProcessUdkeyExtension(extensionType) && !key.empty()){
+        return UdmfUtil::ProcessUdmfKey(key, targetTokenId);
+    }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
