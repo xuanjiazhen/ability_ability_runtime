@@ -30,4 +30,4 @@ private:
 };
 } // AAFwk
 } // OHOS
-#endif // OHOS_ABILITY_RUNTIME_UDMF_UTIL_MOCK_H
+#endif // OHOS_ABILITY_RUNTIME_UDMF_UTILS_MOCK_H

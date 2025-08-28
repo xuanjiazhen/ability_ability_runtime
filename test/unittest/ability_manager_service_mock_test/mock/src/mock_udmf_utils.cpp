@@ -20,12 +20,12 @@
 namespace OHOS {
 namespace AbilityRuntime {
 
-int32_t UdmfUtil::AddPrivilege(const std::string &key, uint32_t tokenId, const std::string &readPermission)
+int32_t UdmfUtils::AddPrivilege(const std::string &key, uint32_t tokenId, const std::string &readPermission)
 {
     return ERR_OK;
 }
 
-int32_t UdmfUtil::ProcessUdmfKey(const std::string &key, uint32_t targetTokenId)
+int32_t UdmfUtils::ProcessUdmfKey(const std::string &key, uint32_t targetTokenId)
 {
     return ERR_OK;
 }
