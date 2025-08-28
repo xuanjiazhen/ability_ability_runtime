@@ -12,12 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import connection from '@ohos.net.connection';
 import ConnectionRegisterTest from './ConnectionResgister.test';
 import NetExtAttributeHasNetTest from './NetExtAttributeHasNet.test';
 import ConnectionBasicTest from './ConnectionBasic.test';
 import ConnectionGetNetCapabilitiesWithWifiTest from './ConnectionGetNetCapabilitiesWithWifi.test';
 import EmptyTest from './Empty.test';
+
 let netHandle = connection.getDefaultNetSync();
 
 export default function testsuite() {
