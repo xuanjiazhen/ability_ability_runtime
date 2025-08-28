@@ -17,6 +17,7 @@ import { afterEach, beforeAll, beforeEach, describe, it , TestType, Size, Level 
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 
@@ -35,12 +36,12 @@ export default function WebViewEnumAndFontLibrary() {
         if (!("WebViewEnumAndFontLibrary" == pages.name)) {
           console.info("get WebViewEnumAndFontLibrary state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebViewEnumAndFontLibrary page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push WebViewEnumAndFontLibrary page error: " + err);
       }
+      await waitForComponent("buttonEnumAndFontLibrary");
       done()
     });
 
@@ -50,15 +51,11 @@ export default function WebViewEnumAndFontLibrary() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
       done();
     })
 
     afterEach(async (done: Function) => {
-      console.info("WebViewControllerDownloadTest afterEach start");
-      await Utils.sleep(2000);
-      console.info("WebViewControllerDownloadTest afterEach end");
       done();
     })
 
@@ -71,9 +68,8 @@ export default function WebViewEnumAndFontLibrary() {
     * @tc.level      : Level 1
     */
     it('testRunJavaScript001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("emitRunJavaScript", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testRunJavaScript001", true, 1241, done);
+      Utils.emitEvent("emitRunJavaScript", 171340)
+      Utils.registerEvent("testRunJavaScript001", true, 171350, done);
       sendEventByKey('buttonEnumAndFontLibrary', 10, '');
     })
 
@@ -86,9 +82,8 @@ export default function WebViewEnumAndFontLibrary() {
     * @tc.level      : Level 1
     */
     it('testRunJavaScript002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testRunJavaScript002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testRunJavaScript002", 'null', 10001, done);
+      Utils.emitEvent("testRunJavaScript002", 171340)
+      Utils.registerEvent("testRunJavaScript002", 'null', 171360, done);
       sendEventByKey('buttonEnumAndFontLibrary', 10, '');
     })
 
@@ -101,9 +96,8 @@ export default function WebViewEnumAndFontLibrary() {
     * @tc.level      : Level 1
     */
     it('testRunJavaScript003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testRunJavaScript003", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testRunJavaScript003", '"This value is from indexJru.html"', 10002, done);
+      Utils.emitEvent("testRunJavaScript003", 171340)
+      Utils.registerEvent("testRunJavaScript003", '"This value is from indexJru.html"', 171370, done);
       sendEventByKey('buttonEnumAndFontLibrary', 10, '');
     })
 
@@ -116,9 +110,8 @@ export default function WebViewEnumAndFontLibrary() {
     * @tc.level      : Level 1
     */
     it('testRunJavaScript004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testRunJavaScript004", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testRunJavaScript004", 'null', 10003, done);
+      Utils.emitEvent("testRunJavaScript004", 171340)
+      Utils.registerEvent("testRunJavaScript004", 'null', 171380, done);
       sendEventByKey('buttonEnumAndFontLibrary', 10, '');
     })
     /*
@@ -130,9 +123,8 @@ export default function WebViewEnumAndFontLibrary() {
     * @tc.level      : Level 1
     */
     it('testRunJavaScriptExt001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testRunJavaScriptExt001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testRunJavaScriptExt001", '"This value is from indexJru.html"', 10004, done);
+      Utils.emitEvent("testRunJavaScriptExt001", 171340)
+      Utils.registerEvent("testRunJavaScriptExt001", '"This value is from indexJru.html"', 171390, done);
       sendEventByKey('buttonEnumAndFontLibrary', 10, '');
     })
 
@@ -145,9 +137,8 @@ export default function WebViewEnumAndFontLibrary() {
     * @tc.level      : Level 1
     */
     it('testRunJavaScriptExt002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testRunJavaScriptExt002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testRunJavaScriptExt002", true, 10005, done);
+      Utils.emitEvent("testRunJavaScriptExt002", 171340)
+      Utils.registerEvent("testRunJavaScriptExt002", true, 171400, done);
       sendEventByKey('buttonEnumAndFontLibrary', 10, '');
     })
 
@@ -160,9 +151,8 @@ export default function WebViewEnumAndFontLibrary() {
     * @tc.level      : Level 1
     */
     it('testRunJavaScriptExt003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testRunJavaScriptExt003", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testRunJavaScriptExt003", '"This value is from indexJru.html"', 10006, done);
+      Utils.emitEvent("testRunJavaScriptExt003", 171340)
+      Utils.registerEvent("testRunJavaScriptExt003", '"This value is from indexJru.html"', 171410, done);
       sendEventByKey('buttonEnumAndFontLibrary', 10, '');
     })
 
@@ -175,9 +165,8 @@ export default function WebViewEnumAndFontLibrary() {
     * @tc.level      : Level 1
     */
     it('testRunJavaScriptExt004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testRunJavaScriptExt004", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testRunJavaScriptExt004", true, 10007, done);
+      Utils.emitEvent("testRunJavaScriptExt004", 171340)
+      Utils.registerEvent("testRunJavaScriptExt004", true, 171420, done);
       sendEventByKey('buttonEnumAndFontLibrary', 10, '');
     })
   })

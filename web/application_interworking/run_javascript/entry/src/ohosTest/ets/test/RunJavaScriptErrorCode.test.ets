@@ -72,8 +72,8 @@ export default function runJavaScriptErrorCode() {
      * @tc.level      : Level 1
      */
     it('testRunJavaScriptPromiseErrorCode001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent('emitRunJavaScriptPromiseErrorCode001', 125);
-      Utils.registerBaseEvent('testRunJavaScriptPromiseErrorCode001', '401', 2025071001, done,
+      Utils.emitEvent('emitRunJavaScriptPromiseErrorCode001', 171220);
+      Utils.registerBaseEvent('testRunJavaScriptPromiseErrorCode001', '401', 171230, done,
         (backData: events_emitter.EventData, expected: Object) => {
           expect(backData?.data?.ACTION).assertEqual(expected);
         });
@@ -89,8 +89,8 @@ export default function runJavaScriptErrorCode() {
      * @tc.level      : Level 1
      */
     it('testRunJavaScriptCallbackErrorCode001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent('emitRunJavaScriptCallbackErrorCode001', 125);
-      Utils.registerBaseEvent('testRunJavaScriptCallbackErrorCode001', '401', 2025071002, done,
+      Utils.emitEvent('emitRunJavaScriptCallbackErrorCode001', 171220);
+      Utils.registerBaseEvent('testRunJavaScriptCallbackErrorCode001', '401', 171240, done,
         (backData: events_emitter.EventData, expected: Object) => {
           expect(backData?.data?.ACTION).assertEqual(expected);
         });

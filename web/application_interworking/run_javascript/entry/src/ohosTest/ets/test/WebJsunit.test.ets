@@ -12,45 +12,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { afterEach, beforeEach, describe, it , TestType, Size, Level } from '@ohos/hypium';
+import { beforeAll,afterEach, beforeEach, describe, it , TestType, Size, Level } from '@ohos/hypium';
 import events_emitter from '@ohos.events.emitter';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 
-let emitKey = "emitJavaScriptProxy";
 
 export default function webJsunit() {
   describe('webJsunit', () => {
+    beforeAll(async (done: Function) => {
+          console.log('driver waitForComponent start==>');
+          await waitForComponent("webcomponent");
+          done()
+        });
     beforeEach(async (done: Function) => {
       config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
         console.info(`enable success`);
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
       done();
     })
     afterEach(async (done: Function) => {
-      console.info("web afterEach start:" + emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
+      console.info("web afterEach start:");
       done();
     })
     /*
@@ -58,8 +46,8 @@ export default function webJsunit() {
      *tc.name javaScriptProxy                                                                                                                                                                                                                     *tc.desic Injects the JavaScript object into window and invoke the function in window
      */
     it('javaScriptProxy', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitRunJavaScript";
-      Utils.registerEvent("javaScriptProxy", "backToEts", 102, done);
+      Utils.emitEvent("emitJavaScriptProxy", 171250)
+      Utils.registerEvent("javaScriptProxy", "backToEts", 171260, done);
       sendEventByKey('webcomponent', 10, '');
     })
     /*
@@ -68,8 +56,8 @@ export default function webJsunit() {
      *tc.desic Loads a piece of code and execute JS code in the context of the currently displayed page
      */
     it('runJavaScript', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitOnConsole";
-      Utils.registerEvent("runJavaScript", "\"testRunJavaScript\"", 112, done);
+      Utils.emitEvent("emitRunJavaScript", 171250)
+      Utils.registerEvent("runJavaScript", "\"testRunJavaScript\"", 171270, done);
       sendEventByKey('webcomponent', 10, '');
     })
     /*
@@ -78,8 +66,8 @@ export default function webJsunit() {
      *tc.desic Triggered when the web page receives a JavaScript console message
      */
     it('onConsole', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitJavaScriptAccess";
-      Utils.registerEvent("onConsole", "console test", 62, done);
+      Utils.emitEvent("emitOnConsole", 171250)
+      Utils.registerEvent("onConsole", "console test", 171280, done);
       sendEventByKey('webcomponent', 10, '');
     })
     /*
@@ -88,8 +76,8 @@ export default function webJsunit() {
      *tc.desic Sets whether the Web allows JavaScript scripts to execute
      */
     it('javaScriptAccess', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "testRunJavaScript001";
-      Utils.registerEvent("javaScriptAccess", true, 88, done);
+      Utils.emitEvent("emitJavaScriptAccess", 171250)
+      Utils.registerEvent("javaScriptAccess", true, 171290, done);
       sendEventByKey('webcomponent', 10, '');
     })
     /*
@@ -101,7 +89,8 @@ export default function webJsunit() {
      * @tc.level      : Level 1
      */
     it('testRunJavaScript001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.registerEvent("testRunJavaScript001", "\"testRunJavaScript\"", 31004, done);
+      Utils.emitEvent("testRunJavaScript001", 171250)
+      Utils.registerEvent("testRunJavaScript001", "\"testRunJavaScript\"", 171300, done);
       sendEventByKey('webcomponent', 10, '');
     })
   })

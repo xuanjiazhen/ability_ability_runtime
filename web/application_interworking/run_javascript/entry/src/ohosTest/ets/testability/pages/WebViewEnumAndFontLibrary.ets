@@ -18,6 +18,7 @@ import webView from '@ohos.web.webview';
 import events_emitter from '@ohos.events.emitter';
 import { Driver, ON } from '@ohos.UiTest';
 import business_error, { BusinessError } from '@ohos.base';
+import { waitForExist } from '../../test/WaitTest.test';
 
 @Entry
 @Component
@@ -27,18 +28,20 @@ struct WebViewEnumAndFontLibrary {
   @State webResult: string = ''
   @State javaScriptAccess: boolean = true
   @State webResultText: string = ''
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
 
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 171340,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(171340)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -47,6 +50,7 @@ struct WebViewEnumAndFontLibrary {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -55,11 +59,14 @@ struct WebViewEnumAndFontLibrary {
     Column() {
       Row() {
         Button("web click").key('buttonEnumAndFontLibrary').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str)
           switch (this.str) {
             case "emitRunJavaScript": {
               if (this.webResultText == '"This value is from indexJru.html"') {
-                Utils.emitEvent(true, 1241)
+                Utils.emitEvent(true, 171350)
               }
               break;
             }
@@ -68,27 +75,26 @@ struct WebViewEnumAndFontLibrary {
               try {
                 let title = 'null'
                 this.javaScriptAccess = false
-                await Utils.sleep(2000);
                 this.controller.runJavaScript(
                   'webTest()',
                   (error, result) => {
                     if (error) {
                       console.info(`run JavaScript error: ` + JSON.stringify(error))
-                      Utils.emitEvent(error.code, 10001)
+                      Utils.emitEvent(error.code, 171360)
                       return;
                     }
                     if (result) {
                       this.webResult = result
                       console.info(`The test() return value is: ${this.webResult}`)
-                      Utils.emitEvent(this.webResult, 10001)
+                      Utils.emitEvent(this.webResult, 171360)
                       return;
                     }
                   });
-                Utils.emitEvent(title, 10001)
+                Utils.emitEvent(title, 171360)
               } catch (error) {
                 let e: business_error.BusinessError = error as business_error.BusinessError;
                 console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                Utils.emitEvent(e.code, 10001)
+                Utils.emitEvent(e.code, 171360)
               }
               break;
             }
@@ -96,24 +102,28 @@ struct WebViewEnumAndFontLibrary {
             case "testRunJavaScript003": {
               try {
                 this.javaScriptAccess = true
-                await Utils.sleep(2000);
+                this.isPageEnd = -1;
                 this.controller.loadUrl($rawfile("indexJru.html"))
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                
                 this.controller.runJavaScript('webTest()')
                   .then((result) => {
                     console.log('result: ' + result);
-                    Utils.emitEvent(result, 10002)
+                    Utils.emitEvent(result, 171370)
                     return;
                   })
                   .catch((e: business_error.BusinessError) => {
                     console.error("error: " + e);
-                    Utils.emitEvent(e.code, 10002)
+                    Utils.emitEvent(e.code, 171370)
                     return;
                   })
               } catch (error) {
                 let e: business_error.BusinessError = error as business_error.BusinessError;
                 console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                Utils.emitEvent(e.code, 10002)
+                Utils.emitEvent(e.code, 171370)
               }
               break;
             }
@@ -121,22 +131,27 @@ struct WebViewEnumAndFontLibrary {
             case "testRunJavaScript004": {
               try {
                 this.javaScriptAccess = false
-                await Utils.sleep(2000);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 this.controller.runJavaScript('webTest()')
                   .then((result) => {
                     console.log('result: ' + result);
-                    Utils.emitEvent(String(result), 10003)
+                    Utils.emitEvent(String(result), 171380)
                     return;
                   })
                   .catch((e: business_error.BusinessError) => {
                     console.error("error: " + e);
-                    Utils.emitEvent(e.code, 10003)
+                    Utils.emitEvent(e.code, 171380)
                     return;
                   })
               } catch (error) {
                 let e: business_error.BusinessError = error as business_error.BusinessError;
                 console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                Utils.emitEvent(e.code, 10003)
+                Utils.emitEvent(e.code, 171380)
               }
               break;
             }
@@ -144,7 +159,12 @@ struct WebViewEnumAndFontLibrary {
             case "testRunJavaScriptExt001": {
               try {
                 this.javaScriptAccess = true
-                await Utils.sleep(4000);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 this.controller.runJavaScriptExt(
                   'webTest()',
                   (error, result) => {
@@ -154,7 +174,7 @@ struct WebViewEnumAndFontLibrary {
                     }
                     if (result) {
                       console.info(`run runJavaScriptExt : ` + result.getString())
-                      Utils.emitEvent(result.getString(), 10004)
+                      Utils.emitEvent(result.getString(), 171390)
                       return;
                     }
                   });
@@ -168,7 +188,12 @@ struct WebViewEnumAndFontLibrary {
             case "testRunJavaScriptExt002": {
               try {
                 this.javaScriptAccess = false
-                await Utils.sleep(4000);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 this.controller.runJavaScriptExt(
                   'webTest()',
                   (error, result) => {
@@ -176,7 +201,7 @@ struct WebViewEnumAndFontLibrary {
                       console.info(`run runJavaScriptExt error: ` + JSON.stringify(error))
                       return;
                     }
-                    Utils.emitEvent(result.getString() != "This value is from indexJru.html", 10005)
+                    Utils.emitEvent(result.getString() != "This value is from indexJru.html", 171400)
                   });
               } catch (error) {
                 let e: business_error.BusinessError = error as business_error.BusinessError;
@@ -188,11 +213,16 @@ struct WebViewEnumAndFontLibrary {
             case "testRunJavaScriptExt003": {
               try {
                 this.javaScriptAccess = true
-                await Utils.sleep(4000);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 this.controller.runJavaScriptExt('webTest()')
                   .then((result) => {
                     console.info(`run runJavaScriptExt : ` + result.getString())
-                    Utils.emitEvent(result.getString(), 10006)
+                    Utils.emitEvent(result.getString(), 171410)
                   })
               } catch (error) {
                 let e: business_error.BusinessError = error as business_error.BusinessError;
@@ -204,11 +234,16 @@ struct WebViewEnumAndFontLibrary {
             case "testRunJavaScriptExt004": {
               try {
                 this.javaScriptAccess = false
-                await Utils.sleep(4000);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.isPageEnd = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 this.controller.runJavaScriptExt('webTest()')
                   .then((result) => {
                     console.info(`run runJavaScriptExt : ` + result)
-                    Utils.emitEvent(result.getString() != "This value is from indexJru.html", 10007)
+                    Utils.emitEvent(result.getString() != "This value is from indexJru.html", 171420)
                   })
                   .catch((e: business_error.BusinessError) => {
                     console.error("error: " + e);
@@ -227,6 +262,7 @@ struct WebViewEnumAndFontLibrary {
         .key("webCenter")
         .javaScriptAccess(this.javaScriptAccess)
         .onPageEnd(() => {
+          this.isPageEnd = 0;
           this.controller.runJavaScript("webTest()", (error, result) => {
             console.log("error" + error)
             this.webResultText = result

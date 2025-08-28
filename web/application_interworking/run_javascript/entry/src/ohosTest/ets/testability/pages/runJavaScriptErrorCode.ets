@@ -30,13 +30,13 @@ struct Index {
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 125,
+      eventId: 171220,
       priority: events_emitter.EventPriority.LOW
     };
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack);
   }
   onPageHide() {
-    events_emitter.off(125)
+    events_emitter.off(171220)
   }
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
     console.info('web page valueChangeCallBack');
@@ -70,7 +70,7 @@ struct Index {
                   })
               } catch (error) {
                 console.error(this.str + `ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(String(error.code),2025071001);
+                Utils.emitEvent(String(error.code),171230);
               }
               break;
             }
@@ -89,7 +89,7 @@ struct Index {
                   });
               } catch (error) {
                 console.error(this.str + `ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(String(error.code),2025071002);
+                Utils.emitEvent(String(error.code),171240);
               }
               break;
             }

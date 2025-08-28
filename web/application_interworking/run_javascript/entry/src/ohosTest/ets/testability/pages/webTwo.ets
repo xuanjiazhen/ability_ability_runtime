@@ -18,6 +18,7 @@ import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
 import Want from '@ohos.app.ability.Want';
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
+import { waitForExist } from '../../test/WaitTest.test';
 
 
 export default class EntryAbility extends UIAbility {
@@ -42,14 +43,19 @@ struct Index {
   realm: string = "protected example";
   username_password: string[] = [];
   origin: string = "resource://rawfile/";
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 171310,
       priority: events_emitter.EventPriority.LOW
     };
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack);
   }
+    onPageHide() {
+      events_emitter.off(171310)
+    }
 
   private valueChangeCallBack = (eventData: ESObject) => {
     console.info("web page valueChangeCallBack");
@@ -57,6 +63,7 @@ struct Index {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -65,6 +72,9 @@ struct Index {
     Column() {
       Row() {
         Button("web click").key('webcomponent').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str);
           switch (this.str) {
             case "emitOnConsoleTwo": {
@@ -87,13 +97,13 @@ struct Index {
           let lineNumber = event.message.getLineNumber().toString();
           let sourceId = event.message.getSourceId();
           console.log("lineNumber:" + lineNumber);
-          setTimeout(() => {
-            Utils.emitEvent(lineNumber, 420);
-          }, 3000);
-          setTimeout(() => {
-            Utils.emitEvent(sourceId, 422);
-          }, 3000);
+          Utils.emitEvent(lineNumber, 171320);
+          Utils.emitEvent(sourceId, 171330);
           return false;
+        })
+        .onPageEnd((event) => {
+          this.isPageEnd = 0;
+          console.log('onPageEnd ==>' + event.url);
         })
     }
   }
