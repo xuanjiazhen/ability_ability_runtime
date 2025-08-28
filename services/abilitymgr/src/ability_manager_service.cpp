@@ -246,7 +246,6 @@ constexpr int32_t PIPE_MSG_READ_BUFFER = 1024;
 constexpr const char* APPSPAWN_STARTED = "startup.service.ctl.appspawn.pid";
 constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
 constexpr const char* SCREENCONFIG_SCREENMODE = "ohos.verticalpanel.screenconfig.screenmode";
-constexpr const char* PARAMS_UDKEY = "ability.want.params.udkey";
 
 void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
@@ -15125,8 +15124,8 @@ int32_t AbilityManagerService::PreloadApplication(const std::string &bundleName,
 int32_t AbilityManagerService::ProcessUdmfKey(
     const Want &want, uint32_t &targetTokenId, AppExecFwk::ExtensionAbilityType extensionType)
 {
-    std::string key = want.GetStringParam(PARAMS_UDKEY);
-    if (extensionType == AppExecFwk::ExtensionAbilityType::SYSPICKER_FILEPICKER && !key.empty()){
+    std::string key = want.GetStringParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY);
+    if (UIExtensionUtils::IsProcessUdkeyExtension(extensionType) && !key.empty()){
         return UdmfUtil::ProcessUdmfKey(key, targetTokenId);
     }
     return ERR_OK;
