@@ -16,11 +16,20 @@
 import ConnectionRegisterTest from './ConnectionResgister.test';
 import NetExtAttributeHasNetTest from './NetExtAttributeHasNet.test';
 import ConnectionBasicTest from './ConnectionBasic.test';
-import ConnectionGetNetCapabilitiesTest from './ConnectionGetNetCapabilities.test';
+import ConnectionGetNetCapabilitiesWithWifiTest from './ConnectionGetNetCapabilitiesWithWifi.test';
+import EmptyTest from './Empty.test';
+let netHandle = connection.getDefaultNetSync();
 
 export default function testsuite() {
-  NetExtAttributeHasNetTest();
-  ConnectionRegisterTest();
-  ConnectionBasicTest();
-  ConnectionGetNetCapabilitiesTest();
+      if(netHandle.netId != 0){
+        NetExtAttributeHasNetTest();
+        ConnectionRegisterTest();
+        ConnectionBasicTest();
+        let NetCapabilities = connection.getNetCapabilitiesSync(netHandle);
+        if(NetCapabilities.bearerTypes[0] == 1){
+          ConnectionGetNetCapabilitiesWithWifiTest();
+          }
+          }else{
+	      EmptyTest();
+	    }
 }

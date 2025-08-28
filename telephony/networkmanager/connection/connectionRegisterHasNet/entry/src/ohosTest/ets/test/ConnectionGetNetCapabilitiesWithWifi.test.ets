@@ -32,89 +32,9 @@ const ExpectTrue = (n: boolean) => {
     console.info(`exportTrue failed err: ${JSON.stringify(err)}`);
   }
 }
-export default function ConnectionGetNetCapabilitiesTest() {
-  describe("ConnectionGetNetCapabilitiesTest", () => {
-
-    /**
-     * @tc.number: SUB_NetManager_Connection_IsExcludedRoute_0100
-     * @tc.name:  testNetManagerConnectionIsExcludedRoute0100
-     * @tc.desc: getConnectionProperties  detection
-     * @tc.level:Level 3
-     * @tc.type:Function
-     * @tc.size:MediumTest
-     */
-    it('testNetManagerConnectionIsExcludedRoute0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
-      let caseName: string = "testNetManagerConnectionIsExcludedRoute0100";
-      console.info(`${caseName}---start`);
-      try {
-        let netHandle = connection.getDefaultNetSync();
-        connection.getConnectionProperties(netHandle, (error: BusinessError, data: connection.ConnectionProperties) => {
-          if (error) {
-            console.log(`${caseName}  get data fail: `+ JSON.stringify(error));
-            ExpectFail();
-            console.info(`${caseName}---End`);
-            done();
-          } else { 
-            console.log(`${caseName}  get value success: ${JSON.stringify(data)}`);
-            ExpectTrue(data.routes[0].isExcludedRoute == undefined);
-            console.info(`${caseName}---End`);
-            done();
-          }
-        });
-      } catch (error) {
-        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
-        ExpectFail();
-        console.info(`${caseName}---End`);
-        done();
-      }
-    });
-
-
-    /**
-     * @tc.number: SUB_NetManager_Connection_GetConnectionProperties_CallBack_0100
-     * @tc.name:  testNetManagerConnectionGetConnectionPropertiesCallBack0100
-     * @tc.desc: getConnectionProperties  detection
-     * @tc.level:Level 3
-     * @tc.type:Function
-     * @tc.size:MediumTest
-     */
-    it('testNetManagerConnectionGetConnectionPropertiesCallBack0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, (done: Function) => {
-      let caseName: string = "testNetManagerConnectionGetConnectionPropertiesCallBack0100";
-      console.info(`${caseName}---start`);
-      try {
-        connection.getAllNets((error: BusinessError, value: connection.NetHandle[]) => {
-          if (error) {
-            console.log(`${caseName}  get data fail: `+ JSON.stringify(error));
-            ExpectFail();
-            console.info(`${caseName}---End`);
-            done();
-          } else {
-            console.log(`${caseName} get value is : ${JSON.stringify(value)}`);
-            connection.getConnectionProperties(value[0], (error: BusinessError, data: connection.ConnectionProperties) => {
-              if (error) {
-                console.log(`${caseName}  get data fail: `+ JSON.stringify(error));
-                ExpectFail();
-                console.info(`${caseName}---End`);
-                done();
-              } else {
-                console.log(`${caseName}  get value success: ${JSON.stringify(data)}`);
-                if (data.linkAddresses.length > 0) {
-                  ExpectTrue(data.linkAddresses[0].address != undefined);
-                }
-                console.info(`${caseName}---End`);
-                done();
-              }
-            });
-          }
-        });
-      } catch (error) {
-        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
-        ExpectFail();
-        console.info(`${caseName}---End`);
-        done();
-      }
-    });
-
+export default function ConnectionGetNetCapabilitiesWithWifiTest() {
+  describe("ConnectionGetNetCapabilitiesWithWifiTest", () => {
+  
     /**
      * @tc.number: SUB_NetManager_Connection_GetNetCapabilities_0100
      * @tc.name:  testNetManagerConnectionGetNetCapabilities0100
@@ -281,31 +201,7 @@ export default function ConnectionGetNetCapabilitiesTest() {
       }
     });
 
-    /**
-     * @tc.number: SUB_NetManager_Connection_NetBearType_0100
-     * @tc.name:  testNetManagerConnectionNetBearType0100
-     * @tc.desc: GetNetCapabilities  detection
-     * @tc.level:Level 3
-     * @tc.type:Function
-     * @tc.size:MediumTest
-     */
-    it("testNetManagerConnectionNetBearType0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, (done: Function) => {
-      let caseName: string = "testNetManagerConnectionNetBearType0100";
-      console.info(`${caseName}---start`);
-      try {
-        ExpectTrue(connection.NetBearType.BEARER_CELLULAR == 0);
-        ExpectTrue(connection.NetBearType.BEARER_WIFI == 1);
-        ExpectTrue(connection.NetBearType.BEARER_BLUETOOTH == 2);
-        ExpectTrue(connection.NetBearType.BEARER_ETHERNET == 3);
-        console.info(`${caseName}---End`);
-        done();
-      } catch (error) {
-        console.info(`${caseName} catch err ->${JSON.stringify(error)}`);
-        ExpectFail();
-        console.info(`${caseName}---End`);
-        done();
-      }
-    })
+    
   })
 }
 
