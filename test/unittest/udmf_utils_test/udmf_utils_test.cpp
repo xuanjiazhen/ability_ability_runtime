@@ -69,9 +69,9 @@ HWTEST_F(UdmfUtilsTest, AddPrivilege_002, TestSize.Level1)
     std::string key = "udmfKey";
     uint32_t targetTokenId = 100001;
     std::string readPermission = "";
-    UDMF::UdmfClient::addPrivilegeRet_ = INNER_ERR;
+    UDMF::UdmfClient::addPrivilegeRet_ = AAFwk::INNER_ERR;
     auto ret = UdmfUtils::AddPrivilege(key, targetTokenId, readPermission);
-    EXPECT_EQ(ret, INNER_ERR);
+    EXPECT_EQ(ret, AAFwk::INNER_ERR);
 }
 
 /*
@@ -96,9 +96,9 @@ HWTEST_F(UdmfUtilsTest, ProcessUdmfKey_002, TestSize.Level1)
 {
     std::string key = "udmfKey";
     uint32_t targetTokenId = 100001;
-    UDMF::UdmfClient::addPrivilegeRet_ = INNER_ERR;
+    UDMF::UdmfClient::addPrivilegeRet_ = AAFwk::INNER_ERR;
     auto ret = UdmfUtils::ProcessUdmfKey(key, targetTokenId);
-    EXPECT_EQ(ret, ERR_UPMS_ADD_PRIVILEGED_FAILED);
+    EXPECT_EQ(ret, AAFwk::ERR_UPMS_ADD_PRIVILEGED_FAILED);
 }
 } // namespace AAFwk
 } // namespace OHOS
