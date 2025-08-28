@@ -44,6 +44,9 @@
           }
         ]
       }
-    ]
+    ],
+    "requestPermissions": [{
+      "name": "ohos.permission.READ_LOCAL_DEVICE_NAME"
+    }]
   }
 }
