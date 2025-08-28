@@ -12,9 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import ActsCapabilityStartSelfUIAbilityTest from './ActsCapabilityStartSelfUIAbilityTest.test'
+import ActsCapabilityStartSelfUIAbilityTest1 from './ActsCapabilityStartSelfUIAbilityTest1.test'
 
 export default function testsuite() {
   ActsCapabilityStartSelfUIAbilityTest()
+  ActsCapabilityStartSelfUIAbilityTest1()
 }

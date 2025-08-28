@@ -34,7 +34,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_DestroyChildProcessConfigs_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.DestroyChildProcessConfigsParamInvalid();
+          let result:number = AbilityKitTest.DestroyChildProcessConfigsParamInvalid();
           expect(401).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -58,7 +58,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_DestroyChildProcessConfigs_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.DestroyChildProcessConfigsNoError();
+          let result:number = AbilityKitTest.DestroyChildProcessConfigsNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -82,7 +82,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_ChildProcessConfigsSetIsolationMode_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.ChildProcessConfigsSetIsolationModeInvalidParam();
+          let result:number = AbilityKitTest.ChildProcessConfigsSetIsolationModeInvalidParam();
           expect(401).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -106,7 +106,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_ChildProcessConfigsSetIsolationMode_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.ChildProcessConfigsSetIsolationModeNoError();
+          let result:number = AbilityKitTest.ChildProcessConfigsSetIsolationModeNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -130,7 +130,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_ChildProcessConfigsSetProcessName_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.ChildProcessConfigsSetProcessNameInvalidParam();
+          let result:number = AbilityKitTest.ChildProcessConfigsSetProcessNameInvalidParam();
           expect(401).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -154,7 +154,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_ChildProcessConfigsSetProcessName_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.ChildProcessConfigsSetProcessNameNoError();
+          let result:number = AbilityKitTest.ChildProcessConfigsSetProcessNameNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -178,7 +178,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_RegisterNativeChildProcessExitCallback_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.RegisterNativeChildProcessExitCallbackNoError();
+          let result:number = AbilityKitTest.RegisterNativeChildProcessExitCallbackNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -202,7 +202,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_RegisterNativeChildProcessExitCallback_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.RegisterNativeChildProcessExitCallbackInvPar();
+          let result:number = AbilityKitTest.RegisterNativeChildProcessExitCallbackInvPar();
           expect(401).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -226,7 +226,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_UnregisterNativeChildProcessExitCallback_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.UnregisterNativeChildProcessExitCallbackNoError();
+          let result:number = AbilityKitTest.UnregisterNativeChildProcessExitCallbackNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -250,7 +250,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_UnregisterNativeChildProcessExitCallback_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.UnregisterNativeChildProcessExitCallbackInvPar();
+          let result:number = AbilityKitTest.UnregisterNativeChildProcessExitCallbackInvPar();
           expect(401).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -274,7 +274,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeChildProcess_UnRegisterNativeChildProcessExitCallback_0300`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.UnregisterNativeChildProcessExitCallbackNotExist();
+          let result:number = AbilityKitTest.UnregisterNativeChildProcessExitCallbackNotExist();
           expect(16010009).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -298,7 +298,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_DestroyWant_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.DestroyWantNoError();
+          let result:number = AbilityKitTest.DestroyWantNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -322,7 +322,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_SetWantElement_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetWantElementNoError();
+          let result:number = AbilityKitTest.SetWantElementNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -346,7 +346,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_GetWantElement_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetWantElementNoError();
+          let result:number = AbilityKitTest.GetWantElementNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -370,7 +370,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_SetWantCharParam_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetWantCharParamNoError();
+          let result:number = AbilityKitTest.SetWantCharParamNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -394,7 +394,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_GetWantCharParam_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetWantCharParamNoError();
+          let result:number = AbilityKitTest.GetWantCharParamNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -418,7 +418,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_AddWantFd_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.AddWantFdNoError();
+          let result:number = AbilityKitTest.AddWantFdNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -442,7 +442,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_SetWantUri_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetWantUriNoError();
+          let result:number = AbilityKitTest.SetWantUriNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -466,7 +466,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_GetWantUri_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetWantUriNoError();
+          let result:number = AbilityKitTest.GetWantUriNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -490,7 +490,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_SetWantInt32Param_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetWantInt32ParamNoError();
+          let result:number = AbilityKitTest.SetWantInt32ParamNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -514,7 +514,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_GetWantInt32Param_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetWantInt32ParamNoError();
+          let result:number = AbilityKitTest.GetWantInt32ParamNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -538,7 +538,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_SetWantBoolParam_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetWantBoolParamNoError();
+          let result:number = AbilityKitTest.SetWantBoolParamNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -562,7 +562,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_GetWantBoolParam_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetWantBoolParamNoError();
+          let result:number = AbilityKitTest.GetWantBoolParamNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -586,7 +586,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_SetWantDoubleParam_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetWantDoubleParamNoError();
+          let result:number = AbilityKitTest.SetWantDoubleParamNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -610,7 +610,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityBase_GetWantDoubleParam_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetWantDoubleParamNoError();
+          let result:number = AbilityKitTest.GetWantDoubleParamNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -634,7 +634,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeAreaModeEl2_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.AbilityRuntimeAreaModeEl2Code();
+          let result:number = AbilityKitTest.AbilityRuntimeAreaModeEl2Code();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -658,7 +658,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeAreaModeEl3_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.AbilityRuntimeAreaModeEl3Code();
+          let result:number = AbilityKitTest.AbilityRuntimeAreaModeEl3Code();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -682,7 +682,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeAreaModeEl4_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.AbilityRuntimeAreaModeEl4Code();
+          let result:number = AbilityKitTest.AbilityRuntimeAreaModeEl4Code();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -706,7 +706,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeAreaModeEl5_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.AbilityRuntimeAreaModeEl5Code();
+          let result:number = AbilityKitTest.AbilityRuntimeAreaModeEl5Code();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -730,7 +730,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_AbilityRuntimeHideUponStart_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.AbilityRuntimeHideUponStartCode();
+          let result:number = AbilityKitTest.AbilityRuntimeHideUponStartCode();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -754,7 +754,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_DestroyStartOptions_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.DestroyStartOptionsNoError();
+          let result:number = AbilityKitTest.DestroyStartOptionsNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -778,7 +778,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsWindowMode_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsWindowModeNoError();
+          let result:number = AbilityKitTest.SetStartOptionsWindowModeNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -802,7 +802,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsWindowMode_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsWindowModeNoError();
+          let result:number = AbilityKitTest.GetStartOptionsWindowModeNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -826,7 +826,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsDisplayId_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsDisplayIdNoError();
+          let result:number = AbilityKitTest.SetStartOptionsDisplayIdNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -850,7 +850,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsDisplayId_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsDisplayIdParamInvalid();
+          let result:number = AbilityKitTest.SetStartOptionsDisplayIdParamInvalid();
           expect(401).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -874,7 +874,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsDisplayId_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsDisplayIdNoError();
+          let result:number = AbilityKitTest.GetStartOptionsDisplayIdNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -898,7 +898,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsWithAnimation_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsWithAnimationNoError();
+          let result:number = AbilityKitTest.SetStartOptionsWithAnimationNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -922,7 +922,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsWithAnimation_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsWithAnimationNoError();
+          let result:number = AbilityKitTest.GetStartOptionsWithAnimationNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -946,7 +946,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsWindowLeft_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsWindowLeftNoError();
+          let result:number = AbilityKitTest.SetStartOptionsWindowLeftNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -970,7 +970,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsWindowLeft_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsWindowLeftNoError();
+          let result:number = AbilityKitTest.GetStartOptionsWindowLeftNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -994,7 +994,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsWindowTop_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsWindowTopNoError();
+          let result:number = AbilityKitTest.SetStartOptionsWindowTopNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1018,7 +1018,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsWindowTop_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsWindowTopNoError();
+          let result:number = AbilityKitTest.GetStartOptionsWindowTopNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1042,7 +1042,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsWindowHeight_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsWindowHeightNoError();
+          let result:number = AbilityKitTest.SetStartOptionsWindowHeightNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1066,7 +1066,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsWindowHeight_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsWindowHeightNoError();
+          let result:number = AbilityKitTest.GetStartOptionsWindowHeightNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1090,7 +1090,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsWindowWidth_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsWindowWidthNoError();
+          let result:number = AbilityKitTest.SetStartOptionsWindowWidthNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1114,7 +1114,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsWindowWidth_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsWindowWidthNoError();
+          let result:number = AbilityKitTest.GetStartOptionsWindowWidthNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1138,7 +1138,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsStartVisibility_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsStartVisibilityNoError();
+          let result:number = AbilityKitTest.SetStartOptionsStartVisibilityNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1162,7 +1162,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsStartVisibility_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsStartVisibilityNoError();
+          let result:number = AbilityKitTest.GetStartOptionsStartVisibilityNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1186,7 +1186,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsStartWindowIcon_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsStartWindowIconNoError();
+          let result:number = AbilityKitTest.SetStartOptionsStartWindowIconNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1210,7 +1210,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsStartWindowIcon_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsStartWindowIconNoError();
+          let result:number = AbilityKitTest.GetStartOptionsStartWindowIconNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1234,7 +1234,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsStartWindowBackgroundColor_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsStartWindowBackgroundColorNoError();
+          let result:number = AbilityKitTest.SetStartOptionsStartWindowBackgroundColorNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1258,7 +1258,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsStartWindowBackgroundColor_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsStartWindowBackgroundColorNoError();
+          let result:number = AbilityKitTest.GetStartOptionsStartWindowBackgroundColorNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1282,7 +1282,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsSupportedWindowModes_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsSupportedWindowModesNoError();
+          let result:number = AbilityKitTest.SetStartOptionsSupportedWindowModesNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1306,7 +1306,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsSupportedWindowModes_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsSupportedWindowModesNoError();
+          let result:number = AbilityKitTest.GetStartOptionsSupportedWindowModesNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1330,7 +1330,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsMinWindowWidth_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsMinWindowWidthNoError();
+          let result:number = AbilityKitTest.SetStartOptionsMinWindowWidthNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1354,7 +1354,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsMinWindowWidth_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsMinWindowWidthNoError();
+          let result:number = AbilityKitTest.GetStartOptionsMinWindowWidthNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1378,7 +1378,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsMaxWindowWidth_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsMaxWindowWidthNoError();
+          let result:number = AbilityKitTest.SetStartOptionsMaxWindowWidthNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1402,7 +1402,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsMaxWindowWidth_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsMaxWindowWidthNoError();
+          let result:number = AbilityKitTest.GetStartOptionsMaxWindowWidthNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1426,7 +1426,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsMinWindowHeight_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsMinWindowHeightNoError();
+          let result:number = AbilityKitTest.SetStartOptionsMinWindowHeightNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1450,7 +1450,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsMinWindowHeight_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsMinWindowHeightNoError();
+          let result:number = AbilityKitTest.GetStartOptionsMinWindowHeightNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1474,7 +1474,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsMinWindowHeight_0200`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsMinWindowHeightParamInvalid();
+          let result:number = AbilityKitTest.GetStartOptionsMinWindowHeightParamInvalid();
           expect(401).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1498,7 +1498,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_SetStartOptionsMaxWindowHeight_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.SetStartOptionsMaxWindowHeightNoError();
+          let result:number = AbilityKitTest.SetStartOptionsMaxWindowHeightNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
@@ -1522,7 +1522,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
         const LOG_NAME = `SUB_Ability_AbilityBase_NativeAbilityRuntime_GetStartOptionsMaxWindowHeight_0100`;
         try {
           console.info(`====>${LOG_NAME} start====`);
-          let result = AbilityKitTest.GetStartOptionsMaxWindowHeightNoError();
+          let result:number = AbilityKitTest.GetStartOptionsMaxWindowHeightNoError();
           expect(0).assertEqual(result);
           console.info(`====>${LOG_NAME} result: ` + result);
           done();
