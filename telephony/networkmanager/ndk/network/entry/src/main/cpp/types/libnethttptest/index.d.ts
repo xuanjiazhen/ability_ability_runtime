@@ -36,3 +36,5 @@ export const Http_Request_Option: (a: number, b: string) => number;
 export const Http_Resps: (a: number, b: string) => number;
 export const Http_Req: (a: number, b: string) => number;
 export const Http_Events_Handler: (a: number, b: string) => number;
+export const Http_DestroyHeaders: (a: number) => number;
+export const Http_Request: (a: number, b: string) => number;
