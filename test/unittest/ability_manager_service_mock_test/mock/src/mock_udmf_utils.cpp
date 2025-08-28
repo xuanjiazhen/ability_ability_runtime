@@ -18,7 +18,7 @@
 #include "ability_manager_errors.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AbilityRuntime {
 
 int32_t UdmfUtil::AddPrivilege(const std::string &key, uint32_t tokenId, const std::string &readPermission)
 {
