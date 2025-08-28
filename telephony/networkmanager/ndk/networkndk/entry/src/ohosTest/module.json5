@@ -29,16 +29,16 @@
       },
       {
         "name": "ohos.permission.SET_PAC_URL"
-      },
-      {
-        "name": "ohos.permission.ACCESS_NET_TRACE_INFO"
-      },
-      {
-        "name": "ohos.permission.LOCATION"
-      },
-      {
-        "name": "ohos.permission.APPROXIMATELY_LOCATION"
       }
+      //{
+      //  "name": "ohos.permission.ACCESS_NET_TRACE_INFO"
+      //},
+      //{
+      //  "name": "ohos.permission.LOCATION"
+      //},
+     // {
+      //  "name": "ohos.permission.APPROXIMATELY_LOCATION"
+      //}
     ],
     "deliveryWithInstall": true,
     "installationFree": false,

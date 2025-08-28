@@ -41,7 +41,7 @@ export default function PingTraceRouteErrorCode201NDKTest() {
   describe('PingTraceRouteErrorCode201NDKTest', () => {
 
     beforeAll(async (done : Function) => {
-      await unClickRequestPermission();
+      // await unClickRequestPermission();
       console.info('beforealltest start');
       done()
     });
