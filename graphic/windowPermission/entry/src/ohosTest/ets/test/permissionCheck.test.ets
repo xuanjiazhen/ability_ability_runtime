@@ -273,7 +273,7 @@ export default function windowPromiseTest(context: common.UIAbilityContext) {
     /**
      * @tc.number     : SUB_BASIC_WMS_SETWINDOWSHADOWENABLED_0200
      * @tc.name       : testSetWindowShadowEnabledwithoutPermission
-     * @tc.desc       : 验证2in1设备应用不申请权限报201
+     * @tc.desc       : testSetWindowShadowEnabledwithoutPermission
      * @tc.size       : MediumTest
      * @tc.type       : Function
      * @tc.level      : Level 2

@@ -212,7 +212,7 @@ export default function windowModalTest() {
     })
 
     /**
-     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_STAGETWO_JS_API_0100
+     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_STAGETWO_JS_API_0200
      * @tc.name      : testsetSubWindowModal_Function_Promise2
      * @tc.desc      : Test the function value of setSubWindowModal
      * @tc.size      : MediumTest
@@ -264,7 +264,7 @@ export default function windowModalTest() {
     })
 
     /**
-     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_STAGETWO_JS_API_0100
+     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_STAGETWO_JS_API_0300
      * @tc.name      : testsetSubWindowModal_Function_Promise3
      * @tc.desc      : Test the function value of setSubWindowModal
      * @tc.size      : MediumTest
@@ -341,7 +341,7 @@ export default function windowModalTest() {
               await buttonOne.click();
               let buttonTwo = await driver.findComponent(ON.text('Hello World'));
               await buttonTwo.click();
-              await sleep(3000);
+              await sleep(4000);
               console.log(msgStr + 'The num is :' + num);
               expect(num).assertEqual(1);
               windowClass.off('noInteractionDetected');
@@ -1379,8 +1379,8 @@ export default function windowModalTest() {
     })
 
     /**
-     * @tc.number    : testCreateSubWindowWithOptionsModalityType_0200
-     * @tc.name      : testCreateSubWindowWithOptionsModalityType_0200
+     * @tc.number    : testCreateSubWindowWithOptionsModalityType_0300
+     * @tc.name      : testCreateSubWindowWithOptionsModalityType_0300
      * @tc.desc      : Test the function value of setWindowTitleMoveEnabled
      * @tc.size      : MediumTest
      * @tc.type      : Function

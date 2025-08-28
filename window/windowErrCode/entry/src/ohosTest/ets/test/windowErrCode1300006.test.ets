@@ -112,7 +112,7 @@ export default function windowErrCode1300006() {
       console.log(msgStr + 'begin.');
       let windowClass = windowStage.getMainWindowSync();
       try {
-        const maxInt = 2**31 -1;
+        const maxInt = 2**31 +1;
         windowClass.setRelativePositionToParentWindowEnabled(true, ohosWindow.WindowAnchor.TOP_START, maxInt, maxInt).then(async () => {
           console.info(msgStr + 'Succeeded in calling setRelativePositionToParentWindowEnabled.');
           expect().assertFail();
