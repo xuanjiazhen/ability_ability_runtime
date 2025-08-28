@@ -27,40 +27,62 @@
 int g_invalidParamCode = 20400001;
 int g_err = 20400000;
 
-#define DECLARE_NAPI_FUNCTION(name, func)                                         \
-    {                                                                             \
-        (name), nullptr, (func), nullptr, nullptr, nullptr, napi_default, nullptr \
-    }
-void AddUdmfTest(std::vector<napi_property_descriptor> &descData)
+void AddUdmfTest1(std::vector<napi_property_descriptor> &descData)
 {
-    descData.push_back(DECLARE_NAPI_FUNCTION("testDestroyInvalidParam", TestDestroyInvalidParam));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testAddFileUriInvalidParam", TestAddFileUriInvalidParam));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testAddFileUriSuccess", TestAddFileUriSuccess));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testAddPixelMapInvalidParam", TestAddPixelMapInvalidParam));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testAddPixelMapSuccess", TestAddPixelMapSuccess));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testGetGeneralEntryInvalidParam", TestGetGeneralEntryInvalidParam));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testGetPlainTextError", testGetPlainTextError));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testGetHyperlinkError", TestGetHyperlinkError));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testGetHtmlError", TestGetHtmlError));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testGetAppItemInvalidParam", TestGetAppItemInvalidParam));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testGetAppItemError", TestGetAppItemError));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testSetProviderInvalidParam", TestSetProviderInvalidParam));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testGetVisibilitySuccess", TestGetVisibilitySuccess));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testSetVisibilityInvalidParam", TestSetVisibilityInvalidParam));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testSetVisibilitySuccess", TestSetVisibilitySuccess));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testGetUnifiedDataError", TestGetUnifiedDataError));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testGetUnifiedDataByOptionsError", TestGetUnifiedDataByOptionsError));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testSetUnifiedDataError", TestSetUnifiedDataError));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testUpdateUnifiedDataError", TestUpdateUnifiedDataError));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testDeleteUnifiedDataError", TestDeleteUnifiedDataError));
+    descData.push_back({"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testAddFileUriInvalidParam", nullptr, TestAddFileUriInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
     descData.push_back(
-        DECLARE_NAPI_FUNCTION("testUdmfOptionsGetVisibilityProcess", TestUdmfOptionsGetVisibilityProcess));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testUdmfOptionsGetVisibilityAll", TestUdmfOptionsGetVisibilityAll));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testUdmfProgressInfoGetStatus", TestUdmfProgressInfoGetStatus));
-    descData.push_back(DECLARE_NAPI_FUNCTION("testUdmfSkip", TestUDMFSkip));
+        {"testAddFileUriSuccess", nullptr, TestAddFileUriSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testAddPixelMapInvalidParam", nullptr, TestAddPixelMapInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back(
+        {"testAddPixelMapSuccess", nullptr, TestAddPixelMapSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetGeneralEntryInvalidParam", nullptr, TestGetGeneralEntryInvalidParam, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back(
+        {"testGetPlainTextError", nullptr, testGetPlainTextError, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back(
+        {"testGetHyperlinkError", nullptr, TestGetHyperlinkError, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back(
+        {"testGetHtmlError", nullptr, TestGetHtmlError, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetAppItemInvalidParam", nullptr, TestGetAppItemInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back(
+        {"testGetAppItemError", nullptr, TestGetAppItemError, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
-//数据回调
+void AddUdmfTest(std::vector<napi_property_descriptor> &descData)
+{
+    AddUdmfTest1(descData);
+    descData.push_back({"testSetProviderInvalidParam", nullptr, TestSetProviderInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetVisibilitySuccess", nullptr, TestGetVisibilitySuccess, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testSetVisibilityInvalidParam", nullptr, TestSetVisibilityInvalidParam, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testSetVisibilitySuccess", nullptr, TestSetVisibilitySuccess, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetUnifiedDataError", nullptr, TestGetUnifiedDataError, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetUnifiedDataByOptionsError", nullptr, TestGetUnifiedDataByOptionsError, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testSetUnifiedDataError", nullptr, TestSetUnifiedDataError, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testUpdateUnifiedDataError", nullptr, TestUpdateUnifiedDataError, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testDeleteUnifiedDataError", nullptr, TestDeleteUnifiedDataError, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testUdmfOptionsGetVisibilityProcess", nullptr, TestUdmfOptionsGetVisibilityProcess, nullptr,
+                        nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testUdmfOptionsGetVisibilityAll", nullptr, TestUdmfOptionsGetVisibilityAll, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testUdmfProgressInfoGetStatus", nullptr, TestUdmfProgressInfoGetStatus, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testUdmfSkip", nullptr, TestUDMFSkip, nullptr, nullptr, nullptr, napi_default, nullptr});
+}
+
 static void* GetDataCallbackFunc(void* context, const char* type)
 {
     auto plainText = OH_UdsPlainText_Create();
@@ -68,8 +90,44 @@ static void* GetDataCallbackFunc(void* context, const char* type)
     OH_UdsPlainText_SetContent(plainText, "doing something");
     return plainText;
 }
-//资源释放
+
 static void FinalizeFunc(void* context) {};
+
+void DataProgressCallback(OH_Udmf_ProgressInfo* progressInfo, OH_UdmfData* data)
+{
+    int resultRet = -1;
+    bool resultUdmf = OH_UdmfData_HasType(data, UDMF_META_GENERAL_FILE_URI);
+    if (resultUdmf) {
+        unsigned int recordsCount = 0;
+        OH_UdmfRecord** records = OH_UdmfData_GetRecords(data, &recordsCount);
+        int returnStatus;
+        for (int i = 0; i < recordsCount; i++) {
+            OH_UdsFileUri* imageValue = OH_UdsFileUri_Create();
+            returnStatus = OH_UdmfRecord_GetFileUri(records[i], imageValue);
+            const char* fileUri = OH_UdsFileUri_GetFileUri(imageValue);
+            OH_UdsFileUri_Destroy(imageValue);
+        }
+    }
+    OH_UdmfProgressInfo_GetProgress(progressInfo);
+    int ret = OH_UdmfProgressInfo_GetStatus(progressInfo);
+    if (ret == Udmf_ListenerStatus::UDMF_FINISHED) {
+        resultRet = Udmf_ListenerStatus::UDMF_FINISHED;
+    } else if (ret == Udmf_ListenerStatus::UDMF_PROCESSING) {
+        resultRet = Udmf_ListenerStatus::UDMF_PROCESSING;
+    } else if (ret == Udmf_ListenerStatus::UDMF_CANCELED) {
+        resultRet = Udmf_ListenerStatus::UDMF_CANCELED;
+    } else if (ret == Udmf_ListenerStatus::UDMF_INNER_ERROR) {
+        resultRet = Udmf_ListenerStatus::UDMF_INNER_ERROR;
+    } else if (ret == Udmf_ListenerStatus::UDMF_INVALID_PARAMETERS) {
+        resultRet = Udmf_ListenerStatus::UDMF_INVALID_PARAMETERS;
+    } else if (ret == Udmf_ListenerStatus::UDMF_DATA_NOT_FOUND) {
+        resultRet = Udmf_ListenerStatus::UDMF_DATA_NOT_FOUND;
+    } else if (ret == Udmf_ListenerStatus::UDMF_SYNC_FAILED) {
+        resultRet = Udmf_ListenerStatus::UDMF_SYNC_FAILED;
+    } else if (ret == Udmf_ListenerStatus::UDMF_COPY_FILE_FAILED) {
+        resultRet = Udmf_ListenerStatus::UDMF_COPY_FILE_FAILED;
+    }
+}
 
 napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
 {
@@ -566,43 +624,11 @@ napi_value TestUdmfOptionsGetVisibilityAll(napi_env env, napi_callback_info info
 napi_value TestUdmfProgressInfoGetStatus(napi_env env, napi_callback_info info)
 {
     const char* destUri = "file://com.acts.actsudmftest/data/storage/el2/distributedfiles/";
-    OH_Udmf_DataProgressListener dataProgressListener = [](OH_Udmf_ProgressInfo* progressInfo, OH_UdmfData* data) {
-        int resultRet = -1;
-        bool resultUdmf = OH_UdmfData_HasType(data, UDMF_META_GENERAL_FILE_URI);
-        if (resultUdmf) {
-            unsigned int recordsCount = 0;
-            OH_UdmfRecord** records = OH_UdmfData_GetRecords(data, &recordsCount);
-            int returnStatus;
-            for (int i = 0; i < recordsCount; i++) {
-                OH_UdsFileUri* imageValue = OH_UdsFileUri_Create();
-                returnStatus = OH_UdmfRecord_GetFileUri(records[i], imageValue);
-                const char* fileUri = OH_UdsFileUri_GetFileUri(imageValue);
-                OH_UdsFileUri_Destroy(imageValue);
-            }
-        }
-        OH_UdmfProgressInfo_GetProgress(progressInfo);
-        int ret = OH_UdmfProgressInfo_GetStatus(progressInfo);
-        if (ret == Udmf_ListenerStatus::UDMF_FINISHED) {
-            resultRet = Udmf_ListenerStatus::UDMF_FINISHED;
-        } else if (ret == Udmf_ListenerStatus::UDMF_PROCESSING) {
-            resultRet = Udmf_ListenerStatus::UDMF_PROCESSING;
-        } else if (ret == Udmf_ListenerStatus::UDMF_CANCELED) {
-            resultRet = Udmf_ListenerStatus::UDMF_CANCELED;
-        } else if (ret == Udmf_ListenerStatus::UDMF_INNER_ERROR) {
-            resultRet = Udmf_ListenerStatus::UDMF_INNER_ERROR;
-        } else if (ret == Udmf_ListenerStatus::UDMF_INVALID_PARAMETERS) {
-            resultRet = Udmf_ListenerStatus::UDMF_INVALID_PARAMETERS;
-        } else if (ret == Udmf_ListenerStatus::UDMF_DATA_NOT_FOUND) {
-            resultRet = Udmf_ListenerStatus::UDMF_DATA_NOT_FOUND;
-        } else if (ret == Udmf_ListenerStatus::UDMF_SYNC_FAILED) {
-            resultRet = Udmf_ListenerStatus::UDMF_SYNC_FAILED;
-        } else if (ret == Udmf_ListenerStatus::UDMF_COPY_FILE_FAILED) {
-            resultRet = Udmf_ListenerStatus::UDMF_COPY_FILE_FAILED;
-        }
-    };
+    OH_Udmf_DataProgressListener dataProgressListener = DataProgressCallback;
     OH_UdmfDataLoadInfo *info2 = OH_UdmfDataLoadInfo_Create();
     OH_UdmfDataLoadInfo_SetType(info2, "general.file");
-    OH_UdmfDataLoadInfo_SetRecordCount(info2, 100);
+    unsigned int recordCount = 100;
+    OH_UdmfDataLoadInfo_SetRecordCount(info2, recordCount);
     OH_UdmfGetDataParams* params = OH_UdmfGetDataParams_Create();
     OH_UdmfGetDataParams_SetDestUri(params, destUri);
     OH_UdmfGetDataParams_SetFileConflictOptions(params, Udmf_FileConflictOptions::UDMF_OVERWRITE);
@@ -610,10 +636,9 @@ napi_value TestUdmfProgressInfoGetStatus(napi_env env, napi_callback_info info)
     OH_UdmfGetDataParams_SetAcceptableInfo(params, info2);
     OH_UdmfGetDataParams_SetDataProgressListener(params, dataProgressListener);
     OH_UdmfGetDataParams_Destroy(params);
-
     napi_value result;
     int ret = -1;
-    if(params) {
+    if (params) {
         ret = 0;
     }
     napi_create_int32(env, ret, &result);
@@ -622,7 +647,7 @@ napi_value TestUdmfProgressInfoGetStatus(napi_env env, napi_callback_info info)
 
 napi_value TestUDMFSkip(napi_env env, napi_callback_info info)
 {
-    OH_UdmfGetDataParams* param = OH_UdmfGetDataParams_Create();;
+    OH_UdmfGetDataParams *param = OH_UdmfGetDataParams_Create();
     Udmf_ProgressIndicator progress = Udmf_ProgressIndicator::UDMF_NONE;
     OH_UdmfGetDataParams_SetProgressIndicator(param, progress);
     OH_UdmfGetDataParams_SetDestUri(param, "file://com.acts.actsudmftest/data/storage/el2/distributedfiles/");
@@ -636,13 +661,11 @@ napi_value TestUDMFSkip(napi_env env, napi_callback_info info)
         unsigned int count = 0;
         OH_UdmfData_GetRecords(data, &count);
     };
-
     OH_UdmfGetDataParams_SetDataProgressListener(param, dataProgressListener);
     int ret = -1;
     if (param) {
         ret = 0;
     }
-
     napi_value result;
     napi_create_int32(env, ret, &result);
     return result;

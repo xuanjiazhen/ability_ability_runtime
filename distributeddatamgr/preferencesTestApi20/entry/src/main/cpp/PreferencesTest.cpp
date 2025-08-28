@@ -18,7 +18,6 @@
 #include <database/preferences/oh_preferences.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
-#include <stdlib.h>
 #include <string>
 #include <database/preferences/oh_preferences_err_code.h>
 
@@ -40,7 +39,7 @@ static napi_value PreferencesStorageXml(napi_env env, napi_callback_info info)
 {
     OH_PreferencesOption* option = OH_PreferencesOption_Create();
 
-    OH_PreferencesOption_SetFileName(option,"/demo.xml");
+    OH_PreferencesOption_SetFileName(option, "/demo.xml");
     int stateCode = OH_PreferencesOption_SetStorageType(option, PREFERENCES_STORAGE_XML);
     OH_PreferencesOption_Destroy(option);
     napi_value result;
@@ -51,8 +50,8 @@ static napi_value PreferencesStorageXml(napi_env env, napi_callback_info info)
 static napi_value PreferencesStorageError(napi_env env, napi_callback_info info)
 {
     OH_PreferencesOption* option = OH_PreferencesOption_Create();
-
-    OH_PreferencesOption_SetFileName(option,"/demo.xml");
+    
+    OH_PreferencesOption_SetFileName(option, "/demo.xml");
     Preferences_StorageType type;
     int stateCode = OH_PreferencesOption_SetStorageType(option, type);
     OH_PreferencesOption_Destroy(option);

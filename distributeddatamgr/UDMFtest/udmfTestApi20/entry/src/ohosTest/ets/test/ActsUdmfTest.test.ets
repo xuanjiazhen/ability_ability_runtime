@@ -549,233 +549,233 @@ export default function ActsUdmfTest() {
       })
 
     /**
-     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_0100
-     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_0100
+     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_2600
+     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_2600
      * @tc.desc    : test OH_UdmfProgressInfo_GetStatus return UDMF_FINISHED
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_UdmfProgressInfo_GetStatus_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_UdmfProgressInfo_GetStatus_2600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0100 start====");
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_2600 start====");
           let result: number = testNapi.testUdmfProgressInfoGetStatus();
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0100 result====", result);
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_2600 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_0100 catch err: " + err);
+          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_2600 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_0200
-     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_0200
+     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_2700
+     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_2700
      * @tc.desc    : test UDMF_FINISHED
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_UdmfProgressInfo_GetStatus_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_UdmfProgressInfo_GetStatus_2700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0200 start====");
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_2700 start====");
           let result: number = testNapi.testUdmfProgressInfoGetStatus();
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0200 result====", result);
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_2700 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_0200 catch err: " + err);
+          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_2700 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_0300
-     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_0300
+     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_2800
+     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_2800
      * @tc.desc    : test UDMF_PROCESSING
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_UdmfProgressInfo_GetStatus_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_UdmfProgressInfo_GetStatus_2800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0300 start====");
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_2800 start====");
           let result: number = testNapi.testUdmfProgressInfoGetStatus();
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0300 result====", result);
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_2800 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_0300 catch err: " + err);
+          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_2800 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_0400
-     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_0400
+     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_2900
+     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_2900
      * @tc.desc    : test UDMF_CANCELED
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_UdmfProgressInfo_GetStatus_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_UdmfProgressInfo_GetStatus_2900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0400 start====");
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_2900 start====");
           let result: number = testNapi.testUdmfProgressInfoGetStatus();
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0400 result====", result);
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_2900 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_0400 catch err: " + err);
+          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_2900 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_0500
-     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_0500
+     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_3000
+     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_3000
      * @tc.desc    : test UDMF_INNER_ERROR
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_UdmfProgressInfo_GetStatus_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_UdmfProgressInfo_GetStatus_3000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0500 start====");
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3000 start====");
           let result: number = testNapi.testUdmfProgressInfoGetStatus();
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0500 result====", result);
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3000 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_0500 catch err: " + err);
+          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_3000 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_0600
-     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_0600
+     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_3100
+     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_3100
      * @tc.desc    : test UDMF_INVALID_PARAMETERS
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_UdmfProgressInfo_GetStatus_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_UdmfProgressInfo_GetStatus_3100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0600 start====");
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3100 start====");
           let result: number = testNapi.testUdmfProgressInfoGetStatus();
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0600 result====", result);
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3100 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_0600 catch err: " + err);
+          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_3100 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_0700
-     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_0700
+     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_3200
+     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_3200
      * @tc.desc    : test UDMF_DATA_NOT_FOUND
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_UdmfProgressInfo_GetStatus_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_UdmfProgressInfo_GetStatus_3200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0700 start====");
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3200 start====");
           let result: number = testNapi.testUdmfProgressInfoGetStatus();
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0700 result====", result);
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3200 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_0700 catch err: " + err);
+          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_3200 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_0800
-     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_0800
+     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_3300
+     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_3300
      * @tc.desc    : test UDMF_SYNC_FAILED
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_UdmfProgressInfo_GetStatus_0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_UdmfProgressInfo_GetStatus_3300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0800 start====");
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3300 start====");
           let result: number = testNapi.testUdmfProgressInfoGetStatus();
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0800 result====", result);
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3300 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_0800 catch err: " + err);
+          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_3300 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_0900
-     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_0900
+     * @tc.number  : SUB_OH_UdmfProgressInfo_GetStatus_3400
+     * @tc.name    : SUB_OH_UdmfProgressInfo_GetStatus_3400
      * @tc.desc    : test UDMF_COPY_FILE_FAILED
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_UdmfProgressInfo_GetStatus_0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_UdmfProgressInfo_GetStatus_3400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0900 start====");
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3400 start====");
           let result: number = testNapi.testUdmfProgressInfoGetStatus();
-          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_0900 result====", result);
+          console.info("====>SUB_OH_UdmfProgressInfo_GetStatus_3400 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_0900 catch err: " + err);
+          console.error("====>SUB_OH_UdmfProgressInfo_GetStatus_3400 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_Udmf_FileConflictOptions_0100
-     * @tc.name    : SUB_OH_Udmf_FileConflictOptions_0100
+     * @tc.number  : SUB_OH_Udmf_FileConflictOptions_3500
+     * @tc.name    : SUB_OH_Udmf_FileConflictOptions_3500
      * @tc.desc    : test UDMF_SKIP
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Udmf_FileConflictOptions_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_Udmf_FileConflictOptions_3500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_Udmf_FileConflictOptions_0100 start====");
+          console.info("====>SUB_OH_Udmf_FileConflictOptions_3500 start====");
           let result: number = testNapi.testUdmfSkip();
-          console.info("====>SUB_OH_Udmf_FileConflictOptions_0100 result====", result);
+          console.info("====>SUB_OH_Udmf_FileConflictOptions_3500 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_Udmf_FileConflictOptions_0100 catch err: " + err);
+          console.error("====>SUB_OH_Udmf_FileConflictOptions_3500 catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_OH_Udmf_ProgressIndicator_0100
-     * @tc.name    : SUB_OH_Udmf_ProgressIndicator_0100
+     * @tc.number  : SUB_OH_Udmf_ProgressIndicator_3600
+     * @tc.name    : SUB_OH_Udmf_ProgressIndicator_3600
      * @tc.desc    : test UDMF_SKIP
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Udmf_ProgressIndicator_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_OH_Udmf_ProgressIndicator_3600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_OH_Udmf_ProgressIndicator_0100 start====");
+          console.info("====>SUB_OH_Udmf_ProgressIndicator_3600 start====");
           let result: number = testNapi.testUdmfSkip();
-          console.info("====>SUB_OH_Udmf_ProgressIndicator_0100 result====", result);
+          console.info("====>SUB_OH_Udmf_ProgressIndicator_3600 result====", result);
           expect(result).assertEqual(0);
           done();
         } catch (err) {
-          console.error("====>SUB_OH_Udmf_ProgressIndicator_0100 catch err: " + err);
+          console.error("====>SUB_OH_Udmf_ProgressIndicator_3600 catch err: " + err);
         }
       })
 

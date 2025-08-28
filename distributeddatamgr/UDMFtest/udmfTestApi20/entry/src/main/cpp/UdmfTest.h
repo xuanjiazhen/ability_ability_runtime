@@ -17,6 +17,7 @@
 #define UDMFTESTAPI20_UDMFTEST_H
 
 #include "napi/native_api.h"
+#include <database/udmf/udmf.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 #include <vector>
@@ -25,6 +26,8 @@ extern int g_invalidParamCode;
 extern int g_err;
 
 void AddUdmfTest(std::vector<napi_property_descriptor> &descData);
+
+void DataProgressCallback(OH_Udmf_ProgressInfo* progressInfo, OH_UdmfData* data);
 
 napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info);
 napi_value TestAddFileUriInvalidParam(napi_env env, napi_callback_info info);
