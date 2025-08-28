@@ -16,7 +16,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 module_output_path = "ability_runtime/ability_runtime/abilitymgr"
 
-ohos_unittest("udmf_util_test") {
+ohos_unittest("udmf_utils_test") {
   module_out_path = module_output_path
   sanitize = {
     cfi = true
@@ -32,7 +32,7 @@ ohos_unittest("udmf_util_test") {
   sources = [
     "${ability_runtime_services_path}/abilitymgr/src/utils/udmf_utils.cpp",
     "mock/src/mock_udmf_client.cpp",
-    "udmf_util_test.cpp",
+    "udmf_utils_test.cpp",
   ]
 
   deps = []

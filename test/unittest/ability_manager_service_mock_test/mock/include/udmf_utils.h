@@ -20,7 +20,7 @@
 #include <string>
 
 namespace OHOS {
-namespace AAFwk {
+namespace AbilityRuntime {
 
 class UdmfUtils final {
 public:
