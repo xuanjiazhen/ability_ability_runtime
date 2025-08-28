@@ -40,7 +40,7 @@ struct bindMenuoutlineColorTest {
     Row() {
       Column() {
         Button('bindMenu')
-          .id("bindMenu001")
+          .id('bindMenu001')
           .margin(100)
           .fontSize(50)
           .fontWeight(FontWeight.Bold)
