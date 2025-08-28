@@ -4259,7 +4259,6 @@ export default function audioFramework() {
           return;
       }
       console.info(`${TagFrmwk: this is a default device}`)
-      console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0300 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
       if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER) {
         flag = true;
       }
