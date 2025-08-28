@@ -4150,13 +4150,14 @@ export default function audioFramework() {
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
-      if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER || 
-          outputDeviceDescription.length == 2 && outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
-          console.info(`${TagFrmwk}: No speaker Found`)
+      console.info(`${TagFrmwk: Determine if this is a default device}`)
+      if (outputDeviceDescription.length > 2) {
+          console.info(`${TagFrmwk}: this device has external device`)
           expect(true).assertTrue();
           done();
           return;
       }
+      console.info(`${TagFrmwk: this is a default device}`)
       try {
         let flag: boolean | null = null;
         if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER) {
@@ -4203,13 +4204,14 @@ export default function audioFramework() {
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0200 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
-      if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER || 
-          outputDeviceDescription.length == 2 && outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
-          console.info(`${TagFrmwk}: No speaker Found`)
+      console.info(`${TagFrmwk: Determine if this is a default device}`)
+      if (outputDeviceDescription.length > 2) {
+          console.info(`${TagFrmwk}: this device has external device`)
           expect(true).assertTrue();
           done();
           return;
       }
+      console.info(`${TagFrmwk: this is a default device}`)
       try {
         await audioManager.setDeviceActive(audio.ActiveDeviceType.SPEAKER, true);
         let value = await audioManager.isDeviceActive(2);
@@ -4240,13 +4242,14 @@ export default function audioFramework() {
       let flag: boolean | null = null;
       let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG)
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0300 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
-      if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER || 
-          outputDeviceDescription.length == 2 && outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
-          console.info(`${TagFrmwk}: No speaker Found`)
+      console.info(`${TagFrmwk: Determine if this is a default device}`)
+      if (outputDeviceDescription.length > 2) {
+          console.info(`${TagFrmwk}: this device has external device`)
           expect(true).assertTrue();
           done();
           return;
       }
+      console.info(`${TagFrmwk: this is a default device}`)
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0300 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
       if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER) {
         flag = true;
@@ -4294,13 +4297,14 @@ export default function audioFramework() {
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0400 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
-      if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER || 
-          outputDeviceDescription.length == 2 && outputDeviceDescription[1].deviceType == audio.DeviceType.SPEAKER) {
-          console.info(`${TagFrmwk}: No speaker Found`)
+      console.info(`${TagFrmwk: Determine if this is a default device}`)
+      if (outputDeviceDescription.length > 2) {
+          console.info(`${TagFrmwk}: this device has external device`)
           expect(true).assertTrue();
           done();
           return;
       }
+      console.info(`${TagFrmwk: this is a default device}`)
       audioManager.setDeviceActive(audio.ActiveDeviceType.SPEAKER, true, (err) => {
         if (err) {
           console.error(`${TagFrmwk}: Device Test: Callback : setDeviceActive : SPEAKER: Active: Error: ${err.message}`);
