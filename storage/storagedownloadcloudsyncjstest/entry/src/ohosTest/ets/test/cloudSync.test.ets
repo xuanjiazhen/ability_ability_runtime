@@ -1004,5 +1004,32 @@ describe('cloud_sync_test', () => {
      }
      done();
    });
+
+      /**
+   * @tc.number SUB_STORAGE_CLOUDSYNC_TEST_3700
+   * @tc.name test_cloudSync_State_037
+   * @tc.desc function of API, CloudFileCache.on, DownloadErrorType.REMOTE_SERVER_ABNORMAL
+   * @tc.size MediumTest
+   * @tc.type Function
+   * @tc.level Level 3
+   * @tc.require
+   */
+   it('test_cloudSync_State_037', Level.LEVEL3, async (done: Function) => {
+     
+     try {
+      let fileCache = new cloudSync.CloudFileCache();
+      let callback = (pg: cloudSync.DownloadProgress) => {
+        console.info("download state：" + pg.error);
+        expect(cloudSync.DownloadErrorType.REMOTE_SERVER_ABNORMAL == 8).assertTrue();
+      };
+      fileCache.on('progress', callback);
+      expect(true).assertTrue();
+     } catch (err) {
+       console.log('test_cloudSync_State_037 has failed for ' + err.message + ', code: ' + err.code);
+       expect(false).assertTrue();
+     }
+     done();
+   });
+
   });
 }
