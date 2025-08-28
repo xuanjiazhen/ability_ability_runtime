@@ -104,7 +104,7 @@ public:
     static void OnOnAbilityFirstFrameState(
         ani_env *env, ani_string type, ani_object aniObserver, ani_object aniBundleName);
     static void OnOffAbilityFirstFrameState(ani_env *env, ani_string type, ani_object aniObserver);
-
+    static void GetRunningMultiAppInfoCheck(ani_env *env, ani_string aniBundleName);
 private:
     static sptr<AppExecFwk::IAppMgr> GetAppManagerInstance();
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerInstance();
@@ -277,6 +277,30 @@ void EtsAppManager::GetForegroundApplications(ani_env *env, ani_object callback)
     TAG_LOGD(AAFwkTag::APPMGR, "GetForegroundApplications end");
 }
 
+
+void EtsAppManager::GetRunningMultiAppInfoCheck(ani_env *env, ani_string aniBundleName)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "GetRunningMultiAppInfoCheck called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "env null");
+        return;
+    }
+    std::string bundleName;
+    if (!AppExecFwk::GetStdString(env, aniBundleName, bundleName) || bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetStdString Failed");
+        AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env, "Parse param bundleName failed, must be a string.");
+        return;
+    }
+#ifdef SUPPORT_SCREEN
+    if (!AppExecFwk::CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Non-system app");
+        AbilityRuntime::EtsErrorUtil::ThrowError(
+            env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return;
+    }
+#endif
+}
+
 void EtsAppManager::GetRunningMultiAppInfo(ani_env *env, ani_string aniBundleName, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "GetRunningMultiAppInfo called");
@@ -288,19 +312,12 @@ void EtsAppManager::GetRunningMultiAppInfo(ani_env *env, ani_string aniBundleNam
 #ifdef SUPPORT_SCREEN
     if (!AppExecFwk::CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Non-system app");
-        AppExecFwk::AsyncCallback(env, callback,
-            AbilityRuntime::EtsErrorUtil::CreateError(
-                env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP), emptyMultiAppInfo);
         return;
     }
 #endif
     std::string bundleName;
     if (!AppExecFwk::GetStdString(env, aniBundleName, bundleName) || bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetStdString Failed");
-        AppExecFwk::AsyncCallback(env, callback,
-            AbilityRuntime::EtsErrorUtil::CreateError(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM),
-            "Parse param bundleName failed, must be a string."), emptyMultiAppInfo);
         return;
     }
     auto appManager = GetAppManagerInstance();
@@ -1345,6 +1362,8 @@ void EtsAppManagerRegistryInit(ani_env *env)
             "nativeGetRunningMultiAppInfo", nullptr, reinterpret_cast<void *>(EtsAppManager::GetRunningMultiAppInfo)},
         ani_native_function{"nativeGetRunningProcessInfoByBundleName", nullptr,
             reinterpret_cast<void *>(EtsAppManager::GetRunningProcessInfoByBundleName)},
+        ani_native_function{"nativeGetRunningMultiAppInfoCheck", nullptr,
+            reinterpret_cast<void *>(EtsAppManager::GetRunningMultiAppInfoCheck)},
         ani_native_function{"nativeGetRunningProcessInfoByBundleNameAndUserId", nullptr,
             reinterpret_cast<void *>(EtsAppManager::GetRunningProcessInfoByBundleNameAndUserId)},
         ani_native_function {"nativeOn", APPLICATION_STATE_WITH_BUNDLELIST_ON_SIGNATURE,
