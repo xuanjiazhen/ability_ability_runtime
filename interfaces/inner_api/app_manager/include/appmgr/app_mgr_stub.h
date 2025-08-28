@@ -107,6 +107,7 @@ private:
     int32_t HandleUpdateConfigurationForBackgroundApp(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUpdateConfigurationByBundleName(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRegisterConfigurationObserver(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleRegisterConfigurationObserverWithUsrId(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUnregisterConfigurationObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpHeapMemory(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpJsHeapMemory(MessageParcel &data, MessageParcel &reply);
