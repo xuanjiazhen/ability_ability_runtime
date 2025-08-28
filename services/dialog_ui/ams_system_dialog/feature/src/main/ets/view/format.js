@@ -99,3 +99,9 @@ export function removeFormData(formData, fieldName, arrIndex) {
     });
     return jsClone(formData);
 }
+
+export function removeKeyFromObject(obj, keyToRemove) {
+    if (obj.hasOwnProperty(keyToRemove)) {
+        delete obj[keyToRemove];
+    }
+}

@@ -16,7 +16,7 @@
 import { IntentInfo } from './IntentContent';
 import { DetailItem } from './DetailItem';
 import { common, insightIntent, insightIntentDriver } from '@kit.AbilityKit';
-import { format, jsClone, addArrayParams, removeArrayParams, removeFormData } from './format';
+import { format, jsClone, addArrayParams, removeArrayParams, removeFormData, removeKeyFromObject} from './format';
 
 interface propertiesInfo {
   name: string;
@@ -272,7 +272,9 @@ export struct IntentDetailPage {
           this.isShow = true;
         }
       } catch (error) {
-        this.result = 'code: ' + JSON.stringify(error.code) + '\n' + JSON.stringify(param, null, 2);
+        const sanitizedParam: insightIntentDriver.ExecuteParam = JSON.parse(JSON.stringify(param));
+        removeKeyFromObject(sanitizedParam, 'insightIntentParam');
+        this.result = 'code: ' + JSON.stringify(error.code) + '\n' + JSON.stringify(sanitizedParam, null, 2);
         if (this.result != '') {
           this.isShow = true;
         }
