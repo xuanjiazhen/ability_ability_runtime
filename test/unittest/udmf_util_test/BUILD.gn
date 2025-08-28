@@ -49,5 +49,5 @@ ohos_unittest("udmf_utils_test") {
 
 group("unittest") {
   testonly = true
-  deps = [ ":udmf_util_test" ]
+  deps = [ ":udmf_utils_test" ]
 }

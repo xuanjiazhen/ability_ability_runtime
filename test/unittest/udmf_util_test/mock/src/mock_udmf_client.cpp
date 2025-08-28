@@ -55,5 +55,5 @@ int32_t UdmfClient::addPrivilegeRet_ = 0;
 int32_t UdmfClient::privilegeTokenId_ = 10000;
 std::vector<UnifiedData> UdmfClient::unifiedData_ = {};
 std::string UdmfClient::keyAuthority = "";
-} // OHOS
 } // UDMF
+} // OHOS

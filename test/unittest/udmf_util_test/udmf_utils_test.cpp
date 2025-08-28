@@ -26,7 +26,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace AbilityRuntime {
-class UdmfUtilTest : public testing::Test {
+class UdmfUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -34,70 +34,70 @@ public:
     void TearDown();
 };
 
-void UdmfUtilTest::SetUpTestCase() {}
+void UdmfUtilsTest::SetUpTestCase() {}
 
-void UdmfUtilTest::TearDownTestCase() {}
+void UdmfUtilsTest::TearDownTestCase() {}
 
-void UdmfUtilTest::SetUp()
+void UdmfUtilsTest::SetUp()
 {
     UDMF::UdmfClient::Init();
 }
 
-void UdmfUtilTest::TearDown() {}
+void UdmfUtilsTest::TearDown() {}
 
 /*
- * Feature: UdmfUtilTest
+ * Feature: UdmfUtilsTest
  * Function: AddPrivilege_001
  * SubFunction: NA
  */
-HWTEST_F(UdmfUtilTest, AddPrivilege_001, TestSize.Level1)
+HWTEST_F(UdmfUtilsTest, AddPrivilege_001, TestSize.Level1)
 {
     std::string key = "udmfKey";
     uint32_t targetTokenId = 100001;
     std::string readPermission = "";
-    auto ret = UdmfUtil::AddPrivilege(key, targetTokenId, readPermission);
+    auto ret = UdmfUtils::AddPrivilege(key, targetTokenId, readPermission);
     EXPECT_EQ(ret, ERR_OK);
 }
 
 /*
- * Feature: UdmfUtilTest
+ * Feature: UdmfUtilsTest
  * Function: AddPrivilege_002
  * SubFunction: NA
  */
-HWTEST_F(UdmfUtilTest, AddPrivilege_002, TestSize.Level1)
+HWTEST_F(UdmfUtilsTest, AddPrivilege_002, TestSize.Level1)
 {
     std::string key = "udmfKey";
     uint32_t targetTokenId = 100001;
     std::string readPermission = "";
     UDMF::UdmfClient::addPrivilegeRet_ = INNER_ERR;
-    auto ret = UdmfUtil::AddPrivilege(key, targetTokenId, readPermission);
+    auto ret = UdmfUtils::AddPrivilege(key, targetTokenId, readPermission);
     EXPECT_EQ(ret, INNER_ERR);
 }
 
 /*
- * Feature: UdmfUtilTest
+ * Feature: UdmfUtilsTest
  * Function: ProcessUdmfKey_001
  * SubFunction: NA
  */
-HWTEST_F(UdmfUtilTest, ProcessUdmfKey_001, TestSize.Level1)
+HWTEST_F(UdmfUtilsTest, ProcessUdmfKey_001, TestSize.Level1)
 {
     std::string key = "udmfKey";
     uint32_t targetTokenId = 100001;
-    auto ret = UdmfUtil::ProcessUdmfKey(key, targetTokenId);
+    auto ret = UdmfUtils::ProcessUdmfKey(key, targetTokenId);
     EXPECT_EQ(ret, ERR_OK);
 }
 
 /*
- * Feature: UdmfUtilTest
+ * Feature: UdmfUtilsTest
  * Function: ProcessUdmfKey_002
  * SubFunction: NA
  */
-HWTEST_F(UdmfUtilTest, ProcessUdmfKey_002, TestSize.Level1)
+HWTEST_F(UdmfUtilsTest, ProcessUdmfKey_002, TestSize.Level1)
 {
     std::string key = "udmfKey";
     uint32_t targetTokenId = 100001;
     UDMF::UdmfClient::addPrivilegeRet_ = INNER_ERR;
-    auto ret = UdmfUtil::ProcessUdmfKey(key, targetTokenId);
+    auto ret = UdmfUtils::ProcessUdmfKey(key, targetTokenId);
     EXPECT_EQ(ret, ERR_UPMS_ADD_PRIVILEGED_FAILED);
 }
 } // namespace AAFwk

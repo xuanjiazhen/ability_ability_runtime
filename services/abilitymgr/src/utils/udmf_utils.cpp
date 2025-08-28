@@ -46,5 +46,5 @@ int32_t UdmfUtils::ProcessUdmfKey(const std::string &key, uint32_t targetTokenId
     }
     return ERR_OK;
 }
-} // AAFwk
+} // AbilityRuntime
 } // OHOS

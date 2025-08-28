@@ -28,6 +28,6 @@ public:
 private:
     static int32_t AddPrivilege(const std::string &key, uint32_t tokenId, const std::string &readPermission);
 };
-} // AAFwk
+} // AbilityRuntime
 } // OHOS
 #endif // OHOS_ABILITY_RUNTIME_UDMF_UTILS_H
