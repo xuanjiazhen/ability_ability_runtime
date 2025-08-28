@@ -4160,7 +4160,7 @@ export default function audioFramework() {
           done();
           return;
       }
-      console.info(`${TagFrmwk: this is a default device}`)
+      console.info(`${TagFrmwk}: this is a default device`)
       try {
         let flag: boolean | null = null;
         if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER) {
@@ -4217,7 +4217,7 @@ export default function audioFramework() {
           done();
           return;
       }
-      console.info(`${TagFrmwk: this is a default device}`)
+      console.info(`${TagFrmwk}: this is a default device`)
       try {
         await audioManager.setDeviceActive(audio.ActiveDeviceType.SPEAKER, true);
         let value = await audioManager.isDeviceActive(2);
@@ -4258,7 +4258,7 @@ export default function audioFramework() {
           done();
           return;
       }
-      console.info(`${TagFrmwk: this is a default device}`)
+      console.info(`${TagFrmwk}: this is a default device`)
       if (outputDeviceDescription.length == 1 && outputDeviceDescription[0].deviceType == audio.DeviceType.SPEAKER) {
         flag = true;
       }
@@ -4315,7 +4315,7 @@ export default function audioFramework() {
           done();
           return;
       }
-      console.info(`${TagFrmwk: this is a default device}`)
+      console.info(`${TagFrmwk}: this is a default device`)
       audioManager.setDeviceActive(audio.ActiveDeviceType.SPEAKER, true, (err) => {
         if (err) {
           console.error(`${TagFrmwk}: Device Test: Callback : setDeviceActive : SPEAKER: Active: Error: ${err.message}`);
