@@ -20,7 +20,8 @@
             "run-command": [
                 "power-shell wakeup",
                 "power-shell setmode 602",
-                "power-shell timeout -o 864000000"
+                "power-shell timeout -o 864000000",
+                "uitest dumpLayout"
             ]
         }
     ]
