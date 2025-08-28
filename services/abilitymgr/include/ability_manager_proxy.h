@@ -215,7 +215,18 @@ public:
         const sptr<IRemoteObject> &callerToken,
         int requestCode = DEFAULT_INVAL_VALUE,
         int32_t userId = DEFAULT_INVAL_VALUE) override;
-
+    
+    /**
+     * Start ui session ability with windowId and want.
+     *
+     * @param primaryWindowId the id of sourceWindow.
+     * @param secondaryWant the want of the ability to start.
+     * @param callerToken current caller ability token.
+     * @return Returns ERR_OK if success.
+     */
+    ErrCode StartUIAbilitiesInSplitWindowMode(int32_t primaryWindowId, const AAFwk::Want &secondaryWant,
+        sptr<IRemoteObject> callerToken) override;
+    
     /**
      * Start UI abilities simultaneously.
      *
