@@ -29,6 +29,8 @@ napi_value OH_OHNativeErrorCodeBufferSupport(napi_env env, napi_callback_info in
 napi_value OH_Drawing_BufferHDIError(napi_env env, napi_callback_info info);
 napi_value OH_OHNativeErrorCodeImageSupport(napi_env env, napi_callback_info info);
 napi_value OH_OHNativeErrorCodeImageNoBuffer(napi_env env, napi_callback_info info);
+napi_value OH_NativeImage_ErrCodeBUFFER_STATE_INVALID(napi_env env, napi_callback_info info);
+napi_value OH_NativeImage_ErrCodeBUFFER_NOT_IN_CACHE(napi_env env, napi_callback_info info);
 napi_value OH_OHNativeErrorCodeVSyncOk(napi_env env, napi_callback_info info);
 napi_value OH_OHNativeErrorCodeVSyncInvalid(napi_env env, napi_callback_info info);
 napi_value OH_OHNativeErrorCodeWindowOk(napi_env env, napi_callback_info info);
@@ -36,6 +38,7 @@ napi_value OH_OHNativeErrorCodeWindowInvalid(napi_env env, napi_callback_info in
 napi_value OH_NativeErrorCodeWindowUNKNOW(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_DrawingErrorCodeSuccess(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_LineTypographyGetLineBreakInvalue(napi_env env, napi_callback_info info);
+napi_value OH_Drawing_LineTypographyCreateLineInvalue(napi_env env, napi_callback_info info);
 napi_value EffectTileModeREPEATSuccess(napi_env env, napi_callback_info info);
 napi_value EffectTileModeMIRRORSuccess(napi_env env, napi_callback_info info);
 napi_value EffectTileModeDECALSuccess(napi_env env, napi_callback_info info);

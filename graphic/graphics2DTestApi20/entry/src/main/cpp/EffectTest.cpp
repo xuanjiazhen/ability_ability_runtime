@@ -54,7 +54,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     napi_value result;
     OH_Filter* filter;
     EffectErrorCode errCode = OH_Filter_CreateEffect(nullptr, &filter);
-    napi_create_int32(env,  errCode == EFFECT_BAD_PARAMETER, &result);
+    napi_create_int32(env, errCode == EFFECT_BAD_PARAMETER, &result);
     return result;
 }
  napi_value OH_Filter_ReleaseFail(napi_env env, napi_callback_info info)
@@ -62,7 +62,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     napi_value result;
     OH_Filter* filter = nullptr;
     EffectErrorCode errCode = OH_Filter_Release(filter);
-    napi_create_int32(env,  errCode == EFFECT_BAD_PARAMETER, &result);
+    napi_create_int32(env, errCode == EFFECT_BAD_PARAMETER, &result);
     return result;
 }
 
@@ -88,7 +88,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     OH_Filter_CreateEffect(pixelMapNative, &filter);
     EffectErrorCode errCode = OH_Filter_BlurWithTileMode(filter, radius, REPEAT);
 
-    napi_create_int32(env,  errCode == EFFECT_SUCCESS, &result);
+    napi_create_int32(env, errCode == EFFECT_SUCCESS, &result);
     return result;
 }
 
@@ -99,7 +99,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     float radius = 10;
     EffectErrorCode errCode = OH_Filter_BlurWithTileMode(filter, radius, REPEAT);
     OH_Filter_Blur(filter, radius);
-    napi_create_int32(env,  errCode == EFFECT_BAD_PARAMETER, &result);
+    napi_create_int32(env, errCode == EFFECT_BAD_PARAMETER, &result);
     return result;
 }
 
@@ -117,7 +117,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     OH_NativeImage* image = OH_NativeImage_Create(0, 0);
     float matrix[16] = {0};
     int32_t  errorCode =  OH_NativeImage_GetTransformMatrixV2(nullptr, matrix);
-    napi_create_int32(env,  errorCode == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
+    napi_create_int32(env, errorCode == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
 }
 
@@ -128,7 +128,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     OHNativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = 0;
     int32_t  errorCode = OH_NativeImage_AcquireNativeWindowBuffer(image, &nativeWindowBuffer, &fenceFd);
-    napi_create_int32(env,  errorCode == NATIVE_ERROR_NO_BUFFER, &result);
+    napi_create_int32(env, errorCode == NATIVE_ERROR_NO_BUFFER, &result);
     return result;
 }
 
@@ -136,7 +136,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
 {
     napi_value result;
     int32_t  errorCode =  OH_NativeImage_AcquireNativeWindowBuffer(nullptr, nullptr, nullptr);
-    napi_create_int32(env,  errorCode == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
+    napi_create_int32(env, errorCode == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
 }
 
@@ -144,7 +144,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
 {
     napi_value result;
     int32_t  errorCode =  OH_NativeImage_ReleaseNativeWindowBuffer(nullptr, nullptr, 0);
-    napi_create_int32(env,  errorCode == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
+    napi_create_int32(env, errorCode == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
 }
 
@@ -155,6 +155,6 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     OHNativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = 0;
     int32_t  errorCode = OH_NativeImage_SetDropBufferMode(image, true);
-    napi_create_int32(env,  errorCode == NATIVE_ERROR_OK, &result);
+    napi_create_int32(env, errorCode == NATIVE_ERROR_OK, &result);
     return result;
 }

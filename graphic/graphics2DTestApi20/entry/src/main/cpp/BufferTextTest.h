@@ -46,5 +46,9 @@ napi_value BufferHandleReserveFds(napi_env env, napi_callback_info info);
 napi_value BufferHandleReserveInts(napi_env env, napi_callback_info info);
 napi_value BufferHandleReserve(napi_env env, napi_callback_info info);
 napi_value OH_NativeBuffer_PlanesSuccess(napi_env env, napi_callback_info info);
+napi_value OH_NativeBuffer_PlaneCount(napi_env env, napi_callback_info info);
+napi_value OH_NativeBuffer_PlaneOffset(napi_env env, napi_callback_info info);
+napi_value OH_NativeBuffer_PlaneColumnStride(napi_env env, napi_callback_info info);
+napi_value OH_NativeBuffer_PlaneRowStride(napi_env env, napi_callback_info info);
 napi_value OH_NativeBuffer_PlanesSuccess2(napi_env env, napi_callback_info info);
 #endif //BUFFER_TEXT_TEST_H

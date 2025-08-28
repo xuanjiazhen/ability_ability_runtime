@@ -18,6 +18,7 @@
 #include "CanvasPenTest.h"
 #include "ColorSpaceNameTest.h"
 #include "EffectShareTest.h"
+#include "ErrorCodeWindowTest.h"
 #include "EffectTest.h"
 #include "ErrorCodeTest.h"
 #include "ExternalWindowTest.h"
@@ -43,6 +44,7 @@ static napi_value Init(napi_env env, napi_value exports)
     addVSyncFenceTest(descData);
     addErrorCodeTest(descData);
     addEffectShareTest(descData);
+    addErrorCodeWindowTest(descData);
     addTypographyTest(descData);
     napi_define_properties(env, exports, descData.size(), descData.data());
     return exports;

@@ -24,6 +24,7 @@ import ExternalWindowTest from './ExternalWindowTest.test'
 import ErrorCodeTest from './ErrorCodeTest.test.ets'
 import VSyncFenceTest from './VSyncFenceTest.test.ets'
 import EffectShareTest from './EffectShareTest.test.ets'
+import ErrorCodeWindowTest from './ErrorCodeWindowTest.test.ets'
 import TypographyTest from './TypographyTest.test.ets'
 
 export default function testsuite() {
@@ -38,5 +39,6 @@ export default function testsuite() {
   ErrorCodeTest()
   VSyncFenceTest()
   EffectShareTest()
+  ErrorCodeWindowTest()
   TypographyTest()
 }

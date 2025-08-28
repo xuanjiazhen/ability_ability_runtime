@@ -52,6 +52,18 @@ void addBufferTextTest1(std::vector<napi_property_descriptor>& descData)
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"systemFontTypeSuccess", nullptr, OH_Drawing_SystemFontTypeSuccess,
             nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"nativeBufferPlanesSuccess", nullptr, OH_NativeBuffer_PlanesSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"nativeBufferPlaneCount", nullptr, OH_NativeBuffer_PlaneCount,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"nativeBuffer_PlaneOffset", nullptr, OH_NativeBuffer_PlaneOffset,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"nativeBuffer_PlaneColumnStride", nullptr, OH_NativeBuffer_PlaneColumnStride,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"nativeBuffer_PlaneRowStride", nullptr, OH_NativeBuffer_PlaneRowStride,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"nativeBuffer_PlanesSuccess2", nullptr, OH_NativeBuffer_PlanesSuccess2,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
 {
@@ -80,8 +92,6 @@ void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"BufferHandleReserveInts", nullptr, BufferHandleReserveInts,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"BufferHandleReserve", nullptr, BufferHandleReserve,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"nativeBufferPlanesSuccess", nullptr, OH_NativeBuffer_PlanesSuccess2,
             nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
@@ -510,7 +520,17 @@ napi_value BufferHandleReserve(napi_env env, napi_callback_info info)
     napi_create_int32(env, handle->reserve != nullptr, &result);
     return result;
 }
-
+OH_NativeBuffer_Planes newPlanes()
+{
+    OH_NativeBuffer_Planes p;
+    p.planeCount = sizeof(p.planes) / sizeof(OH_NativeBuffer_Plane);
+    for (int i = 0; i < p.planeCount; i++) {
+        p.planes[i].columnStride = 0;
+        p.planes[i].offset = 0;
+        p.planes[i].rowStride = 0;
+    }
+    return p;
+}
 napi_value OH_NativeBuffer_PlanesSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -531,6 +551,7 @@ napi_value OH_NativeBuffer_PlanesSuccess(napi_env env, napi_callback_info info)
     
     OHNativeWindowBuffer *windowBuffer = nullptr;
     int fd;
+    int pCount = 4;
     float matrix[16] = {
         0, -0.5, 0, 0,
         -0.5, 0, 0, 0,
@@ -541,13 +562,160 @@ napi_value OH_NativeBuffer_PlanesSuccess(napi_env env, napi_callback_info info)
     int32_t err0 = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &windowBuffer, &fd);
     int32_t err1 = OH_NativeBuffer_FromNativeWindowBuffer(windowBuffer, &nativebuffer);
     OH_NativeBuffer_Config bufferConfig;
-    OH_NativeBuffer_Planes ww;
-    void *addr;
-    int wee  = OH_NativeBuffer_MapPlanes(nativebuffer, &addr, &ww);
-    napi_create_int32(env, true, &result);
+    OH_NativeBuffer_Planes ww = newPlanes();
+    void *addr = nullptr;
+    int wee = OH_NativeBuffer_MapPlanes(nativebuffer, &addr, &ww);
+    napi_create_int32(env, ww.planeCount == pCount, &result);
     return result;
 }
-
+napi_value OH_NativeBuffer_PlaneCount(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    GLuint textureId = 0;
+    OH_NativeImage *nativeImage = OH_NativeImage_Create(textureId, GL_TEXTURE_BINDING_2D);
+    OH_NativeImage_AttachContext(nativeImage, textureId);
+    OH_OnFrameAvailableListener listener;
+    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage, listener);
+    OHNativeWindow *nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
+    
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t height = 0x100;
+    int32_t width = 0x100;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, height, width);
+    code = SET_FORMAT;
+    int32_t format = NATIVEBUFFER_PIXEL_FMT_BGRA_8888;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
+    
+    OHNativeWindowBuffer *windowBuffer = nullptr;
+    int fd;
+    int pCount = 4;
+    float matrix[16] = {
+        0, -0.5, 0, 0,
+        -0.5, 0, 0, 0,
+        0, 0, 1, 0,
+        1, 1, 0, 1
+    };
+    OH_NativeBuffer *nativebuffer = nullptr;
+    int32_t err0 = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &windowBuffer, &fd);
+    int32_t err1 = OH_NativeBuffer_FromNativeWindowBuffer(windowBuffer, &nativebuffer);
+    OH_NativeBuffer_Config bufferConfig;
+    OH_NativeBuffer_Planes ww = newPlanes();
+    void *addr = nullptr;
+    int wee = OH_NativeBuffer_MapPlanes(nativebuffer, &addr, &ww);
+    napi_create_int32(env, ww.planeCount == pCount, &result);
+    return result;
+}
+napi_value OH_NativeBuffer_PlaneOffset(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    GLuint textureId = 0;
+    OH_NativeImage *nativeImage = OH_NativeImage_Create(textureId, GL_TEXTURE_BINDING_2D);
+    OH_NativeImage_AttachContext(nativeImage, textureId);
+    OH_OnFrameAvailableListener listener;
+    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage, listener);
+    OHNativeWindow *nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
+    
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t height = 0x100;
+    int32_t width = 0x100;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, height, width);
+    code = SET_FORMAT;
+    int32_t format = NATIVEBUFFER_PIXEL_FMT_BGRA_8888;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
+    
+    OHNativeWindowBuffer *windowBuffer = nullptr;
+    int fd;
+    int pCount = 4;
+    float matrix[16] = {
+        0, -0.5, 0, 0,
+        -0.5, 0, 0, 0,
+        0, 0, 1, 0,
+        1, 1, 0, 1
+    };
+    OH_NativeBuffer *nativebuffer = nullptr;
+    int32_t err0 = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &windowBuffer, &fd);
+    int32_t err1 = OH_NativeBuffer_FromNativeWindowBuffer(windowBuffer, &nativebuffer);
+    OH_NativeBuffer_Config bufferConfig;
+    OH_NativeBuffer_Planes ww = newPlanes();
+    void *addr = nullptr;
+    int wee = OH_NativeBuffer_MapPlanes(nativebuffer, &addr, &ww);
+    napi_create_int32(env, ww.planes[0].offset == 0, &result);
+    return result;
+}
+napi_value OH_NativeBuffer_PlaneColumnStride(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    GLuint textureId = 0;
+    OH_NativeImage *nativeImage = OH_NativeImage_Create(textureId, GL_TEXTURE_BINDING_2D);
+    OH_NativeImage_AttachContext(nativeImage, textureId);
+    OH_OnFrameAvailableListener listener;
+    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage, listener);
+    OHNativeWindow *nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
+    
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t height = 0x100;
+    int32_t width = 0x100;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, height, width);
+    code = SET_FORMAT;
+    int32_t format = NATIVEBUFFER_PIXEL_FMT_BGRA_8888;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
+    
+    OHNativeWindowBuffer *windowBuffer = nullptr;
+    int fd;
+    int pCount = 4;
+    float matrix[16] = {
+        0, -0.5, 0, 0,
+        -0.5, 0, 0, 0,
+        0, 0, 1, 0,
+        1, 1, 0, 1
+    };
+    OH_NativeBuffer *nativebuffer = nullptr;
+    int32_t err0 = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &windowBuffer, &fd);
+    int32_t err1 = OH_NativeBuffer_FromNativeWindowBuffer(windowBuffer, &nativebuffer);
+    OH_NativeBuffer_Config bufferConfig;
+    OH_NativeBuffer_Planes ww = newPlanes();
+    void *addr = nullptr;
+    int wee = OH_NativeBuffer_MapPlanes(nativebuffer, &addr, &ww);
+    napi_create_int32(env, ww.planes[0].columnStride == 0, &result);
+    return result;
+}
+napi_value OH_NativeBuffer_PlaneRowStride(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    GLuint textureId = 0;
+    OH_NativeImage *nativeImage = OH_NativeImage_Create(textureId, GL_TEXTURE_BINDING_2D);
+    OH_NativeImage_AttachContext(nativeImage, textureId);
+    OH_OnFrameAvailableListener listener;
+    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage, listener);
+    OHNativeWindow *nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
+    
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t height = 0x100;
+    int32_t width = 0x100;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, height, width);
+    code = SET_FORMAT;
+    int32_t format = NATIVEBUFFER_PIXEL_FMT_BGRA_8888;
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
+    
+    OHNativeWindowBuffer *windowBuffer = nullptr;
+    int fd;
+    int pCount = 4;
+    float matrix[16] = {
+        0, -0.5, 0, 0,
+        -0.5, 0, 0, 0,
+        0, 0, 1, 0,
+        1, 1, 0, 1
+    };
+    OH_NativeBuffer *nativebuffer = nullptr;
+    int32_t err0 = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &windowBuffer, &fd);
+    int32_t err1 = OH_NativeBuffer_FromNativeWindowBuffer(windowBuffer, &nativebuffer);
+    OH_NativeBuffer_Config bufferConfig;
+    OH_NativeBuffer_Planes ww = newPlanes();
+    void *addr = nullptr;
+    int wee = OH_NativeBuffer_MapPlanes(nativebuffer, &addr, &ww);
+    napi_create_int32(env, ww.planes[0].rowStride == 0, &result);
+    return result;
+}
 napi_value OH_NativeBuffer_PlanesSuccess2(napi_env env, napi_callback_info info)
 {
     napi_value result;
