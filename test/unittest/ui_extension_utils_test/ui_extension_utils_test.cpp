@@ -115,7 +115,7 @@ HWTEST_F(UIExtensionUtilsTest, IsProcessUdkeyExtension_0100, TestSize.Level0)
     bool result = UIExtensionUtils::IsProcessUdkeyExtension(extensionAbilityType);
     EXPECT_FALSE(result);
 
-    AppExecFwk::ExtensionAbilityType extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSPICKER_FILEPICKER;
+    extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSPICKER_FILEPICKER;
     bool result = UIExtensionUtils::IsProcessUdkeyExtension(extensionAbilityType);
     EXPECT_TRUE(result);
 }
