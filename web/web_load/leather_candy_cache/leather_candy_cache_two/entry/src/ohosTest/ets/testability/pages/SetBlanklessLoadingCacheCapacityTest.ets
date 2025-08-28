@@ -88,6 +88,7 @@ struct setBlanklessLoadingCacheCapacityTest {
                 let msg = 'testsetBlanklessLoadingCacheCapacity001'
                 try {
                   let cacheCapacity = webview.WebviewController.setBlanklessLoadingCacheCapacity(-1);
+                  console.log(msg, `入参:-1`,`预期值：0`,`实际值${cacheCapacity}`);
                   console.log(msg, 'cacheCapacity:' + cacheCapacity)
                   Utils.emitEvent(cacheCapacity, 148210)
                 } catch (error) {
@@ -105,6 +106,7 @@ struct setBlanklessLoadingCacheCapacityTest {
                 let msg = 'testsetBlanklessLoadingCacheCapacity002'
                 try {
                   let cacheCapacity = webview.WebviewController.setBlanklessLoadingCacheCapacity(0);
+                  console.log(msg, `入参:0`,`预期值：0`,`实际值${cacheCapacity}`);
                   console.log(msg, 'cacheCapacity:' + cacheCapacity)
                   Utils.emitEvent(cacheCapacity, 148220)
                 } catch (error) {
@@ -122,6 +124,7 @@ struct setBlanklessLoadingCacheCapacityTest {
                 let msg = 'testsetBlanklessLoadingCacheCapacity003'
                 try {
                   let cacheCapacity = webview.WebviewController.setBlanklessLoadingCacheCapacity(50);
+                  console.log(msg, `入参:50`,`预期值：50`,`实际值${cacheCapacity}`);
                   console.log(msg, 'CacheCapacity:' + cacheCapacity)
                   Utils.emitEvent(cacheCapacity, 148230)
                 } catch (error) {
@@ -139,6 +142,7 @@ struct setBlanklessLoadingCacheCapacityTest {
                 let msg = 'testsetBlanklessLoadingCacheCapacity004'
                 try {
                   let cacheCapacity = webview.WebviewController.setBlanklessLoadingCacheCapacity(101);
+                  console.log(msg, `入参:101`,`预期值：100`,`实际值${cacheCapacity}`);
                   console.log(msg, 'cacheCapacity:' + cacheCapacity)
                   Utils.emitEvent(cacheCapacity, 148240)
                 } catch (error) {
@@ -156,6 +160,7 @@ struct setBlanklessLoadingCacheCapacityTest {
                 try {
                   let cacheCapacity = webview.WebviewController.setBlanklessLoadingCacheCapacity(null);
                 } catch (error) {
+                  console.log(msg, `入参:null`,`预期值：401`,`实际值${error.code}`);
                   Utils.emitEvent(401, 148250)
                   console.error(`${msg} ErrorCode: ${error.code},  Message: ${error.message}`);
                 }
@@ -165,6 +170,7 @@ struct setBlanklessLoadingCacheCapacityTest {
                 let msg = 'testsetBlanklessLoadingCacheCapacity006'
                 try {
                   let cacheCapacity: number = testNapi.setCacheCapacity_1(this.webTag)
+                  console.log(msg, `入参:-1`,`预期值：100`,`实际值${cacheCapacity}`);
                   console.log(msg, 'CacheCapacity:' + cacheCapacity)
                   if (cacheCapacity == 0) {
                     Utils.emitEvent(100, 148260)
@@ -179,6 +185,7 @@ struct setBlanklessLoadingCacheCapacityTest {
               case 'testsetBlanklessLoadingCacheCapacity007': {
                 let msg = 'testsetBlanklessLoadingCacheCapacity007'
                 let cacheCapacity: number = testNapi.setCacheCapacity0(this.webTag)
+                console.log(msg, `入参:0`,`预期值：0`,`实际值${cacheCapacity}`);
                 Utils.emitEvent(cacheCapacity, 148270)
                 console.log(msg, 'CacheCapacity:' + cacheCapacity)
                 break;
@@ -186,6 +193,7 @@ struct setBlanklessLoadingCacheCapacityTest {
               case 'testsetBlanklessLoadingCacheCapacity008': {
                 let msg = 'testsetBlanklessLoadingCacheCapacity008'
                 let cacheCapacity: number = testNapi.setCacheCapacity50(this.webTag)
+                console.log(msg, `入参:-50`,`预期值：50`,`实际值${cacheCapacity}`);
                 console.log(msg, 'CacheCapacity:' + cacheCapacity)
                 if (cacheCapacity == 0) {
                   Utils.emitEvent(50, 148280)
@@ -197,6 +205,7 @@ struct setBlanklessLoadingCacheCapacityTest {
               case 'testsetBlanklessLoadingCacheCapacity009': {
                 let msg = 'testsetBlanklessLoadingCacheCapacity009'
                 let cacheCapacity: number = testNapi.setCacheCapacity101(this.webTag)
+                console.log(msg, `入参:101`,`预期值：100`,`实际值${cacheCapacity}`);
                 console.log(msg, 'CacheCapacity:' + cacheCapacity)
                 if (cacheCapacity == 0) {
                   Utils.emitEvent(100, 148290)
