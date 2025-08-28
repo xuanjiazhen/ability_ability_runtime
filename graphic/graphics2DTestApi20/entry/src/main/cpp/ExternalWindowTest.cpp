@@ -79,13 +79,13 @@ void addExternalWindowTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"testNativeWindowGLFlushedBufferV2Success", nullptr, testNativeWindowGLFlushedBufferV2Success,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeWindowGLFBufferV2InvalidArguments", nullptr,
-                        testNativeWindowGLFBufferV2InvalidArguments, nullptr, nullptr, nullptr, napi_default, nullptr});
+        testNativeWindowGLFBufferV2InvalidArguments, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeWindowSetColorSpaceSuccess", nullptr, testNativeWindowSetColorSpaceSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeWindowSetColorSpaceInvalidArguments", nullptr,
-                        testNativeWindowSetColorSpaceInvalidArguments, nullptr, nullptr, nullptr, napi_default, nullptr});
+        testNativeWindowSetColorSpaceInvalidArguments, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeWindowGetColorSpaceInvalidArguments", nullptr,
-                        testNativeWindowGetColorSpaceInvalidArguments, nullptr, nullptr, nullptr, napi_default, nullptr});
+        testNativeWindowGetColorSpaceInvalidArguments, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeWindowSetMVSuccess", nullptr, testNativeWindowSetMVSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeWindowSetMVInvalidArguments", nullptr, testNativeWindowSetMVInvalidArguments,
@@ -97,11 +97,11 @@ void addExternalWindowTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"testNativeWindowGetMVUnsupported", nullptr, testNativeWindowGetMVUnsupported,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeWindowCleanCacheInvalidArguments", nullptr,
-                        testNativeWindowCleanCacheInvalidArguments, nullptr, nullptr, nullptr, napi_default, nullptr});
+        testNativeWindowCleanCacheInvalidArguments, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeWindowCleanCacheConsumerDisconnected", nullptr,
-                        testNativeWindowCleanCacheConsumerDisconnected, nullptr, nullptr, nullptr, napi_default, nullptr});
+        testNativeWindowCleanCacheConsumerDisconnected, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testNativeWindowGLFlushedBufferV2BUFFERSTATEINVALID", nullptr,
-                        testNativeWindowGLFlushedBufferV2BUFFERSTATEINVALID, nullptr, nullptr, nullptr, napi_default, nullptr});
+        testNativeWindowGLFlushedBufferV2BUFFERSTATEINVALID, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
 napi_value testOHScalingModeToWindow(napi_env env, napi_callback_info info)
@@ -502,9 +502,9 @@ napi_value testNativeWindowSetMVSuccess(napi_env env, napi_callback_info info)
     InitNativeWindow* initNative = new InitNativeWindow();
     OHNativeWindow *nativeWindow = nullptr;
     nativeWindow = initNative->returnNativeWindow();
-    int32_t X = CONSTANT_2999;
+    int32_t xValue = CONSTANT_2999;
     uint8_t metaData[CONSTANT_60];
-    int32_t res = OH_NativeWindow_SetMetadataValue(nativeWindow, OH_HDR_DYNAMIC_METADATA, X, metaData);
+    int32_t res = OH_NativeWindow_SetMetadataValue(nativeWindow, OH_HDR_DYNAMIC_METADATA, xValue, metaData);
     napi_create_int32(env, res == NATIVE_ERROR_OK ? 0 : -1, &result);
     return result;
 }
@@ -515,8 +515,8 @@ napi_value testNativeWindowSetMVInvalidArguments(napi_env env, napi_callback_inf
     InitNativeWindow* initNative = new InitNativeWindow();
     OHNativeWindow *nativeWindow = nullptr;
     nativeWindow = initNative->returnNativeWindow();
-    int32_t X = CONSTANT_2999;
-    int32_t res = OH_NativeWindow_SetMetadataValue(nativeWindow, OH_HDR_DYNAMIC_METADATA, X, NULL);
+    int32_t xValue = CONSTANT_2999;
+    int32_t res = OH_NativeWindow_SetMetadataValue(nativeWindow, OH_HDR_DYNAMIC_METADATA, xValue, NULL);
     napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS ? 0 : -1, &result);
     return result;
 }
@@ -529,9 +529,9 @@ napi_value testNativeWindowGetMVSuccess(napi_env env, napi_callback_info info)
     InitNativeWindow* initNative = new InitNativeWindow();
     OHNativeWindow *nativeWindow = nullptr;
     nativeWindow = initNative->returnNativeWindow();
-    int32_t X = CONSTANT_2999;
+    int32_t xValue = CONSTANT_2999;
     uint8_t metaData[CONSTANT_60];
-    int32_t res = OH_NativeWindow_SetMetadataValue(nativeWindow, OH_HDR_DYNAMIC_METADATA, X, metaData);
+    int32_t res = OH_NativeWindow_SetMetadataValue(nativeWindow, OH_HDR_DYNAMIC_METADATA, xValue, metaData);
     res = OH_NativeWindow_GetMetadataValue(nativeWindow, OH_HDR_DYNAMIC_METADATA, &bufferSize, &buffer);
     napi_create_int32(env, res == NATIVE_ERROR_OK ? 0 : -1, &result);
     return result;
