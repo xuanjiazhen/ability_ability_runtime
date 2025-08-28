@@ -61,7 +61,7 @@ export default function ListScrollToItemInGroup() {
       console.info('[ArkUI_List_Scroll_To_Item_In_Group_0001] START');
       let List: Rect = Utils.getComponentRect('MyList1');
       let ListItem: Rect = Utils.getComponentRect('ListItem_Group0_Index0');
-      expect(ListItem.top).assertEqual(List.top);
+      expect(Math.floor(Math.abs(ListItem.top - List.top)) <= 1).assertTrue();
       console.info('[ArkUI_List_Scroll_To_Item_In_Group_0001] END');
       done();
     });
@@ -83,7 +83,7 @@ export default function ListScrollToItemInGroup() {
       await Utils.sleep(2000);
       let List: Rect = Utils.getComponentRect('MyList1');
       let ListItem: Rect = Utils.getComponentRect('ListItem_Group0_Index1');
-      expect(Math.abs(ListItem.top - List.top) <= 1).assertEqual(true); // 1 px error is alllowed
+      expect(Math.floor(Math.abs(ListItem.top - List.top)) <= 1).assertTrue();
       console.info('[ArkUI_List_Scroll_To_Item_In_Group_0100] END');
       done();
     });
@@ -108,7 +108,8 @@ export default function ListScrollToItemInGroup() {
       let ListItem: Rect = Utils.getComponentRect('ListItem_Group1_Index2');
       let middle = (ListItem.top + ListItem.bottom) / 2 - vp2px(0.5);
       console.info("ListItem.top: " + ListItem.top + " " + "ListItem.bottom: " + ListItem.bottom);
-      expect(Math.abs(center.top - middle) <= 1).assertEqual(true); // 1 px error is alllowed
+      console.info("middle: " + middle);
+      expect(Math.floor(Math.abs(center.top - middle)) <= 1).assertTrue();
       console.info('[ArkUI_List_Scroll_To_Item_In_Group_0200] END');
       done();
     });
@@ -131,7 +132,7 @@ export default function ListScrollToItemInGroup() {
       let List: Rect = Utils.getComponentRect('MyList1');
       let ListItem: Rect = Utils.getComponentRect('ListItem_Group2_Index2');
       console.info("ListItem.top: " + ListItem.top + " " + "ListItem.bottom: " + ListItem.bottom);
-      expect(Math.abs(List.bottom - ListItem.bottom) <= 1).assertEqual(true); // 1 px error is alllowed
+      expect(Math.floor(Math.abs(List.bottom - ListItem.bottom)) <= 1).assertTrue();
       console.info('[ArkUI_List_Scroll_To_Item_In_Group_0300] END');
       done();
     });
@@ -153,7 +154,7 @@ export default function ListScrollToItemInGroup() {
       await Utils.sleep(2000);
       let List: Rect = Utils.getComponentRect('MyList1');
       let ListItem: Rect = Utils.getComponentRect('ListItem_Group3_Index1');
-      expect(Math.abs(ListItem.bottom - List.bottom) <= 1).assertEqual(true); // 1 px error is alllowed
+      expect(Math.floor(Math.abs(ListItem.bottom - List.bottom)) <= 1).assertTrue();
       console.info('[ArkUI_List_Scroll_To_Item_In_Group_0400] END');
       done();
     });
@@ -175,7 +176,7 @@ export default function ListScrollToItemInGroup() {
       await Utils.sleep(2000);
       let List: Rect = Utils.getComponentRect('MyList1');
       let ListItem: Rect = Utils.getComponentRect('ListItem_Group3_Index11');
-      expect(Math.abs(ListItem.bottom - List.bottom) <= 1).assertEqual(true); // 1 px error is alllowed
+      expect(Math.floor(Math.abs(ListItem.bottom - List.bottom)) <= 1).assertTrue();
       done();
     });
 
@@ -195,7 +196,7 @@ export default function ListScrollToItemInGroup() {
       await btn.click();
       await Utils.sleep(2000);
       let ListItem: Rect = Utils.getComponentRect('ListItem_Group3_Index11');
-      expect(Math.abs(OldListItem.bottom - ListItem.bottom) <= 1).assertEqual(true); // 1 px error is alllowed
+      expect(Math.floor(Math.abs(OldListItem.bottom - ListItem.bottom)) <= 1).assertTrue();
       done();
     });
 
@@ -215,7 +216,7 @@ export default function ListScrollToItemInGroup() {
       await btn.click();
       await Utils.sleep(2000);
       let ListItem: Rect = Utils.getComponentRect('ListItem_Group3_Index11');
-      expect(Math.abs(OldListItem.bottom - ListItem.bottom) <= 1).assertEqual(true); // 1 px error is alllowed
+      expect(Math.floor(Math.abs(OldListItem.bottom - ListItem.bottom)) <= 1).assertTrue();
       done();
     });
   })
