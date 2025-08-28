@@ -1005,10 +1005,10 @@ describe('cloud_sync_test', () => {
      done();
    });
 
-      /**
+   /**
    * @tc.number SUB_STORAGE_CLOUDSYNC_TEST_3700
    * @tc.name test_cloudSync_State_037
-   * @tc.desc function of API, CloudFileCache.on, DownloadErrorType.REMOTE_SERVER_ABNORMAL
+   * @tc.desc function of API, on_progress, ErrorType.REMOTE_SERVER_ABNORMAL
    * @tc.size MediumTest
    * @tc.type Function
    * @tc.level Level 3
@@ -1017,12 +1017,13 @@ describe('cloud_sync_test', () => {
    it('test_cloudSync_State_037', Level.LEVEL3, async (done: Function) => {
      
      try {
-      let fileCache = new cloudSync.CloudFileCache();
-      let callback = (pg: cloudSync.DownloadProgress) => {
-        console.info("download state：" + pg.error);
-        expect(cloudSync.DownloadErrorType.REMOTE_SERVER_ABNORMAL == 8).assertTrue();
-      };
-      fileCache.on('progress', callback);
+      let fileSync = new cloudSync.FileSync();
+      let callback = (pg: cloudSync.SyncProgress) => {
+        console.log('test_cloudSync_State_037 file sync state： ' + pg.state + "error type:" + pg.error);
+        expect(cloudSync.ErrorType.REMOTE_SERVER_ABNORMAL == 8).assertTrue();
+      }
+      fileSync.on('progress', callback);
+      fileSync.off('progress', callback);
       expect(true).assertTrue();
      } catch (err) {
        console.log('test_cloudSync_State_037 has failed for ' + err.message + ', code: ' + err.code);
@@ -1030,6 +1031,5 @@ describe('cloud_sync_test', () => {
      }
      done();
    });
-
   });
 }
