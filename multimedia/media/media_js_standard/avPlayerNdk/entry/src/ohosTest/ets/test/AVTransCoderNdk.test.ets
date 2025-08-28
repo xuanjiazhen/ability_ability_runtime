@@ -305,10 +305,10 @@ export default function AVTransCoderNdkTest() {
       await closeFileFd(avFd.fd);
       let isSupport = await myavcapability.AVCapabilityIsVideoSizeSupported(7680, 4320);
       if (isSupport == -1) {
-        console.info(`${testNum} AVCapabilityIsVideoSizeSupported Failed`);
+        console.info(`AVCapabilityIsVideoSizeSupported Failed`);
         expect(ret).assertEqual(OH_AVErrCode.AV_ERR_IO);
       } else {
-        console.info(`${testNum} AVCapabilityIsVideoSizeSupported Success`);
+        console.info(`AVCapabilityIsVideoSizeSupported Success`);
         expect(ret).assertEqual(OH_AVErrCode.AV_ERR_OK);
       }
       done();
