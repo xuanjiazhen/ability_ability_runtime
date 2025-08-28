@@ -102,6 +102,36 @@ static napi_value AVCapabilityIsSupportedMPEG4(napi_env env, napi_callback_info 
     return result;
 }
 
+static napi_value AVCapabilityIsVideoSizeSupported(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    int backParam = FAIL;
+    OH_AVCapability *capability = nullptr;
+    int32_t width = PARAM_1280;
+    int32_t height = PARAM_720;
+    
+    size_t argc = PARAM_2;
+    napi_value args[PARAM_2] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    napi_get_value_int32(env, args[PARAM_0], &width);
+    napi_get_value_int32(env, args[PARAM_1], &height);
+    
+    bool checkParam = -1;
+    capability = OH_AVCodec_GetCapabilityByCategory(OH_AVCODEC_MIMETYPE_VIDEO_AVC, IS_DECODER, HARDWARE);
+    OH_LOG_INFO(LOG_APP, "OH_AVCodec_GetCapabilityByCategory capability=%{public}d", capability);
+    if (capability != nullptr) {
+        OH_LOG_INFO(LOG_APP, "OH_AVCapability_IsVideoSizeSupported width=%{public}d", width);
+        OH_LOG_INFO(LOG_APP, "OH_AVCapability_IsVideoSizeSupported height=%{public}d", height);
+        checkParam = OH_AVCapability_IsVideoSizeSupported(capability, width, height);
+        OH_LOG_INFO(LOG_APP, "OH_AVCapability_IsVideoSizeSupported checkParam=%{public}d", checkParam);
+    }
+    if (checkParam != 0) {
+        OH_LOG_INFO(LOG_APP, "OH_AVCapability_IsVideoSizeSupported Success checkParam=%{public}d", checkParam);
+        backParam = SUCCESS;
+    }
+    napi_create_int32(env, backParam, &result);
+    return result;
+}
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -113,6 +143,8 @@ static napi_value Init(napi_env env, napi_value exports)
         {"AVCapabilityIsSupportedMPEG2", nullptr, AVCapabilityIsSupportedMPEG2, nullptr, nullptr, nullptr,
             napi_default, nullptr},
         {"AVCapabilityIsSupportedMPEG4", nullptr, AVCapabilityIsSupportedMPEG4, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AVCapabilityIsVideoSizeSupported", nullptr, AVCapabilityIsVideoSizeSupported, nullptr, nullptr, nullptr,
             napi_default, nullptr},
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
