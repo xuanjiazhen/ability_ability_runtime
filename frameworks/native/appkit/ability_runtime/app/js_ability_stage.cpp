@@ -224,7 +224,7 @@ void JsAbilityStage::Init(const std::shared_ptr<Context> &context,
     }
 
     if (!jsAbilityStageObj_) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null stage");
+        TAG_LOGW(AAFwkTag::APPKIT, "null stage");
         return;
     }
 
