@@ -41,7 +41,6 @@ export default function PingTraceRouteNDKTest() {
   describe('PingTraceRouteNDKTest', () => {
 
     beforeAll(async (done : Function) => {
-      await clickRequestPermission();
       console.info('beforealltest start');
       done()
     });
