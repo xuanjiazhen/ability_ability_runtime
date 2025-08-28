@@ -994,6 +994,44 @@ HWTEST_F(AppMgrServiceTest, RegisterConfigurationObserver_002, TestSize.Level2)
 
 /*
  * Feature: AppMgrService
+ * Function: RegisterConfigurationObserver
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService RegisterConfigurationObserver
+ * EnvConditions: NA
+ * CaseDescription: Verify RegisterConfigurationObserver
+ */
+HWTEST_F(AppMgrServiceTest, RegisterConfigurationObserver_003, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    int32_t userId = 1;
+    sptr<IConfigurationObserver> observer = nullptr;
+    appMgrService->SetInnerService(nullptr);
+    int32_t res = appMgrService->RegisterConfigurationObserver(observer, userId);
+    EXPECT_EQ(res, ERR_INVALID_OPERATION);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: RegisterConfigurationObserver
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService RegisterConfigurationObserver
+ * EnvConditions: NA
+ * CaseDescription: Verify RegisterConfigurationObserver
+ */
+HWTEST_F(AppMgrServiceTest, RegisterConfigurationObserver_004, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    int32_t userId = 1;
+    sptr<IConfigurationObserver> observer = nullptr;
+    appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
+    int32_t res = appMgrService->RegisterConfigurationObserver(observer, userId);
+    EXPECT_NE(res, ERR_INVALID_OPERATION);
+}
+
+/*
+ * Feature: AppMgrService
  * Function: UnregisterConfigurationObserver
  * SubFunction: NA
  * FunctionPoints: AppMgrService UnregisterConfigurationObserver

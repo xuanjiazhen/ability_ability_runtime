@@ -442,6 +442,14 @@ public:
     virtual AppMgrResultCode RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer);
 
     /**
+     * Register configuration observer with userId.
+     *
+     * @param observer Configuration observer. When configuration changed, observer will be called.
+     * @return Returns RESULT_OK on success, others on failure.
+     */
+    virtual AppMgrResultCode RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer, int userId);
+
+    /**
      * Unregister configuration observer.
      *
      * @param observer Configuration observer.

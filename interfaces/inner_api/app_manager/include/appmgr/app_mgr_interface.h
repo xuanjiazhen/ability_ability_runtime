@@ -489,6 +489,14 @@ public:
     virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer) = 0;
 
     /**
+     * Register configuration observer with userId.
+     *
+     * @param observer Configuration observer. When configuration changed, observer will be called.
+     * @return Returns RESULT_OK on success, others on failure.
+     */
+    virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer, int32_t userId) = 0;
+
+    /**
      * Unregister configuration observer.
      *
      * @param observer Configuration observer.

@@ -908,6 +908,19 @@ AppMgrResultCode AppMgrClient::RegisterConfigurationObserver(const sptr<IConfigu
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
+AppMgrResultCode AppMgrClient::RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer, int32_t userId)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        int32_t result = service->RegisterConfigurationObserver(observer, userId);
+        if (result == ERR_OK) {
+            return AppMgrResultCode::RESULT_OK;
+        }
+        return AppMgrResultCode::ERROR_SERVICE_NOT_READY;
+    }
+    return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+}
+
 AppMgrResultCode AppMgrClient::UnregisterConfigurationObserver(const sptr<IConfigurationObserver> &observer)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
