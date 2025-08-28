@@ -137,19 +137,35 @@ void FinalizeCallbackTest(napi_env env, void *data, void *hint)
 
 napi_value CreateExternalBufferTest(napi_env env, napi_callback_info info)
 {
-    const char* sourceData = TEST_STR;
-    const unsigned int bufferSize = sizeof(TEST_STR);
-    char* copyPtr;
-    napi_value napiBuffer;
-    napi_status status = napi_create_external_buffer(env, bufferSize,
-        (void*)sourceData, FinalizeCallbackTest, (void**)(&copyPtr), &napiBuffer);
-    if (status != napi_ok) {
-        napi_throw_error(env, nullptr, "Failed to create buffer");
+    const size_t bufferSize = sizeof(TEST_STR);
+    void* data = malloc(bufferSize + 1);
+    if (data == nullptr) {
+        napi_throw_error(env, nullptr, "malloc failed");
         return nullptr;
     }
-    NAPI_ASSERT(env, copyPtr, "Unable to duplicate static text for CreateExternalBufferTest.");
-    int ret = memcpy_s(copyPtr, bufferSize, TEST_STR, strlen(TEST_STR) + 1);
-    NAPI_ASSERT(env, ret == 0, "memcpy_s failed");
+    
+    int ret = memset_s(data, bufferSize + 1, 0, bufferSize + 1);
+    if (ret != 0) {
+        free(data);
+        napi_throw_error(env, nullptr, "memset_s failed");
+        return nullptr;
+    }
+    
+    ret = memcpy_s(data, bufferSize, TEST_STR, bufferSize);
+    if (ret != 0) {
+        free(data);
+        napi_throw_error(env, nullptr, "memcpy_s failed");
+        return nullptr;
+    }
+    
+    napi_value napiBuffer = nullptr;
+    napi_status status = napi_create_external_buffer(env, bufferSize,
+        data, FinalizeCallbackTest, nullptr, &napiBuffer);
+    if (status != napi_ok) {
+        free(data);
+        napi_throw_error(env, nullptr, "napi_create_external_buffer failed");
+        return nullptr;
+    }
     return napiBuffer;
 }
 
