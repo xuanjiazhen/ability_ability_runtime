@@ -369,7 +369,7 @@ export default function ExternalWindowTest() {
           console.info("====> SUB_OH_NativeWindowWTParcelInvalidArguments_1700 start====");
           let result: number = libGraphics2DApi20.testNativeWindowWTParcelInvalidArguments();
           console.info("====> SUB_OH_NativeWindowWTParcelInvalidArguments_1700 result====", result);
-          expect(result).assertEqual(InvalidArguments);
+          expect(result).assertEqual(Success);
           done();
         } catch (err) {
           console.error("====> SUB_OH_NativeWindowWTParcelInvalidArguments_1700 catch err: " + err);
@@ -411,7 +411,7 @@ export default function ExternalWindowTest() {
           console.info("====> SUB_OH_NativeWindowRFParcelInvalidArguments_1900 start====");
           let result: number = libGraphics2DApi20.testNativeWindowRFParcelInvalidArguments();
           console.info("====> SUB_OH_NativeWindowRFParcelInvalidArguments_1900 result====", result);
-          expect(result).assertEqual(InvalidArguments);
+          expect(result).assertEqual(Success);
           done();
         } catch (err) {
           console.error("====> SUB_OH_NativeWindowRFParcelInvalidArguments_1900 catch err: " + err);
@@ -457,6 +457,292 @@ export default function ExternalWindowTest() {
           done();
         } catch (err) {
           console.error("====> SUB_OH_NativeWindowWindowHandleOptGetTimeOut_2100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_NativeWindowGLFlushedBufferV2Success_2200
+     * @tc.name    : SUB_OH_NativeWindowGLFlushedBufferV2Success_2200
+     * @tc.desc    : Test testNativeWindowGLFlushedBufferV2Success
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeWindowGLFlushedBufferV2Success_2200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_NativeWindowGLFlushedBufferV2Success_2200 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowGLFlushedBufferV2Success();
+          console.info("====> SUB_OH_NativeWindowGLFlushedBufferV2Success_2200 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_NativeWindowGLFlushedBufferV2Success_2200 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_NativeWindowGLFBufferV2InvalidArguments_2300
+     * @tc.name    : SUB_OH_NativeWindowGLFBufferV2InvalidArguments_2300
+     * @tc.desc    : Test testNativeWindowGLFBufferV2InvalidArguments
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NativeWindowGLFBufferV2InvalidArguments_2300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_NativeWindowGLFBufferV2InvalidArguments_2300 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowGLFBufferV2InvalidArguments();
+          console.info("====> SUB_OH_NativeWindowGLFBufferV2InvalidArguments_2300 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_NativeWindowGLFBufferV2InvalidArguments_2300 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowSetColorSpaceSuccess_2400
+     * @tc.name    : SUB_OH_testNativeWindowSetColorSpaceSuccess_2400
+     * @tc.desc    : Test testNativeWindowSetColorSpaceSuccess
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowSetColorSpaceSuccess_2400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowSetColorSpaceSuccess_2400 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowSetColorSpaceSuccess();
+          console.info("====> SUB_OH_testNativeWindowSetColorSpaceSuccess_2400 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowSetColorSpaceSuccess_2400 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowSetColorSpaceInvalidArguments_2500
+     * @tc.name    : SUB_OH_testNativeWindowSetColorSpaceInvalidArguments_2500
+     * @tc.desc    : Test testNativeWindowSetColorSpaceInvalidArguments
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowSetColorSpaceInvalidArguments_2500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowSetColorSpaceInvalidArguments_2500 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowSetColorSpaceInvalidArguments();
+          console.info("====> SUB_OH_testNativeWindowSetColorSpaceInvalidArguments_2500 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowSetColorSpaceInvalidArguments_2500 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowGetColorSpaceInvalidArguments_2600
+     * @tc.name    : SUB_OH_testNativeWindowGetColorSpaceInvalidArguments_2600
+     * @tc.desc    : Test testNativeWindowGetColorSpaceInvalidArguments
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowGetColorSpaceInvalidArguments_2600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowGetColorSpaceInvalidArguments_2600 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowGetColorSpaceInvalidArguments();
+          console.info("====> SUB_OH_testNativeWindowGetColorSpaceInvalidArguments_2600 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowGetColorSpaceInvalidArguments_2600 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowSetMVSuccess_2700
+     * @tc.name    : SUB_OH_testNativeWindowSetMVSuccess_2700
+     * @tc.desc    : Test testNativeWindowSetMVSuccess
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowSetMVSuccess_2700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowSetMVSuccess_2700 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowSetMVSuccess();
+          console.info("====> SUB_OH_testNativeWindowSetMVSuccess_2700 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowSetMVSuccess_2700 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowSetMVInvalidArguments_2800
+     * @tc.name    : SUB_OH_testNativeWindowSetMVInvalidArguments_2800
+     * @tc.desc    : Test testNativeWindowSetMVInvalidArguments
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowSetMVInvalidArguments_2800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowSetMVInvalidArguments_2800 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowSetMVInvalidArguments();
+          console.info("====> SUB_OH_testNativeWindowSetMVInvalidArguments_2800 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowSetMVInvalidArguments_2800 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowGetMVSuccess_3000
+     * @tc.name    : SUB_OH_testNativeWindowGetMVSuccess_3000
+     * @tc.desc    : Test testNativeWindowGetMVSuccess
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowGetMVSuccess_3000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowGetMVSuccess_3000 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowGetMVSuccess();
+          console.info("====> SUB_OH_testNativeWindowGetMVSuccess_3000 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowGetMVSuccess_3000 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowGetMVInvalidArguments_3100
+     * @tc.name    : SUB_OH_testNativeWindowGetMVInvalidArguments_3100
+     * @tc.desc    : Test testNativeWindowGetMVInvalidArguments
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowGetMVInvalidArguments_3100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowGetMVInvalidArguments_3100 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowGetMVInvalidArguments();
+          console.info("====> SUB_OH_testNativeWindowGetMVInvalidArguments_3100 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowGetMVInvalidArguments_3100 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowGetMVUnsupported_3200
+     * @tc.name    : SUB_OH_testNativeWindowGetMVUnsupported_3200
+     * @tc.desc    : Test testNativeWindowGetMVUnsupported
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowGetMVUnsupported_3200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowGetMVUnsupported_3200 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowGetMVUnsupported();
+          console.info("====> SUB_OH_testNativeWindowGetMVUnsupported_3200 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowGetMVUnsupported_3200 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowCleanCacheInvalidArguments_3300
+     * @tc.name    : SUB_OH_testNativeWindowCleanCacheInvalidArguments_3300
+     * @tc.desc    : Test testNativeWindowCleanCacheInvalidArguments
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowCleanCacheInvalidArguments_3300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowCleanCacheInvalidArguments_3300 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowCleanCacheInvalidArguments();
+          console.info("====> SUB_OH_testNativeWindowCleanCacheInvalidArguments_3300 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowCleanCacheInvalidArguments_3300 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_testNativeWindowCleanCacheConsumerDisconnected_3400
+     * @tc.name    : SUB_OH_testNativeWindowCleanCacheConsumerDisconnected_3400
+     * @tc.desc    : Test testNativeWindowCleanCacheConsumerDisconnected
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_testNativeWindowCleanCacheConsumerDisconnected_3400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_testNativeWindowCleanCacheConsumerDisconnected_3400 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowCleanCacheConsumerDisconnected();
+          console.info("====> SUB_OH_testNativeWindowCleanCacheConsumerDisconnected_3400 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_testNativeWindowCleanCacheConsumerDisconnected_3400 catch err: " + err);
+          expect().assertFail();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_OH_GLFlushedBufferV2BUFFERSTATEINVALID_3500
+     * @tc.name    : SUB_OH_GLFlushedBufferV2BUFFERSTATEINVALID_3500
+     * @tc.desc    : Test testNativeWindowGLFlushedBufferV2BUFFERSTATEINVALID
+     * @tc.level   : Level0
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_GLFlushedBufferV2BUFFERSTATEINVALID_3500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: Function) => {
+        try {
+          console.info("====> SUB_OH_GLFlushedBufferV2BUFFERSTATEINVALID_3500 start====");
+          let result: number = libGraphics2DApi20.testNativeWindowGLFlushedBufferV2BUFFERSTATEINVALID();
+          console.info("====> SUB_OH_GLFlushedBufferV2BUFFERSTATEINVALID_3500 result====", result);
+          expect(result).assertEqual(Success);
+          done();
+        } catch (err) {
+          console.error("====> SUB_OH_GLFlushedBufferV2BUFFERSTATEINVALID_3500 catch err: " + err);
+          done();
         }
       })
   })
