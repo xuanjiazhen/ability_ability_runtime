@@ -212,7 +212,7 @@ export default function windowModalTest() {
     })
 
     /**
-     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_STAGETWO_JS_API_0100
+     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_STAGETWO_JS_API_0200
      * @tc.name      : testsetSubWindowModal_Function_Promise2
      * @tc.desc      : Test the function value of setSubWindowModal
      * @tc.size      : MediumTest
@@ -264,7 +264,7 @@ export default function windowModalTest() {
     })
 
     /**
-     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_STAGETWO_JS_API_0100
+     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_STAGETWO_JS_API_0300
      * @tc.name      : testsetSubWindowModal_Function_Promise3
      * @tc.desc      : Test the function value of setSubWindowModal
      * @tc.size      : MediumTest
