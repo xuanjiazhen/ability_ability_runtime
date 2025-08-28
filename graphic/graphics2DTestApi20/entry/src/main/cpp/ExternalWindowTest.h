@@ -39,25 +39,19 @@ napi_value testNativeWindowWTParcelSuccess(napi_env env, napi_callback_info info
 napi_value testNativeWindowWTParcelInvalidArguments(napi_env env, napi_callback_info info);
 napi_value testNativeWindowRFParcelSuccess(napi_env env, napi_callback_info info);
 napi_value testNativeWindowRFParcelInvalidArguments(napi_env env, napi_callback_info info);
+napi_value testNativeWindowWindowHandleOptSetTimeOut(napi_env env, napi_callback_info info);
+napi_value testNativeWindowWindowHandleOptGetTimeOut(napi_env env, napi_callback_info info);
 napi_value testNativeWindowGLFlushedBufferV2Success(napi_env env, napi_callback_info info);
 napi_value testNativeWindowGLFBufferV2InvalidArguments(napi_env env, napi_callback_info info);
 napi_value testNativeWindowGLFlushedBufferV2BUFFERSTATEINVALID(napi_env env, napi_callback_info info);
 napi_value testNativeWindowSetColorSpaceSuccess(napi_env env, napi_callback_info info);
 napi_value testNativeWindowSetColorSpaceInvalidArguments(napi_env env, napi_callback_info info);
-napi_value testNativeWindowSetColorSpaceBUFFERSTATEINVALID(napi_env env, napi_callback_info info);
 napi_value testNativeWindowGetColorSpaceInvalidArguments(napi_env env, napi_callback_info info);
-napi_value testNativeWindowGetColorSpaceBUFFERSTATEINVALID(napi_env env, napi_callback_info info);
 napi_value testNativeWindowSetMVSuccess(napi_env env, napi_callback_info info);
 napi_value testNativeWindowSetMVInvalidArguments(napi_env env, napi_callback_info info);
-napi_value testNativeWindowSetMVUnsupported(napi_env env, napi_callback_info info);
-napi_value testNativeWindowSetMVBUFFERSTATEINVALID(napi_env env, napi_callback_info info);
 napi_value testNativeWindowGetMVSuccess(napi_env env, napi_callback_info info);
 napi_value testNativeWindowGetMVInvalidArguments(napi_env env, napi_callback_info info);
 napi_value testNativeWindowGetMVUnsupported(napi_env env, napi_callback_info info);
-napi_value testNativeWindowGetMVBUFFERSTATEINVALID(napi_env env, napi_callback_info info);
 napi_value testNativeWindowCleanCacheInvalidArguments(napi_env env, napi_callback_info info);
 napi_value testNativeWindowCleanCacheConsumerDisconnected(napi_env env, napi_callback_info info);
-napi_value testNativeWindowCleanCacheBinderError(napi_env env, napi_callback_info info);
-napi_value testNativeWindowWindowHandleOptSetTimeOut(napi_env env, napi_callback_info info);
-napi_value testNativeWindowWindowHandleOptGetTimeOut(napi_env env, napi_callback_info info);
 #endif //GRAPHICS2DTESTAPI20_EXTERNALWINDOW_H
