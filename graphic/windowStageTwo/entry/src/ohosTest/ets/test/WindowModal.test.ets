@@ -1379,8 +1379,8 @@ export default function windowModalTest() {
     })
 
     /**
-     * @tc.number    : testCreateSubWindowWithOptionsModalityType_0200
-     * @tc.name      : testCreateSubWindowWithOptionsModalityType_0200
+     * @tc.number    : testCreateSubWindowWithOptionsModalityType_0300
+     * @tc.name      : testCreateSubWindowWithOptionsModalityType_0300
      * @tc.desc      : Test the function value of setWindowTitleMoveEnabled
      * @tc.size      : MediumTest
      * @tc.type      : Function
