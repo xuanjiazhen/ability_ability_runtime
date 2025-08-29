@@ -5,7 +5,8 @@
         "test-timeout": "160000",
         "shell-timeout": "160000",
         "bundle-name": "ohos.acts.sensors.sensor.function",
-        "package-name": "ohos.acts.sensors.sensor.function"
+        "package-name": "ohos.acts.sensors.sensor.function",
+        "testcase-timeout": "10000"
     },
     "kits": [
         {
@@ -22,7 +23,8 @@
                 "power-shell setmode 602",
                 "power-shell timeout -o 2147483647",
                 "param set persist.bms.ohCert.verify true",
-                "param get persist.bms.ohCert.verify"
+                "param get persist.bms.ohCert.verify",
+                "uitest dumpLayout"
             ],
 			"teardown-command":[
 			    "power-shell setmode 600",
