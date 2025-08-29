@@ -219,10 +219,20 @@ using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
         OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, AAFWK_FUNC_INFO, ##__VA_ARGS__)); \
     } while (0)
 
+#define PRETTY_AAFWK_PRINT_LOG(level, tag, ...)                                                    \
+    do {                                                                                                \
+        AAFwkTag logTag = tag;                                                                          \
+        ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                               \
+        OHOS::AAFwk::GetTagInfoFromDomainId(logTag), ##__VA_ARGS__));                                   \
+    } while (0)
+
 #define TAG_LOGD(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_DEBUG, tag, fmt, ##__VA_ARGS__)
 #define TAG_LOGI(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_INFO,  tag, fmt, ##__VA_ARGS__)
 #define TAG_LOGW(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_WARN,  tag, fmt, ##__VA_ARGS__)
 #define TAG_LOGE(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_ERROR, tag, fmt, ##__VA_ARGS__)
 #define TAG_LOGF(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_FATAL, tag, fmt, ##__VA_ARGS__)
 
+#define PRETTY_TAG_LOGI(tag, ...) PRETTY_AAFWK_PRINT_LOG(LOG_INFO,  tag, ##__VA_ARGS__)
+#define PRETTY_TAG_LOGW(tag, ...) PRETTY_AAFWK_PRINT_LOG(LOG_WARN,  tag, ##__VA_ARGS__)
+#define PRETTY_TAG_LOGE(tag, ...) PRETTY_AAFWK_PRINT_LOG(LOG_ERROR, tag, ##__VA_ARGS__)
 #endif  // OHOS_AAFWK_HILOG_TAG_WRAPPER_H
