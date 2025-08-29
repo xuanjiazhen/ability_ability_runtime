@@ -20,6 +20,7 @@
 #include "ets_exception_callback.h"
 #include "ets_runtime.h"
 #include "hilog_tag_wrapper.h"
+#include <ani_signature_builder.h>
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -231,9 +232,12 @@ std::string EtsInteropAbilityLifecycleCallback::GetErrorProperty(ani_error aniEr
         return propertyValue;
     }
     ani_method getterMethod = nullptr;
-    if ((status = aniEnv->Class_FindGetter(static_cast<ani_class>(errorType), property, &getterMethod)) != ANI_OK ||
+
+    if ((status = aniEnv->Class_FindMethod(static_cast<ani_class>(errorType),
+                                           arkts::ani_signature::Builder::BuildGetterName(property).c_str(),
+                                           nullptr, &getterMethod)) != ANI_OK ||
         getterMethod == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindGetter failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindMethod failed, status : %{public}d", status);
         return propertyValue;
     }
     ani_ref aniRef = nullptr;
