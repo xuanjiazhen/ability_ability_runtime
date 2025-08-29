@@ -189,7 +189,7 @@ int AmsConfigurationParameter::LoadAmsConfiguration(const std::string &filePath)
     std::ifstream inFile;
     inFile.open(filePath, std::ios::in);
     if (!inFile.is_open()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "error");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error");
         nonConfigFile_ = true;
         return READ_FAIL;
     }
@@ -197,7 +197,7 @@ int AmsConfigurationParameter::LoadAmsConfiguration(const std::string &filePath)
     json amsJson;
     inFile >> amsJson;
     if (amsJson.is_discarded()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "json discarded error ...");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "json discarded error ...");
         nonConfigFile_ = true;
         inFile.close();
         return READ_JSON_FAIL;
