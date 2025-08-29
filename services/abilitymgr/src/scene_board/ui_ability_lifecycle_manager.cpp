@@ -1586,10 +1586,17 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
         hasStartWindow, backgroundColor.c_str(), sessionInfo->hideStartWindow);
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
-    if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
+    if (abilityRecord != nullptr && abilityRecord->GetRestartMode() != RestartMode::RESTART_APP) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
         CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
         CHECK_POINTER_AND_RETURN(callerSessionInfo->sessionToken, ERR_INVALID_VALUE);
+        if (abilityRecord->GetRestartMode() == RestartMode::RESTART_SAME_ABILITY) {
+            sessionInfo->sessionToken = callerSessionInfo->sessionToken;
+            sessionInfo->persistentId = callerSessionInfo->persistentId;
+        }
+        if (abilityRecord->GetRestartMode() != RestartMode::RESTART_NONE) {
+            sessionInfo->callerToken = nullptr; // in case verify caller token fail
+        }
         auto callerSession = iface_cast<Rosen::ISession>(callerSessionInfo->sessionToken);
         CHECK_POINTER_AND_RETURN(callerSession, ERR_INVALID_VALUE);
         CheckCallerFromBackground(abilityRecord, sessionInfo);
@@ -2292,7 +2299,8 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
             static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_LOW_MEMORY_KILL) :
             static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_SKIP_KILL_IN_STARTUP);
         NotifySCBToHandleException(abilityRecord, errCode, abilityRecord->GetKillReason());
-    } else if (!abilityRecord->GetRestartAppFlag()) {
+    } else if (abilityRecord->GetRestartMode() != RestartMode::RESTART_APP &&
+        abilityRecord->GetRestartMode() != RestartMode::RESTART_SAME_ABILITY) { // window no destroy
         NotifySCBToHandleException(abilityRecord, static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_DIED),
             "onAbilityDied");
     }
@@ -3672,6 +3680,9 @@ void UIAbilityLifecycleManager::SignRestartAppFlag(int32_t uid, const std::strin
         if (abilityRecord == nullptr || abilityRecord->GetUid() != uid ||
             abilityRecord->GetInstanceKey() != instanceKey) {
             continue;
+        }
+        if (abilityRecord->GetRestartAppFlag()) {
+            return;
         }
         abilityRecord->SetRestartAppFlag(true);
         std::string reason = "onAbilityDied";

@@ -1555,6 +1555,14 @@ public:
     int32_t RestartApp(const AAFwk::Want &want);
 
     /**
+     * @brief Restart app with window.
+     * @param want The want of the ability to start in new process.
+     * @param callerToken The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RestartAppWithWindow(const AAFwk::Want &want, sptr<IRemoteObject> callerToken);
+
+    /**
      * @brief Get host info of root caller.
      *
      * @param token The ability token.

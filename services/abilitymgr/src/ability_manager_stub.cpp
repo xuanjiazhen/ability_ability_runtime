@@ -906,6 +906,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::PRELOAD_APPLICATION) {
         return PreloadApplicationInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::RESTART_APP_WITH_WINDOW) {
+        return RestartAppWithWindowInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -4959,6 +4962,26 @@ int AbilityManagerStub::PreloadApplicationInner(MessageParcel &data, MessageParc
     int32_t userId = data.ReadInt32();
     int32_t appIndex = data.ReadInt32();
     int32_t result = PreloadApplication(bundleName, userId, appIndex);
+    if (!reply.WriteInt32(result)) {
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return result;
+}
+
+int AbilityManagerStub::RestartAppWithWindowInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        return ERR_NULL_OBJECT;
+    }
+    sptr<IRemoteObject> token = data.ReadRemoteObject();
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read ability token fail");
+        return ERR_NULL_OBJECT;
+    }
+    int32_t result = RestartAppWithWindow(*want, token);
     if (!reply.WriteInt32(result)) {
         return ERR_WRITE_RESULT_CODE_FAILED;
     }

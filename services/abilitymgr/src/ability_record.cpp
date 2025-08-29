@@ -3767,12 +3767,16 @@ bool AbilityRecord::IsSceneBoard() const
 
 void AbilityRecord::SetRestartAppFlag(bool isRestartApp)
 {
-    isRestartApp_ = isRestartApp;
+    if (isRestartApp) {
+        restartMode_ = RestartMode::RESTART_APP;
+    } else {
+       restartMode_ = RestartMode::RESTART_NONE;
+    }
 }
 
 bool AbilityRecord::GetRestartAppFlag() const
 {
-    return isRestartApp_;
+    return restartMode_ != RestartMode::RESTART_NONE;
 }
 
 void AbilityRecord::SetKillForPermissionUpdateFlag(bool isKillForPermissionUpdate)
