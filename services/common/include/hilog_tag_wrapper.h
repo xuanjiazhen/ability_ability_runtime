@@ -18,11 +18,12 @@
 
 #include <cinttypes>
 #include <map>
+#include <string>
 
 #include "hilog/log.h"
 
 #ifndef AAFWK_FUNC_FMT
-#define AAFWK_FUNC_FMT "[%{public}s:%{public}d]"
+#define AAFWK_FUNC_FMT "[%{public}s]"
 #endif
 
 #ifndef AAFWK_FILE_NAME
@@ -185,6 +186,23 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
+inline std::string GetAbbreviatedFileName(const std::string& fileName)
+{
+    std::map<std::string, std::string> abbreviatedFileNameMap {
+        { "ability_manager_client", "AMC" },
+        { "app_running_manager", "ARM" }
+    };
+    std::string fileBaseName;
+    auto pos = fileName.find_last_of(".");
+    if (pos != std::string::npos) {
+        fileBaseName = fileName.substr(0, pos);
+        if (abbreviatedFileNameMap.find(fileBaseName) != abbreviatedFileNameMap.end()) {
+            return abbreviatedFileNameMap[fileBaseName];
+        }
+    }
+    return fileBaseName;
+}
+
 constexpr uint32_t BASE_DEFAULT = 0;
 constexpr uint32_t BASE_APPDFR = 1;
 constexpr uint32_t BASE_JSENV = 2;
@@ -215,8 +233,9 @@ using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
 #define AAFWK_PRINT_LOG(level, tag, fmt, ...)                                                           \
     do {                                                                                                \
         AAFwkTag logTag = tag;                                                                          \
-        ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                                  \
-        OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, AAFWK_FUNC_INFO, ##__VA_ARGS__)); \
+        std::string abbrFileName = OHOS::AAFwk::GetAbbreviatedFileName(std::string(AAFWK_FILE_NAME));   \
+        ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                               \
+        OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, abbrFileName.c_str(), ##__VA_ARGS__));  \
     } while (0)
 
 #define TAG_LOGD(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_DEBUG, tag, fmt, ##__VA_ARGS__)
