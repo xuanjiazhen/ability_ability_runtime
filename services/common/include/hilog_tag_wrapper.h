@@ -192,7 +192,7 @@ inline std::string GetAbbreviatedFileName(const std::string& fileName)
         { "ability_manager_client", "AMC" },
         { "app_running_manager", "ARM" }
     };
-    std::string fileBaseName;
+    std::string fileBaseName = fileName;
     auto pos = fileName.find_last_of(".");
     if (pos != std::string::npos) {
         fileBaseName = fileName.substr(0, pos);
