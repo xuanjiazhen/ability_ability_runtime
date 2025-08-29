@@ -18,6 +18,7 @@ import webView from '@ohos.web.webview';
 import events_emitter from '@ohos.events.emitter';
 import { JsProxyObject } from '../../test/Interfaces';
 import image from '@ohos.multimedia.image';
+const EVENT_ID_SET_EIMIT_KEY = 142015;
 
 @Entry
 @Component
@@ -33,18 +34,23 @@ struct httpAuthHandler {
   @State HttpAuthHandlerCancelCallBack: boolean = false
   @State HttpAuthHandlerIsHttpAuthInfoSavedCallBack: boolean = false
   @State Http_Error_Code: number = 0
+  @State isReceive:number = -1;
+  @State isCancel:number = -1;
+  @State isConfirm:number = -1;
+  @State isSave:number = -1;
+  @State isCode:number = -1;
   no_error: string = "no error happened"
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EIMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(EVENT_ID_SET_EIMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -53,6 +59,7 @@ struct httpAuthHandler {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 1;
       }
     }
   }
@@ -73,20 +80,22 @@ struct httpAuthHandler {
     Column() {
       Row() {
         Button("HttpAuthHandler click").key('HttpAuthHandlerButton').onClick(async () => {
+          await Utils.waitForExist(()=>this.isReceive, this.str, 1);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
 
             case "testHttpAuthHandlerConfirm001": {
               try {
                 this.HttpAuthHandlerCallBack = 'confirm'
                 this.HttpAuthHandlerConfirmCallBack = false
-                await Utils.sleep(1000)
                 this.controller.loadUrl("http://httpbin.org/basic-auth/2222/3333")
-                await Utils.sleep(3000)
-                Utils.emitEvent(this.HttpAuthHandlerConfirmCallBack, 32040)
+                await Utils.waitForExist(()=>this.isConfirm, this.str, 1);
+                this.isConfirm = -1;
+                Utils.emitEvent(this.HttpAuthHandlerConfirmCallBack, 142035)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 32040)
+                Utils.emitEvent(error.code, 142035)
               }
               break;
             }
@@ -96,28 +105,32 @@ struct httpAuthHandler {
                 this.Http_Error_Code = 0
                 this.HttpAuthHandlerCallBack = 'cancel'
                 this.HttpAuthHandlerCancelCallBack = false
-                await Utils.sleep(1000)
                 this.controller.loadUrl("http://httpbin.org/basic-auth/2222/3333")
-                await Utils.sleep(3000)
-                Utils.emitEvent(this.Http_Error_Code, 32041)
+                await Utils.waitForExist(()=>this.isCancel, this.str, 1);
+                await Utils.waitForExist(()=>this.isCode, this.str, 1);
+                this.isCancel = -1;
+                this.isCode = -1;
+                Utils.emitEvent(this.Http_Error_Code, 142025)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 32041)
+                Utils.emitEvent(error.code, 142025)
               }
               break;
             }
 
             case "testHttpAuthHandlerIsHttpAuthInfoSaved001": {
               try {
+                console.info("key==>testHttpAuthHandlerIsHttpAuthInfoSaved001")
                 this.HttpAuthHandlerCallBack = 'isHttpAuthInfoSaved'
                 this.HttpAuthHandlerCancelCallBack = false
-                await Utils.sleep(1000)
                 this.controller.loadUrl("http://httpbin.org/basic-auth/2222/3333")
-                await Utils.sleep(3000)
-                Utils.emitEvent(this.HttpAuthHandlerIsHttpAuthInfoSavedCallBack, 32042)
+                console.info("key==>loadUrltestHttpAuthHandlerIsHttpAuthInfoSaved001")
+                await Utils.waitForExist(()=>this.isSave, this.str, 1);
+                this.isSave = -1;
+                Utils.emitEvent(this.HttpAuthHandlerIsHttpAuthInfoSavedCallBack, 142045)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 32042)
+                Utils.emitEvent(error.code, 142045)
               }
               break;
             }
@@ -140,15 +153,18 @@ struct httpAuthHandler {
             if (this.HttpAuthHandlerCallBack == 'confirm') {
               this.HttpAuthHandlerConfirmCallBack = event.handler.confirm('2222', '3333')
               this.HttpAuthHandlerCallBack = ''
+              this.isConfirm = 1;
             }
             if (this.HttpAuthHandlerCallBack == 'cancel') {
               event.handler.cancel()
               this.HttpAuthHandlerCancelCallBack = true
               this.HttpAuthHandlerCallBack = ''
+              this.isCancel = 1;
             }
             if (this.HttpAuthHandlerCallBack == 'isHttpAuthInfoSaved') {
               this.HttpAuthHandlerIsHttpAuthInfoSavedCallBack = event.handler.isHttpAuthInfoSaved()
               this.HttpAuthHandlerCallBack = ''
+              this.isSave = 1;
             }
           }
           return true
@@ -158,6 +174,7 @@ struct httpAuthHandler {
             if (this.HttpAuthHandlerCancelCallBack == true) {
               this.Http_Error_Code = event.response.getResponseCode()
               this.HttpAuthHandlerCancelCallBack = false
+              this.isCode = 1;
             }
           }
         })

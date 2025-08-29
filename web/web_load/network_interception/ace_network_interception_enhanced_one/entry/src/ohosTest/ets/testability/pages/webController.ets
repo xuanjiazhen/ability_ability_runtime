@@ -15,12 +15,14 @@
 import events_emitter from '@ohos.events.emitter';
 import Utils from '../../test/Utils';
 import { JsProxyObject } from '../../test/Interfaces';
+import webView from '@ohos.web.webview';
 import business_error, { BusinessError } from '@ohos.base';
+const EVENT_ID_SET_EIMIT_KEY = 142016;
 
 @Entry
 @Component
 struct webController {
-  controller: WebController = new WebController()
+  controller: webView.WebviewController = new webView.WebviewController();
   @State str: string = "testStop001"
   @State loadedResource: string = ""
   @State progress: string = ""
@@ -58,17 +60,19 @@ struct webController {
   @State registerJavaScriptProxyFlag: boolean = false
   @State zoomAccess: boolean = false
   @State requestFocus: boolean = false
+  @State isPageEnd: number = -1;
+  @State isReceive:number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EIMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(EVENT_ID_SET_EIMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -78,6 +82,7 @@ struct webController {
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
         this.titleReceive = '';
+        this.isReceive = 1;
       }
     }
   }
@@ -100,22 +105,24 @@ struct webController {
     Column() {
       Row() {
         Button("WebController click").key('WebControllerButton').onClick(async () => {
+          await Utils.waitForExist(()=>this.isReceive, this.str, 1);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
 
             case "testStop001": {
               try {
                 let stopCalled = false
-                this.controller.loadUrl({ url: "http://appgallery.huawei.com/" })
+                this.controller.loadUrl("www.example.com")
                 this.controller.stop()
-                await Utils.sleep(2000);
-                if (this.pageEnd !== 'http://appgallery.huawei.com/') {
+                await Utils.waitForExist(()=>this.isPageEnd, this.str, 1);
+                if (this.pageEnd !== 'www.example.com') {
                   stopCalled = true
                 }
-                Utils.emitEvent(stopCalled, 31007)
+                Utils.emitEvent(stopCalled, 142026)
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
-                Utils.emitEvent(String(error.code), 31007)
+                Utils.emitEvent(String(error.code), 142026)
               }
               break;
             }
@@ -136,6 +143,9 @@ struct webController {
         .cacheMode(this.cacheMode)
         .initialScale(this.initialScale)
         .mixedMode(this.mixedMode)
+        .onPageEnd(()=>{
+          this.isPageEnd = 1;
+        })
     }
   }
 }
