@@ -90,8 +90,8 @@ void GetForegroundUIAbilitiesCallBack(ani_env *env, ani_object callbackObj)
     sptr<AppExecFwk::IAbilityManager> abilityManager = GetAbilityManagerInstance();
     if (abilityManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityManager is null");
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
         return;
     }
     std::vector<AppExecFwk::AbilityStateData> list;
@@ -99,18 +99,18 @@ void GetForegroundUIAbilitiesCallBack(ani_env *env, ani_object callbackObj)
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed: ret=%{public}d", ret);
         AbilityRuntime::AbilityErrorCode code = AbilityRuntime::GetJsErrorCodeByNativeError(ret);
-        AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateError(env, code), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj, EtsErrorUtil::CreateError(env, code));
         return;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "GetForegroundUIAbilities succeeds, list.size=%{public}zu", list.size());
     ani_object aniArray = AppExecFwk::CreateAniAbilityStateDataArray(env, list);
     if (aniArray == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null aniArray");
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
         return;
     }
-    AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ERR_OK), aniArray);
+    AppExecFwk::AsyncResolveWithNoError(env, callbackObj, aniArray);
 }
 
 static void GetTopAbility(ani_env *env, ani_object callback)
@@ -123,8 +123,7 @@ static void GetTopAbility(ani_env *env, ani_object callback)
     auto selfToken = IPCSkeleton::GetSelfTokenID();
     if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not system app");
-        AppExecFwk::AsyncCallback(env, callback,
-            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP), nullptr);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
         return;
     }
     AppExecFwk::ElementName elementName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility();
@@ -134,8 +133,7 @@ static void GetTopAbility(ani_env *env, ani_object callback)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null elementNameobj");
         resultCode = ERR_FAILURE;
     }
-    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, resultCode),
-        elementNameobj);
+    AppExecFwk::AsyncResolveWithNoError(env, callback, elementNameobj);
     return;
 }
 

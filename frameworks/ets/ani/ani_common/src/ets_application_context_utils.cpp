@@ -178,12 +178,12 @@ void EtsApplicationContextUtils::OnClearUpApplicationData(ani_env *env, ani_obje
     auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "nativeContext is null");
-        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
+        AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateError(env,
             (ani_int)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT,
-            "applicationContext if already released."), nullptr);
+            "applicationContext if already released."));
         return;
     }
-    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+    AppExecFwk::AsyncResolveWithNoError(env, callback, nullptr);
     applicationContext->ClearUpApplicationData();
 }
 
@@ -193,13 +193,12 @@ void EtsApplicationContextUtils::OnGetRunningProcessInformation(ani_env *env, an
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
-    ani_object emptyArray = AppExecFwk::CreateEmptyArray(env);
     auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "nativeContext is null");
-        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
+        AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateError(env,
             (ani_int)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT,
-            "applicationContext if already released."), emptyArray);
+            "applicationContext if already released."));
         return;
     }
     std::vector<AppExecFwk::RunningProcessInfo> infos;
@@ -210,15 +209,14 @@ void EtsApplicationContextUtils::OnGetRunningProcessInformation(ani_env *env, an
         ani_object aniInfosRef = AppExecFwk::CreateRunningProcessInfoArray(env, infos);
         if (aniInfosRef == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null array");
-            AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
-                (ani_int)AbilityErrorCode::ERROR_CODE_INNER, "Initiate array failed."), emptyArray);
+            AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateError(env,
+                (ani_int)AbilityErrorCode::ERROR_CODE_INNER, "Initiate array failed."));
         } else {
-            AppExecFwk::AsyncCallback(env, callback,
-                EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), aniInfosRef);
+            AppExecFwk::AsyncResolveWithNoError(env, callback, aniInfosRef);
         }
     } else {
-        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
-            (ani_int)AbilityErrorCode::ERROR_CODE_INNER, "Get process infos failed."), emptyArray);
+        AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateError(env,
+            (ani_int)AbilityErrorCode::ERROR_CODE_INNER, "Get process infos failed."));
     }
 }
 
@@ -235,10 +233,10 @@ void EtsApplicationContextUtils::OnkillAllProcesses(ani_env *env, ani_object ani
         TAG_LOGE(AAFwkTag::APPKIT, "nativeContextLong is nullptr");
         aniObject = EtsErrorUtil::CreateError(env, (ani_int)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT,
             "applicationContext is already released.");
-        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(env, callback, aniObject);
         return;
     }
-    AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+    AppExecFwk::AsyncResolveWithNoError(env, callback, nullptr);
     context->KillProcessBySelf(clearPageStack);
 }
 
@@ -253,25 +251,24 @@ void EtsApplicationContextUtils::OnPreloadUIExtensionAbility(ani_env *env,
     AAFwk::Want want;
     if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Parse want failed");
-        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
-            "Parse param want failed, want must be Want."), nullptr);
+        EtsErrorUtil::ThrowInvalidParamError(env,
+            "Parse param want failed, want must be Want.");
         return;
     }
     auto context = applicationContext_.lock();
     if (!context) {
-        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
-            (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
+            (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
         return;
     }
     auto hostBundleName = context->GetBundleName();
     TAG_LOGD(AAFwkTag::APPKIT, "HostBundleName is %{public}s", hostBundleName.c_str());
     auto innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->PreloadUIExtensionAbility(want, hostBundleName);
     if (innerErrCode == ERR_OK) {
-        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
-            AbilityErrorCode::ERROR_OK), nullptr);
+        AppExecFwk::AsyncResolve(env, callback, nullptr);
     } else {
         TAG_LOGE(AAFwkTag::APPKIT, "OnPreloadUIExtensionAbility failed %{public}d", innerErrCode);
-        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode), nullptr);
+        AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode));
     }
 }
 

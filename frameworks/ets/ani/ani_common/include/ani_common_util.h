@@ -76,6 +76,9 @@ bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, co
 bool SetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref value);
 
 bool GetStaticFieldString(ani_env *env, ani_class classObj, const char *fieldName, std::string &value);
+void AsyncResolve(ani_env *env, ani_object call, ani_object result);
+void AsyncResolveWithNoError(ani_env *env, ani_object call, ani_object result);
+void AsyncReject(ani_env *env, ani_object call, ani_object error);
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
