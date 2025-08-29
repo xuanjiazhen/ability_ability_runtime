@@ -17,7 +17,8 @@ group("ndk") {
   if (is_standard_system) {
     deps = [
       "networkndk:ActsNetWorkMgrStackNDKTest",
-      "network:ActsNetworkkitNoPMainTest"
+      "network:ActsNetworkkitNoPMainTest",
+      "networkauth:ActsNetworkkitAuthMainTest"
     ]
   }
 }
