@@ -5653,7 +5653,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
     }
     std::shared_ptr<PendingWantManager> pendingWantManager = GetPendingWantManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(pendingWantManager, nullptr);
-    if (!CheckSenderWantInfo(appUid == -1 ? callerUid : appUid, wantSenderInfo)) {
+    if (!CheckSenderWantInfo(appUid, wantSenderInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check bundleName failed");
         return nullptr;
     }
