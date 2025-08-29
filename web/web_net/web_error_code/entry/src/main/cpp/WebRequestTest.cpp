@@ -210,17 +210,17 @@ void WebRequestTest::Start()
         }
         ArkWeb_HttpBodyStreamAsyncReadCallback httpBodyStreamAsyncReadCallback = ReadCallback;
         ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(stream_, httpBodyStreamAsyncReadCallback);
-        if (ARKWEB_NET_OK == ret) {
+        if (ret == ARKWEB_NET_OK) {
             OH_LOG_DEBUG(LOG_APP, "OH_ArkWebHttpBodyStream_SetAsyncReadCallback success.");
         }
         ret = OH_ArkWebHttpBodyStream_SetReadCallback(stream_, ReadCallback);
-        if (ARKWEB_NET_OK == ret) {
+        if (ret == ARKWEB_NET_OK) {
             OH_LOG_DEBUG(LOG_APP, "OH_ArkWebHttpBodyStream_SetReadCallback success.");
         }
         g_setAsyncReadCallback = 1;
         OH_LOG_INFO(LOG_APP, "RawfileRequest Start  g_setAsyncReadCallback :%{public}d", g_setAsyncReadCallback);
         ret = OH_ArkWebHttpBodyStream_Init(stream_, InitCallback);
-        if (ARKWEB_NET_OK == ret) {
+        if (ret == ARKWEB_NET_OK) {
             OH_LOG_INFO(LOG_APP, "OH_ArkWebHttpBodyStream_Init success.");
         }
     } else {

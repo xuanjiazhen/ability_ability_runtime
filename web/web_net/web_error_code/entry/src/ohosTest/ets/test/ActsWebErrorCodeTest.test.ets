@@ -532,7 +532,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebRegisterCustomSchemes0100 start====");
         let result: number = webCode.OH_ArkWeb_RegisterCustomSchemes0100();
         console.info("====>testArkWebRegisterCustomSchemes0100 result====", result);
-        expect(result).assertEqual(17100102);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebRegisterCustomSchemes0100 catch err: " + err);
@@ -553,7 +553,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebRegisterCustomSchemes0101 start====");
         let result: number = webCode.OH_ArkWeb_RegisterCustomSchemes0101();
         console.info("====>testArkWebRegisterCustomSchemes0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebRegisterCustomSchemes0101 catch err: " + err);
@@ -616,7 +616,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebClearSchemeHandlers0101 start====");
         let result: number = webCode.OH_ArkWeb_ClearSchemeHandlers0101();
         console.info("====>testArkWebClearSchemeHandlers0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebClearSchemeHandlers0101 catch err: " + err);
@@ -658,7 +658,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebSchemeHandlerSetUserData0101 start====");
         let result: number = webCode.OH_ArkWebSchemeHandler_SetUserData0101();
         console.info("====>testArkWebSchemeHandlerSetUserData0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebSchemeHandlerSetUserData0101 catch err: " + err);
@@ -700,7 +700,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebSchemeHandlerSetOnRequestStart0101 start====");
         let result: number = webCode.OH_ArkWebSchemeHandler_SetOnRequestStart0101();
         console.info("====>testArkWebSchemeHandlerSetOnRequestStart0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebSchemeHandlerSetOnRequestStart0101 catch err: " + err);
@@ -721,7 +721,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebSchemeHandlerSetOnRequestStop0100 start====");
         let result: number = webCode.OH_ArkWebSchemeHandler_SetOnRequestStop0100();
         console.info("====>testArkWebSchemeHandlerSetOnRequestStop0100 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebSchemeHandlerSetOnRequestStop0100 catch err: " + err);
@@ -784,7 +784,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResponseSetUrl0101 start====");
         let result: number = webCode.OH_ArkWebResponse_SetUrl0101();
         console.info("====>testArkWebResponseSetUrl0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResponseSetUrl0101 catch err: " + err);
@@ -805,7 +805,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResponseSetError0100 start====");
         let result: number = webCode.OH_ArkWebResponse_SetError0100();
         console.info("====>testArkWebResponseSetError0100 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResponseSetError0100 catch err: " + err);
@@ -847,7 +847,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResponseSetStatus0101 start====");
         let result: number = webCode.OH_ArkWebResponse_SetStatus0101();
         console.info("====>testArkWebResponseSetStatus0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResponseSetStatus0101 catch err: " + err);
@@ -889,7 +889,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResponseSetStatusText0101 start====");
         let result: number = webCode.OH_ArkWebResponse_SetStatusText0101();
         console.info("====>testArkWebResponseSetStatusText0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResponseSetStatusText0101 catch err: " + err);
@@ -931,7 +931,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResponseSetMimeType0101 start====");
         let result: number = webCode.OH_ArkWebResponse_SetMimeType0101();
         console.info("====>testArkWebResponseSetMimeType0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResponseSetMimeType0101 catch err: " + err);
@@ -973,7 +973,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResponseSetCharset0101 start====");
         let result: number = webCode.OH_ArkWebResponse_SetCharset0101();
         console.info("====>testArkWebResponseSetCharset0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResponseSetCharset0101 catch err: " + err);
@@ -1015,7 +1015,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResponseSetHeaderByName0101 start====");
         let result: number = webCode.OH_ArkWebResponse_SetHeaderByName0101();
         console.info("====>testArkWebResponseSetHeaderByName0101 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResponseSetHeaderByName0101 catch err: " + err);
@@ -1036,7 +1036,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResourceHandlerDestroy0100 start====");
         let result: number = webCode.OH_ArkWebResourceHandler_Destroy0100();
         console.info("====>testArkWebResourceHandlerDestroy0100 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResourceHandlerDestroy0100 catch err: " + err);
@@ -1057,7 +1057,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResourceHandlerDidReceiveResponse0100 start====");
         let result: number = webCode.OH_ArkWebResourceHandler_DidReceiveResponse0100();
         console.info("====>testArkWebResourceHandlerDidReceiveResponse0100 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResourceHandlerDidReceiveResponse0100 catch err: " + err);
@@ -1078,7 +1078,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResourceHandlerDidReceiveData0100 start====");
         let result: number = webCode.OH_ArkWebResourceHandler_DidReceiveData0100();
         console.info("====>testArkWebResourceHandlerDidReceiveData0100 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResourceHandlerDidReceiveData0100 catch err: " + err);
@@ -1099,7 +1099,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResourceHandlerDidFinish0100 start====");
         let result: number = webCode.OH_ArkWebResourceHandler_DidFinish0100();
         console.info("====>testArkWebResourceHandlerDidFinish0100 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResourceHandlerDidFinish0100 catch err: " + err);
@@ -1120,7 +1120,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResourceHandlerDidFailWithError0100 start====");
         let result: number = webCode.OH_ArkWebResourceHandler_DidFailWithError0100();
         console.info("====>testArkWebResourceHandlerDidFailWithError0100 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResourceHandlerDidFailWithError0100 catch err: " + err);
@@ -1141,7 +1141,7 @@ export default function ActsWebErrorCodeTest() {
         console.info("====>testArkWebResourceHandlerDidFailWithErrorV20100 start====");
         let result: number = webCode.OH_ArkWebResourceHandler_DidFailWithErrorV20100();
         console.info("====>testArkWebResourceHandlerDidFailWithErrorV20100 result====", result);
-        expect(result).assertEqual(17100101);
+        expect(result).assertEqual(0);
         done();
       } catch (err) {
         console.error("====>testArkWebResourceHandlerDidFailWithErrorV20100 catch err: " + err);

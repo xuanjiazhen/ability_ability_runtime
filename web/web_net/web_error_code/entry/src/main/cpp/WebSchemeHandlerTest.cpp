@@ -162,8 +162,9 @@ void OnURLRequestStop(const ArkWeb_SchemeHandler *schemeHandler, const ArkWeb_Re
 napi_value RegisterCustomSchemes(napi_env env, napi_callback_info info)
 {
     OH_LOG_INFO(LOG_APP, "register custom schemes");
-    if (ARKWEB_NET_OK ==
-        OH_ArkWeb_RegisterCustomSchemes("custom", ARKWEB_SCHEME_OPTION_STANDARD | ARKWEB_SCHEME_OPTION_CORS_ENABLED)) {
+    int ret =
+        OH_ArkWeb_RegisterCustomSchemes("custom", ARKWEB_SCHEME_OPTION_STANDARD | ARKWEB_SCHEME_OPTION_CORS_ENABLED);
+    if (ret == ARKWEB_NET_OK) {
         g_registerCustomSchemes = ARKWEB_NET_OK;
     }
 
@@ -195,7 +196,7 @@ napi_value ArkWebResourceRequestSetUserDataOK(napi_env env, napi_callback_info i
     napi_value result;
     int ret = -1;
     int32_t retSetUserData = OH_ArkWebResourceRequest_SetUserData(resourceRequest, testRequest);
-    if (ARKWEB_NET_OK == retSetUserData) {
+    if (retSetUserData == ARKWEB_NET_OK) {
         ret = 0;
     }
     napi_create_int32(env, 0, &result);
@@ -208,7 +209,7 @@ napi_value ArkWebResourceRequestSetUserDataInvalidParam(napi_env env, napi_callb
     napi_value result;
     int ret = -1;
     int32_t retSetUserData = OH_ArkWebResourceRequest_SetUserData(resourceRequest, nullptr);
-    if (ARKWEB_INVALID_PARAM == retSetUserData) {
+    if (retSetUserData == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
     napi_create_int32(env, 0, &result);
@@ -238,7 +239,8 @@ napi_value ArkWebHttpBodyStreamSetUserDataInvalidParam(napi_env env, napi_callba
 {
     int ret = -1;
     int data = 0;
-    if (ARKWEB_INVALID_PARAM == OH_ArkWebHttpBodyStream_SetUserData(nullptr, (void*)&data)) {
+    int32_t retSetUserData = OH_ArkWebHttpBodyStream_SetUserData(nullptr, static_cast<void*>(&data));
+    if (retSetUserData == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
 
@@ -257,7 +259,7 @@ napi_value ArkWebHttpBodyStreamSetReadCallbackInvalidParam(napi_env env, napi_ca
 {
     int ret = -1;
     ArkWeb_HttpBodyStream *stream_{nullptr};
-    if (ARKWEB_INVALID_PARAM == OH_ArkWebHttpBodyStream_SetReadCallback(stream_, nullptr)) {
+    if (OH_ArkWebHttpBodyStream_SetReadCallback(stream_, nullptr) == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
 
@@ -278,7 +280,8 @@ napi_value ArkWebHttpBodyStreamSetAsyncReadCallbackInvalidParam(napi_env env, na
     napi_value result;
     int ret = -1;
     ArkWeb_HttpBodyStream *httpBodyStream = nullptr;
-    if (ARKWEB_INVALID_PARAM == OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback)) {
+    int retCallBack = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback);
+    if (retCallBack == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
     napi_create_int32(env, ret, &result);
@@ -296,7 +299,7 @@ napi_value ArkWebHttpBodyStreamInitInvalidParam(napi_env env, napi_callback_info
     napi_value result;
     ArkWeb_HttpBodyStream* httpBodyStream = nullptr;
     int ret = -1;
-    if (ARKWEB_INVALID_PARAM == OH_ArkWebHttpBodyStream_Init(httpBodyStream, InitcallBack)) {
+    if (OH_ArkWebHttpBodyStream_Init(httpBodyStream, InitcallBack) == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
     napi_create_int32(env, ret, &result);
@@ -338,7 +341,7 @@ napi_value ArkWebHttpBodyStreamAsyncRead(napi_env env, napi_callback_info info)
 napi_value ArkWebResourceRequestDestroyInvalidParam(napi_env env, napi_callback_info info)
 {
     int ret = -1;
-    if (ARKWEB_INVALID_PARAM == OH_ArkWebResourceRequest_Destroy(nullptr)) {
+    if (OH_ArkWebResourceRequest_Destroy(nullptr) == ARKWEB_INVALID_PARAM) {
         ret = 0;
     }
 
