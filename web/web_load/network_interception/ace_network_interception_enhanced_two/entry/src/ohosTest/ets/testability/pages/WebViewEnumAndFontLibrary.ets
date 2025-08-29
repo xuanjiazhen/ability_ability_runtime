@@ -18,6 +18,7 @@ import webView from '@ohos.web.webview';
 import events_emitter from '@ohos.events.emitter';
 import { Driver, ON } from '@ohos.UiTest';
 import business_error, { BusinessError } from '@ohos.base';
+const EVENT_ID_SET_EIMIT_KEY = 142301;
 
 class TestObj {
   constructor() {
@@ -99,18 +100,20 @@ struct WebViewEnumAndFontLibrary {
   @State databaseAccess: boolean = true
   @State PermissionRequestState: boolean = false
   @State userAgentPC:string = "";
+  @State isReceive: number = -1;
+  @State isPageEnd:number = -1;
   WebResult: WebContextMenuResult = new WebContextMenuResult;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EIMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(EVENT_ID_SET_EIMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -119,6 +122,7 @@ struct WebViewEnumAndFontLibrary {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 1;
       }
     }
   }
@@ -127,13 +131,15 @@ struct WebViewEnumAndFontLibrary {
     Column() {
       Row() {
         Button("web click").key('buttonEnumAndFontLibrary').onClick(async () => {
+          await Utils.waitForExist(()=>this.isReceive, this.str, 1);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
-
             case "emitHasImage": {
               this.javaScriptAccess = true
-              await Utils.sleep(4000);
               this.controller.loadUrl($rawfile('hasImageOne.html'))
+              await Utils.waitForExist(()=>this.isPageEnd, this.str, 1)
+              this.isPageEnd = -1;
               try {
                 this.controller.hasImage((error, data) => {
                   if (error) {
@@ -146,7 +152,7 @@ struct WebViewEnumAndFontLibrary {
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
-              Utils.emitEvent(this.hasImageCbOnline, 1251);
+              Utils.emitEvent(this.hasImageCbOnline, 142311);
               break;
             }
           }
@@ -202,6 +208,9 @@ struct WebViewEnumAndFontLibrary {
         .domStorageAccess(false)
         .onlineImageAccess(false)
         .databaseAccess(this.databaseAccess)
+        .onPageEnd(() => {
+          this.isPageEnd = 1;
+        })
     }
   }
 }

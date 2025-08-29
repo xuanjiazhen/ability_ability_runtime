@@ -16,6 +16,7 @@
 import webView from '@ohos.web.webview';
 import Utils from '../../test/Utils';
 import events_emitter from '@ohos.events.emitter';
+const EVENT_ID_SET_EIMIT_KEY = 142017;
 
 @Entry
 @Component
@@ -36,17 +37,20 @@ struct WebOnInterceptRequest {
     "</body>\n" +
     "</html>"
   @State title: string = "test";
+  @State isTitle: number = -1;
+  @State isReceive: number = -1;
+  @State isCode: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EIMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(EVENT_ID_SET_EIMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -55,6 +59,7 @@ struct WebOnInterceptRequest {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 1;
       }
     }
   }
@@ -72,25 +77,28 @@ struct WebOnInterceptRequest {
             console.log("onBlur==>")
           })
           .onClick(async () => {
+            await Utils.waitForExist(()=>this.isReceive, this.str, 1);
             console.info("key==>" + this.str)
+            this.isReceive = -1;
             switch (this.str) {
               case "emitOnInterceptRequest001": {
                 try {
+                  this.isTitle = -1;
                   this.controller.loadUrl("resource://rawfile/second.html")
-                  await Utils.sleep(1000);
+                  await Utils.waitForExist(()=>this.isTitle, this.str, 1);
                 } catch (error) {
                   console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
                 }
-                Utils.emitEvent(this.title, 60406);
+                Utils.emitEvent(this.title, 142027);
                 break;
               }
               case "emitOnInterceptRequest002": {
                 try {
                   this.responseCode = 404
-                  await Utils.sleep(1000);
+                  this.isCode =-1;
                   this.controller.loadUrl("resource://rawfile/second.html")
-                  await Utils.sleep(2000);
-                  Utils.emitEvent(this.httpErrorReceive, 60407);
+                  await Utils.waitForExist(()=>this.isCode, this.str, 1);
+                  Utils.emitEvent(this.httpErrorReceive, 142037);
                 } catch (error) {
                   console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
                 }
@@ -131,12 +139,14 @@ struct WebOnInterceptRequest {
             if (event) {
               console.log('title:' + event.title);
               this.title = event.title
+              this.isTitle = 1;
             }
           })
           .onHttpErrorReceive((event) => {
             console.info("isHttpErrorReceive==>")
             if (event) {
               this.httpErrorReceive = event.response.getResponseCode()
+              this.isCode = 1;
             }
           })
       }

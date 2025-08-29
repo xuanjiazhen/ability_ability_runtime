@@ -17,6 +17,7 @@ import events_emitter from '@ohos.events.emitter';
 import webView from '@ohos.web.webview';
 import business_error from '@ohos.base'
 import Utils from '../../test/Utils';
+const EVENT_ID_SET_EIMIT_KEY = 142019;
 
 @Entry
 @Component
@@ -24,8 +25,9 @@ struct WebViewControllerDownloadNetworkTest {
   controller: webView.WebviewController = new webView.WebviewController();
   delegate: webView.WebDownloadDelegate = new webView.WebDownloadDelegate();
   @State str: string = '';
-  @State downloadUrl: string = 'https://consumer.huawei.com/content/dam/' +
-    'huawei-cbg-site/cn/mkt/mobileservices/2022/download/' +
+  @State
+  downloadUrl: string = 'https://www.openharmony.cn/content/dam/' +
+    'example-cbg-site/cn/mkt/mobileservices/2022/download/' +
     'PC107f1b3947c942ffaa14334a879065d8.2107261020.exe'
   @State javaScriptAccess: boolean = true;
   @State fileAccess: boolean = true;
@@ -37,17 +39,19 @@ struct WebViewControllerDownloadNetworkTest {
   @State savePath: string = Utils.getSandboxFileDir() + 'testDownloadNetworkFile.exe'
   @State lastErrorCode: number = -1
   @State blockNetwork: boolean = false
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EIMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(EVENT_ID_SET_EIMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -58,6 +62,7 @@ struct WebViewControllerDownloadNetworkTest {
         this.str = eventData.data.ACTION;
         this.lastErrorCode = -1
         this.blockNetwork = false
+        this.isReceive = 1;
       }
     }
   }
@@ -67,15 +72,17 @@ struct WebViewControllerDownloadNetworkTest {
       Row() {
         Button('WebViewControllerDownloadNetworkTestButton')
           .key('WebViewControllerDownloadNetworkTestButton').onClick(async () => {
+          await Utils.waitForExist(()=>this.isReceive, this.str, 1);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
             case "testDownloadNetwork001": {
               try {
+                this.isPageEnd = -1;
                 this.blockNetwork = true
-                await Utils.sleep(1000)
                 this.controller.startDownload(this.downloadUrl);
-                await Utils.sleep(3000)
-                Utils.emitEvent(this.lastErrorCode, 79200)
+                await Utils.waitForExist(()=>this.isPageEnd, this.str, 1);
+                Utils.emitEvent(this.lastErrorCode, 142029)
               } catch (error) {
                 let e: business_error.BusinessError = error as business_error.BusinessError;
                 console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
@@ -118,6 +125,7 @@ struct WebViewControllerDownloadNetworkTest {
                 console.log("download failed lastErrorCode: " + webDownloadItem.getLastErrorCode());
                 this.lastErrorCode = webDownloadItem.getLastErrorCode()
                 webDownloadItem.cancel();
+                this.isPageEnd = 1;
               })
               this.delegate.onDownloadFinish((webDownloadItem: webView.WebDownloadItem) => {
                 console.log("download finish guid: " + webDownloadItem.getGuid());

@@ -18,8 +18,11 @@ import router from '@ohos.router';
 import Utils from './Utils';
 import webView from '@ohos.web.webview';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
+const EVENT_ID_SET_EIMIT_KEY = 142019;
+const driver = Driver.create();
 
 export default function webViewControllerDownloadNetworkTest() {
   describe('WebViewControllerDownloadNetworkTest', () => {
@@ -34,7 +37,6 @@ export default function webViewControllerDownloadNetworkTest() {
         if (!("WebViewControllerDownloadNetworkTest" == pages.name)) {
           console.info("get WebViewControllerDownloadNetworkTest state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebViewControllerDownloadNetworkTest page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -48,15 +50,7 @@ export default function webViewControllerDownloadNetworkTest() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
-      done();
-    })
-
-    afterEach(async (done: Function) => {
-      console.info("WebViewControllerDownloadNetworkTest afterEach start");
-      await Utils.sleep(1000);
-      console.info("WebViewControllerDownloadNetworkTest afterEach end");
       done();
     })
 
@@ -69,10 +63,12 @@ export default function webViewControllerDownloadNetworkTest() {
     * @tc.level       : Level 1
     */
     it('testDownloadNetwork001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testDownloadNetwork001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testDownloadNetwork001", webView.WebDownloadErrorCode.NETWORK_FAILED, 79200, done);
-      sendEventByKey('WebViewControllerDownloadNetworkTestButton', 10, '');
+      Utils.emitEvent("testDownloadNetwork001", EVENT_ID_SET_EIMIT_KEY)
+      let isReturn = 0;
+      Utils.registerEvent("testDownloadNetwork001", webView.WebDownloadErrorCode.NETWORK_FAILED, 142029, () => {isReturn = 1});
+      await Utils.waitAndClickComponent(driver, "WebViewControllerDownloadNetworkTestButton");
+      await Utils.waitForExist(() => isReturn, 'testDownloadNetwork001_checkReturn1', 1);
+      done();
     })
 
   })
