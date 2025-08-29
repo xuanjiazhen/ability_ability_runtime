@@ -124,10 +124,29 @@ struct indexTwo {
         .multiWindowAccess(true)
         .allowWindowOpenMethod(true)
         .onWindowNew((event) => {
-          Utils.emitEvent("openwindow", 133860);
+          console.info('zfh window ts onWindowNew isAlert: ' + event.isAlert + ', isUserTrigger: ' + event.isUserTrigger + ', targetUrl: ' + event.targetUrl);
+          if (this.dialogController != null) {
+            console.info('zfh window this.dialogController != null');
+            this.dialogController.close();
+          }
+          let targetUrlNew: string = event.targetUrl;
+
+          this.popController = new web_webview.WebviewController();
+          console.info('zfh window onWindowNew start');
+          this.dialogController = new CustomDialogController({
+            builder: NewWebViewComp({ url: targetUrlNew, controller: this.popController }),
+            autoCancel: false,
+            customStyle: true
+          });
+          console.info('zfh window onWindowNew start2');
+          this.dialogController.open();
+
+          event.handler.setWebController(this.popController);
+          console.info('zfh window onWindowNew start3');
+          Utils.emitEvent('openwindow', 133860);
         })
         .onWindowExit(() => {
-          console.info("closewindow");
+          console.info('closewindow');
           this.dialogController!.close();
         })
         .onPageEnd((event) => {
