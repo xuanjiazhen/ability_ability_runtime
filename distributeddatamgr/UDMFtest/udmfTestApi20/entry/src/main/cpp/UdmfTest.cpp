@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "native_common.h"
 #include "UdmfTest.h"
 #include "napi/native_api.h"
 #include <database/udmf/udmf.h>
@@ -26,7 +27,7 @@
 int g_invalidParamCode = 20400001;
 int g_err = 20400000;
 
-void AddUdmfTest(std::vector<napi_property_descriptor> &descData)
+void AddUdmfTest1(std::vector<napi_property_descriptor> &descData)
 {
     descData.push_back({"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -50,6 +51,11 @@ void AddUdmfTest(std::vector<napi_property_descriptor> &descData)
                         napi_default, nullptr});
     descData.push_back(
         {"testGetAppItemError", nullptr, TestGetAppItemError, nullptr, nullptr, nullptr, napi_default, nullptr});
+}
+
+void AddUdmfTest(std::vector<napi_property_descriptor> &descData)
+{
+    AddUdmfTest1(descData);
     descData.push_back({"testSetProviderInvalidParam", nullptr, TestSetProviderInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
     descData.push_back({"testGetVisibilitySuccess", nullptr, TestGetVisibilitySuccess, nullptr, nullptr, nullptr,
@@ -70,12 +76,13 @@ void AddUdmfTest(std::vector<napi_property_descriptor> &descData)
                         napi_default, nullptr});
     descData.push_back({"testUdmfOptionsGetVisibilityProcess", nullptr, TestUdmfOptionsGetVisibilityProcess, nullptr,
                         nullptr, nullptr, napi_default, nullptr});
-
     descData.push_back({"testUdmfOptionsGetVisibilityAll", nullptr, TestUdmfOptionsGetVisibilityAll, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
+    descData.push_back({"testUdmfProgressInfoGetStatus", nullptr, TestUdmfProgressInfoGetStatus, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testUdmfSkip", nullptr, TestUDMFSkip, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
-//数据回调
 static void* GetDataCallbackFunc(void* context, const char* type)
 {
     auto plainText = OH_UdsPlainText_Create();
@@ -83,8 +90,44 @@ static void* GetDataCallbackFunc(void* context, const char* type)
     OH_UdsPlainText_SetContent(plainText, "doing something");
     return plainText;
 }
-//资源释放
+
 static void FinalizeFunc(void* context) {};
+
+void DataProgressCallback(OH_Udmf_ProgressInfo* progressInfo, OH_UdmfData* data)
+{
+    int resultRet = -1;
+    bool resultUdmf = OH_UdmfData_HasType(data, UDMF_META_GENERAL_FILE_URI);
+    if (resultUdmf) {
+        unsigned int recordsCount = 0;
+        OH_UdmfRecord** records = OH_UdmfData_GetRecords(data, &recordsCount);
+        int returnStatus;
+        for (int i = 0; i < recordsCount; i++) {
+            OH_UdsFileUri* imageValue = OH_UdsFileUri_Create();
+            returnStatus = OH_UdmfRecord_GetFileUri(records[i], imageValue);
+            const char* fileUri = OH_UdsFileUri_GetFileUri(imageValue);
+            OH_UdsFileUri_Destroy(imageValue);
+        }
+    }
+    OH_UdmfProgressInfo_GetProgress(progressInfo);
+    int ret = OH_UdmfProgressInfo_GetStatus(progressInfo);
+    if (ret == Udmf_ListenerStatus::UDMF_FINISHED) {
+        resultRet = Udmf_ListenerStatus::UDMF_FINISHED;
+    } else if (ret == Udmf_ListenerStatus::UDMF_PROCESSING) {
+        resultRet = Udmf_ListenerStatus::UDMF_PROCESSING;
+    } else if (ret == Udmf_ListenerStatus::UDMF_CANCELED) {
+        resultRet = Udmf_ListenerStatus::UDMF_CANCELED;
+    } else if (ret == Udmf_ListenerStatus::UDMF_INNER_ERROR) {
+        resultRet = Udmf_ListenerStatus::UDMF_INNER_ERROR;
+    } else if (ret == Udmf_ListenerStatus::UDMF_INVALID_PARAMETERS) {
+        resultRet = Udmf_ListenerStatus::UDMF_INVALID_PARAMETERS;
+    } else if (ret == Udmf_ListenerStatus::UDMF_DATA_NOT_FOUND) {
+        resultRet = Udmf_ListenerStatus::UDMF_DATA_NOT_FOUND;
+    } else if (ret == Udmf_ListenerStatus::UDMF_SYNC_FAILED) {
+        resultRet = Udmf_ListenerStatus::UDMF_SYNC_FAILED;
+    } else if (ret == Udmf_ListenerStatus::UDMF_COPY_FILE_FAILED) {
+        resultRet = Udmf_ListenerStatus::UDMF_COPY_FILE_FAILED;
+    }
+}
 
 napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
 {
@@ -575,5 +618,55 @@ napi_value TestUdmfOptionsGetVisibilityAll(napi_env env, napi_callback_info info
         return result;
     }
     napi_create_int32(env, -1, &result);
+    return result;
+}
+
+napi_value TestUdmfProgressInfoGetStatus(napi_env env, napi_callback_info info)
+{
+    const char* destUri = "file://com.acts.actsudmftest/data/storage/el2/distributedfiles/";
+    OH_Udmf_DataProgressListener dataProgressListener = DataProgressCallback;
+    OH_UdmfDataLoadInfo *info2 = OH_UdmfDataLoadInfo_Create();
+    OH_UdmfDataLoadInfo_SetType(info2, "general.file");
+    unsigned int recordCount = 100;
+    OH_UdmfDataLoadInfo_SetRecordCount(info2, recordCount);
+    OH_UdmfGetDataParams* params = OH_UdmfGetDataParams_Create();
+    OH_UdmfGetDataParams_SetDestUri(params, destUri);
+    OH_UdmfGetDataParams_SetFileConflictOptions(params, Udmf_FileConflictOptions::UDMF_OVERWRITE);
+    OH_UdmfGetDataParams_SetProgressIndicator(params, Udmf_ProgressIndicator::UDMF_DEFAULT);
+    OH_UdmfGetDataParams_SetAcceptableInfo(params, info2);
+    OH_UdmfGetDataParams_SetDataProgressListener(params, dataProgressListener);
+    OH_UdmfGetDataParams_Destroy(params);
+    napi_value result;
+    int ret = -1;
+    if (params) {
+        ret = 0;
+    }
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+
+napi_value TestUDMFSkip(napi_env env, napi_callback_info info)
+{
+    OH_UdmfGetDataParams *param = OH_UdmfGetDataParams_Create();
+    Udmf_ProgressIndicator progress = Udmf_ProgressIndicator::UDMF_NONE;
+    OH_UdmfGetDataParams_SetProgressIndicator(param, progress);
+    OH_UdmfGetDataParams_SetDestUri(param, "file://com.acts.actsudmftest/data/storage/el2/distributedfiles/");
+    Udmf_FileConflictOptions opt = Udmf_FileConflictOptions::UDMF_SKIP;
+    OH_UdmfGetDataParams_SetFileConflictOptions(param, opt);
+
+    OH_Udmf_DataProgressListener dataProgressListener = [](OH_Udmf_ProgressInfo *progressInfo, OH_UdmfData *data) {
+        if (data == nullptr) {
+            return;
+        }
+        unsigned int count = 0;
+        OH_UdmfData_GetRecords(data, &count);
+    };
+    OH_UdmfGetDataParams_SetDataProgressListener(param, dataProgressListener);
+    int ret = -1;
+    if (param) {
+        ret = 0;
+    }
+    napi_value result;
+    napi_create_int32(env, ret, &result);
     return result;
 }
