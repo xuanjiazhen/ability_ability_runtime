@@ -190,9 +190,17 @@ inline std::string GetAbbreviatedFileName(const std::string& fileName)
 {
     std::map<std::string, std::string> abbreviatedFileNameMap {
         { "ability_manager_client", "AMC" },
-        { "app_running_manager", "ARM" }
+        { "app_running_manager", "ARM" },
+        { "ability_connect_manager", "ACM" },
+        { "ability_manager_service", "ABMS" } ,
+        { "app_mgr_service_inner", "AMSI" },
+        { "app_running_record", "ARR" },
+        { "connect_server_manager", "CSM" },
+        { "js_ui_ability", "JUA" },
+        { "js_service_extension", "JSE" },
+        { "ability_connect_callback_stub", "ACCS" }
     };
-    std::string fileBaseName;
+    std::string fileBaseName = fileName;
     auto pos = fileName.find_last_of(".");
     if (pos != std::string::npos) {
         fileBaseName = fileName.substr(0, pos);
