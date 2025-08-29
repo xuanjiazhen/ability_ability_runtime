@@ -4150,7 +4150,7 @@ export default function audioFramework() {
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0100 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
-      console.info(`${TagFrmwk: Determine if this is a default device}`)
+      console.info(`${TagFrmwk}: Determine if this is a default device`)
       const detecteDevice = outputDeviceDescription.some(device => 
             device.deviceType === audio.DeviceType.DISPLAY_PORT
         );
@@ -4207,7 +4207,7 @@ export default function audioFramework() {
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0200 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
-      console.info(`${TagFrmwk: Determine if this is a default device}`)
+      console.info(`${TagFrmwk}: Determine if this is a default device`)
       const detecteDevice = outputDeviceDescription.some(device => 
             device.deviceType === audio.DeviceType.DISPLAY_PORT
         );
@@ -4248,7 +4248,7 @@ export default function audioFramework() {
       let flag: boolean | null = null;
       let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG)
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0300 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
-      console.info(`${TagFrmwk: Determine if this is a default device}`)
+      console.info(`${TagFrmwk}: Determine if this is a default device`)
       const detecteDevice = outputDeviceDescription.some(device => 
             device.deviceType === audio.DeviceType.DISPLAY_PORT
         );
@@ -4305,7 +4305,7 @@ export default function audioFramework() {
     it('SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       let outputDeviceDescription = await audioManager.getDevices(audio.DeviceFlag.OUTPUT_DEVICES_FLAG);
       console.info(`SUB_MULTIMEDIA_AUDIO_MANAGER_SETDEVICEACTIVE_0400 outputDeviceDescription is ${JSON.stringify(outputDeviceDescription)}`);
-      console.info(`${TagFrmwk: Determine if this is a default device}`)
+      console.info(`${TagFrmwk}: Determine if this is a default device`)
       const detecteDevice = outputDeviceDescription.some(device => 
             device.deviceType === audio.DeviceType.DISPLAY_PORT
         );
