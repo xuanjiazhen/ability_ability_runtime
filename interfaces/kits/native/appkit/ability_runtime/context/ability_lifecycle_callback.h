@@ -19,120 +19,58 @@
 #include <map>
 #include <memory>
 
-class NativeReference;
-typedef struct napi_env__* napi_env;
-typedef struct napi_value__* napi_value;
-
 namespace OHOS {
-namespace AppExecFwk {
-struct ETSNativeReference;
-}
 namespace AbilityRuntime {
+enum AbilityLifecycleCallbackType {
+    JS = 0,
+    ETS,
+};
+class AbilityLifecycleCallbackArgs {
+public:
+    AbilityLifecycleCallbackType type_ = AbilityLifecycleCallbackType::JS;
+    virtual bool IsValid() const { return true; }
+};
 
 class AbilityLifecycleCallback {
 public:
     virtual ~AbilityLifecycleCallback() {}
-/*----------------------------------for arkts 1.1 listening UIAbility 1.1--------------------------------------------*/
-    virtual void OnAbilityCreate(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnWindowStageCreate(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) {}
-    virtual void OnWindowStageDestroy(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) {}
-    virtual void OnWindowStageActive(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) {}
-    virtual void OnWindowStageInactive(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) {}
-    virtual void OnAbilityDestroy(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnNewWant(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnWillNewWant(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnAbilityWillCreate(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnWindowStageWillCreate(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) {}
-    virtual void OnWindowStageWillDestroy(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) {}
-    virtual void OnAbilityWillDestroy(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnAbilityWillForeground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnAbilityWillBackground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnAbilityForeground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnAbilityBackground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnAbilityContinue(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnAbilityWillContinue(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnWindowStageWillRestore(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) {}
-    virtual void OnWindowStageRestore(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) {}
-    virtual void OnAbilityWillSaveState(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnAbilitySaveState(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnWillForeground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnDidForeground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnWillBackground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnDidBackground(const std::shared_ptr<NativeReference> &ability) {}
+    virtual void OnAbilityCreate(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnWindowStageCreate(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) {}
+    virtual void OnWindowStageDestroy(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) {}
+    virtual void OnWindowStageActive(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) {}
+    virtual void OnWindowStageInactive(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) {}
+    virtual void OnAbilityDestroy(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnNewWant(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnWillNewWant(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnAbilityWillCreate(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnWindowStageWillCreate(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) {}
+    virtual void OnWindowStageWillDestroy(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) {}
+    virtual void OnAbilityWillDestroy(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnAbilityWillForeground(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnAbilityWillBackground(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnAbilityForeground(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnAbilityBackground(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnAbilityContinue(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnAbilityWillContinue(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnWindowStageWillRestore(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) {}
+    virtual void OnWindowStageRestore(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) {}
+    virtual void OnAbilityWillSaveState(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnAbilitySaveState(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnWillForeground(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnDidForeground(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnWillBackground(const AbilityLifecycleCallbackArgs &ability) {}
+    virtual void OnDidBackground(const AbilityLifecycleCallbackArgs &ability) {}
 
-/*----------------------------------for arkts 1.2 listening UIAbility 1.2--------------------------------------------*/
-    virtual void OnAbilityCreate(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) {}
-    virtual void OnWindowStageCreate(std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
-        std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage) {}
-    virtual void OnWindowStageDestroy(std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
-        std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage) {}
-    virtual void OnAbilityDestroy(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) {}
-    virtual void OnAbilityForeground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) {}
-    virtual void OnAbilityBackground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) {}
-};
-
-class JsAbilityLifecycleCallback : public AbilityLifecycleCallback,
-                                   public std::enable_shared_from_this<JsAbilityLifecycleCallback> {
 public:
-    explicit JsAbilityLifecycleCallback(napi_env env);
-    void OnAbilityCreate(const std::shared_ptr<NativeReference> &ability) override;
-    void OnWindowStageCreate(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) override;
-    void OnWindowStageDestroy(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) override;
-    void OnWindowStageActive(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) override;
-    void OnWindowStageInactive(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) override;
-    void OnAbilityWillCreate(const std::shared_ptr<NativeReference> &ability) override;
-    void OnWindowStageWillCreate(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) override;
-    void OnWindowStageWillDestroy(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) override;
-    void OnAbilityWillDestroy(const std::shared_ptr<NativeReference> &ability) override;
-    void OnAbilityWillForeground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnAbilityWillBackground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnNewWant(const std::shared_ptr<NativeReference> &ability) override;
-    void OnWillNewWant(const std::shared_ptr<NativeReference> &ability) override;
-    void OnAbilityDestroy(const std::shared_ptr<NativeReference> &ability) override;
-    void OnAbilityForeground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnAbilityBackground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnAbilityContinue(const std::shared_ptr<NativeReference> &ability) override;
-    void OnAbilityWillContinue(const std::shared_ptr<NativeReference> &ability) override;
-    void OnWindowStageWillRestore(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) override;
-    void OnWindowStageRestore(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage) override;
-    void OnAbilityWillSaveState(const std::shared_ptr<NativeReference> &ability) override;
-    void OnAbilitySaveState(const std::shared_ptr<NativeReference> &ability) override;
-    int32_t Register(napi_value jsCallback, bool isSync = false);
-    bool UnRegister(int32_t callbackId, bool isSync = false);
-    bool IsEmpty() const;
-    void OnWillForeground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnDidForeground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnWillBackground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnDidBackground(const std::shared_ptr<NativeReference> &ability) override;
-    static int32_t serialNumber_;
-
-private:
-    napi_env env_ = nullptr;
-    std::shared_ptr<NativeReference> jsCallback_;
-    std::map<int32_t, std::shared_ptr<NativeReference>> callbacks_;
-    std::map<int32_t, std::shared_ptr<NativeReference>> callbacksSync_;
-    void CallJsMethod(const std::string &methodName, const std::shared_ptr<NativeReference> &ability);
-    void CallWindowStageJsMethod(const std::string &methodName, const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage);
-    void CallJsMethodInnerCommon(const std::string &methodName, const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage,
-        const std::map<int32_t, std::shared_ptr<NativeReference>> callbacks);
+    AbilityLifecycleCallbackType type_ = AbilityLifecycleCallbackType::JS;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
