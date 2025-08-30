@@ -63,7 +63,7 @@ export default class UIExtensionContentSession {
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
   native nativeSetWindowPrivacyMode(isPrivacyMode: boolean, callback:AsyncCallbackWrapper<void>): void;
 
-  sendData(data: RecordData): void {
+  sendData(data: Record<string, RecordData>): void {
     this.nativeSendData(data as Record<string, Object>);
   }
 
@@ -121,7 +121,7 @@ export default class UIExtensionContentSession {
     return p;
   }
 
-  startAbilityByType(type: string, wantParam: RecordData, startCallback: AbilityStartCallback,
+  startAbilityByType(type: string, wantParam: Record<string, RecordData>, startCallback: AbilityStartCallback,
     callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError<void> => {
       return this.nativeStartAbilityByTypeSync(type, wantParam as Record<string, Object>, startCallback);
@@ -138,7 +138,7 @@ export default class UIExtensionContentSession {
     });
   }
 
-  startAbilityByType(type: string, wantParam: RecordData,
+  startAbilityByType(type: string, wantParam: Record<string, RecordData>,
     startCallback: AbilityStartCallback): Promise<void> {
     let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError<void>) => void): void => {
       let p1 = taskpool.execute((): BusinessError<void> => {
