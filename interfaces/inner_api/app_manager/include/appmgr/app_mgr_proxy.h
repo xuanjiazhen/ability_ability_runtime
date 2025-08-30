@@ -448,6 +448,8 @@ public:
 
     virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer) override;
 
+    virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer, int32_t userId) override;
+
     virtual int32_t UnregisterConfigurationObserver(const sptr<IConfigurationObserver> &observer) override;
 
     /**
