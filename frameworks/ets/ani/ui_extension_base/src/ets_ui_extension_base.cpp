@@ -219,7 +219,8 @@ bool EtsUIExtensionBase::BindNativeMethods()
         TAG_LOGE(AAFwkTag::UI_EXT, "FindClass failed status: %{public}d", status);
         return false;
     }
-    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
+    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK
+        && status != ANI_ALREADY_BINDED) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Class_BindNativeMethods status: %{public}d", status);
         return false;
     }
