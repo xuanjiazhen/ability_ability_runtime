@@ -250,6 +250,11 @@ public:
         return 0;
     }
 
+    virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver>& observer, int32_t userId)
+    {
+        return 0;
+    }
+
     virtual int32_t UnregisterConfigurationObserver(const sptr<IConfigurationObserver>& observer)
     {
         return 0;

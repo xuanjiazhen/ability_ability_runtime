@@ -6037,6 +6037,32 @@ int32_t AppMgrServiceInner::RegisterConfigurationObserver(const sptr<IConfigurat
     return NO_ERROR;
 }
 
+int32_t AppMgrServiceInner::RegisterConfigurationObserver(const sptr<IConfigurationObserver>& observer, int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "caller not SA");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard<ffrt::mutex> registerLock(configurationObserverLock_);
+    auto it = std::find_if(configurationObservers_.begin(), configurationObservers_.end(),
+        [&](const ConfigurationObserverWithUserId& item) {
+            return (item.observer && item.observer->AsObject() == observer->AsObject());
+        });
+    if (it != configurationObservers_.end()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "observer exist");
+        return ERR_INVALID_VALUE;
+    }
+    configurationObservers_.push_back(
+        ConfigurationObserverWithUserId { observer, userId });
+    return NO_ERROR;
+}
+
 int32_t AppMgrServiceInner::UnregisterConfigurationObserver(const sptr<IConfigurationObserver>& observer)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
