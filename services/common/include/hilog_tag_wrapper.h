@@ -16,6 +16,7 @@
 #ifndef OHOS_AAFWK_HILOG_TAG_WRAPPER_H
 #define OHOS_AAFWK_HILOG_TAG_WRAPPER_H
 
+#include <algorithm>
 #include <cinttypes>
 #include <map>
 #include <string>
@@ -187,13 +188,13 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
-inline std::string GetAbbreviatedFileName(const std::string& fileName)
+std::string GetAbbreviatedFileName(const std::string& fileName)
 {
     std::map<std::string, std::string> abbreviatedFileNameMap {
         { "ability_manager_client", "AMC" },
         { "app_running_manager", "ARM" },
         { "ability_connect_manager", "ACM" },
-        { "ability_manager_service", "ABMS" } ,
+        { "ability_manager_service", "ABMS" },
         { "app_mgr_service_inner", "AMSI" },
         { "app_running_record", "ARR" },
         { "connect_server_manager", "CSM" },
@@ -205,6 +206,9 @@ inline std::string GetAbbreviatedFileName(const std::string& fileName)
     auto pos = fileName.find_last_of(".");
     if (pos != std::string::npos) {
         fileBaseName = fileName.substr(0, pos);
+        if (std::count(fileBaseName.begin(), fileBaseName.end(), "_") <= 1) {
+            return fileBaseName;
+        }
         if (abbreviatedFileNameMap.find(fileBaseName) != abbreviatedFileNameMap.end()) {
             return abbreviatedFileNameMap[fileBaseName];
         }
