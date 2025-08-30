@@ -262,7 +262,7 @@ bool EtsUIExtensionContentSession::BindNativePtrCleaner(ani_env *env)
     std::array methods = {
         ani_native_function { "clean", nullptr, reinterpret_cast<void *>(EtsUIExtensionContentSession::Clean) },
     };
-    if (ANI_OK != (status = env->Class_BindNativeMethods(cleanerCls, methods.data(), methods.size()))
+    if ((status = env->Class_BindNativeMethods(cleanerCls, methods.data(), methods.size())) != ANI_OK
         && status != ANI_ALREADY_BINDED) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return false;
