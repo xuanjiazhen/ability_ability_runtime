@@ -4046,7 +4046,13 @@ void MainThread::HandleConfigByPlugin(Configuration &config, BundleInfo &bundleI
         return;
     }
 
-    void* handle = dlopen(PC_LIBRARY_PATH, RTLD_LAZY);
+    char resolvedPath[PATH_MAX] = {0};
+    if (realpath(PC_LIBRARY_PATH, resolvedPath) == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "errno = %{public}d", errno);
+        return;
+    }
+
+    void* handle = dlopen(resolvedPath, RTLD_LAZY);
     if (handle == nullptr) {
         TAG_LOGW(AAFwkTag::APPKIT, "reason %{public}sn", dlerror());
         return;
