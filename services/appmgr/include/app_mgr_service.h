@@ -471,6 +471,16 @@ public:
     virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer) override;
 
     /**
+     * @brief register a configuration observer bound to userId which will receive notifies when updated.
+     * @param observer the configuration observer to receive notify.
+     * @param userId the userId registered before
+     * 
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer,
+        int32_t userId) override;
+
+    /**
      * @brief unregister a configuration observer registered before.
      * @param observer the configuration observer registered before.
      *
