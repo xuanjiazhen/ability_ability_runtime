@@ -541,7 +541,7 @@ void AppRunningRecord::ScheduleTerminate()
 
 void AppRunningRecord::LaunchPendingAbilities()
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "Launch pending abilities.");
+    PRETTY_TAG_LOGI(AAFwkTag::APPMGR, "Launch pending abilities.");
     AddAppLifecycleEvent("AppRunningRecord::LaunchPendingAbilities");
     auto moduleRecordList = GetAllModuleRecord();
     if (moduleRecordList.empty()) {
