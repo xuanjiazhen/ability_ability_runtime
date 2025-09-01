@@ -56,6 +56,7 @@ ohos_shared_library("verticalpanelmanager_napi") {
     "ace_engine:ace_uicontent",
     "access_token:libtokenid_sdk",
     "ipc:ipc_core",
+    "window_manager:session_manager_lite",
   ]
   cflags_cc = []
   if (os_dlp_part_enabled) {
