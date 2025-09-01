@@ -924,6 +924,11 @@ enum {
     ERR_NOT_CANDIDATE_MASTER_PROCESS = 2097366,
 
     /**
+     * Result (2099200) for main window of this ability does not exist.
+     */
+    ERR_MAIN_WINDOW_NOT_EXIST = 2099200,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,

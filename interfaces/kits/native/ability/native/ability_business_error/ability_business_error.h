@@ -268,6 +268,8 @@ enum class AbilityErrorCode {
 
     ERROR_CODE_NOT_CANDIDATE_MASTER_PROCESS = 16000117,
 
+    ERROR_CODE_MAIN_WINDOW_NOT_EXIST = 16000135,
+
     // target bundle is not in u1
     ERROR_CODE_NO_U1 = 16000204,
 
