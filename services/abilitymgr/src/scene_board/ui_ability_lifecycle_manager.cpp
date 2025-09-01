@@ -3832,7 +3832,8 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
     auto &request = specifiedRequest.abilityRequest;
 
     bool isDebug = false;
-    bool isLoaded = IsSpecifiedModuleLoaded(request, isDebug);
+    bool isLoaded = IsSpecifiedModuleLoaded(request,
+        specifiedRequest.specifiedProcessState != SpecifiedProcessState::STATE_NONE, isDebug);
     if (specifiedRequest.specifiedProcessState == SpecifiedProcessState::STATE_PROCESS) {
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(request.want,
             request.abilityInfo, specifiedRequest.requestId);
@@ -3843,8 +3844,7 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
         if (TryProcessHookModule(specifiedRequest, IsHookModule(request))) {
             return;
         }
-        if (specifiedRequest.specifiedProcessState == SpecifiedProcessState::STATE_NONE &&
-            specifiedRequest.requestListId == REQUEST_LIST_ID_INIT && !isLoaded) {
+        if (specifiedRequest.requestListId == REQUEST_LIST_ID_INIT && !isLoaded) {
             specifiedRequest.isCold = true;
             auto sessionInfo = CreateSessionInfo(request, specifiedRequest.requestId);
             sessionInfo->requestCode = request.requestCode;
@@ -3909,17 +3909,18 @@ std::shared_ptr<SpecifiedRequest> UIAbilityLifecycleManager::PopAndGetNextSpecif
     return nullptr;
 }
 
-bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest, bool &isDebug)
+bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest,
+    bool isSpecifiedProcess, bool &isDebug)
 {
     auto appMgr = AppMgrUtil::GetAppMgr();
     if (appMgr == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "AppMgrUtil::GetAppMgr failed");
         return false;
     }
-    bool appExist = false;
+    bool isLoaded = false;
     auto ret = IN_PROCESS_CALL(appMgr->IsSpecifiedModuleLoaded(abilityRequest.want,
-        abilityRequest.abilityInfo, appExist, isDebug));
-    return ret == ERR_OK && appExist;
+        abilityRequest.abilityInfo, isSpecifiedProcess, isLoaded, isDebug));
+    return ret == ERR_OK && isLoaded;
 }
 
 bool UIAbilityLifecycleManager::HandleStartSpecifiedCold(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
