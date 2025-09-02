@@ -130,6 +130,8 @@ constexpr const char* ERROR_MSG_ALREADY_MASTER_PROCESS =
     "The current process is already a master process and does not support cancellation.";
 constexpr const char* ERROR_MSG_NOT_CANDIDATE_MASTER_PROCESS =
     "The current process is not a candidate master process and does not support cancellation.";
+constexpr const char* ERROR_MSG_MAIN_WINDOW_NOT_EXIST =
+    "The main window of this ability does not exist.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -224,6 +226,7 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_NOT_ISOLATION_PROCESS, ERROR_MSG_NOT_ISOLATION_PROCESS},
     { AbilityErrorCode::ERROR_CODE_ALREADY_MASTER_PROCESS, ERROR_MSG_ALREADY_MASTER_PROCESS},
     { AbilityErrorCode::ERROR_CODE_NOT_CANDIDATE_MASTER_PROCESS, ERROR_MSG_NOT_CANDIDATE_MASTER_PROCESS },
+    { AbilityErrorCode::ERROR_CODE_MAIN_WINDOW_NOT_EXIST, ERROR_MSG_MAIN_WINDOW_NOT_EXIST },
 };
 
 static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP {
@@ -320,6 +323,7 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_NOT_ISOLATION_PROCESS, AbilityErrorCode::ERROR_CODE_NOT_ISOLATION_PROCESS},
     {ERR_ALREADY_MASTER_PROCESS, AbilityErrorCode::ERROR_CODE_ALREADY_MASTER_PROCESS},
     {ERR_NOT_CANDIDATE_MASTER_PROCESS, AbilityErrorCode::ERROR_CODE_NOT_CANDIDATE_MASTER_PROCESS},
+    {ERR_MAIN_WINDOW_NOT_EXIST, AbilityErrorCode::ERROR_CODE_MAIN_WINDOW_NOT_EXIST },
 };
 }
 
