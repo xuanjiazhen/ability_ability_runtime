@@ -41,7 +41,8 @@ bool AppScheduler::Init(const std::weak_ptr<AppStateCallback>& callback)
 }
 
 int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam& loadParam, const AppExecFwk::AbilityInfo& abilityInfo,
-    const AppExecFwk::ApplicationInfo& applicationInfo, const AAFwk::Want& want)
+    const AppExecFwk::ApplicationInfo& applicationInfo, const AAFwk::Want& want,
+    sptr<AppExecFwk::ILoadAbilityCallback> callback)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::LoadAbility()");
     if (applicationInfo.bundleName.find("com.ix.First.Test") != std::string::npos) {
@@ -187,6 +188,12 @@ void AppScheduler::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk:
 bool AppScheduler::IsMemorySizeSufficent() const
 {
     return true;
+}
+
+int32_t AppScheduler::VerifyKillProcessPermission(const std::string &bundleName) const
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::VerifyKillProcessPermission()");
+    return ERR_OK;
 }
 
 void AppScheduler::StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t) {}

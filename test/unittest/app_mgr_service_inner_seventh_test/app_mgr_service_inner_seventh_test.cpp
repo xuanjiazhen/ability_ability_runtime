@@ -470,7 +470,6 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRunningProcessesByBundleType_001, Tes
         const std::shared_ptr<AppExecFwk::AppRunningRecord>>(0, appRecord));
     AAFwk::MyStatus::GetInstance().getAppRunningRecordMap_.insert(std::pair<const int32_t,
         const std::shared_ptr<AppExecFwk::AppRunningRecord>>(1, appRecord2));
-    appMgrServiceInner->currentUserId_ = 1;
 
     BundleType bundleType = BundleType::APP;
     std::vector<RunningProcessInfo> info;
@@ -496,7 +495,6 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRunningProcessesByBundleType_002, Tes
     AAFwk::MyStatus::GetInstance().getAppRunningRecordMap_.clear();
     AAFwk::MyStatus::GetInstance().getAppRunningRecordMap_.insert(std::pair<const int32_t,
         const std::shared_ptr<AppExecFwk::AppRunningRecord>>(1, appRecord2));
-    appMgrServiceInner->currentUserId_ = 1;
 
     BundleType bundleType = BundleType::APP;
     std::vector<RunningProcessInfo> info;
@@ -523,7 +521,6 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRunningProcessesByBundleType_003, Tes
     appRecord2->SetUid(200000);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordMap_.insert(std::pair<const int32_t,
         const std::shared_ptr<AppExecFwk::AppRunningRecord>>(1, appRecord2));
-    appMgrServiceInner->currentUserId_ = 1;
 
     BundleType bundleType = BundleType::APP;
     std::vector<RunningProcessInfo> info2;
@@ -699,7 +696,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
 
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
-    int32_t userId = 1;
+    int32_t userId = 100;
     int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_006 end");
@@ -714,7 +711,6 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessRunningInfosByUserId_001, Test
 {
     TAG_LOGI(AAFwkTag::TEST, "GetProcessRunningInfosByUserId_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->currentUserId_ = 0;
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     std::string temp = "";
     auto appRecord2 = std::make_shared<AppRunningRecord>(info, 0, temp);
@@ -740,7 +736,6 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessRunningInfosByUserId_002, Test
 {
     TAG_LOGI(AAFwkTag::TEST, "GetProcessRunningInfosByUserId_002 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->currentUserId_ = 0;
     AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = true;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordMap_.insert(std::pair<const int32_t,
         const std::shared_ptr<AppExecFwk::AppRunningRecord>>(1, nullptr));
@@ -761,7 +756,6 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessRunningInfosByUserId_003, Test
 {
     TAG_LOGI(AAFwkTag::TEST, "GetProcessRunningInfosByUserId_003 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->currentUserId_ = 0;
     AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = true;
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     std::string temp = "";

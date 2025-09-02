@@ -68,7 +68,8 @@ AmsMgrScheduler::~AmsMgrScheduler()
 
 void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
     const std::shared_ptr<ApplicationInfo> &appInfo,
-    const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam)
+    const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam,
+    sptr<ILoadAbilityCallback> callback)
 {
     if (!abilityInfo || !appInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "param error");
@@ -87,8 +88,8 @@ void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInf
     TAG_LOGI(AAFwkTag::APPMGR, "SubmitLoadTask: %{public}s-%{public}s", abilityInfo->bundleName.c_str(),
         abilityInfo->name.c_str());
     std::function<void()> loadAbilityFunc = [amsMgrServiceInner = amsMgrServiceInner_,
-        abilityInfo, appInfo, want, loadParam]() {
-        amsMgrServiceInner->LoadAbility(abilityInfo, appInfo, want, loadParam);
+        abilityInfo, appInfo, want, loadParam, callback]() {
+        amsMgrServiceInner->LoadAbility(abilityInfo, appInfo, want, loadParam, callback);
     };
 
     // cache other application load ability task before scene board attach
@@ -536,14 +537,6 @@ int32_t AmsMgrScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reaso
     return amsMgrServiceInner_->NotifyAppMgrRecordExitReason(pid, reason, exitMsg);
 }
 
-void AmsMgrScheduler::SetCurrentUserId(const int32_t userId)
-{
-    if (!IsReady()) {
-        return;
-    }
-    amsMgrServiceInner_->SetCurrentUserId(userId);
-}
-
 void AmsMgrScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
 {
     if (!IsReady()) {
@@ -876,6 +869,15 @@ int32_t AmsMgrScheduler::CheckPreloadAppRecordExist(const std::string &bundleNam
     }
     isExist = amsMgrServiceInner_->CheckPreloadAppRecordExist(bundleName, userId, appIndex);
     return ERR_OK;
+}
+
+int32_t AmsMgrScheduler::VerifyKillProcessPermission(const std::string &bundleName)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    return static_cast<int32_t>(amsMgrServiceInner_->VerifyKillProcessPermission(bundleName));
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

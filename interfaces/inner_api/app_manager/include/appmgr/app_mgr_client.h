@@ -62,10 +62,12 @@ public:
      * @param appInfo Application information.
      * @param want Want.
      * @param loadParam load ability param.
+     * @param callback, the callback to get process id.
      * @return Returns RESULT_OK on success, others on failure.
      */
     virtual AppMgrResultCode LoadAbility(const AbilityInfo &abilityInfo, const ApplicationInfo &appInfo,
-        const AAFwk::Want &want, AbilityRuntime::LoadParam loadParam);
+        const AAFwk::Want &want, AbilityRuntime::LoadParam loadParam,
+        sptr<AppExecFwk::ILoadAbilityCallback> callback = nullptr);
 
     /**
      * Terminate ability.
@@ -577,15 +579,6 @@ public:
     int32_t StartNativeProcessForDebugger(const AAFwk::Want &want);
 
     /**
-     * Set the current userId of appMgr.
-     *
-     * @param userId the user id.
-     *
-     * @return
-     */
-    void SetCurrentUserId(const int32_t userId);
-
-    /**
      * Set enable start process flag by userId
      * @param userId the user id.
      * @param enableStartProcess enable start process.
@@ -1018,7 +1011,16 @@ public:
      */
     int32_t DemoteCurrentFromCandidateMasterProcess();
 
+    /**
+     * Exit from the master process role of the current process.
+     *
+     * @return Return ERR_OK if success, others fail.
+     */
+    int32_t ExitMasterProcessRole();
+
     int32_t QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles);
+
+    int32_t VerifyKillProcessPermission(const std::string &bundleName) const;
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);

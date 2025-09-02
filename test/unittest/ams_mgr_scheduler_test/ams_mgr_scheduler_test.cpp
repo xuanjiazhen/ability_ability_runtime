@@ -114,7 +114,7 @@ HWTEST_F(AmsMgrSchedulerTest, AmsMgrScheduler_001, TestSize.Level1)
     std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
     applicationInfo->name = GetTestAppName();
 
-    EXPECT_CALL(*mockAppMgrServiceInner, LoadAbility(_, _, _, _))
+    EXPECT_CALL(*mockAppMgrServiceInner, LoadAbility(_, _, _, _, _))
         .WillOnce(InvokeWithoutArgs(mockAppMgrServiceInner.get(), &MockAppMgrServiceInner::Post));
     AbilityRuntime::LoadParam loadParam;
     loadParam.token = new MockAbilityToken();
@@ -150,7 +150,7 @@ HWTEST_F(AmsMgrSchedulerTest, AmsMgrScheduler_002, TestSize.Level1)
     applicationInfo->name = GetTestAppName();
 
     // check token parameter
-    EXPECT_CALL(*mockAppMgrServiceInner, LoadAbility(_, _, _, _)).Times(0);
+    EXPECT_CALL(*mockAppMgrServiceInner, LoadAbility(_, _, _, _, _)).Times(0);
     AbilityRuntime::LoadParam loadParam;
     loadParam.token = new MockAbilityToken();
     loadParam.preToken = new MockAbilityToken();
@@ -158,7 +158,7 @@ HWTEST_F(AmsMgrSchedulerTest, AmsMgrScheduler_002, TestSize.Level1)
     amsMgrScheduler->LoadAbility(nullptr, applicationInfo, nullptr, loadParamPtr);
 
     // check pretoken parameter
-    EXPECT_CALL(*mockAppMgrServiceInner, LoadAbility(_, _, _, _)).Times(0);
+    EXPECT_CALL(*mockAppMgrServiceInner, LoadAbility(_, _, _, _, _)).Times(0);
     amsMgrScheduler->LoadAbility(abilityInfo, nullptr, nullptr, loadParamPtr);
 
     TAG_LOGD(AAFwkTag::TEST, "AmsMgrScheduler_002 end.");
@@ -748,6 +748,26 @@ HWTEST_F(AmsMgrSchedulerTest, IsMemorySizeSufficent_001, TestSize.Level2)
 
 /*
  * Feature: AmsMgrScheduler
+ * Function: VerifyKillProcessPermission
+ * SubFunction: NA
+ * FunctionPoints: AmsMgrScheduler VerifyKillProcessPermission
+ * EnvConditions: NA
+ * CaseDescription: Verify VerifyKillProcessPermission
+ */
+HWTEST_F(AmsMgrSchedulerTest, VerifyKillProcessPermission_001, TestSize.Level2)
+{
+    auto amsMgrScheduler = std::make_unique<AmsMgrScheduler>(nullptr, nullptr);
+    ASSERT_NE(amsMgrScheduler, nullptr);
+    auto res = amsMgrScheduler->VerifyKillProcessPermission("test");
+    EXPECT_NE(res, ERR_OK);
+    amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
+    amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
+    res = amsMgrScheduler->VerifyKillProcessPermission("test");
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AmsMgrScheduler
  * Function: StartSpecifiedAbility
  * SubFunction: NA
  * FunctionPoints: AmsMgrScheduler StartSpecifiedAbility
@@ -828,34 +848,6 @@ HWTEST_F(AmsMgrSchedulerTest, NotifyAppMgrRecordExitReason_001, TestSize.Level2)
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
     int res2 = amsMgrScheduler->NotifyAppMgrRecordExitReason(pid, reason, exitMsg);
     EXPECT_NE(res2, ERR_INVALID_OPERATION);
-}
-
-/**
- * @tc.name: SetCurrentUserId_002
- * @tc.desc: set current userId.
- * @tc.type: FUNC
- */
-HWTEST_F(AmsMgrSchedulerTest, SetCurrentUserId_002, TestSize.Level2)
-{
-    auto amsMgrScheduler = std::make_unique<AmsMgrScheduler>(nullptr, nullptr);
-    amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
-    amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
-    ASSERT_NE(amsMgrScheduler, nullptr);
-    int userId = 1;
-    amsMgrScheduler->SetCurrentUserId(userId);
-}
-
-/**
- * @tc.name: SetCurrentUserId_001
- * @tc.desc: set current userId.
- * @tc.type: FUNC
- */
-HWTEST_F(AmsMgrSchedulerTest, SetCurrentUserId_001, TestSize.Level2)
-{
-    auto amsMgrScheduler = std::make_unique<AmsMgrScheduler>(nullptr, nullptr);
-    ASSERT_NE(amsMgrScheduler, nullptr);
-    int userId = 1;
-    amsMgrScheduler->SetCurrentUserId(userId);
 }
 
 /**

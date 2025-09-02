@@ -492,5 +492,52 @@ std::unique_ptr<NapiAsyncTask> CreateEmptyAsyncTask(napi_env env, napi_value las
             std::unique_ptr<NapiAsyncTask::CompleteCallback>());
     }
 }
+
+void ReleaseNativeReference(napi_env env, NativeReference* ref)
+{
+    if (ref == nullptr) {
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "null ref");
+        return;
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null work");
+        delete ref;
+        return;
+    }
+    work->data = reinterpret_cast<void *>(ref);
+    if (napi_send_event(env,
+        [work]() {
+            if (work == nullptr) {
+                TAG_LOGE(AAFwkTag::JSRUNTIME, "null uv work");
+                return;
+            }
+            auto tempWork = const_cast<uv_work_t*>(work);
+            if (tempWork == nullptr) {
+                TAG_LOGE(AAFwkTag::JSRUNTIME, "null uv tempWork");
+                return;
+            }
+            if (tempWork->data == nullptr) {
+                TAG_LOGE(AAFwkTag::JSRUNTIME, "null data");
+                delete tempWork;
+                tempWork = nullptr;
+                return;
+            }
+            NativeReference *refPtr = reinterpret_cast<NativeReference *>(work->data);
+            delete refPtr;
+            refPtr = nullptr;
+            delete tempWork;
+            tempWork = nullptr;
+        },
+        napi_eprio_low) == napi_ok) {
+        return;
+    }
+    TAG_LOGE(AAFwkTag::JSRUNTIME, "napi_send_event failed");
+    delete ref;
+    if (work != nullptr) {
+        delete work;
+        work = nullptr;
+    }
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

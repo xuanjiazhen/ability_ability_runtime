@@ -68,7 +68,8 @@ bool AppScheduler::Init(const std::weak_ptr<AppStateCallback> &callback)
 }
 
 int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const AppExecFwk::AbilityInfo &abilityInfo,
-    const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want)
+    const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want,
+    sptr<AppExecFwk::ILoadAbilityCallback> callback)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", abilityInfo.bundleName.c_str());
@@ -80,7 +81,7 @@ int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const 
     /* because the errcode type of AppMgr Client API will be changed to int,
      * so must to covert the return result  */
     int ret = static_cast<int>(IN_PROCESS_CALL(
-        appMgrClient_->LoadAbility(abilityInfo, applicationInfo, want, loadParam)));
+        appMgrClient_->LoadAbility(abilityInfo, applicationInfo, want, loadParam, callback)));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "AppScheduler fail to LoadAbility. ret %{public}d", ret);
         return INNER_ERR;
@@ -564,12 +565,6 @@ int32_t AppScheduler::GetBundleNameByPid(const int pid, std::string &bundleName,
     return ERR_OK;
 }
 
-void AppScheduler::SetCurrentUserId(const int32_t userId)
-{
-    CHECK_POINTER(appMgrClient_);
-    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->SetCurrentUserId(userId));
-}
-
 void AppScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
 {
     CHECK_POINTER(appMgrClient_);
@@ -778,6 +773,15 @@ int32_t AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, 
         return INNER_ERR;
     }
     return IN_PROCESS_CALL(appMgrClient_->CheckPreloadAppRecordExist(bundleName, userId, appIndex, isExist));
+}
+
+int32_t AppScheduler::VerifyKillProcessPermission(const std::string &bundleName) const
+{
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
+        return INNER_ERR;
+    }
+    return appMgrClient_->VerifyKillProcessPermission(bundleName);
 }
 } // namespace AAFwk
 }  // namespace OHOS

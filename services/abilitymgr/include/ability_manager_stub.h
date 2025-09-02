@@ -81,6 +81,7 @@ private:
     int MinimizeUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int MinimizeUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int AttachAbilityThreadInner(MessageParcel &data, MessageParcel &reply);
+    int NotifyAttachAbilityThreadDoneInner(MessageParcel &data, MessageParcel &reply);
     int AbilityTransitionDoneInner(MessageParcel &data, MessageParcel &reply);
     int AbilityWindowConfigTransitionDoneInner(MessageParcel &data, MessageParcel &reply);
     int ScheduleConnectAbilityDoneInner(MessageParcel &data, MessageParcel &reply);
@@ -95,6 +96,7 @@ private:
     int32_t UpgradeAppInner(MessageParcel &data, MessageParcel &reply);
     int StartSelfUIAbilityInner(MessageParcel &data, MessageParcel &reply);
     int StartSelfUIAbilityWithStartOptionsInner(MessageParcel &data, MessageParcel &reply);
+    int StartSelfUIAbilityWithPidResultInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityInnerSpecifyTokenId(MessageParcel &data, MessageParcel &reply);
     int StartAbilityByUIContentSessionAddCallerInner(MessageParcel &data, MessageParcel &reply);
@@ -274,6 +276,7 @@ private:
     int32_t SetApplicationAutoStartupInner(MessageParcel &data, MessageParcel &reply);
     int32_t CancelApplicationAutoStartupInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryAllAutoStartupApplicationsInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetAutoStartupStatusForSelfInner(MessageParcel &data, MessageParcel &reply);
 
     int PrepareTerminateAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int RegisterSessionHandlerInner(MessageParcel &data, MessageParcel &reply);
@@ -296,6 +299,7 @@ private:
 
     int StartAbilityForResultAsCallerInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityForResultAsCallerForOptionsInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartUIAbilitiesInSplitWindowModeInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartUIAbilitiesInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply);

@@ -23,6 +23,7 @@
 #include "application_info.h"
 #include "configuration.h"
 #include "iapp_state_callback.h"
+#include "iload_ability_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "istart_specified_ability_response.h"
@@ -45,11 +46,13 @@ public:
      * @param preToken, the unique identification to call the ability.
      * @param abilityInfo, the ability information.
      * @param appInfo, the app information.
+     * @param callback, the callback to get process id.
      * @return
      */
     virtual void LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
         const std::shared_ptr<ApplicationInfo> &appInfo,
-        const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam) {};
+        const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam,
+        sptr<ILoadAbilityCallback> callback = nullptr) {};
 
     /**
      * TerminateAbility, call TerminateAbility() through the proxy object, terminate the token ability.
@@ -302,15 +305,6 @@ public:
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg) = 0;
 
     /**
-     * Set the current userId of appMgr.
-     *
-     * @param userId the user id.
-     *
-     * @return
-     */
-    virtual void SetCurrentUserId(const int32_t userId) = 0;
-
-    /**
      * Set enable start process flag by userId
      * @param userId the user id.
      * @param enableStartProcess enable start process.
@@ -520,6 +514,11 @@ public:
         return ERR_OK;
     }
 
+    virtual int32_t VerifyKillProcessPermission(const std::string &bundleName)
+    {
+        return ERR_OK;
+    }
+
     enum class Message {
         LOAD_ABILITY = 0,
         TERMINATE_ABILITY,
@@ -541,8 +540,7 @@ public:
         GET_APPLICATION_INFO_BY_PROCESS_ID,
         KILL_APPLICATION_SELF,
         UPDATE_APPLICATION_INFO_INSTALLED,
-        SET_CURRENT_USER_ID,
-        Get_BUNDLE_NAME_BY_PID,
+        Get_BUNDLE_NAME_BY_PID = 21,
         SET_ABILITY_FOREGROUNDING_FLAG,
         REGISTER_APP_DEBUG_LISTENER,
         UNREGISTER_APP_DEBUG_LISTENER,
@@ -583,6 +581,7 @@ public:
         PRELOAD_APPLICATION_BY_PHASE,
         NOTIFY_PRELOAD_ABILITY_STATE_CHANGED,
         CHECK_PRELOAD_APP_RECORD_EXIST,
+        VERIFY_KILL_PROCESS_PERMISSION,
         // Add enumeration values above
         END
     };

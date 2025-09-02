@@ -38,6 +38,7 @@
 #include "iability_controller.h"
 #include "iability_manager_collaborator.h"
 #include "iacquire_share_data_callback_interface.h"
+#include "iload_ability_callback.h"
 #include "insight_intent/insight_intent_execute_param.h"
 #include "insight_intent/insight_intent_execute_result.h"
 #include "insight_intent/insight_intent_info_for_query.h"
@@ -127,6 +128,20 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartSelfUIAbilityWithStartOptions(const Want &want, const StartOptions &options)
+    {
+        return 0;
+    }
+
+    /**
+     * Starts self UIAbility with start options and receives the process ID. Supported only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @param options, the startOptions of the ability to start.
+     * @param callback, the callback to get target process id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options,
+        sptr<AppExecFwk::ILoadAbilityCallback> callback)
     {
         return 0;
     }
@@ -300,6 +315,20 @@ public:
         const sptr<IRemoteObject> &callerToken,
         int requestCode = DEFAULT_INVAL_VALUE,
         int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+
+    /**
+     * Start ui session ability with sourceWindowId and want.
+     *
+     * @param primaryWindowId the id of sourceWindow.
+     * @param secondaryWant the want of the ability to start.
+     * @param callerToken current caller ability token.
+     * @return Returns ERR_OK if success.
+     */
+    virtual ErrCode StartUIAbilitiesInSplitWindowMode(int32_t primaryWindowId, const AAFwk::Want &secondaryWant,
+        sptr<IRemoteObject> callerToken)
     {
         return 0;
     }
@@ -1095,10 +1124,11 @@ public:
     /**
      * @brief start user.
      * @param accountId accountId.
+     * @param displayId logical screen id.
      * @param isAppRecovery is appRecovery or not.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery = false) = 0;
+    virtual int StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery = false) = 0;
 
     /**
      * @brief stop user.
@@ -1684,6 +1714,16 @@ public:
     }
 
     /**
+     * @brief Retrieves the auto startup status of the current application.
+     * @param isAutoStartEnabled Indicates whether auto startup is enabled for the current application.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAutoStartupStatusForSelf(bool &isAutoStartEnabled)
+    {
+        return 0;
+    }
+
+    /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
      *
      * @param sessionInfo the session info of the ability to start.
@@ -1846,8 +1886,8 @@ public:
      * @param requestCode Ability request code.
      * @return Returns ERR_OK on success, others on failure.
     */
-    virtual int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE)
+    virtual int32_t OpenLink(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId = DEFAULT_INVAL_VALUE,
+        int requestCode = DEFAULT_INVAL_VALUE, bool hideFailureTipDialog = false)
     {
         return 0;
     }

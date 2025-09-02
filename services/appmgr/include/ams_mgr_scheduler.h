@@ -49,10 +49,12 @@ public:
      * @param abilityInfo, the ability information.
      * @param appInfo, the app information.
      * @param want, the starting information.
+     * @param callback, the callback to get process id.
      */
     virtual void LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
         const std::shared_ptr<ApplicationInfo> &appInfo,
-        const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam) override;
+        const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam,
+        sptr<ILoadAbilityCallback> callback = nullptr) override;
 
     /**
      * TerminateAbility, call TerminateAbility() through the proxy object, terminate the token ability.
@@ -293,13 +295,6 @@ public:
     virtual void StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         int32_t requestId = 0, const std::string &customProcess = "") override;
 
-    /**
-     * SetCurrentUserId, set the userid to app mgr by ability mgr when switching to another user.
-     *
-     * @param userId the new user.
-     */
-    virtual void SetCurrentUserId(const int32_t userId) override;
-
     virtual void SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess) override;
 
     /**
@@ -468,6 +463,8 @@ public:
 
     virtual int32_t CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex,
         bool &isExist) override;
+
+    virtual int32_t VerifyKillProcessPermission(const std::string &bundleName) override;
 
 private:
     /**

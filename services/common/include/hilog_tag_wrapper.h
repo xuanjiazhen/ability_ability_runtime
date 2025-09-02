@@ -16,13 +16,15 @@
 #ifndef OHOS_AAFWK_HILOG_TAG_WRAPPER_H
 #define OHOS_AAFWK_HILOG_TAG_WRAPPER_H
 
+#include <algorithm>
 #include <cinttypes>
 #include <map>
+#include <string>
 
 #include "hilog/log.h"
 
 #ifndef AAFWK_FUNC_FMT
-#define AAFWK_FUNC_FMT "[%{public}s:%{public}d]"
+#define AAFWK_FUNC_FMT "[%{public}s%{public}d]"
 #endif
 
 #ifndef AAFWK_FILE_NAME
@@ -98,8 +100,9 @@ enum class AAFwkLogTag : uint32_t {
 
     LOCAL_CALL = DEFAULT + 0x60, // 0xD001360
     SA_INTERCEPTOR,
-
-    APP_SERVICE_EXT = DEFAULT + 0x70, // 0xD001370
+    APP_SERVICE_EXT,
+    VERTICAL_PANEL,
+    USER_CONTROLLER,
 
     END = 256,               // N.B. never use it
 };
@@ -177,12 +180,40 @@ inline const char* GetDomainName5(AAFwkLogTag tag)
 
 inline const char* GetDomainName6(AAFwkLogTag tag)
 {
-    const char* tagNames[] = { "LocalCall" };
+    const char* tagNames[] = { "LocalCall", "SaInterceptor", "AppServiceExt", "VerticalPanel" };
     uint32_t offset = GetOffset(tag, AAFwkLogTag::LOCAL_CALL);
     if (offset >= sizeof(tagNames) / sizeof(const char*)) {
         return "UN";
     }
     return tagNames[offset];
+}
+
+inline std::string GetAbbreviatedFileName(const std::string& fileName)
+{
+    std::map<std::string, std::string> abbreviatedFileNameMap {
+        { "ability_manager_client", "AMC" },
+        { "app_running_manager", "ARM" },
+        { "ability_connect_manager", "ACM" },
+        { "ability_manager_service", "ABMS" },
+        { "app_mgr_service_inner", "AMSI" },
+        { "app_running_record", "ARR" },
+        { "connect_server_manager", "CSM" },
+        { "js_ui_ability", "JUA" },
+        { "js_service_extension", "JSE" },
+        { "ability_connect_callback_stub", "ACCS" }
+    };
+    std::string fileBaseName = fileName;
+    auto pos = fileName.find_last_of(".");
+    if (pos != std::string::npos) {
+        fileBaseName = fileName.substr(0, pos);
+        if (std::count(fileBaseName.begin(), fileBaseName.end(), '_') <= 1) {
+            return fileBaseName;
+        }
+        if (abbreviatedFileNameMap.find(fileBaseName) != abbreviatedFileNameMap.end()) {
+            return abbreviatedFileNameMap[fileBaseName];
+        }
+    }
+    return fileBaseName;
 }
 
 constexpr uint32_t BASE_DEFAULT = 0;
@@ -215,8 +246,10 @@ using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
 #define AAFWK_PRINT_LOG(level, tag, fmt, ...)                                                           \
     do {                                                                                                \
         AAFwkTag logTag = tag;                                                                          \
-        ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                                  \
-        OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, AAFWK_FUNC_INFO, ##__VA_ARGS__)); \
+        std::string abbrFileName = OHOS::AAFwk::GetAbbreviatedFileName(std::string(AAFWK_FILE_NAME));   \
+        ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                               \
+        OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, \
+        abbrFileName.c_str(), __LINE__, ##__VA_ARGS__));  \
     } while (0)
 
 #define TAG_LOGD(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_DEBUG, tag, fmt, ##__VA_ARGS__)

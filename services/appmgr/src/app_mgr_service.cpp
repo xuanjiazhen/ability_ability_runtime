@@ -779,7 +779,10 @@ int AppMgrService::ShowHelp(const std::vector<std::u16string>& args, std::string
         .append("-h                          ")
         .append("help text for the tool\n")
         .append("--ffrt pid1[,pid2,pid3]     ")
-        .append("dump ffrt info\n");
+        .append("dump ffrt info\n")
+        .append("--ipc pid ARG               ")
+        .append("ipc load statistic; pid must be specified or set to -a dump all processes. ARG must be one of "
+            "--start-stat | --stop-stat | --stat\n");
 
     return ERR_OK;
 }
@@ -1690,7 +1693,7 @@ int32_t AppMgrService::NotifyMemorySizeStateChanged(int32_t memorySizeState)
 
 int32_t AppMgrService::SetSupportedProcessCacheSelf(bool isSupport)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
@@ -1700,7 +1703,7 @@ int32_t AppMgrService::SetSupportedProcessCacheSelf(bool isSupport)
 
 int32_t AppMgrService::SetSupportedProcessCache(int32_t pid, bool isSupport)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "Called");
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Not ready.");
         return ERR_INVALID_OPERATION;
@@ -1753,8 +1756,8 @@ void AppMgrService::SetAppAssertionPauseState(bool flag)
 }
 
 #ifdef SUPPORT_CHILD_PROCESS
-int32_t AppMgrService::CreateNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-    const sptr<IRemoteObject> &callback, const std::string &customProcessName)
+int32_t AppMgrService::CreateNativeChildProcess(const std::string &libName,
+    const sptr<IRemoteObject> &callback, const ChildProcessRequest &request)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "call");
@@ -1762,9 +1765,9 @@ int32_t AppMgrService::CreateNativeChildProcess(const std::string &libName, int3
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-
+    
     return appMgrServiceInner_->CreateNativeChildProcess(
-        IPCSkeleton::GetCallingPid(), libName, childProcessCount, callback, customProcessName);
+        IPCSkeleton::GetCallingPid(), libName, callback, request);
 }
 #endif // SUPPORT_CHILD_PROCESS
 
@@ -1935,8 +1938,8 @@ int32_t AppMgrService::PromoteCurrentToCandidateMasterProcess(bool isInsertToHea
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call");
     if (!IsReady()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
     return appMgrServiceInner_->PromoteCurrentToCandidateMasterProcess(isInsertToHead);
 }
@@ -1945,10 +1948,20 @@ int32_t AppMgrService::DemoteCurrentFromCandidateMasterProcess()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!IsReady()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
     return appMgrServiceInner_->DemoteCurrentFromCandidateMasterProcess();
+}
+
+int32_t AppMgrService::ExitMasterProcessRole()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    return appMgrServiceInner_->ExitMasterProcessRole();
 }
 
 int32_t AppMgrService::QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles)

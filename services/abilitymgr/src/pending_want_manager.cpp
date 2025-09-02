@@ -148,6 +148,9 @@ void PendingWantManager::MakeWantSenderCanceledLocked(PendingWantRecord &record)
     for (auto &callback : record.GetCancelCallbacks()) {
         callback->Send(record.GetKey()->GetRequestCode());
     }
+    if (record.GetKey() != nullptr && record.GetKey()->GetCode() > 0) {
+        record.GetKey()->ClearAllWantsInfosFd();
+    }
 }
 
 sptr<PendingWantRecord> PendingWantManager::GetPendingWantRecordByKey(const std::shared_ptr<PendingWantKey> &key)

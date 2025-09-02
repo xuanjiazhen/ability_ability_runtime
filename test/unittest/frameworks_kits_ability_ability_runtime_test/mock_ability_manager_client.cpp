@@ -564,7 +564,8 @@ ErrCode AbilityManagerClient::StopSyncRemoteMissions(const std::string &devId)
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::StartUser(int accountId, sptr<IUserCallback> callback, bool isAppRecovery)
+ErrCode AbilityManagerClient::StartUser(int accountId, uint64_t displayId, sptr<IUserCallback> callback,
+    bool isAppRecovery)
 {
     return ERR_OK;
 }
@@ -998,7 +999,7 @@ ErrCode AbilityManagerClient::PreStartMission(const std::string& bundleName, con
 }
 
 ErrCode AbilityManagerClient::OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
-    int32_t userId, int requestCode)
+    int32_t userId, int requestCode, bool hideFailureTipDialog)
 {
     return ERR_OK;
 }
@@ -1038,6 +1039,12 @@ ErrCode AbilityManagerClient::StartSelfUIAbility(const Want &want)
 
 ErrCode AbilityManagerClient::StartSelfUIAbilityWithStartOptions(const Want &want,
     const StartOptions &options)
+{
+    return ERR_OK;
+}
+
+int AbilityManagerClient::StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options,
+    sptr<AppExecFwk::ILoadAbilityCallback> callback)
 {
     return ERR_OK;
 }

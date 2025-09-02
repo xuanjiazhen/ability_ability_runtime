@@ -28,6 +28,9 @@
 #include "isession_handler_interface.h"
 
 namespace OHOS {
+namespace Rosen {
+struct PendingSessionActivationConfig;
+}
 namespace AAFwk {
 class SessionInfo;
 class StatusBarDelegateManager;
@@ -439,9 +442,12 @@ private:
 
     // byCall
     int CallAbilityLocked(const AbilityRequest &abilityRequest, std::string &errMsg);
-    sptr<SessionInfo> CreateSessionInfo(const AbilityRequest &abilityRequest) const;
+    sptr<SessionInfo> CreateSessionInfo(const AbilityRequest &abilityRequest, int32_t requestId);
     int NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo,
         const AbilityRequest &abilityRequest, std::string &errMsg);
+    std::pair<std::vector<sptr<SessionInfo>>, std::vector<Rosen::PendingSessionActivationConfig>>
+        CreateSessionConfigurations(int primaryWindowId, sptr<SessionInfo> sessionInfo);
+    int NotifySCBPendingActivationInSplitMode(sptr<SessionInfo> &sessionInfo, const AbilityRequest &abilityRequest);
     int32_t BatchNotifySCBPendingActivations(const AbilitiesRequest &abilitiesRequest);
     void HandleAbilitiesRequestDone(int32_t requestId, int32_t requestListId, sptr<SessionInfo> sessionInfo);
     bool IsHookModule(const AbilityRequest &abilityRequest) const;
@@ -452,6 +458,8 @@ private:
 
     int32_t MoveAbilityToFront(const SpecifiedRequest &specifiedRequest,
         const std::shared_ptr<AbilityRecord> abilityRecord, std::shared_ptr<AbilityRecord> callerAbility);
+    int SendSessionInfoToSCBInSplitMode(int primaryWindowId, std::shared_ptr<AbilityRecord> callerAbility,
+        sptr<SessionInfo> sessionInfo);
     int SendSessionInfoToSCB(std::shared_ptr<AbilityRecord> &callerAbility, sptr<SessionInfo> &sessionInfo);
     int32_t StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
         std::shared_ptr<AbilityRecord> callerAbility);
@@ -521,6 +529,7 @@ private:
     void HandleAbilitiesNormalSessionInfo(AbilityRequest &abilityRequest,
         std::shared_ptr<AbilitiesRequest> abilitiesRequest, int32_t requestId);
     void RemoveInstanceKey(const AbilityRequest &abilityRequest) const;
+    sptr<AppExecFwk::ILoadAbilityCallback> GetLoadAbilityCallback(int32_t requestId);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
@@ -528,6 +537,7 @@ private:
     std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> lowMemKillAbilityMap_;
     std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> tmpAbilityMap_;
     std::unordered_map<std::shared_ptr<AbilityRecord>, std::list<AbilityRequest>> callRequestCache_;
+    std::map<int32_t, sptr<AppExecFwk::ILoadAbilityCallback>> loadAbilityCallbackMap_;
     std::list<std::shared_ptr<AbilityRecord>> terminateAbilityList_;
     sptr<IRemoteObject> rootSceneSession_;
     sptr<ISessionHandler> handler_;
