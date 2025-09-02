@@ -63,7 +63,7 @@ public:
         const std::string &entryFunc, std::shared_ptr<AppExecFwk::ChildProcessArgs> args);
     void SetForkProcessJITEnabled(bool jitEnabled);
     void SetForkProcessDebugOption(const std::string bundleName, const bool isStartWithDebug, const bool isDebugApp,
-        const bool isStartWithNative);
+        const bool isStartWithNative, const std::string arkTSMode);
     void SetAppSpawnForkDebugOption(Runtime::DebugOption &debugOption,
         std::shared_ptr<AppExecFwk::ChildProcessInfo> processInfo);
     std::string GetModuleNameFromSrcEntry(const std::string &srcEntry);

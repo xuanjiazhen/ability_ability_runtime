@@ -115,7 +115,7 @@ HWTEST_F(ChildProcessManagerTest, StartChildProcessBySelfFork_0300, TestSize.Lev
     appUtils.isMultiProcessModel_.value = false;
     appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
     appUtils.allowChildProcessInMultiProcessFeatureApp_.value = false;
-    
+
     pid_t pid;
     auto ret = ChildProcessManager::GetInstance().StartChildProcessBySelfFork("./ets/process/DemoProcess.ts", pid);
     EXPECT_EQ(ret, ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED);
@@ -308,7 +308,7 @@ HWTEST_F(ChildProcessManagerTest, SetForkProcessDebugOption_0100, TestSize.Level
 {
     TAG_LOGD(AAFwkTag::TEST, "SetForkProcessDebugOption called.");
     AbilityRuntime::Runtime::DebugOption debugOption;
-    ChildProcessManager::GetInstance().SetForkProcessDebugOption("test", false, false, false);
+    ChildProcessManager::GetInstance().SetForkProcessDebugOption("test", false, false, false, "dynamic");
     EXPECT_EQ(ChildProcessManager::GetInstance().isChildProcessBySelfFork_, true);
 }
 
@@ -573,7 +573,7 @@ HWTEST_F(ChildProcessManagerTest, GetErrorCodeCompat_0100, TestSize.Level2)
     TAG_LOGI(AAFwkTag::TEST, "GetErrorCodeCompat_0100 start.");
 
     auto &childProcessManager = ChildProcessManager::GetInstance();
-    
+
     auto ret = AAFwk::ERR_NOT_SUPPORT_CHILD_PROCESS;
     auto childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_JS;
     auto errCode = childProcessManager.GetErrorCodeCompat(ret, childProcessType);
@@ -583,7 +583,7 @@ HWTEST_F(ChildProcessManagerTest, GetErrorCodeCompat_0100, TestSize.Level2)
     childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_ARK;
     errCode = childProcessManager.GetErrorCodeCompat(ret, childProcessType);
     EXPECT_NE(errCode, ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED);
-    
+
     ret = AAFwk::INNER_ERR;
     childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_JS;
     errCode = childProcessManager.GetErrorCodeCompat(ret, childProcessType);
