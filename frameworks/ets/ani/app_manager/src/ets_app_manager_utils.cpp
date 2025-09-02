@@ -861,6 +861,11 @@ bool SetKeepAliveInfo(ani_env *env, ani_object object, const AbilityRuntime::Kee
         TAG_LOGE(AAFwkTag::APPMGR, "state failed status:%{public}d", status);
         return false;
     }
+    if ((status = env->Object_SetPropertyByName_Ref(object, "setterUserId",
+        AppExecFwk::CreateInt(env, keepInfo.setterId))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "setterUserId failed status:%{public}d", status);
+        return false;
+    }
     return true;
 }
 
