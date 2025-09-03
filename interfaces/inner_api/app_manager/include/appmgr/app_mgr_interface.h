@@ -24,6 +24,7 @@
 #include "app_mgr_ipc_interface_code.h"
 #include "app_record_id.h"
 #include "application_info.h"
+#include "application_state_filter.h"
 #include "background_app_info.h"
 #include "bundle_info.h"
 #include "child_process_info.h"
@@ -1021,6 +1022,17 @@ public:
      * @return Returns ERR_OK if success, AAFwk::ERR_NO_APP_RECORD if app record not exist.
      */
     virtual int32_t QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles)
+    {
+        return 0;
+    }
+
+    /**
+     * Register application/process/ability state observer.
+     * @param observer, bundleNameList, AppStateFilter.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterApplicationStateObserverWithFilter(sptr<IApplicationStateObserver> observer,
+        const std::vector<std::string> &bundleNameList = {}, const AppStateFilter &appStateFilter = AppStateFilter())
     {
         return 0;
     }
