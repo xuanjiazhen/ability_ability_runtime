@@ -25,6 +25,7 @@
 #include "ability_manager_xcollie.h"
 #include "app_death_recipient.h"
 #include "app_mgr_constants.h"
+#include "application_state_filter.h"
 #include "datetime_ex.h"
 #include "fd_guard.h"
 #include "freeze_util.h"
@@ -1951,6 +1952,17 @@ int32_t AppMgrService::QueryRunningSharedBundles(pid_t pid, std::map<std::string
         return ERR_PERMISSION_DENIED;
     }
     return appMgrServiceInner_->QueryRunningSharedBundles(pid, sharedBundles);
+}
+
+int32_t AppMgrService::RegisterApplicationStateObserverWithFilter(sptr<IApplicationStateObserver> observer,
+    const std::vector<std::string> &bundleNameList, const AppStateFilter &appStateFilter)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->RegisterApplicationStateObserver(observer, bundleNameList, appStateFilter);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
