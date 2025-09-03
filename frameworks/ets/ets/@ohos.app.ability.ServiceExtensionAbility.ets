@@ -77,7 +77,7 @@ export default class ServiceExtensionAbility {
   onDestroy(): void {
   }
 
-  onRequest(want: Want, startld: double): void {
+  onRequest(want: Want, startld: int): void {
   }
 
   onConnect(want: Want): rpc.RemoteObject | Promise<rpc.RemoteObject> {
