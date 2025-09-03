@@ -1103,6 +1103,38 @@ int32_t AppMgrProxy::RegisterConfigurationObserver(const sptr<IConfigurationObse
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::RegisterConfigurationObserver(const sptr<IConfigurationObserver>& observer, int32_t userId)
+{
+    if (!observer) {
+        TAG_LOGE(AAFwkTag::APPMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "RegisterConfigurationObserver start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, " invilid userId");
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteRemoteObject(observer->AsObject())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "observer write failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+
+    auto error = SendRequest(AppMgrInterfaceCode::REGISTER_CONFIGURATION_OBSERVER_WITH_USRID, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AppMgrProxy::UnregisterConfigurationObserver(const sptr<IConfigurationObserver> &observer)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "UnregisterConfigurationObserver start");

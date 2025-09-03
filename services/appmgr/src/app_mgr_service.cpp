@@ -1160,6 +1160,15 @@ int32_t AppMgrService::RegisterConfigurationObserver(const sptr<IConfigurationOb
     return appMgrServiceInner_->RegisterConfigurationObserver(observer);
 }
 
+int32_t AppMgrService::RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer, int32_t userId)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->RegisterConfigurationObserver(observer, userId);
+}
+
 int32_t AppMgrService::UnregisterConfigurationObserver(const sptr<IConfigurationObserver> &observer)
 {
     if (!IsReady()) {

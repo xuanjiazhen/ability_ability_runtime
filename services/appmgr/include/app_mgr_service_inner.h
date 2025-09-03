@@ -824,6 +824,8 @@ public:
 
     int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver>& observer);
 
+    int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver>& observer, int32_t userId);
+
     int32_t UnregisterConfigurationObserver(const sptr<IConfigurationObserver>& observer);
 
     /**

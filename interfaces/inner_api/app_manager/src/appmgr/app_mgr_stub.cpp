@@ -172,6 +172,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &dat
             return HandleUpdateConfiguration(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_CONFIGURATION_OBSERVER):
             return HandleRegisterConfigurationObserver(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_CONFIGURATION_OBSERVER_WITH_USRID):
+            return HandleRegisterConfigurationObserverWithUsrId(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_CONFIGURATION_OBSERVER):
             return HandleUnregisterConfigurationObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::APP_GET_PROCESS_RUNNING_INFORMATION):
@@ -1123,6 +1125,19 @@ int32_t AppMgrStub::HandleRegisterConfigurationObserver(MessageParcel &data, Mes
         return ERR_INVALID_VALUE;
     }
     int32_t result = RegisterConfigurationObserver(observer);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleRegisterConfigurationObserverWithUsrId(MessageParcel &data, MessageParcel &reply)
+{
+    auto observer = iface_cast<AppExecFwk::IConfigurationObserver>(data.ReadRemoteObject());
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Observer is null.");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t userId = data.ReadInt32();
+    int32_t result = RegisterConfigurationObserver(observer, userId);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
