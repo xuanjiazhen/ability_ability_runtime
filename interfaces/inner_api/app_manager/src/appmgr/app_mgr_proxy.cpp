@@ -1090,6 +1090,11 @@ int32_t AppMgrProxy::RegisterConfigurationObserver(const sptr<IConfigurationObse
         return ERR_FLATTEN_OBJECT;
     }
 
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invilid userId");
+        return ERR_INVALID_DATA;
+    }
+
     if (!data.WriteRemoteObject(observer->AsObject())) {
         TAG_LOGE(AAFwkTag::APPMGR, "observer write failed.");
         return ERR_FLATTEN_OBJECT;
