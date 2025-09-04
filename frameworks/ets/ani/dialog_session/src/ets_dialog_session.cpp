@@ -41,27 +41,31 @@ static void SendDialogResult(
     if (!AppExecFwk::GetStdString(env, etsDialogSessionId, dialogSessionId)) {
         TAG_LOGE(AAFwkTag::DIALOG, "Failed unwrap dialogSessionId");
         aniObject = EtsErrorUtil::CreateInvalidParamError(env, "Parameter error: dialogSessionId must be a string.");
-        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(env, callback, aniObject);
         return;
     }
     AAFwk::Want want;
     if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
         TAG_LOGE(AAFwkTag::DIALOG, "Failed unwrap want");
         aniObject = EtsErrorUtil::CreateInvalidParamError(env, "Parameter error: want must be a Want.");
-        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(env, callback, aniObject);
         return;
     }
     bool isAllow = false;
     if (etsIsAllow != 1 && etsIsAllow != 0) {
         TAG_LOGE(AAFwkTag::DIALOG, "Failed unwrap isAllow");
         aniObject = EtsErrorUtil::CreateInvalidParamError(env, "Parameter error: isAllow must be a Boolean.");
-        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(env, callback, aniObject);
         return;
     }
     isAllow = static_cast<bool>(etsIsAllow);
     auto errorCode =
         AAFwk::AbilityManagerClient::GetInstance()->SendDialogResult(want, dialogSessionId, isAllow);
-    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errorCode), nullptr);
+    if (errorCode) {
+        AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errorCode));
+    } else {
+        AppExecFwk::AsyncResolveWithNoError(env, callback, nullptr);
+    }
 }
 
 static ani_object GetDialogSessionInfo(ani_env *env, ani_string etsDialogSessionId)

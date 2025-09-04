@@ -89,6 +89,9 @@ bool GetStaticFieldString(ani_env *env, ani_class classObj, const char *fieldNam
 bool IsValidProperty(ani_env *env, ani_ref param);
 bool CheckCallerIsSystemApp();
 ani_object WrapLocale(ani_env *env, const std::string &locale);
+void AsyncResolve(ani_env *env, ani_object call, ani_object result);
+void AsyncResolveWithNoError(ani_env *env, ani_object call, ani_object result);
+void AsyncReject(ani_env *env, ani_object call, ani_object error);
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H

@@ -73,7 +73,7 @@ public:
             error = EtsErrorUtil::CreateErrorByNativeErr(env, resultCode);
             result = CreateNullExecuteResult(env);
         } else {
-            error = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+            error = nullptr;
             result = WrapExecuteResult(env, executeResult);
         }
         if (callbackRef_) {
@@ -129,17 +129,15 @@ public:
         ani_object error;
         if (exparam == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "invalid param");
-            error = EtsErrorUtil::CreateInvalidParamError(env, "invalid param");
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            EtsErrorUtil::ThrowTooFewParametersError(env);
             return;
         }
 
         InsightIntentExecuteParam param;
         if (!UnwrapExecuteParam(env, exparam, param)) {
             TAG_LOGE(AAFwkTag::INTENT, "parse execute param failed");
-            error = EtsErrorUtil::CreateInvalidParamError(env,
-                "Parameter error: Parse param failed, param must be a ExecuteParam.");
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            EtsErrorUtil::ThrowInvalidParamError(
+                env, "Parameter error: Parse param failed, param must be a ExecuteParam.");
             return;
         }
 
@@ -148,7 +146,7 @@ public:
             TAG_LOGE(AAFwkTag::INTENT, "GlobalReference_Create failed");
             error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
                 AbilityErrorCode::ERROR_CODE_INNER));
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            AsyncReject(env, callback, error);
             return;
         }
 
@@ -157,7 +155,7 @@ public:
             TAG_LOGE(AAFwkTag::INTENT, "GetVM failed");
             error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
                 AbilityErrorCode::ERROR_CODE_INNER));
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            AsyncReject(env, callback, error);
             return;
         }
 
@@ -172,7 +170,7 @@ public:
             InsightIntentHostClient::GetInstance(), param);
         if (err != 0) {
             error = EtsErrorUtil::CreateErrorByNativeErr(env, err);
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            AsyncReject(env, callback, error);
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
         }
         return;

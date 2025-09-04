@@ -116,8 +116,12 @@ void EtsUIExtensionContentSession::NativeTerminateSelf(ani_env *env, ani_object 
     auto etsContentSession = EtsUIExtensionContentSession::GetEtsContentSession(env, obj);
     if (etsContentSession != nullptr) {
         int32_t resultCode = etsContentSession->TerminateSelfWithResult();
-        OHOS::AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
-            static_cast<int32_t>(resultCode)), nullptr);
+        if (resultCode == 0) {
+            OHOS::AppExecFwk::AsyncResolveWithNoError(env, callback, nullptr);
+        } else {
+            OHOS::AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(resultCode)));
+        }
     }
 }
 
@@ -137,8 +141,8 @@ int EtsUIExtensionContentSession::NativeTerminateSelfWithResult(ani_env *env, an
     auto context = etsContentSession->GetContext();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null context");
-        OHOS::AppExecFwk::AsyncCallback(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
-            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), nullptr);
+        OHOS::AppExecFwk::AsyncReject(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)));
         return ERR_FAILURE;
     }
     auto token = context->GetToken();
@@ -146,24 +150,25 @@ int EtsUIExtensionContentSession::NativeTerminateSelfWithResult(ani_env *env, an
     auto uiWindow = etsContentSession->GetUIWindow();
     if (uiWindow == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
-        OHOS::AppExecFwk::AsyncCallback(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
-            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), nullptr);
+        OHOS::AppExecFwk::AsyncReject(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)));
         return ERR_FAILURE;
     }
     auto result = uiWindow->TransferAbilityResult(resultCode, want);
     if (result != Rosen::WMError::WM_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "TransferAbilityResult failed, errorCode is %{public}d", result);
-        OHOS::AppExecFwk::AsyncCallback(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
-            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), nullptr);
+        OHOS::AppExecFwk::AsyncReject(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)));
         return ERR_FAILURE;
     }
     ret = etsContentSession->TerminateSelfWithResult();
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::UI_EXT, "TerminateSelfWithResult failed, errorCode is %{public}d", ret);
+        OHOS::AppExecFwk::AsyncReject(env, callback,
+            OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)));
         return ERR_FAILURE;
     }
-    OHOS::AppExecFwk::AsyncCallback(env, callback,
-        OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+    OHOS::AppExecFwk::AsyncResolveWithNoError(env, callback, nullptr);
     return ret;
 }
 
@@ -705,14 +710,14 @@ void EtsUIExtensionContentSession::SetWindowPrivacyMode(
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null env");
         errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
-        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj, errorObj);
         return;
     }
     auto selfToken = IPCSkeleton::GetSelfTokenID();
     int ret = Security::AccessToken::AccessTokenKit::VerifyAccessToken(selfToken, PERMISSION_PRIVACY_WINDOW);
     if (ret != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
         errorObj = EtsErrorUtil::CreateNoPermissionError(env, PERMISSION_PRIVACY_WINDOW);
-        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj, errorObj);
         return;
     }
     ani_ref callbackRef = nullptr;
@@ -720,14 +725,14 @@ void EtsUIExtensionContentSession::SetWindowPrivacyMode(
     if ((status = env->GlobalReference_Create(callbackObj, &callbackRef)) != ANI_OK || callbackRef == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
-        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj, errorObj);
         return;
     }
     ani_vm *etsVm = nullptr;
     if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
-        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj, errorObj);
         return;
     }
     SetWindowPrivacyModeInner(env, isPrivacyMode, callbackObj, etsVm, callbackRef);
@@ -748,25 +753,24 @@ void EtsUIExtensionContentSession::SetWindowPrivacyModeInner(ani_env *env, ani_b
         if (uiWindow == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
             errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
-            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
+            AppExecFwk::AsyncReject(env, reinterpret_cast<ani_object>(callbackRef), errorObj);
             env->GlobalReference_Delete(callbackRef);
             return;
         }
         auto ret = uiWindow->SetPrivacyMode(isPrivacyMode);
         if (ret == Rosen::WMError::WM_OK) {
-            errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
-            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
+            AppExecFwk::AsyncResolveWithNoError(env, reinterpret_cast<ani_object>(callbackRef), nullptr);
             env->GlobalReference_Delete(callbackRef);
         } else {
             errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
-            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
+            AppExecFwk::AsyncReject(env, reinterpret_cast<ani_object>(callbackRef), errorObj);
             env->GlobalReference_Delete(callbackRef);
         }
     };
     if (AniTask::AniSendEvent(task) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to sendEvent");
         errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
-        AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj, errorObj);
         env->GlobalReference_Delete(callbackRef);
     }
 }

@@ -212,7 +212,7 @@ void EtsPhotoEditorExtensionContext::OnSaveEditedContentWithUri(ani_env* aniEnv,
         TAG_LOGE(AAFwkTag::UI_EXT, "context is nullptr");
         aniObject = EtsErrorUtil::CreateError(aniEnv, (ani_int)PhotoEditorErrorCode::ERROR_CODE_INTERNAL_ERROR,
             ERR_MSG_INTERNAL_ERROR);
-        AppExecFwk::AsyncCallback(aniEnv, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(aniEnv, callback, aniObject);
         return;
     }
 
@@ -221,7 +221,7 @@ void EtsPhotoEditorExtensionContext::OnSaveEditedContentWithUri(ani_env* aniEnv,
         TAG_LOGE(AAFwkTag::UI_EXT, "get string error");
         aniObject = EtsErrorUtil::CreateError(aniEnv, (ani_int)PhotoEditorErrorCode::ERROR_CODE_PARAM_ERROR,
             ERR_MSG_PARAMS_ERROR);
-        AppExecFwk::AsyncCallback(aniEnv, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(aniEnv, callback, aniObject);
         return;
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "Uri:%{public}s", uriStr.c_str());
@@ -233,12 +233,17 @@ void EtsPhotoEditorExtensionContext::OnSaveEditedContentWithUri(ani_env* aniEnv,
         TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
         ret = static_cast<int32_t>(PhotoEditorErrorCode::ERROR_CODE_INTERNAL_ERROR);
         aniObject = EtsErrorUtil::CreateError(aniEnv, ret, "null abilityResult");
-        AppExecFwk::AsyncCallback(aniEnv, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(aniEnv, callback, aniObject);
         return;
     }
 
     aniObject = EtsErrorUtil::CreateErrorByNativeErr(aniEnv, static_cast<int32_t>(errCode));
-    AppExecFwk::AsyncCallback(aniEnv, callback, aniObject, abilityResult);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "create error fail");
+        AppExecFwk::AsyncReject(aniEnv, callback, aniObject);
+        return;
+    }
+    AppExecFwk::AsyncResolve(aniEnv, callback, abilityResult);
 }
 
 void EtsPhotoEditorExtensionContext::OnSaveEditedContentWithImage(ani_env* aniEnv, ani_object obj, ani_object imageObj,
@@ -253,7 +258,7 @@ void EtsPhotoEditorExtensionContext::OnSaveEditedContentWithImage(ani_env* aniEn
         TAG_LOGE(AAFwkTag::UI_EXT, "context is nullptr");
         ret = (ani_int)PhotoEditorErrorCode::ERROR_CODE_INTERNAL_ERROR;
         aniObject = EtsErrorUtil::CreateError(aniEnv, ret, ERR_MSG_INTERNAL_ERROR);
-        AppExecFwk::AsyncCallback(aniEnv, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(aniEnv, callback, aniObject);
         return;
     }
 
@@ -262,7 +267,7 @@ void EtsPhotoEditorExtensionContext::OnSaveEditedContentWithImage(ani_env* aniEn
         TAG_LOGE(AAFwkTag::UI_EXT, "Get edited image fail");
         ret = (ani_int)PhotoEditorErrorCode::ERROR_CODE_PARAM_ERROR;
         aniObject = EtsErrorUtil::CreateError(aniEnv, ret, ERR_MSG_PARAMS_ERROR);
-        AppExecFwk::AsyncCallback(aniEnv, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(aniEnv, callback, aniObject);
         return;
     }
 
@@ -270,7 +275,7 @@ void EtsPhotoEditorExtensionContext::OnSaveEditedContentWithImage(ani_env* aniEn
     if (!UnwrapPackOption(aniEnv, optionObj, packOption)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "unwrap packoption failed");
         aniObject = EtsErrorUtil::CreateInvalidParamError(aniEnv, "unwrap packoption failed");
-        AppExecFwk::AsyncCallback(aniEnv, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(aniEnv, callback, aniObject);
         return;
     }
 
@@ -283,13 +288,18 @@ void EtsPhotoEditorExtensionContext::OnSaveEditedContentWithImage(ani_env* aniEn
         TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
         ret = static_cast<int32_t>(PhotoEditorErrorCode::ERROR_CODE_INTERNAL_ERROR);
         aniObject = EtsErrorUtil::CreateError(aniEnv, ret, "null abilityResult");
-        AppExecFwk::AsyncCallback(aniEnv, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(aniEnv, callback, aniObject);
         return;
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "SaveEditedContent end");
 
     aniObject = EtsErrorUtil::CreateErrorByNativeErr(aniEnv, static_cast<int32_t>(errCode));
-    AppExecFwk::AsyncCallback(aniEnv, callback, aniObject, abilityResult);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "create error fail");
+        AppExecFwk::AsyncReject(aniEnv, callback, aniObject);
+        return;
+    }
+    AppExecFwk::AsyncResolve(aniEnv, callback, abilityResult);
     TAG_LOGD(AAFwkTag::UI_EXT, "OnSaveEditedContentWithImage called");
 }
 

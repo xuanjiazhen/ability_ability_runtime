@@ -74,18 +74,14 @@ export default namespace abilityManager {
           reject(err);
         }
       });
-      taskpool.execute((): void => {
-        abilityManager.nativeGetTopAbility(myCall);
-      });
+      abilityManager.nativeGetTopAbility(myCall);
     });
     return p;
   }
 
   export function getTopAbility(callback: AsyncCallback<ElementName, void>): void {
       let myCall = new AsyncCallbackWrapper<ElementName>(callback);
-      taskpool.execute( (): void => {
-          abilityManager.nativeGetTopAbility(myCall);
-      });
+      abilityManager.nativeGetTopAbility(myCall);
   }
 
   function getAbilityRunningInfos(): Promise<Array<AbilityRunningInfo>> {

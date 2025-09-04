@@ -70,21 +70,21 @@ sptr<AAFwk::AcquireShareDataCallbackStub> CreateShareDataCallbackStub(
                 return;
             }
             if (resultCode != 0) {
-                AppExecFwk::AsyncCallback(env, static_cast<ani_object>(callbackRef),
-                    EtsErrorUtil::CreateErrorByNativeErr(env, resultCode), nullptr);
+                AppExecFwk::AsyncReject(env, static_cast<ani_object>(callbackRef),
+                    EtsErrorUtil::CreateErrorByNativeErr(env, resultCode));
                 env->GlobalReference_Delete(callbackRef);
                 return;
             }
             ani_ref wantParamRef = AppExecFwk::WrapWantParams(env, wantParam);
             if (wantParamRef == nullptr) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null wantParamRef");
-                AppExecFwk::AsyncCallback(env, static_cast<ani_object>(callbackRef),
-                    EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+                AppExecFwk::AsyncReject(env, static_cast<ani_object>(callbackRef),
+                    EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER));
                 env->GlobalReference_Delete(callbackRef);
                 return;
             }
-            AppExecFwk::AsyncCallback(env, static_cast<ani_object>(callbackRef),
-                EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), static_cast<ani_object>(wantParamRef));
+            AppExecFwk::AsyncResolveWithNoError(
+                env, static_cast<ani_object>(callbackRef), static_cast<ani_object>(wantParamRef));
             env->GlobalReference_Delete(callbackRef);
         };
     shareDataCallbackStub->SetShareRuntimeTask(task);
@@ -178,8 +178,8 @@ void EtsAbilityManager::GetForegroundUIAbilitiesCallBack(ani_env *env, ani_objec
     sptr<AppExecFwk::IAbilityManager> abilityManager = GetAbilityManagerInstance();
     if (abilityManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityManager is null");
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
         return;
     }
     std::vector<AppExecFwk::AbilityStateData> list;
@@ -187,18 +187,18 @@ void EtsAbilityManager::GetForegroundUIAbilitiesCallBack(ani_env *env, ani_objec
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed: ret=%{public}d", ret);
         AbilityRuntime::AbilityErrorCode code = AbilityRuntime::GetJsErrorCodeByNativeError(ret);
-        AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateError(env, code), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj, EtsErrorUtil::CreateError(env, code));
         return;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "GetForegroundUIAbilities succeeds, list.size=%{public}zu", list.size());
     ani_object aniArray = AppExecFwk::CreateAniAbilityStateDataArray(env, list);
     if (aniArray == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null aniArray");
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
         return;
     }
-    AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ERR_OK), aniArray);
+    AppExecFwk::AsyncResolveWithNoError(env, callbackObj, aniArray);
 }
 
 void EtsAbilityManager::GetTopAbility(ani_env *env, ani_object callback)
@@ -221,8 +221,7 @@ void EtsAbilityManager::GetTopAbility(ani_env *env, ani_object callback)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null elementNameobj");
         resultCode = ERR_FAILURE;
     }
-    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, resultCode),
-        elementNameobj);
+    AppExecFwk::AsyncResolveWithNoError(env, callback, elementNameobj);
     return;
 }
 
@@ -237,7 +236,12 @@ void EtsAbilityManager::GetAbilityRunningInfos(ani_env *env, ani_object callback
     auto errcode = AAFwk::AbilityManagerClient::GetInstance()->GetAbilityRunningInfos(infos);
     ani_object retObject = nullptr;
     AbilityManagerEts::WrapAbilityRunningInfoArray(env, retObject, infos);
-    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errcode), retObject);
+    if (errcode == 0) {
+        AppExecFwk::AsyncResolveWithNoError(env, callback, retObject);
+    } else {
+        AppExecFwk::AsyncReject(
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errcode));
+    }
 }
 
 void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj,
@@ -267,8 +271,7 @@ void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextOb
     }
     auto token = uiAbilityContext->GetToken();
     ani_boolean ret = AAFwk::AbilityManagerClient::GetInstance()->IsEmbeddedOpenAllowed(token, appId);
-    AppExecFwk::AsyncCallback(env, callbackObj,
-        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK),  AppExecFwk::CreateBoolean(env, ret));
+    AppExecFwk::AsyncResolve(env, callbackObj, AppExecFwk::CreateBoolean(env, ret));
 }
 
 void EtsAbilityManager::NativeOn(ani_env *env, ani_string aniType, ani_object aniObserver)
@@ -419,15 +422,17 @@ void EtsAbilityManager::NativeNotifyDebugAssertResult(ani_env *env, ani_string a
     auto amsClient = AAFwk::AbilityManagerClient::GetInstance();
     if (amsClient == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null amsClient");
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateErrorByNativeErr(env, AAFwk::INNER_ERR), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj,
+            EtsErrorUtil::CreateErrorByNativeErr(env, AAFwk::INNER_ERR));
         return;
     }
     auto ret = amsClient->NotifyDebugAssertResult(assertSessionId, static_cast<AAFwk::UserStatus>(userStatus));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed %{public}d", ret);
+        AppExecFwk::AsyncReject(
+            env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ret));
     }
-    AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ret), nullptr);
+    AppExecFwk::AsyncResolveWithNoError(env, callbackObj, nullptr);
 }
 
 void EtsAbilityManager::NativeSetResidentProcessEnabledCheck(ani_env *env, ani_string aniBundleName)
@@ -472,12 +477,11 @@ void EtsAbilityManager::NativeSetResidentProcessEnabled(ani_env *env, ani_string
 
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", ret);
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateErrorByNativeErr(env, ret), nullptr);
+        AppExecFwk::AsyncReject(
+            env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ret));
         return;
     }
-    AppExecFwk::AsyncCallback(env, callbackObj,
-        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+    AppExecFwk::AsyncResolveWithNoError(env, callbackObj, nullptr);
 }
 
 void EtsAbilityManager::NativeAcquireShareData(ani_env *env, ani_int aniMissionId, ani_object callbackObj)
@@ -494,8 +498,8 @@ void EtsAbilityManager::NativeAcquireShareData(ani_env *env, ani_int aniMissionI
     auto shareDataCallbackStub = CreateShareDataCallbackStub(env, callbackRef);
     if (shareDataCallbackStub == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null shareDataCallbackStub");
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateErrorByNativeErr(env, AAFwk::INNER_ERR), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj,
+            EtsErrorUtil::CreateErrorByNativeErr(env, AAFwk::INNER_ERR));
         env->GlobalReference_Delete(callbackRef);
         return;
     }
@@ -510,8 +514,8 @@ void EtsAbilityManager::NativeAcquireShareData(ani_env *env, ani_int aniMissionI
     }
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", err);
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateErrorByNativeErr(env, err), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj,
+            EtsErrorUtil::CreateErrorByNativeErr(env, err));
         env->GlobalReference_Delete(callbackRef);
     }
 }
@@ -542,12 +546,11 @@ void EtsAbilityManager::NativeUpdateConfiguration(ani_env *env, ani_object confi
 
     if (errcode != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateConfiguration failed: %{public}d", errcode);
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateErrorByNativeErr(env, errcode), nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj,
+            EtsErrorUtil::CreateErrorByNativeErr(env, errcode));
         return;
     }
-    AppExecFwk::AsyncCallback(env, callbackObj,
-        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+    AppExecFwk::AsyncResolveWithNoError(env, callbackObj, nullptr);
 }
 
 void EtsAbilityManagerRegistryInit(ani_env *env)
