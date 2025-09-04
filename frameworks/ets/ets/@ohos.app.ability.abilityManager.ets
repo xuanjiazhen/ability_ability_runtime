@@ -46,6 +46,8 @@ export default namespace abilityManager {
   export native function nativeUpdateConfiguration(config: Configuration, callback: AsyncCallbackWrapper<void>): void;
   export native function nativeQueryAtomicServiceStartupRule(context: Context, appId: string, callback:AsyncCallbackWrapper<AtomicServiceStartupRule>) : void;
   export native function nativeQueryAtomicServiceStartupRuleCheck(context: Context): void;
+  export native function nativeGetExtensionRunningInfos(upperLimit:int, callback:AsyncCallbackWrapper<Array<ExtensionRunningInfo>>) : void;
+  
   export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
       let executeFunc = (): Array<AbilityStateData> => {
@@ -254,6 +256,31 @@ export default namespace abilityManager {
       taskpool.execute((): void => {
         abilityManager.nativeQueryAtomicServiceStartupRule(context, appId, asyncCall);
       })
+    });
+  }
+
+  export function getExtensionRunningInfos(upperLimit: int): Promise<Array<ExtensionRunningInfo>> {
+    let p = new Promise<Array<ExtensionRunningInfo>>((resolve: (data: Array<ExtensionRunningInfo>)=>void,
+      reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<Array<ExtensionRunningInfo>>((err: BusinessError | null,
+        data: Array<ExtensionRunningInfo> | undefined)=>{
+        if (err == null || err.code == 0) {
+          resolve(data as Array<ExtensionRunningInfo>);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(():void => {
+        abilityManager.nativeGetExtensionRunningInfos(upperLimit, myCall);
+      });
+    });
+    return p;
+  }
+
+  export function getExtensionRunningInfos(upperLimit: int, callback: AsyncCallback<Array<ExtensionRunningInfo>>): void {
+    let myCall = new AsyncCallbackWrapper<Array<ExtensionRunningInfo>>(callback);
+    taskpool.execute( (): void => {
+        abilityManager.nativeGetExtensionRunningInfos(upperLimit, myCall);
     });
   }
 
