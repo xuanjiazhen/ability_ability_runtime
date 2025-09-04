@@ -439,10 +439,11 @@ public:
      * Register configuration observer.
      *
      * @param observer Configuration observer. When configuration changed, observer will be called.
+     * @param userId provide by user of default value:-1
      * @return Returns RESULT_OK on success, others on failure.
      */
-    virtual AppMgrResultCode RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer);
-
+    virtual AppMgrResultCode RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer,
+        const int32_t userId = -1);
     /**
      * Unregister configuration observer.
      *
