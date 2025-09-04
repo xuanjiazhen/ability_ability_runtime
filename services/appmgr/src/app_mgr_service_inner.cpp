@@ -5995,7 +5995,8 @@ void AppMgrServiceInner::HandleConfigurationChange(const Configuration& config, 
     }
 }
 
-int32_t AppMgrServiceInner::RegisterConfigurationObserver(const sptr<IConfigurationObserver>& observer)
+int32_t AppMgrServiceInner::RegisterConfigurationObserver(const sptr<IConfigurationObserver>& observer,
+    const int32_t userId)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
@@ -6016,8 +6017,12 @@ int32_t AppMgrServiceInner::RegisterConfigurationObserver(const sptr<IConfigurat
         TAG_LOGE(AAFwkTag::APPMGR, "observer exist");
         return ERR_INVALID_VALUE;
     }
-    configurationObservers_.push_back(
-        ConfigurationObserverWithUserId { observer, GetUserIdByUid(IPCSkeleton::GetCallingUid()) });
+    if (userId >= 0) {
+        configurationObservers_.push_back(ConfigurationObserverWithUserId { observer, userId });
+    } else {
+        configurationObservers_.push_back(
+            ConfigurationObserverWithUserId { observer, GetUserIdByUid(IPCSkeleton::GetCallingUid()) });
+    }
     return NO_ERROR;
 }
 
