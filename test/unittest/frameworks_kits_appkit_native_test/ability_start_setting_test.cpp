@@ -94,10 +94,8 @@ HWTEST_F(AbilityStartSettingTest, AppExecFwk_IsEmpty_0100, Function | MediumTest
 
     AbilityStartSetting* setting = AbilityStartSetting::Unmarshalling(parcel);
     std::shared_ptr<AbilityStartSetting> startSetting(setting);
+    EXPECT_EQ(nullptr, startSetting);
 
-    if (startSetting == nullptr) {
-        return;
-    }
     std::set<std::string> unmarshallingSet = startSetting->GetPropertiesKey();
     EXPECT_EQ((unsigned int)3, unmarshallingSet.size());
     it = unmarshallingSet.begin();
