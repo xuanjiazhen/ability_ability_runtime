@@ -166,13 +166,13 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
                 " ret:%{public}d", pid, ret);
         }
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
-        EnableFreezeSample(faultData);
     }
     if (!IsHandleAppfreeze()) {
         NotifyANR(faultData);
         return;
     }
     std::string msgContent;
+    EnableFreezeSample(faultData);
     GetMainHandlerDump(msgContent);
     ChangeFaultDateInfo(faultData, msgContent);
     return;
