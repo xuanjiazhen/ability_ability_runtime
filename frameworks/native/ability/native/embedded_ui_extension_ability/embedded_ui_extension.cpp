@@ -34,6 +34,8 @@ EmbeddedUIExtension *EmbeddedUIExtension::Create(const std::unique_ptr<Runtime> 
             return JsEmbeddedUIExtension::Create(runtime);
         case Runtime::Language::CJ:
             return CreateCJEmbeddedUIExtension(runtime);
+        case Runtime::Language::ETS:
+            return CreateETSEmbeddedUIExtension(runtime);
         default:
             return new (std::nothrow) EmbeddedUIExtension();
     }
