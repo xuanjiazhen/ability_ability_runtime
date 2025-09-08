@@ -69,7 +69,7 @@ bool AmsMgrProxy::WriteInterfaceToken(MessageParcel &data)
 void AmsMgrProxy::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
     const std::shared_ptr<ApplicationInfo> &appInfo,
     const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam,
-    sptr<ILoadAbilityCallback> callback)
+    uint64_t callbackId)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "start");
     if (!abilityInfo || !appInfo) {
@@ -99,16 +99,9 @@ void AmsMgrProxy::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
         TAG_LOGE(AAFwkTag::APPMGR, "Write data loadParam failed");
         return;
     }
-    if (callback != nullptr && callback->AsObject() != nullptr) {
-        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and callback");
-            return;
-        }
-    } else {
-        if (!data.WriteBool(false)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag");
-            return;
-        }
+    if (!data.WriteUint64(callbackId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and callbackid");
+        return;
     }
 
     int32_t ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::LOAD_ABILITY), data, reply, option);
