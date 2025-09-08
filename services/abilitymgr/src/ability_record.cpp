@@ -247,10 +247,11 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     abilityRecord->SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
     abilityRecord->SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
     if (abilityRequest.processOptions != nullptr) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "isPreloadStart:%{public}d,shouldReturnPid:%{public}d",
-            abilityRequest.processOptions->isPreloadStart, abilityRequest.processOptions->shouldReturnPid);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isPreloadStart:%{public}d,loadAbilityCallbackId:%{public}ld",
+            abilityRequest.processOptions->isPreloadStart, abilityRequest.processOptions->loadAbilityCallbackId);
         abilityRecord->SetPreloadStart(abilityRequest.processOptions->isPreloadStart);
-        abilityRecord->SetShouldReturnPid(abilityRequest.processOptions->shouldReturnPid);
+        abilityRecord->SetLoadAbilityCallbackId(abilityRequest.processOptions->loadAbilityCallbackId);
+        abilityRecord->SetCallingPid(abilityRequest.processOptions->callingPid);
     }
     abilityRecord->sessionInfo_ = abilityRequest.sessionInfo;
     if (AppUtils::GetInstance().IsMultiProcessModel() && abilityRequest.abilityInfo.isStageBasedModel &&
@@ -340,7 +341,7 @@ void AbilityRecord::LoadUIAbility()
     g_addLifecycleEventTask(token_, methodName);
 }
 
-int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, sptr<AppExecFwk::ILoadAbilityCallback> callback)
+int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadLifecycle: abilityName:%{public}s", abilityInfo_.name.c_str());
@@ -376,13 +377,14 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, sptr<AppExe
     loadParam.isCallerSetProcess = IsCallerSetProcess();
     loadParam.customProcessFlag = customProcessFlag_;
     loadParam.isStartupHide = isStartupHide;
+    loadParam.callingPid = GetCallingPid();
     auto userId = abilityInfo_.uid / BASE_USER_RANGE;
     bool isMainUIAbility =
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);
     MainElementUtils::SetMainUIAbilityKeepAliveFlag(isMainUIAbility,
         abilityInfo_.bundleName, loadParam);
     auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
-        loadParam, abilityInfo_, abilityInfo_.applicationInfo, want_, callback);
+        loadParam, abilityInfo_, abilityInfo_.applicationInfo, want_, GetLoadAbilityCallbackId());
     want_.RemoveParam(IS_HOOK);
     want_.RemoveParam(ABILITY_OWNER_USERID);
     want_.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
@@ -491,8 +493,7 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 }
 
 void AbilityRecord::ProcessForegroundAbility(
-    uint32_t tokenId, uint32_t sceneFlag, bool isShellCall, bool isStartupHide,
-    sptr<AppExecFwk::ILoadAbilityCallback> callback)
+    uint32_t tokenId, uint32_t sceneFlag, bool isShellCall, bool isStartupHide)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::string element = GetElementName().GetURI();
@@ -506,7 +507,7 @@ void AbilityRecord::ProcessForegroundAbility(
     if (!isReady_) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "To load ability.");
         lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
-        LoadAbility(isShellCall, isStartupHide, callback);
+        LoadAbility(isShellCall, isStartupHide);
         return;
     }
 

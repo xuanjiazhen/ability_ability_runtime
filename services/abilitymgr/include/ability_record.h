@@ -52,9 +52,6 @@
 #endif
 
 namespace OHOS {
-namespace AppExecFwk {
-class ILoadAbilityCallback;
-}
 namespace AAFwk {
 using Closure = std::function<void()>;
 
@@ -414,8 +411,7 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    int LoadAbility(bool isShellCall = false, bool isStartupHide = false,
-        sptr<AppExecFwk::ILoadAbilityCallback> callback = nullptr);
+    int LoadAbility(bool isShellCall = false, bool isStartupHide = false);
 
     /**
      * foreground the ability.
@@ -429,8 +425,7 @@ public:
      *
      */
     void ProcessForegroundAbility(
-        uint32_t tokenId, uint32_t sceneFlag = 0, bool isShellCall = false, bool isStartupHide = false,
-        sptr<AppExecFwk::ILoadAbilityCallback> callback = nullptr);
+        uint32_t tokenId, uint32_t sceneFlag = 0, bool isShellCall = false, bool isStartupHide = false);
 
      /**
      * post foreground timeout task for ui ability.
@@ -1275,14 +1270,24 @@ public:
         return isPreloadStart_.load();
     }
 
-    inline void SetShouldReturnPid(bool shouldReturnPid)
+    inline void SetLoadAbilityCallbackId(uint64_t loadAbilityCallbackId)
     {
-        shouldReturnPid_.store(shouldReturnPid);
+        loadAbilityCallbackId_.store(loadAbilityCallbackId);
     }
 
-    inline bool ShouldReturnPid() const
+    inline uint64_t GetLoadAbilityCallbackId() const
     {
-        return shouldReturnPid_.load();
+        return loadAbilityCallbackId_.load();
+    }
+
+    inline void SetCallingPid(pid_t callingPid)
+    {
+        callingPid_.store(callingPid);
+    }
+
+    inline uint64_t GetCallingPid() const
+    {
+        return callingPid_.load();
     }
 
     inline void SetPreloaded()
@@ -1410,7 +1415,8 @@ private:
 #endif
     void SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType);
     std::atomic<bool> isPreloadStart_ = false;           // is ability started via preload
-    std::atomic<bool> shouldReturnPid_ = false;
+    std::atomic<uint64_t> loadAbilityCallbackId_ = 0;
+    std::atomic<pid_t> callingPid_ = -1;
 
     static std::atomic<int64_t> abilityRecordId;
     bool isReady_ = false;                            // is ability thread attached?

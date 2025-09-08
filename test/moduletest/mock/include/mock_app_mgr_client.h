@@ -27,7 +27,7 @@ public:
     MockAppMgrClient();
     ~MockAppMgrClient();
     MOCK_METHOD5(LoadAbility, AppMgrResultCode(const AbilityInfo&, const ApplicationInfo&,
-        const AAFwk::Want&, AbilityRuntime::LoadParam, sptr<AppExecFwk::ILoadAbilityCallback>));
+        const AAFwk::Want&, AbilityRuntime::LoadParam, uint64_t));
     MOCK_METHOD2(TerminateAbility, AppMgrResultCode(const sptr<IRemoteObject>&, bool));
     MOCK_METHOD2(UpdateAbilityState, AppMgrResultCode(const sptr<IRemoteObject>& token, const AbilityState state));
     MOCK_METHOD3(KillApplication, AppMgrResultCode(const std::string&, const bool clearPageStack, int32_t));

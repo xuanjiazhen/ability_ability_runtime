@@ -159,12 +159,11 @@ public:
      * @param abilityInfo, ability info.
      * @param applicationInfo, application info.
      * @param want ability want
-     * @param callback, the callback to get process id.
+     * @param callbackId, the id of the callback to get process id.
      * @return true on success ,false on failure.
      */
     int LoadAbility(const AbilityRuntime::LoadParam &loadParam, const AppExecFwk::AbilityInfo &abilityInfo,
-        const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want,
-        sptr<AppExecFwk::ILoadAbilityCallback> callback = nullptr);
+        const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want, uint64_t callbackid = 0);
 
     /**
      * terminate ability with token.
