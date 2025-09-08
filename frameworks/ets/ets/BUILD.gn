@@ -383,6 +383,38 @@ ohos_prebuilt_etc("ability_runtime_running_multi_appinfo_abc_etc") {
   deps = [ ":ability_runtime_running_multi_appinfo_abc" ]
 }
 
+generate_static_abc("ability_runtime_page_node_info_abc") {
+  base_url = "./"
+  files = [ "./application/PageNodeInfo.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_page_node_info_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_page_node_info_abc_etc") {
+  source = "$target_out_dir/ability_runtime_page_node_info_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_page_node_info_abc" ]
+}
+
+generate_static_abc("ability_runtime_view_data_abc") {
+  base_url = "./"
+  files = [ "./application/ViewData.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_view_data_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_view_data_abc_etc") {
+  source = "$target_out_dir/ability_runtime_view_data_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_view_data_abc" ]
+}
+
 generate_static_abc("ability_runtime_multi_app_mode_abc") {
   base_url = "./"
   files = [ "./application/MultiAppMode.ets" ]
@@ -415,6 +447,22 @@ ohos_prebuilt_etc("ability_runtime_app_manager_abc_etc") {
   deps = [ ":ability_runtime_app_manager_abc" ]
 }
 
+generate_static_abc("ability_runtime_auto_fill_extension_ability_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.AutoFillExtensionAbility.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_auto_fill_extension_ability_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_auto_fill_extension_ability_abc_etc") {
+  source = "$target_out_dir/ability_runtime_auto_fill_extension_ability_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_auto_fill_extension_ability_abc" ]
+}
+
 generate_static_abc("ability_runtime_auto_fill_manager_abc") {
   base_url = "./"
   files = [ "./@ohos.app.ability.autoFillManager.ets" ]
@@ -429,6 +477,28 @@ ohos_prebuilt_etc("ability_runtime_auto_fill_manager_abc_etc") {
   subsystem_name = "ability"
   part_name = "ability_runtime"
   deps = [ ":ability_runtime_auto_fill_manager_abc" ]
+}
+
+generate_static_abc("photo_editor_extension_ability_ani_abc") {
+  base_url = "./"
+  files = [
+    "./application/PhotoEditorExtensionContext.ets",
+    "./@ohos.app.ability.PhotoEditorExtensionAbility.ets",
+  ]
+
+  dst_file = "$target_out_dir/photo_editor_extension_ability_ani.abc"
+  out_puts = [ "$target_out_dir/photo_editor_extension_ability_ani.abc" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/photo_editor_extension_ability_ani.abc"
+}
+
+ohos_prebuilt_etc("photo_editor_extension_ability_etc") {
+  source = "$target_out_dir/photo_editor_extension_ability_ani.abc"
+  deps = [ ":photo_editor_extension_ability_ani_abc" ]
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
 }
 
 generate_static_abc("ui_extension_ability_ani_abc") {
@@ -958,6 +1028,70 @@ ohos_prebuilt_etc("ability_runtime_connect_options_abc_etc") {
   deps = [ ":ability_runtime_connect_options_abc" ]
 }
 
+generate_static_abc("ability_runtime_auto_fill_extension_context_abc") {
+  base_url = "./"
+  files = [ "./application/AutoFillExtensionContext.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_auto_fill_extension_context_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_auto_fill_extension_context_abc_etc") {
+  source = "$target_out_dir/ability_runtime_auto_fill_extension_context_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_auto_fill_extension_context_abc" ]
+}
+
+generate_static_abc("ability_runtime_auto_fill_popup_config_abc") {
+  base_url = "./"
+  files = [ "./application/AutoFillPopupConfig.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_auto_fill_popup_config_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_auto_fill_popup_config_abc_etc") {
+  source = "$target_out_dir/ability_runtime_auto_fill_popup_config_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_auto_fill_popup_config_abc" ]
+}
+
+generate_static_abc("ability_runtime_auto_fill_rect_abc") {
+  base_url = "./"
+  files = [ "./application/AutoFillRect.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_auto_fill_rect_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_auto_fill_rect_abc_etc") {
+  source = "$target_out_dir/ability_runtime_auto_fill_rect_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_auto_fill_rect_abc" ]
+}
+
+generate_static_abc("ability_runtime_auto_fill_request_abc") {
+  base_url = "./"
+  files = [ "./application/AutoFillRequest.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_auto_fill_request_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_auto_fill_request_abc_etc") {
+  source = "$target_out_dir/ability_runtime_auto_fill_request_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_auto_fill_request_abc" ]
+}
+
 generate_static_abc("ability_runtime_auto_fill_type_abc") {
   base_url = "./"
   files = [ "./application/AutoFillType.ets" ]
@@ -972,6 +1106,53 @@ ohos_prebuilt_etc("ability_runtime_auto_fill_type_abc_etc") {
   subsystem_name = "ability"
   part_name = "ability_runtime"
   deps = [ ":ability_runtime_auto_fill_type_abc" ]
+}
+
+generate_static_abc("ability_runtime_auto_startup_callback_abc") {
+  base_url = "./"
+  files = [ "./application/AutoStartupCallback.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_auto_startup_callback_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_auto_startup_callback_abc_etc") {
+  source = "$target_out_dir/ability_runtime_auto_startup_callback_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_auto_startup_callback_abc" ]
+}
+
+generate_static_abc("ability_runtime_auto_startup_info_abc") {
+  base_url = "./"
+  files = [ "./application/AutoStartupInfo.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_auto_startup_info_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_auto_startup_info_abc_etc") {
+  source = "$target_out_dir/ability_runtime_auto_startup_info_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_auto_startup_info_abc" ]
+}
+
+generate_static_abc("ability_runtime_auto_startup_manager_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.autoStartupManager.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_auto_startup_manager_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_auto_startup_manager_abc_etc") {
+  source = "$target_out_dir/ability_runtime_auto_startup_manager_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_auto_startup_manager_abc" ]
 }
 
 generate_static_abc("ability_runtime_error_code_abc") {
@@ -1116,6 +1297,36 @@ ohos_prebuilt_etc("ability_runtime_mission_info_abc_etc") {
   subsystem_name = "ability"
   part_name = "ability_runtime"
   deps = [ ":ability_runtime_mission_info_abc" ]
+}
+
+generate_static_abc("ability_runtime_mission_snapshot_abc") {
+  base_url = "./"
+  files = [ "./application/MissionSnapshot.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_mission_snapshot_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_mission_snapshot_abc_etc") {
+  source = "$target_out_dir/ability_runtime_mission_snapshot_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_mission_snapshot_abc" ]
+}
+
+generate_static_abc("ability_runtime_mission_listener_abc") {
+  base_url = "./"
+  files = [ "./application/MissionListener.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_mission_listener_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_mission_listener_abc_etc") {
+  source = "$target_out_dir/ability_runtime_mission_listener_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_mission_listener_abc" ]
 }
 
 generate_static_abc("ability_runtime_ability_mission_manager_abc") {
@@ -1281,6 +1492,23 @@ ohos_prebuilt_etc("app_service_extension_ability_abc_etc") {
   deps = [ ":app_service_extension_ability" ]
 }
 
+generate_static_abc("ability_runtime_action_extension_ability_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.ActionExtensionAbility.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file =
+      "/system/framework/ability_runtime_action_extension_ability_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_action_extension_ability_abc_etc") {
+  source = "$target_out_dir/ability_runtime_action_extension_ability_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_action_extension_ability_abc" ]
+}
+
 generate_static_abc("ability_runtime_running_multi_instance_info_abc") {
   base_url = "./"
   files = [ "./application/RunningMultiInstanceInfo.ets" ]
@@ -1298,12 +1526,30 @@ ohos_prebuilt_etc("ability_runtime_running_multi_instance_info_abc_etc") {
   deps = [ ":ability_runtime_running_multi_instance_info_abc" ]
 }
 
+generate_static_abc("ability_runtime_completion_handler_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.CompletionHandler.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file =
+      "/system/framework/ability_runtime_completion_handler_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_completion_handler_abc_etc") {
+  source = "$target_out_dir/ability_runtime_completion_handler_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_completion_handler_abc" ]
+}
+
 group("ets_packages") {
   deps = [
     ":ability_application_abc_etc",
     ":ability_runtime_ability_manager_abc_etc",
     ":ability_delegator_abc_etc",
     ":ability_delegator_ability_monitor_abc_etc",
+    ":ability_runtime_action_extension_ability_abc_etc",
     ":ability_delegator_application_testRunner_abc_etc",
     ":ability_delegator_args_abc_etc",
     ":ability_delegator_registry_abc_etc",
@@ -1326,11 +1572,20 @@ group("ets_packages") {
     ":ability_runtime_app_manager_abc_etc",
     ":ability_runtime_app_state_data_abc_etc",
     ":ability_runtime_application_context_abc_etc",
+    ":ability_runtime_auto_fill_extension_ability_abc_etc",
+    ":ability_runtime_auto_fill_extension_context_abc_etc",
     ":ability_runtime_auto_fill_manager_abc_etc",
+    ":ability_runtime_auto_fill_popup_config_abc_etc",
+    ":ability_runtime_auto_fill_rect_abc_etc",
+    ":ability_runtime_auto_fill_request_abc_etc",
     ":ability_runtime_auto_fill_type_abc_etc",
+    ":ability_runtime_auto_startup_callback_abc_etc",
+    ":ability_runtime_auto_startup_info_abc_etc",
+    ":ability_runtime_auto_startup_manager_abc_etc",
     ":ability_runtime_application_state_change_callback_abc_etc",
     ":ability_runtime_base_context_abc_etc",
     ":ability_runtime_caller_callee_abc_etc",
+    ":ability_runtime_completion_handler_abc_etc",
     ":ability_runtime_configuration_abc_etc",
     ":ability_runtime_configuration_constant_abc_etc",
     ":ability_runtime_connect_options_abc_etc",
@@ -1359,11 +1614,13 @@ group("ets_packages") {
     ":ability_runtime_ui_ability_abc_etc",
     ":ability_runtime_ui_ability_context_abc_etc",
     ":ability_runtime_multi_app_mode_abc_etc",
+    ":ability_runtime_page_node_info_abc_etc",
     ":ability_runtime_process_data_abc_etc",
     ":ability_runtime_process_information_abc_etc",
     ":ability_runtime_running_app_clone_abc_etc",
     ":ability_runtime_running_multi_appinfo_abc_etc",
     ":ability_runtime_running_multi_instance_info_abc_etc",
+    ":ability_runtime_view_data_abc_etc",
     ":ability_runtime_want_abc_etc",
     ":ability_runtime_want_agent_abc_etc",
     ":ability_runtime_want_agent_info_abc_etc",
@@ -1375,8 +1632,11 @@ group("ets_packages") {
     ":form_extension_ability_etc",
     ":service_extension_ability_abc_etc",
     ":ui_extension_ability_ani_etc",
+    ":photo_editor_extension_ability_etc",
     ":uri_permission_manager_abc_etc",
     ":form_extension_ability_etc",
     ":appRecovery_abc_etc",
+    ":ability_runtime_mission_snapshot_abc_etc",
+    ":ability_runtime_mission_listener_abc_etc",
   ]
 }
