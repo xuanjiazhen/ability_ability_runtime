@@ -550,8 +550,7 @@ bool AppRunningManager::CheckMasterProcessAppRunningRecordIsExist(
     return false;
 }
 
-std::shared_ptr<AppRunningRecord> AppRunningManager::GetMasterProcess(
-    const std::string &bundleName, int32_t uid, const std::string &instanceKey)
+std::shared_ptr<AppRunningRecord> AppRunningManager::GetSpecifiedProcess(int32_t uid, const std::string &instanceKey)
 {
     return nullptr;
 }
