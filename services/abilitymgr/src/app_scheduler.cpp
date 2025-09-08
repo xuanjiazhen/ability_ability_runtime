@@ -68,8 +68,7 @@ bool AppScheduler::Init(const std::weak_ptr<AppStateCallback> &callback)
 }
 
 int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const AppExecFwk::AbilityInfo &abilityInfo,
-    const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want,
-    sptr<AppExecFwk::ILoadAbilityCallback> callback)
+    const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", abilityInfo.bundleName.c_str());
@@ -81,7 +80,7 @@ int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const 
     /* because the errcode type of AppMgr Client API will be changed to int,
      * so must to covert the return result  */
     int ret = static_cast<int>(IN_PROCESS_CALL(
-        appMgrClient_->LoadAbility(abilityInfo, applicationInfo, want, loadParam, callback)));
+        appMgrClient_->LoadAbility(abilityInfo, applicationInfo, want, loadParam)));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "AppScheduler fail to LoadAbility. ret %{public}d", ret);
         return INNER_ERR;

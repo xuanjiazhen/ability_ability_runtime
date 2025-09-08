@@ -23,7 +23,6 @@
 #include "application_info.h"
 #include "configuration.h"
 #include "iapp_state_callback.h"
-#include "iload_ability_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "istart_specified_ability_response.h"
@@ -46,13 +45,11 @@ public:
      * @param preToken, the unique identification to call the ability.
      * @param abilityInfo, the ability information.
      * @param appInfo, the app information.
-     * @param callback, the callback to get process id.
      * @return
      */
     virtual void LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
-        const std::shared_ptr<ApplicationInfo> &appInfo,
-        const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam,
-        sptr<ILoadAbilityCallback> callback = nullptr) {};
+        const std::shared_ptr<ApplicationInfo> &appInfo, const std::shared_ptr<AAFwk::Want> &want,
+        std::shared_ptr<AbilityRuntime::LoadParam> loadParam) {};
 
     /**
      * TerminateAbility, call TerminateAbility() through the proxy object, terminate the token ability.
