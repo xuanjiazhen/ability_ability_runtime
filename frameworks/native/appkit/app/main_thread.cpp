@@ -1708,7 +1708,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         TAG_LOGD(AAFwkTag::APPKIT, "isStartWithDebug:%{public}d, debug:%{public}d, isNativeStart:%{public}d",
             appLaunchData.GetDebugApp(), appInfo.debug, appLaunchData.isNativeStart());
         AbilityRuntime::ChildProcessManager::GetInstance().SetForkProcessDebugOption(appInfo.bundleName,
-            appLaunchData.GetDebugApp(), appInfo.debug, appLaunchData.isNativeStart());
+            appLaunchData.GetDebugApp(), appInfo.debug, appLaunchData.isNativeStart(), appInfo.arkTSMode);
 #endif // SUPPORT_CHILD_PROCESS
         if (!pluginBundleInfos.empty()) {
             for (auto &pluginBundleInfo : pluginBundleInfos) {

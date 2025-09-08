@@ -282,7 +282,7 @@ void ChildProcessManager::HandleChildProcessBySelfFork(const std::string &srcEnt
         return;
     }
     eventRunner->Stop();
-    
+
     AppExecFwk::HapModuleInfo hapModuleInfo;
     if (!GetEntryHapModuleInfo(bundleInfo, hapModuleInfo)) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "GetHapModuleInfo failed");
@@ -343,7 +343,7 @@ bool ChildProcessManager::LoadNativeLib(const std::string &moduleName,
         TAG_LOGE(AAFwkTag::PROCESSMGR, "null childIpcProcess");
         return false;
     }
-    
+
     std::shared_ptr<ChildProcessStartInfo> processStartInfo = std::make_shared<ChildProcessStartInfo>();
     processStartInfo->moduleName = moduleName;
     processStartInfo->name = std::filesystem::path(libPath).stem();
@@ -353,7 +353,7 @@ bool ChildProcessManager::LoadNativeLib(const std::string &moduleName,
         TAG_LOGE(AAFwkTag::PROCESSMGR, "NativeChildIpcProcess init failed");
         return false;
     }
-    
+
     childProcess->OnStart();
     TAG_LOGD(AAFwkTag::PROCESSMGR, "end");
     return true;
@@ -506,12 +506,13 @@ void ChildProcessManager::SetForkProcessJITEnabled(bool jitEnabled)
 }
 
 void ChildProcessManager::SetForkProcessDebugOption(const std::string bundleName, const bool isStartWithDebug,
-    const bool isDebugApp, const bool isStartWithNative)
+    const bool isDebugApp, const bool isStartWithNative, const std::string arkTSMode)
 {
     g_debugOption.bundleName = bundleName;
     g_debugOption.isStartWithDebug = isStartWithDebug;
     g_debugOption.isDebugApp = isDebugApp;
     g_debugOption.isStartWithNative = isStartWithNative;
+    g_debugOption.arkTSMode = arkTSMode;
 }
 
 void ChildProcessManager::SetAppSpawnForkDebugOption(Runtime::DebugOption &debugOption,

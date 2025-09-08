@@ -163,7 +163,7 @@ void ChildProcessManager::SetForkProcessJITEnabled(bool jitEnabled)
 }
 
 void ChildProcessManager::SetForkProcessDebugOption(const std::string bundleName, const bool isStartWithDebug,
-    const bool isDebugApp, const bool isStartWithNative)
+    const bool isDebugApp, const bool isStartWithNative, const std::string arkTSMode)
 {
 }
 
