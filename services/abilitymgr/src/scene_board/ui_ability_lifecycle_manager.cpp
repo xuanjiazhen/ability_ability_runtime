@@ -2552,20 +2552,6 @@ int32_t UIAbilityLifecycleManager::StartSpecifiedProcessRequest(const AbilityReq
     return ERR_OK;
 }
 
-int32_t UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(AbilityRequest &abilityRequest)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartSpecifiedAbilityBySCB");
-    abilityRequest.isFromIcon = true;
-    std::lock_guard guard(sessionLock_);
-    // support specified process mode
-    if (IsStartSpecifiedProcessRequest(abilityRequest)) {
-        return StartSpecifiedProcessRequest(abilityRequest, nullptr);
-    }
-    AddSpecifiedRequest(std::make_shared<SpecifiedRequest>(RequestIdUtil::GetRequestId(), abilityRequest));
-    return ERR_OK;
-}
-
 int32_t UIAbilityLifecycleManager::MoveAbilityToFront(const SpecifiedRequest &specifiedRequest,
     std::shared_ptr<AbilityRecord> abilityRecord, std::shared_ptr<AbilityRecord> callerAbility)
 {
@@ -3817,6 +3803,7 @@ void UIAbilityLifecycleManager::AddSpecifiedRequest(std::shared_ptr<SpecifiedReq
     auto &abilityRequest = request->abilityRequest;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "AddSpecifiedRequest: %{public}d, %{public}s", request->requestId,
         abilityRequest.want.GetElement().GetURI().c_str());
+    abilityRequest.isFromIcon = DelayedSingleton<AbilityManagerService>::GetInstance()->IsCallerSceneBoard();
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     auto accessTokenIdStr = std::to_string(abilityRequest.abilityInfo.applicationInfo.accessTokenId);
     auto &list = specifiedRequestList_[accessTokenIdStr + instanceKey];
