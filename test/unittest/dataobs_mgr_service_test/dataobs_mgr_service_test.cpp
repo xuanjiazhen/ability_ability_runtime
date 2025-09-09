@@ -22,6 +22,7 @@
 #include "accesstoken_kit.h"
 #include "dataobs_mgr_interface.h"
 #include "datashare_errno.h"
+#include "iservice_registry.h"
 #include "mock_data_ability_observer_stub.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
@@ -719,39 +720,32 @@ HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_CheckSystemCallingPe
 
 /*
  * Feature: DataObsMgrService
- * Function: GetDataMgrServiceUid
+ * Function: test GetSystemProcessInfo and DATA_MANAGER_SERVICE_UID
  * SubFunction: NA
- * FunctionPoints: DataObsMgrService GetDataMgrServiceUid
+ * FunctionPoints: DataObsMgrService DATA_MANAGER_SERVICE_UID
  * EnvConditions: NA
- * CaseDescription: Verify that the DataObsMgrService GetDataMgrServiceUid is normal.
+ * CaseDescription: Verify that the DataObsMgrService DATA_MANAGER_SERVICE_UID is normal.
  */
-HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_GetDataMgrServiceUid_0100, TestSize.Level1)
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_DataMgrServiceUid_0100, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_GetDataMgrServiceUid_0100 start");
-    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
-
-    auto uid1 = dataObsMgrServer->GetDataMgrServiceUid();
-    EXPECT_NE(uid1, 0);
-    auto uid2 = dataObsMgrServer->GetDataMgrServiceUid();
-    EXPECT_EQ(uid1, uid2);
-
-    uint32_t tokenID = Security::AccessToken::DEFAULT_TOKEN_VERSION;
-    Security::AccessToken::AccessTokenIDInner *idInner =
-        reinterpret_cast<Security::AccessToken::AccessTokenIDInner *>(&tokenID);
-    idInner->type = Security::AccessToken::TOKEN_NATIVE;
-    bool ret = dataObsMgrServer->IsDataMgrService(tokenID, uid1);
-    EXPECT_EQ(ret, true);
-    idInner->type = Security::AccessToken::TOKEN_HAP;
-    ret = dataObsMgrServer->IsDataMgrService(tokenID, uid1);
-    EXPECT_EQ(ret, false);
-    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_GetDataMgrServiceUid_0100 end");
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_DataMgrServiceUid_0100 start");
+    const int32_t DATA_MANAGER_SERVICE_UID = 3012;
+    // get systemAbility manager
+    auto manager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    EXPECT_NE(manager, nullptr);
+    // get system process info
+    SystemProcessInfo systemProcessInfo;
+    auto ret = manager->GetSystemProcessInfo(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, systemProcessInfo);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(systemProcessInfo.uid, DATA_MANAGER_SERVICE_UID);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_DataMgrServiceUid_0100 end");
 }
 
 /*
  * Feature: DataObsMgrService
- * Function: GetDataMgrServiceUid
+ * Function: IsSystemApp
  * SubFunction: NA
- * FunctionPoints: DataObsMgrService GetDataMgrServiceUid
+ * FunctionPoints: DataObsMgrService IsSystemApp
  * EnvConditions: NA
  * CaseDescription: Verify that the DataObsMgrService IsSystemApp is normal.
  */
