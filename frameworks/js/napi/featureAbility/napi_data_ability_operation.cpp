@@ -210,8 +210,12 @@ napi_value UnwrapDataAbilityPredicatesBackReferences(
     for (uint32_t index = 0; index < jsProCount; index++) {
         NAPI_CALL(env, napi_get_element(env, jsProNameList, index, &jsProName));
         std::string strProName = UnwrapStringFromJS(env, jsProName);
-        int intProName = std::atoi(strProName.c_str());
-        TAG_LOGI(AAFwkTag::FA, "Property name=%{public}d", intProName);
+        int intProName = 0;
+        try {
+            intProName = std::stoi(strProName);
+        } catch (const std::exception&) {
+            TAG_LOGE(AAFwkTag::FA, "Property name=%{public}s", strProName.c_str());
+        }
         NAPI_CALL(env, napi_get_property(env, predicatesBackReferencesParam, jsProName, &jsProValue));
         NAPI_CALL(env, napi_typeof(env, jsProValue, &jsValueType));
         int32_t natValue32 = 0;
