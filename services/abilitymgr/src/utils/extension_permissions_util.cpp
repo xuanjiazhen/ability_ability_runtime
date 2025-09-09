@@ -44,6 +44,9 @@ bool ExtensionPermissionsUtil::CheckSAPermission(const AppExecFwk::ExtensionAbil
     } else if (extensionType == AppExecFwk::ExtensionAbilityType::WORK_SCHEDULER) {
         checkRet = PermissionVerification::GetInstance()->VerifyCallingPermission(
             "ohos.permission.CONNECT_WORK_SCHEDULER_EXTENSION");
+    } else if (extensionType == AppExecFwk::ExtensionAbilityType::FAULT_LOG) {
+        checkRet = PermissionVerification::GetInstance()->VerifyCallingPermission(
+            "ohos.permission.CONNECT_FAULT_LOG_EXTENSION");
     } else if (extensionType == AppExecFwk::ExtensionAbilityType::INPUTMETHOD) {
         checkRet = PermissionVerification::GetInstance()->VerifyCallingPermission(
             "ohos.permission.CONNECT_INPUT_METHOD_EXTENSION");
