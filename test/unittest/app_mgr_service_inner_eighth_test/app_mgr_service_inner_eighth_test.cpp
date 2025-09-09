@@ -2785,6 +2785,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PromoteCurrentToCandidateMasterProcess_01
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     ASSERT_NE(appMgrServiceInner, nullptr);
     AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = true;
+    AAFwk::MyStatus::GetInstance().isHaveIsolationProcessTrueAbility_ = true;
     std::shared_ptr<ApplicationInfo> info1 = nullptr;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(true);
@@ -2805,6 +2806,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PromoteCurrentToCandidateMasterProcess_02
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     ASSERT_NE(appMgrServiceInner, nullptr);
     AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = true;
+    AAFwk::MyStatus::GetInstance().isHaveIsolationProcessTrueAbility_ = false;
     std::shared_ptr<ApplicationInfo> info1 = nullptr;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(false);
@@ -2825,6 +2827,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PromoteCurrentToCandidateMasterProcess_03
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     ASSERT_NE(appMgrServiceInner, nullptr);
     AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = false;
+    AAFwk::MyStatus::GetInstance().isHaveIsolationProcessTrueAbility_ = false;
     std::shared_ptr<ApplicationInfo> info1 = nullptr;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(false);
@@ -2972,6 +2975,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, ExitMasterProcessRole_0300, TestSize.Leve
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(true);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetTimeStamp(0);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetIsOnNewProcessRequest(true);
     int32_t res = appMgrServiceInner->ExitMasterProcessRole();
     EXPECT_EQ(res, AAFwk::ERR_NOT_ON_NEW_PROCESS_REQUEST_DONE);
     TAG_LOGI(AAFwkTag::TEST, "ExitMasterProcessRole_0300 end");

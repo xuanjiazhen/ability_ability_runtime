@@ -408,6 +408,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleExitMasterProcessRole(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::QUERY_RUNNING_SHARED_BUNDLES):
             return HandleQueryRunningSharedBundles(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::SET_IS_ON_NEW_PROCESS_REQUEST):
+            return HandleSetIsOnNewProcessRequest(data, reply);
     }
     return INVALID_FD;
 }
@@ -2082,6 +2084,14 @@ int32_t AppMgrStub::HandleQueryRunningSharedBundles(MessageParcel &data, Message
             return IPC_STUB_ERR;
         }
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleSetIsOnNewProcessRequest(MessageParcel &data, MessageParcel &reply)
+{
+    auto recordId = data.ReadInt32();
+    auto flag = data.ReadBool();
+    SetIsOnNewProcessRequest(recordId, flag);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

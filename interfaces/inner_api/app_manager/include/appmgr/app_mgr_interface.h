@@ -1024,6 +1024,8 @@ public:
     {
         return 0;
     }
+
+    virtual void SetIsOnNewProcessRequest(int32_t recordId, bool flag) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

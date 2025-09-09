@@ -1591,6 +1591,8 @@ void AppRunningRecord::SetScheduleNewProcessRequestState(int32_t requestId,
     specifiedProcessRequest_->requestId = requestId;
     specifiedProcessRequest_->want = want;
     moduleName_ = moduleName;
+    isOnNewProcessRequest_ = true;
+    specifiedProcessRequestId_ = requestId;
 }
 
 bool AppRunningRecord::IsNewProcessRequest() const
@@ -2733,6 +2735,24 @@ void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
 {
     std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
     supportMultiProcessDeviceFeature_ = support;
+}
+
+bool AppRunningRecord::IsHaveIsolationProcessTrueAbility()
+{
+    std::map<const sptr<IRemoteObject>, std::shared_ptr<AbilityRunningRecord>> abilityRecordList = GetAbilities();
+    for (auto it = abilityRecordList.begin(); it != abilityRecordList.end(); ++it) {
+        if (it->second == nullptr) {
+            continue;
+        }
+        auto abilityInfo = it->second->GetAbilityInfo();
+        if (abilityInfo == nullptr) {
+            continue;
+        }
+        if (abilityInfo->isolationProcess) {
+            return true;
+        }
+    }
+    return false;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

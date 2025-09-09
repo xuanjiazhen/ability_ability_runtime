@@ -811,6 +811,8 @@ public:
      */
     int32_t ExitMasterProcessRole() override;
 
+    void SetIsOnNewProcessRequest(int32_t recordId, bool flag) override;
+
     /**
      * set browser channel for caller
      */

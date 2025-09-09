@@ -1141,6 +1141,28 @@ public:
         return timeStamp_;
     }
 
+    inline void SetSpecifiedProcessRequestId(bool requestId)
+    {
+        specifiedProcessRequestId_ = requestId;
+    }
+
+    inline int32_t GetSpecifiedProcessRequestId() const
+    {
+        return specifiedProcessRequestId_;
+    }
+
+    inline void SetIsOnNewProcessRequest(bool isOnNewProcessRequest)
+    {
+        isOnNewProcessRequest_ = isOnNewProcessRequest;
+    }
+
+    inline bool IsOnNewProcessRequest() const
+    {
+        return isOnNewProcessRequest_;
+    }
+
+    bool IsHaveIsolationProcessTrueAbility();
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1328,6 +1350,8 @@ private:
 
     bool isMasterProcess_ = false; // Only MasterProcess can be keepalive
     int64_t timeStamp_ = 0; // the flag of BackUpMainControlProcess
+    bool isOnNewProcessRequest_ = false;
+    int32_t specifiedProcessRequestId_ = 0;
 };
 
 }  // namespace AppExecFwk
