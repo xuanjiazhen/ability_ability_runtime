@@ -3449,5 +3449,85 @@ HWTEST_F(AmsAppRunningRecordTest, IsAbilitiesBackgrounded_003, TestSize.Level1)
     EXPECT_FALSE(moduleRecord->IsAbilitiesBackgrounded());
     GTEST_LOG_(INFO) << "IsAbilitiesBackgrounded_003 end.";
 }
+
+/*
+ * Feature: AMS
+ * Function: IsHaveIsolationProcessTrueAbility
+ * SubFunction: IsHaveIsolationProcessTrueAbility
+ * FunctionPoints: check params
+ * EnvConditions: Mobile that can run ohos test framework
+ * CaseDescription: IsHaveIsolationProcessTrueAbility true
+ */
+
+HWTEST_F(AmsAppRunningRecordTest, IsHaveIsolationProcessTrueAbility_001, TestSize.Level1)
+{
+    auto abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = GetTestAbilityName();
+    abilityInfo->isolationProcess = true;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = GetTestAppName();
+
+    BundleInfo bundleInfo;
+    bundleInfo.appId = "com.ohos.test.helloworld_code123";
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.moduleName = "module789";
+    EXPECT_TRUE(service_ != nullptr);
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = GetMockToken();
+    auto record = service_->CreateAppRunningRecord(
+        loadParam, appInfo, abilityInfo, GetTestProcessName(), bundleInfo, hapModuleInfo, nullptr);
+
+    EXPECT_TRUE(record != nullptr);
+
+    auto abilityInfo2 = std::make_shared<AbilityInfo>();
+    abilityInfo2->name = GetTestAbilityName() + "_1";
+    abilityInfo2->applicationName = GetTestAppName();
+    abilityInfo2->isolationProcess = false;
+    sptr<IRemoteObject> token2 = new (std::nothrow) MockAbilityToken();
+    record->AddModule(appInfo, abilityInfo2, token2, hapModuleInfo, nullptr, 0);
+
+    auto ret = record->IsHaveIsolationProcessTrueAbility();
+    EXPECT_TRUE(ret);
+}
+
+/*
+ * Feature: AMS
+ * Function: IsHaveIsolationProcessTrueAbility
+ * SubFunction: IsHaveIsolationProcessTrueAbility
+ * FunctionPoints: check params
+ * EnvConditions: Mobile that can run ohos test framework
+ * CaseDescription: IsHaveIsolationProcessTrueAbility false
+ */
+
+HWTEST_F(AmsAppRunningRecordTest, IsHaveIsolationProcessTrueAbility_002, TestSize.Level1)
+{
+    auto abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = GetTestAbilityName();
+    abilityInfo->isolationProcess = false;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = GetTestAppName();
+
+    BundleInfo bundleInfo;
+    bundleInfo.appId = "com.ohos.test.helloworld_code123";
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.moduleName = "module789";
+    EXPECT_TRUE(service_ != nullptr);
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = GetMockToken();
+    auto record = service_->CreateAppRunningRecord(
+        loadParam, appInfo, abilityInfo, GetTestProcessName(), bundleInfo, hapModuleInfo, nullptr);
+
+    EXPECT_TRUE(record != nullptr);
+
+    auto abilityInfo2 = std::make_shared<AbilityInfo>();
+    abilityInfo2->name = GetTestAbilityName() + "_1";
+    abilityInfo2->applicationName = GetTestAppName();
+    abilityInfo2->isolationProcess = false;
+    sptr<IRemoteObject> token2 = new (std::nothrow) MockAbilityToken();
+    record->AddModule(appInfo, abilityInfo2, token2, hapModuleInfo, nullptr, 0);
+
+    auto ret = record->IsHaveIsolationProcessTrueAbility();
+    EXPECT_FALSE(ret);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

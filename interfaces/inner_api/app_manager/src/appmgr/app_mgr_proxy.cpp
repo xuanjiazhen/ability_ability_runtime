@@ -2505,5 +2505,20 @@ int32_t AppMgrProxy::QueryRunningSharedBundles(pid_t pid, std::map<std::string, 
     }
     return ERR_OK;
 }
+
+void AppMgrProxy::SetIsOnNewProcessRequest(int32_t recordId, bool flag)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+    PARCEL_UTIL_WRITE_NORET(data, Int32, recordId);
+    PARCEL_UTIL_WRITE_NORET(data, Bool, flag);
+
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::SET_IS_ON_NEW_PROCESS_REQUEST, data, reply, option);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

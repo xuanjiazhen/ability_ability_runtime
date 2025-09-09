@@ -1305,5 +1305,10 @@ bool AppRunningRecord::IsPreForeground() const
 {
     return isPreForeground_.load();
 }
+
+bool AppRunningRecord::IsHaveIsolationProcessTrueAbility()
+{
+    return AAFwk::MyStatus::GetInstance().isHaveIsolationProcessTrueAbility_;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

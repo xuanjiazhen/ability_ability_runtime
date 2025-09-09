@@ -870,6 +870,8 @@ public:
      */
     int32_t ExitMasterProcessRole() override;
 
+    void SetIsOnNewProcessRequest(int32_t recordId, bool flag) override;
+
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

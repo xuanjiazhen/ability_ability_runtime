@@ -5789,6 +5789,9 @@ void AppMgrServiceInner::ScheduleAcceptWantDone(
     auto requestId = appRecord->GetSpecifiedRequestId();
     appRecord->ScheduleAcceptWantDone();
     appRecord->ResetSpecifiedRequest();
+    if (appRecord->GetSpecifiedProcessRequestId() == requestId) {
+        appRecord->SetIsOnNewProcessRequest(false);
+    }
 
     if (startSpecifiedAbilityResponse_) {
         startSpecifiedAbilityResponse_->OnAcceptWantResponse(want, flag, requestId);
@@ -5842,7 +5845,7 @@ void AppMgrServiceInner::ScheduleNewProcessRequestDone(
 
     const std::string callerProcessName = appRecord->GetProcessName();
     if (startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnNewProcessRequestResponse(flag, requestId, callerProcessName);
+        startSpecifiedAbilityResponse_->OnNewProcessRequestResponse(flag, requestId, callerProcessName, recordId);
     }
     appRecord->ResetNewProcessRequest();
 }
@@ -10490,8 +10493,7 @@ int32_t AppMgrServiceInner::PromoteCurrentToCandidateMasterProcess(bool isInsert
         return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
     }
 
-    if (appRecord->GetSpecifiedProcessFlag() == "" &&
-        !appRecord->IsMasterProcess()) {
+    if (!appRecord->IsHaveIsolationProcessTrueAbility()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Current process is not running a component "
                                     "configured with \"isolationProcess\".");
         return AAFwk::ERR_NOT_ISOLATION_PROCESS;
@@ -10559,7 +10561,7 @@ int32_t AppMgrServiceInner::ExitMasterProcessRole()
         return AAFwk::ERR_NOT_MASTER_PROCESS;
     }
 
-    if (appRecord->IsNewProcessRequest()) {
+    if (appRecord->IsOnNewProcessRequest()) {
         TAG_LOGE(AAFwkTag::APPMGR, "There is an unfinished onNewProcessRequest");
         return AAFwk::ERR_NOT_ON_NEW_PROCESS_REQUEST_DONE;
     }
@@ -10663,6 +10665,17 @@ int32_t AppMgrServiceInner::QueryRunningSharedBundles(pid_t pid, std::map<std::s
         sharedBundles.emplace(item.bundleName, item.versionCode);
     }
     return ERR_OK;
+}
+
+void AppMgrServiceInner::SetIsOnNewProcessRequest(int32_t recordId, bool flag)
+{
+    auto appRecord = GetAppRunningRecordByAppRecordId(recordId);
+    if (!appRecord) {
+        TAG_LOGE(AAFwkTag::APPMGR, "No app record for recordId: %{public}d", recordId);
+        return;
+    }
+    appRecord->SetIsOnNewProcessRequest(flag);
+    return;
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

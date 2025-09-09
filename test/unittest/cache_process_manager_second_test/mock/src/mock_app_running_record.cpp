@@ -1312,5 +1312,10 @@ bool AppRunningRecord::IsPreForeground() const
 {
     return isPreForeground_.load();
 }
+
+bool AppRunningRecord::IsHaveIsolationProcessTrueAbility()
+{
+    return false;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

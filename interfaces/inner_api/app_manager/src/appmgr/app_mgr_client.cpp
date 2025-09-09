@@ -1747,5 +1747,20 @@ int32_t AppMgrClient::VerifyKillProcessPermission(const std::string &bundleName)
     }
     return amsService->VerifyKillProcessPermission(bundleName);
 }
+
+void AppMgrClient::SetIsOnNewProcessRequest(int32_t recordId, bool flag)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return;
+    }
+    service->SetIsOnNewProcessRequest(recordId, flag);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
