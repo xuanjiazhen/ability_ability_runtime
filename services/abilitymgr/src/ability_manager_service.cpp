@@ -5837,7 +5837,7 @@ int AbilityManagerService::UnRegisterMissionListener(const std::string &deviceId
 }
 
 int32_t AbilityManagerService::GetUidByCloneBundleInfo(
-    std::string &bundleName, int32_t callerUid, int32_t userId, int32_t appIndex) const
+    std::string &bundleName, int32_t callerUid, int32_t userId, int32_t &appIndex) const
 {
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, -1);
@@ -5870,18 +5870,16 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
         if (isSpecifyUserId) {
             userId = wantSenderInfo.userId;
             appUid = (uid >= 0) ? uid : GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
-        } else {
-            if (uid >= 0) {
-                if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
-                    GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
-                    TAG_LOGE(AAFwkTag::ABILITYMGR, "getOsAccountLocalIdFromUid failed uid=%{public}d", callerUid);
-                    return nullptr;
-                }
-                appUid = uid;
-            } else {
-                userId = callerUserId;
-                appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+        } else if (uid >= 0){
+            if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+                GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "getOsAccountLocalIdFromUid failed uid=%{public}d", callerUid);
+                return nullptr;
             }
+            appUid = uid;
+        } else {
+            userId = callerUserId;
+            appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
         }
     } else if (isSystemApp) {
         userId = isSpecifyUserId ? wantSenderInfo.userId : callerUserId;
