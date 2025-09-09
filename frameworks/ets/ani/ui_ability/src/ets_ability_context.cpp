@@ -380,7 +380,10 @@ void EtsAbilityContext::OnStartAbilityForResult(
         return;
     }
     AAFwk::Want want;
-    AppExecFwk::UnwrapWant(env, wantObj, want);
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
+        return;
+    }
     AAFwk::StartOptions startOptions;
     if (startOptionsObj) {
         AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions);
@@ -484,7 +487,12 @@ void EtsAbilityContext::OnTerminateSelfWithResult(
     }
     AAFwk::Want want;
     int resultCode = 0;
-    AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want);
+    if (!AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse ability result failed");
+        EtsErrorUtil::ThrowInvalidParamError(env,
+            "Parameter error: Failed to parse parameter! Parameter must be a AbilityResult.");
+        return;
+    }
     context->SetTerminating(true);
     ErrCode ret = context->TerminateAbilityWithResult(want, resultCode);
     if (ret == static_cast<ErrCode>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT) || ret == ERR_OK) {

@@ -327,7 +327,10 @@ ErrCode UIExtensionContext::OpenAtomicService(AAFwk::Want& want, const AAFwk::St
     RuntimeTask &&task)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
-    resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    {
+        std::lock_guard<std::mutex> lock(mutexlock_);
+        resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->OpenAtomicService(want, options, token_, requestCode);
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::UI_EXT, "ret = %{public}d", err);

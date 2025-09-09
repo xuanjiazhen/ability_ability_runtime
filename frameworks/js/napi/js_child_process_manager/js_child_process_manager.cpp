@@ -51,7 +51,12 @@ public:
     static void Finalizer(napi_env env, void* data, void* hint)
     {
         TAG_LOGI(AAFwkTag::PROCESSMGR, "Called");
-        std::unique_ptr<JsChildProcessManager>(static_cast<JsChildProcessManager*>(data));
+        auto jsChildProcessManager = static_cast<JsChildProcessManager*>(data);
+        if (!jsChildProcessManager) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "cast to js child manager failed");
+            return;
+        }
+        std::unique_ptr<JsChildProcessManager>(jsChildProcessManager);
     }
 
     static napi_value StartChildProcess(napi_env env, napi_callback_info info)

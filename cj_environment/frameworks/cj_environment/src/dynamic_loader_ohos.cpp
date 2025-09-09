@@ -25,6 +25,7 @@
 namespace {
 constexpr auto ERROR_BUF_SIZE = 255;
 static char g_dlError[ERROR_BUF_SIZE];
+static std::mutex globalErrorMutex;
 static std::unordered_set<std::string> HasInited;
 static char* g_sharedLibsSonames = nullptr;
 
@@ -40,6 +41,7 @@ static void ReadDlError()
     if (!errMsg) {
         return;
     }
+    std::lock_guard<std::mutex> lock(globalErrorMutex);
     auto ends = sprintf_s(g_dlError, sizeof(g_dlError), "%s", errMsg);
     if (ends >= ERROR_BUF_SIZE) {
         g_dlError[ERROR_BUF_SIZE - 1] = '\0';
@@ -144,6 +146,7 @@ void DynamicInitNamespace(Dl_namespace* ns, const char* entries, const char* nam
             default:
                 errMsg = "dlns_create failed, status: " + std::to_string(status);
         }
+        std::lock_guard<std::mutex> lock(globalErrorMutex);
         if (sprintf_s(g_dlError, sizeof(g_dlError), errMsg.c_str()) == -1) {
             LOGE("Fail to generate error msg.");
             return;
