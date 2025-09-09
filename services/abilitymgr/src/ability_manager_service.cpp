@@ -9101,7 +9101,7 @@ void AbilityManagerService::OnStartSpecifiedAbilityTimeoutResponse(int32_t reque
 }
 
 void AbilityManagerService::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId,
-    const std::string &callerProcessName)
+    const std::string &callerProcessName, int32_t recordId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "flag = %{public}s", flag.c_str());
     auto connectManager = GetCurrentConnectManager();
@@ -9115,7 +9115,7 @@ void AbilityManagerService::OnStartSpecifiedProcessResponse(const std::string &f
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetCurrentUIAbilityManager();
         CHECK_POINTER(uiAbilityManager);
-        uiAbilityManager->OnStartSpecifiedProcessResponse(flag, requestId, callerProcessName);
+        uiAbilityManager->OnStartSpecifiedProcessResponse(flag, requestId, callerProcessName, recordId);
         return;
     }
 }
