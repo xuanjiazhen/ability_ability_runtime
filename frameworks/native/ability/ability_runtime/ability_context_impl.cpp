@@ -242,7 +242,10 @@ ErrCode AbilityContextImpl::StartAbilityWithAccount(
 ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, int requestCode, RuntimeTask&& task)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    {
+        std::lock_guard lock(resultCallbacksMutex_);
+        resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode, -1);
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
@@ -255,7 +258,10 @@ ErrCode AbilityContextImpl::StartAbilityForResultWithAccount(
     const AAFwk::Want& want, const int accountId, int requestCode, RuntimeTask&& task)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "accountId:%{private}d", accountId);
-    resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    {
+        std::lock_guard lock(resultCallbacksMutex_);
+        resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode, accountId);
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
@@ -268,7 +274,10 @@ ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, const
     int requestCode, RuntimeTask&& task)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    {
+        std::lock_guard lock(resultCallbacksMutex_);
+        resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, requestCode);
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
@@ -288,7 +297,10 @@ ErrCode AbilityContextImpl::StartAbilityForResultWithAccount(
     int requestCode, RuntimeTask&& task)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    {
+        std::lock_guard lock(resultCallbacksMutex_);
+        resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(
         want, startOptions, token_, requestCode, accountId);
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
@@ -411,6 +423,7 @@ int32_t AbilityContextImpl::GetAbilityRecordId()
 void AbilityContextImpl::OnAbilityResult(int requestCode, int resultCode, const AAFwk::Want& resultData)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    std::lock_guard lock(resultCallbacksMutex_);
     auto callback = resultCallbacks_.find(requestCode);
     if (callback != resultCallbacks_.end()) {
         if (callback->second) {
@@ -423,6 +436,7 @@ void AbilityContextImpl::OnAbilityResult(int requestCode, int resultCode, const 
 void AbilityContextImpl::OnAbilityResultInner(int requestCode, int resultCode, const AAFwk::Want& resultData)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    std::lock_guard lock(resultCallbacksMutex_);
     auto callback = resultCallbacks_.find(requestCode);
     if (callback != resultCallbacks_.end()) {
         if (callback->second) {
@@ -524,11 +538,13 @@ void AbilityContextImpl::RegisterAbilityConfigUpdateCallback(
 
 std::shared_ptr<AppExecFwk::Configuration> AbilityContextImpl::GetAbilityConfiguration() const
 {
+    std::lock_guard lock(abilityConfigurationMutex_);
     return abilityConfiguration_;
 }
 
 void AbilityContextImpl::SetAbilityConfiguration(const AppExecFwk::Configuration &config)
 {
+    std::lock_guard lock(abilityConfigurationMutex_);
     if (!abilityConfiguration_) {
         abilityConfiguration_ = std::make_shared<AppExecFwk::Configuration>(config);
         TAG_LOGI(AAFwkTag::CONTEXT, "abilityConfiguration: %{public}s", abilityConfiguration_->GetName().c_str());
@@ -889,15 +905,19 @@ void AbilityContextImpl::RequestDialogResultJSThreadWorker(uv_work_t* work, int 
 ErrCode AbilityContextImpl::GetMissionId(int32_t &missionId)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    if (missionId_ != -1) {
-        missionId = missionId_;
-        return ERR_OK;
+    {
+        std::lock_guard lock(missionIdMutex_);
+        if (missionId_ != -1) {
+            missionId = missionId_;
+            return ERR_OK;
+        }
     }
 
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->GetMissionIdByToken(token_, missionId);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
     } else {
+        std::lock_guard lock(missionIdMutex_);
         missionId_ = missionId;
         TAG_LOGD(AAFwkTag::CONTEXT, "missionId: %{public}d", missionId_);
     }
@@ -928,12 +948,14 @@ ErrCode AbilityContextImpl::SetMissionContinueState(const AAFwk::ContinueState &
 void AbilityContextImpl::InsertResultCallbackTask(int requestCode, RuntimeTask &&task)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    std::lock_guard lock(resultCallbacksMutex_);
     resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
 }
 
 void AbilityContextImpl::RemoveResultCallbackTask(int requestCode)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "call");
+    std::lock_guard lock(resultCallbacksMutex_);
     resultCallbacks_.erase(requestCode);
 }
 
@@ -1222,7 +1244,10 @@ ErrCode AbilityContextImpl::OpenAtomicService(AAFwk::Want& want, const AAFwk::St
     RuntimeTask &&task)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    {
+        std::lock_guard lock(resultCallbacksMutex_);
+        resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->OpenAtomicService(want, options, token_, requestCode, -1);
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "failed, ret=%{public}d", err);

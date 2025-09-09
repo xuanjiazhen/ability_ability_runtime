@@ -32,8 +32,7 @@ void AbilityConnection::OnAbilityConnectDone(
     TAG_LOGI(AAFwkTag::CONNECTION,
         "OnAbilityConnectDone, bundleName:%{public}s, abilityName:%{public}s, resultCode:%{public}d",
         element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
-    mutex_.lock();
-    if (abilityConnectCallbackList_.empty()) {
+    if (IsCallbackListEmpty()) {
         TAG_LOGW(AAFwkTag::CONNECTION, "empty callbackList");
         mutex_.unlock();
         return;
@@ -44,7 +43,6 @@ void AbilityConnection::OnAbilityConnectDone(
     SetConnectionState(CONNECTION_STATE_CONNECTED);
 
     std::vector<sptr<AbilityConnectCallback>> callbacks = GetCallbackList();
-    mutex_.unlock();
     sptr<AbilityConnection> connection(this);
     if (ConnectionManager::GetInstance().DisconnectNonexistentService(element, connection)) {
         TAG_LOGW(AAFwkTag::CONNECTION, "No need onConnect callback");
@@ -63,16 +61,13 @@ void AbilityConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName& e
     TAG_LOGI(AAFwkTag::CONNECTION,
         "OnAbilityDisconnectDone, bundleName:%{public}s, abilityName:%{public}s, resultCode:%{public}d",
         element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
-    mutex_.lock();
     SetConnectionState(CONNECTION_STATE_DISCONNECTED);
-    if (abilityConnectCallbackList_.empty()) {
+    if (IsCallbackListEmpty()) {
         TAG_LOGE(AAFwkTag::CONNECTION, "empty callbackList");
-        mutex_.unlock();
         return;
     }
 
     std::vector<sptr<AbilityConnectCallback>> callbacks = GetCallbackList();
-    mutex_.unlock();
 
     // if resultCode < 0 that means the service is dead
     if (resultCode == DIED) {
@@ -152,7 +147,14 @@ int AbilityConnection::GetConnectionState() const
 
 std::vector<sptr<AbilityConnectCallback>> AbilityConnection::GetCallbackList()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return abilityConnectCallbackList_;
+}
+
+bool AbilityConnection::IsCallbackListEmpty()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return abilityConnectCallbackList_.empty();
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

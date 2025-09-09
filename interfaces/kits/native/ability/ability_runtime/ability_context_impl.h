@@ -387,12 +387,14 @@ private:
     sptr<IRemoteObject> token_ = nullptr;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
     std::shared_ptr<AbilityRuntime::Context> stageContext_ = nullptr;
+    std::mutex resultCallbacksMutex_;
     std::map<int, RuntimeTask> resultCallbacks_;
     std::unique_ptr<NativeReference> contentStorage_ = nullptr;
     std::shared_ptr<AppExecFwk::Configuration> config_ = nullptr;
     std::shared_ptr<LocalCallContainer> localCallContainer_ = nullptr;
     std::weak_ptr<AppExecFwk::IAbilityCallback> abilityCallback_;
     std::atomic<bool> isTerminating_ = false;
+    std::mutex missionIdMutex_;
     int32_t missionId_ = -1;
     int32_t abilityRecordId_ = 0;
     std::mutex sessionTokenMutex_;
@@ -402,6 +404,7 @@ private:
     std::atomic<bool> restoreEnabled_ = false;
     std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr_ = nullptr;
     AbilityConfigUpdateCallback abilityConfigUpdateCallback_ = nullptr;
+    mutable std::mutex abilityConfigurationMutex_;
     std::shared_ptr<AppExecFwk::Configuration> abilityConfiguration_ = nullptr;
     bool isHook_ = false;
     bool hookOff_ = false;

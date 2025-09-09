@@ -52,7 +52,7 @@ public:
     void SetUserId(int32_t userId);
     int32_t GetUserId() const;
 private:
-    static int64_t callRecordId;
+    static std::atomic<int64_t> callRecordId;
     int recordId_ = 0;
     int32_t userId_ = -1;
     sptr<IRemoteObject> remoteObject_ = nullptr;

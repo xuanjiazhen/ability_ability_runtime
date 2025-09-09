@@ -66,7 +66,10 @@ void GetAppTypeAsyncCompleteCB(napi_env env, napi_status, void *data)
     napi_value result[ARGS_TWO] = {nullptr};
     napi_value callResult = nullptr;
     NAPI_CALL_RETURN_VOID(env, napi_get_undefined(env, &undefined));
-
+    if (!appTypeCB) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null appTypeCB");
+        return;
+    }
     result[PARAM0] = GetCallbackErrorValue(env, appTypeCB->cbBase.errCode);
     if (appTypeCB->cbBase.errCode == NAPI_ERR_NO_ERROR) {
         NAPI_CALL_RETURN_VOID(env,
@@ -97,8 +100,16 @@ void GetAppTypePromiseCompleteCB(napi_env env, napi_status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
     AppTypeCB *appTypeCB = static_cast<AppTypeCB *>(data);
+    if (!appTypeCB) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null appTypeCB");
+        return;
+    }
     napi_value result = nullptr;
     if (appTypeCB->cbBase.errCode == NAPI_ERR_NO_ERROR) {
+        if (!(appTypeCB->cbBase.ability)) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "null appTypeCB->cbBase.ability");
+            return;
+        }
         napi_create_string_utf8(env, appTypeCB->cbBase.ability->GetAppType().c_str(), NAPI_AUTO_LENGTH, &result);
         napi_resolve_deferred(env, appTypeCB->cbBase.deferred, result);
     } else {

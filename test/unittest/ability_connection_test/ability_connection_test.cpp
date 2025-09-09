@@ -279,5 +279,18 @@ HWTEST_F(AbilityConnectionTest, AbilityRuntime_AbilityConnection_GetCallbackList
     EXPECT_EQ(abilityConnection->GetCallbackList(), abilityConnection->abilityConnectCallbackList_);
     GTEST_LOG_(INFO) << "AbilityRuntime_AbilityConnection_GetCallbackList_0100 end";
 }
+
+/**
+ * @tc.number: AbilityRuntime_AbilityConnection_IsCallbackListEmpty_0100
+ * @tc.name: IsCallbackListEmpty
+ * @tc.desc: Test whether IsCallbackListEmpty is called normally.
+ */
+HWTEST_F(AbilityConnectionTest, AbilityRuntime_AbilityConnection_IsCallbackListEmpty_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityConnection_IsCallbackListEmpty_0100 start";
+    sptr<AbilityConnection> abilityConnection = new AbilityConnection();
+    EXPECT_EQ(abilityConnection->IsCallbackListEmpty(), true);
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityConnection_IsCallbackListEmpty_0100 end";
+}
 }  // namespace AAFwk
 }  // namespace OHOS
