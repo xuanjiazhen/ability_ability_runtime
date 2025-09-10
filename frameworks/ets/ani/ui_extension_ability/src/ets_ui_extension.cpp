@@ -25,6 +25,7 @@
 #include "configuration_utils.h"
 #include "connection_manager.h"
 #include "context.h"
+#include "ets_ability_lifecycle_callback.h"
 #include "ets_data_struct_converter.h"
 #include "ets_extension_common.h"
 #include "ets_extension_context.h"
@@ -321,6 +322,16 @@ void EtsUIExtension::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callba
     if (!isAsyncCallback) {
         OnStopCallBack();
         return;
+    }
+}
+
+void EtsUIExtension::OnStopCallBack()
+{
+    UIExtension::OnStopCallBack();
+    auto applicationContext = Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        EtsAbilityLifecycleCallbackArgs ability(etsObj_);
+        applicationContext->DispatchOnAbilityDestroy(ability);
     }
 }
 
