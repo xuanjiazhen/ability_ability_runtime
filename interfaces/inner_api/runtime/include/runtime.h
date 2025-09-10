@@ -88,6 +88,7 @@ public:
         bool isStartWithNative = false;
         bool isDebugFromLocal = false;
         bool isDeveloperMode;
+        std::string arkTSMode = CODE_LANGUAGE_ARKTS_1_0;
     };
 
     static std::unique_ptr<Runtime> Create(Options &options);
