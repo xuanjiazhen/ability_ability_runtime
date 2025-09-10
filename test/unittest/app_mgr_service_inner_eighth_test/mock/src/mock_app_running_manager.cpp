@@ -479,8 +479,7 @@ void AppRunningManager::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std:
 {
 }
 
-std::shared_ptr<AppRunningRecord> AppRunningManager::GetMasterProcess(
-    const std::string &bundleName, int32_t uid, const std::string &instanceKey)
+std::shared_ptr<AppRunningRecord> AppRunningManager::GetSpecifiedProcess(int32_t uid, const std::string &instanceKey)
 {
     return AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_;
 }
