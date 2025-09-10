@@ -16,7 +16,7 @@
 #include "ani_want_module.h"
 
 #include "ani_common_util.h"
-#include "ani_remote_object.h"
+#include "remote_object_taihe_ani.h"
 #include "array_wrapper.h"
 #include "bool_wrapper.h"
 #include "double_wrapper.h"
@@ -241,13 +241,12 @@ bool EtsWantParams::SetArrayString(ani_env *env, const std::string &key, ani_obj
         return false;
     }
 
-    ani_double valLength = 0.0;
-    status = env->Object_GetPropertyByName_Double(value, "length", &valLength);
+    ani_int length = 0;
+    status = env->Object_GetPropertyByName_Int(value, "length", &length);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Double status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Int status: %{public}d", status);
         return false;
     }
-    int32_t length = static_cast<int32_t>(valLength);
     sptr<AAFwk::IArray> ao = sptr<AAFwk::Array>::MakeSptr(length, AAFwk::g_IID_IString);
 
     for (int i = 0; i < length; i++) {
@@ -307,13 +306,12 @@ bool EtsWantParams::SetArrayDouble(ani_env *env, const std::string &key, ani_obj
         return false;
     }
 
-    ani_double valLength = 0.0;
-    status = env->Object_GetPropertyByName_Double(value, "length", &valLength);
+    ani_int length = 0;
+    status = env->Object_GetPropertyByName_Int(value, "length", &length);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Double status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Int status: %{public}d", status);
         return false;
     }
-    int32_t length = static_cast<int32_t>(valLength);
 
     auto array = reinterpret_cast<ani_array_double>(value);
     std::vector<ani_double> nativeArray(length);
@@ -369,13 +367,12 @@ bool EtsWantParams::SetArrayInt(ani_env *env, const std::string &key, ani_object
         return false;
     }
 
-    ani_double valLength = 0.0;
-    status = env->Object_GetPropertyByName_Double(value, "length", &valLength);
+    ani_int length = 0;
+    status = env->Object_GetPropertyByName_Int(value, "length", &length);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Double status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Int status: %{public}d", status);
         return false;
     }
-    int32_t length = static_cast<int32_t>(valLength);
 
     auto array = reinterpret_cast<ani_array_int>(value);
     std::vector<ani_int> nativeArray(length);
@@ -431,13 +428,12 @@ bool EtsWantParams::SetArrayLong(ani_env *env, const std::string &key, ani_objec
         return false;
     }
 
-    ani_double valLength = 0.0;
-    status = env->Object_GetPropertyByName_Double(value, "length", &valLength);
+    ani_int length = 0;
+    status = env->Object_GetPropertyByName_Int(value, "length", &length);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Double status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Int status: %{public}d", status);
         return false;
     }
-    int32_t length = static_cast<int32_t>(valLength);
 
     auto array = reinterpret_cast<ani_array_long>(value);
     std::vector<ani_long> nativeArray(length);
@@ -493,13 +489,12 @@ bool EtsWantParams::SetArrayBoolean(ani_env *env, const std::string &key, ani_ob
         return false;
     }
 
-    ani_double valLength = 0.0;
-    status = env->Object_GetPropertyByName_Double(value, "length", &valLength);
+    ani_int length = 0;
+    status = env->Object_GetPropertyByName_Int(value, "length", &length);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Double status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Int status: %{public}d", status);
         return false;
     }
-    int32_t length = static_cast<int32_t>(valLength);
 
     auto array = reinterpret_cast<ani_array_boolean>(value);
     std::vector<ani_boolean> nativeArray(length);
@@ -555,13 +550,12 @@ bool EtsWantParams::SetArrayWantParams(ani_env *env, const std::string &key, ani
         return false;
     }
 
-    ani_double valLength = 0.0;
-    status = env->Object_GetPropertyByName_Double(value, "length", &valLength);
+    ani_int length = 0;
+    status = env->Object_GetPropertyByName_Int(value, "length", &length);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Double status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::WANT, "Object_GetPropertyByName_Int status: %{public}d", status);
         return false;
     }
-    int32_t length = static_cast<int32_t>(valLength);
 
     auto array = reinterpret_cast<ani_array_long>(value);
     std::vector<ani_long> nativeArray(length);
