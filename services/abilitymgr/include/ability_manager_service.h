@@ -1092,7 +1092,8 @@ public:
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
         bool isUIAbilityOnly = false,
-        bool isAppCloneSelector = false);
+        bool isAppCloneSelector = false,
+        bool isBySCB = false);
 
     int32_t StartExtensionAbilityInner(
         const Want &want,
