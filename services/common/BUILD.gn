@@ -304,6 +304,7 @@ ohos_shared_library("user_controller") {
     "include/user_controller",
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_utils_path}/server/constant",
   ]
 
   defines = []

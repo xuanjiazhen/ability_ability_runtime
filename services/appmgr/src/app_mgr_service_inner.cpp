@@ -106,6 +106,7 @@
 #include "window_pid_visibility_changed_listener.h"
 #include "cache_process_manager.h"
 #include "res_sched_util.h"
+#include "server_constant.h"
 #include "session_manager_lite.h"
 #include "user_controller/user_controller.h"
 #ifdef APP_NO_RESPONSE_DIALOG
@@ -583,7 +584,7 @@ int32_t AppMgrServiceInner::PreloadApplication(const std::string &bundleName, in
     if (userId == DEFAULT_INVAL_VALUE) {
         userId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
         if (userId == U0_USER_ID || userId == U1_USER_ID) {
-            userId = UserController::GetInstance().GetForegroundUserId(AAFwk::DisplayUtil::ObtainDefaultDisplayId());
+            userId = UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
         }
     }
     if (UserRecordManager::GetInstance().IsLogoutUser(userId)) {
@@ -2324,7 +2325,7 @@ int32_t AppMgrServiceInner::ClearUpApplicationData(const std::string &bundleName
     if (userId == DEFAULT_INVAL_VALUE) {
         newUserId = GetUserIdByUid(callerUid);
         if (newUserId == U0_USER_ID || newUserId == U1_USER_ID) {
-            newUserId = UserController::GetInstance().GetForegroundUserId(AAFwk::DisplayUtil::ObtainDefaultDisplayId());
+            newUserId = UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
         }
     }
     TAG_LOGI(AAFwkTag::APPMGR, "bundleName: %{public}s, uId: %{public}d, appIndex: %{public}d", bundleName.c_str(),
@@ -2346,7 +2347,7 @@ int32_t AppMgrServiceInner::ClearUpApplicationDataBySelf(int32_t callerUid, pid_
     if (userId == DEFAULT_INVAL_VALUE) {
         newUserId = GetUserIdByUid(callerUid);
         if (newUserId == U0_USER_ID) {
-            newUserId = UserController::GetInstance().GetForegroundUserId(AAFwk::DisplayUtil::ObtainDefaultDisplayId());
+            newUserId = UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
         }
     }
     auto appCloneIndex = appRecord->GetAppIndex();
@@ -6027,7 +6028,7 @@ void AppMgrServiceInner::HandleConfigurationChange(const Configuration& config, 
     for (const auto &item : appStateCallbacks_) {
         if (item.callback != nullptr && (userId == -1 || item.userId == 0 || item.userId == userId)) {
             item.callback->NotifyConfigurationChange(config,
-                UserController::GetInstance().GetForegroundUserId(AAFwk::DisplayUtil::ObtainDefaultDisplayId()));
+                UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
         }
     }
 }
