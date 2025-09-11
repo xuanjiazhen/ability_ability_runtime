@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #define private public
 #include "ability.h"
 #include "ability_local_record.h"
@@ -36,6 +37,7 @@
 #include "resource_manager.h"
 #include "runtime.h"
 #include "ui_ability.h"
+#include "ability_stage_context.h"
 #undef private
 #include <unordered_map>
 
@@ -53,6 +55,18 @@ public:
     void TearDown() override;
     std::shared_ptr<OHOSApplication> ohosApplication_;
     std::unordered_map<std::string, std::shared_ptr<AbilityRuntime::AbilityStage>> abilityStages_;
+    std::shared_ptr<MockAbilityStageContext> mockStageContext_;
+    std::shared_ptr<MockResourceManager> mockResourceManager_;
+};
+
+class MockResourceManager : public Global::Resource::ResourceManager {
+public:
+    MOCK_METHOD(bool, AddResource, (const char* path), (override));
+};
+
+class MockAbilityStageContext : public AbilityStageContext {
+public:
+    MOCK_METHOD(std::shared_ptr<Global::Resource::ResourceManager>, GetResourceManager, (), (override));
 };
 
 void OHOSApplicationFirstTest::SetUpTestCase(void)
@@ -64,11 +78,15 @@ void OHOSApplicationFirstTest::TearDownTestCase(void)
 void OHOSApplicationFirstTest::SetUp()
 {
     ohosApplication_ = std::make_shared<OHOSApplication>();
+    mockStageContext_ = std::make_shared<MockAbilityStageContext>();
+    mockResourceManager_ = std::make_shared<MockResourceManager>();
 }
 
 void OHOSApplicationFirstTest::TearDown()
 {
     ohosApplication_ = nullptr;
+    mockStageContext_ = nullptr;
+    mockResourceManager_ = nullptr;
 }
 
 /*
@@ -547,6 +565,23 @@ HWTEST_F(OHOSApplicationFirstTest, OnConfigurationUpdated_0600, TestSize.Level1)
     ohosApplication_->OnConfigurationUpdated(config);
     EXPECT_TRUE(config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE) == "zh");
     TAG_LOGI(AAFwkTag::TEST, "OnConfigurationUpdated_0600 end");
+}
+
+/*
+ * @tc.number: AppExecFwk_OHOSApplicationFirstTest_LoadDeduplicatedHarResource_0100
+ * @tc.name: LoadDeduplicatedHarResource
+ * @tc.desc: Test when deduplicateHar is false, shouldn't call LoadDeduplicatedHarResource.
+ */
+HWTEST_F(OHOSApplicationFirstTest, LoadDeduplicatedHarResource_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LoadDeduplicatedHarResource_0100 start");
+    ohosApplication_->hasDeduplicateHar_ = false;
+    EXPECT_CALL(*mockStageContext_, GetResourceManager())
+        .WillOnce(Return(mockResourceManager_));
+    EXPECT_CALL(*mockResourceManager_, AddResource(_))
+        .Times(0);
+    ohosApplication_->LoadDeduplicatedHarResource(mockStageContext_);
+    TAG_LOGI(AAFwkTag::TEST, "LoadDeduplicatedHarResource_0100 end");
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
