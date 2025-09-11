@@ -52,7 +52,7 @@ ErrCode EcologicalRuleInterceptor::DoProcess(AbilityInterceptorParam param)
     }
     InitErmsCallerInfo(newWant, param.abilityInfo, callerInfo, param.userId, param.callerToken);
 
-    int ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance()->QueryStartExperience(newWant,
+    int ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance().QueryStartExperience(newWant,
         callerInfo, rule));
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "check ecological rule failed");
@@ -116,7 +116,7 @@ bool EcologicalRuleInterceptor::DoProcess(Want &want, int32_t userId)
         callerInfo, userId);
 
     ExperienceRule rule;
-    auto ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance()->QueryStartExperience(want,
+    auto ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance().QueryStartExperience(want,
         callerInfo, rule));
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "check ecological rule failed");
@@ -151,7 +151,7 @@ ErrCode EcologicalRuleInterceptor::QueryAtomicServiceStartupRule(Want &want, spt
         StartAbilityUtils::startAbilityInfo->abilityInfo), callerInfo, userId);
 
     ExperienceRule _rule;
-    auto ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance()->QueryStartExperience(want,
+    auto ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance().QueryStartExperience(want,
         callerInfo, _rule));
     CHECK_RET_RETURN_RET(ret, "check ecological rule failed");
 

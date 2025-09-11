@@ -26,8 +26,7 @@ using Want = OHOS::AAFwk::Want;
 
 class AbilityEcologicalRuleMgrServiceClient : public RefBase {
 public:
-    DISALLOW_COPY_AND_MOVE(AbilityEcologicalRuleMgrServiceClient);
-    static sptr<AbilityEcologicalRuleMgrServiceClient> GetInstance();
+    static AbilityEcologicalRuleMgrServiceClient &GetInstance();
     int32_t QueryStartExperience(const Want &want, const AbilityCallerInfo &callerInfo, AbilityExperienceRule &rule);
 
 public:
@@ -35,6 +34,7 @@ public:
     static AbilityExperienceRule queryStartExperienceRule;
 
 private:
+    DISALLOW_COPY_AND_MOVE(AbilityEcologicalRuleMgrServiceClient);
     AbilityEcologicalRuleMgrServiceClient() {};
     ~AbilityEcologicalRuleMgrServiceClient();
 };
