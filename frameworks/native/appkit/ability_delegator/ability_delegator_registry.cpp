@@ -24,10 +24,13 @@ std::shared_ptr<AbilityDelegatorArgs> AbilityDelegatorRegistry::abilityDelegator
 std::shared_ptr<AbilityDelegator> AbilityDelegatorRegistry::GetAbilityDelegator(
     const AbilityRuntime::Runtime::Language &language)
 {
+    std::lock_guard lock(delegatorMapMutex_);
     auto it = abilityDelegator_.find(language);
     if (it != abilityDelegator_.end()) {
-        auto p = reinterpret_cast<AbilityDelegator *>(it->second.get());
-        return std::shared_ptr<AbilityDelegator>(it->second, p);
+        auto p = dynamic_cast<AbilityDelegator *>(it->second.get());
+        if (!p) {
+            return std::shared_ptr<AbilityDelegator>(it->second, p);
+        }
     }
     return nullptr;
 }
@@ -35,10 +38,13 @@ std::shared_ptr<AbilityDelegator> AbilityDelegatorRegistry::GetAbilityDelegator(
 #ifdef CJ_FRONTEND
 std::shared_ptr<CJAbilityDelegatorImpl> AbilityDelegatorRegistry::GetCJAbilityDelegator()
 {
+    std::lock_guard lock(delegatorMapMutex_);
     auto it = abilityDelegator_.find(AbilityRuntime::Runtime::Language::CJ);
     if (it != abilityDelegator_.end()) {
-        auto p = reinterpret_cast<CJAbilityDelegatorImpl *>(it->second.get());
-        return std::shared_ptr<CJAbilityDelegatorImpl>(it->second, p);
+        auto p = dynamic_cast<CJAbilityDelegatorImpl *>(it->second.get());
+        if (!p) {
+            return std::shared_ptr<CJAbilityDelegatorImpl>(it->second, p);
+        }
     }
     return nullptr;
 }
@@ -46,13 +52,18 @@ std::shared_ptr<CJAbilityDelegatorImpl> AbilityDelegatorRegistry::GetCJAbilityDe
 
 std::shared_ptr<AbilityDelegatorArgs> AbilityDelegatorRegistry::GetArguments()
 {
+    std::lock_guard lock(delegatorArgsMutex_);
     return abilityDelegatorArgs_;
 }
 
 void AbilityDelegatorRegistry::RegisterInstance(const std::shared_ptr<IAbilityDelegator> &delegator,
     const std::shared_ptr<AbilityDelegatorArgs> &args, const AbilityRuntime::Runtime::Language &language)
 {
-    abilityDelegatorArgs_ = args;
+    {
+        std::lock_guard lock(delegatorArgsMutex_);
+        abilityDelegatorArgs_ = args;
+    }
+    std::lock_guard lock(delegatorMapMutex_);
     abilityDelegator_.insert_or_assign(language, delegator);
 }
 } // namespace AppExecFwk
