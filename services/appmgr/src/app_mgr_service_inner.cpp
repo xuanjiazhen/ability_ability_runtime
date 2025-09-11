@@ -807,6 +807,7 @@ int32_t AppMgrServiceInner::MakeKiaProcess(std::shared_ptr<AAFwk::Want> want, bo
 #ifdef INCLUDE_ZURI
     isFileUri = !want->GetUriString().empty() && want->GetUri().GetScheme() == "file";
 #endif
+    std::lock_guard<std::mutex> lock(kiaInterceptorMutex_);
     if (isFileUri && kiaInterceptor_ != nullptr) {
         auto resultCode = kiaInterceptor_->OnIntercept(*want);
         watermarkBusinessName = want->GetStringParam(KEY_WATERMARK_BUSINESS_NAME);
@@ -9341,8 +9342,7 @@ int32_t AppMgrServiceInner::NotifyMemorySizeStateChanged(int32_t memorySizeState
     TAG_LOGI(AAFwkTag::APPMGR, "memorySizeState: %{public}d", memorySizeState);
     bool isMemmgrCall = AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
         MEMMGR_PROC_NAME);
-    bool isSupportCall = OHOS::system::GetBoolParameter(SUPPORT_CALL_NOTIFY_MEMORY_CHANGED, false);
-    if (!isMemmgrCall && !isSupportCall) {
+    if (!isMemmgrCall) {
         TAG_LOGE(AAFwkTag::APPMGR, "callerToken not %{public}s", MEMMGR_PROC_NAME);
         return ERR_PERMISSION_DENIED;
     }
@@ -10177,6 +10177,7 @@ int AppMgrServiceInner::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &inte
         TAG_LOGE(AAFwkTag::APPMGR, "interceptor is nullptr.");
         return ERR_INVALID_VALUE;
     }
+    std::lock_guard<std::mutex> lock(kiaInterceptorMutex_);
     kiaInterceptor_ = interceptor;
     return ERR_OK;
 }
