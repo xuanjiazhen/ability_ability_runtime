@@ -119,7 +119,9 @@ int32_t PendingWantRecord::ExecuteOperation(
             break;
         case static_cast<int32_t>(OperationType::START_ABILITIES): {
             std::vector<WantsInfo> allWantsInfos = key_->GetAllWantsInfos();
-            allWantsInfos.back().want = want;
+            if (!allWantsInfos.empty()) {
+                allWantsInfos.back().want = want;
+            }
             res = pendingWantManager->PendingWantStartAbilitys(
                 allWantsInfos, senderInfo.startOptions, senderInfo.callerToken, -1, callerUid_, callerTokenId_);
             break;
