@@ -1666,6 +1666,7 @@ void JsRuntime::SetDeviceDisconnectCallback(const std::function<bool()> &cb)
 void JsRuntime::SetStopPreloadSoCallback(const std::function<void()> &callback)
 {
     auto vm = GetEcmaVm();
+    CHECK_POINTER(vm);
     panda::JSNApi::SetStopPreLoadSoCallback(vm, callback);
 }
 
