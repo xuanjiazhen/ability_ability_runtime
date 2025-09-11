@@ -631,7 +631,7 @@ void AppMgrServiceInner::PreloadModuleFinished(const int32_t pid)
     auto reportLoadTask = [appRecord]() {
         auto priorityObj = appRecord->GetPriorityObject();
         if (priorityObj) {
-            AAFwk::ResSchedUtil::GetInstance().ReportLoadingEventToRss(AAFwk::LoadingStage::PRELOAD_END, 
+            AAFwk::ResSchedUtil::GetInstance().ReportLoadingEventToRss(AAFwk::LoadingStage::PRELOAD_END,
                 priorityObj->GetPid(), appRecord->GetUid(), 0, 0);
         }
     };
@@ -2114,13 +2114,13 @@ bool AppMgrServiceInner::IsUninstallingOrUpgrading(int32_t uid)
     std::lock_guard lock(uninstallOrUpgradeUidSetLock_);
     if (uninstallOrUpgradeUidSet_.find(uid) != uninstallOrUpgradeUidSet_.end()) {
         return true;
-    } 
+    }
     return false;
 }
 
 int32_t AppMgrServiceInner::NotifyUninstallOrUpgradeApp(const std::string &bundleName, int32_t uid, bool isUpgrade)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, 
+    TAG_LOGD(AAFwkTag::APPMGR,
         "bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
     std::unique_lock lock(startProcessLock_);
     std::string killReason = isUpgrade ? "UpgradeApp" : "UninstallApp";
@@ -4845,7 +4845,7 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
         }
     }
     ClearData(appRecord);
-    
+
     if (appRecord->IsStartSpecifiedAbility() && startSpecifiedAbilityResponse_) {
         startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(appRecord->GetSpecifiedRequestId());
     }
@@ -7947,8 +7947,8 @@ int32_t AppMgrServiceInner::UnregisterAppDebugListener(const sptr<IAppDebugListe
 int32_t AppMgrServiceInner::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false) && !isDebugFromLocal) {
+        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false or not debug from local");
         return ERR_INVALID_OPERATION;
     }
 
@@ -8817,6 +8817,44 @@ int32_t AppMgrServiceInner::GetChildProcessInfo(const std::shared_ptr<ChildProce
     info.hostUid = appRecord->GetUid();
     info.bundleName = appRecord->GetBundleName();
     info.processName = childProcessRecord->GetProcessName();
+
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
+        return ERR_NO_INIT;
+    }
+    auto bundleFlag = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA);
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appRecord->GetBundleName(),
+        bundleFlag, appRecord->GetAppIndex(), info.bundleInfo, userId))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetCloneBundleInfo fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (childProcessRecord->GetChildProcessType() != CHILD_PROCESS_TYPE_NATIVE &&
+        childProcessRecord->GetChildProcessType() != CHILD_PROCESS_TYPE_NATIVE_ARGS) {
+        if (IN_PROCESS_CALL(bundleMgrHelper->GetBaseSharedBundleInfos(appRecord->GetBundleName(), info.hspList,
+            AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO))) {
+                TAG_LOGE(AAFwkTag::APPMGR, "GetBaseSharedBundleInfos fail");
+            return ERR_INVALID_VALUE;
+        }
+    }
+
+    if (!isCallFromGetChildrenProcesses) {
+        info.childProcessType = childProcessRecord->GetChildProcessType();
+        info.srcEntry = childProcessRecord->GetSrcEntry();
+        info.entryFunc = childProcessRecord->GetEntryFunc();
+        info.entryParams = childProcessRecord->GetEntryParams();
+        info.jitEnabled = appRecord->IsJITEnabled();
+        info.isStartWithDebug = childProcessRecord->isStartWithDebug();
+        auto applicationInfo = appRecord->GetApplicationInfo();
+        if (applicationInfo) {
+            TAG_LOGD(AAFwkTag::APPMGR, "applicationInfo is exist, debug:%{public}d", applicationInfo->debug);
+            info.isDebugApp = applicationInfo->debug;
+        }
+        info.isStartWithNative = appRecord->isNativeStart();
+    }
     return ERR_OK;
 }
 
@@ -10471,7 +10509,7 @@ int32_t AppMgrServiceInner::PromoteCurrentToCandidateMasterProcess(bool isInsert
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    
+
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
         return AAFwk::ERR_NOT_ISOLATION_PROCESS;
@@ -10486,21 +10524,21 @@ int32_t AppMgrServiceInner::PromoteCurrentToCandidateMasterProcess(bool isInsert
 
     if (!AAFwk::AppUtils::GetInstance().IsStartSpecifiedProcess()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Capability not support");
-        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT; 
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
     }
-    
+
     if (appRecord->GetSpecifiedProcessFlag() == "" &&
         !appRecord->IsMasterProcess()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Current process is not running a component "
                                     "configured with \"isolationProcess\".");
-        return AAFwk::ERR_NOT_ISOLATION_PROCESS; 
+        return AAFwk::ERR_NOT_ISOLATION_PROCESS;
     }
 
     auto now = std::chrono::steady_clock::now().time_since_epoch();
     int64_t timeStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
     if(!isInsertToHead){
         timeStamp = -timeStamp;
-    } 
+    }
     appRecord->SetTimeStamp(timeStamp);
     return ERR_OK;
 }
@@ -10518,17 +10556,17 @@ int32_t AppMgrServiceInner::DemoteCurrentFromCandidateMasterProcess()
 
     if (!AAFwk::AppUtils::GetInstance().IsStartSpecifiedProcess()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Capability not support");
-        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT; 
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
     }
 
     if (appRecord->IsMasterProcess()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Current process is already a master process");
         return AAFwk::ERR_ALREADY_MASTER_PROCESS;
     }
-    
+
     if (appRecord->GetTimeStamp() == 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "Current process is not a candidate master process");
-        return AAFwk::ERR_NOT_CANDIDATE_MASTER_PROCESS;    
+        return AAFwk::ERR_NOT_CANDIDATE_MASTER_PROCESS;
     }
 
     appRecord->SetTimeStamp(0);
@@ -10543,7 +10581,7 @@ int32_t AppMgrServiceInner::ExitMasterProcessRole()
     std::lock_guard guard(exitMasterProcessRoleLock_);
     if (!AAFwk::AppUtils::GetInstance().IsStartSpecifiedProcess()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Capability not support");
-        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT; 
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
     }
 
     int32_t pid = IPCSkeleton::GetCallingPid();
@@ -10557,10 +10595,10 @@ int32_t AppMgrServiceInner::ExitMasterProcessRole()
         TAG_LOGE(AAFwkTag::APPMGR, "Not a master process");
         return AAFwk::ERR_NOT_MASTER_PROCESS;
     }
-    
+
     if (appRecord->IsNewProcessRequest()) {
         TAG_LOGE(AAFwkTag::APPMGR, "There is an unfinished onNewProcessRequest");
-        return AAFwk::ERR_NOT_ON_NEW_PROCESS_REQUEST_DONE;    
+        return AAFwk::ERR_NOT_ON_NEW_PROCESS_REQUEST_DONE;
     }
 
     appRecord->SetMasterProcess(false);
@@ -10581,11 +10619,11 @@ void AppMgrServiceInner::OnProcessDied(std::shared_ptr<AppRunningRecord> appReco
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessDied(appRecord);
 }
 
-bool AppMgrServiceInner::IsBlockedByDisposeRules(const std::string &bundleName, int32_t userId, 
+bool AppMgrServiceInner::IsBlockedByDisposeRules(const std::string &bundleName, int32_t userId,
     int32_t appIndex)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, 
+    TAG_LOGI(AAFwkTag::APPMGR,
         "bundleName: %{public}s, userId: %{public}d", bundleName.c_str(), userId);
     // get bms
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
@@ -10631,7 +10669,7 @@ int32_t AppMgrServiceInner:: PreCheckStartProcess(const std::string &bundleName,
     std::shared_ptr<AAFwk::Want> &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, 
+    TAG_LOGD(AAFwkTag::APPMGR,
         "bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
     if (!IsUninstallingOrUpgrading(uid)) {
         return ERR_OK;
