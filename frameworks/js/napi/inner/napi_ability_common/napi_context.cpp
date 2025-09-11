@@ -405,6 +405,10 @@ void GetOrCreateLocalDirAsyncCompleteCB(napi_env env, napi_status status, void *
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "complete");
     GetOrCreateLocalDirCB *getOrCreateLocalDirCB = static_cast<GetOrCreateLocalDirCB *>(data);
+    if (getOrCreateLocalDirCB == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null getOrCreateLocalDirCB");
+        return;
+    }
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
     napi_value result[ARGS_TWO] = {nullptr};

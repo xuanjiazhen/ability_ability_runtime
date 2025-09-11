@@ -63,10 +63,12 @@ const std::string KEY_REQUEST_ID = "com.ohos.param.requestId";
 const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 } // namespace
 
+static std::mutex g_connectMtx;
 static std::map<UIExtensionConnectionKey, sptr<JSUIExtensionConnection>, key_compare> g_connects;
-static int64_t g_serialNumber = 0;
+static std::atomic<int64_t> g_serialNumber = 0;
 void RemoveConnection(int64_t connectId)
 {
+    std::lock_guard lock(g_connectMtx);
     auto item = std::find_if(g_connects.begin(), g_connects.end(),
     [&connectId](const auto &obj) {
         return connectId == obj.first.id;
@@ -85,6 +87,7 @@ void RemoveConnection(int64_t connectId)
 void FindConnection(AAFwk::Want& want, sptr<JSUIExtensionConnection>& connection, int64_t& connectId)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "Disconnect ability enter, connection:%{public}" PRId64, connectId);
+    std::lock_guard lock(g_connectMtx);
     auto item = std::find_if(g_connects.begin(),
         g_connects.end(),
         [&connectId](const auto &obj) {
@@ -110,7 +113,10 @@ bool CheckConnectionParam(napi_env env, napi_value value, sptr<JSUIExtensionConn
     key.id = g_serialNumber;
     key.want = want;
     connection->SetConnectionId(key.id);
-    g_connects.emplace(key, connection);
+    {
+        std::lock_guard lock(g_connectMtx);
+        g_connects.emplace(key, connection);
+    }
     g_serialNumber = (g_serialNumber + 1) % INT32_MAX;
     TAG_LOGD(AAFwkTag::UI_EXT, "not find connection, create a new connection");
     return true;

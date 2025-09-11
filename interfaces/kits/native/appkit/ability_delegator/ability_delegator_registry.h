@@ -68,6 +68,8 @@ public:
 private:
     static std::map<AbilityRuntime::Runtime::Language, std::shared_ptr<IAbilityDelegator>> abilityDelegator_;
     static std::shared_ptr<AbilityDelegatorArgs> abilityDelegatorArgs_;
+    static std::mutex delegatorMapMutex_;
+    static std::mutex delegatorArgsMutex_;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

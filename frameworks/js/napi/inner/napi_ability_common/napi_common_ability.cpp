@@ -38,30 +38,36 @@ namespace OHOS {
 namespace AppExecFwk {
 napi_ref thread_local g_contextObject = nullptr;
 napi_ref thread_local g_dataAbilityHelper = nullptr;
+static std::mutex globalContextMutex;
+static std::mutex globalAbilityHelperMutex;
 bool thread_local g_dataAbilityHelperStatus = false;
 
 using NAPICreateJsRemoteObject = napi_value (*)(napi_env env, const sptr<IRemoteObject> target);
 
 napi_status SetGlobalClassContext(napi_env env, napi_value constructor)
 {
+    std::lock_guard<std::mutex> lock(globalContextMutex);
     return napi_create_reference(env, constructor, 1, &g_contextObject);
 }
 
 napi_value GetGlobalClassContext(napi_env env)
 {
     napi_value constructor;
+    std::lock_guard<std::mutex> lock(globalContextMutex);
     NAPI_CALL(env, napi_get_reference_value(env, g_contextObject, &constructor));
     return constructor;
 }
 
 napi_status SaveGlobalDataAbilityHelper(napi_env env, napi_value constructor)
 {
+    std::lock_guard<std::mutex> lock(globalAbilityHelperMutex);
     return napi_create_reference(env, constructor, 1, &g_dataAbilityHelper);
 }
 
 napi_value GetGlobalDataAbilityHelper(napi_env env)
 {
     napi_value constructor;
+    std::lock_guard<std::mutex> lock(globalAbilityHelperMutex);
     NAPI_CALL(env, napi_get_reference_value(env, g_dataAbilityHelper, &constructor));
     return constructor;
 }

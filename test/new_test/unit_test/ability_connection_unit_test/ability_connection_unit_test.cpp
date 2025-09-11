@@ -445,5 +445,19 @@ HWTEST_F(AbilityConnectionTest, GetCallbackList_001, TestSize.Level1)
     EXPECT_NE(instance, nullptr);
     EXPECT_EQ(instance->GetCallbackList(), instance->abilityConnectCallbackList_);
 }
+
+/**
+ * @tc.name: IsCallbackListEmpty_001
+ * @tc.desc: Verify IsCallbackListEmpty call.
+ *           Branch NA
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityConnectionTest, IsCallbackListEmpty_001, TestSize.Level1)
+{
+    sptr<AbilityRuntime::AbilityConnection> instance =
+        sptr<AbilityRuntime::AbilityConnection>::MakeSptr();
+    EXPECT_NE(instance, nullptr);
+    EXPECT_EQ(instance->IsCallbackListEmpty(), true);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
