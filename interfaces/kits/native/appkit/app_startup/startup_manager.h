@@ -101,10 +101,15 @@ public:
 
     bool EnableLazyLoadingAppStartupTasks() const;
 
+    const std::string &GetBundleName() const;
+
+    int32_t GetAppIndex() const;
+
 private:
     // read only after initialization
     std::vector<ModuleStartupConfigInfo> moduleStartupConfigInfos_;
     std::string bundleName_;
+    int32_t appIndex_;
 
     std::mutex appStartupConfigInitializationMutex_;
     std::atomic<bool> isAppStartupConfigInited_ = false;

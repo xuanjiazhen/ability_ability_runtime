@@ -866,6 +866,26 @@ void EventReport::SendReportDataPartitionUsageEvent(const EventName &eventName, 
         EVENT_FILE_OR_FOLDER_SIZE, eventInfo.fileOfFolderSize);
 }
 
+void EventReport::SendAppStartupErrorEvent(const EventName &eventName, HiSysEventType type,
+    const EventInfo &eventInfo)
+{
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "invalid eventName");
+        return;
+    }
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
+        EVENT_KEY_ERROR_MESSAGE, eventInfo.errMsg);
+}
+
 std::string EventReport::ConvertEventName(const EventName &eventName)
 {
     const char* eventNames[] = {
