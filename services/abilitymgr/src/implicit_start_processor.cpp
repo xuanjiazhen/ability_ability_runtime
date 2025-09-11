@@ -454,7 +454,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s.", __func__);
     // get abilityinfos from bms
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, GET_ABILITY_SERVICE_FAILED);
     auto abilityInfoFlag = AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_DEFAULT
         | AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_SKILL_URI
@@ -630,7 +630,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAppIndexes(int32_t userId, A
         TAG_LOGE(AAFwkTag::ABILITYMGR, "too large appIndexes");
         return ERR_TOO_LARGE_APPINDEXES;
     }
-    auto bms = GetBundleManagerHelper();
+    auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, GET_ABILITY_SERVICE_FAILED);
     auto abilityInfoFlag = static_cast<uint32_t>(AbilityRuntime::StartupUtil::BuildAbilityInfoFlag()) |
         static_cast<uint32_t>(AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_SKILL);
@@ -673,7 +673,7 @@ int ImplicitStartProcessor::FindExtensionInfo(const Want &want, int32_t flags, i
     int32_t appIndex, AppExecFwk::AbilityInfo &abilityInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto bms = GetBundleManagerHelper();
+    auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, GET_ABILITY_SERVICE_FAILED);
     AppExecFwk::ExtensionAbilityInfo extensionInfo;
     TAG_LOGD(AAFwkTag::ABILITYMGR,
@@ -695,7 +695,7 @@ int ImplicitStartProcessor::FindExtensionInfo(const Want &want, int32_t flags, i
 int ImplicitStartProcessor::QueryBmsAppInfos(AbilityRequest &request, int32_t userId,
     std::vector<DialogAppInfo> &dialogAppInfos)
 {
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     std::vector<AppExecFwk::AbilityInfo> bmsApps;
     auto abilityInfoFlag = AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_DEFAULT
         | AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_SKILL_URI
@@ -833,17 +833,9 @@ int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
     return ret;
 }
 
-std::shared_ptr<AppExecFwk::BundleMgrHelper> ImplicitStartProcessor::GetBundleManagerHelper()
-{
-    if (iBundleManagerHelper_ == nullptr) {
-        iBundleManagerHelper_ = AbilityUtil::GetBundleManagerHelper();
-    }
-    return iBundleManagerHelper_;
-}
-
 sptr<AppExecFwk::IDefaultApp> ImplicitStartProcessor::GetDefaultAppProxy()
 {
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleMgrHelper");
         return nullptr;
@@ -861,7 +853,7 @@ bool ImplicitStartProcessor::FilterAbilityList(const Want &want, std::vector<App
 {
     ErmsCallerInfo callerInfo;
     GetEcologicalCallerInfo(want, callerInfo, userId);
-    int ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance()->
+    int ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance().
         EvaluateResolveInfos(want, callerInfo, 0, abilityInfos, extensionInfos));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "resolve infos failed");
@@ -878,7 +870,7 @@ void ImplicitStartProcessor::GetEcologicalCallerInfo(const Want &want, ErmsCalle
     callerInfo.targetAppType = ErmsCallerInfo::TYPE_INVALID;
     callerInfo.callerAppType = ErmsCallerInfo::TYPE_INVALID;
 
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleMgrHelper empty");
         return;
@@ -1116,7 +1108,7 @@ void ImplicitStartProcessor::TrustlistIntersectionProcess(const AbilityRequest &
             appLaunchTrustlist.size(), TRUSTLIST_MAX_SIZE);
         appLaunchTrustlist.resize(TRUSTLIST_MAX_SIZE);
     }
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleMgrHelper empty");
         return;

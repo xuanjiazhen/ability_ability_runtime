@@ -33,9 +33,7 @@ static inline const std::u16string ERMS_INTERFACE_TOKEN =
 constexpr int32_t CYCLE_LIMIT = 1000;
 const int32_t ECOLOGICALRULEMANAGERSERVICE_ID = 6105;
 
-std::mutex AbilityEcologicalRuleMgrServiceClient::instanceLock_;
 std::mutex AbilityEcologicalRuleMgrServiceClient::proxyLock_;
-sptr<AbilityEcologicalRuleMgrServiceClient> AbilityEcologicalRuleMgrServiceClient::instance_;
 sptr<IAbilityEcologicalRuleMgrService> AbilityEcologicalRuleMgrServiceClient::ecologicalRuleMgrServiceProxy_;
 sptr<IRemoteObject::DeathRecipient> AbilityEcologicalRuleMgrServiceClient::deathRecipient_;
 
@@ -57,15 +55,10 @@ AbilityEcologicalRuleMgrServiceClient::~AbilityEcologicalRuleMgrServiceClient()
     }
 }
 
-sptr<AbilityEcologicalRuleMgrServiceClient> AbilityEcologicalRuleMgrServiceClient::GetInstance()
+AbilityEcologicalRuleMgrServiceClient &AbilityEcologicalRuleMgrServiceClient::GetInstance()
 {
-    if (instance_ == nullptr) {
-        std::lock_guard<std::mutex> autoLock(instanceLock_);
-        if (instance_ == nullptr) {
-            instance_ = new AbilityEcologicalRuleMgrServiceClient;
-        }
-    }
-    return instance_;
+    static AbilityEcologicalRuleMgrServiceClient manager;
+    return manager;
 }
 
 sptr<IAbilityEcologicalRuleMgrService> AbilityEcologicalRuleMgrServiceClient::ConnectService()
@@ -150,9 +143,7 @@ int32_t AbilityEcologicalRuleMgrServiceClient::QueryStartExperience(const OHOS::
 
 void AbilityEcologicalRuleMgrServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
-    if (AbilityEcologicalRuleMgrServiceClient::GetInstance()) {
-        AbilityEcologicalRuleMgrServiceClient::GetInstance()->OnRemoteSaDied(object);
-    }
+    AbilityEcologicalRuleMgrServiceClient::GetInstance().OnRemoteSaDied(object);
 }
 
 AbilityEcologicalRuleMgrServiceProxy::AbilityEcologicalRuleMgrServiceProxy(
