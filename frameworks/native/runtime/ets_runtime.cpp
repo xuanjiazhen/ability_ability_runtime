@@ -149,6 +149,10 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<JsRuntime> &js
     }
     if (jsRuntime_ != nullptr) {
         auto vm = static_cast<JsRuntime *>(jsRuntime_.get())->GetEcmaVm();
+        if (vm == nullptr) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "null js vm");
+            return false;
+        }
         panda::JSNApi::SetHostResolveBufferTrackerForHybridApp(
             vm, HybridJsModuleReader(options.bundleName, options.hapPath, options.isUnique));
     }

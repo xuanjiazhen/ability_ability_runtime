@@ -137,6 +137,10 @@ void Ability::Init(const std::shared_ptr<AbilityInfo> &abilityInfo, const std::s
 #endif
     lifecycle_ = std::make_shared<LifeCycle>();
     abilityLifecycleExecutor_ = std::make_shared<AbilityLifecycleExecutor>();
+    if (abilityLifecycleExecutor_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityLifecycleExecutor_");
+        return;
+    }
     abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::INITIAL);
 
     if (abilityContext_ != nullptr) {
@@ -642,7 +646,9 @@ void Ability::OnEventDispatch()
 
 void Ability::SetWant(const AAFwk::Want &want)
 {
-    setWant_ = std::make_shared<AAFwk::Want>(want);
+    if (setWant_ != nullptr)  {
+        setWant_ = std::make_shared<AAFwk::Want>(want);
+    }
 }
 
 std::shared_ptr<AAFwk::Want> Ability::GetWant()

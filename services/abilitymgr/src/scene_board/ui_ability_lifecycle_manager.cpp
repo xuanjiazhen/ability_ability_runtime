@@ -1384,6 +1384,9 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
             return ERR_OK;
         }
         uiAbilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+        if (uiAbilityRecord == nullptr) {
+            return INNER_ERR;
+        }
         uiAbilityRecord->SetOwnerMissionUserId(userId_);
         SetReceiverInfo(abilityRequest, uiAbilityRecord);
     } else {
