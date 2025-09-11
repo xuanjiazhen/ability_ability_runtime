@@ -285,6 +285,9 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::FindMasterProcessAppRunning
         if (!(appRecord && appRecord->GetUid() == uid)) {
             continue;
         }
+        if (!IsAppRunningRecordValid(appRecord)) {
+            continue;
+        }
         if (appRecord->IsMasterProcess() && IsSameAbilityType(appRecord, abilityInfo)) {
             resMasterRecord = appRecord;
             break;
@@ -302,13 +305,12 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::FindMasterProcessAppRunning
     }
     resMasterRecord = (resMasterRecord == nullptr && maxAppRecord != nullptr) ? maxAppRecord : resMasterRecord;
     resMasterRecord = (resMasterRecord == nullptr) ? minAppRecord : resMasterRecord;
-    if (IsAppRunningRecordValid(resMasterRecord)) {
+    if (resMasterRecord) {
         resMasterRecord->SetMasterProcess(true);
         resMasterRecord->SetTimeStamp(0);
         DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(resMasterRecord);
-        return resMasterRecord;
     }
-    return nullptr;
+    return resMasterRecord;
 }
 
 bool AppRunningManager::CheckMasterProcessAppRunningRecordIsExist(
@@ -1868,19 +1870,6 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByChildR
     });
     if (iter != appRunningRecordMap_.end()) {
         return iter->second;
-    }
-    return nullptr;
-}
-
-std::shared_ptr<AppRunningRecord> AppRunningManager::GetMasterProcess(
-    const std::string &bundleName, int32_t uid, const std::string &instanceKey)
-{
-    std::lock_guard guard(runningRecordMapMutex_);
-    for (const auto &[key, appRecord]: appRunningRecordMap_) {
-        if (appRecord && appRecord->GetBundleName() == bundleName && appRecord->IsMasterProcess() &&
-            appRecord->GetUid() == uid && appRecord->GetInstanceKey() == instanceKey) {
-            return appRecord;
-        }
     }
     return nullptr;
 }

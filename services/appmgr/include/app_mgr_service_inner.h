@@ -1575,8 +1575,7 @@ public:
 
     void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
 
-    bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo,
-        bool isSpecifiedProcess, bool &isDebug);
+    bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &isDebug);
 
     std::shared_ptr<AAFwk::TaskHandlerWrap> GetTaskHandler() const
     {
@@ -1833,8 +1832,10 @@ private:
         const ChildProcessOptions &options);
 
     int32_t GetChildProcessInfo(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
-        const std::shared_ptr<AppRunningRecord> appRecord, ChildProcessInfo &info,
-        bool isCallFromGetChildrenProcesses = false);
+        const std::shared_ptr<AppRunningRecord> appRecord, ChildProcessInfo &info);
+
+    int32_t GetChildProcessInfoEx(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
+        const std::shared_ptr<AppRunningRecord> appRecord, ChildProcessInfo &info);
 
     void OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
 

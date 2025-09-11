@@ -90,7 +90,9 @@
 #include "sa_interceptor_manager.h"
 #include "scene_board_judgement.h"
 #include "server_constant.h"
+#ifdef SUPPORT_RECORDER_DSOFTBUS
 #include "softbus_bus_center.h"
+#endif
 #include "start_ability_handler/start_ability_sandbox_savefile.h"
 #include "start_ability_utils.h"
 #include "start_options_utils.h"
@@ -672,7 +674,7 @@ int32_t AbilityManagerService::StartAbilityByFreeInstall(const Want &want, sptr<
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Start ability come, ability is %{public}s, userId is %{public}d",
         want.GetElement().GetAbilityName().c_str(), userId);
     StartAbilityWrapParam startAbilityWrapParam = {
-        want, callerToken, requestCode, false, userId, false, 0, false, false, false, hideFailureTipDialog };
+        want, callerToken, requestCode, false, userId, false, 0, false, false, false, false, hideFailureTipDialog };
     int32_t ret = StartAbilityWrap(startAbilityWrapParam);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityByFreeInstall error:%{public}d", ret);
@@ -4860,6 +4862,7 @@ bool AbilityManagerService::CheckIfOperateRemote(const Want &want)
 
 bool AbilityManagerService::GetLocalDeviceId(std::string& localDeviceId)
 {
+#ifdef SUPPORT_RECORDER_DSOFTBUS
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto localNode = std::make_unique<NodeBasicInfo>();
     int32_t errCode = GetLocalNodeDeviceInfo(DM_PKG_NAME, localNode.get());
@@ -4873,6 +4876,7 @@ bool AbilityManagerService::GetLocalDeviceId(std::string& localDeviceId)
             AnonymizeDeviceId(localDeviceId).c_str());
         return true;
     }
+#endif
     TAG_LOGE(AAFwkTag::ABILITYMGR, "localDeviceId null");
     return false;
 }
@@ -8367,7 +8371,6 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId)
         return;
     }
     std::vector<AutoStartupInfo> infoList;
-    userId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(DisplayUtil::ObtainDefaultDisplayId());
     int32_t result = abilityAutoStartupService_->QueryAllAutoStartupApplicationsWithoutPermission(infoList, userId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed query data");
@@ -8383,10 +8386,10 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId)
         info.retryCount = START_AUTO_START_APP_RETRY_MAX_TIMES;
         infoQueue.push(info);
     }
-    StartAutoStartupApps(infoQueue);
+    StartAutoStartupApps(infoQueue, userId);
 }
 
-void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> infoQueue)
+void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> infoQueue, int32_t userId)
 {
     if (infoQueue.empty()) {
         return;
@@ -8410,21 +8413,21 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
     int32_t result = ERR_OK;
     if (info.abilityTypeName == AbilityRuntime::EXTENSION_TYPE_APP_SERVICE) {
         result = StartExtensionAbility(
-            want, nullptr, info.userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+            want, nullptr, userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
     } else {
-        result = StartAbility(want, info.userId);
+        result = StartAbility(want, userId);
     }
     if ((result != ERR_OK) && (info.retryCount > 0)) {
         info.retryCount--;
         infoQueue.push(info);
     }
-    auto nextStartAutoStartupAppsTask = [aams = weak_from_this(), infoQueue]() {
+    auto nextStartAutoStartupAppsTask = [aams = weak_from_this(), infoQueue, userId]() {
         auto obj = aams.lock();
         if (obj == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "start auto startup app error, obj null");
             return;
         }
-        obj->StartAutoStartupApps(infoQueue);
+        obj->StartAutoStartupApps(infoQueue, userId);
     };
     taskHandler_->SubmitTask(nextStartAutoStartupAppsTask, "StartAutoStartupApps", START_AUTO_START_APP_DELAY_TIME);
 }
@@ -10690,6 +10693,10 @@ int AbilityManagerService::RegisterWindowManagerServiceHandler(const sptr<IWindo
 {
     if (IPCSkeleton::GetCallingUid() != SAMGR_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "register wms handler permission fail:%{public}d", IPCSkeleton::GetCallingUid());
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "only support null scb device");
         return CHECK_PERMISSION_FAILED;
     }
     wmsHandler_ = handler;
