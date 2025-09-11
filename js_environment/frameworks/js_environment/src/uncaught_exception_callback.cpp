@@ -81,6 +81,16 @@ void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
 
 void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
 {
+    bool isError = false;
+    napi_status status = napi_is_error(env_, obj, &isError);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSENV, "napi_is_error failed");
+        return;
+    }
+    if (!isError) {
+        TAG_LOGE(AAFwkTag::JSENV, "The object is not an Error instance");
+        return;
+    }
     std::string errorMsg = GetNativeStrFromJsTaggedObj(obj, "message");
     std::string errorName = GetNativeStrFromJsTaggedObj(obj, "name");
     std::string errorStack = GetNativeStrFromJsTaggedObj(obj, "stack");
