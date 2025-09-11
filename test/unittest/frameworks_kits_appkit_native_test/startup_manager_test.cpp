@@ -1449,6 +1449,34 @@ HWTEST_F(StartupManagerTest, EnableLazyLoadingAppStartupTasks_001, Function | Me
 }
 
 /**
+ * @tc.name: GetBundleName_001
+ * @tc.desc: test GetBundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartupManagerTest, GetBundleName_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "GetBundleName_001 start";
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    ASSERT_NE(startupManager, nullptr);
+    EXPECT_EQ(startupManager->GetBundleName(), startupManager->bundleName_);
+    GTEST_LOG_(INFO) << "GetBundleName_001 end";
+}
+
+/**
+ * @tc.name: GetAppIndex_001
+ * @tc.desc: test GetAppIndex
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartupManagerTest, GetAppIndex_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "GetAppIndex_001 start";
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    ASSERT_NE(startupManager, nullptr);
+    EXPECT_EQ(startupManager->GetAppIndex(), startupManager->appIndex_);
+    GTEST_LOG_(INFO) << "GetAppIndex_001 end";
+}
+
+/**
  * @tc.name: SetSchedulerPhase_0100
  * @tc.desc: test SetSchedulerPhase
  * @tc.type: FUNC
