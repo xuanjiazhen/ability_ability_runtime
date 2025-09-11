@@ -245,7 +245,7 @@ public:
 #endif
 
     void PreloadAppStartup(const BundleInfo &bundleInfo, const std::string &preloadModuleName,
-        std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData);
+        std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData, int32_t appIndex);
 
     void SetEntryLoadPath(const std::string &path);
     const std::string &GetEntryLoadPath() const

@@ -16,6 +16,7 @@
 #include "js_ability_stage.h"
 
 #include "ability_delegator_registry.h"
+#include "event_report.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "js_ability_stage_context.h"
@@ -716,7 +717,22 @@ int32_t JsAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &cal
         return result;
     }
     auto runAutoStartupCallback = std::make_shared<OnCompletedCallback>(
-        [callback](const std::shared_ptr<StartupTaskResult> &) {
+        [callback](const std::shared_ptr<StartupTaskResult> &stResult) {
+            if (!stResult) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null startupTaskResult");
+                return;
+            }
+            if (stResult->GetResultCode() != ERR_OK) {
+                AAFwk::EventInfo eventInfo;
+                eventInfo.errorCode = stResult->GetResultCode();
+                eventInfo.errMsg = stResult->GetResultMessage();
+                eventInfo.bundleName = startupManager->GetBundleName();
+                eventInfo.appIndex = startupManager->GetAppIndex();
+                eventInfo.moduleName = moduleName;
+                eventInfo.userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+                AAFwk::EventReport::SendAppStartupErrorEvent(
+                    AAFwk::EventName::APP_STARTUP_ERROR, HiSysEventType::FAULT, eventInfo);
+            }
             TAG_LOGI(AAFwkTag::APPKIT, "OnCompletedCallback");
             callback();
         });

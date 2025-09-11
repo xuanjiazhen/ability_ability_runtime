@@ -4103,7 +4103,7 @@ void MainThread::PreloadAppStartup(const BundleInfo &bundleInfo, const AppLaunch
         return;
     }
     application_->PreloadAppStartup(bundleInfo, appLaunchData.GetPreloadModuleName(),
-        appLaunchData.GetStartupTaskData());
+        appLaunchData.GetStartupTaskData(), appLaunchData.GetAppIndex());
 }
 
 void MainThread::RunNativeStartupTask(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData)

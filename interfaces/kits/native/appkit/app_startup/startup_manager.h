@@ -52,7 +52,7 @@ DECLARE_DELAYED_SINGLETON(StartupManager)
 public:
     int32_t PreloadAppHintStartup(const AppExecFwk::BundleInfo& bundleInfo,
         const AppExecFwk::HapModuleInfo& entryInfo, const std::string &preloadModuleName,
-        std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData);
+        std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData, int32_t appIndex);
 
     int32_t LoadAppStartupTaskConfig(bool &needRunAutoStartupTask);
 
@@ -101,10 +101,15 @@ public:
 
     bool EnableLazyLoadingAppStartupTasks() const;
 
+    bool GetBundleName() const;
+
+    bool GetAppIndex() const;
+
 private:
     // read only after initialization
     std::vector<ModuleStartupConfigInfo> moduleStartupConfigInfos_;
     std::string bundleName_;
+    int32_t appIndex_;
 
     std::mutex appStartupConfigInitializationMutex_;
     std::atomic<bool> isAppStartupConfigInited_ = false;

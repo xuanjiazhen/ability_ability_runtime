@@ -67,10 +67,12 @@ HWTEST_F(StartupManagerTest, PreloadAppHintStartup_0100, Function | MediumTest |
     HapModuleInfo entryInfo;
     std::string preloadModuleName;
     std::string appStartup = "appStartup";
+    int32_t appIndex = 0;
     std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
     EXPECT_TRUE(startupManager != nullptr);
     auto startupTaskData = std::make_shared<AppExecFwk::StartupTaskData>();
-    int32_t ret = startupManager->PreloadAppHintStartup(bundleInfo, entryInfo, preloadModuleName, startupTaskData);
+    int32_t ret = startupManager->PreloadAppHintStartup(
+        bundleInfo, entryInfo, preloadModuleName, startupTaskData, appIndex);
     EXPECT_EQ(ret, ERR_OK);
     entryInfo.appStartup = appStartup;
     std::string moduleName = "test_module_name";
@@ -83,10 +85,12 @@ HWTEST_F(StartupManagerTest, PreloadAppHintStartup_0100, Function | MediumTest |
     bundleInfo.hapModuleInfos.push_back(entryInfo);
     bundleInfo.hapModuleInfos.push_back(entryInfo3);
     entryInfo.name = "test_name";
-    ret = startupManager->PreloadAppHintStartup(bundleInfo, entryInfo, preloadModuleName, startupTaskData);
+    ret = startupManager->PreloadAppHintStartup(
+        bundleInfo, entryInfo, preloadModuleName, startupTaskData, appIndex);
     EXPECT_EQ(ret, ERR_OK);
     preloadModuleName = "test_name";
-    ret = startupManager->PreloadAppHintStartup(bundleInfo, entryInfo, preloadModuleName, startupTaskData);
+    ret = startupManager->PreloadAppHintStartup(
+        bundleInfo, entryInfo, preloadModuleName, startupTaskData, appIndex);
     EXPECT_EQ(ret, ERR_OK);
     GTEST_LOG_(INFO) << "StartupManagerTest PreloadAppHintStartup_0100 end";
 }
@@ -1446,6 +1450,34 @@ HWTEST_F(StartupManagerTest, EnableLazyLoadingAppStartupTasks_001, Function | Me
     ASSERT_NE(startupManager, nullptr);
     EXPECT_EQ(startupManager->EnableLazyLoadingAppStartupTasks(), startupManager->enableLazyLoadingAppStartupTasks_);
     GTEST_LOG_(INFO) << "EnableLazyLoadingAppStartupTasks_001 end";
+}
+
+/**
+ * @tc.name: GetBundleName_001
+ * @tc.desc: test GetBundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartupManagerTest, GetBundleName_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "GetBundleName_001 start";
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    ASSERT_NE(startupManager, nullptr);
+    EXPECT_EQ(startupManager->GetBundleName(), startupManager->bundleName_);
+    GTEST_LOG_(INFO) << "GetBundleName_001 end";
+}
+
+/**
+ * @tc.name: GetAppIndex_001
+ * @tc.desc: test GetAppIndex
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartupManagerTest, GetAppIndex_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "GetAppIndex_001 start";
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    ASSERT_NE(startupManager, nullptr);
+    EXPECT_EQ(startupManager->GetAppIndex(), startupManager->appIndex_);
+    GTEST_LOG_(INFO) << "GetAppIndex_001 end";
 }
 
 /**

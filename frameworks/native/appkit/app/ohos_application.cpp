@@ -1073,7 +1073,7 @@ void OHOSApplication::CleanEmptyAbilityStage()
 }
 
 void OHOSApplication::PreloadAppStartup(const BundleInfo &bundleInfo, const std::string &preloadModuleName,
-    std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData)
+    std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData, int32_t appIndex)
 {
     if (!IsMainProcess(bundleInfo.applicationInfo.name, bundleInfo.applicationInfo.process)) {
         TAG_LOGD(AAFwkTag::STARTUP, "not main process");
@@ -1090,7 +1090,8 @@ void OHOSApplication::PreloadAppStartup(const BundleInfo &bundleInfo, const std:
     if (!bundleInfo.hapModuleInfos.empty()) {
         for (const auto& hapModuleInfo : bundleInfo.hapModuleInfos) {
             if (hapModuleInfo.name == preloadModuleName) {
-                startupManager->PreloadAppHintStartup(bundleInfo, hapModuleInfo, preloadModuleName, startupTaskData);
+                startupManager->PreloadAppHintStartup(
+                    bundleInfo, hapModuleInfo, preloadModuleName, startupTaskData, appIndex);
                 break;
             }
         }

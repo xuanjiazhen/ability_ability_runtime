@@ -89,7 +89,7 @@ StartupManager::~StartupManager() = default;
 
 int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bundleInfo,
     const AppExecFwk::HapModuleInfo& preloadHapModuleInfo, const std::string &preloadModuleName,
-    std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData)
+    std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData, int32_t appIndex)
 {
     moduleStartupConfigInfos_.clear();
     if (preloadHapModuleInfo.appStartup.empty()) {
@@ -97,6 +97,7 @@ int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bund
         return ERR_OK;
     }
     bundleName_ = bundleInfo.name;
+    appIndex_ = appIndex;
     moduleStartupConfigInfos_.emplace_back(preloadHapModuleInfo.name, preloadHapModuleInfo.appStartup,
         preloadHapModuleInfo.hapPath, preloadHapModuleInfo.moduleType,
         preloadHapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE);
@@ -589,6 +590,16 @@ std::shared_ptr<NativeStartupTask> StartupManager::CreateAppPreloadSoTask(
 bool StartupManager::EnableLazyLoadingAppStartupTasks() const
 {
     return enableLazyLoadingAppStartupTasks_;
+}
+
+bool StartupManager::GetBundleName() const
+{
+    return bundleName_;
+}
+
+bool StartupManager::GetAppIndex() const
+{
+    return appIndex_;
 }
 
 void StartupManager::PreloadAppHintStartupTask(std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData)
