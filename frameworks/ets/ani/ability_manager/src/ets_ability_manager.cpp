@@ -15,6 +15,8 @@
 
 #include "ets_ability_manager.h"
 
+#include <regex>
+
 #include "ability_business_error.h"
 #include "ability_context.h"
 #include "ability_manager_client.h"
@@ -47,6 +49,7 @@ constexpr const char* ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK = "Lutils/AbilityUt
 constexpr const char* ETS_ABILITY_MANAGER_SIGNATURE_VOID = ":V";
 constexpr const char *ON_OFF_TYPE_ABILITY_FOREGROUND_STATE = "abilityForegroundState";
 constexpr int32_t ERR_FAILURE = -1;
+const std::string MAX_UINT64_VALUE = "18446744073709551615";
 
 sptr<AAFwk::AcquireShareDataCallbackStub> CreateShareDataCallbackStub(
     ani_env *env, ani_ref callbackRef)
@@ -508,6 +511,22 @@ void EtsAbilityManager::GetExtensionRunningInfos(ani_env *env, ani_int upperLimi
         EtsErrorUtil::CreateErrorByNativeErr(env, errcode), extensionArray);
 }
 
+bool CheckIsNumString(const std::string &numStr)
+{
+    const std::regex regexJsperf(R"(^\d*)");
+    std::match_results<std::string::const_iterator> matchResults;
+    if (numStr.empty() || !std::regex_match(numStr, matchResults, regexJsperf)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "parse failed: %{public}s", numStr.c_str());
+        return false;
+    }
+    if (MAX_UINT64_VALUE.length() < numStr.length() ||
+        (MAX_UINT64_VALUE.length() == numStr.length() && MAX_UINT64_VALUE.compare(numStr) < 0)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "parse failed: %{public}s", numStr.c_str());
+        return false;
+    }
+    return true;
+}
+
 void EtsAbilityManager::NativeNotifyDebugAssertResultCheck(ani_env *env, ani_string aniSessionId,
     ani_object userStatusObj)
 {
@@ -517,7 +536,7 @@ void EtsAbilityManager::NativeNotifyDebugAssertResultCheck(ani_env *env, ani_str
         return;
     }
     std::string sessionId;
-    if (!AppExecFwk::GetStdString(env, aniSessionId, sessionId)) {
+    if (!AppExecFwk::GetStdString(env, aniSessionId, sessionId) || !CheckIsNumString(sessionId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "convert sessionId failed");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param sessionId failed, must be a string.");
         return;
