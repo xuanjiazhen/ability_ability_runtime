@@ -91,6 +91,7 @@ ohos_unittest("cj_ui_ability_test") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "i18n:intl_util",
     "init:libbegetutil",
     "ipc:ipc_core",
     "napi:ace_napi",

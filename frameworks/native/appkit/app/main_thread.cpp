@@ -1911,7 +1911,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         appConfig.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, preferredLanguage);
         std::string locale = appConfig.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE);
         appConfig.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE,
-            AbilityRuntime::ApplicationConfigurationManager::GetUpdatedLocale(locale, preferredLanguage));
+            Global::I18n::LocaleConfig::ComputeUpdatedLocale(locale, preferredLanguage));
     }
     HandleConfigByPlugin(appConfig, bundleInfo);
     std::string systemSizeScale = appConfig.GetItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE);

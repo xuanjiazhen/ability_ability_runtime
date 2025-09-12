@@ -17,6 +17,7 @@
 
 #include "common_func.h"
 #include "configuration_convertor.h"
+#include "data_converter.h"
 #include "hilog_tag_wrapper.h"
 #include "js_app_process_state.h"
 #include "js_runtime.h"
@@ -186,43 +187,7 @@ napi_value CreateJsHapModuleInfo(napi_env env, const AppExecFwk::HapModuleInfo& 
 
 napi_value CreateJsLocale(napi_env env, const std::string &locale)
 {
-    napi_value global = nullptr;
-    napi_status status = napi_get_global(env, &global);
-    if (status != napi_ok || global == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "Load global failed");
-        return nullptr;
-    }
-
-    napi_value intl = nullptr;
-    status = napi_get_named_property(env, global, "Intl", &intl);
-    if (status != napi_ok || intl == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "Load Intl failed");
-        return nullptr;
-    }
-
-    napi_value localeConstructor = nullptr;
-    status = napi_get_named_property(env, intl, "Locale", &localeConstructor);
-    if (status != napi_ok || localeConstructor == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "Load Intl.Locale constructor failed");
-        return nullptr;
-    }
-
-    napi_value localeJS = nullptr;
-    status = napi_create_string_utf8(env, locale.c_str(), NAPI_AUTO_LENGTH, &localeJS);
-    if (status != napi_ok || localeJS == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "Create string failed");
-        return nullptr;
-    }
-
-    size_t argc = 1;
-    napi_value argv[1] = { localeJS };
-    napi_value intlLocale = nullptr;
-    status = napi_new_instance(env, localeConstructor, argc, argv, &intlLocale);
-    if (status != napi_ok || intlLocale == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "Create Intl.Locale instance failed");
-        return nullptr;
-    }
-    return intlLocale;
+    return OHOS::Global::I18n::DataConverter::CreateIntlLocale(env, locale);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -17,6 +17,7 @@
 #include <cstring>
 
 #include "hilog_tag_wrapper.h"
+#include "intl_locale_addon.h"
 #include "napi_common_data.h"
 #include "napi_common_error.h"
 #include "securec.h"
@@ -1255,42 +1256,7 @@ std::vector<std::string> ConvertStringVector(napi_env env, napi_value jsValue)
 
 napi_value WrapLocaleToJS(napi_env env, const std::string &locale)
 {
-    napi_value global = nullptr;
-    napi_status status = napi_get_global(env, &global);
-    if (status != napi_ok || global == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Load global failed");
-        return nullptr;
-    }
-
-    napi_value intl = nullptr;
-    status = napi_get_named_property(env, global, "Intl", &intl);
-    if (status != napi_ok || intl == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Load Intl failed");
-        return nullptr;
-    }
-
-    napi_value localeConstructor = nullptr;
-    status = napi_get_named_property(env, intl, "Locale", &localeConstructor);
-    if (status != napi_ok || localeConstructor == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Load Intl.Locale constructor failed");
-        return nullptr;
-    }
-
-    napi_value localeJS = WrapStringToJS(env, locale);
-    if (localeJS == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Wrap locale failed");
-        return nullptr;
-    }
-
-    size_t argc = 1;
-    napi_value argv[1] = { localeJS };
-    napi_value intlLocale = nullptr;
-    status = napi_new_instance(env, localeConstructor, argc, argv, &intlLocale);
-    if (status != napi_ok || intlLocale == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Create Intl.Locale instance failed");
-        return nullptr;
-    }
-    return intlLocale;
+    return OHOS::Global::I18n::IntlLocaleAddon::WrapLocaleToJS(env, locale);
 }
 
 bool UnwrapLocaleByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, std::string &value)
@@ -1299,26 +1265,7 @@ bool UnwrapLocaleByPropertyName(napi_env env, napi_value jsObject, const char *p
     if (jsValue == nullptr) {
         return false;
     }
-    return UnwrapLocaleFromJS(env, jsValue, value);
-}
-
-bool UnwrapLocaleFromJS(napi_env env, napi_value jsValue, std::string &value)
-{
-    napi_value func = nullptr;
-    napi_status status = napi_get_named_property(env, jsValue, "toString", &func);
-    if (status != napi_ok || func == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Get function toString failed");
-        return false;
-    }
-
-    napi_value locale = nullptr;
-    status = napi_call_function(env, jsValue, func, 0, nullptr, &locale);
-    if (status != napi_ok || locale == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Call function toString failed");
-        return false;
-    }
-
-    return UnwrapStringFromJS2(env, locale, value);
+    return OHOS::Global::I18n::IntlLocaleAddon::UnwrapLocaleFromJS(env, jsValue, value);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
