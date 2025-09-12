@@ -15,10 +15,12 @@
 
 #include <gtest/gtest.h>
 #define private public
+#include <gmock/gmock.h>
 #include "ability.h"
 #include "ability_local_record.h"
 #include "ability_record_mgr.h"
 #include "ability_stage.h"
+#include "ability_stage_context.h"
 #include "application_context.h"
 #include "application_impl.h"
 #include "application_info.h"
@@ -30,6 +32,7 @@
 #include "hilog_tag_wrapper.h"
 #include "mock_i_remote_object.h"
 #include "mock_runtime.h"
+#include "mock_resource_manager.h"
 #include "ohos_application.h"
 #include "pac_map.h"
 #include "process_info.h"
@@ -547,6 +550,25 @@ HWTEST_F(OHOSApplicationFirstTest, OnConfigurationUpdated_0600, TestSize.Level1)
     ohosApplication_->OnConfigurationUpdated(config);
     EXPECT_TRUE(config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE) == "zh");
     TAG_LOGI(AAFwkTag::TEST, "OnConfigurationUpdated_0600 end");
+}
+
+/*
+ * @tc.number: AppExecFwk_OHOSApplicationFirstTest_LoadDeduplicatedHarResource_0100
+ * @tc.name: LoadDeduplicatedHarResource
+ * @tc.desc: Test when deduplicateHar is false, shouldn't call LoadDeduplicatedHarResource.
+ */
+HWTEST_F(OHOSApplicationFirstTest, LoadDeduplicatedHarResource_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LoadDeduplicatedHarResource_0100 start");
+    ohosApplication_->SetDeduplicateHar(false);
+    auto stageContext = std::make_shared<AbilityStageContext>();
+    auto mockResourceManager_ = std::make_shared<MockResourceManager>();
+    EXPECT_NE(MockResourceManager, nullptr);
+    stageContext->SetResourceManager(mockResourceManager_);
+    EXPECT_CALL(*mockResourceManager_, AddResource(_))
+        .Times(0);
+    ohosApplication_->LoadDeduplicatedHarResource(mockStageContext_);
+    TAG_LOGI(AAFwkTag::TEST, "LoadDeduplicatedHarResource_0100 end");
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
