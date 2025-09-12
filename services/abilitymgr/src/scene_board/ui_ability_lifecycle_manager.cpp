@@ -2570,6 +2570,11 @@ int32_t UIAbilityLifecycleManager::MoveAbilityToFront(const SpecifiedRequest &sp
         HandleAbilitiesRequestDone(requestId, requestListId, sessionInfo);
         return ERR_OK;
     }
+    if (specifiedRequest.abilityRequest.isStartInSplitMode) {
+        SendSessionInfoToSCBInSplitMode(specifiedRequest.abilityRequest.primaryWindowId, callerAbility, sessionInfo);
+        abilityRecord->RemoveWindowMode();
+        return ERR_OK;
+    }
     SendSessionInfoToSCB(callerAbility, sessionInfo);
     abilityRecord->RemoveWindowMode();
     return ERR_OK;
