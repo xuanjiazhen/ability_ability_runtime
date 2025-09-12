@@ -2856,6 +2856,7 @@ private:
     void InitFocusListener();
     void RegisterFocusListener();
     std::shared_ptr<ImplicitStartProcessor> implicitStartProcessor_;
+    ffrt::mutex wmsHandlerLock_;
     sptr<IWindowManagerServiceHandler> wmsHandler_;
 #endif
     std::shared_ptr<AbilityInterceptorExecuter> interceptorExecuter_;
