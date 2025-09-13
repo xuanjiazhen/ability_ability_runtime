@@ -23,9 +23,8 @@
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
+#include "os_account_manager_wrapper.h"
 #include "permission_constants.h"
-#include "server_constant.h"
-#include "user_controller/user_controller.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -314,7 +313,7 @@ void AbilityAutoStartupService::ExecuteCallbacks(bool isCallOn, const AutoStartu
         " accessTokenId: %{public}s, setterUserId: %{public}d, userId: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(),
         info.abilityName.c_str(), info.accessTokenId.c_str(), info.setterUserId, info.userId);
-    bool isUserIdMatch = UserController::GetInstance().IsForegroundUser(info.userId);
+    bool isUserIdMatch = AppExecFwk::OsAccountManagerWrapper::IsForegroundUser(info.userId);
     bool isUserIdU0OrU1 = (U0_USER_ID == info.userId) || (U1_USER_ID == info.userId);
     if (!isUserIdMatch && !isUserIdU0OrU1) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Condition not satisfied");
@@ -430,7 +429,7 @@ int32_t AbilityAutoStartupService::GetValidUserId(int32_t userId)
         validUserId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
     if (validUserId == U0_USER_ID || validUserId == U1_USER_ID) {
-        validUserId = UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
+        validUserId = AppExecFwk::OsAccountManagerWrapper::GetDefaultForegroundUserId();
     }
     return validUserId;
 }

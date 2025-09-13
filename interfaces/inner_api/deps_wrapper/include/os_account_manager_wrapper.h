@@ -85,6 +85,20 @@ public:
      * @return int32_t user ID
      */
     static int32_t GetCurrentActiveAccountId();
+
+    /**
+     * @brief Get the userId of logical main screen.
+     *
+     * @return int32_t user ID
+     */
+    static int32_t GetDefaultForegroundUserId();
+
+    /**
+     * @brief Determine if the userID is a foreground user.
+     *
+     * @return bool
+     */
+    static bool IsForegroundUser(int32_t userId);
 };
 } // namespace AppExecFwk
 } // namespace OHOS
