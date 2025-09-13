@@ -43,7 +43,7 @@ public:
         bool isDescendants = false);
     Status HandleUnregisterObserver(Uri &uri, sptr<IDataAbilityObserver> dataObserver);
     Status HandleUnregisterObserver(sptr<IDataAbilityObserver> dataObserver);
-    Status HandleNotifyChange(const ChangeInfo &changeInfo, int32_t userId);
+    Status HandleNotifyChange(const ChangeInfo &changeInfo, int32_t userId, std::vector<ObserverVerifyInfo> &verifyResult);
     void OnCallBackDied(const wptr<IRemoteObject> &remote);
 
 private:
@@ -71,12 +71,10 @@ private:
         ObsNotifyInfo()
         {
             tokenId = 0;
-            permission = "";
-            uriList = std::list<Uri>();
+            uriList = std::list<ObserverVerifyInfo>();
         }
         uint32_t tokenId;
-        std::string permission;
-        std::list<Uri> uriList;
+        std::list<ObserverVerifyInfo> uriList;
     };
 
     using ObsMap = std::map<sptr<IDataAbilityObserver>, ObsNotifyInfo>;
@@ -85,7 +83,7 @@ private:
     class Node {
     public:
         Node(const std::string &name);
-        void GetObs(const std::vector<std::string> &path, uint32_t index, Uri &uri, int32_t userId, ObsMap &obsMap);
+        void GetObs(const std::vector<std::string> &path, uint32_t index, ObserverVerifyInfo &info, int32_t userId, ObsMap &obsMap);
         bool AddObserver(const std::vector<std::string> &path, uint32_t index, const Entry &entry);
         bool RemoveObserver(const std::vector<std::string> &path, uint32_t index,
             sptr<IDataAbilityObserver> dataObserver);
@@ -101,6 +99,8 @@ private:
 
     std::shared_ptr<DeathRecipientRef> AddObsDeathRecipient(const sptr<IRemoteObject> &dataObserver);
     void RemoveObsDeathRecipient(const sptr<IRemoteObject> &dataObserver, bool isForce = false);
+    void NotifyOberserver(const ChangeInfo &changeInfo, sptr<IDataAbilityObserver> obs,
+        ObsNotifyInfo &info);
 
     static constexpr uint32_t OBS_NUM_MAX = 50;
     static constexpr uint32_t OBS_ALL_NUM_MAX = OBS_NUM_MAX * OBS_NUM_MAX;

@@ -26,13 +26,16 @@ struct ObserverInfo {
     ObserverInfo() {}
     ObserverInfo(uint32_t tokenId, uint64_t fullTokenId, uint32_t firstCallerTokenId, int32_t userId, bool isExtension)
         : tokenId(tokenId), fullTokenId(fullTokenId), firstCallerTokenId(firstCallerTokenId), userId(userId),
-          isExtension(isExtension) {}
+          isFromExtension(isExtension) {}
     uint32_t tokenId = 0;
     uint64_t fullTokenId = 0;
     uint32_t firstCallerTokenId = 0;
     int32_t userId = -1;
     int32_t callingUserId = -1;
-    bool isExtension = false;
+    int32_t callingPid = 0;
+    int32_t firstCallerPid = 0;
+    bool isFromExtension = false;
+    bool isSilentUri = false;
     std::string permission;
     std::string errMsg;
 };
@@ -42,7 +45,7 @@ struct ObserverNode {
     int32_t userId_ = -1;
     uint32_t tokenId_ = 0;
     uint32_t firstCallerTokenID_ = 0;
-    bool isExtension_ = false;
+    bool isFromExtension_ = false;
     std::string permission_;
 
     ObserverNode(sptr<IDataAbilityObserver> observer, int32_t userId, uint32_t tokenId):observer_(observer),
@@ -52,6 +55,16 @@ struct ObserverNode {
     {
         return (observer_ == other.observer_) && (userId_ == other.userId_) && (tokenId_ == other.tokenId_);
     }
+};
+
+struct ObserverVerifyInfo {
+    Uri uri = Uri("");
+    std::string readPermission;
+    bool isSilentUri;
+    ObserverVerifyInfo(std::string readPermission, bool isSilentUri) : readPermission(readPermission),
+        isSilentUri(isSilentUri) {}
+    ObserverVerifyInfo(Uri uri, std::string readPermission, bool isSilentUri) : uri(uri),
+        readPermission(readPermission), isSilentUri(isSilentUri) {}
 };
 
 }  // namespace AAFwk

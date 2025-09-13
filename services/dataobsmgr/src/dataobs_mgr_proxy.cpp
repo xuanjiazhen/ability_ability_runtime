@@ -61,6 +61,10 @@ bool DataObsManagerProxy::WriteObsOpt(MessageParcel &data, DataObsOption opt)
         TAG_LOGE(AAFwkTag::DBOBSMGR, "write opt error");
         return false;
     }
+    if (!data.WriteInt32(opt.FirstCallerPid())) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "write opt error");
+        return false;
+    }
     return true;
 }
 

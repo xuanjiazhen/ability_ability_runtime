@@ -34,6 +34,7 @@ struct DataObsOption {
 private:
     bool isSystem = false;
     uint32_t firstCallerTokenID = 0;
+    int32_t firstCallerPid = 0;
 public:
     DataObsOption() {}
     DataObsOption(bool isSystem):isSystem(isSystem) {}
@@ -48,6 +49,14 @@ public:
     void SetFirstCallerTokenID(uint32_t token)
     {
         firstCallerTokenID = token;
+    }
+    uint32_t FirstCallerPid()
+    {
+        return firstCallerPid;
+    }
+    void SetFirstCallerPid(int32_t pid)
+    {
+        firstCallerPid = pid;
     }
 };
 

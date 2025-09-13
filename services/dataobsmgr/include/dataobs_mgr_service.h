@@ -99,6 +99,8 @@ private:
     static bool IsDataMgrService(uint32_t tokenId, int32_t uid);
     int32_t RegisterObserverInner(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, int32_t userId,
         DataObsOption opt, bool isExtension);
+    std::pair<int32_t, std::string> GetUriPermission(Uri &uri, bool isRead, ObserverInfo &info);
+    int32_t VerifyDataShareExtension(Uri &uri, ObserverInfo &info);
     int32_t VerifyDataSharePermission(Uri &uri, bool isRead, ObserverInfo &info);
     int32_t VerifyDataSharePermissionInner(Uri &uri, bool isRead, ObserverInfo &info);
     int32_t NotifyChangeInner(Uri &uri, int32_t userId,
