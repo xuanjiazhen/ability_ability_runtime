@@ -1440,6 +1440,22 @@ ohos_prebuilt_etc("application_state_observer_abc_etc") {
   deps = [ ":application_state_observer_abc" ]
 }
 
+generate_static_abc("ability_runtime_embedded_uiextension_ability_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.EmbeddedUIExtensionAbility.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file ="/system/framework/ability_runtime_embedded_uiextension_ability_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_embedded_uiextension_ability_abc_etc") {
+  source = "$target_out_dir/ability_runtime_embedded_uiextension_ability_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_embedded_uiextension_ability_abc" ]
+}
+
 generate_static_abc("ability_runtime_event_hub_abc") {
   base_url = "./"
   files = [ "./application/EventHub.ets" ]
@@ -1655,5 +1671,6 @@ group("ets_packages") {
     ":appRecovery_abc_etc",
     ":ability_runtime_mission_snapshot_abc_etc",
     ":ability_runtime_mission_listener_abc_etc",
+    ":ability_runtime_embedded_uiextension_ability_abc_etc",
   ]
 }
