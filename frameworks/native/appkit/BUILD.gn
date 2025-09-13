@@ -35,6 +35,8 @@ config("appkit_config") {
   defines += [ "AMS_LOG_DOMAIN = 0xD001305" ]
   if (target_cpu == "arm64") {
     defines += [ "_ARM64_" ]
+  } else if (target_cpu == "loongarch64") {
+    defines += [ "_LOONGARCH64_" ]
   }
   if (target_cpu == "arm64") {
     defines += [ "APP_USE_ARM64" ]
@@ -42,6 +44,8 @@ config("appkit_config") {
     defines += [ "APP_USE_ARM" ]
   } else if (target_cpu == "x86_64") {
     defines += [ "APP_USE_X86_64" ]
+  } else if (target_cpu == "loongarch64") {
+    defines += [ "APP_USE_LOONGARCH64" ]
   }
 
   include_dirs = [
