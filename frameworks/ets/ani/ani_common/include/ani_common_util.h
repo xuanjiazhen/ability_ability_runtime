@@ -48,7 +48,7 @@ bool SetFieldRefByName(ani_env *env, ani_class cls, ani_object object, const cha
 
 bool GetStdString(ani_env *env, ani_string str, std::string &value);
 ani_string GetAniString(ani_env *env, const std::string &str);
-bool GetAniStringArray(ani_env *env, const std::vector<std::string> &values, ani_array_ref *value);
+bool GetAniStringArray(ani_env *env, const std::vector<std::string> &values, ani_array *value);
 
 bool SetOptionalFieldInt(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, int value);
 
@@ -56,6 +56,7 @@ ani_object CreateDouble(ani_env *env, ani_double value);
 ani_object CreateBoolean(ani_env *env, ani_boolean value);
 ani_object CreateLong(ani_env *env, ani_long value);
 ani_object CreateInt(ani_env *env, ani_int value);
+ani_object CreateEtsNull(ani_env *env);
 
 bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result);
 bool GetPropertyRef(ani_env *env, ani_object obj, const char *name, ani_ref &ref, ani_boolean &isUndefined);
@@ -88,6 +89,7 @@ bool GetStaticFieldString(ani_env *env, ani_class classObj, const char *fieldNam
 bool IsValidProperty(ani_env *env, ani_ref param);
 bool CheckCallerIsSystemApp();
 ani_object WrapLocale(ani_env *env, const std::string &locale);
+ani_object CreateIntAniArray(ani_env *env, const std::vector<int32_t> &dataArry);
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H

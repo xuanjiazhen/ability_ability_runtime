@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License"),
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -13,19 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_ANI_REMOTE_H
-#define OHOS_ABILITY_RUNTIME_ANI_REMOTE_H
+import { ElementName } from 'bundleManager.ElementName';
+import image from '@ohos.multimedia.image';
+export interface MissionSnapshot {
+    ability: ElementName;
+    snapshot: image.PixelMap;
+}
 
-#include "ani.h"
-#include "ani_remote_object.h"
-
-namespace OHOS {
-namespace AbilityRuntime {
-
-class AniRemote {
-public:
-    static ani_object CreateAniRemoteObject(ani_env *env, const sptr<IRemoteObject> target);
-};
-} // namespace AbilityRuntime
-} // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_ANI_REMOTE_H
+class MissionSnapshotImpl implements MissionSnapshot {
+  ability!: ElementName;
+  snapshot!: image.PixelMap;
+}

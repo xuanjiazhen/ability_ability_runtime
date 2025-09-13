@@ -20,8 +20,10 @@
 
 #include "ability_info.h"
 #include "ani_common_configuration.h"
+#include "ani_common_util.h"
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
+#include <ani_signature_builder.h>
 #include "ets_runtime.h"
 #include "form_provider_data.h"
 #include "form_runtime/form_extension_provider_client.h"
@@ -35,7 +37,12 @@ namespace {
 constexpr const char* FORM_BINDING_DATA_CLASS_NAME =
     "@ohos.app.form.formBindingData.formBindingData.FormBindingDataInner";
 constexpr const char* RECORD_CLASS_NAME = "escompat.Record";
+constexpr const char *FORM_LOCATION_STATE_ENUM_NAME = "L@ohos/app/form/formInfo/formInfo/FormLocation;";
+constexpr const char *FORM_LOCATION_CHANGED_STATE_NAME =
+    "Lstd/core/String;L@ohos/app/form/formInfo/formInfo/FormLocation;:V";
 }
+
+using namespace arkts::ani_signature;
 
 extern "C" __attribute__((visibility("default"))) FormExtension *OHOS_ABILITY_ETSFormExtension(
     const std::unique_ptr<Runtime> &runtime)
@@ -362,7 +369,7 @@ bool ETSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
     }
 
     ani_method data{};
-    status = env->Class_FindMethod(cls, "<get>data", nullptr, &data);
+    status = env->Class_FindMethod(cls, Builder::BuildGetterName("data").c_str(), nullptr, &data);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod data status: %{public}d", status);
         return false;
@@ -379,7 +386,7 @@ bool ETSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
     formData = AppExecFwk::FormProviderData(dataStr);
 
     ani_method proxies;
-    status = env->Class_FindMethod(cls, "<get>proxies", nullptr, &proxies);
+    status = env->Class_FindMethod(cls, Builder::BuildGetterName("proxies").c_str(), nullptr, &proxies);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod proxies status: %{public}d", status);
         return true;
@@ -737,6 +744,97 @@ FormState ETSFormExtension::OnAcquireFormState(const Want &want)
     }
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnAcquireFormState End");
     return static_cast<AppExecFwk::FormState>(state);
+}
+
+bool ETSFormExtension::OnShare(int64_t formId, AAFwk::WantParams &wantParams)
+{
+    TAG_LOGI(AAFwkTag::FORM_EXT, "OnShare Call");
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "env nullptr");
+        return false;
+    }
+    ani_string formIdStr = AppExecFwk::GetAniString(env, std::to_string(formId));
+    ani_ref nameRef;
+    ani_status status = env->Object_GetFieldByName_Ref(
+        static_cast<ani_object>(etsAbilityObj_->aniRef), "onShareForm", &nameRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetFieldByName status: %{public}d, %{public}p, %{public}p",
+            status, etsAbilityObj_->aniRef, etsAbilityObj_->aniObj);
+        return false;
+    }
+    ani_ref argv[] = { formIdStr };
+    ani_ref result;
+    status = env->FunctionalObject_Call(static_cast<ani_fn_object>(nameRef), 1, argv, &result);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "FunctionalObject_Call status: %{public}d", status);
+        return false;
+    }
+    if (!AppExecFwk::UnwrapWantParams(env, result, wantParams)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "unwrap want failed");
+        return false;
+    }
+    return true;
+}
+
+bool ETSFormExtension::OnAcquireData(int64_t formId, AAFwk::WantParams &wantParams)
+{
+    TAG_LOGI(AAFwkTag::FORM_EXT, "OnShare Call");
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "env nullptr");
+        return false;
+    }
+    ani_string formIdStr = AppExecFwk::GetAniString(env, std::to_string(formId));
+    ani_ref nameRef;
+    ani_status status = env->Object_GetFieldByName_Ref(
+        static_cast<ani_object>(etsAbilityObj_->aniRef), "onAcquireFormData", &nameRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetFieldByName status: %{public}d, %{public}p, %{public}p",
+            status, etsAbilityObj_->aniRef, etsAbilityObj_->aniObj);
+        return false;
+    }
+    ani_ref argv[] = { formIdStr };
+    ani_ref result;
+    status = env->FunctionalObject_Call(static_cast<ani_fn_object>(nameRef), 1, argv, &result);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "FunctionalObject_Call status: %{public}d", status);
+        return false;
+    }
+    if (!AppExecFwk::UnwrapWantParams(env, result, wantParams)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "unwrap want failed");
+        return false;
+    }
+    return true;
+}
+
+void ETSFormExtension::OnFormLocationChanged(const int64_t formId, const int32_t formLocation)
+{
+    TAG_LOGI(AAFwkTag::FORM_EXT, "OnFormLocationChanged Call");
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "env nullptr");
+        return;
+    }
+    ani_string formIdStr = AppExecFwk::GetAniString(env, std::to_string(formId));
+
+    ani_enum_item formLocationStateItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
+        env, FORM_LOCATION_STATE_ENUM_NAME, formLocation, formLocationStateItem);
+    
+    ani_method function;
+    ani_status status = ANI_ERROR;
+    if ((status = env->Class_FindMethod(
+        etsAbilityObj_->aniCls, "onFormLocationChanged", FORM_LOCATION_CHANGED_STATE_NAME, &function))) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status: %{public}d", status);
+        return;
+    }
+
+    status = env->Object_CallMethod_Void(etsAbilityObj_->aniObj, function, formIdStr, formLocationStateItem);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Object_New status : %{public}d", status);
+        return;
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

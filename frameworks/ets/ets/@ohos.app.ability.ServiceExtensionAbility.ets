@@ -40,7 +40,7 @@ export default class ServiceExtensionAbility {
 
   private native nativeOnConnectCallback(service: rpc.RemoteObject): boolean;
 
-  private checkPromise(obj: NullishType): boolean {
+  private checkPromise(obj: Any): boolean {
     if (obj instanceof Promise) {
       return true;
     }
@@ -57,22 +57,11 @@ export default class ServiceExtensionAbility {
   private native nativeOnDisconnectCallback(): void;
 
   private callOnDisconnect(want: Want): boolean {
-    const derivedClassType = AbilityUtils.getClassType(this);
-    if (derivedClassType === undefined) {
-      this.onDisconnect(want);
-      return false;
-    }
-    const serviceExtensionClassType = AbilityUtils.getClassType(new ServiceExtensionAbility());
-    if (serviceExtensionClassType === undefined) {
-      this.onDisconnect(want);
-      return false;
-    }
-    const isOverride = AbilityUtils.isOverride(derivedClassType, "onDisconnectAsync", serviceExtensionClassType);
-    if (isOverride) {
-      this.onDisconnectAsync(want).then(() => this.nativeOnDisconnectCallback());
+    let p = this.onDisconnect(want);
+    if (p instanceof Promise) {
+      p.then(() => this.nativeOnDisconnectCallback());
       return true;
     }
-    this.onDisconnect(want);
     return false;
   }
 
@@ -94,11 +83,8 @@ export default class ServiceExtensionAbility {
     return myService;
   }
 
-  onDisconnect(want: Want): void {
-  }
-
-  onDisconnectAsync(want: Want): Promise<void> {
-    return new Promise<void>((resolve: (a: undefined) => void, reject: (err: Error) => void): void => {});
+  onDisconnect(want: Want): Promise<void> | undefined {
+    return undefined;
   }
 
   onConfigurationUpdate(newConfig: Configuration): void {

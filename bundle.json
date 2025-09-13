@@ -126,12 +126,14 @@
           "//foundation/ability/ability_runtime/tools:tools_target",
           "//foundation/ability/ability_runtime/interfaces/inner_api:innerkits_target",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:ability_thread",
+          "//foundation/ability/ability_runtime/frameworks/native/ability/native:auto_fill_extension_ani",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:extension_module",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:app_service_extension_ani",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:insight_intent_executor_ani",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:service_extension_ani",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_ability_ani",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension_ani",
+          "//foundation/ability/ability_runtime/frameworks/native/ability/native:photo_editor_extension_ani",
           "//foundation/ability/ability_runtime/frameworks/native/appkit:ability_stage_ani",
           "//foundation/ability/ability_runtime/frameworks/native/appkit:test_runner_ani",
           "//foundation/ability/ability_runtime/frameworks/native/child_process:child_process",
@@ -590,6 +592,20 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ui_extension_ability/include",
+              "header_files": ["ets_ui_extension_context.h"]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension_ani"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ui_extension_base/include/",
+              "header_files": ["ets_ui_extension_base.h"]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension_ani"
           },
           {
             "header": {

@@ -527,6 +527,17 @@ ani_object CreateBoolean(ani_env *env, ani_boolean value)
     return obj;
 }
 
+ani_object CreateEtsNull(ani_env *env)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
+    }
+    ani_ref ref = nullptr;
+    env->GetNull(&ref);
+    return reinterpret_cast<ani_object>(ref);
+}
+
 ani_object CreateLong(ani_env *env, ani_long value)
 {
     if (env == nullptr) {
@@ -797,7 +808,7 @@ bool UnwrapArrayString(ani_env *env, const ani_object &arrayObj, std::vector<std
     ani_ref ref;
     ani_size idx;
     for (idx = 0; idx < size; idx++) {
-        if ((status = env->Array_Get_Ref(reinterpret_cast<ani_array_ref>(arrayObj), idx, &ref)) != ANI_OK) {
+        if ((status = env->Array_Get(reinterpret_cast<ani_array>(arrayObj), idx, &ref)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::ANI, "status: %{public}d, index: %{public}zu", status, idx);
             return false;
         }
@@ -1474,6 +1485,53 @@ ani_object WrapLocale(ani_env *env, const std::string &locale)
         return nullptr;
     }
     return localeObj;
+}
+
+ani_object CreateIntAniArray(ani_env *env, const std::vector<int32_t> &dataArry)
+{
+    ani_class arrayCls = nullptr;
+    ani_status status = ANI_OK;
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
+    }
+
+    status = env->FindClass("Lescompat/Array;", &arrayCls);
+    if (status != ANI_OK || arrayCls == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "FindClass failed, status : %{public}d", status);
+        return nullptr;
+    }
+
+    ani_method arrayCtor = nullptr;
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    if (status != ANI_OK || arrayCtor == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod failed, status : %{public}d", status);
+        return nullptr;
+    }
+
+    ani_object arrayObj = nullptr;
+    status = env->Object_New(arrayCls, arrayCtor, &arrayObj, dataArry.size());
+    if (status != ANI_OK || arrayObj == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "Object_New failed, status : %{public}d", status);
+        return arrayObj;
+    }
+
+    for (size_t i = 0; i < dataArry.size(); i++) {
+        ani_object intObj = AppExecFwk::CreateInt(env, dataArry[i]);
+        if (intObj == nullptr) {
+            TAG_LOGE(AAFwkTag::ANI, "intObj nullptr");
+            return nullptr;
+        }
+        ani_status status =
+            env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", i, intObj);
+        if (status != ANI_OK) {
+            TAG_LOGE(
+                AAFwkTag::ANI, "Object_CallMethodByName_Void failed, status : %{public}d", status);
+            return nullptr;
+        }
+    }
+    return arrayObj;
 }
 } // namespace AppExecFwk
 } // namespace OHOS

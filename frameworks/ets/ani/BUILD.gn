@@ -16,8 +16,12 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 group("ani_packages") {
   deps = [
+    "${ability_runtime_path}/frameworks/ets/ani/ability_auto_startup_callback:autostartupcallback_ani",
+    "${ability_runtime_path}/frameworks/ets/ani/ability_auto_startup_manager:auto_startup_manager",
     "${ability_runtime_path}/frameworks/ets/ani/ability_delegator:ability_delegator_registry_ani_kit",
     "${ability_runtime_path}/frameworks/ets/ani/ability_manager:ability_manager_ani_kit",
+    "${ability_runtime_path}/frameworks/ets/ani/action_extension_ability:action_extension_ani",
+    "${ability_runtime_path}/frameworks/ets/ani/share_extension_ability:share_extension_ani",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/ani_mission_manager:missionmanager_ani",
     "${ability_runtime_path}/frameworks/ets/ani/ani_wantagent_common:ani_wantagent_common",
@@ -28,6 +32,7 @@ group("ani_packages") {
     "${ability_runtime_path}/frameworks/ets/ani/app/application_context:application_context_ani_kit",
     "${ability_runtime_path}/frameworks/ets/ani/app/context:context_ani_kit",
     "${ability_runtime_path}/frameworks/ets/ani/auto_fill_manager:ability_auto_fill_manager_ani_kit",
+    "${ability_runtime_path}/frameworks/ets/ani/business_ability_router:businessabilityrouter_ani",
     "${ability_runtime_path}/frameworks/ets/ani/caller_complex:caller_complex_ani",
     "${ability_runtime_path}/frameworks/ets/ani/dialog_session:dialog_session_ani_kit",
     "${ability_runtime_path}/frameworks/ets/ani/featureAbility:featureability_ani",

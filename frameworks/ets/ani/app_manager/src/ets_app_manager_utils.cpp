@@ -707,7 +707,7 @@ bool UnWrapArrayString(ani_env *env, ani_object arrayObj, std::vector<std::strin
     ani_ref ref = nullptr;
     ani_size idx = 0;
     for (idx = 0; idx < size; idx++) {
-        if ((status = env->Array_Get_Ref(reinterpret_cast<ani_array_ref>(arrayObj), idx, &ref)) != ANI_OK) {
+        if ((status = env->Array_Get(reinterpret_cast<ani_array>(arrayObj), idx, &ref)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::APPMGR, "status : %{public}d, index: %{public}zu", status, idx);
             return false;
         }
@@ -782,7 +782,7 @@ bool UnWrapArrayInt(ani_env *env, ani_object arrayObj, std::vector<int32_t> &lis
     ani_ref ref;
     ani_size idx;
     for (idx = 0; idx < size; idx++) {
-        if ((status = env->Array_Get_Ref(reinterpret_cast<ani_array_ref>(arrayObj), idx, &ref)) != ANI_OK) {
+        if ((status = env->Array_Get(reinterpret_cast<ani_array>(arrayObj), idx, &ref)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::APPMGR, "status : %{public}d, index: %{public}zu", status, idx);
             return false;
         }
@@ -860,6 +860,18 @@ bool SetKeepAliveInfo(ani_env *env, ani_object object, const AbilityRuntime::Kee
     if ((status = env->Object_SetPropertyByName_Ref(object, "setter", setterItem)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "state failed status:%{public}d", status);
         return false;
+    }
+    if ((status = env->Object_SetPropertyByName_Ref(object, "setterUserId",
+        AppExecFwk::CreateInt(env, keepInfo.setterId))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "setterUserId failed status:%{public}d", status);
+        return false;
+    }
+    if (keepInfo.policy != AbilityRuntime::KeepAlivePolicy::UNSPECIFIED) {
+        if ((status = env->Object_SetPropertyByName_Boolean(object, "allowUserToCancel",
+            keepInfo.policy == AbilityRuntime::KeepAlivePolicy::ALLOW_CANCEL)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "allowUserToCancel failed status:%{public}d", status);
+            return false;
+        }
     }
     return true;
 }
