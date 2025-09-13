@@ -37,6 +37,9 @@ public:
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode) override;
+    virtual void HandleOnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode);
+    virtual void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
     void CallEtsFailed(int32_t errorCode);
     void SetConnectionId(int32_t id);
     int32_t GetConnectionId() { return connectionId_; }
@@ -44,10 +47,12 @@ public:
     void RemoveConnectionObject();
     ani_env *AttachCurrentThread();
     void DetachCurrentThread();
+    ani_ref GetEtsConnectionObject() { return etsConnectionRef_; }
 protected:
+    void ReleaseObjectReference(ani_ref etsObjRef);
     ani_vm *etsVm_ = nullptr;
     int32_t connectionId_ = -1;
-    ani_ref stsConnectionRef_ = nullptr;
+    ani_ref etsConnectionRef_ = nullptr;
     bool isAttachThread_ = false;
 };
 
@@ -131,6 +136,14 @@ public:
     static void StartRecentAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object callbackObj, ani_object startOptionsObj);
 
+    static void ConnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object uiServiceExtConCallbackObj, ani_object callback);
+    static void StartUIServiceExtension(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_object callback);
+    static void DisconnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object proxyObj,
+        ani_object callback);
+    static void WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj);
+    static void DisconnectUIServiceExtensionCheck(ani_env *env, ani_object aniObj, ani_object proxyObj);
 #ifdef SUPPORT_GRAPHICS
 public:
     static void SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
@@ -201,6 +214,11 @@ private:
     void UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &options);
     void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
         OnRequestResult &onRequestCallback, const char *callbackName);
+    void OnConnectUIServiceExtension(ani_env *env, ani_object wantObj, ani_object uiServiceExtConCallbackObj,
+        ani_object callback);
+    void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
+    void OnDisconnectUIServiceExtension(ani_env *env, ani_object proxyObj, ani_object callback);
+    bool CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want& want, ani_object callback, ani_object myCallback);
 
     ani_env *env_ = nullptr;
     std::weak_ptr<AbilityContext> context_;
