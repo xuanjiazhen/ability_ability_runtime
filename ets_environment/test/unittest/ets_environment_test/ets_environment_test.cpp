@@ -324,5 +324,55 @@ HWTEST_F(EtsEnvironmentTest, GetDebuggerPostTask_0100, TestSize.Level0)
     auto task = etsEnv->GetDebuggerPostTask();
     ASSERT_NE(task, nullptr);
 }
+
+/**
+ * @tc.name: FinishPreload_0100
+ * @tc.desc: Sts environment FinishPreload.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, FinishPreload_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    auto result = etsEnv->FinishPreload();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: PostFork_0100
+ * @tc.desc: Sts environment PostFork.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, PostFork_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    auto result = etsEnv->PostFork();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: PreloadSystemClass_0100
+ * @tc.desc: Sts environment PreloadSystemClass.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, PreloadSystemClass_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    auto result = etsEnv->FinishPreload();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: RegisterFuncs_0100
+ * @tc.desc: Sts environment RegisterFuncs.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, RegisterFuncs_0100, TestSize.Level0)
+{
+    auto envFuncs = RegisterFuncs();
+    ASSERT_NE(envFuncs, nullptr);
+}
 } // namespace StsEnv
 } // namespace OHOS

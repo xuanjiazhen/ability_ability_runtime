@@ -253,5 +253,76 @@ HWTEST_F(EtsRuntimeTest, GetLanguage_100, TestSize.Level1)
     auto language = etsRuntime->GetLanguage();
     EXPECT_EQ(language, Runtime::Language::ETS);
 }
+
+/**
+ * @tc.name: FinishPreload_100
+ * @tc.desc: EtsRuntime test for FinishPreload.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, FinishPreload_100, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    EXPECT_EQ(RegisterETSEnvFuncs(), true);
+    etsRuntime->FinishPreload();
+    EXPECT_NE(etsRuntime->g_etsEnvFuncs->FinishPreload, nullptr);
+}
+
+/**
+ * @tc.name: PreloadModule_100
+ * @tc.desc: EtsRuntime test for PreloadModule.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, PreloadModule_100, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    EXPECT_EQ(RegisterETSEnvFuncs(), true);
+    std::string moduleName = TEST_MODULE_NAME;
+    std::string hapPath = "";
+    bool isEsMode = true;
+    bool useCommonTrunk = false;
+    etsRuntime->PreloadModule(moduleName, hapPath, isEsMode, useCommonTrunk);
+    EXPECT_NE(etsRuntime->g_etsEnvFuncs->PreloadModule, nullptr);
+}
+
+/**
+ * @tc.name: HandleUncaughtError_100
+ * @tc.desc: EtsRuntime test for HandleUncaughtError.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, HandleUncaughtError_100, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    EXPECT_EQ(RegisterETSEnvFuncs(), true);
+    etsRuntime->HandleUncaughtError();
+    EXPECT_NE(etsRuntime->g_etsEnvFuncs->HandleUncaughtError, nullptr);
+}
+
+/**
+ * @tc.name: PreloadSystemModule_100
+ * @tc.desc: EtsRuntime test for PreloadSystemModule.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, PreloadSystemModule_100, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    EXPECT_EQ(RegisterETSEnvFuncs(), true);
+    std::string moduleName = TEST_MODULE_NAME;
+    etsRuntime->PreloadSystemModule(moduleName);
+    EXPECT_EQ(etsRuntime->jsRuntime_, nullptr);
+}
+
+/**
+ * @tc.name: PreloadSystemClass_100
+ * @tc.desc: EtsRuntime test for PreloadSystemClass.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, PreloadSystemClass_100, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    EXPECT_EQ(RegisterETSEnvFuncs(), true);
+    std::string className = "";
+    etsRuntime->PreloadSystemClass(className);
+    EXPECT_NE(etsRuntime->g_etsEnvFuncs->PreloadSystemClass, nullptr);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
