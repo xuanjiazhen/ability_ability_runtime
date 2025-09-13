@@ -98,6 +98,27 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_SendStartAbilityError_0300, Test
 }
 
 /**
+ * @tc.name: AbilityEventUtil_SendStartAbilityError_0400
+ * @tc.desc: SendKillProcessWithReasonEvent
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_SendStartAbilityError_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_SendStartAbilityError_0400 start");
+    std::shared_ptr<AbilityEventUtil> eventUtil = std::make_shared<AbilityEventUtil>();
+    EventInfo eventInfo = {};
+    int32_t errCode = 0;
+    std::string errMsg = "test event";
+    auto originValue = DelayedSingleton<AppExecFwk::BundleMgrHelper>::instance_;
+    DelayedSingleton<AppExecFwk::BundleMgrHelper>::instance_ = nullptr;
+    eventUtil->SendStartAbilityErrorEvent(eventInfo, errCode, errMsg);
+    EXPECT_EQ(eventInfo.userId, -1);
+    DelayedSingleton<AppExecFwk::BundleMgrHelper>::instance_ = originValue;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_SendStartAbilityError_0400 end");
+}
+
+/**
  * @tc.name: AbilityEventUtil_SendKillProcessWithReasonEvent_0100
  * @tc.desc: SendKillProcessWithReasonEvent
  * @tc.type: FUNC

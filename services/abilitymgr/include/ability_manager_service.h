@@ -1045,6 +1045,8 @@ public:
     virtual int StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg,
         bool isSilent = false) override;
+    int32_t StartAbilityByCallWithErrMsgInner(const Want &want, sptr<IAbilityConnection> connect,
+        sptr<IRemoteObject> callerToken, int32_t accountId, std::string &errMsg, bool isSilent = false);
 
     /**
      * As abilityRequest is prepared, just execute starting ability procedure.
