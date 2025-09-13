@@ -127,5 +127,43 @@ int32_t OsAccountManagerWrapper::GetCurrentActiveAccountId()
     TAG_LOGD(AAFwkTag::DEFAULT, "accountId: %{public}d", accountIds[0]);
     return accountIds[0];
 }
+
+int32_t OsAccountManagerWrapper::GetDefaultForegroundUserId()
+{
+#ifndef OS_ACCOUNT_PART_ENABLED
+    TAG_LOGD(AAFwkTag::DEFAULT, "Without os account subsystem");
+    return 0;
+#else // OS_ACCOUNT_PART_ENABLED
+    int32_t localId = 0;
+    auto errCode = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(localId);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "Fail to get os account, errCode:%{public}d", errCode);
+        localId = -1;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "local userId:%{public}d", localId);
+    return localId;
+#endif // OS_ACCOUNT_PART_ENABLED
+}
+
+bool OsAccountManagerWrapper::IsForegroundUser(int32_t userId)
+{
+#ifndef OS_ACCOUNT_PART_ENABLED
+    TAG_LOGD(AAFwkTag::DEFAULT, "Without os account subsystem");
+    return false;
+#else // OS_ACCOUNT_PART_ENABLED
+    std::vector<AccountSA::ForegroundOsAccount> accounts;
+    auto errCode = AccountSA::OsAccountManager::GetForegroundOsAccounts(accounts);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "Fail to get os accounts, errCode:%{public}d", errCode);
+        return false;
+    }
+    for (auto &account : accounts) {
+        if (account.localId == userId) {
+            return true;
+        }
+    }
+    return false;
+#endif // OS_ACCOUNT_PART_ENABLED
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

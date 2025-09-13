@@ -2324,5 +2324,26 @@ HWTEST_F(AppMgrServiceInnerTenthTest, QueryRunningSharedBundles_002, TestSize.Le
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
     TAG_LOGI(AAFwkTag::TEST, "QueryRunningSharedBundles_002 end");
 }
+
+/**
+ * @tc.name: GetCallerUserId_001
+ * @tc.desc: Test GetCallerUserId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTenthTest, GetCallerUserId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetCallerUserId_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t uid = 0;
+    int32_t userId = appMgrServiceInner->GetCallerUserId(uid);
+    EXPECT_EQ(userId, 100);
+    uid = 200000;
+    userId = appMgrServiceInner->GetCallerUserId(uid);
+    EXPECT_EQ(userId, 100);
+    uid = 20000000;
+    userId = appMgrServiceInner->GetCallerUserId(uid);
+    EXPECT_EQ(userId, 100);
+    TAG_LOGI(AAFwkTag::TEST, "GetCallerUserId_001 end");
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

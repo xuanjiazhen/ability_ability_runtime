@@ -126,5 +126,32 @@ HWTEST_F(OsAccountManagerWrapperTest, GetCurrentActiveAccountId_0100, TestSize.L
     int ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->GetCurrentActiveAccountId();
     EXPECT_EQ(ret, 100);
 }
+
+/**
+ * @tc.name: GetDefaultForegroundUserId_0100
+ * @tc.desc: Get default accountId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerWrapperTest, GetDefaultForegroundUserId_0100, TestSize.Level1)
+{
+    int32_t userId = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->GetDefaultForegroundUserId();
+    EXPECT_EQ(userId, 100);
+}
+
+/**
+ * @tc.name: IsForegroundUser_0100
+ * @tc.desc: Is foreground user.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerWrapperTest, IsForegroundUser_0100, TestSize.Level1)
+{
+    int32_t userId = 100;
+    bool ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->IsForegroundUser(userId);
+    EXPECT_TRUE(ret);
+
+    userId = 600;
+    ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->IsForegroundUser(userId);
+    EXPECT_FALSE(ret);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

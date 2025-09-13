@@ -117,7 +117,6 @@ ohos_shared_library("libappms") {
     "${ability_runtime_services_path}/common:record_cost_time_util",
     "${ability_runtime_services_path}/common:res_sched_util",
     "${ability_runtime_services_path}/common:task_handler_wrap",
-    "${ability_runtime_services_path}/common:user_controller",
   ]
 
   external_deps = [

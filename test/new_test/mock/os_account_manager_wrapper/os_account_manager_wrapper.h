@@ -31,6 +31,11 @@ public:
 
     OH_MOCK_METHOD_WITH_OUTPUT_1(ErrCode, isOsAccountExists, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
+
+    static int32_t GetDefaultForegroundUserId()
+    {
+        return 100;
+    }
 };
 } // namespace AppExecFwk
 } // namespace OHOS
