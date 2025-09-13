@@ -62,8 +62,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
         ani_native_function { "nativeCheckConnectionAbility", SIGNATURE_CHECK_CONNECTION,
             reinterpret_cast<void *>(ETSFormExtensionContext::CheckConnectionAbility) },
     };
-    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK
-        && status != ANI_ALREADY_BINDED) {
+    status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
+    if (status != ANI_OK && status != ANI_ALREADY_BINDED) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "bind method status: %{public}d", status);
         return false;
     }
@@ -76,8 +76,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
     std::array CleanerMethods = {
         ani_native_function { "clean", nullptr, reinterpret_cast<void *>(ETSFormExtensionContext::Finalizer) },
     };
-    if ((status = env->Class_BindNativeMethods(cleanerCls, CleanerMethods.data(), CleanerMethods.size())) != ANI_OK
-        && status != ANI_ALREADY_BINDED) {
+    status = env->Class_BindNativeMethods(cleanerCls, CleanerMethods.data(), CleanerMethods.size());
+    if (status != ANI_OK && status != ANI_ALREADY_BINDED) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "bind method status: %{public}d", status);
         return false;
     }
@@ -88,13 +88,11 @@ bool CheckConnectionParam(ani_object connectOptionsObj,
 {
     connection->SetConnectionRef(connectOptionsObj);
     ConnectionKey key;
+    std::lock_guard<std::mutex> lock(g_connectsMutex_);
     key.id = g_serialNumber;
     key.want = want;
     connection->SetConnectionId(key.id);
-    {
-        std::lock_guard<std::mutex> lock(g_connectsMutex_);
-        g_connects.emplace(key, connection);
-    }
+    g_connects.emplace(key, connection);
     if (g_serialNumber < INT32_MAX) {
         g_serialNumber++;
     } else {
@@ -105,7 +103,7 @@ bool CheckConnectionParam(ani_object connectOptionsObj,
 }
 
 void FindConnection(AAFwk::Want& want,
-    sptr<ETSFormExtensionConnection>& connection, int64_t& connectId)
+    sptr<ETSFormExtensionConnection>& connection, int64_t connectId)
 {
     TAG_LOGD(AAFwkTag::FORM_EXT, "connection:%{public}d", static_cast<int32_t>(connectId));
     std::lock_guard<std::mutex> lock(g_connectsMutex_);
@@ -120,7 +118,6 @@ void FindConnection(AAFwk::Want& want,
         connection = item->second;
         TAG_LOGD(AAFwkTag::FORM_EXT, "ability not exist");
     }
-    return;
 }
 
 void RemoveConnection(int64_t connectId)
@@ -149,8 +146,9 @@ void ETSFormExtensionContext::Finalizer(ani_env *env, ani_object obj)
         TAG_LOGE(AAFwkTag::FORM_EXT, "null env");
         return;
     }
-    ani_long nativeEtsContextPtr;
-    if (env->Object_GetFieldByName_Long(obj, "nativeEtsContext", &nativeEtsContextPtr) != ANI_OK) {
+    ani_long nativeEtsContextPtr = 0;
+    ani_status status = env->Object_GetFieldByName_Long(obj, "nativeEtsContext", &nativeEtsContextPtr);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to get nativeEtsContext");
         return;
     }
@@ -233,22 +231,25 @@ ETSFormExtensionContext *ETSFormExtensionContext::GetEtsAbilityContext(ani_env *
 {
     TAG_LOGD(AAFwkTag::FORM_EXT, "GetEtsAbilityContext");
     ani_class cls = nullptr;
-    ani_long nativeContextLong;
+    ani_long nativeContextLong = 0;
     ani_field contextField = nullptr;
     ani_status status = ANI_ERROR;
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "null env");
         return nullptr;
     }
-    if ((status = env->FindClass(FORM_EXTENSION_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
+    status = env->FindClass(FORM_EXTENSION_CONTEXT_CLASS_NAME, &cls);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to find class, status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindField(cls, "nativeEtsContext", &contextField)) != ANI_OK) {
+    status = env->Class_FindField(cls, "nativeEtsContext", &contextField);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to find filed, status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Object_GetField_Long(aniObj, contextField, &nativeContextLong)) != ANI_OK) {
+    status = env->Object_GetField_Long(aniObj, contextField, &nativeContextLong);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to get filed, status : %{public}d", status);
         return nullptr;
     }
@@ -309,7 +310,8 @@ ani_long ETSFormExtensionContext::OnConnectAbility(ani_env *env, ani_object aniO
         return ERROR_LONG_VALUE;
     }
     ani_vm *etsVm = nullptr;
-    if (env->GetVM(&etsVm) != ANI_OK || etsVm == nullptr) {
+    ani_status status = env->GetVM(&etsVm);
+    if (status != ANI_OK || etsVm == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to getVM");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return ERROR_LONG_VALUE;
@@ -381,8 +383,8 @@ ani_object CreateEtsFormExtensionContext(ani_env *env, std::shared_ptr<FormExten
         return nullptr;
     }
     ani_class cls = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = env->FindClass(FORM_EXTENSION_CONTEXT_CLASS_NAME, &cls)) != ANI_OK || cls == nullptr) {
+    ani_status status = env->FindClass(FORM_EXTENSION_CONTEXT_CLASS_NAME, &cls);
+    if (status != ANI_OK || cls == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to find class, status: %{public}d", status);
         return nullptr;
     }
@@ -391,23 +393,20 @@ ani_object CreateEtsFormExtensionContext(ani_env *env, std::shared_ptr<FormExten
         return nullptr;
     }
     ani_method method = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "J:V", &method)) != ANI_OK || method == nullptr) {
+    status = env->Class_FindMethod(cls, "<ctor>", "J:V", &method);
+    if (status != ANI_OK || method == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to find constructor, status : %{public}d", status);
         return nullptr;
     }
     std::unique_ptr<ETSFormExtensionContext> workContext = std::make_unique<ETSFormExtensionContext>(context);
-    if (workContext == nullptr) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to create etsFormExtensionContext");
-        return nullptr;
-    }
     auto formContextPtr = new std::weak_ptr<FormExtensionContext> (workContext->GetAbilityContext());
     if (formContextPtr == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "formContextPtr is nullptr");
         return nullptr;
     }
     ani_object contextObj = nullptr;
-    if ((status = env->Object_New(cls, method, &contextObj, (ani_long)workContext.release())) != ANI_OK ||
-        contextObj == nullptr) {
+    status = env->Object_New(cls, method, &contextObj, (ani_long)workContext.release());
+    if (status != ANI_OK || contextObj == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to create object, status : %{public}d", status);
         return nullptr;
     }
@@ -436,7 +435,8 @@ void ETSFormExtensionConnection::RemoveConnectionObject()
 {
     if (etsVm_ != nullptr && stsConnectionRef_ != nullptr) {
         ani_env *env = nullptr;
-        if (etsVm_->GetEnv(ANI_VERSION_1, &env) == ANI_OK && env != nullptr) {
+        ani_status status = etsVm_->GetEnv(ANI_VERSION_1, &env);
+        if (status == ANI_OK && env != nullptr) {
             env->GlobalReference_Delete(stsConnectionRef_);
             stsConnectionRef_ = nullptr;
         }
@@ -455,14 +455,15 @@ void ETSFormExtensionConnection::CallEtsFailed(int32_t errorCode)
         return;
     }
     ani_env *env = nullptr;
-    ani_status status = ANI_OK;
-    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
+    ani_status status = status = etsVm_->GetEnv(ANI_VERSION_1, &env);
+    if (status != ANI_OK || env == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to get env, status: %{public}d", status);
         return;
     }
-    ani_ref funRef;
-    if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(stsConnectionRef_),
-        "onFailed", &funRef)) != ANI_OK) {
+    ani_ref funRef = nullptr;
+    status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(stsConnectionRef_),
+        "onFailed", &funRef);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "get onFailed failed status : %{public}d", status);
         return;
     }
@@ -475,10 +476,10 @@ void ETSFormExtensionConnection::CallEtsFailed(int32_t errorCode)
         TAG_LOGE(AAFwkTag::FORM_EXT, "null errorCodeObj");
         return;
     }
-    ani_ref result;
+    ani_ref result = nullptr;
     std::vector<ani_ref> argv = { errorCodeObj };
-    if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ONE, argv.data(),
-        &result)) != ANI_OK) {
+    status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ONE, argv.data(), &result);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to call onFailed, status: %{public}d", status);
     }
 }
@@ -490,12 +491,13 @@ void ETSFormExtensionConnection::SetConnectionRef(ani_object connectOptionsObj)
         return;
     }
     ani_env *env = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
+    ani_status status = etsVm_->GetEnv(ANI_VERSION_1, &env);
+    if (status != ANI_OK || env == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "status: %{public}d", status);
         return;
     }
-    if ((status = env->GlobalReference_Create(connectOptionsObj, &stsConnectionRef_)) != ANI_OK) {
+    status = env->GlobalReference_Create(connectOptionsObj, &stsConnectionRef_);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "status: %{public}d", status);
     }
 }
@@ -530,10 +532,10 @@ void ETSFormExtensionConnection::OnAbilityConnectDone(
         DetachCurrentThread();
         return;
     }
-    ani_status status = ANI_ERROR;
-    ani_ref funRef;
-    if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(stsConnectionRef_),
-        "onConnect", &funRef)) != ANI_OK) {
+    ani_ref funRef = nullptr;
+    ani_status status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(stsConnectionRef_),
+        "onConnect", &funRef);
+    if (status != ANI_OK || funRef == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "get onConnect failed status : %{public}d", status);
         return;
     }
@@ -541,10 +543,10 @@ void ETSFormExtensionConnection::OnAbilityConnectDone(
         TAG_LOGI(AAFwkTag::FORM_EXT, "invalid onConnect property");
         return;
     }
-    ani_ref result;
+    ani_ref result = nullptr;
     std::vector<ani_ref> argv = { refElement, refRemoteObject};
-    if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_TWO, argv.data(),
-        &result)) != ANI_OK) {
+    status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_TWO, argv.data(), &result);
+    if (status != ANI_OK || result == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to call onConnect, status: %{public}d", status);
     }
     DetachCurrentThread();
@@ -568,10 +570,10 @@ void ETSFormExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::Eleme
         DetachCurrentThread();
         return;
     }
-    ani_status status = ANI_ERROR;
-    ani_ref funRef;
-    if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(stsConnectionRef_),
-        "onDisconnect", &funRef)) != ANI_OK) {
+    ani_ref funRef = nullptr;
+    ani_status status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(stsConnectionRef_),
+        "onDisconnect", &funRef);
+    if (status != ANI_OK || funRef == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "get onDisconnect failed status : %{public}d", status);
         return;
     }
@@ -579,10 +581,11 @@ void ETSFormExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::Eleme
         TAG_LOGI(AAFwkTag::FORM_EXT, "invalid onDisconnect property");
         return;
     }
-    ani_ref result;
+    ani_ref result = nullptr;
     std::vector<ani_ref> argv = { refElement };
-    if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ONE, argv.data(),
-        &result)) != ANI_OK) {
+    status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ONE, argv.data(),
+        &result);
+    if (status != ANI_OK || result == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to call onDisconnect, status: %{public}d", status);
     }
     DetachCurrentThread();
@@ -591,13 +594,14 @@ void ETSFormExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::Eleme
 ani_env *ETSFormExtensionConnection::AttachCurrentThread()
 {
     ani_env *env = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) == ANI_OK) {
+    ani_status status = etsVm_->GetEnv(ANI_VERSION_1, &env);
+    if (status == ANI_OK) {
         return env;
     }
     ani_option interopEnabled { "--interop=disable", nullptr };
     ani_options aniArgs { 1, &interopEnabled };
-    if ((status = etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK) {
+    status = etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "status: %{public}d", status);
         return nullptr;
     }
