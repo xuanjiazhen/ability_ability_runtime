@@ -25,6 +25,10 @@ static void grantUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
     ani_string uri, ani_enum_item flagEnum, ani_string targetName, ani_int appCloneIndex, ani_object callback);
 static void revokeUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
     ani_string uri, ani_string targetName, ani_int appCloneIndex, ani_object callback);
+static void grantUriPermissionByKeyCallbackSync([[maybe_unused]]ani_env *env,
+    ani_string uri, ani_enum_item flag, ani_long targetTokenId, ani_object callback);
+static void grantUriPermissionByKeyAsCallerCallbackSync([[maybe_unused]]ani_env *env,
+    ani_string uri, ani_enum_item flag, ani_long callerTokenId, ani_long targetTokenId, ani_object callback);
 void CreateJsUriPermMgr(ani_env *env);
 } // namespace AbilityRuntime
 } // namespace OHOS
