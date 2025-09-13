@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "mock_permission_verification.h"
+#include "mock_my_flag.h"
 
 #define private public
 #define protected public
