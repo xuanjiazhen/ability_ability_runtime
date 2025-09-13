@@ -238,14 +238,11 @@ export class CallerImpl implements Caller {
     }
     this.onRelease(callback);
   }
-  off(type: string, callback: OnReleaseCallback): void {
+  offRelease(callback: OnReleaseCallback): void {
     hilog.info(domainID, TAG, 'off called');
-    if (type != 'release') {
-      throw buildInvalidParamError('Parameter error: Failed to get type, must be string type release.');
-    }
     // do nothing
   }
-  off(type: string): void {
+  offRelease(): void {
     hilog.info(domainID, TAG, 'off called');
     // do nothing
   }
