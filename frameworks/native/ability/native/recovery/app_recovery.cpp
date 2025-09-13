@@ -51,13 +51,19 @@ std::atomic<bool> g_blocked = false;
 const int DELAY_TIME = 1000;
 
 AppRecovery::AppRecovery() : isEnable_(false), restartFlag_(RestartFlag::ALWAYS_RESTART),
-    saveOccasion_(SaveOccasionFlag::SAVE_WHEN_ERROR), saveMode_(SaveModeFlag::SAVE_WITH_FILE)
+    saveOccasion_(SaveOccasionFlag::SAVE_WHEN_ERROR), saveMode_(SaveModeFlag::SAVE_WITH_FILE),
 {
 }
 
 AppRecovery::~AppRecovery()
 {
 }
+void AppRecovery::SetEnableCrossProcess(bool isEnableCrossProcess)
+{
+    isEnableCrossProcess_ = isEnableCrossProcess;
+}
+
+
 
 static void SigQuitHandler(int signal)
 {
@@ -108,8 +114,14 @@ AppRecovery& AppRecovery::GetInstance()
 bool AppRecovery::InitApplicationInfo(const std::shared_ptr<EventHandler>& mainHandler,
     const std::shared_ptr<ApplicationInfo>& applicationInfo)
 {
-    mainHandler_ = mainHandler;
-    applicationInfo_ = applicationInfo;
+    {
+        std::lock_guard<std::mutex> lock(mainHandlerMutex_);
+        mainHandler_ = mainHandler;
+    }
+    {
+        std::lock_guard<std::mutex> lock(applicationInfoMutex_);
+        applicationInfo_ = applicationInfo;
+    }
     return true;
 }
 
@@ -120,10 +132,18 @@ bool AppRecovery::AddAbility(std::shared_ptr<AbilityRuntime::UIAbility> ability,
         TAG_LOGE(AAFwkTag::RECOVERY, "null abilityInfo or ability");
         return false;
     }
-
-    token_ = token;
-    mainWant_.SetElementName(abilityInfo->bundleName, abilityInfo->name);
-    auto handler = mainHandler_.lock();
+    {
+        std:d::lock_guard<std::mutex> lock(tokenMutex_);
+        token_ = token;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mainWantMutex_);
+        mainWant_.SetElementName(abilityInfo->bundleName, abilityInfo->name);
+    }
+    {
+        std::lock_guard<std::mutex> lock(mainHandlerMutex_);
+        auto handler = mainHandler_.lock();
+    }
     if (handler != nullptr) {
         auto task = []() {
             AppRecovery::GetInstance().DeleteInValidMissionFiles();
@@ -132,17 +152,30 @@ bool AppRecovery::AddAbility(std::shared_ptr<AbilityRuntime::UIAbility> ability,
             TAG_LOGE(AAFwkTag::RECOVERY, "DeleteInValidMissionFiles failed");
         }
     }
- 
-    if (isEnable_ && !abilityRecoverys_.empty() && !abilityInfo->recoverable) {
+    bool abityRecoveryIsEmpty = false;
+    {
+        std::lock_guard<std::mutex> lock(abilityRecoveryMutex_);
+        abityRecoveryIsEmpty = abilityRecovery_.empty();
+    }
+    if (isEnable_ && !abityRecoveryIsEmpty && !abilityInfo->recoverable) {
         TAG_LOGE(AAFwkTag::RECOVERY, "recoverable is false");
         return false;
     }
-    ability_ = ability;
+    {
+        std::lock_guard<std::mutex> lock(abilityMutex_);
+        ability_ = ability;
+    }
     std::shared_ptr<AbilityRecovery> abilityRecovery = std::make_shared<AbilityRecovery>();
     abilityRecovery->InitAbilityInfo(ability, abilityInfo, token);
-    abilityRecovery->EnableAbilityRecovery(useAppSettedValue_.load(), restartFlag_, saveOccasion_, saveMode_);
+    {
+        std::lock_guard<std::mutex> lock(stateConfigMutex_);
+        abilityRecovery->EnableAbilityRecovery(useAppSettedValue_.load(), restartFlag_, saveOccasion_, saveMode_);
+    }
     ability->EnableAbilityRecovery(abilityRecovery, useAppSettedValue_.load());
-    abilityRecoverys_.push_back(abilityRecovery);
+    {
+        std::lock_guard<std::mutex> lock(abilityRecoveryMutex_);
+        abilityRecoverys_.push_back(abilityRecovery);
+    }
     return true;
 }
 
@@ -153,6 +186,7 @@ bool AppRecovery::RemoveAbility(const sptr<IRemoteObject>& tokenId)
         return false;
     }
     TAG_LOGD(AAFwkTag::RECOVERY, "start");
+    std::lock_guard<std::mutex> lock(abilityRecoveryMutex_);
     auto itr = std::find_if(abilityRecoverys_.begin(), abilityRecoverys_.end(),
         [&tokenId](std::shared_ptr<AbilityRecovery> &abilityRecovery) {
         return (abilityRecovery && abilityRecovery->GetToken() == tokenId);
@@ -165,6 +199,7 @@ bool AppRecovery::RemoveAbility(const sptr<IRemoteObject>& tokenId)
 
 void AppRecovery::SetFreezeCallback(FreezeFunction freezeCallback)
 {
+    std::lock_guard<std::mutex> lock(callbackMutex_);
     if (!this->freezeCallback) {
         this->freezeCallback = freezeCallback;
     }
@@ -188,12 +223,17 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
 {
     TAG_LOGI(AAFwkTag::RECOVERY, "begin");
     bool ret = IsNeedSaveAppState(reason);
-    if (!ret && this->freezeCallback ==  nullptr) {
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        if (!ret && this->freezeCallback ==  nullptr) {
+            return false;
+        }
     }
-
     if (reason == StateReason::APP_FREEZE) {
-        auto abilityPtr = ability_.lock();
+        {
+            std::lock_guard<std::mutex> lock(abilityMutex_);
+            auto abilityPtr = ability_.lock();
+        }
         if (!abilityPtr || !abilityPtr->GetAbilityContext()) {
             TAG_LOGE(AAFwkTag::RECOVERY, "null ability or context");
             return false;
@@ -204,18 +244,24 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
             return false;
         }
 #ifdef SUPPORT_SCREEN
-        OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
-        AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
-        panda::ecmascript::EcmaVM* vm = runtime.GetEcmaVm();
-        if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
-            return false;
+        if (isEnableCrossProcess_) {
+            OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
+            AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
+            panda::ecmascript::EcmaVM* vm = runtime.GetEcmaVm();
+            if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
+                TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
+                return false;
+            }
         }
 #endif
-        if (this->freezeCallback) {
-            this->freezeCallback();
-            TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
+        {
+            std::lock_guard<std::mutex> lock(callbackMutex_);
+            if (this->freezeCallback) {
+                this->freezeCallback();
+                TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
+            }
         }
+
         if (!ret) {
             return false;
         }
@@ -223,7 +269,10 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
         return true;
     }
 
-    auto handler = mainHandler_.lock();
+    {
+        std::lock_guard<std::mutex> lock(mainHandlerMutex_);
+        auto handler = mainHandler_.lock();
+    }
     if (handler == nullptr) {
         TAG_LOGE(AAFwkTag::RECOVERY, "null handler");
         return false;
@@ -247,7 +296,10 @@ void AppRecovery::SetRestartWant(std::shared_ptr<AAFwk::Want> want)
         TAG_LOGE(AAFwkTag::RECOVERY, "not enabled");
         return;
     }
-    want_ = want;
+    {
+        std::lock_guard<std::mutex> lock(wantMutex_);
+        want_ = want;
+    }
 }
 
 bool AppRecovery::ScheduleRecoverApp(StateReason reason)
@@ -266,9 +318,12 @@ bool AppRecovery::ScheduleRecoverApp(StateReason reason)
         return false;
     }
 
-    if (abilityRecoverys_.empty()) {
-        TAG_LOGE(AAFwkTag::RECOVERY, "null ability");
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(abilityRecoveryMutex_);
+        if (abilityRecoverys_.empty()) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "null ability");
+            return false;
+        }
     }
 
     if (reason == StateReason::APP_FREEZE) {
@@ -276,7 +331,10 @@ bool AppRecovery::ScheduleRecoverApp(StateReason reason)
         return true;
     }
 
-    auto handler = mainHandler_.lock();
+    {
+        std::lock_guard<std::mutex> lock(mainHandlerMutex_);
+        auto handler = mainHandler_.lock();
+    }
     if (handler == nullptr) {
         TAG_LOGE(AAFwkTag::RECOVERY, "null handler");
         return false;
@@ -312,15 +370,21 @@ bool AppRecovery::TryRecoverApp(StateReason reason)
 void AppRecovery::DoRecoverApp(StateReason reason)
 {
     TAG_LOGD(AAFwkTag::RECOVERY, "begin");
-    if (abilityRecoverys_.empty()) {
-        TAG_LOGE(AAFwkTag::RECOVERY, "no ability exist");
-        return;
+    {
+        std::lock_guard<std::mutex> lock(abilityRecoveryMutex_);
+        if (abilityRecoverys_.empty()) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "no ability exist");
+            return;
+        }
     }
     AAFwk::Want *want = nullptr;
-    if (want_ != nullptr) {
-        want = want_.get();
+    {
+        std::lock_guard<std::mutex> lock(wantMutex_);
+        if (want_ != nullptr) {
+            want = want_.get();
+        }
     }
-
+    std::mutex_lock lock(abilityRecoveryMutex_);
     if (abilityRecoverys_.size() == 1) {
         if (abilityRecoverys_.front()->IsOnForeground()) {
             abilityRecoverys_.front()->ScheduleRecoverAbility(reason, want);
@@ -339,9 +403,16 @@ void AppRecovery::DoRecoverApp(StateReason reason)
 void AppRecovery::DoRecoverMainApp(StateReason reason)
 {
     TAG_LOGD(AAFwkTag::RECOVERY, "DoReciverMainApp begin");
-    AAFwk::Want *want = &mainWant_;
+    {
+        std::lock_guard<std::mutex> lock(mainWantMutex_);
+        AAFwk::Want *want = &mainWant_;
+    }
     want->SetParam(AAFwk::Want::PARAM_ABILITY_RECOVERY_RESTART, false);
-    auto token = token_.promote();
+    {
+        std::lock_guard<std::mutex> lock(tokenMutex_);
+        auto token = token_.promote();
+    }
+    
     if (token == nullptr) {
         return;
     }
@@ -356,7 +427,11 @@ void AppRecovery::DoRecoverMainApp(StateReason reason)
 void AppRecovery::DoSaveAppState(StateReason reason, uintptr_t ability)
 {
     TAG_LOGD(AAFwkTag::RECOVERY, "begin");
-    auto appInfo = applicationInfo_.lock();
+    {
+        std::lock_guard<std::mutex> lock(applicationInfoMutex_);
+        auto appInfo = applicationInfo_.lock();
+    }
+    std::lock_guard<std::mutex> lock(abilityRecoveryMutex_);
     if (appInfo == nullptr || abilityRecoverys_.empty()) {
         TAG_LOGE(AAFwkTag::RECOVERY, "not exist application or ability info");
         return;
@@ -379,6 +454,7 @@ void AppRecovery::DoSaveAppState(StateReason reason, uintptr_t ability)
 
 void AppRecovery::EnableAppRecovery(uint16_t restartFlag, uint16_t saveFlag, uint16_t saveMode)
 {
+    std::lock_guard<std::mutex> lock(stateConfigMutex_);
     isEnable_ = true;
     restartFlag_ = restartFlag;
     saveOccasion_ = saveFlag;
@@ -395,6 +471,7 @@ bool AppRecovery::ShouldSaveAppState(StateReason reason)
             break;
 
         case StateReason::LIFECYCLE:
+            std::lock_guard<std::mutex> lock(stateConfigMutex_);
             if ((saveOccasion_ & SaveOccasionFlag::SAVE_WHEN_BACKGROUND) != 0) {
                 ret = true;
             }
@@ -403,7 +480,9 @@ bool AppRecovery::ShouldSaveAppState(StateReason reason)
         case StateReason::CPP_CRASH:
         case StateReason::JS_ERROR:
         case StateReason::CJ_ERROR:
+        case StateReason::STS_ERROR:
         case StateReason::APP_FREEZE: // appfreeze could not callback to js function safely.
+            std::lock_guard<std::mutex> lock(stateConfigMutex_);
             if ((saveOccasion_ & SaveOccasionFlag::SAVE_WHEN_ERROR) != 0) {
                 ret = true;
             }
@@ -414,6 +493,7 @@ bool AppRecovery::ShouldSaveAppState(StateReason reason)
 
 bool AppRecovery::ShouldRecoverApp(StateReason reason)
 {
+    std::lock_guard<std::mutex> lock(stateConfigMutex_);
     if (restartFlag_ == RestartFlag::NO_RESTART) {
         return false;
     }
@@ -448,6 +528,11 @@ bool AppRecovery::ShouldRecoverApp(StateReason reason)
             }
             break;
 
+        case StateReason::STS_ERROR:
+            if (isAlwaysStart || (restartFlag_ & RestartFlag::RESTART_WHEN_STS_CRASH) != 0) {
+                ret = true;
+            }
+            break;
         case StateReason::APP_FREEZE:
             if (isAlwaysStart || (restartFlag_ & RestartFlag::RESTART_WHEN_APP_FREEZE) != 0) {
                 ret = true;
@@ -554,11 +639,14 @@ bool AppRecovery::GetMissionIds(std::string path, std::vector<int32_t> &missionI
 
 bool AppRecovery::PersistAppState()
 {
-    if (saveMode_ == SaveModeFlag::SAVE_WITH_FILE) {
-        return true;
+    {
+        std::lock_guard<std::mutex> lock(stateConfigMutex_);
+        if (saveMode_ == SaveModeFlag::SAVE_WITH_FILE) {
+            return true;
+        }
     }
-
     bool ret = true;
+    std::lock_guard<std::mutex> lock(abilityRecoveryMutex_);
     for (auto& abilityRecovery : abilityRecoverys_) {
         ret = ret && abilityRecovery->PersistState();
     }
@@ -572,16 +660,19 @@ bool AppRecovery::IsEnabled() const
 
 uint16_t AppRecovery::GetRestartFlag() const
 {
+    std::lock_guard<std::mutex> lock(stateConfigMutex_);
     return restartFlag_;
 }
 
 uint16_t AppRecovery::GetSaveOccasionFlag() const
 {
+    std::lock_guard<std::mutex> lock(stateConfigMutex_);
     return saveOccasion_;
 }
 
 uint16_t AppRecovery::GetSaveModeFlag() const
 {
+    std::lock_guard<std::mutex> lock(stateConfigMutex_);
     return saveMode_;
 }
 }  // namespace AbilityRuntime
