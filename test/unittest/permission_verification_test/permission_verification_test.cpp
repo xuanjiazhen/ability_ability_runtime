@@ -33,6 +33,7 @@ const std::string DLP_PARAMS_INDEX = "ohos.dlp.params.index";
 #endif // WITH_DLP
 const int32_t SHELL_START_EXTENSION_FLOOR = 0;
 const int32_t SHELL_START_EXTENSION_MAX = 22; // EMBEDDED_UI
+const int32_t SA_SPECIFY_TOKEN_ID = 671874584;
 }
 class PermissionVerificationTest : public testing::Test {
 public:
@@ -246,6 +247,22 @@ HWTEST_F(PermissionVerificationTest, CheckCallAbilityPermission_0300, TestSize.L
     verificationInfo.isBackgroundCall = false;
     int result = AAFwk::PermissionVerification::GetInstance()->CheckCallAbilityPermission(verificationInfo);
     EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+}
+
+/**
+ * @tc.name: CheckCallAbilityPermission_0400
+ * @tc.desc: CheckCallAbilityPermission Test
+ * @tc.type: FUNC
+ * @tc.require: issueI5QXCQ
+ */
+HWTEST_F(PermissionVerificationTest, CheckCallAbilityPermission_0400, TestSize.Level1)
+{
+    AAFwk::PermissionVerification::VerificationInfo verificationInfo;
+    verificationInfo.specifyTokenId = SA_SPECIFY_TOKEN_ID;
+    verificationInfo.visible = true;
+    verificationInfo.isBackgroundCall = true;
+    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallAbilityPermission(verificationInfo);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
