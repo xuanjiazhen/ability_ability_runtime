@@ -20,6 +20,7 @@ ohos_unittest("ability_event_util_test") {
   module_out_path = module_output_path
 
   include_dirs = [
+    "mock/include",
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_services_path}/abilitymgr/include/utils",
     "${ability_runtime_services_path}/abilitymgr/include",
