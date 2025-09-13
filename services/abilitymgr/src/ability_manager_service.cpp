@@ -787,11 +787,11 @@ int AbilityManagerService::StartAbilityByUIContentSession(const Want &want, cons
         Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusChangeInfo);
         token = focusChangeInfo.abilityToken_;
     } else {
-        if (!wmsHandler_) {
+        if (!GetWMSHandler()) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "wmsHandler_ null");
             return ERR_INVALID_VALUE;
         }
-        wmsHandler_->GetFocusWindow(token);
+        GetWMSHandler()->GetFocusWindow(token);
     }
 #endif // SUPPORT_SCREEN
     if (!token) {
@@ -826,11 +826,11 @@ int AbilityManagerService::StartAbilityByUIContentSession(const Want &want, cons
         Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusChangeInfo);
         token = focusChangeInfo.abilityToken_;
     } else {
-        if (!wmsHandler_) {
+        if (!GetWMSHandler()) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "wmsHandler_ null");
             return ERR_INVALID_VALUE;
         }
-        wmsHandler_->GetFocusWindow(token);
+        GetWMSHandler()->GetFocusWindow(token);
     }
 #endif // SUPPORT_SCREEN
 
@@ -1265,7 +1265,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 
     if (callerToken != nullptr && CheckIfOperateRemote(want)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "try to StartRemoteAbility");
-        result = StartRemoteAbility(want, requestCode, validUserId, callerToken);
+        result = StartRemoteAbility(want, requestCode, validUserId, callerToken, specifyTokenId);
         eventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "StartRemoteAbility failed");
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
     }
@@ -4795,7 +4795,7 @@ int AbilityManagerService::SendResultToAbility(int32_t requestCode, int32_t resu
 }
 
 int AbilityManagerService::StartRemoteAbility(const Want &want, int requestCode, int32_t validUserId,
-    const sptr<IRemoteObject> &callerToken)
+    const sptr<IRemoteObject> &callerToken, uint32_t specifyTokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
@@ -4833,7 +4833,7 @@ int AbilityManagerService::StartRemoteAbility(const Want &want, int requestCode,
     UriUtils::GetInstance().CheckUriPermission(accessToken, remoteWant);
 #endif // SUPPORT_UPMS
     DistributedClient dmsClient;
-    int result = dmsClient.StartRemoteAbility(remoteWant, callerUid, requestCode, accessToken);
+    int result = dmsClient.StartRemoteAbility(remoteWant, callerUid, requestCode, accessToken, specifyTokenId);
     if (result != ERR_NONE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityManagerService::startRemoteAbility failed, result=%{public}d", result);
     }
@@ -6359,8 +6359,8 @@ int AbilityManagerService::MoveMissionsToForeground(const std::vector<int32_t>& 
         return CHECK_PERMISSION_FAILED;
     }
 #ifdef SUPPORT_SCREEN
-    if (wmsHandler_) {
-        auto ret = wmsHandler_->MoveMissionsToForeground(missionIds, topMissionId);
+    if (GetWMSHandler()) {
+        auto ret = GetWMSHandler()->MoveMissionsToForeground(missionIds, topMissionId);
         if (ret) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "moveMissionsToForeground failed, missiondIds may invalid");
             return ERR_INVALID_VALUE;
@@ -6381,8 +6381,8 @@ int AbilityManagerService::MoveMissionsToBackground(const std::vector<int32_t>& 
         return CHECK_PERMISSION_FAILED;
     }
 #ifdef SUPPORT_SCREEN
-    if (wmsHandler_) {
-        auto ret = wmsHandler_->MoveMissionsToBackground(missionIds, result);
+    if (GetWMSHandler()) {
+        auto ret = GetWMSHandler()->MoveMissionsToBackground(missionIds, result);
         if (ret) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "moveMissionsToBackground failed, missiondIds may invalid");
             return ERR_INVALID_VALUE;
@@ -9945,11 +9945,11 @@ int AbilityManagerService::GetTopAbility(sptr<IRemoteObject> &token)
         Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusChangeInfo);
         token = focusChangeInfo.abilityToken_;
     } else {
-        if (!wmsHandler_) {
+        if (!GetWMSHandler()) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "wmsHandler_ null");
             return ERR_INVALID_VALUE;
         }
-        wmsHandler_->GetFocusWindow(token);
+        GetWMSHandler()->GetFocusWindow(token);
     }
 
     if (!token) {
@@ -10710,14 +10710,16 @@ int AbilityManagerService::RegisterWindowManagerServiceHandler(const sptr<IWindo
         TAG_LOGE(AAFwkTag::ABILITYMGR, "only support null scb device");
         return CHECK_PERMISSION_FAILED;
     }
+    std::lock_guard<ffrt::mutex> guard(wmsHandlerLock_);
     wmsHandler_ = handler;
     isAnimationEnabled_ = animationEnabled;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "WMS handler registered successfully.");
     return ERR_OK;
 }
 
-sptr<IWindowManagerServiceHandler> AbilityManagerService::GetWMSHandler() const
+sptr<IWindowManagerServiceHandler> AbilityManagerService::GetWMSHandler()
 {
+    std::lock_guard<ffrt::mutex> guard(wmsHandlerLock_);
     return wmsHandler_;
 }
 
@@ -10942,6 +10944,7 @@ int AbilityManagerService::UnregisterAbilityFirstFrameStateObserver(
 
 bool AbilityManagerService::GetAnimationFlag()
 {
+    std::lock_guard<ffrt::mutex> guard(wmsHandlerLock_);
     return isAnimationEnabled_;
 }
 
@@ -11748,12 +11751,12 @@ std::shared_ptr<AbilityRecord> AbilityManagerService::GetFocusAbility()
 {
 #ifdef SUPPORT_SCREEN
     sptr<IRemoteObject> token;
-    if (!wmsHandler_) {
+    if (!GetWMSHandler()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "wmsHandler_ null");
         return nullptr;
     }
 
-    wmsHandler_->GetFocusWindow(token);
+    GetWMSHandler()->GetFocusWindow(token);
     if (!token) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "token null");
         return nullptr;

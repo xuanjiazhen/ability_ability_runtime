@@ -1267,7 +1267,7 @@ public:
 
     virtual void CompleteFirstFrameDrawing(int32_t sessionId) override;
 
-    sptr<IWindowManagerServiceHandler> GetWMSHandler() const;
+    sptr<IWindowManagerServiceHandler> GetWMSHandler();
 
     virtual int PrepareTerminateAbility(const sptr<IRemoteObject> &token,
         sptr<IPrepareTerminateCallback> &callback) override;
@@ -2254,7 +2254,7 @@ private:
     void InitGlobalConfiguration();
 
     int StartRemoteAbility(const Want &want, int requestCode, int32_t validUserId,
-        const sptr<IRemoteObject> &callerToken);
+        const sptr<IRemoteObject> &callerToken, uint32_t specifyTokenId = 0);
     int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool &isColdStart);
     int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo, uint32_t specifyTokenId,
         uint32_t sceneFlag, bool &isColdStart);
@@ -2857,6 +2857,7 @@ private:
     void InitFocusListener();
     void RegisterFocusListener();
     std::shared_ptr<ImplicitStartProcessor> implicitStartProcessor_;
+    ffrt::mutex wmsHandlerLock_;
     sptr<IWindowManagerServiceHandler> wmsHandler_;
 #endif
     std::shared_ptr<AbilityInterceptorExecuter> interceptorExecuter_;

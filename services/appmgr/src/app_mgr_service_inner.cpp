@@ -38,6 +38,7 @@
 #include "app_state_observer_manager.h"
 #include "app_utils.h"
 #include "appfreeze_manager.h"
+#include "application_state_filter.h"
 #include "application_state_observer_stub.h"
 #include "appspawn_util.h"
 #include "bundle_constants.h"
@@ -268,8 +269,6 @@ constexpr const char* EVENT_MESSAGE_START_SPECIFIED_ABILITY_TIMEOUT = "Start Spe
 constexpr const char* EVENT_MESSAGE_START_PROCESS_SPECIFIED_ABILITY_TIMEOUT =
     "Start Process Specified Ability TimeOut!";
 constexpr const char* EVENT_MESSAGE_DEFAULT = "AppMgrServiceInner HandleTimeOut!";
-constexpr const char* SUPPORT_CALL_NOTIFY_MEMORY_CHANGED =
-    "persist.sys.abilityms.support_call_notify_memory_changed";
 
 constexpr const char* SYSTEM_BASIC = "system_basic";
 constexpr const char* SYSTEM_CORE = "system_core";
@@ -807,6 +806,7 @@ int32_t AppMgrServiceInner::MakeKiaProcess(std::shared_ptr<AAFwk::Want> want, bo
 #ifdef INCLUDE_ZURI
     isFileUri = !want->GetUriString().empty() && want->GetUri().GetScheme() == "file";
 #endif
+    std::lock_guard<std::mutex> lock(kiaInterceptorMutex_);
     if (isFileUri && kiaInterceptor_ != nullptr) {
         auto resultCode = kiaInterceptor_->OnIntercept(*want);
         watermarkBusinessName = want->GetStringParam(KEY_WATERMARK_BUSINESS_NAME);
@@ -3891,11 +3891,11 @@ void AppMgrServiceInner::OnAbilityStateChanged(
     }
 }
 
-void AppMgrServiceInner::StateChangedNotifyObserver(
-    const AbilityStateData abilityStateData, bool isAbility, bool isFromWindowFocusChanged)
+void AppMgrServiceInner::StateChangedNotifyObserver(const AbilityStateData abilityStateData, bool isAbility,
+    bool isFromWindowFocusChanged, BundleType bundleType)
 {
     DelayedSingleton<AppStateObserverManager>::GetInstance()->StateChangedNotifyObserver(
-        abilityStateData, isAbility, isFromWindowFocusChanged);
+        abilityStateData, isAbility, isFromWindowFocusChanged, bundleType);
 }
 
 int32_t AppMgrServiceInner::StartPerfProcessByStartMsg(AppSpawnStartMsg &startMsg,
@@ -5373,11 +5373,11 @@ void AppMgrServiceInner::NotifyAppStatusByCallerUid(const std::string &bundleNam
     NotifyAppStatusByCommonEventName(bundleName, eventData, want);
 }
 
-int32_t AppMgrServiceInner::RegisterApplicationStateObserver(
-    const sptr<IApplicationStateObserver> &observer, const std::vector<std::string> &bundleNameList)
+int32_t AppMgrServiceInner::RegisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer,
+    const std::vector<std::string> &bundleNameList, const AppStateFilter &appStateFilter)
 {
     return DelayedSingleton<AppStateObserverManager>::GetInstance()->RegisterApplicationStateObserver(
-        observer, bundleNameList);
+        observer, bundleNameList, appStateFilter);
 }
 
 int32_t AppMgrServiceInner::UnregisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer)
@@ -9415,8 +9415,7 @@ int32_t AppMgrServiceInner::NotifyMemorySizeStateChanged(int32_t memorySizeState
     TAG_LOGI(AAFwkTag::APPMGR, "memorySizeState: %{public}d", memorySizeState);
     bool isMemmgrCall = AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
         MEMMGR_PROC_NAME);
-    bool isSupportCall = OHOS::system::GetBoolParameter(SUPPORT_CALL_NOTIFY_MEMORY_CHANGED, false);
-    if (!isMemmgrCall && !isSupportCall) {
+    if (!isMemmgrCall) {
         TAG_LOGE(AAFwkTag::APPMGR, "callerToken not %{public}s", MEMMGR_PROC_NAME);
         return ERR_PERMISSION_DENIED;
     }
@@ -10251,6 +10250,7 @@ int AppMgrServiceInner::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &inte
         TAG_LOGE(AAFwkTag::APPMGR, "interceptor is nullptr.");
         return ERR_INVALID_VALUE;
     }
+    std::lock_guard<std::mutex> lock(kiaInterceptorMutex_);
     kiaInterceptor_ = interceptor;
     return ERR_OK;
 }

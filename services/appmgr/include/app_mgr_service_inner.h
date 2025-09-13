@@ -44,6 +44,7 @@
 #include "app_scheduler_interface.h"
 #include "app_spawn_client.h"
 #include "appexecfwk_errors.h"
+#include "application_state_filter.h"
 #include "background_app_info.h"
 #include "bundle_info.h"
 #include "bundle_mgr_helper.h"
@@ -179,8 +180,8 @@ public:
      *
      * @return
      */
-    void StateChangedNotifyObserver(
-        const AbilityStateData abilityStateData, bool isAbility, bool isFromWindowFocusChanged);
+    void StateChangedNotifyObserver(const AbilityStateData abilityStateData, bool isAbility,
+        bool isFromWindowFocusChanged, BundleType bundleType = BundleType::APP);
 
     /**
      * RegisterAppStateCallback, register the callback.
@@ -847,7 +848,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t RegisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer,
-        const std::vector<std::string> &bundleNameList = {});
+        const std::vector<std::string> &bundleNameList = {}, const AppStateFilter &appStateFilter = AppStateFilter());
 
     /**
      * Unregister application or process state observer.
@@ -2182,6 +2183,7 @@ private:
 
     std::mutex loadTaskListMutex_;
     std::vector<LoadAbilityTaskFunc> loadAbilityTaskFuncList_;
+    std::mutex kiaInterceptorMutex_;
     sptr<IKiaInterceptor> kiaInterceptor_;
     std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
