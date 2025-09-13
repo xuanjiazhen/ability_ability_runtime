@@ -25,10 +25,10 @@ AbilityExperienceRule AbilityEcologicalRuleMgrServiceClient::queryStartExperienc
 AbilityEcologicalRuleMgrServiceClient::~AbilityEcologicalRuleMgrServiceClient()
 {}
 
-sptr<AbilityEcologicalRuleMgrServiceClient> AbilityEcologicalRuleMgrServiceClient::GetInstance()
+AbilityEcologicalRuleMgrServiceClient &AbilityEcologicalRuleMgrServiceClient::GetInstance()
 {
-    static sptr<AbilityEcologicalRuleMgrServiceClient> instance_ = new AbilityEcologicalRuleMgrServiceClient;
-    return instance_;
+    static AbilityEcologicalRuleMgrServiceClient manager;
+    return manager;
 }
 
 int32_t AbilityEcologicalRuleMgrServiceClient::QueryStartExperience(const OHOS::AAFwk::Want &want,

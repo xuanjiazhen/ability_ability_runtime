@@ -31,8 +31,7 @@ using AbilityInfo = OHOS::AppExecFwk::AbilityInfo;
 
 class AbilityEcologicalRuleMgrServiceClient : public RefBase {
 public:
-    DISALLOW_COPY_AND_MOVE(AbilityEcologicalRuleMgrServiceClient);
-    static sptr<AbilityEcologicalRuleMgrServiceClient> GetInstance();
+    static AbilityEcologicalRuleMgrServiceClient &GetInstance();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 
     int32_t EvaluateResolveInfos(const Want &want, const AbilityCallerInfo &callerInfo, int32_t type,
@@ -43,12 +42,11 @@ public:
 private:
     AbilityEcologicalRuleMgrServiceClient() {};
     ~AbilityEcologicalRuleMgrServiceClient();
+    DISALLOW_COPY_AND_MOVE(AbilityEcologicalRuleMgrServiceClient);
     static sptr<IAbilityEcologicalRuleMgrService> ConnectService();
     static bool CheckConnectService();
 
-    static mutex instanceLock_;
     static mutex proxyLock_;
-    static sptr<AbilityEcologicalRuleMgrServiceClient> instance_;
     static sptr<IAbilityEcologicalRuleMgrService> ecologicalRuleMgrServiceProxy_;
     static sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 

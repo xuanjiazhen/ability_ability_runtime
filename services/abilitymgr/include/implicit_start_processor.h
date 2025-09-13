@@ -138,7 +138,6 @@ private:
     bool IsExtensionInWhiteList(AppExecFwk::ExtensionAbilityType type);
     ffrt::mutex identityListLock_;
     std::list<IdentityNode> identityList_;
-    std::shared_ptr<AppExecFwk::BundleMgrHelper> iBundleManagerHelper_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
