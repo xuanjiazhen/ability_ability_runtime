@@ -158,7 +158,8 @@ void EventReport::LogStartErrorEvent(const std::string &name, HiSysEventType typ
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
         EVENT_KEY_ERROR_CODE, eventInfo.errCode,
         EVENT_KEY_ERROR_MESSAGE, eventInfo.errMsg,
-        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
+        EVENT_KEY_START_TYPE, eventInfo.startType);
 }
 
 void EventReport::LogSystemErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)

@@ -8723,6 +8723,18 @@ int AbilityManagerService::StartAbilityByCall(const Want &want, const sptr<IAbil
 int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
     const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent)
 {
+    auto ret = StartAbilityByCallWithErrMsgInner(want, connect, callerToken, accountId, errMsg, isSilent);
+    if (ret != ERR_OK) {
+        EventInfo eventInfo = BuildEventInfo(want, accountId);
+        eventInfo.startType = START_ABILITY_TYPE_BY_CALL;
+        eventHelper_.SendStartAbilityErrorEvent(eventInfo, ret, errMsg);
+    }
+    return ret;
+}
+
+int32_t StartAbilityByCallWithErrMsgInner(const Want &want, sptr<IAbilityConnection> connect,
+    sptr<IRemoteObject> callerToken, int32_t accountId, std::string &errMsg, bool isSilent)
+{
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
