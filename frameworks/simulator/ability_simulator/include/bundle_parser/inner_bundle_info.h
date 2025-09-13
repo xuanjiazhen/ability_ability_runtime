@@ -95,6 +95,7 @@ struct InnerModuleInfo {
     bool compressNativeLibs = true;
     std::vector<std::string> nativeLibraryFileNames;
     AOTCompileStatus aotCompileStatus = AOTCompileStatus::NOT_COMPILED;
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_2;
 };
 
 class InnerBundleInfo {

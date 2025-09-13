@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "bundle_constants.h"
 #include "module_info.h"
 
 namespace OHOS {
@@ -300,6 +301,8 @@ struct ApplicationInfo {
     std::string organization;
     std::string installSource;
     std::string configuration;
+
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_2;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

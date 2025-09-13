@@ -21,6 +21,7 @@
 #include "ability_info.h"
 #include "application_info.h"
 #include "extension_ability_info.h"
+#include "bundle_constants.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -175,6 +176,7 @@ struct HapModuleInfo {
 
     // overlay module info
     std::vector<OverlayModuleInfo> overlayModuleInfos;
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_2;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

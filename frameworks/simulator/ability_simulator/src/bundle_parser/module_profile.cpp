@@ -201,6 +201,7 @@ struct Ability {
     bool excludeFromMissions = false;
     bool recoverable = false;
     bool unclearableMission = false;
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_2;
 };
 
 struct Extension {
@@ -280,6 +281,7 @@ struct Module {
     std::string buildHash;
     std::string isolationMode;
     bool compressNativeLibs = true;
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_2;
 };
 
 struct ModuleJson {
@@ -781,6 +783,7 @@ bool ToAbilityInfo(
     abilityInfo.minWindowWidth = ability.minWindowWidth;
     abilityInfo.maxWindowHeight = ability.maxWindowHeight;
     abilityInfo.minWindowHeight = ability.minWindowHeight;
+    abilityInfo.codeLanguage = ability.codeLanguage;
     return true;
 }
 
