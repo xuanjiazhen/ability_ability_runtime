@@ -34,6 +34,7 @@ export default namespace abilityManager {
   export native function nativeGetTopAbility(callback:AsyncCallbackWrapper<ElementName>) : void;
   export native function nativeGetAbilityRunningInfos(callback:AsyncCallbackWrapper<Array<AbilityRunningInfo>>) : void;
   export native function nativeIsEmbeddedOpenAllowed(context: Context, appId: string, callback:AsyncCallbackWrapper<boolean>) : void;
+  export native function nativeIsEmbeddedOpenAllowedCheck(context: Context): void;
   export native function nativeOn(type:string, observer: AbilityForegroundStateObserver): void;
   export native function nativeOff(type:string, observer?: AbilityForegroundStateObserver): void;
   export native function nativeNotifyDebugAssertResult(sessionId: string, status: UserStatus, callback: AsyncCallbackWrapper<void>): void;
@@ -117,6 +118,7 @@ export default namespace abilityManager {
   }
 
   function isEmbeddedOpenAllowed(context: Context, appId: string): Promise<boolean> {
+    abilityManager.nativeIsEmbeddedOpenAllowedCheck(context);
     return new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError | null)=>void):void => {
       let asyncCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
         if (err == null || err.code == 0) {

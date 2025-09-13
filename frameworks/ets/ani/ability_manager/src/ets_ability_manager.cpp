@@ -103,6 +103,7 @@ public:
     static void GetTopAbility(ani_env *env, ani_object callback);
     static void GetAbilityRunningInfos(ani_env *env, ani_object callback);
     static void IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj, ani_string aniAppId, ani_object callbackObj);
+    static void IsEmbeddedOpenAllowedCheck(ani_env *env, ani_object contextObj);
     static void NativeOn(ani_env *env, ani_string aniType, ani_object aniObserver);
     static void NativeOff(ani_env *env, ani_string aniType, ani_object aniObserver);
     static void NativeNotifyDebugAssertResult(ani_env *env, ani_string aniSessionId, ani_object userStatusObj,
@@ -253,10 +254,9 @@ void EtsAbilityManager::GetAbilityRunningInfos(ani_env *env, ani_object callback
     AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errcode), retObject);
 }
 
-void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj,
-    ani_string aniAppId, ani_object callbackObj)
+void EtsAbilityManager::IsEmbeddedOpenAllowedCheck(ani_env *env, ani_object contextObj)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "IsEmbeddedOpenAllowed");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "IsEmbeddedOpenAllowedCheck");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
@@ -271,11 +271,29 @@ void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextOb
     if (uiAbilityContext == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null UIAbilityContext");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must be UIAbilityContext.");
+    }
+}
+
+void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj,
+    ani_string aniAppId, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "IsEmbeddedOpenAllowed");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
+        return;
+    }
+    auto uiAbilityContext = OHOS::AbilityRuntime::Context::ConvertTo<OHOS::AbilityRuntime::AbilityContext>(context);
+    if (uiAbilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null UIAbilityContext");
         return;
     }
     std::string appId;
     if (!AppExecFwk::GetStdString(env, aniAppId, appId)) {
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param appId failed, must be a string.");
         return;
     }
     auto token = uiAbilityContext->GetToken();
@@ -737,6 +755,8 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::QueryAtomicServiceStartupRule) },
         ani_native_function { "nativeQueryAtomicServiceStartupRuleCheck", "Lapplication/Context/Context;:V",
             reinterpret_cast<void *>(EtsAbilityManager::QueryAtomicServiceStartupRuleCheck) },
+        ani_native_function { "nativeIsEmbeddedOpenAllowedCheck", "Lapplication/Context/Context;:V",
+            reinterpret_cast<void *>(EtsAbilityManager::IsEmbeddedOpenAllowedCheck) },
         ani_native_function { "nativeOn", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOn) },
         ani_native_function { "nativeOff", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOff) },
         ani_native_function { "nativeNotifyDebugAssertResult",
