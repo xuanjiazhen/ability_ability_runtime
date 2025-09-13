@@ -87,6 +87,8 @@ public:
     int GetConnectionState() const;
 
     std::vector<sptr<AbilityConnectCallback>> GetCallbackList();
+
+    bool IsCallbackListEmpty();
 private:
     std::vector<sptr<AbilityConnectCallback>> abilityConnectCallbackList_;
     sptr<IRemoteObject> remoteObject_ = nullptr;

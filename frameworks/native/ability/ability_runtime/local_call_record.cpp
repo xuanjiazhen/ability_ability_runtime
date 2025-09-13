@@ -22,7 +22,7 @@ namespace {
 constexpr int32_t FOREGROUND = 2;
 constexpr int32_t BACKGROUND = 4;
 }
-int64_t LocalCallRecord::callRecordId = 0;
+std::atomic<int64_t> LocalCallRecord::callRecordId = 0;
 LocalCallRecord::LocalCallRecord(const AppExecFwk::ElementName& elementName)
 {
     recordId_ = callRecordId++;

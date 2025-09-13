@@ -199,12 +199,31 @@ napi_value JsFeatureAbility::OnFinishWithResult(napi_env env, NapiCallbackInfo& 
 
     napi_value globalValue = nullptr;
     napi_get_global(env, &globalValue);
-    napi_value jsonValue;
+    if (!globalValue) {
+        TAG_LOGE(AAFwkTag::FA, "get value failed");
+        return nullptr;
+    }
+
+    napi_value jsonValue = nullptr;
     napi_get_named_property(env, globalValue, "JSON", &jsonValue);
+    if (!jsonValue) {
+        TAG_LOGE(AAFwkTag::FA, "get value failed");
+        return nullptr;
+    }
+
     napi_value stringifyValue = nullptr;
     napi_get_named_property(env, jsonValue, "stringify", &stringifyValue);
+    if (!stringifyValue) {
+        TAG_LOGE(AAFwkTag::FA, "get value failed");
+        return nullptr;
+    }
+
     napi_value transValue = nullptr;
-    napi_call_function(env, jsonValue, stringifyValue, 1, &jsResultObj, &transValue);
+    napi_status status = napi_call_function(env, jsonValue, stringifyValue, 1, &jsResultObj, &transValue);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::FA, "call failed %{public}d", status);
+        return nullptr;
+    }
     std::string resultStr {};
     resultStr = UnwrapStringFromJS(env, transValue, "");
 
@@ -494,6 +513,11 @@ napi_value JsFeatureAbilityInit(napi_env env, napi_value exports)
 
     napi_value global = nullptr;
     napi_get_global(env, &global);
+    if (!global) {
+        TAG_LOGE(AAFwkTag::FA, "get global failed");
+        return nullptr;
+    }
+
     if (!CheckTypeForNapiValue(env, global, napi_object)) {
         TAG_LOGE(AAFwkTag::FA, "not NativeObject");
         return nullptr;
