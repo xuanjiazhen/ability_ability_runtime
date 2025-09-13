@@ -229,6 +229,10 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
         return false;
     }
 
+    if (getpid() == gettid()) {
+        DoSaveAppState(reason);
+        return true;
+    }
     auto task = [reason, ability]() {
         AppRecovery::GetInstance().DoSaveAppState(reason, ability);
     };
