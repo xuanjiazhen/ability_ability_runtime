@@ -55,28 +55,28 @@ class RecordWriter {
 
   private writeValueType(obj: Object): boolean {
     if (obj instanceof Boolean) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj.toBoolean()));
       return true;
     } else if (obj instanceof Byte) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj.toByte()));
       return true;
     } else if (obj instanceof Char) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj.toChar()));
       return true;
     } else if (obj instanceof Short) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj.toShort()));
       return true;
     } else if (obj instanceof Int) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj.toInt()));
       return true;
     } else if (obj instanceof Long) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj.toLong()));
       return true;
     } else if (obj instanceof Float) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj.toFloat()));
       return true;
     } else if (obj instanceof Double) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj.toDouble()));
       return true;
     } else if (obj instanceof BigInt) {
       this.buffer.append(JSON.stringify(obj));
@@ -186,7 +186,7 @@ export class RecordSerializeTool {
   }
 
   private static jsonValue2Object(value: JSONValue): string | number | boolean | null |
-  Array<valueType> | Record<string, valueType> {
+    Array<valueType> | Record<string, valueType> {
     if (value instanceof JSONString) {
       return value.value;
     } else if (value instanceof JSONNumber) {
