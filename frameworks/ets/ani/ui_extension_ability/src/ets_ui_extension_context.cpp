@@ -100,13 +100,17 @@ void EtsUIExtensionContext::OnTerminateSelf(ani_env *env, ani_object obj, ani_ob
         TAG_LOGE(AAFwkTag::UI_EXT, "context is nullptr");
         auto errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(errCode));
-        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(env, callback, aniObject);
         return;
     }
     context->SetTerminating(true);
     auto ret = context->TerminateSelf();
-    OHOS::AppExecFwk::AsyncCallback(env, callback,
-        OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+    if (ret == ERR_OK) {
+        OHOS::AppExecFwk::AsyncResolve(env, callback, nullptr);
+    } else {
+        OHOS::AppExecFwk::AsyncReject(env, callback,
+            OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)));
+    }
 }
 
 void EtsUIExtensionContext::OnTerminateSelfWithResult(ani_env *env, ani_object obj,
@@ -118,7 +122,7 @@ void EtsUIExtensionContext::OnTerminateSelfWithResult(ani_env *env, ani_object o
         TAG_LOGE(AAFwkTag::UI_EXT, "context is nullptr");
         auto errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(errCode));
-        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        AppExecFwk::AsyncReject(env, callback, aniObject);
         return;
     }
 
@@ -131,24 +135,25 @@ void EtsUIExtensionContext::OnTerminateSelfWithResult(ani_env *env, ani_object o
     OHOS::sptr<OHOS::Rosen::Window> uiWindow = context->GetWindow();
     if (!uiWindow) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
-        OHOS::AppExecFwk::AsyncCallback(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
-            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM)), nullptr);
+        OHOS::AppExecFwk::AsyncReject(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM)));
         return;
     }
     auto result = uiWindow->TransferAbilityResult(resultCode, want);
     if (result != OHOS::Rosen::WMError::WM_OK) {
-        OHOS::AppExecFwk::AsyncCallback(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
-            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM)), nullptr);
+        OHOS::AppExecFwk::AsyncReject(env, callback, OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM)));
         return;
     }
 #endif // SUPPORT_SCREEN
     auto ret = context->TerminateSelf();
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::UI_EXT, "TerminateSelf failed, errorCode is %{public}d", ret);
+        OHOS::AppExecFwk::AsyncReject(env, callback,
+            OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)));
         return;
     }
-    OHOS::AppExecFwk::AsyncCallback(env, callback,
-        OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+    OHOS::AppExecFwk::AsyncResolveWithNoError(env, callback, nullptr);
 }
 
 void EtsUIExtensionContext::OnStartAbility(
@@ -158,8 +163,8 @@ void EtsUIExtensionContext::OnStartAbility(
     AAFwk::Want want;
     ErrCode errCode = ERR_OK;
     if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
-        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant filed");
-        AppExecFwk::AsyncCallback(env, callbackObj, aniObject, nullptr);
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Parse param want failed, want must be Want");
         return;
     }
     auto context = context_.lock();
@@ -167,7 +172,7 @@ void EtsUIExtensionContext::OnStartAbility(
         TAG_LOGE(AAFwkTag::UI_EXT, "context is nullptr");
         errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(errCode));
-        AppExecFwk::AsyncCallback(env, callbackObj, aniObject, nullptr);
+        AppExecFwk::AsyncReject(env, callbackObj, aniObject);
         return;
     }
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
@@ -182,7 +187,7 @@ void EtsUIExtensionContext::OnStartAbility(
         if (!AppExecFwk::UnwrapStartOptions(env, opt, startOptions)) {
             TAG_LOGE(AAFwkTag::UI_EXT, "UnwrapStartOptions filed");
             aniObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant filed");
-            AppExecFwk::AsyncCallback(env, callbackObj, aniObject, nullptr);
+            AppExecFwk::AsyncReject(env, callbackObj, aniObject);
             return;
         }
         errCode = context->StartAbility(want, startOptions);
@@ -198,7 +203,11 @@ void EtsUIExtensionContext::OnStartAbility(
             freeInstallObserver_->OnInstallFinished(bundleName, abilityName, startTime, errCode);
         }
     } else {
-        AppExecFwk::AsyncCallback(env, callbackObj, aniObject, nullptr);
+        if (errCode != ERR_OK) {
+            AppExecFwk::AsyncReject(env, callbackObj, aniObject);
+        } else {
+            AppExecFwk::AsyncResolveWithNoError(env, callbackObj, nullptr);
+        }
     }
 }
 

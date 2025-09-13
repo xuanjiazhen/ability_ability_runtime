@@ -17,6 +17,7 @@
 #include "ani_common_util.h"
 
 #include "ani_enum_convert.h"
+#include "ets_error_utils.h"
 #include "running_process_info.h"
 #include "hilog_tag_wrapper.h"
 #include "securec.h"
@@ -1204,6 +1205,34 @@ bool GetStaticFieldString(ani_env *env, ani_class classObj, const char *fieldNam
         return false;
     }
     return true;
+}
+
+void AsyncResolve(ani_env *env, ani_object call, ani_object result)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "env is nullptr");
+        return;
+    }
+    AsyncCallback(env, call, AbilityRuntime::EtsErrorUtil::CreateError(
+        env, AbilityRuntime::AbilityErrorCode::ERROR_OK), result);
+}
+
+void AsyncResolveWithNoError(ani_env *env, ani_object call, ani_object result)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "env is nullptr");
+        return;
+    }
+    AsyncCallback(env, call, nullptr, result);
+}
+
+void AsyncReject(ani_env *env, ani_object call, ani_object error)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "env is nullptr");
+        return;
+    }
+    AsyncCallback(env, call, error, nullptr);
 }
 } // namespace AppExecFwk
 } // namespace OHOS
