@@ -61,6 +61,12 @@ public:
         return E_OK;
     }
 
+    virtual int32_t SetDirEncryptionPolicy(uint32_t userId,
+        const std::string &dirPath, uint32_t level) override
+    {
+        return E_OK;
+    }
+
     virtual int32_t NotifyMtpMounted(const std::string &id, const std::string &path,
     const std::string &desc, const std::string &uuid) override
     {
