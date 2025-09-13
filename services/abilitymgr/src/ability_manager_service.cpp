@@ -7758,7 +7758,7 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
 
     auto connectManager = GetConnectManagerByToken(abilityRecord->GetToken());
     if (connectManager) {
-        connectManager->OnAbilityDied(abilityRecord, abilityRecord->GetOwnerMissionUserId());
+        connectManager->OnAbilityDied(abilityRecord);
         return;
     } else {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager not found");
@@ -8231,7 +8231,24 @@ std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> AbilityManagerSe
 std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetCurrentConnectManager()
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
-    return subManagersHelper_->GetCurrentConnectManager();
+    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    if (userId == U0_USER_ID || userId == U1_USER_ID) {
+        userId = UserController::GetInstance().GetForegroundUserId(DisplayUtil::ObtainDefaultDisplayId());
+        if (userId == U0_USER_ID) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "GetForegroundUserId, userid: %{public}d", userId);
+            return subManagersHelper_->GetCurrentConnectManager();
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "no head call, default display userId is %{public}d", userId);
+        return subManagersHelper_->GetConnectManagerByUserId(userId);
+    }
+
+    if (!AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "non-front desk user call, connectManager userId is %{public}d", userId);
+        return subManagersHelper_->GetCurrentConnectManager();
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "front desk user call, connectManager userId is %{public}d", userId);
+    return subManagersHelper_->GetConnectManagerByUserId(userId);
 }
 
 std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerByUserId(int32_t userId)
