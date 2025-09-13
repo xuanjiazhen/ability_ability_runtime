@@ -550,36 +550,30 @@ ani_object NativeCreateSystemHspModuleResourceManager(ani_env *env, ani_object a
         TAG_LOGE(AAFwkTag::APPKIT, "env is nullptr");
         return nullptr;
     }
-    ani_ref undefRef = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = env->GetUndefined(&undefRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "GetUndefined failed %{public}d", status);
-        return nullptr;
-    }
     auto context = GetBaseContext(env, aniObj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
-        return reinterpret_cast<ani_object>(undefRef);
+        return AppExecFwk::CreateEtsUndefine(env);
     }
     std::string bundleName = "";
     if (!AppExecFwk::GetStdString(env, bundleNameObj, bundleName)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Parse bundleName failed");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param bundleName failed, bundleName must be string.");
-        return reinterpret_cast<ani_object>(undefRef);
+        return AppExecFwk::CreateEtsUndefine(env);
     }
     std::string moduleName = "";
     if (!AppExecFwk::GetStdString(env, moduleNameObj, moduleName)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Parse moduleName failed");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param moduleName failed, moduleName must be string.");
-        return reinterpret_cast<ani_object>(undefRef);
+        return AppExecFwk::CreateEtsUndefine(env);
     }
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
     int32_t retCode = context->CreateSystemHspModuleResourceManager(bundleName, moduleName, resourceManager);
     if (resourceManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null resourceManager, errorCode:%{public}d", retCode);
         EtsErrorUtil::ThrowError(env, retCode);
-        return reinterpret_cast<ani_object>(undefRef);
+        return AppExecFwk::CreateEtsUndefine(env);
     }
     return Global::Resource::ResMgrAddon::CreateResMgr(env, "", resourceManager, context);
 }
