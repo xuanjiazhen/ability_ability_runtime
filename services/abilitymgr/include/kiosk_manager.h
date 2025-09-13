@@ -31,6 +31,7 @@ namespace OHOS {
 namespace AAFwk {
 class KioskManager {
 public:
+    // compile
     static KioskManager &GetInstance();
     int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList);
     int32_t EnterKioskMode(sptr<IRemoteObject> callerToken);
