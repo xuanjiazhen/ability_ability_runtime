@@ -128,7 +128,7 @@ declare_args() {
   ability_runtime_udmf_enable = true
   ability_runtime_dsoftbus_enable = false
 
-  if (!defined(global_parts_info) ||
+  if (defined(global_parts_info) &&
       defined(global_parts_info.communication_dsoftbus)) {
     ability_runtime_dsoftbus_enable = true
   }
