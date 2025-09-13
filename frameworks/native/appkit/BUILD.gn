@@ -210,6 +210,7 @@ ohos_shared_library("appkit_native") {
     "napi:ace_napi",
     "preferences:native_preferences",
     "resource_management:global_resmgr",
+    "runtime_core:ani_helpers",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "storage_service:storage_manager_acl",
