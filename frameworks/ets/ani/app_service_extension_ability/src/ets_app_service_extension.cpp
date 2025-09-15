@@ -340,10 +340,13 @@ void EtsAppServiceExtension::GetSrcPath(std::string &srcPath)
 {
     TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "called");
     if (!Extension::abilityInfo_->srcEntrance.empty()) {
-        srcPath.append(Extension::abilityInfo_->moduleName + "/");
+        // srcPath.append(Extension::abilityInfo_->moduleName + "/");
         srcPath.append(Extension::abilityInfo_->srcEntrance);
-        srcPath.erase(srcPath.rfind('.'));
-        srcPath.append(".abc");
+        auto pos = srcPath.rfind(".");
+        if (pos != std::string::npos) {
+            srcPath.erase(pos);
+            srcPath.append(".abc");
+        }
     }
 }
 } // AbilityRuntime
