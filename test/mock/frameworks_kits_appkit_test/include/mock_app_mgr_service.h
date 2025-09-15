@@ -103,6 +103,9 @@ public:
         std::vector<int32_t> &pidList));
     MOCK_METHOD1(RegisterKiaInterceptor, int32_t(const sptr<IKiaInterceptor> &interceptor));
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
+    MOCK_METHOD4(RegisterApplicationStateObserverWithFilter, int32_t(sptr<IApplicationStateObserver>,
+        const std::vector<std::string>&, const AppStateFilter&, bool));
+
 
     void AttachApplication(const sptr<IRemoteObject>& app)
     {
