@@ -29,3 +29,5 @@ group("ani_packages") {
     "${ability_runtime_path}/frameworks/ets/ani/wantagent:aniwantagent",
   ]
 }
+
+testcode
