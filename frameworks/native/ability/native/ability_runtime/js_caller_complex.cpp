@@ -507,7 +507,11 @@ napi_value CreateJsCallerComplex(
 
     auto jsRemoteObj = CreateJsCalleeRemoteObject(env, remoteObj);
     jsCaller->SetJsRemoteObj(env, jsRemoteObj);
-    napi_wrap(env, object, jsCaller.release(), JsCallerComplex::Finalizer, nullptr, nullptr);
+    napi_status wrapStatus = napi_wrap(env, object, jsCaller.release(), JsCallerComplex::Finalizer, nullptr, nullptr);
+    if (wrapStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "napi_wrap failed");
+        return CreateJsUndefined(env);
+    }
     napi_set_named_property(env, object, "callee", jsRemoteObj);
     const char *moduleName = "JsCallerComplex";
     BindNativeFunction(env, object, "release", moduleName, JsCallerComplex::JsReleaseCall);

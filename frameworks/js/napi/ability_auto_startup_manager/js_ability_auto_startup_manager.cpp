@@ -365,8 +365,12 @@ napi_value JsAbilityAutoStartupManagerInit(napi_env env, napi_value exportObj)
     }
 
     auto jsAbilityAutoStartupManager = std::make_unique<JsAbilityAutoStartupManager>();
-    napi_wrap(env, exportObj, jsAbilityAutoStartupManager.release(),
+    napi_status wrapStatus = napi_wrap(env, exportObj, jsAbilityAutoStartupManager.release(),
         JsAbilityAutoStartupManager::Finalizer, nullptr, nullptr);
+    if (wrapStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "napi_wrap failed");
+        return nullptr;
+    }
 
     const char *moduleName = "JsAbilityAutoStartupManager";
     BindNativeFunction(env, exportObj, "on", moduleName, JsAbilityAutoStartupManager::RegisterAutoStartupCallback);
