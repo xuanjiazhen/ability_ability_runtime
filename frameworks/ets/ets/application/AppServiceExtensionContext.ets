@@ -20,19 +20,47 @@ import { ConnectOptions } from 'ability.connectOptions';
 import Want from '@ohos.app.ability.Want';
 import StartOptions from '@ohos.app.ability.StartOptions';
 
+class Cleaner {
+  public ptr: long = 0;
+  constructor(ptr: long) {
+    this.ptr = ptr;
+  }
+  native clean(): void;
+}
+export function callback(cleaner: Cleaner): void {
+  cleaner.clean();
+}
+let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
+let unregisterToken = new object();
 export default class AppServiceExtensionContext extends ExtensionContext {
+  constructor(context: long) {
+    super();
+    if (this.nativeEtsContext == 0) {
+      this.nativeEtsContext = context;
+    }
+    this.registerCleaner(this.nativeEtsContext);
+  }
+    nativeEtsContext: long = 0;
+    private cleaner: Cleaner | null = null;
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner(ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+  }
+  unregisterCleaner(): void {
+    destroyRegister.unregister(unregisterToken);
+  }
 
-  public native nativeConnectServiceExtensionAbility(want: Want, callback: ConnectOptions): number;
-  public native nativeDisconnectServiceExtensionAbility(sconnection: number,
+  public native nativeConnectAppServiceExtensionAbility(want: Want, callback: ConnectOptions): long;
+  public native nativeDisconnectAppServiceExtensionAbility(connection: long,
     callback: AsyncCallbackWrapper<void>): void;
   public native nativeStartAbility(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
   public native nativeTerminateSelf(callback: AsyncCallbackWrapper<void>): void;
 
-  connectServiceExtensionAbility(want: Want, callback: ConnectOptions): number {
-    return this.nativeConnectServiceExtensionAbility(want, callback);
+  connectAppServiceExtensionAbility(want: Want, callback: ConnectOptions): long {
+    return this.nativeConnectAppServiceExtensionAbility(want, callback);
   }
 
-  disconnectServiceExtensionAbility(connection: number): Promise<void> {
+  disconnectAppServiceExtensionAbility(connection: long): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -43,7 +71,7 @@ export default class AppServiceExtensionContext extends ExtensionContext {
           }
         });
         taskpool.execute((): void => {
-          this.nativeDisconnectServiceExtensionAbility(connection, myCall);
+          this.nativeDisconnectAppServiceExtensionAbility(connection, myCall);
       });
     });
     return p;
