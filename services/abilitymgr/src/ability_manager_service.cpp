@@ -3348,6 +3348,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
     result = isDlp ? IN_PROCESS_CALL(
         CheckOptExtensionAbility(want, abilityRequest, validUserId, extensionType, isImplicit, isStartAsCaller)) :
         CheckOptExtensionAbility(want, abilityRequest, validUserId, extensionType, isImplicit, isStartAsCaller);
+        result = ERR_OK;
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "checkOptExtensionAbility error");
         if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
@@ -3915,9 +3916,9 @@ int32_t AbilityManagerService::MoveUIAbilityToBackground(const sptr<IRemoteObjec
     }
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
-    if (!IsAppSelfCalled(abilityRecord)) {
-        return CHECK_PERMISSION_FAILED;
-    }
+    // if (!IsAppSelfCalled(abilityRecord)) {
+    //     return CHECK_PERMISSION_FAILED;
+    // }
     if (!IsAbilityControllerForeground(abilityRecord->GetAbilityInfo().bundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "move ability background failed in wukong mode");
         return ERR_WUKONG_MODE_CANT_MOVE_STATE;
@@ -4100,10 +4101,10 @@ int AbilityManagerService::TerminateUIExtensionAbility(const sptr<SessionInfo> &
     }
 
     auto result = JudgeAbilityVisibleControl(targetRecord->GetAbilityInfo());
-    if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "judgeAbilityVisibleControl error");
-        return result;
-    }
+    // if (result != ERR_OK) {
+    //     TAG_LOGE(AAFwkTag::ABILITYMGR, "judgeAbilityVisibleControl error");
+    //     return result;
+    // }
 
     if (!UIExtensionUtils::IsUIExtension(targetRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "cannot terminate except ui extension ability");
@@ -4927,6 +4928,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
         return ERR_INVALID_VALUE;
     }
 
+    result = ERR_OK;
     if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
         auto targetService = connectManager->GetServiceRecordByAbilityRequest(abilityRequest);
         result = CheckCallAppServiceExtensionPermission(abilityRequest, targetService, true);
