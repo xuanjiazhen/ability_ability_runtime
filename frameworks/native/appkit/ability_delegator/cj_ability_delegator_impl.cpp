@@ -737,7 +737,7 @@ void CJAbilityDelegatorImpl::RegisterClearFunc(ClearFunc func)
         TAG_LOGE(AAFwkTag::DELEGATOR, "invalid func");
         return;
     }
-
+    std::lock_guard<std::mutex> lck(mutexClearMonitor_);
     clearFunc_ = func;
 }
 

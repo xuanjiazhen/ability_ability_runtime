@@ -127,6 +127,7 @@ void JSAbilityForegroundStateObserver::AddJsObserverObject(const napi_value &jsO
     }
     napi_ref ref = nullptr;
     napi_create_reference(env_, jsObserverObject, 1, &ref);
+    std::lock_guard<std::mutex> lock(jsObserverObjectSetLock_);
     jsObserverObjectSet_.emplace(std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref)));
 }
 
@@ -138,7 +139,9 @@ void JSAbilityForegroundStateObserver::RemoveJsObserverObject(const napi_value &
     }
 
     auto observer = GetObserverObject(jsObserverObject);
+
     if (observer != nullptr) {
+        std::lock_guard<std::mutex> lock(jsObserverObjectSetLock_);
         jsObserverObjectSet_.erase(observer);
     }
 }
@@ -146,6 +149,7 @@ void JSAbilityForegroundStateObserver::RemoveJsObserverObject(const napi_value &
 void JSAbilityForegroundStateObserver::RemoveAllJsObserverObject()
 {
     if (!jsObserverObjectSet_.empty()) {
+        std::lock_guard<std::mutex> lock(jsObserverObjectSetLock_);
         jsObserverObjectSet_.clear();
     }
 }
