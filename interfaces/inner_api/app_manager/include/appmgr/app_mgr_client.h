@@ -374,6 +374,15 @@ public:
     virtual AppMgrResultCode GetConfiguration(Configuration& config, int32_t userId);
 
     /**
+     * GetConfiguration
+     *
+     * @param config to retrieve configuration data.
+     * @param userId valid user id.
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual AppMgrResultCode GetConfiguration(Configuration& config, int32_t userId);
+
+    /**
      * Ability attach timeout. If start ability encounter failure, attach timeout to terminate.
      *
      * @param token Ability identify.
