@@ -3915,9 +3915,9 @@ int32_t AbilityManagerService::MoveUIAbilityToBackground(const sptr<IRemoteObjec
     }
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
-    if (!IsAppSelfCalled(abilityRecord)) {
-        return CHECK_PERMISSION_FAILED;
-    }
+    // if (!IsAppSelfCalled(abilityRecord)) {
+    //     return CHECK_PERMISSION_FAILED;
+    // }
     if (!IsAbilityControllerForeground(abilityRecord->GetAbilityInfo().bundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "move ability background failed in wukong mode");
         return ERR_WUKONG_MODE_CANT_MOVE_STATE;
@@ -4934,10 +4934,10 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     } else {
         result = CheckCallServicePermission(abilityRequest);
     }
-    if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "%{public}s checkCallServicePermission error", __func__);
-        return result;
-    }
+    // if (result != ERR_OK) {
+    //     TAG_LOGE(AAFwkTag::SERVICE_EXT, "%{public}s checkCallServicePermission error", __func__);
+    //     return result;
+    // }
 
     ReportAppConnectOtherExtensionEvent(abilityInfo, want);
 

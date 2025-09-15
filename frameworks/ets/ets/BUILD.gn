@@ -1508,6 +1508,24 @@ ohos_prebuilt_etc("ability_runtime_share_extension_ability_abc_etc") {
   deps = [ ":ability_runtime_share_extension_ability_abc" ]
 }
 
+generate_static_abc("app_service_extension_ability") {
+  base_url = "./"
+  files = [
+    "./@ohos.app.ability.AppServiceExtensionAbility.ets",
+    "./application/AppServiceExtensionContext.ets",
+  ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/app_service_extension_ability.abc"
+}
+
+ohos_prebuilt_etc("app_service_extension_ability_abc_etc") {
+  source = "$target_out_dir/app_service_extension_ability.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":app_service_extension_ability" ]
+}
 generate_static_abc("ability_runtime_action_extension_ability_abc") {
   base_url = "./"
   files = [ "./@ohos.app.ability.ActionExtensionAbility.ets" ]
@@ -1644,6 +1662,7 @@ group("ets_packages") {
     ":atomic_service_options_abc_etc",
     ":application_state_observer_abc_etc",
     ":app_foreground_state_observer_abc_etc",
+    ":app_service_extension_ability_abc_etc",
     ":business_ability_info_abc_etc",
     ":business_ability_router_abc_etc",
     ":form_extension_ability_etc",
