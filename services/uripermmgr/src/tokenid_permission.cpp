@@ -20,6 +20,20 @@
 namespace OHOS {
 namespace AAFwk {
 
+/*
+
+bool TokenIdPermission::VerifyProxyAuthorizationUriPermission()
+{
+    if (!initProxyAuthorizationUriPermission_) {
+        initProxyAuthorizationUriPermission_ = true;
+        haveProxyAuthorizationUriPermission_ = PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
+            tokenId_, PermissionConstants::PERMISSION_PROXY_AUTHORIZATION_URI);
+    }
+    return haveProxyAuthorizationUriPermission_;
+}
+*/
+
+
 bool TokenIdPermission::VerifyProxyAuthorizationUriPermission()
 {
     if (!initProxyAuthorizationUriPermission_) {
