@@ -144,8 +144,6 @@ ohos_unittest("ability_manager_service_first_test") {
     external_deps += [ "dsoftbus:softbus_client" ]
   }
 
-  public_external_deps = [ "background_task_mgr:bgtaskmgr_innerkits" ]
-
   if (background_task_mgr_continuous_task_enable) {
     external_deps += [ "background_task_mgr:bgtaskmgr_innerkits" ]
   }
