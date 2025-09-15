@@ -18,6 +18,7 @@
 #include <iostream>
 #include <cstddef>
 #include <cstdint>
+#include "ability_util.h"
 #define private public
 #include "ability_event_util.h"
 #undef private
@@ -29,6 +30,17 @@ using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
+namespace AAFwk {
+bool AbilityUtil::s_bundleHelperStatus = true;
+std::shared_ptr<AppExecFwk::BundleMgrHelper> AbilityUtil::GetBundleManagerHelper()
+{
+    if (s_bundleHelperStatus) {
+        return DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    }
+    return nullptr;
+}
+} // namespace AAFwk
+
 namespace AbilityRuntime {
 class AbilityEventUtilTest : public testing::Test {
 public:
@@ -95,6 +107,26 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_SendStartAbilityError_0300, Test
     eventUtil->SendStartAbilityErrorEvent(eventInfo, errCode, errMsg);
     EXPECT_EQ(eventInfo.userId, -1);
     TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_SendStartAbilityError_0300 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_SendStartAbilityError_0400
+ * @tc.desc: SendKillProcessWithReasonEvent
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_SendStartAbilityError_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_SendStartAbilityError_0400 start");
+    std::shared_ptr<AbilityEventUtil> eventUtil = std::make_shared<AbilityEventUtil>();
+    EventInfo eventInfo = {};
+    int32_t errCode = 0;
+    std::string errMsg = "test event";
+    AbilityUtil::s_bundleHelperStatus = false;
+    eventUtil->SendStartAbilityErrorEvent(eventInfo, errCode, errMsg);
+    EXPECT_EQ(eventInfo.userId, -1);
+    AbilityUtil::s_bundleHelperStatus = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_SendStartAbilityError_0400 end");
 }
 
 /**
