@@ -837,7 +837,12 @@ napi_value JsAbilityManagerInit(napi_env env, napi_value exportObj)
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
 
     std::unique_ptr<JsAbilityManager> jsAbilityManager = std::make_unique<JsAbilityManager>();
-    napi_wrap(env, exportObj, jsAbilityManager.release(), JsAbilityManager::Finalizer, nullptr, nullptr);
+    napi_status wrapStatus = napi_wrap(env, exportObj, jsAbilityManager.release(),
+        JsAbilityManager::Finalizer, nullptr, nullptr);
+    if (wrapStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "napi_wrap failed");
+        return nullptr;
+    }
 
     napi_set_named_property(env, exportObj, "AbilityState", AbilityStateInit(env));
     napi_set_named_property(env, exportObj, "UserStatus", UserStatusInit(env));

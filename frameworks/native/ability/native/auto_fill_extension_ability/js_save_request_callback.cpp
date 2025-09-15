@@ -100,7 +100,11 @@ napi_value JsSaveRequestCallback::CreateJsSaveRequestCallback(napi_env env,
 
     std::unique_ptr<JsSaveRequestCallback> jsSession =
         std::make_unique<JsSaveRequestCallback>(sessionInfo, uiWindow);
-    napi_wrap(env, object, jsSession.release(), Finalizer, nullptr, nullptr);
+    napi_status wrapStatus = napi_wrap(env, object, jsSession.release(), Finalizer, nullptr, nullptr);
+    if (wrapStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "napi_wrap failed");
+        return CreateJsUndefined(env);
+    }
 
     const char *moduleName = "JsSaveRequestCallback";
     BindNativeFunction(env, object, "onSuccess", moduleName, SaveRequestSuccess);
