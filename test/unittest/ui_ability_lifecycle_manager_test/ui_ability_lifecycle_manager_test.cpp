@@ -2043,7 +2043,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, NotifySCBPendingActivationInSplitMode_00
     std::string errMsg;
     uiAbilityLifecycleManager->NotifySCBPendingActivationInSplitMode(sessionInfo, abilityRequest);
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-
 }
 /**
  * @tc.name: UIAbilityLifecycleManager_CreateSessionConfigurations_0100

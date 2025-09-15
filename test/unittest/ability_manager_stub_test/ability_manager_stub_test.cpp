@@ -3769,7 +3769,7 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIAbilitiesInSplitWindo
 
     data.WriteParcelable(nullptr);
 
-     sptr<IRemoteObject> token =
+    sptr<IRemoteObject> token =
         sptr<AppExecFwk::MockAbilityToken>(new (std::nothrow) AppExecFwk::MockAbilityToken());
     data.WriteRemoteObject(token);
 

@@ -1437,7 +1437,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartUIAbilitiesInSplitWindowMode_
  */
 HWTEST_F(AbilityManagerServiceThirteenthTest, StartUIAbilitiesInSplitWindowModeHandleWant_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, 
+    TAG_LOGI(AAFwkTag::TEST,
         "AbilityManagerServiceThirteenthTest StartUIAbilitiesInSplitWindowModeHandleWant_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
