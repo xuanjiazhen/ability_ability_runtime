@@ -183,7 +183,11 @@ void EtsAppServiceExtensionContext::TerminateSelf(ani_env *env, ani_object obj, 
     etsAppServiceExtensionContext->OnTerminateSelf(env, obj, callback);
 }
 
+<<<<<<< HEAD
 ani_int EtsAppServiceExtensionContext::ConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj,
+=======
+ani_long EtsAppServiceExtensionContext::ConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj,
+>>>>>>> add appServiceExtension code
     ani_object wantObj, ani_object connectOptionsObj)
 {
     TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "ConnectAppServiceExtensionAbility");
@@ -292,7 +296,11 @@ void EtsAppServiceExtensionContext::OnTerminateSelf(ani_env *env, ani_object obj
         nullptr);
 }
 
+<<<<<<< HEAD
 ani_int EtsAppServiceExtensionContext::OnConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj,
+=======
+ani_long EtsAppServiceExtensionContext::OnConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj,
+>>>>>>> add appServiceExtension code
     ani_object wantObj, ani_object connectOptionsObj)
 {
     TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnConnectAppServiceExtensionAbility call");
