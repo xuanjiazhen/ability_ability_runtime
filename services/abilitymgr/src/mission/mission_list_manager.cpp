@@ -4263,7 +4263,9 @@ int MissionListManager::PrepareClearMissionLocked(int missionId, const std::shar
         handler->CancelTask("PrepareTerminate_" + std::to_string(abilityRecord->GetAbilityRecordId()));
         return ERR_OK;
     }
-    handler->CancelTask("PrepareTerminate_" + std::to_string(abilityRecord->GetAbilityRecordId()));
+    if (handler) {
+        handler->CancelTask("PrepareTerminate_" + std::to_string(abilityRecord->GetAbilityRecordId()));
+    }
     return ClearMissionLocked(missionId, mission);
 }
 
