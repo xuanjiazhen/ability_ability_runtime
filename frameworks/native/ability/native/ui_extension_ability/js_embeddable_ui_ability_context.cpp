@@ -650,7 +650,11 @@ void JsEmbeddableUIAbilityContext::WrapJsUIAbilityContext(napi_env env,
     objValue = CreateJsBaseContext(env, uiAbiContext);
     std::unique_ptr<JsEmbeddableUIAbilityContext> jsContext = std::make_unique<JsEmbeddableUIAbilityContext>(
         uiAbiContext, nullptr, screenMode);
-    napi_wrap(env, objValue, jsContext.release(), Finalizer, nullptr, nullptr);
+    napi_status wrapStatus = napi_wrap(env, objValue, jsContext.release(), Finalizer, nullptr, nullptr);
+    if (wrapStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "napi_wrap failed");
+        return;
+    }
 
     auto abilityInfo = uiAbiContext->GetAbilityInfo();
     if (abilityInfo != nullptr) {
