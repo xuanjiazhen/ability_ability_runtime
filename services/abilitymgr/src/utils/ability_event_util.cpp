@@ -14,6 +14,7 @@
  */
 
 #include "ability_event_util.h"
+#include "ability_util.h"
 #include "app_scheduler.h"
 #include "hilog_tag_wrapper.h"
 
@@ -37,6 +38,13 @@ void AbilityEventUtil::SendStartAbilityErrorEvent(EventInfo &eventInfo, int32_t 
     EventName name = isSystemError ? EventName::START_ABILITY_SYSTEM_ERROR : EventName::START_ABILITY_ERROR;
     eventInfo.errCode = errCode;
     eventInfo.errMsg = errMsg;
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    std::string callerBundleName;
+    auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
+    if (bundleMgr != nullptr) {
+        IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, callerBundleName));
+    }
+    eventInfo.callerBundleName = callerBundleName.empty() ? std::to_string(callerUid) : callerBundleName;
     ffrt::submit([name, eventInfo]() {
         EventReport::SendAbilityEvent(name, HiSysEventType::FAULT, eventInfo);
         }, ffrt::task_attr().timeout(FFRT_TASK_TIMEOUT));
