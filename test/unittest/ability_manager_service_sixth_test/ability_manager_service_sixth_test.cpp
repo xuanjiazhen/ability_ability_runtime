@@ -26,6 +26,7 @@
 #undef protected
 
 #include "ability_manager_errors.h"
+#include "ability_scheduler_mock.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_db_cache.h"
@@ -33,7 +34,6 @@
 #include "mock_ability_token.h"
 #include "mock_my_flag.h"
 #include "mock_parameters.h"
-#include "ability_scheduler_mock.h"
 #include "mock_bundle_manager_proxy.h"
 #include "mock_task_handler_wrap.h"
 #include "process_options.h"
