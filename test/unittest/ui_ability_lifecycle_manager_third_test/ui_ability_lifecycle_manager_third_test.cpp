@@ -426,9 +426,8 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartSpecifiedRequest_005, TestSize
 {
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     SpecifiedRequest specifiedRequest(0, AbilityRequest());
-    auto originAppMgr = AppMgrUtil::appMgr_;
     auto appmgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
-    AppMgrUtil::appMgr_ = appmgr;
+    MyFlag::mockAppMgr_ = appmgr;
     EXPECT_CALL(*appmgr, IsSpecifiedModuleLoaded)
         .WillOnce([](const Want &, const AppExecFwk::AbilityInfo &, bool &result, bool &) {
             result = true;
@@ -436,7 +435,6 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartSpecifiedRequest_005, TestSize
         });
     mgr->StartSpecifiedRequest(specifiedRequest);
     EXPECT_FALSE(specifiedRequest.isCold);
-    AppMgrUtil::appMgr_ = originAppMgr;
 }
 
 /**
@@ -493,9 +491,8 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartSpecifiedRequest_009, TestSize
 {
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     SpecifiedRequest specifiedRequest(0, AbilityRequest());
-    auto originAppMgr = AppMgrUtil::appMgr_;
     auto appmgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
-    AppMgrUtil::appMgr_ = appmgr;
+    MyFlag::mockAppMgr_ = appmgr;
     EXPECT_CALL(*appmgr, IsSpecifiedModuleLoaded)
         .WillOnce([](const Want &, const AppExecFwk::AbilityInfo &, bool &result, bool &isDebug) {
             result = false;
@@ -505,7 +502,6 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartSpecifiedRequest_009, TestSize
     mgr->StartSpecifiedRequest(specifiedRequest);
     usleep(TIMEOUT_VALUE);
     EXPECT_TRUE(specifiedRequest.isCold);
-    AppMgrUtil::appMgr_ = originAppMgr;
 }
 
 /**
@@ -1253,7 +1249,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, IsSpecifiedModuleLoaded_001, TestSi
 
     AbilityRequest abilityRequest;
 
-    AppMgrUtil::appMgr_ = nullptr;
+    MyFlag::mockAppMgr_ = nullptr;
     SysMrgClient::instance_ = nullptr;
     bool isDebug = false;
     auto ret = uiAbilityLifecycleManager->IsSpecifiedModuleLoaded(abilityRequest, false, isDebug);
