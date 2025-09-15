@@ -101,6 +101,7 @@ ohos_unittest("ability_manager_service_first_test") {
     "access_token:libtokenid_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "appspawn:appspawn_client",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "bundle_framework:libappexecfwk_common",
