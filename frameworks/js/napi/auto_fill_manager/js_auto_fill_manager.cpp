@@ -252,7 +252,12 @@ napi_value JsAutoFillManagerInit(napi_env env, napi_value exportObj)
     }
 
     auto jsAbilityAutoFillManager = std::make_unique<JsAutoFillManager>();
-    napi_wrap(env, exportObj, jsAbilityAutoFillManager.release(), JsAutoFillManager::Finalizer, nullptr, nullptr);
+    napi_status wrapStatus = napi_wrap(env, exportObj, jsAbilityAutoFillManager.release(),
+        JsAutoFillManager::Finalizer, nullptr, nullptr);
+    if (wrapStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "napi_wrap failed");
+        return nullptr;
+    }
 
     napi_set_named_property(env, exportObj, "AutoFillType", CreateJsAutoFillType(env));
 
