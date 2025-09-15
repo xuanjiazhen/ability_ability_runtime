@@ -56,6 +56,7 @@ public:
 private:
     napi_env env_;
     volatile bool valid_ = true;
+    std::mutex jsObserverObjectMapLock_;
     std::map<int32_t, std::shared_ptr<NativeReference>> jsObserverObjectMap_;
     static std::unordered_map<int32_t, int32_t> innerStateToState_;
 };

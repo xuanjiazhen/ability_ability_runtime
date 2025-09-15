@@ -226,18 +226,21 @@ void JSAppStateObserver::AddJsObserverObject(const int32_t observerId, napi_valu
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     napi_ref ref = nullptr;
     napi_create_reference(env_, jsObserverObject, 1, &ref);
+    std::lock_guard<std::mutex> lock(jsObserverObjectMapLock_);
     jsObserverObjectMap_.emplace(observerId, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
 }
 
 bool JSAppStateObserver::RemoveJsObserverObject(const int32_t observerId)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
+    std::lock_guard<std::mutex> lock(jsObserverObjectMapLock_);
     bool result = (jsObserverObjectMap_.erase(observerId) == 1);
     return result;
 }
 
 bool JSAppStateObserver::FindObserverByObserverId(const int32_t observerId)
 {
+    std::lock_guard<std::mutex> lock(jsObserverObjectMapLock_);
     auto item = jsObserverObjectMap_.find(observerId);
     bool isExist = (item != jsObserverObjectMap_.end());
     return isExist;
@@ -246,6 +249,7 @@ bool JSAppStateObserver::FindObserverByObserverId(const int32_t observerId)
 size_t JSAppStateObserver::GetJsObserverMapSize()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
+    std::lock_guard<std::mutex> lock(jsObserverObjectMapLock_);
     size_t length = jsObserverObjectMap_.size();
     return length;
 }

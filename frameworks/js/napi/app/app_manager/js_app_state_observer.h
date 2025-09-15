@@ -50,6 +50,7 @@ public:
 
 private:
     napi_env env_;
+    std::mutex jsObserverObjectMapLock_;
     std::map<int32_t, std::shared_ptr<NativeReference>> jsObserverObjectMap_;
 };
 }  // namespace AbilityRuntime
