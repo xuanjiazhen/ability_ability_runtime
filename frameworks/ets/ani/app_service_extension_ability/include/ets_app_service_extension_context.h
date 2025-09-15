@@ -34,7 +34,7 @@ public:
 
     static void Finalizer(ani_env *env, void *data, void *hint);
     static void TerminateSelf(ani_env *env, ani_object obj, ani_object callback);
-    static ani_int ConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    static ani_long ConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object connectOptionsObj);
     static void DisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
         ani_object callback);
@@ -50,11 +50,11 @@ private:
     std::weak_ptr<AppServiceExtensionContext> context_;
     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;
     void OnTerminateSelf(ani_env *env, ani_object obj, ani_object callback);
-    ani_int OnConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_long OnConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object connectOptionsObj);
     void OnDisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
         ani_object callback);
-    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj,
+    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj = nullptr,
         ani_object callbackObj);
 };
 
