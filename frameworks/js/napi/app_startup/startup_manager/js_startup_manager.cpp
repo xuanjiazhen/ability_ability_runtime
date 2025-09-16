@@ -17,6 +17,7 @@
 
 #include "ability_runtime_error_util.h"
 #include "ability_stage_context.h"
+#include "event_report.h"
 #include "hilog_tag_wrapper.h"
 #include "js_startup_config.h"
 #include "js_startup_task_result.h"
@@ -96,6 +97,18 @@ napi_value JsStartupManager::OnRun(napi_env env, NapiCallbackInfo &info)
             napi_resolve_deferred(env, nativeDeferred, resolution);
             return;
         });
+    const auto timeoutCallback = []() {
+        auto startupManager = DelayedSingleton<StartupManager>::GetInstance();
+        AAFwk::EventInfo eventInfo;
+        eventInfo.errCode = ERR_STARTUP_TIMEOUT;
+        eventInfo.errMsg = "Manual task timeout.";
+        eventInfo.bundleName = startupManager->GetBundleName();
+        eventInfo.appIndex = startupManager->GetAppIndex();
+        eventInfo.userId = startupManager->GetUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        AAFwk::EventReport::SendAppStartupErrorEvent(
+            AAFwk::EventName::APP_STARTUP_ERROR, HiSysEventType::FAULT, eventInfo);
+    };
+    startupTaskManager->SetTimeoutCallback(timeoutCallback);
     result = startupTaskManager->Run(callback);
     if (result != ERR_OK) {
         if (!callback->IsCalled()) {
