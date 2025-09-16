@@ -177,7 +177,10 @@ void JsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
 
     SetExtensionCommon(
         JsExtensionCommon::Create(jsRuntime_, static_cast<NativeReference&>(*jsObj_), shellContextRef_));
-    handler_ = handler;
+    {
+        std::lock_guard<std::mutex> guard(lock_);
+        handler_ = handler;
+    }
     RegisterDisplayInfoChangedListener();
 }
 

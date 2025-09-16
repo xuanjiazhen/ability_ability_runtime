@@ -35,6 +35,7 @@ AbilityWindow::~AbilityWindow()
 void AbilityWindow::Init(const std::shared_ptr<AbilityHandler> &handler, const std::shared_ptr<Ability> &ability)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    std::lock_guard lock(mutex);
     handler_ = handler;
     ability_ = std::weak_ptr<IAbilityEvent>(ability);
     windowScene_ = std::make_shared<Rosen::WindowScene>();

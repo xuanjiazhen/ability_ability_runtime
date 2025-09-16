@@ -564,6 +564,7 @@ private:
     // False: no need to get a new fms remote object.
     volatile bool resetFlag_ = false;
 
+    std::mutex resetFlagMutex_;
     std::mutex overlaySubscriberMutex_;
     std::shared_ptr<AppExecFwk::OverlayEventSubscriber> overlaySubscriber_;
     std::string processName_;

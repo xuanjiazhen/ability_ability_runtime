@@ -1257,6 +1257,7 @@ protected:
 
     void SetSessionToken(sptr<IRemoteObject> sessionToken);
 
+    mutable std::sceneListenerMutex_;
     std::shared_ptr<Rosen::WindowScene> scene_ = nullptr;
     sptr<Rosen::IWindowLifeCycle> sceneListener_ = nullptr;
     sptr<AbilityDisplayListener> abilityDisplayListener_ = nullptr;
@@ -1356,6 +1357,8 @@ private:
     std::map<int, FeatureAbilityTask> resultCallbacks_;
     std::shared_ptr<AAFwk::Want> setWant_ = nullptr;
     sptr<IRemoteObject> reverseContinuationSchedulerReplica_ = nullptr;
+    std::mutex mutexlock_;
+    mutable std::mutex lifecycleMutex_;
 
     static const std::string SYSTEM_UI;
     static const std::string STATUS_BAR;

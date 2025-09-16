@@ -513,6 +513,7 @@ std::shared_ptr<Global::Resource::ResourceManager> AbilityContextImpl::GetResour
 void AbilityContextImpl::SetAbilityResourceManager(
     std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr)
 {
+    std::shared_lock<std::shared_mutex> lock(abilityResourceMgrMutex_);
     abilityResourceMgr_ = abilityResourceMgr;
 }
 
@@ -529,6 +530,7 @@ std::shared_ptr<AppExecFwk::Configuration> AbilityContextImpl::GetAbilityConfigu
 
 void AbilityContextImpl::SetAbilityConfiguration(const AppExecFwk::Configuration &config)
 {
+    std::unique_lock<std::shared_mutex> lock(abilityConfigurationMutex_);
     if (!abilityConfiguration_) {
         abilityConfiguration_ = std::make_shared<AppExecFwk::Configuration>(config);
         TAG_LOGI(AAFwkTag::CONTEXT, "abilityConfiguration: %{public}s", abilityConfiguration_->GetName().c_str());

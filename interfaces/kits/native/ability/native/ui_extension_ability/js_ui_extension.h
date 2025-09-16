@@ -211,6 +211,7 @@ private:
     std::shared_ptr<int32_t> screenModePtr_;
     sptr<IRemoteObject> token_ = nullptr;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
+    std::mutex lock_;
 
 #ifdef SUPPORT_GRAPHICS
     class JsUIExtensionAbilityDisplayListener : public OHOS::Rosen::IDisplayInfoChangedListener {

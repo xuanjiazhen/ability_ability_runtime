@@ -101,7 +101,10 @@ void Ability::Init(const std::shared_ptr<AbilityInfo> &abilityInfo, const std::s
     TAG_LOGD(AAFwkTag::ABILITY, "called");
     application_ = application;
     abilityInfo_ = abilityInfo;
-    handler_ = handler;
+    {
+        std::lock_guard<std::mutex> guard(mutexlock_);
+        handler_ = handler;
+    }
     AbilityContext::token_ = token;
 
 #ifdef SUPPORT_SCREEN
@@ -137,6 +140,7 @@ void Ability::Init(const std::shared_ptr<AbilityInfo> &abilityInfo, const std::s
 #endif
     lifecycle_ = std::make_shared<LifeCycle>();
     abilityLifecycleExecutor_ = std::make_shared<AbilityLifecycleExecutor>();
+    std::lock_guard<std::mutex> lock(lifecycleMutex_);
     abilityLifecycleExecutor_->DispatchLifecycleState(AbilityLifecycleExecutor::LifecycleState::INITIAL);
 
     if (abilityContext_ != nullptr) {
@@ -642,7 +646,9 @@ void Ability::OnEventDispatch()
 
 void Ability::SetWant(const AAFwk::Want &want)
 {
-    setWant_ = std::make_shared<AAFwk::Want>(want);
+    if (setWant_ != nullptr) {
+        setWant_ = std::make_shared<AAFwk::Want>(want);
+    }
 }
 
 std::shared_ptr<AAFwk::Want> Ability::GetWant()
@@ -1412,7 +1418,10 @@ sptr<IRemoteObject> Ability::CallRequest()
 ErrCode Ability::StartFeatureAbilityForResult(const Want &want, int requestCode, FeatureAbilityTask &&task)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    {
+        std::lock_guard<std::mutex> lock(mutexlock_);
+        resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
+    }
     ErrCode err = StartAbilityForResult(want, requestCode);
     TAG_LOGD(AAFwkTag::ABILITY, "ret:%{public}d", err);
     return err;
@@ -1698,6 +1707,7 @@ FormState Ability::OnAcquireFormState(const Want &want)
 
 void Ability::SetSceneListener(const sptr<Rosen::IWindowLifeCycle> &listener)
 {
+    std::lock_guard<std::mutex> lock(sceneListenerMutex_);
     sceneListener_ = listener;
 }
 

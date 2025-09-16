@@ -1518,6 +1518,7 @@ int ContextImpl::GetOverlayModuleInfos(const std::string &bundleName, const std:
     }
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "overlayMgrProxy_->GetTargetOverlayModuleInfo");
+        std::lock_guard<std::mutex> lock(overlayMgrProxyMutex_);
         auto ret = overlayMgrProxy_->GetTargetOverlayModuleInfo(moduleName, overlayModuleInfos);
         if (ret != ERR_OK) {
             TAG_LOGD(AAFwkTag::APPKIT, "GetOverlayModuleInfo form bms failed");
@@ -1686,7 +1687,10 @@ void ContextImpl::ShallowCopySelf(std::shared_ptr<ContextImpl> &contextImpl)
         std::lock_guard<std::mutex> lock(overlayMgrProxyMutex_);
         contextImpl->overlayMgrProxy_ = overlayMgrProxy_;
     }
-    contextImpl->resetFlag_ = resetFlag_;
+    {
+        std::lock_guard<std::mutex> lock(resetFlagMutex_);
+        contextImpl->resetFlag_ = resetFlag_;
+    }
     contextImpl->processName_ = processName_;
 }
 

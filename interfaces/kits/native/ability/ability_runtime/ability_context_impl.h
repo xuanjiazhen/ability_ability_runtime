@@ -416,6 +416,8 @@ private:
     std::mutex onRequestResultMutex_;
     std::mutex onAtomicRequestResultMutex_;
     std::mutex onOpenLinkRequestResultMutex_;
+    std::mutex abilityConfigurationMutex_;
+    std::mutex abilityResourceMgrMutex_;
     std::vector<std::shared_ptr<OnRequestResultElement>> onRequestResults_;
     std::vector<std::shared_ptr<OnAtomicRequestResult>> onAtomicRequestResults_;
     std::vector<std::shared_ptr<AAFwk::OnOpenLinkRequestResult>> onOpenLinkRequestResults_;

@@ -108,6 +108,7 @@ private:
     std::shared_ptr<Rosen::WindowScene> windowScene_;
     bool isWindowAttached = false;
     std::mutex sessionTokenMutex_;
+    std::mutex mutex_;
     sptr<IRemoteObject> sessionToken_ = nullptr;
 };
 }  // namespace AppExecFwk
