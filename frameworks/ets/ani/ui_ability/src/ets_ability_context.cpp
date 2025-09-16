@@ -503,6 +503,19 @@ void EtsAbilityContext::OpenAtomicService(
     etsContext->OnOpenAtomicService(env, aniObj, aniAppId, callbackObj, optionsObj);
 }
 
+#ifdef SUPPORT_SCREEN
+void EtsAbilityContext::SetMissionContinueState(ani_env *env, ani_object aniObj, ani_object stateObj,
+    ani_object callbackObj)
+{
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetMissionContinueState(env, aniObj, stateObj, callbackObj);
+}
+#endif
+
 int32_t EtsAbilityContext::GenerateRequestCode()
 {
     static int32_t curRequestCode_ = 0;
@@ -1420,19 +1433,33 @@ void EtsAbilityContext::OpenAtomicServiceInner(ani_env *env, ani_object aniObj, 
     }
 }
 
-void EtsAbilityContext::WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj)
+void EtsAbilityContext::OnSetMissionContinueState(ani_env *env, ani_object aniObj, ani_object stateObj,
+    ani_object callbackObj)
 {
-    TAG_LOGD(AAFwkTag::CONTEXT, "ConnectUIServiceExtensionCheck called");
-    if (env == nullptr || aniObj == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context is nullptr");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
         return;
     }
-    AAFwk::Want want;
-    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "UnwrapWant failed");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want");
+    int state = 0;
+    bool result = AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, stateObj, state);
+    if (result == false) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Unwrap state failed");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM), nullptr);
         return;
     }
+    AAFwk::ContinueState fwkState = AAFwk::ContinueState::CONTINUESTATE_UNKNOWN;
+    if (state == AAFwk::ContinueState::CONTINUESTATE_ACTIVE) {
+        fwkState = AAFwk::ContinueState::CONTINUESTATE_ACTIVE;
+    } else {
+        fwkState = AAFwk::ContinueState::CONTINUESTATE_INACTIVE;
+    }
+    auto innerErrCode = context->SetMissionContinueState(fwkState);
+    AppExecFwk::AsyncCallback(env, callbackObj,
+        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
 }
 
 void EtsAbilityContext::ConnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj,
@@ -1817,33 +1844,59 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(EtsAbilityContext::SetColorMode)},
             ani_native_function { "nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
-            ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
-                reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicService) },
-            ani_native_function{"nativeConnectUIServiceExtensionAbility", SIGNATURE_CONNECT_UI_SERVICE_EXTENSION,
-                reinterpret_cast<void*>(EtsAbilityContext::ConnectUIServiceExtension)},
-            ani_native_function{"nativeStartUIServiceExtensionAbility", SIGNATURE_START_UI_SERVICE_EXTENSION,
-                reinterpret_cast<void*>(EtsAbilityContext::StartUIServiceExtension)},
-            ani_native_function{"nativeDisconnectUIServiceExtensionAbility", SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION,
-                reinterpret_cast<void*>(EtsAbilityContext::DisconnectUIServiceExtension)},
-            ani_native_function{"nativeWantCheck", SIGNATURE_WANT_CHK,
-                reinterpret_cast<void*>(EtsAbilityContext::WantCheck)},
-            ani_native_function{"nativeDisconnectUIServiceExtensionCheck",
-                SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK,
-                reinterpret_cast<void*>(EtsAbilityContext::DisconnectUIServiceExtensionCheck)},
-            ani_native_function { "nativeRequestDialogService", SIGNATURE_REQUEST_DIALOG_SERVICE,
-                reinterpret_cast<void*>(EtsAbilityContext::RequestDialogService) },
-            ani_native_function { "nativeStartSelfUIAbilityInCurrentProcessSync",
-                "L@ohos/app/ability/Want/Want;Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
-                reinterpret_cast<void *>(EtsAbilityContext::StartSelfUIAbilityInCurrentProcess) },
-            ani_native_function { "nativeStartSelfUIAbilityInCurrentProcessSync",
-                "L@ohos/app/ability/Want/Want;Lstd/core/String;L@ohos/app/ability/StartOptions/StartOptions;Lutils/"
-                "AbilityUtils/AsyncCallbackWrapper;:V",
-                reinterpret_cast<void *>(EtsAbilityContext::StartSelfUIAbilityInCurrentProcessWithOptions) },
-            ani_native_function { "nativeRestartAppSync", "L@ohos/app/ability/Want/Want;:V",
-                reinterpret_cast<void*>(EtsAbilityContext::RestartAppWithWindow) },
-            ani_native_function { "nativeSetMissionWindowIcon",
-                "L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,	
+                reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicService) },	
+            ani_native_function{"nativeConnectUIServiceExtensionAbility", SIGNATURE_CONNECT_UI_SERVICE_EXTENSION,	
+                reinterpret_cast<void*>(EtsAbilityContext::ConnectUIServiceExtension)},	
+            ani_native_function{"nativeStartUIServiceExtensionAbility", SIGNATURE_START_UI_SERVICE_EXTENSION,	
+                reinterpret_cast<void*>(EtsAbilityContext::StartUIServiceExtension)},	
+            ani_native_function{"nativeDisconnectUIServiceExtensionAbility", SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION,	
+                reinterpret_cast<void*>(EtsAbilityContext::DisconnectUIServiceExtension)},	
+            ani_native_function{"nativeWantCheck", SIGNATURE_WANT_CHK,	
+                reinterpret_cast<void*>(EtsAbilityContext::WantCheck)},	
+            ani_native_function{"nativeDisconnectUIServiceExtensionCheck",	
+                SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK,	
+                reinterpret_cast<void*>(EtsAbilityContext::DisconnectUIServiceExtensionCheck)},	
+            ani_native_function { "nativeRequestDialogService", SIGNATURE_REQUEST_DIALOG_SERVICE,	
+                reinterpret_cast<void*>(EtsAbilityContext::RequestDialogService) },	
+            ani_native_function { "nativeStartSelfUIAbilityInCurrentProcessSync",	
+                "L@ohos/app/ability/Want/Want;Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",	
+                reinterpret_cast<void *>(EtsAbilityContext::StartSelfUIAbilityInCurrentProcess) },	
+            ani_native_function { "nativeStartSelfUIAbilityInCurrentProcessSync",	
+                "L@ohos/app/ability/Want/Want;Lstd/core/String;L@ohos/app/ability/StartOptions/StartOptions;Lutils/"	
+                "AbilityUtils/AsyncCallbackWrapper;:V",	
+                reinterpret_cast<void *>(EtsAbilityContext::StartSelfUIAbilityInCurrentProcessWithOptions) },	
+            ani_native_function { "nativeRestartAppSync", "L@ohos/app/ability/Want/Want;:V",	
+                reinterpret_cast<void*>(EtsAbilityContext::RestartAppWithWindow) },	
+            ani_native_function { "nativeSetMissionWindowIcon",	
+                "L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",	
                 reinterpret_cast<void*>(EtsAbilityContext::SetMissionWindowIcon) },
+#ifdef SUPPORT_GRAPHICS
+            ani_native_function { "nativeSetMissionContinueState",
+                "C{@ohos.app.ability.AbilityConstant.AbilityConstant.ContinueState}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::SetMissionContinueState) },
+#endif
+            ani_native_function { "nativeRevokeDelegator", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void *>(EtsAbilityContext::RevokeDelegator) },
+            ani_native_function { "nativeStartAbilityForResultWithAccount",
+                "C{@ohos.app.ability.Want.Want}iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccount) },
+            ani_native_function { "nativeStartAbilityForResultWithAccountCheck", ":",
+                reinterpret_cast<void *>(EtsAbilityContext::StartAbilityForResultWithAccountCheck) },
+            ani_native_function { "nativeStartAbilityForResultWithAccountVoid",
+                "C{@ohos.app.ability.Want.Want}iC{@ohos.app.ability.StartOptions.StartOptions}"
+                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccountVoid) },
+            ani_native_function { "nativeStartAbilityForResultWithAccountResult",
+                "C{@ohos.app.ability.Want.Want}iC{@ohos.app.ability.StartOptions.StartOptions}"
+                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccountResult) },
+            ani_native_function { "nativeRestoreWindowStage", SIGNATURE_RESTORE_WINDOW_STAGE,
+                reinterpret_cast<void *>(EtsAbilityContext::RestoreWindowStage) },
+            ani_native_function { "nativeStartAbilityAsCaller", SIGNATURE_START_ABILITY_AS_CALLER,
+                reinterpret_cast<void *>(EtsAbilityContext::StartAbilityAsCaller) },
+            ani_native_function { "nativeStartRecentAbility", SIGNATURE_START_RECENT_ABILITY,
+                reinterpret_cast<void *>(EtsAbilityContext::StartRecentAbility) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
