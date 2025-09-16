@@ -1072,8 +1072,6 @@ public:
     virtual int ReleaseCall(
         const sptr<IAbilityConnection> &connect, const AppExecFwk::ElementName &element) override;
 
-    std::list<std::shared_ptr<ConnectionRecord>> GetConnectRecordListByCallback(sptr<IAbilityConnection> callback);
-
     void OnAbilityDied(std::shared_ptr<AbilityRecord> abilityRecord);
     void OnCallConnectDied(std::shared_ptr<CallRecord> callRecord);
     void HandleLoadTimeOut(int64_t abilityRecordId, bool isHalf = false, bool isExtension = false);
@@ -2283,7 +2281,6 @@ private:
 
     bool CheckIfOperateRemote(const Want &want);
     std::string AnonymizeDeviceId(const std::string& deviceId);
-    bool VerificationToken(const sptr<IRemoteObject> &token);
     void RequestPermission(const Want *resultWant);
 
     bool CheckIsRemote(const std::string& deviceId);
