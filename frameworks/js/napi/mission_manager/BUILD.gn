@@ -114,7 +114,7 @@ ohos_shared_library("distributedmissionmanager") {
   ]
 
   relative_install_dir = "module"
-
+  version_script = "libdistributedmanager.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
