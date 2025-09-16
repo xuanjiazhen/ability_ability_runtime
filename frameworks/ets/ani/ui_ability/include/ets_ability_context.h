@@ -117,6 +117,37 @@ public:
 private:
     void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
     void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call);
+    static bool IsInstanceOf(ani_env *env, ani_object aniObj);
+    static void NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled);
+    static void NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj, ani_boolean isShow,
+        ani_object callbackObj);
+    static void StartAbilityAsCaller(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object callbackObj, ani_object startOptionsObj);
+    static void StartRecentAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object callbackObj, ani_object startOptionsObj);
+    static void OpenLinkCheck(ani_env *env, ani_object aniObj, ani_string aniLink);
+    static void OpenAtomicServiceCheck(ani_env *env, ani_object aniObj);
+    static void StartAbilityForResultWithAccountCheck(ani_env *env, ani_object aniObj);
+
+#ifdef SUPPORT_GRAPHICS
+public:
+    static void SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
+        ani_object callback);
+    static void SetMissionIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj, ani_object callbackObj);
+    static void SetAbilityInstanceInfoCheck(ani_env *env, ani_object aniObj, ani_string labelObj,
+        ani_object iconObj);
+    static void SetMissionIconCheck(ani_env *env, ani_object aniObj, ani_object pixelMapObj);
+    static void SetMissionContinueState(ani_env *env, ani_object aniObj, ani_object state, ani_object callbackObj);
+private:
+    void OnSetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
+        ani_object callback);
+    void OnSetMissionIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj, ani_object callbackObj);
+    void OnSetMissionContinueState(ani_env *env, ani_object aniObj, ani_object stateObj, ani_object callbackObj);
+#endif
+private:
+    void InheritWindowMode(AAFwk::Want &want);
+    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call,
+        bool isStartRecent = false);
     void OnStartAbilityForResult(
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj, ani_object callback);
     void OnTerminateSelf(ani_env *env, ani_object aniObj, ani_object callback);
