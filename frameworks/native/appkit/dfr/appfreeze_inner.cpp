@@ -39,9 +39,8 @@ namespace {
 constexpr int32_t HALF_DURATION = 3000;
 constexpr int32_t HALF_INTERVAL = 300;
 const bool BETA_VERSION = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
-static constexpr const char *const IN_FOREGROUND = "Yes";
-static constexpr const char *const IN_BACKGROUND = "No";
 constexpr int32_t APPFREEZE_INNER_TASKWORKER_NUM = 1;
+static constexpr const char *const BACKGROUND_REASON = "Background warning";
 }
 std::weak_ptr<EventHandler> AppfreezeInner::appMainHandler_;
 std::shared_ptr<AppfreezeInner> AppfreezeInner::instance_ = nullptr;
@@ -121,7 +120,9 @@ void AppfreezeInner::GetMainHandlerDump(std::string& msgContent)
 void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string& msgContent)
 {
     faultData.errorObject.message += msgContent;
-    faultData.faultType = FaultDataType::APP_FREEZE;
+    faultData.isInForeground = GetAppInForeground();
+    bool isInBackGround = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData);
+    faultData.faultType = isInBackGround ? FaultDataType::BACKGROUND_WARNING : FaultDataType::APP_FREEZE;
     faultData.notifyApp = false;
     faultData.waitSaveState = false;
     faultData.forceExit = false;
@@ -138,7 +139,8 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
     if (isExit) {
         faultData.forceExit = true;
         faultData.waitSaveState = AppRecovery::GetInstance().IsEnabled();
-        AAFwk::ExitReason exitReason = {REASON_APP_FREEZE, "Kill Reason:" + faultData.errorObject.name};
+        std::string reason = isInBackGround ? BACKGROUND_REASON : faultData.errorObject.name;
+        AAFwk::ExitReason exitReason = {REASON_APP_FREEZE, "Kill Reason:" + reason};
         AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
     }
     NotifyANR(faultData);
@@ -153,7 +155,6 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
     faultData.errorObject.message =
         "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
     faultData.errorObject.message += "App main thread is not response!";
-    faultData.faultType = FaultDataType::APP_FREEZE;
     int32_t pid = static_cast<int32_t>(getpid());
     if (isSixSecondEvent) {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
@@ -181,7 +182,6 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
 void AppfreezeInner::EnableFreezeSample(FaultData& newFaultData)
 {
     std::string eventName = newFaultData.errorObject.name;
-    newFaultData.isInForeground = GetAppInForeground();
     if (eventName == AppFreezeType::THREAD_BLOCK_3S || eventName == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
         OHOS::HiviewDFX::Watchdog::GetInstance().StartSample(HALF_DURATION, HALF_INTERVAL);
         TAG_LOGI(AAFwkTag::APPDFR, "start to sample freeze stack, eventName:%{public}s", eventName.c_str());
@@ -278,7 +278,6 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
         faultData.appfreezeInfo = it->appfreezeInfo;
         faultData.appRunningUniqueId = it->appRunningUniqueId;
         faultData.procStatm = it->procStatm;
-        faultData.isInForeground = it->isInForeground;
         faultData.isEnableMainThreadSample = it->isEnableMainThreadSample;
         faultData.schedTime = it->schedTime;
         faultData.detectTime = it->detectTime;
@@ -299,7 +298,6 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent, uint64_t sc
     faultData.errorObject.message =
         "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
     faultData.errorObject.message += "App main thread is not response!";
-    faultData.faultType = FaultDataType::APP_FREEZE;
     bool onlyMainThread = false;
     int32_t pid = static_cast<int32_t>(getpid());
     faultData.pid = pid;

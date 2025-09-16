@@ -7220,7 +7220,8 @@ void AppMgrServiceInner::AppRecoveryNotifyApp(int32_t pid, const std::string& bu
 void AppMgrServiceInner::ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid,
     const std::string &bundleName, const std::string &processName, const bool isOccurException)
 {
-    if (faultData.faultType == FaultDataType::APP_FREEZE) {
+    if (faultData.faultType == FaultDataType::APP_FREEZE ||
+        faultData.faultType == FaultDataType::BACKGROUND_WARNING) {
         AppfreezeManager::AppInfo info = {
             .isOccurException = isOccurException,
             .pid = pid,
@@ -7259,7 +7260,9 @@ int AppMgrServiceInner::GetExceptionTimerId(const FaultData &faultData, const st
                 TAG_LOGI(AAFwkTag::APPMGR, "Ffrt Exception faultData: %{public}s,pid: %{public}d "
                     "will exit because"" %{public}s", bundleName.c_str(), pid,
                     innerService->FaultTypeToString(faultData.faultType).c_str());
-                innerService->KillProcessByPid(pid, faultData.errorObject.name);
+                std::string reason = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData) ?
+                    AppFreezeType::BACKGROUND_WARNING : faultData.errorObject.name;
+                innerService->KillProcessByPid(pid, reason);
                 return;
             }
         };
@@ -7349,7 +7352,7 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         return ERR_OK;
     }
 
-    if (faultData.faultType == FaultDataType::APP_FREEZE) {
+    if (faultData.faultType == FaultDataType::APP_FREEZE || faultData.faultType == FaultDataType::BACKGROUND_WARNING) {
         if (CheckAppFault(appRecord, faultData)) {
             return ERR_OK;
         }
@@ -7423,7 +7426,9 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
             uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
             AppExecFwk::AppfreezeManager::GetInstance()->RegisterAppKillTime(pid, now);
-            innerService->KillProcessByPid(pid, faultData.errorObject.name);
+            std::string reason = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData) ?
+                AppFreezeType::BACKGROUND_WARNING : faultData.errorObject.name;
+            innerService->KillProcessByPid(pid, reason);
             return;
         };
         constexpr int32_t waitTime = 3500;
@@ -7608,6 +7613,9 @@ std::string AppMgrServiceInner::FaultTypeToString(AppExecFwk::FaultDataType type
             break;
         case AppExecFwk::FaultDataType::RESOURCE_CONTROL:
             typeStr = "RESOURCE_CONTROL";
+            break;
+        case AppExecFwk::FaultDataType::BACKGROUND_WARNING:
+            typeStr = "BACKGROUND_WARNING";
             break;
         default:
             break;

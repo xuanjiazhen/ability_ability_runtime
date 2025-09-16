@@ -436,5 +436,23 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetFirstLine_001, TestSize.L
     appfreezeManager->GetFirstLine("/data/log/test");
     EXPECT_TRUE(appfreezeManager != nullptr);
 }
+
+/**
+ * @tc.number: AppfreezeManagerTest_CheckInBackGround_001
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckInBackGround_001, TestSize.Level1)
+{
+    FaultData faultData;
+    bool ret = appfreezeManager->CheckInBackGround(faultData);
+    EXPECT_EQ(ret, false);
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    ret = appfreezeManager->CheckInBackGround(faultData);
+    EXPECT_EQ(ret, true);
+    faultData.isInForeground = true;
+    ret = appfreezeManager->CheckInBackGround(faultData);
+    EXPECT_EQ(ret, false);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
