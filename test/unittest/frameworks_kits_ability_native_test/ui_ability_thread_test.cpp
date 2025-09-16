@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <thread>
 #include <functional>
 #include <gtest/gtest.h>
 #define private public
@@ -172,7 +173,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_ScheduleSaveAbilityState_0100, Func
             std::shared_ptr<EventRunner> mainRunner = EventRunner::Create(abilityInfo->name);
             abilitythread->Attach(application, abilityRecord, mainRunner, nullptr);
             abilitythread->ScheduleSaveAbilityState();
-            sleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_ScheduleSaveAbilityState_0100 end";
@@ -217,7 +218,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_ScheduleRestoreAbilityState_0100, F
             abilitythread->Attach(application, abilityRecord, mainRunner, nullptr);
             PacMap state;
             abilitythread->ScheduleRestoreAbilityState(state);
-            sleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_ScheduleRestoreAbilityState_0100 end";
@@ -260,7 +261,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_Attach_3_Param_0100, Function | Med
             auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
             std::shared_ptr<EventRunner> mainRunner = EventRunner::Create(abilityInfo->name);
             abilitythread->Attach(application, abilityRecord, mainRunner, nullptr);
-            sleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_Attach_3_Param_0100 end";
@@ -287,7 +288,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_Attach_3_Param_0200, Function | Med
             auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
             std::shared_ptr<EventRunner> mainRunner = EventRunner::Create(abilityInfo->name);
             abilitythread->Attach(application, abilityRecord, mainRunner, nullptr);
-            sleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_Attach_3_Param_0200 end";
@@ -313,7 +314,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_Attach_2_Param_0100, Function | Med
             std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
             auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
             abilitythread->Attach(application, abilityRecord, nullptr);
-            sleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_Attach_2_Param_0100 end";
@@ -340,7 +341,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_Attach_2_Param_0200, Function | Med
             auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
             std::shared_ptr<EventRunner> mainRunner = EventRunner::Create(abilityInfo->name);
             abilitythread->Attach(application, abilityRecord, nullptr);
-            sleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_Attach_2_Param_0200 end";
@@ -370,7 +371,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_ScheduleAbilityTransaction_0100, Fu
             Want want;
             LifeCycleStateInfo lifeCycleStateInfo;
             abilitythread->ScheduleAbilityTransaction(want, lifeCycleStateInfo);
-            sleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_ScheduleAbilityTransaction_0100 end";
@@ -491,7 +492,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_SendResult_0100, Function | MediumT
             int resultCode = 0;
             Want want;
             abilitythread->SendResult(requestCode, resultCode, want);
-            sleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_SendResult_0100 end";
