@@ -301,8 +301,11 @@ ohos_unittest("aa_command_attach_test") {
 ohos_unittest("aa_command_send_memory_level_test") {
   module_out_path = module_output_path
 
-  sources = [ "aa_command_send_memory_level_test.cpp" ]
-  sources += tools_aa_mock_sources
+  sources = [ 
+    "aa_command_send_memory_level_test.cpp",
+    "${ability_runtime_services_path}/appmgr/src/app_running_manager.cpp",
+    "${ability_runtime_path}/tools/test/mock/mock_app_running_manager.cpp",
+   ]
 
   configs = [ ":tools_aa_config_mock" ]
 
