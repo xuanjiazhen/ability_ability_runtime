@@ -100,8 +100,8 @@ int DataObsMgrInnerPref::HandleUnregisterObserver(const Uri &uri, struct Observe
 int DataObsMgrInnerPref::HandleNotifyChange(const Uri &uri, int32_t userId)
 {
     std::list<struct ObserverNode> obsList;
-    std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
     {
+        std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
         std::string uriStr = uri.ToString();
         size_t pos = uriStr.find('?');
         if (pos == std::string::npos) {
