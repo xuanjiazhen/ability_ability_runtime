@@ -75,6 +75,18 @@ public:
     static napi_value SetWindowPrivacyMode(napi_env env, napi_callback_info info);
     static napi_value StartAbilityByType(napi_env env, napi_callback_info info);
 
+    sptr<AAFwk::SessionInfo> GetSessionInfo() {
+        return sessionInfo_;
+    }
+
+    sptr<Rosen::Window> GetUiWindow() {
+        return uiWindow_;
+    }
+
+    std::weak_ptr<AbilityRuntime::Context> GetContext() {
+        return context_;
+    }
+
 protected:
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info);
