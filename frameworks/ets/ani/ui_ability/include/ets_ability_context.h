@@ -117,6 +117,14 @@ public:
 private:
     void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
     void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call);
+
+#ifdef SUPPORT_GRAPHICS
+public:
+    static void SetMissionContinueState(ani_env *env, ani_object aniObj, ani_object state, ani_object callbackObj);
+private:
+    void OnSetMissionContinueState(ani_env *env, ani_object aniObj, ani_object stateObj, ani_object callbackObj);
+#endif
+private:
     void OnStartAbilityForResult(
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj, ani_object callback);
     void OnTerminateSelf(ani_env *env, ani_object aniObj, ani_object callback);
