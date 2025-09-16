@@ -31,6 +31,7 @@ import AbilityStartCallback from 'application.AbilityStartCallback';
 import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 import image from '@ohos.multimedia.image';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
+import AbilityConstant  from '../@ohos.app.ability.AbilityConstant';
 
 class Cleaner {
   public ptr: long = 0;
@@ -155,6 +156,7 @@ export default class UIAbilityContext extends Context {
     callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeSetMissionIcon(icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeSetMissionContinueState(state: AbilityConstant.ContinueState, callback: AsyncCallbackWrapper<void>): void;
   private native nativeRevokeDelegator(callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeStartAppServiceExtensionAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
@@ -667,6 +669,24 @@ hideAbility(): Promise<void> {
       });
       taskpool.execute((): void => {
         this.nativeSetMissionIcon(icon, callback);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+    return p;
+  }
+
+  setMissionContinueState(state: AbilityConstant.ContinueState): Promise<void> {
+    let p = new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let callback = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeSetMissionContinueState(state, callback);
       }).catch((err: Error): void => {
         reject(err as BusinessError);
       });
