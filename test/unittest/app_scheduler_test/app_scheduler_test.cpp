@@ -1204,5 +1204,37 @@ HWTEST_F(AppSchedulerTest, AppScheduler_CheckPreloadAppRecordExist_0100, TestSiz
         bundleName, userId, appIndex, isExist);
     EXPECT_EQ(result, INNER_ERR);
 }
+
+/**
+ * @tc.name: AppScheduler_OnAcceptWantResponse_001
+ * @tc.desc: OnAcceptWantResponse
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerTest, AppScheduler_OnAcceptWantResponse_001, TestSize.Level1)
+{
+    auto startSpecifiedAbilityResponse = std::make_shared<StartSpecifiedAbilityResponse>();
+    AAFwk::Want want;
+    std::string flag = "";
+    int32_t requestId = 0;
+    int32_t userId = 100;
+    startSpecifiedAbilityResponse->OnAcceptWantResponse(want, flag, requestId, userId);
+    EXPECT_EQ(userId, 100);
+}
+
+/**
+ * @tc.name: AppScheduler_OnAcceptWantResponse_001
+ * @tc.desc: OnAcceptWantResponse
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerTest, AppScheduler_OnAcceptWantResponse_001, TestSize.Level1)
+{
+    auto startSpecifiedAbilityResponse = std::make_shared<StartSpecifiedAbilityResponse>();
+    AAFwk::Want want;
+    std::string flag = "";
+    int32_t requestId = 0;
+    int32_t userId = 100;
+    startSpecifiedAbilityResponse->OnAcceptWantResponse(want, flag, requestId, userId);
+    EXPECT_EQ(userId, 100);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
