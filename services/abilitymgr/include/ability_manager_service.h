@@ -1189,13 +1189,13 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE);
 
-    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId);
-    void OnStartSpecifiedAbilityTimeoutResponse(int32_t requestId);
+    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId, int32_t userId);
+    void OnStartSpecifiedAbilityTimeoutResponse(int32_t requestId, int32_t userId);
 
-    void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId = 0,
+    void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId = 0, int32_t userId,
         const std::string &callerProcessName = "", int32_t recordId = 0);
-    void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
-    void OnStartSpecifiedFailed(int32_t requestId);
+    void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId, int32_t userId);
+    void OnStartSpecifiedFailed(int32_t requestId, int32_t userId);
 
     virtual int GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info) override;
     virtual int GetExtensionRunningInfos(int upperLimit, std::vector<ExtensionRunningInfo> &info) override;
@@ -1226,14 +1226,6 @@ public:
      * @return the missionId of target mission.
      */
     int32_t GetMissionIdByAbilityToken(const sptr<IRemoteObject> &token);
-
-    /**
-     * Get ability token by target mission id.
-     *
-     * @param missionId target missionId.
-     * @return the ability token of target mission.
-     */
-    sptr<IRemoteObject> GetAbilityTokenByMissionId(int32_t missionId);
 
     virtual int StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback,
         bool isAppRecovery = false) override;
@@ -1880,7 +1872,7 @@ public:
     int32_t StartUIAbilityByPreInstall(const FreeInstallInfo &taskInfo);
 
     void NotifySCBToHandleAtomicServiceException(const std::string& sessionId, int errCode,
-        const std::string& reason);
+        const std::string& reason, int32_t userId);
 
     void HandleRestartResidentProcessDependedOnWeb();
 
