@@ -265,11 +265,9 @@ HWTEST_F(AppMgrServiceInnerTest, PointerDeviceWatchParameter_0100, TestSize.Leve
     std::string value;
 
     appMgrServiceInner->AddWatchParameter();
-    sleep(1);
 
     // invalid parameter value
     system::SetParameter(key.c_str(), "invalid");
-    sleep(1);
     config = appMgrServiceInner->GetConfiguration();
     EXPECT_NE(config, nullptr);
 
@@ -292,11 +290,9 @@ HWTEST_F(AppMgrServiceInnerTest, PointerDeviceWatchParameter_0200, TestSize.Leve
     std::string value;
 
     appMgrServiceInner->AddWatchParameter();
-    sleep(1);
 
     // set "input.pointer.device" to false
     system::SetParameter(key.c_str(), "false");
-    sleep(1);
     config = appMgrServiceInner->GetConfiguration();
     EXPECT_NE(config, nullptr);
 
@@ -319,11 +315,9 @@ HWTEST_F(AppMgrServiceInnerTest, PointerDeviceWatchParameter_0300, TestSize.Leve
     std::string value;
 
     appMgrServiceInner->AddWatchParameter();
-    sleep(1);
 
     // set "input.pointer.device" to true
     system::SetParameter(key.c_str(), "true");
-    sleep(1);
     config = appMgrServiceInner->GetConfiguration();
     EXPECT_NE(config, nullptr);
 
