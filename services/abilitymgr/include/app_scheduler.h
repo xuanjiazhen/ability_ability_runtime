@@ -128,14 +128,14 @@ public:
     virtual ~StartSpecifiedAbilityResponse() = default;
 
     virtual void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
-        int32_t requestId) override;
-    virtual void OnTimeoutResponse(int32_t requestId) override;
+        int32_t requestId, int32_t userId) override;
+    virtual void OnTimeoutResponse(int32_t requestId, int32_t userId) override;
 
-    virtual void OnNewProcessRequestResponse(const std::string &flag, int32_t requestId,
+    virtual void OnNewProcessRequestResponse(const std::string &flag, int32_t userId, int32_t requestId,
         const std::string &callerProcessName = "", int32_t recordId = 0) override;
-    virtual void OnNewProcessRequestTimeoutResponse(int32_t requestId) override;
+    virtual void OnNewProcessRequestTimeoutResponse(int32_t requestId, int32_t userId) override;
 
-    virtual void OnStartSpecifiedFailed(int32_t requestId) override;
+    virtual void OnStartSpecifiedFailed(int32_t requestId, int32_t userId) override;
 };
 
 /**
