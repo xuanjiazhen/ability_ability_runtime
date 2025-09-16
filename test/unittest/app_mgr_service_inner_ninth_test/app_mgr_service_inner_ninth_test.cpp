@@ -85,16 +85,17 @@ public:
 
 class MyStartSpecifiedAbilityResponse : public IStartSpecifiedAbilityResponse {
 public:
-    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId) override
+    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId,
+        int32_t userId) override
     {}
-    void OnTimeoutResponse(int32_t requestId) override
+    void OnTimeoutResponse(int32_t requestId, int32_t userId) override
     {}
-    void OnNewProcessRequestResponse(const std::string &flag, int32_t requestId,
+    void OnNewProcessRequestResponse(const std::string &flag, int32_t userId, int32_t requestId,
         const std::string &callerProcessName, int32_t recordId) override
     {}
-    void OnNewProcessRequestTimeoutResponse(int32_t requestId) override
+    void OnNewProcessRequestTimeoutResponse(int32_t requestId, int32_t userId) override
     {}
-    void OnStartSpecifiedFailed(int32_t requestId) override
+    void OnStartSpecifiedFailed(int32_t requestId, int32_t userId) override
     {}
     sptr<IRemoteObject> AsObject() override
     {
@@ -2097,7 +2098,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, StartSpecifiedProcess_0600, TestSize.Level
     appMgrServiceInner->startSpecifiedAbilityResponse_ = response;
     bool isOnNewProcessRequestResponseCalled = false;
     EXPECT_CALL(*response, OnNewProcessRequestResponse)
-        .WillOnce([&isOnNewProcessRequestResponseCalled](const std::string&, int32_t,
+        .WillOnce([&isOnNewProcessRequestResponseCalled](const std::string&, int32_t, int32_t,
             const std::string&, const int32_t &) {
             isOnNewProcessRequestResponseCalled = true;
         });

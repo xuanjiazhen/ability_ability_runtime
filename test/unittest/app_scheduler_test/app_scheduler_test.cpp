@@ -1204,5 +1204,80 @@ HWTEST_F(AppSchedulerTest, AppScheduler_CheckPreloadAppRecordExist_0100, TestSiz
         bundleName, userId, appIndex, isExist);
     EXPECT_EQ(result, INNER_ERR);
 }
+
+/**
+ * @tc.name: AppScheduler_OnAcceptWantResponse_001
+ * @tc.desc: OnAcceptWantResponse
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerTest, AppScheduler_OnAcceptWantResponse_001, TestSize.Level1)
+{
+    auto startSpecifiedAbilityResponse = std::make_shared<StartSpecifiedAbilityResponse>();
+    AAFwk::Want want;
+    std::string flag = "";
+    int32_t requestId = 0;
+    int32_t userId = 100;
+    startSpecifiedAbilityResponse->OnAcceptWantResponse(want, flag, requestId, userId);
+    EXPECT_EQ(userId, 100);
+}
+
+/**
+ * @tc.name: AppScheduler_OnTimeoutResponse_001
+ * @tc.desc: OnTimeoutResponse
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerTest, AppScheduler_OnTimeoutResponse_001, TestSize.Level1)
+{
+    auto startSpecifiedAbilityResponse = std::make_shared<StartSpecifiedAbilityResponse>();
+    int32_t requestId = 0;
+    int32_t userId = 100;
+    startSpecifiedAbilityResponse->OnTimeoutResponse(requestId, userId);
+    EXPECT_EQ(userId, 100);
+}
+
+/**
+ * @tc.name: AppScheduler_OnNewProcessRequestResponse_001
+ * @tc.desc: OnNewProcessRequestResponse
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerTest, AppScheduler_OnNewProcessRequestResponse_001, TestSize.Level1)
+{
+    auto startSpecifiedAbilityResponse = std::make_shared<StartSpecifiedAbilityResponse>();
+    std::string flag = "";
+    int32_t requestId = 0;
+    int32_t userId = 100;
+    std::string callerProcessName = "";
+    int32_t recordId = 100;
+    startSpecifiedAbilityResponse->OnNewProcessRequestResponse(flag, userId, requestId, callerProcessName, recordId);
+    EXPECT_EQ(userId, 100);
+}
+
+/**
+ * @tc.name: AppScheduler_OnNewProcessRequestTimeoutResponse_001
+ * @tc.desc: OnNewProcessRequestTimeoutResponse
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerTest, AppScheduler_OnNewProcessRequestTimeoutResponse_001, TestSize.Level1)
+{
+    auto startSpecifiedAbilityResponse = std::make_shared<StartSpecifiedAbilityResponse>();
+    int32_t requestId = 0;
+    int32_t userId = 100;
+    startSpecifiedAbilityResponse->OnNewProcessRequestTimeoutResponse(requestId, userId);
+    EXPECT_EQ(userId, 100);
+}
+
+/**
+ * @tc.name: AppScheduler_OnStartSpecifiedFailed_001
+ * @tc.desc: OnStartSpecifiedFailed
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerTest, AppScheduler_OnStartSpecifiedFailed_001, TestSize.Level1)
+{
+    auto startSpecifiedAbilityResponse = std::make_shared<StartSpecifiedAbilityResponse>();
+    int32_t requestId = 0;
+    int32_t userId = 100;
+    startSpecifiedAbilityResponse->OnStartSpecifiedFailed(requestId, userId);
+    EXPECT_EQ(userId, 100);
+
 }  // namespace AAFwk
 }  // namespace OHOS
