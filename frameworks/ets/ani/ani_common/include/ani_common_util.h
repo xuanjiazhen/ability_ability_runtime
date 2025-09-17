@@ -88,7 +88,6 @@ bool GetStaticFieldString(ani_env *env, ani_class classObj, const char *fieldNam
 
 ani_env *AttachAniEnv(ani_vm * etsVm, bool &isAttachThread);
 void DetachAniEnv(ani_vm * etsVm, bool &isAttachThread);
-bool IsValidProperty(ani_env *env, ani_ref param);
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
