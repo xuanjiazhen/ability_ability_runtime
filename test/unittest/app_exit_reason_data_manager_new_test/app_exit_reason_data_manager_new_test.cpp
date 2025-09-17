@@ -38,7 +38,7 @@ const std::string JSON_KEY_SUB_KILL_REASON = "sub_kill_reason";
 const std::string JSON_KEY_EXIT_MSG = "exit_msg";
 constexpr uint32_t ACCESS_TOKEN_ID = 123;
 const int SESSION_ID = 111;
-constexpr int32_t TIME_SLEEP = 4000;
+constexpr int32_t TIME_SLEEP = 400000;
 } // namespace
 
 class AppExitReasonDataManagerTest : public testing::Test {
