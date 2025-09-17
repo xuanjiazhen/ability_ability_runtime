@@ -127,6 +127,18 @@ public:
     void StartAbilityForResultDoTask(ani_vm *etsVm, ani_object startOptionsObj,
         ani_ref callbackRef, AAFwk::Want &want, AAFwk::StartOptions &options,
         std::string startTime, std::shared_ptr<AbilityRuntime::Context> context);
+    sptr<AAFwk::SessionInfo> GetSessionInfo() {
+        return sessionInfo_;
+    }
+
+    sptr<Rosen::Window> GetUiWindow() {
+        return uiWindow_;
+    }
+
+    std::weak_ptr<AbilityRuntime::Context> GetWeakContext() {
+        return context_;
+    }
+
 private:
     void SetReceiveDataCallbackRegister(ani_env *env, ani_object functionObj);
     void SetReceiveDataForResultCallbackRegister(ani_env *env, ani_object funcObj);
