@@ -1432,28 +1432,5 @@ void DetachAniEnv(ani_vm * etsVm, bool &isAttachThread)
         isAttachThread = false;
     }
 }
-
-bool IsValidProperty(ani_env *env, ani_ref param)
-{
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
-        return false;
-    }
-    ani_status status = ANI_ERROR;
-    ani_boolean isNull = false;
-    if ((status = env->Reference_IsNullishValue(param, &isNull)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
-        return false;
-    }
-    ani_boolean isUndefined = false;
-    if ((status = env->Reference_IsUndefined(param, &isUndefined)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
-        return false;
-    }
-    if (isUndefined || isNull) {
-        return false;
-    }
-    return true;
-}
 } // namespace AppExecFwk
 } // namespace OHOS
