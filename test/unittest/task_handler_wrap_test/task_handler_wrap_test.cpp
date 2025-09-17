@@ -208,8 +208,9 @@ HWTEST_F(TaskHandlerWrapTest, FfrtTest_0030, TestSize.Level2)
 {
     auto taskHandle = ffrtHandler_->SubmitTask([]() {});
     EXPECT_TRUE(taskHandle);
+    sleep(1);
     auto result = taskHandle.Cancel();
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 /**
