@@ -1374,7 +1374,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, OnAbilityDied_001, TestSize.Level1)
     if (system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.kioskBundleName_, "");
     }
-    EXPECT_FALSE(abilityMs->VerificationToken(token));
+    EXPECT_FALSE(abilityMs->VerificationAllToken(token));
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnAbilityDied_001 end");
 }
 
