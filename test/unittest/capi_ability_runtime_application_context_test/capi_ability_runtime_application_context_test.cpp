@@ -37,6 +37,7 @@ constexpr const char* BASE_PREFERENCES = "/base/preferences";
 constexpr const char* BASE_BUNDLE_CODE = "/base/bundleCode";
 constexpr const char* BASE_DISTRIBUTED_FILES = "/base/distributedFiles";
 constexpr const char* BASE_CLOUD_FILE = "/base/cloudFile";
+constexpr const char* BASE_LOG_FILE = "/base/logFile";
 constexpr const char* BASE_RESOURCE_DIR = "/base/resources/resfile";
 constexpr const char* ENTRY_MODULE_NAME = "entry";
 constexpr const char* EL_LIST[] = { "el1", "el2", "el3", "el4", "el5" };
@@ -1838,6 +1839,180 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetCloudFileDirTest_004, Test
     ASSERT_STREQ(buffer, cloudFileDir.c_str());
 }
 
+/**
+ * @tc.number: GetLogFileDirTest_001
+ * @tc.desc: Function test with applicationContext is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_001, TestSize.Level2)
+{
+    char buffer[BUFFER_SIZE] = { 0 };
+    int32_t writeLength = 0;
+
+    AbilityRuntime_ErrorCode code =
+        OH_AbilityRuntime_ApplicationContextGetLogFileDir(NULL, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(nullptr, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, NULL);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, nullptr);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, -1, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, 0, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+}
+
+/**
+ * @tc.number: GetLogFileDirTest_002
+ * @tc.desc: Function test with applicationContextImpl is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_002, TestSize.Level2)
+{
+    InitApplicationContext();
+    char buffer[BUFFER_SIZE] = { 0 };
+    int32_t writeLength = 0;
+
+    AbilityRuntime_ErrorCode code =
+        OH_AbilityRuntime_ApplicationContextGetLogFileDir(NULL, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(nullptr, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, NULL);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, nullptr);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, -1, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, 0, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+}
+
+/**
+ * @tc.number: GetLogFileDirTest_003
+ * @tc.desc: Function test
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_003, TestSize.Level2)
+{
+    char buffer[BUFFER_SIZE] = { 0 };
+    int32_t writeLength = 0;
+
+    const auto contextImpl = InitApplicationContextImpl(TEST_BUNDLE_NAME);
+    ASSERT_NE(contextImpl, nullptr);
+
+    AbilityRuntime_ErrorCode code =
+        OH_AbilityRuntime_ApplicationContextGetLogFileDir(NULL, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(nullptr, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, NULL);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, nullptr);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, -1, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, 0, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    std::string cloudFileDir = contextImpl->GetLogFileDir();
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, cloudFileDir.length(), &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    cloudFileDir = contextImpl->GetLogFileDir();
+    ASSERT_EQ(writeLength, cloudFileDir.length());
+    ASSERT_STREQ(buffer, cloudFileDir.c_str());
+}
+
+/**
+ * @tc.number: GetLogFileDirTest_004
+ * @tc.desc: Function test
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_004, TestSize.Level2)
+{
+    char buffer[BUFFER_SIZE] = { 0 };
+    int32_t writeLength = 0;
+
+    const auto contextImpl = InitApplicationContextImpl(TEST_BUNDLE_NAME);
+    ASSERT_NE(contextImpl, nullptr);
+
+    contextImpl->SwitchArea(ABILITY_RUNTIME_AREA_MODE_EL1);
+    AbilityRuntime_ErrorCode code =
+        OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    std::string cloudFileDir = contextImpl->GetLogFileDir();
+    ASSERT_EQ(writeLength, cloudFileDir.length());
+    ASSERT_STREQ(buffer, cloudFileDir.c_str());
+
+    contextImpl->SwitchArea(ABILITY_RUNTIME_AREA_MODE_EL2);
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    cloudFileDir = contextImpl->GetLogFileDir();
+    ASSERT_EQ(writeLength, cloudFileDir.length());
+    ASSERT_STREQ(buffer, cloudFileDir.c_str());
+
+    contextImpl->SwitchArea(ABILITY_RUNTIME_AREA_MODE_EL3);
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    cloudFileDir = contextImpl->GetLogFileDir();
+    ASSERT_EQ(writeLength, cloudFileDir.length());
+    ASSERT_STREQ(buffer, cloudFileDir.c_str());
+
+    contextImpl->SwitchArea(ABILITY_RUNTIME_AREA_MODE_EL4);
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    cloudFileDir = contextImpl->GetLogFileDir();
+    ASSERT_EQ(writeLength, cloudFileDir.length());
+    ASSERT_STREQ(buffer, cloudFileDir.c_str());
+
+    contextImpl->SwitchArea(ABILITY_RUNTIME_AREA_MODE_EL5);
+    code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    cloudFileDir = contextImpl->GetLogFileDir();
+    ASSERT_EQ(writeLength, cloudFileDir.length());
+    ASSERT_STREQ(buffer, cloudFileDir.c_str());
+}
 
 /**
  * @tc.number: GetResourceDirTest_001
