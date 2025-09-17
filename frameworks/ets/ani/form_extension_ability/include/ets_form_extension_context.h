@@ -89,10 +89,7 @@ struct ConnectionKey {
 struct key_compare {
     bool operator()(const ConnectionKey &key1, const ConnectionKey &key2) const
     {
-        if (key1.id < key2.id) {
-            return true;
-        }
-        return false;
+        return key1.id < key2.id;
     }
 };
 } // namespace AbilityRuntime

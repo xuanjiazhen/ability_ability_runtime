@@ -78,6 +78,12 @@ private:
     bool ExtractFormData(ani_env *env, ani_ref nativeResult, AppExecFwk::FormProviderData &formData,
         std::vector<FormDataProxy> &formDataProxies);
 
+    bool ExtractFormDataProxyFromElement(ani_env* env, ani_object arrayValue, ani_double length,
+        std::vector<FormDataProxy>& formDataProxies);
+
+    bool FillRecordObjectFromMap(ani_env* env, ani_object recordObject,
+        ani_method recordSetMethod, const std::map<int64_t, int32_t>& formEventsMap);
+
     bool ConvertFromDataProxies(ani_env *env, ani_object arrayValue, std::vector<FormDataProxy> &formDataProxies);
     std::string ANIUtils_ANIStringToStdString(ani_env *env, ani_string ani_str);
     ani_status ANIUtils_FormIdToAniString(ani_env *env, int64_t formId, ani_string &formIdStr);

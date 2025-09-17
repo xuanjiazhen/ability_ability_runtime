@@ -174,19 +174,19 @@ void ETSFormExtension::BindContext(std::shared_ptr<AbilityInfo> &abilityInfo, st
         return;
     }
     ani_ref contextGlobalRef = nullptr;
-    ani_field field = nullptr;
-    ani_status status = ANI_ERROR;
-
-    if ((status = env->GlobalReference_Create(contextObj, &contextGlobalRef)) != ANI_OK) {
+    ani_status status = env->GlobalReference_Create(contextObj, &contextGlobalRef);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "GlobalReference_Create failed, status : %{public}d", status);
         return;
     }
-    if ((status = env->Class_FindField(etsAbilityObj_->aniCls, "context", &field)) != ANI_OK) {
+    ani_field field = nullptr;
+    status = env->Class_FindField(etsAbilityObj_->aniCls, "context", &field);
+    if (status != ANI_OK || field == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindField failed, status : %{public}d", status);
         return;
     }
-
-    if ((status = env->Object_SetField_Ref(etsAbilityObj_->aniObj, field, contextGlobalRef)) != ANI_OK) {
+    status = env->Object_SetField_Ref(etsAbilityObj_->aniObj, field, contextGlobalRef);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_SetField_Ref failed, status : %{public}d", status);
         return;
     }
@@ -197,8 +197,9 @@ void ETSFormExtension::BindContext(std::shared_ptr<AbilityInfo> &abilityInfo, st
 std::string ETSFormExtension::ANIUtils_ANIStringToStdString(ani_env *env, ani_string ani_str)
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "ANIUtils_ANIStringToStdString Call");
-    ani_size strSize;
-    if (ANI_OK != env->String_GetUTF8Size(ani_str, &strSize)) {
+    ani_size strSize = 0;
+    ani_status status = env->String_GetUTF8Size(ani_str, &strSize);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "String_GetUTF8Size Failed");
         return "";
     }
@@ -207,7 +208,8 @@ std::string ETSFormExtension::ANIUtils_ANIStringToStdString(ani_env *env, ani_st
     char *utf8_buffer = buffer.data();
 
     ani_size bytes_written = 0;
-    if (ANI_OK != env->String_GetUTF8(ani_str, utf8_buffer, strSize + 1, &bytes_written)) {
+    status = env->String_GetUTF8(ani_str, utf8_buffer, strSize + 1, &bytes_written);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "String_GetUTF8 Failed");
         return "";
     }
@@ -228,60 +230,65 @@ bool ETSFormExtension::ConvertFromDataProxies(
     ani_env *env, ani_object arrayValue, std::vector<FormDataProxy> &formDataProxies)
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "ConvertFromDataProxies Call");
-    ani_status status = ANI_OK;
     if (arrayValue == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "arrayValue null");
         return false;
     }
-
-    ani_double length;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(arrayValue, "length", &length)) {
+    ani_double length = 0;
+    ani_status status = env->Object_GetPropertyByName_Double(arrayValue, "length", &length);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetPropertyByName_Double length Failed");
         return false;
     }
+    if (!ExtractFormDataProxyFromElement(env, arrayValue, length, formDataProxies)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "ExtractFormDataProxyFromElement Failed");
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::FORM_EXT, "ConvertFromDataProxies End");
+    return true;
+}
 
+bool ETSFormExtension::ExtractFormDataProxyFromElement(ani_env* env, ani_object arrayValue,
+    ani_double length, std::vector<FormDataProxy>& formDataProxies)
+{
     int proxyLength = static_cast<int>(std::round(length));
     for (int i = 0; i < proxyLength; i++) {
         FormDataProxy formDataProxy("", "");
-        ani_ref stringEntryRef;
-        if (ANI_OK != env->Object_CallMethodByName_Ref(
-            arrayValue, "$_get", "i:C{std.core.Object}",
-            &stringEntryRef, (ani_int)i)) {
+        ani_ref stringEntryRef = nullptr;
+        ani_status status = env->Object_CallMethodByName_Ref(arrayValue,
+            "$_get", "i:C{std.core.Object}", &stringEntryRef, (ani_int)i);
+        if (status != ANI_OK || stringEntryRef == nullptr) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "Object_CallMethodByName_Ref _get Failed");
             return false;
         }
-
-        ani_field key;
-        if ((status = env->Class_FindField(etsAbilityObj_->aniCls, "key", &key)) != ANI_OK) {
+        ani_field key = nullptr;
+        status = env->Class_FindField(etsAbilityObj_->aniCls, "key", &key);
+        if (status != ANI_OK || key == nullptr) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindField status : %{public}d", status);
             return false;
         }
-
-        ani_ref keyRef;
-        if ((status = env->Object_GetField_Ref(static_cast<ani_object>(stringEntryRef), key, &keyRef)) != ANI_OK) {
+        ani_ref keyRef = nullptr;
+        status = env->Object_GetField_Ref(static_cast<ani_object>(stringEntryRef), key, &keyRef);
+        if (status != ANI_OK || keyRef == nullptr) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetField_Ref status : %{public}d", status);
             return false;
         }
-
         formDataProxy.key = ANIUtils_ANIStringToStdString(env, static_cast<ani_string>(keyRef));
-
-        ani_field subscriberId;
-        if ((status = env->Class_FindField(etsAbilityObj_->aniCls, "subscriberId", &subscriberId)) != ANI_OK) {
+        ani_field subscriberId = nullptr;
+        status = env->Class_FindField(etsAbilityObj_->aniCls, "subscriberId", &subscriberId);
+        if (status != ANI_OK || subscriberId == nullptr) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindField status : %{public}d", status);
             return false;
         }
-
-        ani_ref subscriberIdRef;
+        ani_ref subscriberIdRef = nullptr;
         status = env->Object_GetField_Ref(static_cast<ani_object>(stringEntryRef), subscriberId, &subscriberIdRef);
-        if (status != ANI_OK) {
+        if (status != ANI_OK || subscriberIdRef == nullptr) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetField_Ref status : %{public}d", status);
             return false;
         }
-
         formDataProxy.subscribeId = ANIUtils_ANIStringToStdString(env, static_cast<ani_string>(subscriberIdRef));
         formDataProxies.push_back(formDataProxy);
     }
-    TAG_LOGI(AAFwkTag::FORM_EXT, "ConvertFromDataProxies End");
     return true;
 }
 
@@ -361,23 +368,23 @@ bool ETSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
 {
     ani_status status = ANI_OK;
 
-    ani_class cls{};
+    ani_class cls = nullptr;
     status = env->FindClass(FORM_BINDING_DATA_CLASS_NAME, &cls);
     if (status != ANI_OK || cls == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "FindClass status: %{public}d", status);
         return false;
     }
 
-    ani_method data{};
+    ani_method data = nullptr;
     status = env->Class_FindMethod(cls, Builder::BuildGetterName("data").c_str(), nullptr, &data);
-    if (status != ANI_OK) {
+    if (status != ANI_OK || data == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod data status: %{public}d", status);
         return false;
     }
 
-    ani_ref dataRef;
+    ani_ref dataRef = nullptr;
     status = env->Object_CallMethod_Ref(static_cast<ani_object>(nativeResult), data, &dataRef);
-    if (status != ANI_OK) {
+    if (status != ANI_OK || dataRef == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_CallMethod_Ref data status: %{public}d", status);
         return false;
     }
@@ -385,22 +392,23 @@ bool ETSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
     std::string dataStr = ANIUtils_ANIStringToStdString(env, static_cast<ani_string>(dataRef));
     formData = AppExecFwk::FormProviderData(dataStr);
 
-    ani_method proxies;
+    ani_method proxies = nullptr;
     status = env->Class_FindMethod(cls, Builder::BuildGetterName("proxies").c_str(), nullptr, &proxies);
-    if (status != ANI_OK) {
+    if (status != ANI_OK || proxies == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod proxies status: %{public}d", status);
         return true;
     }
 
-    ani_ref proxiesRef;
+    ani_ref proxiesRef = nullptr;
     status = env->Object_CallMethod_Ref(static_cast<ani_object>(nativeResult), proxies, &proxiesRef);
-    if (status != ANI_OK) {
+    if (status != ANI_OK || proxiesRef == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_CallMethod_Ref proxies status: %{public}d", status);
         return true;
     }
 
     ani_boolean isUndefined = ANI_TRUE;
-    if ((status = env->Reference_IsUndefined(proxiesRef, &isUndefined)) != ANI_OK) {
+    status = env->Reference_IsUndefined(proxiesRef, &isUndefined);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Reference_IsUndefined status: %{public}d", status);
     }
 
@@ -589,46 +597,69 @@ bool ETSFormExtension::CreateAndFillRecordObject(ani_env *env, const std::map<in
     ani_object &recordObject)
 {
     ani_status status = ANI_OK;
-    ani_class recordCls;
+    ani_class recordCls = nullptr;
     status = env->FindClass(RECORD_CLASS_NAME, &recordCls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "FindClass failed status: %{public}d", status);
         return false;
     }
-    ani_method objectMethod;
-    if ((status = env->Class_FindMethod(recordCls, "<ctor>", ":", &objectMethod)) != ANI_OK) {
+    ani_method objectMethod = nullptr;
+    status = env->Class_FindMethod(recordCls, "<ctor>", ":", &objectMethod);
+    if (status != ANI_OK || objectMethod == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod constructor failed: %{public}d", status);
         return false;
     }
-    if ((status = env->Object_New(recordCls, objectMethod, &recordObject)) != ANI_OK) {
+    status = env->Object_New(recordCls, objectMethod, &recordObject);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_New failed: %{public}d", status);
         return false;
     }
-    ani_method recordSetMethod;
+    ani_method recordSetMethod = nullptr;
     status = env->Class_FindMethod(recordCls, "$_set", "C{std.core.Object}C{std.core.Object}:", &recordSetMethod);
-    if (status != ANI_OK) {
+    if (status != ANI_OK || recordSetMethod == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod set failed: %{public}d", status);
         return false;
     }
+    if (!FillRecordObjectFromMap(env, recordObject, recordSetMethod, formEventsMap)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to fill record object");
+        return false;
+    }
+    return true;
+}
+
+bool ETSFormExtension::FillRecordObjectFromMap(ani_env* env, ani_object recordObject,
+    ani_method recordSetMethod, const std::map<int64_t, int32_t>& formEventsMap)
+{
     for (auto iter = formEventsMap.begin(); iter != formEventsMap.end(); ++iter) {
         std::string key = std::to_string(iter->first);
-        ani_string ani_key;
+        ani_string ani_key = nullptr;
         ani_int ani_value = iter->second;
-        if ((status = env->String_NewUTF8(key.c_str(), key.length(), &ani_key)) != ANI_OK) {
+        ani_status status = env->String_NewUTF8(key.c_str(), key.length(), &ani_key);
+        if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "String_NewUTF8 key failed status : %{public}d", status);
             return false;
         }
         static const char *className = "C{std.core.Int}";
-        ani_class persion_cls;
-        if (ANI_OK != env->FindClass(className, &persion_cls)) {
+        ani_class persion_cls = nullptr;
+        status = env->FindClass(className, &persion_cls);
+        if (status != ANI_OK || persion_cls == nullptr) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "FindClass failed status: %{public}d", status);
             return false;
         }
-        ani_method personInfoCtor;
-        env->Class_FindMethod(persion_cls, "<ctor>", "i:", &personInfoCtor);
-        ani_object personInfoObj;
-        env->Object_New(persion_cls, personInfoCtor, &personInfoObj, ani_value);
-        if ((status = env->Object_CallMethod_Void(recordObject, recordSetMethod, ani_key, personInfoObj)) != ANI_OK) {
+        ani_method personInfoCtor = nullptr;
+        status = env->Class_FindMethod(persion_cls, "<ctor>", "i:", &personInfoCtor);
+        if (status != ANI_OK || personInfoCtor == nullptr) {
+            TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod failed status: %{public}d", status);
+            return false;
+        }
+        ani_object personInfoObj = nullptr;
+        status = env->Object_New(persion_cls, personInfoCtor, &personInfoObj, ani_value);
+        if (status != ANI_OK || personInfoObj == nullptr) {
+            TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod failed status: %{public}d", status);
+            return false;
+        }
+        status = env->Object_CallMethod_Void(recordObject, recordSetMethod, ani_key, personInfoObj);
+        if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "Object_CallMethod_Void failed status : %{public}d", status);
             return false;
         }
@@ -779,7 +810,7 @@ bool ETSFormExtension::OnShare(int64_t formId, AAFwk::WantParams &wantParams)
 
 bool ETSFormExtension::OnAcquireData(int64_t formId, AAFwk::WantParams &wantParams)
 {
-    TAG_LOGI(AAFwkTag::FORM_EXT, "OnShare Call");
+    TAG_LOGI(AAFwkTag::FORM_EXT, "OnAcquireData Call");
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "env nullptr");
@@ -832,7 +863,7 @@ void ETSFormExtension::OnFormLocationChanged(const int64_t formId, const int32_t
 
     status = env->Object_CallMethod_Void(etsAbilityObj_->aniObj, function, formIdStr, formLocationStateItem);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "Object_New status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Object_CallMethod_Void status : %{public}d", status);
         return;
     }
 }
