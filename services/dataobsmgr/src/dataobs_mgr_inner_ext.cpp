@@ -241,7 +241,7 @@ bool DataObsMgrInnerExt::Node::IsLimit(const Entry &entry)
             }
         }
     }
-    TAG_LOGE(AAFwkTag::DBOBSMGR, "subscribers num :%{public}d", count);
+    TAG_LOGW(AAFwkTag::DBOBSMGR, "subscribers num :%{public}d", count);
     return false;
 }
 
