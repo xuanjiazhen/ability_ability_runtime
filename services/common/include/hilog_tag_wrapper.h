@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <cinttypes>
-#include <map>
 #include <string>
 #include <unordered_map>
 
@@ -189,7 +188,7 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
-inline std::string GetAbbreviatedFileName(const std::string& fileName)
+inline std::string& GetAbbreviatedFileName(const std::string& fileName)
 {
     static std::unordered_map<std::string, std::string> abbreviatedFileNameMap {
         { "ability_manager_client", "AMC" },
