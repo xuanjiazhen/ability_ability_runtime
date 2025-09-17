@@ -149,6 +149,13 @@ public:
     std::string GetCloudFileDir() override;
 
     /**
+     * @brief Obtains the log file path of the application
+     *
+     * @return Returns the log file path.
+     */
+    std::string GetLogFileDir() override;
+
+    /**
      * @brief Switch file area
      *
      * @param mode file area.
@@ -328,7 +335,7 @@ public:
      * @param hapModuleInfo HapModuleInfo instance.
      */
     void InitHapModuleInfo(const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo);
-    
+
     /**
      * @brief Set HapModuleInfo
      *

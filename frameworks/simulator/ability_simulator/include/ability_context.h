@@ -52,6 +52,7 @@ public:
     std::string GetPreferencesDir() override;
     std::string GetDistributedFilesDir() override;
     std::string GetCloudFileDir() override;
+    std::string GetLogFileDir() override;
     void SwitchArea(int mode) override;
     int GetArea() override;
     std::string GetBaseDir() override;
