@@ -14,6 +14,7 @@
  */
 
 import BaseContext from 'application.BaseContext'
+import EventHub from 'application.EventHub';
 import ApplicationContext from 'application.ApplicationContext'
 import contextConstant from '@ohos.app.ability.contextConstant'
 import { ApplicationInfo } from 'bundleManager.ApplicationInfo'
@@ -34,7 +35,7 @@ let unregisterToken = new object();
 
 export class Context extends BaseContext {
   static {
-    loadLibraryWithPermissionCheck("context_ani", "application.Context");
+    loadLibraryWithPermissionCheck("application.Context");
     loadLibraryWithPermissionCheck("context_ani_kit.z", "application.Context");
   }
 
@@ -45,14 +46,15 @@ export class Context extends BaseContext {
   preferencesDir: string = "";
   databaseDir: string = "";
   cacheDir: string = "";
-  applicationInfo: ApplicationInfo;
-  resourceManager: resmgr.ResourceManager;
-  native constructor();
-  constructor(applicationInfo: ApplicationInfo, resourceManager: resmgr.ResourceManager) {
-      super();
-      this.applicationInfo = applicationInfo;
-      this.resourceManager = resourceManager;
+  applicationInfo!: ApplicationInfo;
+  resourceManager!: resmgr.ResourceManager;
+  eventHub: EventHub = new EventHub();
+  constructor() {
+    if (this.eventHub == null) {
+      this.eventHub = new EventHub();
+    }
   }
+  
   private setEtsContextPtr(ptr: long) {
     if (this.etsContextPtr == 0) {
       this.etsContextPtr = ptr;
