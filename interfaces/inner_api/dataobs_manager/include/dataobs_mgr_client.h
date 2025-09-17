@@ -1,4 +1,4 @@
-/*
+/*123
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,8 +91,6 @@ public:
      */
     ErrCode NotifyChangeFromExtension(const Uri &uri, int32_t userId = IDataObsMgr::DATAOBS_DEFAULT_CURRENT_USER,
         DataObsOption opt = DataObsOption());
-
-    ErrCode CheckTrusts(uint32_t consumerToken, uint32_t providerToken);
 
     /**
      * Registers an observer to DataObsMgr specified by the given Uri.
