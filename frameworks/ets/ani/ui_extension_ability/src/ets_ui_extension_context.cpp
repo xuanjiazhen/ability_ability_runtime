@@ -1179,6 +1179,19 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
     }
     OHOS::AbilityRuntime::ContextUtil::CreateEtsBaseContext(env, cls, contextObj, context);
     OHOS::AbilityRuntime::CreateEtsExtensionContext(env, cls, contextObj, context, context->GetAbilityInfo());
+    ani_ref *contextGlobalRef = new (std::nothrow) ani_ref;
+    if (contextGlobalRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "new contextGlobalRef failed");
+        delete workContext;
+        return nullptr;
+    }
+    if ((status = env->GlobalReference_Create(contextObj, contextGlobalRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GlobalReference_Create failed status: %{public}d", status);
+        delete contextGlobalRef;
+        delete workContext;
+        return nullptr;
+    }
+    context->Bind(contextGlobalRef);
     return contextObj;
 }
 

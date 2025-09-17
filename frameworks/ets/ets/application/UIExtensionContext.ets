@@ -39,6 +39,10 @@ let destroyRegister = new FinalizationRegistry<Cleaner>(Cleaner.callback)
 let unregisterToken = new object()
 
 export default class UIExtensionContext extends ExtensionContext {
+  static {
+    loadLibrary("ui_extension_context_ani_kit.z");
+  }
+
   nativeExtensionContext:long = 0;
   private cleaner: Cleaner | null = null;
   registerCleaner(ptr: long): void {
@@ -75,6 +79,9 @@ export default class UIExtensionContext extends ExtensionContext {
     options?: OpenLinkOptions, callback?: AsyncCallbackWrapper<AbilityResult>): void;
   private native nativeOpenAtomicService(appId: string, syncCallback: AsyncCallbackWrapper<AbilityResult>,
     options?: AtomicServiceOptions): void;
+  private static native nativeTransferStatic(input: ESValue, type: string): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
+  private static contextType: string = 'UIExtensionContext';
 
   terminateSelf(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -327,5 +334,20 @@ export default class UIExtensionContext extends ExtensionContext {
         this.nativeOpenAtomicService(appId, syncCall, finalOptions);
       });
     });
+  }
+
+  static transferStatic(input: Any): Object {
+    let type: string = '';
+    try {
+      type = ESValue.wrap(input).getProperty('__context_impl__').getProperty('contextType').toString();
+    } catch (err) {
+      console.log('transferStatic err: ' + err.toString());
+    }
+    console.log('transferStatic type: ' + type);
+    return UIExtensionContext.nativeTransferStatic(ESValue.wrap(input), type);
+  }
+
+  static transferDynamic(input: Object): Any {
+    return UIExtensionContext.nativeTransferDynamic(input).unwrap();
   }
 }
