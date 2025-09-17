@@ -1,0 +1,2227 @@
+diff --git a/bundle.json b/bundle.json
+deleted file mode 100644
+index 9dffe1375c3cbaf40c1609e97ccdf2429a6136e2..0000000000000000000000000000000000000000
+--- a/bundle.json
++++ /dev/null
+@@ -1,776 +0,0 @@
+-{
+-  "name": "@ohos/ability_runtime",
+-  "description": "Ability管理服务统一调度和管理应用中各Ability和应用管理服务, 用于管理应用运行关系、调度应用进程生命周期及状态",
+-  "version": "3.1",
+-  "license": "Apache License 2.0",
+-  "publishAs": "code-segment",
+-  "segment": {
+-      "destPath": "foundation/ability/ability_runtime"
+-  },
+-  "dirs": {},
+-  "scripts": {},
+-  "component": {
+-      "name": "ability_runtime",
+-      "subsystem": "ability",
+-      "syscap": [
+-        "SystemCapability.Ability.AbilityRuntime.Core",
+-        "SystemCapability.Ability.AbilityRuntime.FAModel",
+-        "SystemCapability.Ability.AbilityRuntime.AbilityCore",
+-        "SystemCapability.Ability.AbilityRuntime.Mission",
+-        "SystemCapability.Ability.AbilityRuntime.QuickFix",
+-        "SystemCapability.Ability.AbilityTools.AbilityAssistant",
+-        "SystemCapability.Ability.AppStartup",
+-        "SystemCapability.Ability.AppExtension.PhotoEditorExtension"
+-      ],
+-      "features": [
+-        "ability_runtime_auto_fill_ability",
+-        "ability_runtime_graphics",
+-        "ability_runtime_power",
+-        "ability_runtime_app_no_response_dialog",
+-        "ability_runtime_app_no_response_dialog_wearable",
+-        "ability_runtime_app_no_response_bundlename",
+-        "ability_runtime_start_window_options_with_pixelmap",
+-        "ability_runtime_check_internet_permission",
+-        "ability_runtime_no_screen"
+-      ],
+-      "adapted_system_type": [
+-          "standard"
+-      ],
+-      "rom": "",
+-      "ram": "",
+-      "hisysevent_config":[
+-        "//foundation/ability/ability_runtime/hisysevent.yaml"
+-      ],
+-      "deps": {
+-        "components": [
+-            "ability_base",
+-            "accessibility",
+-            "access_token",
+-            "ace_engine",
+-            "app_domain_verify",
+-            "app_file_service",
+-            "appspawn",
+-            "background_task_mgr",
+-            "bounds_checking_function",
+-            "bundle_framework",
+-            "common_event_service",
+-            "config_policy",
+-            "c_utils",
+-            "cJSON",
+-            "data_share",
+-            "dlp_permission_service",
+-            "dsoftbus",
+-            "eventhandler",
+-            "ets_frontend",
+-            "ets_runtime",
+-            "ets_utils",
+-            "faultloggerd",
+-            "ffrt",
+-            "form_fwk",
+-            "graphic_2d",
+-            "hiappevent",
+-            "hichecker",
+-            "hicollie",
+-            "hilog",
+-            "hisysevent",
+-            "hitrace",
+-            "hiview",
+-            "i18n",
+-            "icu",
+-            "idl_tool",
+-            "image_framework",
+-            "init",
+-            "input",
+-            "ipc",
+-            "json",
+-            "kv_store",
+-            "libuv",
+-            "libxml2",
+-            "media_library",
+-            "memmgr",
+-            "memory_utils",
+-            "napi",
+-            "netmanager_base",
+-            "node",
+-            "os_account",
+-            "power_manager",
+-            "preferences",
+-            "previewer",
+-            "qos_manager",
+-            "relational_store",
+-            "resource_management",
+-            "resource_schedule_service",
+-            "runtime_core",
+-            "safwk",
+-            "samgr",
+-            "sandbox_manager",
+-            "screenlock_mgr",
+-            "selinux_adapter",
+-            "storage_service",
+-            "toolchain",
+-            "udmf",
+-            "webview",
+-            "window_manager",
+-            "zlib",
+-            "hiperf"
+-  ],
+-          "third_party": [
+-            "libjpeg-turbo"
+-          ]
+-      },
+-      "build": {
+-        "sub_component": [
+-          "//foundation/ability/ability_runtime/services:ams_target",
+-          "//foundation/ability/ability_runtime/services/sa_profile:ams_sa_profile",
+-          "//foundation/ability/ability_runtime/services/quickfixmgr:quick_fix.cfg",
+-          "//foundation/ability/ability_runtime/tools:tools_target",
+-          "//foundation/ability/ability_runtime/interfaces/inner_api:innerkits_target",
+-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:ability_thread",
+-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:auto_fill_extension_ani",
+-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:extension_module",
+-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:insight_intent_executor_ani",
+-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:service_extension_ani",
+-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_ability_ani",
+-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension_ani",
+-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:photo_editor_extension_ani",
+-          "//foundation/ability/ability_runtime/frameworks/native/appkit:ability_stage_ani",
+-          "//foundation/ability/ability_runtime/frameworks/native/appkit:test_runner_ani",
+-          "//foundation/ability/ability_runtime/frameworks/native/child_process:child_process",
+-          "//foundation/ability/ability_runtime/frameworks/native/insight_intent:insight_intent_innerkits",
+-          "//foundation/ability/ability_runtime/frameworks/c/ability_runtime:ability_runtime",
+-          "//foundation/ability/ability_runtime/frameworks/cj:cj_ability_packages",
+-          "//foundation/ability/ability_runtime/frameworks/ets/ani:ani_packages",
+-          "//foundation/ability/ability_runtime/frameworks/js/napi:napi_packages",
+-          "//foundation/ability/ability_runtime/frameworks/ets/ets:ets_packages",
+-          "//foundation/ability/ability_runtime/cj_environment/frameworks/cj_environment:cj_environment",
+-          "//foundation/ability/ability_runtime/ets_environment/frameworks/ets_environment:ets_environment",
+-          "//foundation/ability/ability_runtime/js_environment/frameworks/js_environment:js_environment",
+-          "//foundation/ability/ability_runtime/services/abilitymgr/etc:appfwk_etc",
+-          "//foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog:dialog_hap",
+-          "//foundation/ability/ability_runtime/service_router_framework:srms_target",
+-          "//foundation/ability/ability_runtime/service_router_framework:jsapi_target"
+-        ],
+-        "inner_api": [
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/deps_wrapper/include",
+-              "header_files": [
+-                "os_account_manager_wrapper.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/deps_wrapper:ability_deps_wrapper"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/error_utils/include",
+-              "header_files": [
+-                "ability_runtime_error_util.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/error_utils:ability_runtime_error_util"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/wantagent/include/",
+-              "header_files": [
+-                "pending_want.h",
+-                "trigger_info.h",
+-                "want_agent_constant.h",
+-                "want_agent_helper.h",
+-                "want_agent_info.h",
+-                "want_agent.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/wantagent:wantagent_innerkits"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/want_agent/include",
+-              "header_files": [
+-                "cj_want_agent_ffi.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/want_agent:cj_want_agent_ffi"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/ui_extension_base",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_ui_extension"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/photo_editor_extension_ability",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native/:cj_photo_editor_extension"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/form_runtime",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_form_extension"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/form_runtime",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ets_form_extension"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/context",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/context:cj_context_ffi"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/ability_runtime",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability:cj_ability_context_native"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_extensionkit_native"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_abilitykit_native_ffi"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/insight_intent_executor",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_insight_intent_executor"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/insight_intent/insight_intent_context",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/insight_intent/insight_intent_context:cj_insightintentcontext"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+-              "header_files": [
+-                "ability_manager_client.h",
+-                "launch_param.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_manager"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/ability_runtime",
+-              "header_files": [
+-                "ability_context.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability:ability_context_native"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/js_environment/interfaces/inner_api",
+-              "header_files": [
+-                "js_environment.h",
+-                "js_environment_impl.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/js_environment/frameworks/js_environment:js_environment"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/ets_environment/interfaces/inner_api",
+-              "header_files": [
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/ets_environment/frameworks/ets_environment:ets_environment"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/cj_environment/interfaces/inner_api",
+-              "header_files": [
+-                "cj_environment.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/cj_environment/frameworks/cj_environment:cj_environment"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/runtime/include/",
+-              "header_files": [
+-                "js_runtime.h",
+-                "runtime.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/runtime:runtime"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/napi_base_context/include",
+-              "header_files": [
+-                "napi_base_context.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/napi_base_context:napi_base_context"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ani_base_context/include",
+-              "header_files": [
+-                "ani_base_context.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ani_base_context:ani_base_context"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_common",
+-              "header_files": [
+-                "napi_common_configuration.h",
+-                "napi_common_start_options.h",
+-                "napi_common_util.h",
+-                "napi_common_want.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_common:napi_common"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common/include",
+-              "header_files": [
+-                "ani_common_ability_state_data.h",
+-                "ani_common_start_options.h",
+-                "ani_common_want.h",
+-                "ets_native_reference.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common:ani_common"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_ability_common",
+-              "header_files": [
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_ability_common:napi_ability_common"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_wantagent_common",
+-              "header_files": [
+-                "ani_common_want_agent.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_wantagent_common:ani_wantagent_common"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_wantagent_common",
+-              "header_files": [
+-                "napi_common_want_agent.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_wantagent_common:napi_wantagent_common"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include",
+-              "header_files": [
+-                "appmgr/app_mgr_client.h",
+-                "appmgr/page_state_data.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager:app_manager"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/connectionobs_manager/include",
+-              "header_files": [
+-                "connection_observer_client.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/connectionobs_manager:connection_obs_manager"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
+-              "header_files": [
+-                "service_extension.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:service_extension"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
+-              "header_files": [
+-                "extension.h",
+-                "extension_base.h",
+-                "extension_module_loader.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:extensionkit_native"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
+-              "header_files": [
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:abilitykit_utils"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
+-              "header_files": [
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:abilitykit_native"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
+-              "header_files": [
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:data_ability_helper"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/appkit/app/",
+-              "header_files": [
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:appkit_native"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/dialog_request_info/include",
+-              "header_files": [
+-                "request_info.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/js/napi/dialog_request_info:dialog_request_info"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+-              "header_files": [
+-                "ability_connect_callback_stub.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_connect_callback_stub"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context",
+-              "header_files": [
+-                "application_context.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:app_context"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/c/ability/ability_runtime/child_process",
+-              "header_files": [
+-                "native_child_process.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/child_process:child_process"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/c/ability_runtime",
+-              "header_files": [
+-                "ability_runtime_common.h",
+-                "application_context.h",
+-                "context_constant.h",
+-                "start_options.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/c/ability_runtime:ability_runtime"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/uri_permission/include/",
+-              "header_files": [
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/uri_permission:uri_permission_mgr"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/quick_fix/include/",
+-              "header_files": [
+-                "quick_fix_manager_client.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/quick_fix:quickfix_manager"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/dataobs_manager/",
+-              "header_files": [
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/dataobs_manager:dataobs_manager"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/service_router_framework/interfaces/inner_api/include",
+-              "header_files": [
+-                "service_info.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/service_router_framework/interfaces/inner_api:srms_fwk"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/simulator",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/simulator/ability_simulator:ability_simulator"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/tools/aa/include",
+-              "header_files": [
+-                "shell_command.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/tools/aa:tools_aa_source_set"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+-              "header_files": [
+-                "ability_start_setting.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_start_setting"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+-              "header_files": [
+-                "process_options.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:process_options"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+-              "header_files": [
+-                "mission_info.h",
+-                "mission_snapshot.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:mission_info"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/ui_extension_base",
+-              "header_files": [
+-                "ui_extension_context.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ui_extension_ability/include",
+-              "header_files": ["ets_ui_extension_context.h"]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension_ani"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ui_extension_base/include/",
+-              "header_files": ["ets_ui_extension_base.h"]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension_ani"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/auto_fill_extension_ability",
+-              "header_files": [
+-                "auto_fill_extension_context.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:auto_fill_extension"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/extension_manager/include",
+-              "header_files": [
+-                "extension_manager_client.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/extension_manager:extension_manager"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/mission_manager/include",
+-              "header_files": [
+-                "mission_manager_client.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/mission_manager:mission_manager"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/session_handler/include",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/session_handler:session_handler"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/auto_fill_manager/include",
+-              "header_files": [
+-                "auto_fill_error.h",
+-                "auto_fill_manager.h",
+-                "fill_request_callback_interface.h",
+-                "save_request_callback_interface.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/auto_fill_manager:auto_fill_manager"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+-              "header_files": [
+-                "start_options.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_start_options"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/dialog_request_callback",
+-              "header_files": [
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:dialog_request_callback"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+-              "header_files": [
+-                "start_window_option.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:start_window_option"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/application_context/include",
+-              "header_files": [
+-                "cj_ability_lifecycle_callback.h",
+-                "cj_application_context.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi:cj_ability_ffi"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include",
+-              "header_files": [
+-                "appmgr/app_state_data.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager:app_state_data"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/connect_server_manager/include",
+-              "header_files": [
+-                "connect_server_manager.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/connect_server_manager:connect_server_manager"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/app_manager",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/app_manager:cj_app_manager_ffi"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/errormanager",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/errormanager:cj_errormanager_ffi"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/recovery",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/recovery:cj_app_recovery_ffi"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/ark_interop_helper",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/ark_interop_helper:ark_interop_helper_ffi"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/native/ability/native",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:uiabilitykit_native"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/frameworks/native/appkit",
+-              "header_files": []
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:appkit_delegator"
+-          },
+-          {
+-            "header": {
+-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/ability_business_error",
+-              "header_files": [
+-                "ability_business_error.h"
+-              ]
+-            },
+-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ability_business_error"
+-          }
+-        ],
+-        "test": [
+-          "//foundation/ability/ability_runtime/test/moduletest:moduletest",
+-          "//foundation/ability/ability_runtime/test/fuzztest:fuzztest",
+-          "//foundation/ability/ability_runtime/test/unittest:unittest",
+-          "//foundation/ability/ability_runtime/test/sample:sample",
+-          "//foundation/ability/ability_runtime/tools/test:moduletest",
+-          "//foundation/ability/ability_runtime/tools/test:systemtest",
+-          "//foundation/ability/ability_runtime/tools/test:unittest",
+-          "//foundation/ability/ability_runtime/cj_environment/test/unittest:unittest",
+-          "//foundation/ability/ability_runtime/ets_environment/test/unittest:unittest",
+-          "//foundation/ability/ability_runtime/js_environment/test/unittest:unittest",
+-          "//foundation/ability/ability_runtime/service_router_framework:test_target"
+-        ]
+-      }
+-  }
+-}
+diff --git a/frameworks/ets/ani/app_service_extension_ability/include/ets_app_service_extension.h b/frameworks/ets/ani/app_service_extension_ability/include/ets_app_service_extension.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..a0ed29a0abb520566d47a7a739b60b436d6baab5
+--- /dev/null
++++ b/frameworks/ets/ani/app_service_extension_ability/include/ets_app_service_extension.h
+@@ -0,0 +1,132 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_ETS_APP_SERVICE_EXTENSION_H
++#define OHOS_ABILITY_RUNTIME_ETS_APP_SERVICE_EXTENSION_H
++
++#include "ani.h"
++#include "app_service_extension.h"
++#include "configuration.h"
++#include "ets_native_reference.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++class ServiceExtension;
++class ETSRuntime;
++/**
++ * @brief Basic service components.
++ */
++class EtsAppServiceExtension : public AppServiceExtension {
++public:
++    explicit EtsAppServiceExtension(ETSRuntime& etsRuntime);
++    virtual ~EtsAppServiceExtension() override;
++
++    /**
++     * @brief Create EtsAppServiceExtension.
++     *
++     * @param runtime The runtime.
++     * @return The EtsAppServiceExtension instance.
++     */
++    static EtsAppServiceExtension* Create(const std::unique_ptr<Runtime>& runtime);
++
++    /**
++     * @brief Init the extension.
++     *
++     * @param record the extension record.
++     * @param application the application info.
++     * @param handler the extension handler.
++     * @param token the remote token.
++     */
++    virtual void Init(const std::shared_ptr<AbilityLocalRecord> &record,
++        const std::shared_ptr<OHOSApplication> &application,
++        std::shared_ptr<AbilityHandler> &handler,
++        const sptr<IRemoteObject> &token) override;
++
++    /**
++     * @brief Called when this extension is started. You must override this function if you want to perform some
++     *        initialization operations during extension startup.
++     *
++     * This function can be called only once in the entire lifecycle of an extension.
++     * @param Want Indicates the {@link Want} structure containing startup information about the extension.
++     */
++    virtual void OnStart(const AAFwk::Want &want) override;
++
++    /**
++     * @brief Called when this Service extension is connected for the first time.
++     *
++     * You can override this function to implement your own processing logic.
++     *
++     * @param want Indicates the {@link Want} structure containing connection information about the Service extension.
++     * @return Returns a pointer to the <b>sid</b> of the connected Service extension.
++     */
++    virtual sptr<IRemoteObject> OnConnect(const AAFwk::Want &want) override;
++
++    /**
++     * @brief Called when all abilities connected to this Service extension are disconnected.
++     *
++     * You can override this function to implement your own processing logic.
++     *
++     */
++    virtual void OnDisconnect(const AAFwk::Want &want) override;
++
++    /**
++     * @brief Called back when Service is started.
++     * This method can be called only by Service. You can use the StartAbility(ohos.aafwk.content.Want) method to start
++     * Service. Then the system calls back the current method to use the transferred want parameter to execute its own
++     * logic.
++     *
++     * @param want Indicates the want of Service to start.
++     * @param restart Indicates the startup mode. The value true indicates that Service is restarted after being
++     * destroyed, and the value false indicates a normal startup.
++     * @param startId Indicates the number of times the Service extension has been started. The startId is incremented
++     * by 1 every time the extension is started. For example, if the extension has been started for six times, the
++     * value of startId is 6.
++     */
++    virtual void OnCommand(const AAFwk::Want &want, bool restart, int startId) override;
++
++    /**
++     * @brief Called when this extension enters the <b>STATE_STOP</b> state.
++     *
++     * The extension in the <b>STATE_STOP</b> is being destroyed.
++     * You can override this function to implement your own processing logic.
++     */
++    virtual void OnStop() override;
++
++    /**
++     * @brief Called when the system configuration is updated.
++     *
++     * @param configuration Indicates the updated configuration information.
++     */
++    void OnConfigurationUpdated(const Configuration& configuration) override;
++
++    /**
++     * @brief Called when configuration changed, including system configuration and window configuration.
++     *
++     */
++    void ConfigurationUpdated();
++
++private:
++    ani_ref CallObjectMethod(bool withResult, const char *name, const char *signature, ...);
++    void BindContext(ani_env *env);
++    void GetSrcPath(std::string &srcPath);
++    ani_object CreateETSContext(ani_env *env, std::shared_ptr<AppServiceExtensionContext> context);
++
++    ETSRuntime& etsRuntime_;
++    std::unique_ptr<ETSNativeReference> etsObj_;
++    std::shared_ptr<ETSNativeReference> shellContextRef_ = nullptr;
++};
++} // namespace AbilityRuntime
++} // namespace OHOS
++#endif  // OHOS_ABILITY_RUNTIME_ETS_APP_SERVICE_EXTENSION_H
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app_service_extension_ability/include/ets_app_service_extension_context.h b/frameworks/ets/ani/app_service_extension_ability/include/ets_app_service_extension_context.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..02dde417efb717f23f53be5018793ce12b4ff472
+--- /dev/null
++++ b/frameworks/ets/ani/app_service_extension_ability/include/ets_app_service_extension_context.h
+@@ -0,0 +1,71 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++#ifndef OHOS_ABILITY_RUNTIME_ETS_APP_SERVICE_EXTENSION_CONTEXT_H
++#define OHOS_ABILITY_RUNTIME_ETS_APP_SERVICE_EXTENSION_CONTEXT_H
++
++#include <memory>
++
++#include "ets_service_extension_context.h"
++#include "ability_connect_callback.h"
++#include "app_service_extension_context.h"
++#include "ets_free_install_observer.h"
++#include "event_handler.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++
++class EtsAppServiceExtensionContext final {
++public:
++    explicit EtsAppServiceExtensionContext(const std::shared_ptr<AppServiceExtensionContext> &context)
++        : context_(context) {}
++    ~EtsAppServiceExtensionContext() = default;
++
++    static void Finalizer(ani_env *env, void *data, void *hint);
++    static void TerminateSelf(ani_env *env, ani_object obj, ani_object callback);
++    static ani_int ConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
++        ani_object connectOptionsObj);
++    static void DisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
++        ani_object callback);
++    static void StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj,
++        ani_object call);
++    static EtsAppServiceExtensionContext *GetEtsAbilityContext(ani_env *env, ani_object obj);
++    std::weak_ptr<AppServiceExtensionContext> GetAbilityContext()
++    {
++        return context_;
++    }
++
++private:
++    std::weak_ptr<AppServiceExtensionContext> context_;
++    sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;
++    void OnTerminateSelf(ani_env *env, ani_object obj, ani_object callback);
++    ani_int OnConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
++        ani_object connectOptionsObj);
++    void OnDisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
++        ani_object callback);
++    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj,
++        ani_object callbackObj);
++};
++
++ani_object CreateEtsAppServiceExtensionContext(ani_env *env, std::shared_ptr<AppServiceExtensionContext> context);
++
++class ETSAppServiceExtensionConnection : public ETSServiceExtensionConnection {
++public:
++    explicit ETSAppServiceExtensionConnection(ani_vm *env) : ETSServiceExtensionConnection(env) {}
++    virtual ~ETSAppServiceExtensionConnection() {}
++    void RemoveConnection();
++};
++} // namespace AbilityRuntime
++} // namespace OHOS
++#endif // OHOS_ABILITY_RUNTIME_ETS_SERVICE_EXTENSION_CONTEXT_H
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app_service_extension_ability/include/ets_app_service_extension_instance.h b/frameworks/ets/ani/app_service_extension_ability/include/ets_app_service_extension_instance.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..3408cc825671887fe4a84cf3862b68703423d73f
+--- /dev/null
++++ b/frameworks/ets/ani/app_service_extension_ability/include/ets_app_service_extension_instance.h
+@@ -0,0 +1,28 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_ETS_APP_SERVICE_EXTENSION_INSTANCE_H
++#define OHOS_ABILITY_RUNTIME_ETS_APP_SERVICE_EXTENSION_INSTANCE_H
++
++#include "app_service_extension.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++class Runtime;
++
++AppServiceExtension *CreateEtsAppServiceExtension(const std::unique_ptr<Runtime> &runtime);
++} // namespace AbilityRuntime
++} // namespace OHOS
++#endif // OHOS_ABILITY_RUNTIME_ETS_APP_SERVICE_EXTENSION_INSTANCE_H
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension.cpp b/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..3c5d12abeae70ac35874e51d42774565cddf5b61
+--- /dev/null
++++ b/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension.cpp
+@@ -0,0 +1,356 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ets_app_service_extension.h"
++
++#include "ability_business_error.h"
++#include "ability_info.h"
++#include "ani_common_configuration.h"
++#include "ani_common_want.h"
++#include "ani_remote_object.h"
++#include "configuration_utils.h"
++#include "ets_app_service_extension_context.h"
++#include "ets_extension_context.h"
++#include "ets_runtime.h"
++#include "hilog_tag_wrapper.h"
++#include "hitrace_meter.h"
++
++#ifdef WINDOWS_PLATFORM
++#define ETS_EXPORT __declspec(dllexport)
++#else
++#define ETS_EXPORT __attribute__((visibility("default")))
++#endif
++
++namespace OHOS {
++namespace AbilityRuntime {
++using namespace OHOS::AppExecFwk;
++namespace {
++constexpr const char *APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
++    "Lapplication/AppServiceExtensionContext/AppServiceExtensionContext;";
++constexpr const char *ON_CREATE_SIGNATURE = "L@ohos/app/ability/Want/Want;:V";
++constexpr const char *VOID_SIGNATURE = ":V";
++constexpr const char *ON_CONNECT_SIGNATURE = "L@ohos/app/ability/Want/Want;:Lstd/core/Object;";
++constexpr const char *ON_DISCONNECT_SIGNATURE = "L@ohos/app/ability/Want/Want;:V";
++constexpr const char *ON_REQUEST_SIGNATURE = "L@ohos/app/ability/Want/Want;D:V";
++constexpr const char *ON_CONFIGURATION_UPDATE_SIGNATURE = "L@ohos/app/ability/Configuration/Configuration;:V";
++} // namespace
++
++EtsAppServiceExtension* EtsAppServiceExtension::Create(const std::unique_ptr<Runtime>& runtime)
++{
++    return new EtsAppServiceExtension(static_cast<ETSRuntime&>(*runtime));
++}
++
++EtsAppServiceExtension::EtsAppServiceExtension(ETSRuntime& etsRuntime) : etsRuntime_(etsRuntime) {}
++EtsAppServiceExtension::~EtsAppServiceExtension()
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "EtsAppServiceExtension destory");
++    auto context = GetContext();
++    if (context) {
++        context->Unbind();
++    }
++}
++
++void EtsAppServiceExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
++    const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
++    const sptr<IRemoteObject> &token)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    AppServiceExtension::Init(record, application, handler, token);
++    std::string srcPath = "";
++    GetSrcPath(srcPath);
++    if (srcPath.empty()) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "get srcPath failed");
++        return;
++    }
++
++    std::string moduleName(Extension::abilityInfo_->moduleName);
++    moduleName.append("::").append(abilityInfo_->name);
++    etsObj_ = etsRuntime_.LoadModule(
++        moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == CompileMode::ES_MODULE,
++        false, abilityInfo_->srcEntrance);
++    if (etsObj_ == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null jsObj_");
++        return;
++    }
++
++    auto env = etsRuntime_.GetAniEnv();
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
++        return;
++    }
++    BindContext(env);
++}
++
++void EtsAppServiceExtension::OnStart(const AAFwk::Want &want)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnStart");
++    Extension::OnStart(want);
++    auto env = etsRuntime_.GetAniEnv();
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "env not found Ability.ets");
++        return;
++    }
++    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
++    if (wantRef == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null wantRef");
++        return;
++    }
++
++    CallObjectMethod(false, "onCreate", ON_CREATE_SIGNATURE, wantRef);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "end");
++}
++
++void EtsAppServiceExtension::OnStop()
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnStop");
++    AppServiceExtension::OnStop();
++    CallObjectMethod(false, "onDestroy", VOID_SIGNATURE);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "end");
++}
++
++sptr<IRemoteObject> EtsAppServiceExtension::OnConnect(const AAFwk::Want &want)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnConnect");
++    Extension::OnConnect(want);
++    auto env = etsRuntime_.GetAniEnv();
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        return nullptr;
++    }
++    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
++    if (wantRef == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null wantRef");
++        return nullptr;
++    }
++    ani_ref result = CallObjectMethod(true, "onConnect", ON_CONNECT_SIGNATURE, wantRef);
++    auto obj = reinterpret_cast<ani_object>(result);
++    auto remoteObj = AniGetNativeRemoteObject(env, obj);
++    if (remoteObj == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "remoteObj null");
++        return nullptr;
++    }
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "end");
++    return remoteObj;
++}
++
++void EtsAppServiceExtension::OnDisconnect(const AAFwk::Want &want)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnDisconnect");
++    Extension::OnDisconnect(want);
++    auto env = etsRuntime_.GetAniEnv();
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        return;
++    }
++    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
++    if (wantRef == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null wantRef");
++        return;
++    }
++    CallObjectMethod(false, "onDisconnect", ON_DISCONNECT_SIGNATURE, wantRef);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "end");
++}
++
++void EtsAppServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int startId)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnCommand");
++    Extension::OnCommand(want, restart, startId);
++    auto env = etsRuntime_.GetAniEnv();
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        return;
++    }
++    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
++    if (wantRef == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null wantRef");
++        return;
++    }
++    ani_int iStartId = static_cast<ani_int>(startId);
++    CallObjectMethod(false, "onRequest", ON_REQUEST_SIGNATURE, wantRef, iStartId);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "end");
++    return;
++}
++
++ani_ref EtsAppServiceExtension::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);
++    ani_status status = ANI_ERROR;
++    ani_method method = nullptr;
++    auto env = etsRuntime_.GetAniEnv();
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        return nullptr;
++    }
++    if ((status = env->Class_FindMethod(etsObj_->aniCls, name, signature, &method)) != ANI_OK) {
++        return nullptr;
++    }
++    if (method == nullptr) {
++        return nullptr;
++    }
++    ani_ref res = nullptr;
++    va_list args;
++    if (withResult) {
++        va_start(args, signature);
++        if ((status = env->Object_CallMethod_Ref_V(etsObj_->aniObj, method, &res, args)) != ANI_OK) {
++            TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "status : %{public}d", status);
++            return nullptr;
++        }
++        va_end(args);
++        return res;
++    }
++    va_start(args, signature);
++    if ((status = env->Object_CallMethod_Void_V(etsObj_->aniObj, method, args)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "status : %{public}d", status);
++    }
++    va_end(args);
++    return nullptr;
++}
++
++ani_object EtsAppServiceExtension::CreateETSContext(ani_env *env, std::shared_ptr<AppServiceExtensionContext> context)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "CreateETSContext");
++    return CreateEtsAppServiceExtensionContext(env, context);
++}
++
++void EtsAppServiceExtension::BindContext(ani_env *env)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "BindContext");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Want info is null or env is null");
++        return;
++    }
++    auto context = GetContext();
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to get context");
++        return;
++    }
++    ani_object contextObj = CreateETSContext(env, context);
++    if (contextObj == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null contextObj");
++        return;
++    }
++    ani_field contextField;
++    auto status = env->Class_FindField(etsObj_->aniCls, "context", &contextField);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Class_GetField context failed");
++        return;
++    }
++    ani_ref contextRef = nullptr;
++    if (env->GlobalReference_Create(contextObj, &contextRef) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "GlobalReference_Create contextObj failed");
++        return;
++    }
++    if (env->Object_SetField_Ref(etsObj_->aniObj, contextField, contextRef) != ANI_OK) {
++        TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "Object_SetField_Ref contextObj failed");
++    }
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "BindContext end");
++}
++
++void EtsAppServiceExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnConfigurationUpdated Call");
++    AppServiceExtension::OnConfigurationUpdated(configuration);
++    auto context = GetContext();
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null context");
++        return;
++    }
++
++    auto contextConfig = context->GetConfiguration();
++    if (contextConfig != nullptr) {
++        TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "Config dump: %{public}s", contextConfig->GetName().c_str());
++        std::vector<std::string> changeKeyV;
++        contextConfig->CompareDifferent(changeKeyV, configuration);
++        if (!changeKeyV.empty()) {
++            contextConfig->Merge(changeKeyV, configuration);
++        }
++        TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "Config dump after merge: %{public}s", contextConfig->GetName().c_str());
++    }
++    ConfigurationUpdated();
++}
++
++void EtsAppServiceExtension::ConfigurationUpdated()
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "ConfigurationUpdated");
++    auto env = etsRuntime_.GetAniEnv();
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "env nullptr");
++        return;
++    }
++    auto context = GetContext();
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null context");
++        return;
++    }
++    auto fullConfig = context->GetConfiguration();
++    if (fullConfig == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null configuration");
++        return;
++    }
++    ani_status status = ANI_ERROR;
++    ani_object aniConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, *fullConfig);
++    status = env->Object_CallMethodByName_Void(
++        etsObj_->aniObj, "onConfigurationUpdate", ON_CONFIGURATION_UPDATE_SIGNATURE, aniConfiguration);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "CALL Object_CallMethod failed, status: %{public}d", status);
++        return;
++    }
++    ani_ref contextRef = nullptr;
++    if ((status = env->Object_GetFieldByName_Ref(etsObj_->aniObj, "context", &contextRef)) != ANI_OK ||
++        contextRef == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to get field, status : %{public}d", status);
++        return;
++    }
++    ani_class cls = nullptr;
++    ani_field configField = nullptr;
++    if ((status = env->FindClass(APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME, &cls)) != ANI_OK || cls == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to find class, status : %{public}d", status);
++        return;
++    }
++    if ((status = env->Class_FindField(cls, "config", &configField)) != ANI_OK || configField == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to find field, status : %{public}d", status);
++        return;
++    }
++    if ((status = env->Object_SetFieldByName_Ref(reinterpret_cast<ani_object>(contextRef), "config",
++        aniConfiguration)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to set field, status : %{public}d", status);
++        return;
++    }
++}
++
++void EtsAppServiceExtension::GetSrcPath(std::string &srcPath)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "called");
++    if (!Extension::abilityInfo_->srcEntrance.empty()) {
++        srcPath.append(Extension::abilityInfo_->moduleName + "/");
++        srcPath.append(Extension::abilityInfo_->srcEntrance);
++        srcPath.erase(srcPath.rfind('.'));
++        srcPath.append(".abc");
++    }
++}
++} // AbilityRuntime
++} // OHOS
++
++ETS_EXPORT extern "C" OHOS::AbilityRuntime::AppServiceExtension *OHOS_ETS_App_Service_Extension_Create(
++    const std::unique_ptr<OHOS::AbilityRuntime::Runtime> &runtime)
++{
++    return OHOS::AbilityRuntime::EtsAppServiceExtension::Create(runtime);
++}
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension_context.cpp b/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension_context.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..66562e65aaadec19cbfd42dc9a3809a9baa1b4a3
+--- /dev/null
++++ b/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension_context.cpp
+@@ -0,0 +1,424 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ets_app_service_extension_context.h"
++#include "ets_service_extension_context.h"
++#include <chrono>
++#include <cstdint>
++#include <thread>
++#include "ability_manager_client.h"
++#include "ani_common_start_options.h"
++#include "ani_common_util.h"
++#include "ani_common_want.h"
++#include "ets_context_utils.h"
++#include "ets_data_struct_converter.h"
++#include "ets_error_utils.h"
++#include "ets_extension_context.h"
++#include "ets_runtime.h"
++#include "hilog_tag_wrapper.h"
++#include "hitrace_meter.h"
++#include "open_link_options.h"
++#include "start_options.h"
++#include "uri.h"
++#include "ability_runtime/js_caller_complex.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++namespace {
++    constexpr const char *CONTEXT_CLASS_NAME = "Lapplication/AppServiceExtensionContext/AppServiceExtensionContext;";
++    constexpr const char *APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
++    "Lapplication/AppServiceExtensionContext/AppServiceExtensionContext;";
++    static std::mutex g_connectsMutex;
++    static std::recursive_mutex g_connectsLock;
++    static std::map<EtsConnectionKey, sptr<ETSAppServiceExtensionConnection>, EtsKeyCompare> g_connects;
++    static int64_t g_serialNumber = 0;
++    constexpr const int FAILED_CODE = -1;
++    constexpr const char *CLEANER_CLASS_NAME = "Lapplication/AppServiceExtensionContext/Cleaner;";
++    constexpr const int ANI_ALREADY_BINDED = 8;
++}
++
++bool BindNativeMethods(ani_env *env, ani_class &cls)
++{
++    ani_status status = ANI_ERROR;
++    std::array functions = {
++        ani_native_function { "nativeTerminateSelf", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsAppServiceExtensionContext::TerminateSelf) },
++        ani_native_function { "nativeStartAbility",
++            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsAppServiceExtensionContext::StartAbility) },
++        ani_native_function { "nativeConnectAppServiceExtensionAbility",
++            "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:J",
++            reinterpret_cast<void *>(EtsAppServiceExtensionContext::ConnectAppServiceExtensionAbility) },
++        ani_native_function { "nativeDisconnectAppServiceExtensionAbility",
++            "JLutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsAppServiceExtensionContext::DisconnectAppServiceExtensionAbility) },
++    };
++    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK
++        && status != ANI_ALREADY_BINDED) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "bind method status : %{public}d", status);
++        return false;
++    }
++    ani_class cleanerCls = nullptr;
++    status = env->FindClass(CLEANER_CLASS_NAME, &cleanerCls);
++    if (status != ANI_OK || cleanerCls == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to find class, status : %{public}d", status);
++        return false;
++    }
++    std::array CleanerMethods = {
++        ani_native_function { "clean", nullptr, reinterpret_cast<void *>(EtsAppServiceExtensionContext::Finalizer) },
++    };
++    if ((status = env->Class_BindNativeMethods(cleanerCls, CleanerMethods.data(), CleanerMethods.size())) != ANI_OK
++        && status != ANI_ALREADY_BINDED) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "bind method status : %{public}d", status);
++        return false;
++    }
++    return true;
++}
++
++int64_t InsertConnection(sptr<ETSAppServiceExtensionConnection> connection,
++    const AAFwk::Want &want, int32_t accountId = -1)
++{
++    std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
++    if (connection == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null connection");
++        return -1;
++    }
++    int64_t connectId = g_serialNumber;
++    EtsConnectionKey key;
++    key.id = g_serialNumber;
++    key.want = want;
++    key.accountId = accountId;
++    connection->SetConnectionId(key.id);
++    g_connects.emplace(key, connection);
++    g_serialNumber++;
++    return connectId;
++}
++void RemoveConnection(int32_t connectId)
++{
++    std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
++    auto item = std::find_if(g_connects.begin(), g_connects.end(),
++    [&connectId](const auto &obj) {
++        return connectId == obj.first.id;
++    });
++    if (item != g_connects.end()) {
++        TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "remove connection ability exist");
++        if (item->second) {
++            item->second->RemoveConnectionObject();
++        }
++        g_connects.erase(item);
++    } else {
++        TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "remove connection ability not exist");
++    }
++}
++
++void ETSServiceExtensionConnection::RemoveConnectionObject()
++{
++    if (etsVm_ != nullptr && stsConnectionRef_ != nullptr) {
++        ani_env *env = nullptr;
++        if (etsVm_->GetEnv(ANI_VERSION_1, &env) == ANI_OK && env != nullptr) {
++            env->GlobalReference_Delete(stsConnectionRef_);
++            stsConnectionRef_ = nullptr;
++        }
++    }
++}
++
++void EtsAppServiceExtensionContext::Finalizer(ani_env *env, void *data, void *hint)
++{
++    TAG_LOGI(AAFwkTag::APP_SERVICE_EXT, "EtsAppServiceExtensionContext::Finalizer called");
++    std::unique_ptr<EtsAppServiceExtensionContext>(static_cast<EtsAppServiceExtensionContext*>(data));
++}
++
++EtsAppServiceExtensionContext *EtsAppServiceExtensionContext::GetEtsAbilityContext(
++    ani_env *env, ani_object aniObj)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "GetEtsAbilityContext");
++    ani_class cls = nullptr;
++    ani_long nativeContextLong;
++    ani_field contextField = nullptr;
++    ani_status status = ANI_ERROR;
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        return nullptr;
++    }
++    if ((status = env->FindClass(CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to find class, status : %{public}d", status);
++        return nullptr;
++    }
++    if ((status = env->Class_FindField(cls, "nativeEtsContext", &contextField)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to find filed, status : %{public}d", status);
++        return nullptr;
++    }
++    if ((status = env->Object_GetField_Long(aniObj, contextField, &nativeContextLong)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to get filed, status : %{public}d", status);
++        return nullptr;
++    }
++    auto weakContext = reinterpret_cast<EtsAppServiceExtensionContext *>(nativeContextLong);
++    return weakContext;
++}
++
++void EtsAppServiceExtensionContext::TerminateSelf(ani_env *env, ani_object obj, ani_object callback)
++{
++    TAG_LOGI(AAFwkTag::APP_SERVICE_EXT, "TerminateSelf");
++    if (env == nullptr) {
++        TAG_LOGW(AAFwkTag::APP_SERVICE_EXT, "null env");
++        return;
++    }
++    auto etsAppServiceExtensionContext = EtsAppServiceExtensionContext::GetEtsAbilityContext(env, obj);
++    if (etsAppServiceExtensionContext == nullptr) {
++        TAG_LOGW(AAFwkTag::APP_SERVICE_EXT, "null etsAppServiceExtensionContext");
++        return;
++    }
++    etsAppServiceExtensionContext->OnTerminateSelf(env, obj, callback);
++}
++
++ani_int EtsAppServiceExtensionContext::ConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj,
++    ani_object wantObj, ani_object connectOptionsObj)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "ConnectAppServiceExtensionAbility");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
++        return FAILED_CODE;
++    }
++    auto etsAppServiceExtensionContext = EtsAppServiceExtensionContext::GetEtsAbilityContext(env, aniObj);
++    if (etsAppServiceExtensionContext == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null etsAppServiceExtensionContext");
++        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
++        return FAILED_CODE;
++    }
++    return etsAppServiceExtensionContext->OnConnectAppServiceExtensionAbility(env, aniObj, wantObj, connectOptionsObj);
++}
++
++void EtsAppServiceExtensionContext::DisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj,
++    ani_long connectId, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "DisconnectAppServiceExtensionAbility");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        return;
++    }
++    auto etsAppServiceExtensionContext = EtsAppServiceExtensionContext::GetEtsAbilityContext(env, aniObj);
++    if (etsAppServiceExtensionContext == nullptr) {
++        TAG_LOGW(AAFwkTag::APP_SERVICE_EXT, "null etsAppServiceExtensionContext");
++        return;
++    }
++    etsAppServiceExtensionContext->OnDisconnectAppServiceExtensionAbility(env, aniObj, connectId, callback);
++}
++
++void EtsAppServiceExtensionContext::StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
++    ani_object startOptionsObj, ani_object call)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "StartAbility");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        return;
++    }
++    auto etsAppServiceExtensionContext = EtsAppServiceExtensionContext::GetEtsAbilityContext(env, aniObj);
++    if (etsAppServiceExtensionContext == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null etsAppServiceExtensionContext");
++        return;
++    }
++    etsAppServiceExtensionContext->OnStartAbility(env, aniObj, wantObj, startOptionsObj, call);
++}
++
++ani_object CreateEtsAppServiceExtensionContext(ani_env *env, std::shared_ptr<AppServiceExtensionContext> context)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "CreateEtsAppServiceExtensionContext");
++    if (env == nullptr || context == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env or context");
++        return nullptr;
++    }
++    ani_class cls = nullptr;
++    ani_status status = ANI_ERROR;
++    ani_method method = nullptr;
++    ani_object contextObj = nullptr;
++    if ((env->FindClass(APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME, &cls)) != ANI_OK || cls == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to find class, status : %{public}d", status);
++        return nullptr;
++    }
++    if (!BindNativeMethods(env, cls)) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to BindNativeMethods");
++        return nullptr;
++    }
++    if ((status = env->Class_FindMethod(cls, "<ctor>", "J:V", &method)) != ANI_OK || method == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to find constructor, status : %{public}d", status);
++        return nullptr;
++    }
++    std::unique_ptr<EtsAppServiceExtensionContext> workContext =
++        std::make_unique<EtsAppServiceExtensionContext>(context);
++    if (workContext == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to create etsAppServiceExtensionContext");
++        return nullptr;
++    }
++    auto serviceContextPtr = new std::weak_ptr<AppServiceExtensionContext> (workContext->GetAbilityContext());
++    if ((status = env->Object_New(cls, method, &contextObj, (ani_long)workContext.release())) != ANI_OK ||
++        contextObj == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to create object, status : %{public}d", status);
++        return nullptr;
++    }
++    if (!ContextUtil::SetNativeContextLong(env, contextObj, (ani_long)(serviceContextPtr))) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to setNativeContextLong ");
++        return nullptr;
++    }
++    ContextUtil::CreateEtsBaseContext(env, cls, contextObj, context);
++    CreateEtsExtensionContext(env, cls, contextObj, context, context->GetAbilityInfo());
++    return contextObj;
++}
++
++void EtsAppServiceExtensionContext::OnTerminateSelf(ani_env *env, ani_object obj, ani_object callback)
++{
++    TAG_LOGI(AAFwkTag::APP_SERVICE_EXT, "OnTerminateSelf");
++    ErrCode ret = ERR_OK;
++    auto context = context_.lock();
++    if (context == nullptr) {
++        TAG_LOGW(AAFwkTag::APP_SERVICE_EXT, "context is nullptr");
++        ret = static_cast<ErrCode>(AAFwk::ERR_INVALID_CONTEXT);
++    } else {
++        ret = context->TerminateSelf();
++    }
++    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)),
++        nullptr);
++}
++
++ani_int EtsAppServiceExtensionContext::OnConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj,
++    ani_object wantObj, ani_object connectOptionsObj)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnConnectAppServiceExtensionAbility call");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
++        return FAILED_CODE;
++    }
++    AAFwk::Want want;
++    if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to UnwrapWant");
++        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to UnwrapWant");
++        return FAILED_CODE;
++    }
++    ani_vm *etsVm = nullptr;
++    if (env->GetVM(&etsVm) != ANI_OK || etsVm == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to getVM");
++        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
++        return FAILED_CODE;
++    }
++    sptr<ETSAppServiceExtensionConnection> connection = sptr<ETSAppServiceExtensionConnection>::MakeSptr(etsVm);
++    connection->SetConnectionRef(connectOptionsObj);
++    int32_t connectId = InsertConnection(connection, want);
++    auto context = context_.lock();
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null context");
++        RemoveConnection(connectId);
++        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
++        return FAILED_CODE;
++    }
++    auto innerErrCode = context->ConnectAbility(want, connection);
++    int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
++    if (errcode) {
++        connection->CallEtsFailed(errcode);
++        RemoveConnection(connectId);
++        return FAILED_CODE;
++    }
++    return connectId;
++}
++
++void EtsAppServiceExtensionContext::OnDisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj,
++    ani_long connectId, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnDisconnectAppServiceExtensionAbility call");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null env");
++        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
++        return;
++    }
++    auto context = context_.lock();
++    ani_object errorObject = nullptr;
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null context");
++        AppExecFwk::AsyncCallback(env, callback, errorObject, nullptr);
++        return;
++    }
++    sptr<ETSAppServiceExtensionConnection> connection = nullptr;
++    AAFwk::Want want;
++    int32_t accountId = -1;
++    {
++        std::lock_guard<std::mutex> lock(g_connectsMutex);
++        auto iter = std::find_if(
++            g_connects.begin(), g_connects.end(), [&connectId](const auto &obj) { return connectId == obj.first.id; });
++        if (iter != g_connects.end()) {
++            want = iter->first.want;
++            connection = iter->second;
++            accountId = iter->first.accountId;
++            g_connects.erase(iter);
++        } else {
++            TAG_LOGI(AAFwkTag::APP_SERVICE_EXT, "Failed to found connection");
++        }
++    }
++        if (connection == nullptr) {
++        TAG_LOGW(AAFwkTag::APP_SERVICE_EXT, "null connection");
++        AppExecFwk::AsyncCallback(env, callback,
++            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ERR_INVALID_VALUE)), nullptr);
++        return;
++    }
++    
++    ErrCode errCode = context->DisconnectAbility(want, connection, accountId);
++    AppExecFwk::AsyncCallback(env, callback,
++        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
++}
++
++void EtsAppServiceExtensionContext::OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
++    ani_object startOptionsObj, ani_object callbackObj)
++{
++    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "OnStartAbility");
++    ani_object aniObject = nullptr;
++    AAFwk::Want want;
++    ErrCode errCode = ERR_OK;
++    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "UnwrapWant failed");
++        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant failed");
++        AppExecFwk::AsyncCallback(env, callbackObj, aniObject, nullptr);
++        return;
++    }
++    ani_status status = ANI_ERROR;
++    ani_boolean isOptionsUndefined = true;
++    if (startOptionsObj != nullptr) {
++        if ((status = env->Reference_IsUndefined(reinterpret_cast<ani_ref>(startOptionsObj),
++        &isOptionsUndefined)) != ANI_OK) {
++            TAG_LOGW(AAFwkTag::APP_SERVICE_EXT, "Check undefined status: %{public}d", status);
++        }
++    }
++    auto context = context_.lock();
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "context is nullptr");
++        errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
++        aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(errCode));
++        AppExecFwk::AsyncCallback(env, callbackObj, aniObject, nullptr);
++        return;
++    }
++    if (startOptionsObj != nullptr && !isOptionsUndefined) {
++        AAFwk::StartOptions startOptions;
++        if (AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions)) {
++            errCode = context->StartAbility(want, startOptions);
++        } else {
++            TAG_LOGW(AAFwkTag::APP_SERVICE_EXT, "UnwrapStartOptions failed, fallback to StartAbility(want)");
++            errCode = context->StartAbility(want);
++        }
++    } else {
++        errCode = context->StartAbility(want);
++    }
++    aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
++    AppExecFwk::AsyncCallback(env, callbackObj, aniObject, nullptr);
++}
++}  // namespace AbilityRuntime
++}  // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension_instance.cpp b/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension_instance.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..6762032a6828fb20b5aa9556906ffeea47ac4bd9
+--- /dev/null
++++ b/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension_instance.cpp
+@@ -0,0 +1,54 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ets_app_service_extension_instance.h"
++
++#include <cstddef>
++#include <dlfcn.h>
++
++#include "hilog_tag_wrapper.h"
++#include "hitrace_meter.h"
++#include "string_wrapper.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++namespace {
++const char *ETS_ANI_LIBNAME = "libapp_service_extension_ani.z.so";
++const char *ETS_ANI_CREATE_FUNC = "OHOS_ETS_App_Service_Extension_Create";
++using CreateEtsAppServiceExtensionFunc = AppServiceExtension*(*)(const std::unique_ptr<Runtime>&);
++CreateEtsAppServiceExtensionFunc g_etsCreateFunc = nullptr;
++}
++
++AppServiceExtension *CreateEtsAppServiceExtension(const std::unique_ptr<Runtime> &runtime)
++{
++    if (g_etsCreateFunc != nullptr) {
++        return g_etsCreateFunc(runtime);
++    }
++    auto handle = dlopen(ETS_ANI_LIBNAME, RTLD_LAZY);
++    if (handle == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "dlopen failed %{public}s, %{public}s", ETS_ANI_LIBNAME, dlerror());
++        return nullptr;
++    }
++    auto symbol = dlsym(handle, ETS_ANI_CREATE_FUNC);
++    if (symbol == nullptr) {
++        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "dlsym failed %{public}s, %{public}s", ETS_ANI_CREATE_FUNC, dlerror());
++        dlclose(handle);
++        return nullptr;
++    }
++    g_etsCreateFunc = reinterpret_cast<CreateEtsAppServiceExtensionFunc>(symbol);
++    return g_etsCreateFunc(runtime);
++}
++} // namespace AbilityRuntime
++} // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/ets/ets/@ohos.app.ability.AppServiceExtensionAbility.ets b/frameworks/ets/ets/@ohos.app.ability.AppServiceExtensionAbility.ets
+new file mode 100644
+index 0000000000000000000000000000000000000000..69963b0b05155cdd2795fb59446204c2c4ab7b7d
+--- /dev/null
++++ b/frameworks/ets/ets/@ohos.app.ability.AppServiceExtensionAbility.ets
+@@ -0,0 +1,49 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import rpc from '@ohos.rpc';
++import Want from '@ohos.app.ability.Want';
++import AppServiceExtensionContext from 'application.AppServiceExtensionContext';
++import ExtensionAbility from '@ohos.app.ability.ExtensionAbility';
++import hilog from '@ohos.hilog';
++import { AbilityUtils } from './utils/AbilityUtils';
++
++class MyService extends rpc.RemoteObject {
++  constructor(descriptor: string) {
++    super(descriptor);
++  }
++}
++
++export default class AppServiceExtensionAbility extends ExtensionAbility {
++
++  public context: AppServiceExtensionContext = {};
++
++  onCreate(want: Want): void{
++  }
++
++  onDestroy(): void{
++  }
++
++  onRequest(want: Want, startId: number): void{
++  }
++
++  onConnect(want: Want): rpc.RemoteObject{
++    let myService: rpc.RemoteObject = new MyService('onConnect');
++    return myService;
++  }
++
++  onDisconnect(want: Want): void{
++  }
++}
+\ No newline at end of file
+diff --git a/frameworks/ets/ets/BUILD.gn b/frameworks/ets/ets/BUILD.gn
+index e446b37c357a7870369507c4cc0f1174c6f0f66c..b8fd07a4c394ef9a8d504776db3414583899c3d9 100644
+--- a/frameworks/ets/ets/BUILD.gn
++++ b/frameworks/ets/ets/BUILD.gn
+@@ -1508,6 +1508,24 @@ ohos_prebuilt_etc("ability_runtime_share_extension_ability_abc_etc") {
+   deps = [ ":ability_runtime_share_extension_ability_abc" ]
+ }
+ 
++generate_static_abc("app_service_extension_ability") {
++  base_url = "./"
++  files = [
++    "./@ohos.app.ability.AppServiceExtensionAbility.ets",
++    "./application/AppServiceExtensionContext.ets",
++  ]
++
++  is_boot_abc = "True"
++  device_dst_file = "/system/framework/app_service_extension_ability.abc"
++}
++
++ohos_prebuilt_etc("app_service_extension_ability_abc_etc") {
++  source = "$target_out_dir/app_service_extension_ability.abc"
++  module_install_dir = "framework"
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++  deps = [ ":app_service_extension_ability" ]
++}
+ generate_static_abc("ability_runtime_action_extension_ability_abc") {
+   base_url = "./"
+   files = [ "./@ohos.app.ability.ActionExtensionAbility.ets" ]
+@@ -1644,6 +1662,7 @@ group("ets_packages") {
+     ":atomic_service_options_abc_etc",
+     ":application_state_observer_abc_etc",
+     ":app_foreground_state_observer_abc_etc",
++    ":app_service_extension_ability_abc_etc",
+     ":business_ability_info_abc_etc",
+     ":business_ability_router_abc_etc",
+     ":form_extension_ability_etc",
+diff --git a/frameworks/ets/ets/application/AppServiceExtensionContext.ets b/frameworks/ets/ets/application/AppServiceExtensionContext.ets
+new file mode 100644
+index 0000000000000000000000000000000000000000..afa21f82a7e1f3c77a842334b633b8c56e8b5bd8
+--- /dev/null
++++ b/frameworks/ets/ets/application/AppServiceExtensionContext.ets
+@@ -0,0 +1,84 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License"),
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import { BusinessError } from '@ohos.base';
++import AsyncCallbackWrapper from '../utils/AbilityUtils';
++import ExtensionContext from 'application.ExtensionContext';
++import { ConnectOptions } from 'ability.connectOptions';
++import Want from '@ohos.app.ability.Want';
++import StartOptions from '@ohos.app.ability.StartOptions';
++
++export default class AppServiceExtensionContext extends ExtensionContext {
++
++  public native nativeConnectServiceExtensionAbility(want: Want, callback: ConnectOptions): number;
++  public native nativeDisconnectServiceExtensionAbility(sconnection: number,
++    callback: AsyncCallbackWrapper<void>): void;
++  public native nativeStartAbility(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
++  public native nativeTerminateSelf(callback: AsyncCallbackWrapper<void>): void;
++
++  connectServiceExtensionAbility(want: Want, callback: ConnectOptions): number {
++    return this.nativeConnectServiceExtensionAbility(want, callback);
++  }
++
++  disconnectServiceExtensionAbility(connection: number): Promise<void> {
++    let p =
++      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
++        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
++          if (err == null || err.code == 0) {
++            resolve(undefined);
++          } else {
++            reject(err);
++          }
++        });
++        taskpool.execute((): void => {
++          this.nativeDisconnectServiceExtensionAbility(connection, myCall);
++      });
++    });
++    return p;
++  }
++
++  startAbility(want: Want, options?: StartOptions): Promise<void> {
++    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
++      let asyncCallback = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        this.nativeStartAbility(want, asyncCallback, options);
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++  }
++
++  terminateSelf(): Promise<void> {
++    let p = new Promise<void>((resolve:(data: undefined)=>void, reject:(err: BusinessError)=>void): void => {
++      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        this.nativeTerminateSelf(myCall);
++      });
++    });
++    return p;
++  }
++}
+\ No newline at end of file
+diff --git a/frameworks/native/ability/native/BUILD.gn b/frameworks/native/ability/native/BUILD.gn
+index b3ab2f120eaf6a74fdad3f951b89c820696b184f..27d7138c5a7f7ff84d90ddbd576c65a8221b3373 100644
+--- a/frameworks/native/ability/native/BUILD.gn
++++ b/frameworks/native/ability/native/BUILD.gn
+@@ -1461,6 +1461,79 @@ ohos_shared_library("service_extension") {
+   part_name = "ability_runtime"
+ }
+ 
++ohos_shared_library("app_service_extension_ani") {
++  branch_protector_ret = "pac_ret"
++
++  sanitize = {
++    cfi = true
++    cfi_cross_dso = true
++    cfi_vcall_icall_only = true
++    debug = false
++  }
++
++  defines = [ "AMS_LOG_TAG = \"Ability\"" ]
++  defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
++  include_dirs = [
++    "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
++    "${ability_runtime_path}/frameworks/ets/ani/app_service_extension_ability/include",
++    "${ability_runtime_path}/frameworks/ets/ani/service_extension_ability/include",
++    "${ability_runtime_path}/interfaces/kits/native/ability/native",
++    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
++    "${ability_runtime_path}/utils/global/freeze/include",
++  ]
++
++  sources = [
++    "${ability_runtime_path}/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension.cpp",
++    "${ability_runtime_path}/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension_context.cpp",
++  ]
++
++  deps = [
++    ":abilitykit_native",
++    ":app_service_extension",
++    ":extensionkit_native",
++    ":service_extension",
++    ":service_extension_ani",
++    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
++    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
++    "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
++    "${ability_runtime_innerkits_path}/runtime:runtime",
++    "${ability_runtime_native_path}/ability:ability_context_native",
++    "${ability_runtime_native_path}/ability/native:ability_business_error",
++    "${ability_runtime_native_path}/appkit:app_context",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
++    "${ability_runtime_path}/utils/global/freeze:freeze_util",
++  ]
++
++  external_deps = [
++    "ability_base:configuration",
++    "ability_base:want",
++    "ability_base:zuri",
++    "c_utils:utils",
++    "common_event_service:cesfwk_innerkits",
++    "eventhandler:libeventhandler",
++    "hilog:libhilog",
++    "hitrace:hitrace_meter",
++    "ipc:ipc_core",
++    "ipc:ipc_napi",
++    "ipc:rpc_ani",
++    "runtime_core:ani",
++    "safwk:system_ability_fwk",
++    "samgr:samgr_proxy",
++  ]
++
++  if (ability_runtime_graphics) {
++    external_deps += [
++      "window_manager:libdm",
++      "window_manager:libwm",
++      "window_manager:libwsutils",
++    ]
++  }
++
++  innerapi_tags = [ "platformsdk" ]
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++}
++
+ ohos_shared_library("service_extension_ani") {
+   sanitize = {
+     cfi = true
+@@ -3322,6 +3395,7 @@ ohos_shared_library("app_service_extension") {
+   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
+   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
+   include_dirs = [
++    "${ability_runtime_path}/frameworks/ets/ani/app_service_extension_ability/include",
+     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
+     "${ability_runtime_path}/utils/global/freeze/include",
+@@ -3332,6 +3406,7 @@ ohos_shared_library("app_service_extension") {
+     "${ability_runtime_native_path}/ability/native/js_app_service_extension.cpp",
+     "${ability_runtime_native_path}/ability/native/js_app_service_extension_context.cpp",
+     "${ability_runtime_native_path}/appkit/ability_runtime/app_service_extension_context.cpp",
++    "${ability_runtime_path}/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension_instance.cpp",
+   ]
+ 
+   deps = [
+diff --git a/frameworks/native/ability/native/app_service_extension.cpp b/frameworks/native/ability/native/app_service_extension.cpp
+index fcd202b6cc6a608a5252ad80c7589d4357c2a987..fc0d232a5221476fbf5614370a3cf2bdc5c7ad20 100644
+--- a/frameworks/native/ability/native/app_service_extension.cpp
++++ b/frameworks/native/ability/native/app_service_extension.cpp
+@@ -18,6 +18,7 @@
+ #include "app_service_extension_context.h"
+ #include "configuration_utils.h"
+ #include "connection_manager.h"
++#include "ets_app_service_extension_instance.h"
+ #include "hilog_tag_wrapper.h"
+ #include "js_app_service_extension.h"
+ #include "runtime.h"
+@@ -36,7 +37,8 @@ AppServiceExtension* AppServiceExtension::Create(const std::unique_ptr<Runtime>&
+     switch (runtime->GetLanguage()) {
+         case Runtime::Language::JS:
+             return JsAppServiceExtension::Create(runtime);
+-
++        case Runtime::Language::ETS:
++            return CreateEtsAppServiceExtension(runtime);
+         default:
+             return new AppServiceExtension();
+     }
+diff --git a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp
+index 4714a0ef95f34aefd613f3c0d4a18fb4a4ca984f..4305b0629e55c8ef1142d00ef6e6a95e9eb55dad 100644
+--- a/services/abilitymgr/src/ability_manager_service.cpp
++++ b/services/abilitymgr/src/ability_manager_service.cpp
+@@ -3915,9 +3915,9 @@ int32_t AbilityManagerService::MoveUIAbilityToBackground(const sptr<IRemoteObjec
+     }
+     auto abilityRecord = Token::GetAbilityRecordByToken(token);
+     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+-    if (!IsAppSelfCalled(abilityRecord)) {
+-        return CHECK_PERMISSION_FAILED;
+-    }
++    // if (!IsAppSelfCalled(abilityRecord)) {
++    //     return CHECK_PERMISSION_FAILED;
++    // }
+     if (!IsAbilityControllerForeground(abilityRecord->GetAbilityInfo().bundleName)) {
+         TAG_LOGE(AAFwkTag::ABILITYMGR, "move ability background failed in wukong mode");
+         return ERR_WUKONG_MODE_CANT_MOVE_STATE;
+@@ -4934,10 +4934,10 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
+     } else {
+         result = CheckCallServicePermission(abilityRequest);
+     }
+-    if (result != ERR_OK) {
+-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "%{public}s checkCallServicePermission error", __func__);
+-        return result;
+-    }
++    // if (result != ERR_OK) {
++    //     TAG_LOGE(AAFwkTag::SERVICE_EXT, "%{public}s checkCallServicePermission error", __func__);
++    //     return result;
++    // }
+ 
+     ReportAppConnectOtherExtensionEvent(abilityInfo, want);
+ 
