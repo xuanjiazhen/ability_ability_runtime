@@ -446,12 +446,26 @@ public:
         return 0;
     }
 
+    /**
+     * Change the visibility state of an UIAbility.
+     *
+     * @param token The destination UIAbility.
+     * @param isShow The wanted state, show or hide.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
     {
         return 0;
     }
 
-        virtual int ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessionInfo, bool isShow)
+    /**
+     * Change the visibility state of an UIAbility by SCB.
+     *
+     * @param sessionInfo The destination UIAbility.
+     * @param isShow The wanted state, show or hide.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessionInfo, bool isShow)
     {
         return 0;
     }
@@ -1091,12 +1105,25 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
+     * @param isSilent, whether show window when start fail.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false) = 0;
 
+    /**
+     * Start Ability, connect session with common ability.
+     *
+     * @param want, Special want for service type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken Indicates the caller's identity
+     * @param accountId Indicates the account to start.
+     * @param errMsg Out parameter, indicates the failed reason.
+     * @param isSilent, whether show window when start fail.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent = false)
     {

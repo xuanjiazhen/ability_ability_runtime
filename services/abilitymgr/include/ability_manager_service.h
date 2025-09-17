@@ -480,8 +480,22 @@ public:
 
     int UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::string &bundleName);
 
+    /**
+     * Change the visibility state of an UIAbility.
+     *
+     * @param token The destination UIAbility.
+     * @param isShow The wanted state, show or hide.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow) override;
 
+    /**
+     * Change the visibility state of an UIAbility by SCB.
+     *
+     * @param sessionInfo The destination UIAbility.
+     * @param isShow The wanted state, show or hide.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     int ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessionInfo, bool isShow) override;
 
     /**
@@ -1038,10 +1052,31 @@ public:
 
     virtual bool IsRamConstrainedDevice() override;
 
+    /**
+     * Start Ability, connect session with common ability.
+     *
+     * @param want, Special want for service type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken Indicates the caller's identity
+     * @param accountId Indicates the account to start.
+     * @param isSilent, whether show window when start fail.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE,
         bool isSilent = false) override;
 
+    /**
+     * Start Ability, connect session with common ability.
+     *
+     * @param want, Special want for service type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken Indicates the caller's identity
+     * @param accountId Indicates the account to start.
+     * @param errMsg Out parameter, indicates the failed reason.
+     * @param isSilent, whether show window when start fail.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg,
         bool isSilent = false) override;
@@ -1189,12 +1224,37 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE);
 
+    /**
+     * @brief called when the module's onAcceptWant done to notify ability mgr to continue
+     * @param want request param being accepted
+     * @param flag specified flag return by application
+     * @param requestId a number represents a request
+     */
     void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId);
+
+    /**
+     * @brief called when the module's onAcceptWant happens time out
+     * @param requestId a number represents a request
+     */
     void OnStartSpecifiedAbilityTimeoutResponse(int32_t requestId);
 
+    /**
+     * @brief called when the module's onNewProcessRequest returns a flag
+     * @param flag process flag
+     * @param requestId a number represents a request
+     */
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId = 0,
         const std::string &callerProcessName = "", int32_t recordId = 0);
+
+    /**
+     * @brief called when the module's onNewProcessRequest happens time out
+     * @param requestId a number represents a request
+     */
     void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
+    /**
+     * @brief called when the specified request fail fast
+     * @param requestId a number represents a request
+     */
     void OnStartSpecifiedFailed(int32_t requestId);
 
     virtual int GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info) override;
@@ -1557,6 +1617,12 @@ public:
      */
     virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart) override;
 
+    /**
+     * Start specified ability by SCB.
+     *
+     * @param want Want information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int32_t StartSpecifiedAbilityBySCB(const Want &want) override;
 
     /**
@@ -2196,8 +2262,20 @@ protected:
      */
     void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
 
+    /**
+     * @brief Notify abilityms start process failed when load ability
+     * @param abilityTokens abilities in died process.
+     */
     void OnStartProcessFailed(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
 
+    /**
+     * @brief Notify abilityms process info when an app dies
+     * @param accessTokenId app accessTokenId.
+     * @param exitInfo process running info.
+     * @param bundleName app bundleName.
+     * @param abilityNames started abilities.
+     * @param uiExtensionNames started ui extensions.
+     */
     void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
