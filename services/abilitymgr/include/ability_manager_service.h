@@ -1121,7 +1121,7 @@ public:
         const int32_t &resultCode, const int32_t &uniqueId, WantParams &wantParam);
 
     int32_t StartAbilityByFreeInstall(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId,
-        int32_t requestCode, bool hideFailureTipDialog = false);
+        int32_t requestCode, bool hideFailureTipDialog = false, bool isFreeInstallFromService = false);
 
     int StartAbilityWrap(const StartAbilityWrapParam &startAbilityWrapParam);
 
@@ -1138,7 +1138,8 @@ public:
         bool isUIAbilityOnly = false,
         bool isAppCloneSelector = false,
         bool hideFailureTipDialog = false,
-        bool isBySCB = false);
+        bool isBySCB = false,
+        bool isFreeInstallFromService = false);
 
     int32_t StartExtensionAbilityInner(
         const Want &want,
@@ -2619,7 +2620,7 @@ private:
      * @return Returns whether the caller is allowed to start Ability.
      */
     int CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId = 0,
-        bool isCallByShortcut = false);
+        bool isCallByShortcut = false, bool isFreeInstallFromService = false);
 
     /**
      * Check if Caller is allowed to start Ability(Stage) by call.
@@ -2800,13 +2801,13 @@ private:
     int CheckBrokerCallPermission(const AbilityRequest& abilityRequest,
         const AppExecFwk::AbilityInfo& abilityInfo);
 
-    int CheckAbilityCallPermission(const AbilityRequest& abilityRequest,
-        const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId);
+    int CheckAbilityCallPermission(const AbilityRequest& abilityRequest, const AppExecFwk::AbilityInfo& abilityInfo,
+        uint32_t specifyTokenId, bool isFreeInstallFromService);
 
     int CheckCallPermission(const Want& want, const AppExecFwk::AbilityInfo& abilityInfo,
         const AbilityRequest& abilityRequest, bool isForegroundToRestartApp,
         bool isSendDialogResult, uint32_t specifyTokenId,
-        const std::string& callerBundleName);
+        const std::string& callerBundleName, bool isFreeInstallFromService);
 
     void CheckExtensionRateLimit();
 

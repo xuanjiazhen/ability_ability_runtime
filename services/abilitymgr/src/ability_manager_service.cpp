@@ -652,7 +652,7 @@ int AbilityManagerService::StartAbilityWithRemoveIntentFlag(const Want &want, co
 }
 
 int32_t AbilityManagerService::StartAbilityByFreeInstall(const Want &want, sptr<IRemoteObject> callerToken,
-    int32_t userId, int32_t requestCode, bool hideFailureTipDialog)
+    int32_t userId, int32_t requestCode, bool hideFailureTipDialog, bool isFreeInstallFromService)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     bool startWithAccount = want.GetBoolParam(START_ABILITY_TYPE, false);
@@ -674,7 +674,8 @@ int32_t AbilityManagerService::StartAbilityByFreeInstall(const Want &want, sptr<
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Start ability come, ability is %{public}s, userId is %{public}d",
         want.GetElement().GetAbilityName().c_str(), userId);
     StartAbilityWrapParam startAbilityWrapParam = {
-        want, callerToken, requestCode, false, userId, false, 0, false, false, false, false, hideFailureTipDialog };
+        want, callerToken, requestCode, false, userId, false, 0, false, false, false, false,
+        hideFailureTipDialog, isFreeInstallFromService};
     int32_t ret = StartAbilityWrap(startAbilityWrapParam);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityByFreeInstall error:%{public}d", ret);
@@ -1022,7 +1023,7 @@ int AbilityManagerService::StartAbilityWrap(const StartAbilityWrapParam &startAb
         startAbilityWrapParam.isStartAsCaller, startAbilityWrapParam.specifyTokenId,
         startAbilityWrapParam.isForegroundToRestartApp, startAbilityWrapParam.isImplicit,
         startAbilityWrapParam.isUIAbilityOnly, startAbilityWrapParam.isAppCloneSelector,
-        startAbilityWrapParam.hideFailureTipDialog);
+        startAbilityWrapParam.hideFailureTipDialog, false, startAbilityWrapParam.isFreeInstallFromService);
 }
 
 void AbilityManagerService::SetReserveInfo(const std::string &linkString, AbilityRequest& abilityRequest)
@@ -1093,14 +1094,14 @@ int AbilityManagerService::CheckBrokerCallPermission(const AbilityRequest& abili
 }
 
 int AbilityManagerService::CheckAbilityCallPermission(const AbilityRequest& abilityRequest,
-    const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId)
+    const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId, bool isFreeInstallFromService)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Check call ability permission, name is %{public}s.", abilityInfo.name.c_str());
     if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "call from capi, already checked");
         return ERR_OK;
     }
-    int result = CheckCallAbilityPermission(abilityRequest, specifyTokenId);
+    int result = CheckCallAbilityPermission(abilityRequest, specifyTokenId, false, isFreeInstallFromService);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check permission failed");
     }
@@ -1110,7 +1111,7 @@ int AbilityManagerService::CheckAbilityCallPermission(const AbilityRequest& abil
 int AbilityManagerService::CheckCallPermission(const Want& want, const AppExecFwk::AbilityInfo& abilityInfo,
     const AbilityRequest& abilityRequest, bool isForegroundToRestartApp,
     bool isSendDialogResult, uint32_t specifyTokenId,
-    const std::string& callerBundleName)
+    const std::string& callerBundleName, bool isFreeInstallFromService)
 {
     auto type = abilityInfo.type;
     if (type == AppExecFwk::AbilityType::DATA) {
@@ -1129,7 +1130,7 @@ int AbilityManagerService::CheckCallPermission(const Want& want, const AppExecFw
         return CheckBrokerCallPermission(abilityRequest, abilityInfo);
     }
     if (!isForegroundToRestartApp && (!isSendDialogResult || want.GetBoolParam("isSelector", false))) {
-        return CheckAbilityCallPermission(abilityRequest, abilityInfo, specifyTokenId);
+        return CheckAbilityCallPermission(abilityRequest, abilityInfo, specifyTokenId, isFreeInstallFromService);
     }
     return ERR_OK;
 }
@@ -1164,7 +1165,7 @@ void AbilityManagerService::CheckExtensionRateLimit()
 int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemoteObject> &callerToken,
     int requestCode, bool isPendingWantCaller, int32_t userId, bool isStartAsCaller, uint32_t specifyTokenId,
     bool isForegroundToRestartApp, bool isImplicit, bool isUIAbilityOnly, bool isAppCloneSelector,
-    bool hideFailureTipDialog, bool isBySCB)
+    bool hideFailureTipDialog, bool isBySCB, bool isFreeInstallFromService)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!isStartAsCaller || isImplicit) {
@@ -1215,7 +1216,8 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     }
 
     AbilityUtil::RemoveWindowModeKey(const_cast<Want &>(want));
-    if (callerToken != nullptr && !VerificationAllToken(callerToken) && !isSendDialogResult) {
+    if (callerToken != nullptr && !isFreeInstallFromService &&
+        !VerificationAllToken(callerToken) && !isSendDialogResult) {
         auto isSpecificSA = AAFwk::PermissionVerification::GetInstance()->
             CheckSpecificSystemAbilityAccessPermission(DMS_PROCESS_NAME) ||
             AAFwk::PermissionVerification::GetInstance()->VerifyFusionAccessPermission();
@@ -1408,7 +1410,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 
     if (!isAppCloneSelector) {
         result = CheckCallPermission(want, abilityInfo, abilityRequest, isForegroundToRestartApp,
-            isSendDialogResult, specifyTokenId, callerBundleName);
+            isSendDialogResult, specifyTokenId, callerBundleName, isFreeInstallFromService);
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkCallPermission error, result:%{public}d", result);
             eventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "checkCallPermission error");
@@ -2407,7 +2409,7 @@ int32_t AbilityManagerService::GenerateAbilityForSplitMode(const AAFwk::Want &se
         return ERR_STATIC_CFG_PERMISSION;
     }
     result = CheckCallPermission(secondaryWant, abilityInfo, abilityRequest, false,
-        false, specifyTokenId, callerBundleName);
+        false, specifyTokenId, callerBundleName, false);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR,
             "StartUIAbilitiesInSplitWindowMode checkCallPermission error, result:%{public}d", result);
@@ -2587,7 +2589,7 @@ int32_t AbilityManagerService::StartUIAbilitiesHandleWant(const Want &want, sptr
         return ERR_STATIC_CFG_PERMISSION;
     }
     result = CheckCallPermission(want, abilityInfo, abilityRequest, false,
-        false, specifyTokenId, callerBundleName);
+        false, specifyTokenId, callerBundleName, false);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR,
             "StartUIAbilities checkCallPermission error, result:%{public}d", result);
@@ -11568,7 +11570,7 @@ int AbilityManagerService::CheckCallServiceAbilityPermission(const AbilityReques
 }
 
 int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId,
-    bool isCallByShortcut)
+    bool isCallByShortcut, bool isFreeInstallFromService)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
@@ -11579,8 +11581,8 @@ int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abil
     verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
     verificationInfo.specifyTokenId = specifyTokenId;
     auto callerAbilityRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-    if (callerAbilityRecord != nullptr && 
-        callerAbilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
+    if (isFreeInstallFromService || (callerAbilityRecord != nullptr && 
+        callerAbilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::APP_SERVICE)) {
         verificationInfo.isBackgroundCall = false;
     } else if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall, specifyTokenId) != ERR_OK) {
         return ERR_CHECK_CALL_FROM_BACKGROUND_FAILED;
@@ -14309,7 +14311,7 @@ int AbilityManagerService::StartUIAbilityByPreInstallInner(sptr<SessionInfo> ses
     }
 
     result = CheckCallPermission(want, abilityInfo, abilityRequest, false,
-        false, specifyTokenId, callerBundleName);
+        false, specifyTokenId, callerBundleName, false);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "checkCallPermission error, result:%{public}d", result);
         return result;
