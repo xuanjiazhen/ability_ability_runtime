@@ -207,6 +207,17 @@ ani_object EtsAutoFillExtensionContext::CreateEtsAutoFillExtensionContext(ani_en
     }
     AbilityRuntime::ContextUtil::CreateEtsBaseContext(env, cls, contextObj, context);
     AbilityRuntime::CreateEtsExtensionContext(env, cls, contextObj, context, context->GetAbilityInfo());
+    ani_ref *contextGlobalRef = new (std::nothrow) ani_ref;
+    if (contextGlobalRef == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "new contextGlobalRef failed");
+        return nullptr;
+    }
+    if ((status = env->GlobalReference_Create(contextObj, contextGlobalRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "GlobalReference_Create failed status: %{public}d", status);
+        delete contextGlobalRef;
+        return nullptr;
+    }
+    context->Bind(contextGlobalRef);
     return contextObj;
 }
 }
