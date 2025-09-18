@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <map>
 #include <string>
 #include <unordered_map>
 
