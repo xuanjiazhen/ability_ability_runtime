@@ -16,6 +16,7 @@
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import Want from '@ohos.app.ability.Want';
 import { WantAgentInfo as _WantAgentInfo } from 'wantAgent.wantAgentInfo';
+import { LocalWantAgentInfo as _LocalWantAgentInfo } from 'wantAgent.LocalWantAgentInfo';
 import { TriggerInfo as _TriggerInfo } from 'wantAgent.triggerInfo';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 
