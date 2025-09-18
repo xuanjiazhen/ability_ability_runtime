@@ -133,11 +133,11 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnEnvironment_001, 
     auto cfgCallback = [](AbilityRuntime::CConfiguration) {};
     auto memCallback = [](int32_t) {};
     auto ret =
-        CJApplicationContext::GetInstance()->OnOnEnvironment(cfgCallback, memCallback, true, nullptr);
+        CJApplicationContext::GetInstance()->OnOnEnvironment(cfgCallback, memCallback, true, 0);
     EXPECT_EQ(ret, -1);
 
     CJApplicationContext::GetInstance()->envCallback_ = nullptr;
-    ret = CJApplicationContext::GetInstance()->OnOnEnvironment(cfgCallback, memCallback, true, nullptr);
+    ret = CJApplicationContext::GetInstance()->OnOnEnvironment(cfgCallback, memCallback, true, 0);
     EXPECT_EQ(ret, -1);
 }
 
@@ -151,10 +151,9 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnAbilityLifecycle_
     CArrI64 cFuncIds;
     bool isSync = true;
     int32_t err = 0;
-    int32_t *errCode = &err;
     CJApplicationContext::GetInstance()->callback_ =
         std::make_shared<AbilityRuntime::CjAbilityLifecycleCallbackImpl>();
-    EXPECT_EQ(CJApplicationContext::GetInstance()->OnOnAbilityLifecycle(cFuncIds, isSync, errCode), -1);
+    EXPECT_EQ(CJApplicationContext::GetInstance()->OnOnAbilityLifecycle(cFuncIds, isSync, err), -1);
 }
 
 /**
@@ -167,9 +166,8 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnApplicationStateC
     auto foregroundCallback = []() {};
     auto backgroundCallback = []() {};
     int32_t err = 0;
-    int32_t *errCode = &err;
     auto ret = CJApplicationContext::GetInstance()->OnOnApplicationStateChange(foregroundCallback,
-        backgroundCallback, errCode);
+        backgroundCallback, err);
     EXPECT_EQ(ret, 0);
 }
 
@@ -182,10 +180,9 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOffEnvironment_001,
 {
     int32_t callbackId = 10;
     int32_t err = 0;
-    int32_t *errCode = &err;
     CJApplicationContext::GetInstance()->envCallback_ = std::make_shared<CjEnvironmentCallback>();
-    CJApplicationContext::GetInstance()->OnOffEnvironment(callbackId, errCode);
-    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    CJApplicationContext::GetInstance()->OnOffEnvironment(callbackId, err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
 /**
@@ -197,20 +194,19 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOffAbilityLifecycle
 {
     int32_t callbackId = 10;
     int32_t err = 0;
-    int32_t *errCode = &err;
     CJApplicationContext::GetInstance()->callback_ =
         std::make_shared<AbilityRuntime::CjAbilityLifecycleCallbackImpl>();
-    CJApplicationContext::GetInstance()->OnOffAbilityLifecycle(callbackId, errCode);
-    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    CJApplicationContext::GetInstance()->OnOffAbilityLifecycle(callbackId, err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
     CJApplicationContext::GetInstance()->applicationContext_ =
         std::make_shared<AbilityRuntime::ApplicationContext>();
-    CJApplicationContext::GetInstance()->OnOffAbilityLifecycle(callbackId, errCode);
-    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    CJApplicationContext::GetInstance()->OnOffAbilityLifecycle(callbackId, err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
     CJApplicationContext::GetInstance()->callback_ = nullptr;
-    CJApplicationContext::GetInstance()->OnOffAbilityLifecycle(callbackId, errCode);
-    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    CJApplicationContext::GetInstance()->OnOffAbilityLifecycle(callbackId, err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
 /**
@@ -222,20 +218,19 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOffApplicationState
 {
     int32_t callbackId = 10;
     int32_t err = 0;
-    int32_t *errCode = &err;
-    CJApplicationContext::GetInstance()->OnOffApplicationStateChange(callbackId, errCode);
-    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    CJApplicationContext::GetInstance()->OnOffApplicationStateChange(callbackId, err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
     CJApplicationContext::GetInstance()->applicationContext_ =
         std::make_shared<AbilityRuntime::ApplicationContext>();
     CJApplicationContext::GetInstance()->applicationStateCallback_ =
         std::make_shared<CjApplicationStateChangeCallback>();
-    CJApplicationContext::GetInstance()->OnOffApplicationStateChange(callbackId, errCode);
-    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    CJApplicationContext::GetInstance()->OnOffApplicationStateChange(callbackId, err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
     CJApplicationContext::GetInstance()->applicationStateCallback_ = nullptr;
-    CJApplicationContext::GetInstance()->OnOffApplicationStateChange(callbackId, errCode);
-    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    CJApplicationContext::GetInstance()->OnOffApplicationStateChange(callbackId, err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
 /**
@@ -362,9 +357,8 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTest_Ability_003, TestSiz
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnGetRunningProcessInformation_001, TestSize.Level1)
 {
     int err = 0;
-    int* errorCode = &err;
-    auto info = CJApplicationContext::GetInstance()->OnGetRunningProcessInformation(errorCode);
-    EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
+    auto info = CJApplicationContext::GetInstance()->OnGetRunningProcessInformation(err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
     EXPECT_EQ(info, nullptr);
 }
 
@@ -376,9 +370,8 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnGetRunningProcessIn
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnKillProcessBySelf_001, TestSize.Level1)
 {
     int err = 0;
-    int* errorCode = &err;
-    CJApplicationContext::GetInstance()->OnKillProcessBySelf(true, errorCode);
-    EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
+    CJApplicationContext::GetInstance()->OnKillProcessBySelf(true, err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 }
 
 /**
@@ -389,9 +382,8 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnKillProcessBySelf
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnGetCurrentAppCloneIndex_001, TestSize.Level1)
 {
     int err = 0;
-    int* errorCode = &err;
-    auto index = CJApplicationContext::GetInstance()->OnGetCurrentAppCloneIndex(errorCode);
-    EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
+    auto index = CJApplicationContext::GetInstance()->OnGetCurrentAppCloneIndex(err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 }
 
 /**
@@ -402,9 +394,8 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnGetCurrentAppCloneI
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnRestartApp_001, TestSize.Level1)
 {
     int err = 0;
-    int* errorCode = &err;
-    CJApplicationContext::GetInstance()->OnRestartApp(AAFwk::Want(), errorCode);
-    EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
+    CJApplicationContext::GetInstance()->OnRestartApp(AAFwk::Want(), err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 }
 
 /**
@@ -415,9 +406,8 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnRestartApp_001, Tes
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnClearUpApplicationData_001, TestSize.Level1)
 {
     int err = 0;
-    int* errorCode = &err;
-    CJApplicationContext::GetInstance()->OnClearUpApplicationData(errorCode);
-    EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
+    CJApplicationContext::GetInstance()->OnClearUpApplicationData(err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 }
 
 /**
@@ -428,9 +418,8 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnClearUpApplicationD
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnSetSupportedProcessCacheSelf_001, TestSize.Level1)
 {
     int err = 0;
-    int* errorCode = &err;
-    CJApplicationContext::GetInstance()->OnSetSupportedProcessCacheSelf(true, errorCode);
-    EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
+    CJApplicationContext::GetInstance()->OnSetSupportedProcessCacheSelf(true, err);
+    EXPECT_EQ(err, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
