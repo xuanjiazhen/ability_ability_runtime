@@ -11685,8 +11685,11 @@ int AbilityManagerService::IsCallFromBackground(const AbilityRequest &abilityReq
         DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callerPid, processInfo);
         if (processInfo.processName_.empty()) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Can not find caller application by callerPid: %{private}d.", callerPid);
-            if (AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
-                PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND, specifyTokenId)) {
+            auto isPermisson = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+                PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND) ||
+                AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+                PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND, specifyTokenId)
+            if (isPermisson) {
                 TAG_LOGD(AAFwkTag::ABILITYMGR, "Caller has PERMISSION_START_ABILITIES_FROM_BACKGROUND, PASS.");
                 isBackgroundCall = false;
                 return ERR_OK;
