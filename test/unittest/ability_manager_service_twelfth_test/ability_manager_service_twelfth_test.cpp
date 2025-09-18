@@ -1438,5 +1438,22 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, ExitKioskMode_003, TestSize.Level1) {
     auto result = abilityManagerService->ExitKioskMode(callerToken);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: IsCallFromBackground
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService IsCallFromBackground
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, IsCallFromBackground_002, TestSize.Level1) {
+    IPCSkeleton::SetCallingTokenID(ONE);
+    MyFlag::flag_ = 0;
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    AbilityRequest abilityRequest;
+    bool isBackgroundCall = false;
+    auto ret = abilityManagerService->IsCallFromBackground(abilityRequest, isBackgroundCall, 0, false, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
 } // namespace AAFwk
 } // namespace OHOS
