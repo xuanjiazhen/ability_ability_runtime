@@ -83,6 +83,7 @@ constexpr const char* CONNECT_SUPPORT_CROSS_USER = "const.abilityms.connect_supp
 constexpr const char* SUPPORT_APP_SERVICE_EXTENSION = "const.abilityms.support_app_service";
 constexpr const char* PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED = "const.product.preload_application.setting.enabled";
 constexpr const char* FORBID_START = "persist.sys.abilityms.forbid_start";
+constexpr const char* AUTO_STARTUP_READY = "persist.settings.if_startup";
 constexpr const char* RESTART_APP_WITH_WINDOW = "persist.sys.abilityms.restart_app_with_window";
 constexpr const char* ALLOW_DEBUG_PERMISSION = "persist.sys.abilityms.allow_debug_permission";
 // Support prepare terminate
@@ -112,6 +113,10 @@ AppUtils::AppUtils()
         isForbidStart_.isLoaded = false;
     }
 #endif
+    if (WatchParameter(AUTO_STARTUP_READY, AppUtils::AutoStartReadyCallback, nullptr) != 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "watch param failed: %{public}s", AUTO_STARTUP_READY);
+        isAutoStartupReady_.isLoaded = false;
+    }
 }
 
 AppUtils &AppUtils::GetInstance()
@@ -126,6 +131,15 @@ void AppUtils::ForbidStartCallback(const char *key, const char *, void *)
         GetInstance().isForbidStart_.value = system::GetBoolParameter(FORBID_START, false);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "param %{public}s changed: %{public}d", FORBID_START,
             GetInstance().isForbidStart_.value);
+    }
+}
+
+void AppUtils::AutoStartReadyCallback(const char *key, const char *, void *)
+{
+    if (strcmp(key, AUTO_STARTUP_READY) == 0) {
+        GetInstance().isAutoStartupReady_.value = system::GetBoolParameter(AUTO_STARTUP_READY, false);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "param %{public}s changed: %{public}d", AUTO_STARTUP_READY,
+            GetInstance().isAutoStartupReady_.value);
     }
 }
 
