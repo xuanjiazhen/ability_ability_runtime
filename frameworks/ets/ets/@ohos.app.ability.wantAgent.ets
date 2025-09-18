@@ -299,7 +299,7 @@ namespace wantAgent {
     });
   }
 
-  export function isLocalWantAgent(agent: WantAgent): boolean {
+  export function isLocalWantAgent(agent: WantAgentInfo): boolean {
     nativeIsLocalWantAgent(agent);
   }
 
