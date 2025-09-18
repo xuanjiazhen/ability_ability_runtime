@@ -211,7 +211,7 @@ void EtsWantAgent::GetWantAgent(ani_env *env, ani_object info, ani_object call)
     GetInstance().OnGetWantAgent(env, info, call);
 }
 
-ani_boolean EtsWantAgent::CreateLocalWantAgent(ani_env *env, ani_object info, ani_object call)
+ani_object EtsWantAgent::CreateLocalWantAgent(ani_env *env, ani_object info, ani_object call)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "CreateLocalWantAgent called");
     GetInstance().OnCreateLocalWantAgent(env, info, call);
@@ -758,8 +758,8 @@ ani_status BindNativeFunctions(ani_env *env)
         ani_native_function { "nativeTrigger", nullptr, reinterpret_cast<void *>(EtsWantAgent::Trigger) },
         ani_native_function { "nativeGetWant", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetWant) },
         ani_native_function { "nativeGetWantAgent", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetWantAgent) },
-        ani_native_function { "nativeCreateLocalWantAgent", nullptr, reinterpret_cast<void *>(EtsWantAgent::CreateLocalWantAgent) },
-        ani_native_function { "nativeIsLocalWantAgent", nullptr, reinterpret_cast<void *>(EtsWantAgent::IsLocalWantAgent) },
+        ani_native_function { "nativeCreateLocalWantAgent", nullptr, reinterpret_cast<ani_object *>(EtsWantAgent::CreateLocalWantAgent) },
+        ani_native_function { "nativeIsLocalWantAgent", nullptr, reinterpret_cast<ani_boolean *>(EtsWantAgent::IsLocalWantAgent) },
     };
     if ((status = env->Namespace_BindNativeFunctions(ns, functions.data(), functions.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Namespace_BindNativeFunctions failed status: %{public}d", status);
