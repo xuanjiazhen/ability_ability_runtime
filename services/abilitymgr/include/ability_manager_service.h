@@ -1905,10 +1905,13 @@ public:
      * @param isBackgroundCall, Indicates the Caller-Application state.
      *                          TRUE: The Caller-Application is not in focus and not in foreground state.
      *                          FALSE: The Caller-Application is in focus or in foreground state.
+     * @param callerAccessTokenId The caller accessTokenId.
+     * @param isData Is DataAbility.
+     * @param implicit Is implicit startAbility.
      * @return Returns ERR_OK on check success, others on check failure.
      */
     int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall,
-        uint32_t callerAccessTokenId = 0, bool isData = false);
+        uint32_t callerAccessTokenId = 0, bool isData = false, bool implicit = false);
 
     void EnableListForSCBRecovery(int32_t userId) const;
 
@@ -2505,10 +2508,13 @@ private:
      * Check if Caller is allowed to start PageAbility(FA) or Ability(Stage).
      *
      * @param abilityRequest, abilityRequest.
+     * @param specifyTokenId The origin accessTokenId.
+     * @param isCallByShortcut The start reason.
+     * @param implicit Is implicit startAbility.
      * @return Returns whether the caller is allowed to start Ability.
      */
     int CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId = 0,
-        bool isCallByShortcut = false);
+        bool isCallByShortcut = false, bool implicit = false);
 
     /**
      * Check if Caller is allowed to start Ability(Stage) by call.
@@ -2690,12 +2696,12 @@ private:
         const AppExecFwk::AbilityInfo& abilityInfo);
 
     int CheckAbilityCallPermission(const AbilityRequest& abilityRequest,
-        const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId);
+        const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId, bool implicit = false);
 
     int CheckCallPermission(const Want& want, const AppExecFwk::AbilityInfo& abilityInfo,
         const AbilityRequest& abilityRequest, bool isForegroundToRestartApp,
         bool isSendDialogResult, uint32_t specifyTokenId,
-        const std::string& callerBundleName);
+        const std::string& callerBundleName, bool implicit = false);
 
     void CheckExtensionRateLimit();
 
