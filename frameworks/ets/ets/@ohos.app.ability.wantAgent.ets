@@ -16,6 +16,7 @@
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import Want from '@ohos.app.ability.Want';
 import { WantAgentInfo as _WantAgentInfo } from 'wantAgent.wantAgentInfo';
+import { LocalWantAgentInfo as _LocalWantAgentInfo } from 'wantAgent.wantAgentInfo';
 import { TriggerInfo as _TriggerInfo } from 'wantAgent.triggerInfo';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 
@@ -68,6 +69,8 @@ namespace wantAgent {
   native function nativeTrigger(agent: WantAgent, triggerInfo: TriggerInfo, callback?: AsyncCallbackWrapper<CompleteData>): void;
   native function nativeGetWant(agent: WantAgent, callback: AsyncCallbackWrapper<Want>): void;
   native function nativeGetWantAgent(agent: WantAgentInfo, callback: AsyncCallbackWrapper<WantAgent>): void;
+  native function nativeIsLocalWantAgent(agent: WantAgentInfo): boolean;
+  native function nativeCreateLocalWantAgent(info: LocalWantAgentInfo): WantAgent;
 
   export function getBundleName(agent: WantAgent, callback: AsyncCallback<string>): void {
     let call = new AsyncCallbackWrapper<string>(callback);
@@ -294,6 +297,14 @@ namespace wantAgent {
         }
       });
     });
+  }
+
+  export function isLocalWantAgent(agent: WantAgent): boolean {
+    nativeIsLocalWantAgent(agent);
+  }
+
+  export function createLocalWantAgent(info: LocalWantAgentInfo): WantAgent{
+    nativeCreateLocalWantAgent(info);
   }
 
   export enum WantAgentFlags {
