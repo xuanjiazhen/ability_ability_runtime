@@ -71,11 +71,7 @@ public:
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
         std::shared_ptr<AbilityRuntime::Context> context, bool isResult);
     static EtsUIExtensionContentSession* GetEtsContentSession(ani_env *env, ani_object obj);
-    static ani_object CreateEtsUIExtensionContentSession(ani_env *env,
-        sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
-        std::weak_ptr<AbilityRuntime::Context> context,
-        std::shared_ptr<EtsAbilityResultListeners> &abilityResultListeners,
-        std::shared_ptr<EtsUIExtensionContentSession> contentSessionPtr);
+    static ani_object CreateEtsUIExtensionContentSession(ani_env *env, EtsUIExtensionContentSession *contentSessionPtr);
 
     static void NativeSendData(ani_env *env, ani_object obj, ani_object data);
     static void NativeLoadContent(ani_env *env, ani_object obj, ani_string path, ani_object storage);
@@ -127,6 +123,14 @@ public:
     void StartAbilityForResultDoTask(ani_vm *etsVm, ani_object startOptionsObj,
         ani_ref callbackRef, AAFwk::Want &want, AAFwk::StartOptions &options,
         std::string startTime, std::shared_ptr<AbilityRuntime::Context> context);
+    sptr<AAFwk::SessionInfo> GetSessionInfo() {
+        return sessionInfo_;
+    }
+
+    sptr<Rosen::Window> GetUiWindow() {
+        return uiWindow_;
+    }
+
 private:
     void SetReceiveDataCallbackRegister(ani_env *env, ani_object functionObj);
     void SetReceiveDataForResultCallbackRegister(ani_env *env, ani_object funcObj);

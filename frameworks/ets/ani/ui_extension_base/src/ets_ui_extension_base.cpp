@@ -646,8 +646,8 @@ bool EtsUIExtensionBase::CallEtsOnSessionCreate(const AAFwk::Want &want, const s
     std::weak_ptr<Context> wkctx = context_;
     etsUiExtContentSession_ = std::make_shared<EtsUIExtensionContentSession>(sessionInfo, uiWindow,
         wkctx, abilityResultListeners_);
-    ani_ref sessionObj = EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(
-        env, sessionInfo, uiWindow, context_, abilityResultListeners_, etsUiExtContentSession_);
+    ani_ref sessionObj = EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(env,
+        etsUiExtContentSession_.get());
     if (sessionObj == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null contentSession");
         return false;

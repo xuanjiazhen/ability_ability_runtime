@@ -436,7 +436,7 @@ bool EtsAutoFillExtension::CreateSessionAndReference(sptr<AAFwk::SessionInfo> se
     std::shared_ptr<EtsUIExtensionContentSession> etsUiExtContentSession =
         std::make_shared<EtsUIExtensionContentSession>(sessionInfo, uiWindow, weakContext, abilityResultListeners);
     ani_object nativeContentSession = EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(
-        env, sessionInfo, uiWindow, weakContext, abilityResultListeners, etsUiExtContentSession);
+        env, etsUiExtContentSession.get());
     if (nativeContentSession == nullptr) {
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null session");
         return false;

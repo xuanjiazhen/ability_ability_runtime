@@ -492,7 +492,7 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
         etsUiExtContentSession_ = std::make_shared<EtsUIExtensionContentSession>(sessionInfo, uiWindow,
             wkctx, abilityResultListeners_);
         ani_object sessonObj = EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(env,
-            sessionInfo, uiWindow, context, abilityResultListeners_, etsUiExtContentSession_);
+            etsUiExtContentSession_.get());
         ani_ref sessonObjRef = nullptr;
         if ((status = env->GlobalReference_Create(sessonObj, &sessonObjRef)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
