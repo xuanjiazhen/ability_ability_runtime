@@ -1093,14 +1093,14 @@ int AbilityManagerService::CheckBrokerCallPermission(const AbilityRequest& abili
 }
 
 int AbilityManagerService::CheckAbilityCallPermission(const AbilityRequest& abilityRequest,
-    const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId)
+    const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId, bool isImplicit)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Check call ability permission, name is %{public}s.", abilityInfo.name.c_str());
     if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "call from capi, already checked");
         return ERR_OK;
     }
-    int result = CheckCallAbilityPermission(abilityRequest, specifyTokenId);
+    int result = CheckCallAbilityPermission(abilityRequest, specifyTokenId, false, isImplicit);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check permission failed");
     }
@@ -1110,7 +1110,7 @@ int AbilityManagerService::CheckAbilityCallPermission(const AbilityRequest& abil
 int AbilityManagerService::CheckCallPermission(const Want& want, const AppExecFwk::AbilityInfo& abilityInfo,
     const AbilityRequest& abilityRequest, bool isForegroundToRestartApp,
     bool isSendDialogResult, uint32_t specifyTokenId,
-    const std::string& callerBundleName)
+    const std::string& callerBundleName, bool isImplicit)
 {
     auto type = abilityInfo.type;
     if (type == AppExecFwk::AbilityType::DATA) {
@@ -1129,7 +1129,7 @@ int AbilityManagerService::CheckCallPermission(const Want& want, const AppExecFw
         return CheckBrokerCallPermission(abilityRequest, abilityInfo);
     }
     if (!isForegroundToRestartApp && (!isSendDialogResult || want.GetBoolParam("isSelector", false))) {
-        return CheckAbilityCallPermission(abilityRequest, abilityInfo, specifyTokenId);
+        return CheckAbilityCallPermission(abilityRequest, abilityInfo, specifyTokenId, isImplicit);
     }
     return ERR_OK;
 }
@@ -1408,7 +1408,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 
     if (!isAppCloneSelector) {
         result = CheckCallPermission(want, abilityInfo, abilityRequest, isForegroundToRestartApp,
-            isSendDialogResult, specifyTokenId, callerBundleName);
+            isSendDialogResult, specifyTokenId, callerBundleName, isImplicit);
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkCallPermission error, result:%{public}d", result);
             eventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "checkCallPermission error");
@@ -11570,7 +11570,7 @@ int AbilityManagerService::CheckCallServiceAbilityPermission(const AbilityReques
 }
 
 int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId,
-    bool isCallByShortcut)
+    bool isCallByShortcut, bool isImplicit)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
@@ -11584,7 +11584,8 @@ int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abil
     if (callerAbilityRecord != nullptr && 
         callerAbilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
         verificationInfo.isBackgroundCall = false;
-    } else if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall, specifyTokenId) != ERR_OK) {
+    } else if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall, specifyTokenId, false,
+        isImplicit) != ERR_OK) {
         return ERR_CHECK_CALL_FROM_BACKGROUND_FAILED;
     }
 
@@ -11627,7 +11628,7 @@ int AbilityManagerService::CheckStartByCallPermission(const AbilityRequest &abil
 }
 
 int AbilityManagerService::IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall,
-    uint32_t specifyTokenId, bool isData)
+    uint32_t specifyTokenId, bool isData, bool isImplicit)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!isData && AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
@@ -11685,8 +11686,15 @@ int AbilityManagerService::IsCallFromBackground(const AbilityRequest &abilityReq
         DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callerPid, processInfo);
         if (processInfo.processName_.empty()) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Can not find caller application by callerPid: %{private}d.", callerPid);
-            if (AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
-                PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND, specifyTokenId)) {
+            bool isPermisson = false;
+            if (isImplicit) {
+                isPermisson = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+                    PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND, specifyTokenId);
+            } else {
+                isPermisson = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+                    PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND)''
+            }
+            if (isPermisson) {
                 TAG_LOGD(AAFwkTag::ABILITYMGR, "Caller has PERMISSION_START_ABILITIES_FROM_BACKGROUND, PASS.");
                 isBackgroundCall = false;
                 return ERR_OK;
