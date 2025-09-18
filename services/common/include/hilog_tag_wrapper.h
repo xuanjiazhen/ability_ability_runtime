@@ -188,7 +188,7 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
-inline std::string GetAbbreviatedFileName(const std::string& fileName)
+[[maybe_unused]] std::string GetAbbreviatedFileName(const std::string& fileName)
 {
     static std::map<std::string, std::string> abbreviatedFileNameMap {
         { "ability_manager_client", "AMC" },
