@@ -18,8 +18,8 @@
 
 #include <algorithm>
 #include <cinttypes>
-#include <map>
 #include <string>
+#include <unordered_map>
 
 #include "hilog/log.h"
 
@@ -107,6 +107,21 @@ enum class AAFwkLogTag : uint32_t {
     END = 256,               // N.B. never use it
 };
 
+static std::unordered_map<std::string, std::string> abbreviatedFileNameMap {
+    { "ability_manager_client", "AMC" },
+    { "app_running_manager", "ARM" },
+    { "ability_connect_manager", "ACM" },
+    { "ability_manager_service", "ABMS" },
+    { "app_mgr_service_inner", "AMSI" },
+    { "app_running_record", "ARR" },
+    { "connect_server_manager", "CSM" },
+    { "js_ui_ability", "JUA" },
+    { "js_service_extension", "JSE" },
+    { "ability_connect_callback_stub", "ACCS" },
+    { "service_extension_context", "SEC" },
+    { "dump_runtime_helper", "DRH" }
+};
+
 inline uint32_t GetOffset(AAFwkLogTag tag, AAFwkLogTag base)
 {
     return static_cast<uint32_t>(tag) - static_cast<uint32_t>(base);
@@ -188,20 +203,8 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
-inline std::string GetAbbreviatedFileName(const std::string& fileName)
+inline std::string& GetAbbreviatedFileName(const std::string& fileName)
 {
-    static std::map<std::string, std::string> abbreviatedFileNameMap {
-        { "ability_manager_client", "AMC" },
-        { "app_running_manager", "ARM" },
-        { "ability_connect_manager", "ACM" },
-        { "ability_manager_service", "ABMS" },
-        { "app_mgr_service_inner", "AMSI" },
-        { "app_running_record", "ARR" },
-        { "connect_server_manager", "CSM" },
-        { "js_ui_ability", "JUA" },
-        { "js_service_extension", "JSE" },
-        { "ability_connect_callback_stub", "ACCS" }
-    };
     std::string fileBaseName = fileName;
     auto pos = fileName.find_last_of(".");
     if (pos != std::string::npos) {
