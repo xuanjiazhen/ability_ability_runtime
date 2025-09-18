@@ -20,6 +20,7 @@
 #include <cinttypes>
 #include <map>
 #include <string>
+#include <unordered_map>
 
 #include "hilog/log.h"
 
@@ -190,7 +191,7 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
 
 [[maybe_unused]] static std::string GetAbbreviatedFileName(const std::string& fileName)
 {
-    static std::map<std::string, std::string> abbreviatedFileNameMap {
+    static std::unordered_map<std::string, std::string> abbreviatedFileNameMap {
         { "ability_manager_client", "AMC" },
         { "app_running_manager", "ARM" },
         { "ability_connect_manager", "ACM" },
