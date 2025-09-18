@@ -70,6 +70,8 @@ public:
     static void GetWantAgent(ani_env *env, ani_object info, ani_object call);
     static void Clean(ani_env *env, ani_object object);
     static void TriggerCheck(ani_env *env, ani_object agent, ani_object triggerInfoObj);
+    static ani_object CreateLocalWantAgent(ani_env *env, ani_object info);
+    static ani_boolean IsLocalWantAgent(ani_env *env, ani_object info);
 
 private:
     void OnEqual(ani_env *env, ani_object agent, ani_object otherAgent, ani_object call);
@@ -80,9 +82,11 @@ private:
     void OnCancel(ani_env *env, ani_object agent, ani_object call);
     void OnTrigger(ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object call);
     void OnGetWantAgent(ani_env *env, ani_object info, ani_object call);
+    ani_object OnCreateLocalWantAgent(ani_env *env, ani_object info);
+    ani_boolean OnIsLocalWantAgent(ani_env *env, ani_object info);
     int32_t GetTriggerInfo(ani_env *env, ani_object triggerInfoObj, TriggerInfo &triggerInfo);
     int32_t GetWantAgentParam(ani_env *env, ani_object info, WantAgentParams &params);
-};
+    };
 
 class TriggerCompleteCallBack : public CompletedCallback {
 public:
