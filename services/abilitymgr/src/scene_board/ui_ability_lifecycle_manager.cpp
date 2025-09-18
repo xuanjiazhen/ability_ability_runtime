@@ -2999,7 +2999,8 @@ void UIAbilityLifecycleManager::OnAppStateChanged(const AppInfo &info)
                 continue;
             }
             if (info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
-                info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
+                info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey() &&
+                info.pid == abilityRecord->GetPid()) {
                 abilityRecord->SetAppState(info.state);
             }
         }
@@ -3027,7 +3028,8 @@ void UIAbilityLifecycleManager::OnAppStateChanged(const AppInfo &info)
             continue;
         }
         if (info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
-            info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
+            info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey() &&
+            info.pid == abilityRecord->GetPid()) {
             abilityRecord->SetAppState(info.state);
         }
     }
