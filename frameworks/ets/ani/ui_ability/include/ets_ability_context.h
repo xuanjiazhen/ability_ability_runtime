@@ -133,6 +133,8 @@ public:
     static void OpenLinkCheck(ani_env *env, ani_object aniObj, ani_string aniLink);
     static void OpenAtomicServiceCheck(ani_env *env, ani_object aniObj);
     static void StartAbilityForResultWithAccountCheck(ani_env *env, ani_object aniObj);
+    static void RequestDialogService(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call);
+    static ani_object WrapRequestDialogResult(ani_env *env, int32_t resultCode, const AAFwk::Want &want);
 
 #ifdef SUPPORT_GRAPHICS
 public:
@@ -207,6 +209,7 @@ private:
     void UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &options);
     void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
         OnRequestResult &onRequestCallback, const char *callbackName);
+    void OnRequestDialogService(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call);
 
     ani_env *env_ = nullptr;
     std::weak_ptr<AbilityContext> context_;
