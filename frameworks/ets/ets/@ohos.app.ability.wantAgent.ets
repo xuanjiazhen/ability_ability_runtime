@@ -300,11 +300,11 @@ namespace wantAgent {
   }
 
   export function isLocalWantAgent(agent: WantAgentInfo): boolean {
-    nativeIsLocalWantAgent(agent);
+    return nativeIsLocalWantAgent(agent);
   }
 
   export function createLocalWantAgent(info: LocalWantAgentInfo): WantAgent{
-    nativeCreateLocalWantAgent(info);
+    return nativeCreateLocalWantAgent(info);
   }
 
   export enum WantAgentFlags {
