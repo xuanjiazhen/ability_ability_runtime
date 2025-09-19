@@ -39,9 +39,9 @@ ApplicationAnrListener::~ApplicationAnrListener() {}
 void ApplicationAnrListener::OnAnr(int32_t pid, int32_t eventId) const
 {
     if (!BETA_VERSION) {
-        int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "HIVIEW_HALF_FREEZE_LOG",
+        int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
             HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "");
-        TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write HIVIEW_HALF_FREEZE_LOG, pid:%{public}d, packageName:,"
+        TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:,"
             " ret:%{public}d", pid, ret);
     }
     AppExecFwk::AppFaultDataBySA faultData;
