@@ -19,6 +19,7 @@
 #include "ani_common_want.h"
 #include "ani_extension_window.h"
 #include "connection_manager.h"
+#include "ets_ability_lifecycle_callback.h"
 #include "ets_auto_fill_extension_context.h"
 #include "ets_auto_fill_extension_util.h"
 #include "ets_extension_common.h"
@@ -263,7 +264,8 @@ void EtsAutoFillExtension::OnStopCallBack()
 
     auto applicationContext = Context::GetApplicationContext();
     if (applicationContext != nullptr) {
-        applicationContext->DispatchOnAbilityDestroy(etsObj_);
+        EtsAbilityLifecycleCallbackArgs ability(etsObj_);
+        applicationContext->DispatchOnAbilityDestroy(ability);
     }
 }
 
