@@ -33,6 +33,7 @@ constexpr const char* DEBUG_APP = "debugApp";
 constexpr const char* DLP_PARAMS_SANDBOX = "ohos.dlp.params.sandbox";
 constexpr const char* DLP_INDEX = "ohos.dlp.params.index";
 constexpr const char* START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
+constexpr const char* AUTO_STARTUP_READY = "persist.sys.abilityms.if_startup_ready";
 constexpr int32_t ONE = 1;
 constexpr int32_t TWO = 2;
 constexpr int32_t FOUNDATION_UID = 5523;
@@ -2558,6 +2559,197 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, DelegatorDoAbilityForeground_006, 
     EXPECT_EQ(abilityMs_->DelegatorDoAbilityForeground(token), ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest DelegatorDoAbilityForeground_006 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: AddWatchParameters_001
+ * Function: AddWatchParameters
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService AddWatchParameters
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, AddWatchParameters_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest AddWatchParameters_001 start");
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->AddWatchParameters();
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest AddWatchParameters_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: HandleAutoStartupReadyCallback_001
+ * Function: HandleAutoStartupReadyCallback
+ * SubFunction: NA
+ * FunctionPoints: key !=; value !=
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, HandleAutoStartupReadyCallback_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_001 start");
+
+    const char* key = "key";
+    const char* value = "value";
+    void* context = nullptr;
+    AbilityManagerService::HandleAutoStartupReadyCallback(key, value, nullptr);
+    EXPECT_NE(key, AUTO_STARTUP_READY);
+    EXPECT_NE(value, "true");
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: HandleAutoStartupReadyCallback_002
+ * Function: HandleAutoStartupReadyCallback
+ * SubFunction: NA
+ * FunctionPoints: key ==; value !=
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, HandleAutoStartupReadyCallback_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_002 start");
+
+    const char* key = AUTO_STARTUP_READY;
+    const char* value = "value";
+    void* context = nullptr;
+    AbilityManagerService::HandleAutoStartupReadyCallback(key, value, nullptr);
+    EXPECT_EQ(key, AUTO_STARTUP_READY);
+    EXPECT_NE(value, "true");
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: HandleAutoStartupReadyCallback_003
+ * Function: HandleAutoStartupReadyCallback
+ * SubFunction: NA
+ * FunctionPoints: key !=; value ==
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, HandleAutoStartupReadyCallback_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_003 start");
+
+    const char* key = "key";
+    const char* value = "true";
+    void* context = nullptr;
+    AbilityManagerService::HandleAutoStartupReadyCallback(key, value, nullptr);
+    EXPECT_NE(key, AUTO_STARTUP_READY);
+    EXPECT_EQ(value, "true");
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: HandleAutoStartupReadyCallback_004
+ * Function: HandleAutoStartupReadyCallback
+ * SubFunction: NA
+ * FunctionPoints: key ==; value ==
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, HandleAutoStartupReadyCallback_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_004 start");
+
+    const char* key = AUTO_STARTUP_READY;
+    const char* value = "true";
+    void* context = nullptr;
+    AbilityManagerService::HandleAutoStartupReadyCallback(key, value, nullptr);
+    EXPECT_EQ(key, AUTO_STARTUP_READY);
+    EXPECT_EQ(value, "true");
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: HandleAutoStartupReadyCallback_005
+ * Function: HandleAutoStartupReadyCallback
+ * SubFunction: NA
+ * FunctionPoints: context nullptr
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, HandleAutoStartupReadyCallback_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_005 start");
+
+    const char* key = AUTO_STARTUP_READY;
+    const char* value = "true";
+    void* context = nullptr;
+    AbilityManagerService::HandleAutoStartupReadyCallback(key, value, context);
+    EXPECT_EQ(key, AUTO_STARTUP_READY);
+    EXPECT_EQ(value, "true");
+    EXPECT_EQ(context, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: HandleAutoStartupReadyCallback_006
+ * Function: HandleAutoStartupReadyCallback
+ * SubFunction: NA
+ * FunctionPoints: context != nullptr
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, HandleAutoStartupReadyCallback_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_006 start");
+
+    const char* key = AUTO_STARTUP_READY;
+    const char* value = "true";
+    void* context = nullptr;
+    AbilityManagerService::HandleAutoStartupReadyCallback(key, value, context);
+    EXPECT_EQ(key, AUTO_STARTUP_READY);
+    EXPECT_EQ(value, "true");
+    EXPECT_EQ(context, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_006 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: HandleAutoStartupReadyCallback_007
+ * Function: HandleAutoStartupReadyCallback
+ * SubFunction: NA
+ * FunctionPoints: context != nullptr
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, HandleAutoStartupReadyCallback_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_007 start");
+
+    const char* key = AUTO_STARTUP_READY;
+    const char* value = "true";
+    std::weak_ptr<AAFwk::AbilityManagerService> context;
+    void* castContext = (void*)&(context);
+    AbilityManagerService::HandleAutoStartupReadyCallback(key, value, castContext);
+    EXPECT_EQ(key, AUTO_STARTUP_READY);
+    EXPECT_EQ(value, "true");
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_007 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: HandleAutoStartupReadyCallback_008
+ * Function: HandleAutoStartupReadyCallback
+ * SubFunction: NA
+ * FunctionPoints: context != nullptr
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, HandleAutoStartupReadyCallback_008, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_008 start");
+
+    const char* key = AUTO_STARTUP_READY;
+    const char* value = "true";
+    std::weak_ptr<AAFwk::AbilityManagerService> context;
+    context = AAFwk::AbilityManagerService::GetPubInstance();
+    void* castContext = (void*)&(context);
+    AbilityManagerService::HandleAutoStartupReadyCallback(key, value, castContext);
+    EXPECT_EQ(key, AUTO_STARTUP_READY);
+    EXPECT_EQ(value, "true");
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest HandleAutoStartupReadyCallback_008 end");
 }
 
 /*
