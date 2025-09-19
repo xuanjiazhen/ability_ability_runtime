@@ -171,31 +171,6 @@ void GetValueIfFindKey(const nlohmann::json &jsonObject, const nlohmann::detail:
     }
 }
 
-template<typename T>
-const std::string GetJsonStrFromInfo(T &t)
-{
-    nlohmann::json json = t;
-    return json.dump();
-}
-
-template<typename T>
-bool ParseInfoFromJsonStr(const char *data, T &t)
-{
-    if (data == nullptr) {
-        TAG_LOGD(AAFwkTag::ABILITY_SIM, "null data");
-        return false;
-    }
-
-    nlohmann::json jsonObject = nlohmann::json::parse(data, nullptr, false);
-    if (jsonObject.is_discarded()) {
-        TAG_LOGD(AAFwkTag::ABILITY_SIM, "discarded data");
-        return false;
-    }
-
-    t = jsonObject.get<T>();
-    return true;
-}
-
 /**
  * @brief Retrieves a map value from a JSON object if the specified key exists, with type validation.
  * @param valueType The expected type of map values.
