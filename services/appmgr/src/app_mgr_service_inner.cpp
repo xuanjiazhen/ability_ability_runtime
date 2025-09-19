@@ -3040,6 +3040,7 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         TAG_LOGE(AAFwkTag::APPMGR, "no appRecord");
         return;
     }
+    std::string appRunningUniqueId = std::to_string(appRecord->GetAppStartTime());
     AAFwk::EventInfo eventInfo;
     SetKilledEventInfo(appRecord, eventInfo);
     std::string newReason = appRecord->GetKillReason().empty() ? defaultReason : appRecord->GetKillReason();
@@ -3051,8 +3052,8 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         EVENT_KEY_PROCESS_NAME, eventInfo.processName, EVENT_KEY_MESSAGE, newReason,
         EVENT_KEY_FOREGROUND, foreground);
     TAG_LOGW(AAFwkTag::APPMGR, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], pid="
-        "%{public}d, processName=%{public}s, msg=%{public}s, FOREGROUND=%{public}d",
-        result, eventInfo.pid, eventInfo.processName.c_str(), newReason.c_str(), foreground);
+        "%{public}d, processName=%{public}s, msg=%{public}s, FOREGROUND=%{public}d, appRunningUniqueId=%{public}s",
+        result, eventInfo.pid, eventInfo.processName.c_str(), newReason.c_str(), foreground, appRunningUniqueId.c_str());
 }
 
 int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::string& reason,
