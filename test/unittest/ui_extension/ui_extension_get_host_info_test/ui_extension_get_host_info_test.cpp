@@ -131,3 +131,5 @@ HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionRootHostInfo_0400, TestSize.L
 }
 } // namespace AAFwk
 } // namespace OHOS
+
+
