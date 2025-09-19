@@ -222,6 +222,15 @@
           },
           {
             "header": {
+              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/dialog_request_info/include",
+              "header_files": [
+                "ets_request_info.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/dialog_request_info:dialog_request_info_ani_kit"
+          },
+          {
+            "header": {
               "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/context",
               "header_files": []
             },
