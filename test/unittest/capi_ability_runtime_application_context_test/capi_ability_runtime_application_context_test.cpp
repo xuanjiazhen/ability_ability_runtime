@@ -132,6 +132,15 @@ public:
         return dir;
     }
 
+    std::string GetLogFileDir() override
+    {
+        std::string dir;
+        dir.append(DATA_STORAGE);
+        dir.append(areaMode_);
+        dir.append(BASE_LOG_FILE);
+        return dir;
+    }
+
     std::string GetResourceDir(const std::string &moduleName = "") override
     {
         std::string dir;
