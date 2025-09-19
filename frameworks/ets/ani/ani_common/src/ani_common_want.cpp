@@ -1310,6 +1310,7 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
     AAFwk::WantParams wantParams;
     if (InnerUnwrapWantParams(env, param, wantParams)) {
         want.SetParams(wantParams);
+        wantParams.DumpInfo(0);
     }
     return true;
 }
