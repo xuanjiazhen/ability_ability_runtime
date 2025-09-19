@@ -30,6 +30,7 @@
 #include "context/application_context.h"
 #include "display_util.h"
 #include "ets_ability_context.h"
+#include "ets_ability_lifecycle_callback.h"
 #include "ets_data_struct_converter.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -360,6 +361,11 @@ void EtsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInf
         TAG_LOGE(AAFwkTag::UIABILITY, "WrapLaunchParam failed");
         return;
     }
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        applicationContext->DispatchOnAbilityWillCreate(ability);
+    }
     CallObjectMethod(false, "onCreate", nullptr, wantObj, launchParamObj);
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
@@ -367,10 +373,11 @@ void EtsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInf
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
         delegator->PostPerformStart(CreateADelegatorAbilityProperty());
     }
-    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnAbilityCreate");
-        applicationContext->DispatchOnAbilityCreate(etsAbilityObj_);
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        applicationContext->DispatchOnAbilityCreate(ability);
         std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env,
             etsAbilityObj_->aniRef);
         applicationContext->DispatchOnAbilityCreate(interopObject);
@@ -405,7 +412,11 @@ void EtsUIAbility::OnStop()
         abilityContext_->SetTerminating(true);
     }
     UIAbility::OnStop();
-
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        applicationContext->DispatchOnAbilityWillDestroy(ability);
+    }
     CallObjectMethod(false, "onDestroy", nullptr);
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStop end");
@@ -425,6 +436,11 @@ void EtsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callback
         abilityContext_->SetTerminating(true);
     }
     UIAbility::OnStop();
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        applicationContext->DispatchOnAbilityWillDestroy(ability);
+    }
     std::weak_ptr<UIAbility> weakPtr = shared_from_this();
     auto asyncCallback = [abilityWeakPtr = weakPtr]() {
         auto ability = abilityWeakPtr.lock();
@@ -477,7 +493,8 @@ void EtsUIAbility::OnStopCallback()
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr && etsAbilityObj_ != nullptr) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnAbilityDestroy");
-        applicationContext->DispatchOnAbilityDestroy(etsAbilityObj_);
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        applicationContext->DispatchOnAbilityDestroy(ability);
         std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(
             etsRuntime_.GetAniEnv(), etsAbilityObj_->aniRef);
         applicationContext->DispatchOnAbilityDestroy(interopObject);
@@ -506,6 +523,12 @@ void EtsUIAbility::OnSceneCreated()
     ani_ref entryObjectRef = nullptr;
     env->GlobalReference_Create(etsAppWindowStage, &entryObjectRef);
     etsWindowStageObj_->aniRef = entryObjectRef;
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
+        applicationContext->DispatchOnWindowStageWillCreate(ability, stage);
+    }
     CallObjectMethod(false, "onWindowStageCreate", nullptr, etsAppWindowStage);
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
@@ -514,10 +537,12 @@ void EtsUIAbility::OnSceneCreated()
         delegator->PostPerformScenceCreated(CreateADelegatorAbilityProperty());
     }
 
-    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr && etsAbilityObj_ != nullptr && etsWindowStageObj_ != nullptr) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnWindowStageCreate");
-        applicationContext->DispatchOnWindowStageCreate(etsAbilityObj_, etsWindowStageObj_);
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
+        applicationContext->DispatchOnWindowStageCreate(ability, stage);
         std::shared_ptr<InteropObject> interopAbility = std::make_shared<InteropObject>(
             etsRuntime_.GetAniEnv(), etsAbilityObj_->aniRef);
         std::shared_ptr<InteropObject> interopWindowStage = std::make_shared<InteropObject>(
@@ -552,7 +577,17 @@ void EtsUIAbility::OnSceneRestored()
     ani_ref entryObjectRef = nullptr;
     env->GlobalReference_Create(etsAppWindowStage, &entryObjectRef);
     etsWindowStageObj_->aniRef = entryObjectRef;
+    EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+    EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        applicationContext->DispatchOnWindowStageWillRestore(ability, stage);
+    }
     CallObjectMethod(false, "onWindowStageRestore", nullptr, etsAppWindowStage);
+    applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        applicationContext->DispatchOnWindowStageRestore(ability, stage);
+    }
 }
 
 void EtsUIAbility::OnSceneWillDestroy()
@@ -569,6 +604,12 @@ void EtsUIAbility::onSceneDestroyed()
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
     UIAbility::onSceneDestroyed();
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
+        applicationContext->DispatchOnWindowStageWillDestroy(ability, stage);
+    }
     UpdateEtsWindowStage(nullptr);
     CallObjectMethod(false, "onWindowStageDestroy", nullptr);
     if (scene_ != nullptr) {
@@ -585,10 +626,12 @@ void EtsUIAbility::onSceneDestroyed()
         delegator->PostPerformScenceDestroyed(CreateADelegatorAbilityProperty());
     }
 
-    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr && etsAbilityObj_ != nullptr && etsWindowStageObj_ != nullptr) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnWindowStageDestroy");
-        applicationContext->DispatchOnWindowStageDestroy(etsAbilityObj_, etsWindowStageObj_);
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
+        applicationContext->DispatchOnWindowStageDestroy(ability, stage);
         std::shared_ptr<InteropObject> interopAbility = std::make_shared<InteropObject>(
             etsRuntime_.GetAniEnv(), etsAbilityObj_->aniRef);
         std::shared_ptr<InteropObject> interopWindowStage = std::make_shared<InteropObject>(
@@ -628,6 +671,11 @@ void EtsUIAbility::CallOnForegroundFunc(const Want &want)
         TAG_LOGE(AAFwkTag::UIABILITY, "null wantObj");
         return;
     }
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        applicationContext->DispatchOnAbilityWillForeground(ability);
+    }
     if ((status = env->Object_SetFieldByName_Ref(etsAbilityObj_->aniObj, "lastRequestWant", wantRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "lastRequestWant Object_SetFieldByName_Ref status: %{public}d", status);
         return;
@@ -640,10 +688,11 @@ void EtsUIAbility::CallOnForegroundFunc(const Want &want)
         delegator->PostPerformForeground(CreateADelegatorAbilityProperty());
     }
 
-    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnAbilityForeground");
-        applicationContext->DispatchOnAbilityForeground(etsAbilityObj_);
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        applicationContext->DispatchOnAbilityForeground(ability);
         std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env,
             etsAbilityObj_->aniRef);
         applicationContext->DispatchOnAbilityForeground(interopObject);
@@ -655,6 +704,11 @@ void EtsUIAbility::OnBackground()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        applicationContext->DispatchOnAbilityWillBackground(ability);
+    }
     CallObjectMethod(false, "onBackground", nullptr);
     UIAbility::OnBackground();
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
@@ -664,7 +718,7 @@ void EtsUIAbility::OnBackground()
         delegator->PostPerformBackground(CreateADelegatorAbilityProperty());
     }
 
-    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         auto env = etsRuntime_.GetAniEnv();
         if (env == nullptr || etsAbilityObj_ == nullptr) {
@@ -672,7 +726,8 @@ void EtsUIAbility::OnBackground()
             return;
         }
         TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnAbilityBackground");
-        applicationContext->DispatchOnAbilityBackground(etsAbilityObj_);
+        EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+        applicationContext->DispatchOnAbilityBackground(ability);
         std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env,
             etsAbilityObj_->aniRef);
         applicationContext->DispatchOnAbilityBackground(interopObject);
@@ -1300,6 +1355,11 @@ void EtsUIAbility::OnNewWant(const Want &want)
         TAG_LOGE(AAFwkTag::UIABILITY, "null wantObj");
         return;
     }
+    EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        applicationContext->DispatchOnWillNewWant(ability);
+    }
     ani_status status = env->Object_SetFieldByName_Ref(etsAbilityObj_->aniObj, "lastRequestWant", wantObj);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "lastRequestWant Object_SetFieldByName_Ref status: %{public}d", status);
@@ -1316,6 +1376,10 @@ void EtsUIAbility::OnNewWant(const Want &want)
     }
     std::string methodName = "OnNewWant";
     CallObjectMethod(false, "onNewWant", nullptr, wantObj, launchParamObj);
+    applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        applicationContext->DispatchOnNewWant(ability);
+    }
     TAG_LOGD(AAFwkTag::UIABILITY, "OnNewWant end");
 }
 
@@ -1409,6 +1473,27 @@ sptr<IRemoteObject> EtsUIAbility::CallRequest()
         TAG_LOGE(AAFwkTag::UIABILITY, "AniGetNativeRemoteObject null");
     }
     return remoteObj;
+}
+
+void EtsUIAbility::OnAfterFocusedCommon(bool isFocused)
+{
+    auto abilityContext = GetAbilityContext();
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        return;
+    }
+    auto applicationContext = abilityContext->GetApplicationContext();
+    if (applicationContext == nullptr || applicationContext->IsAbilityLifecycleCallbackEmpty()) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "null applicationContext or lifecycleCallback");
+        return;
+    }
+    EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+    EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
+    if (isFocused) {
+        applicationContext->DispatchWindowStageFocus(ability, stage);
+    } else {
+        applicationContext->DispatchWindowStageUnfocus(ability, stage);
+    }
 }
 
 bool EtsUIAbility::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
