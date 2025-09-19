@@ -348,6 +348,8 @@ namespace wantAgent {
   export type TriggerInfo = _TriggerInfo;
 
   export type WantAgentInfo = _WantAgentInfo;
+
+  export type LocalWantAgentInfo = _LocalWantAgentInfo;
 }
 
 export type WantAgent = object;
