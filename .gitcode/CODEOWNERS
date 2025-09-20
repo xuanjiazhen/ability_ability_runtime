@@ -2,6 +2,7 @@
 services/uripermmgr/include/file_permission_manager.h @hobbycao @dsz2025 required_reviewers=2
 services/uripermmgr/src/file_permission_manager.cpp @hobbycao @dsz2025 required_reviewers=2
 services/uripermmgr/src/tokenid_permission.cpp @dsz2025
+services/uripermmgr/src/batch_uri.cpp @dsz2025 @afwk_helper
 
 [AAFWK ABILITY]
 cj_environment/ @dsz2025
