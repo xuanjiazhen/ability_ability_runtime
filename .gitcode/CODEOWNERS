@@ -1,0 +1,15 @@
+[Docs Uri Permission]
+services/uripermmgr/include/file_permission_manager.h @hobbycao @afwk_helper required_reviewers=2
+services/uripermmgr/src/file_permission_manager.cpp @hobbycao @afwk_helper required_reviewers=2
+
+[AAFWK ABILITY]
+cj_environment/ @afwk_helper
+ets_environment/ @afwk_helper
+frameworks/ @afwk_helper
+interfaces/ @afwk_helper
+js_environment/ @afwk_helper
+service_router_framework/ @afwk_helper
+services/ @afwk_helper
+test/ @afwk_helper
+tools/ @afwk_helper
+utils/ @afwk_helper

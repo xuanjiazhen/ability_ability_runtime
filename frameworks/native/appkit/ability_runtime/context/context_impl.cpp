@@ -583,7 +583,7 @@ std::shared_ptr<Context> ContextImpl::CreateModuleContext(const std::string &bun
                 return hapModuleInfo.moduleName == moduleName;
             });
         if (info == bundleInfo.hapModuleInfos.end()) {
-            TAG_LOGE(AAFwkTag::APPKIT, "moduleName error");
+            TAG_LOGE(AAFwkTag::APPKIT, "moduleName %{public}s error", moduleName.c_str());
             return nullptr;
         }
         appContext->InitHapModuleInfo(*info);
@@ -1054,7 +1054,7 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
                     continue;
                 }
                 if (deduplicate != nullptr) {
-                    *deduplicate = hapModuleInfo.deduplicateHar;
+                    *deduplicate |= hapModuleInfo.deduplicateHar;
                 }
                 if (currentBundle) {
                     loadPath = std::regex_replace(loadPath, inner_pattern, LOCAL_CODE_PATH);
@@ -1518,6 +1518,7 @@ int ContextImpl::GetOverlayModuleInfos(const std::string &bundleName, const std:
     }
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "overlayMgrProxy_->GetTargetOverlayModuleInfo");
+        std::lock_guard<std::mutex> lock(overlayMgrProxyMutex_);
         auto ret = overlayMgrProxy_->GetTargetOverlayModuleInfo(moduleName, overlayModuleInfos);
         if (ret != ERR_OK) {
             TAG_LOGD(AAFwkTag::APPKIT, "GetOverlayModuleInfo form bms failed");

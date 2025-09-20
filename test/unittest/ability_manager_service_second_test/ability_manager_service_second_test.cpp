@@ -22,6 +22,7 @@
 #include "ability_connection.h"
 #include "ability_start_setting.h"
 #include "recovery_param.h"
+#include "app_mgr_util.h"
 #undef private
 #undef protected
 
@@ -1387,25 +1388,6 @@ HWTEST_F(AbilityManagerServiceSecondTest, IsAbilityControllerStartById_001, Test
 
 /*
  * Feature: AbilityManagerService
- * Function: GetConnectRecordListByCallback
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService GetConnectRecordListByCallback
- */
-HWTEST_F(AbilityManagerServiceSecondTest, GetConnectRecordListByCallback_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetConnectRecordListByCallback_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    auto temp = abilityMs_->subManagersHelper_->currentConnectManager_;
-    abilityMs_->subManagersHelper_->currentConnectManager_.reset();
-    std::list<std::shared_ptr<ConnectionRecord>> connectList;
-    EXPECT_EQ(abilityMs_->GetConnectRecordListByCallback(nullptr), connectList);
-    abilityMs_->subManagersHelper_->currentConnectManager_ = temp;
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetConnectRecordListByCallback_001 end");
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: AcquireDataAbility
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService AcquireDataAbility
@@ -1930,5 +1912,19 @@ HWTEST_F(AbilityManagerServiceSecondTest, CheckCallAutoFillExtensionPermission_0
     TAG_LOGI(AAFwkTag::TEST, "testcase end.");
 }
 #endif // SUPPORT_AUTO_FILL
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetConfiguration
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetConfiguration
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, GetConfiguration_001, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    AppExecFwk::Configuration config;
+    auto ret = abilityMs_->GetConfiguration(config, USER_ID_U100);
+    EXPECT_EQ(ret, ERR_OK);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

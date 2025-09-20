@@ -222,13 +222,17 @@ void BindContext(napi_env env, std::unique_ptr<NativeReference> contextRef, JsRu
         return;
     }
     abilityContext->Bind(jsRuntime, contextRef.release());
-    napi_wrap(
+    napi_status wrapStatus = napi_wrap(
         env, contextObj, workContext,
         [](napi_env, void* data, void* hint) {
             TAG_LOGD(AAFwkTag::UIABILITY, "finalizer for weak_ptr ability context is called");
             delete static_cast<std::weak_ptr<AbilityRuntime::AbilityContext>*>(data);
         },
         nullptr, nullptr);
+    if (wrapStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "napi_wrap failed");
+        delete workContext;
+    }
 }
 } // namespace
 
@@ -1059,7 +1063,9 @@ void JsUIAbility::DoOnForeground(const Want &want)
         if (window != nullptr && want.HasParameter(Want::PARAM_RESV_WINDOW_MODE)) {
             auto windowMode = want.GetIntParam(
                 Want::PARAM_RESV_WINDOW_MODE, AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED);
-            window->SetWindowMode(static_cast<Rosen::WindowMode>(windowMode));
+            if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+                window->SetWindowMode(static_cast<Rosen::WindowMode>(windowMode));
+            }
             windowMode_ = windowMode;
             TAG_LOGD(AAFwkTag::UIABILITY, "set window mode: %{public}d", windowMode);
         }
@@ -1155,7 +1161,8 @@ void JsUIAbility::RequestFocus(const Want &want)
         return;
     }
     auto window = scene_->GetMainWindow();
-    if (window != nullptr && want.HasParameter(Want::PARAM_RESV_WINDOW_MODE)) {
+    if (window != nullptr && want.HasParameter(Want::PARAM_RESV_WINDOW_MODE) &&
+        !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto windowMode = want.GetIntParam(
             Want::PARAM_RESV_WINDOW_MODE, AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED);
         window->SetWindowMode(static_cast<Rosen::WindowMode>(windowMode));
@@ -1515,7 +1522,11 @@ int32_t JsUIAbility::OnContinue(WantParams &wantParams, bool &isAsyncOnContinue,
     }
     std::weak_ptr<UIAbility> weakPtr = shared_from_this();
     napi_ref jsWantParamsRef;
-    napi_create_reference(env, jsWantParams, 1, &jsWantParamsRef);
+    napi_status createStatus = napi_create_reference(env, jsWantParams, 1, &jsWantParamsRef);
+    if (createStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "napi_create_reference failed, %{public}d", createStatus);
+        return AppExecFwk::ContinuationManagerStage::OnContinueResult::ON_CONTINUE_ERR;
+    }
     ReleaseOnContinueAsset(env, result, jsWantParamsRef, callbackInfo);
     auto asyncCallback = [jsWantParamsRef, abilityWeakPtr = weakPtr, abilityInfo](int32_t status) {
         auto ability = abilityWeakPtr.lock();
