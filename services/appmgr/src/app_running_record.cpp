@@ -1063,7 +1063,6 @@ void AppRunningRecord::PopForegroundingAbilityTokens()
             moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_FOREGROUND);
             if (preloadMode_ != PreloadMode::PRE_LAUNCH) {
                 StateChangedNotifyObserver(
-                    
                     ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
             }
            

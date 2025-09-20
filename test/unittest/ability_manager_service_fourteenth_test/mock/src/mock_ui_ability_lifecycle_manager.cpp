@@ -236,7 +236,6 @@ int UIAbilityLifecycleManager::PrelaunchLocked(const AbilityRequest &abilityRequ
     return 0;
 }
 
-
 bool UIAbilityLifecycleManager::IsAbilityStarted(AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> &targetRecord)
 {

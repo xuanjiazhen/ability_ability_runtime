@@ -65,7 +65,6 @@ int MockServiceAbilityManagerService::StartAbilityByCall(const Want& want, const
 
 int MockServiceAbilityManagerService::StartAbilitForPrelaunch(const Want &want)
 {
-
     return 0;
 }
 
