@@ -144,7 +144,6 @@ int PermissionVerification::CheckStartByCallPermission(const VerificationInfo &v
 
 unsigned int PermissionVerification::GetCallingTokenID() const
 {
-    TAG_LOGI(AAFwkTag::TEST, "PermissionVerification::GetCallingTokenID");
     return static_cast<unsigned int>(MyFlag::flag_);
 }
 
