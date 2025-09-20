@@ -10,7 +10,7 @@ frameworks/ @dsz2025
 interfaces/ @dsz2025
 js_environment/ @dsz2025
 service_router_framework/ @dsz2025
-services/ @dsz2025
+services/ @dsz2025  @afwk_helper
 test/ @dsz2025
 tools/ @dsz2025
 utils/ @dsz2025
