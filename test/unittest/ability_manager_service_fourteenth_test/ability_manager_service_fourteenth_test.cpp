@@ -1540,5 +1540,35 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, JudgeSystemParamsForPicker_003, Te
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest JudgeSystemParamsForPicker_003 end");
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: CheckUIExtensionCallerPidByHostWindowId
+ * FunctionPoints: AbilityManagerService CheckUIExtensionCallerPidByHostWindowId
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, CheckUIExtensionCallerPidByHostWindowId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionCallerPidByHostWindowId_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    AbilityRequest callerRequest = GenerateAbilityRequest("0", "abilityName", "appName", "bundleName", "moduleName");
+    callerRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    auto callerRecord = AbilityRecord::CreateAbilityRecord(callerRequest);
+    ASSERT_NE(callerRecord, nullptr);
+    AppInfo info;
+    info.userId = 0;
+    abilityMs->OnAppStateChanged(info);
+    info.userId = 1;
+    abilityMs->OnAppStateChanged(info);
+    AbilityRequest abilityRequest = GenerateAbilityRequest("0", "abilityName", "appName", "bundleName", "moduleName");
+    abilityRequest.callerToken = callerRecord->GetToken();
+    auto sessionInfo = sptr<SessionInfo>::MakeSptr();
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->hostWindowId = 1;
+    abilityRequest.sessionInfo = sessionInfo;
+    auto result = abilityMs->CheckUIExtensionCallerPidByHostWindowId(abilityRequest, ERR_INVALID_VALUE);
+    sleep(1);
+    EXPECT_FALSE(result);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionCallerPidByHostWindowId_001 end");
+}
 } // namespace AAFwk
 } // namespace OHOS

@@ -1577,6 +1577,43 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIExtensionAbilityTset_001, TestS
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIExtensionAbilityTset_001 end");
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForResultAsCaller
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartAbilityForResultAsCaller
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityForResultAsCaller_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityForResultAsCaller_004 start");
+    Want want;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    int requestCode{0};
+    int32_t userId{1};
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto ret = abilityMs_->StartAbilityForResultAsCaller(want, callerToken, requestCode, userId);
+    EXPECT_EQ(ret, ERR_NO_INIT);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityForResultAsCaller_004 end");
+}
 
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForResultAsCaller
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartAbilityForResultAsCaller
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityForResultAsCaller_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityForResultAsCaller_005 start");
+    Want want;
+    StartOptions startOptions;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    int requestCode{0};
+    int32_t userId{1};
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto ret = abilityMs_->StartAbilityForResultAsCaller(want, startOptions, callerToken, requestCode, userId);
+    EXPECT_EQ(ret, ERR_NO_INIT);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityForResultAsCaller_005 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
