@@ -1517,7 +1517,7 @@ private:
     bool isStartingWindow_ = false;
     bool isCompleteFirstFrameDrawing_ = false;
     bool coldStart_ = false;
-    bool isPrelaunch_ = false
+    bool isPrelaunch_ = false;
     uint32_t bgColor_ = 0;
     std::shared_ptr<Media::PixelMap> startingWindowBg_ = nullptr;
 #endif
