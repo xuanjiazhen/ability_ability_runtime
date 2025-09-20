@@ -285,6 +285,10 @@ public:
     {
         return 0;
     }
+    int32_t StartAbilitForPrelaunch(const Want &want)
+    {
+        return 0;
+    }
     int ReleaseCall(const sptr<IAbilityConnection> &connect, const AppExecFwk::ElementName &element) override
     {
         return 0;

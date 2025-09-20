@@ -372,6 +372,10 @@ public:
     {
         return ERR_OK;
     }
+    virtual int32_t StartAbilitForPrelaunch(const Want &want)
+    {
+        return ERR_OK;
+    }
     virtual ErrCode ReleaseCall(const std::shared_ptr<CallerCallBack> &callback)
     {
         return ERR_OK;

@@ -498,6 +498,11 @@ ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbility
     return ERR_OK;
 }
 
+int32_t StartAbilitForPrelaunch(const Want &want)
+{
+    return ERR_OK;
+}
+
 ErrCode AbilityManagerClient::StartAbilityByCallWithErrMsg(const Want &want, sptr<IAbilityConnection> connect,
     sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent)
 {

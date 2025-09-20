@@ -1154,6 +1154,14 @@ ErrCode AbilityManagerClient::StartAbilityByCallWithErrMsg(const Want &want, spt
     return abms->StartAbilityByCallWithErrMsg(want, connect, callToken, accountId, errMsg, isSilent);
 }
 
+ErrCode AbilityManagerClient::StartAbilitForPrelaunch(const Want &want)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s", want.GetElement().GetURI().c_str());
+    return abms->StartAbilitForPrelaunch(want);
+}
+
 void AbilityManagerClient::CallRequestDone(sptr<IRemoteObject> token, sptr<IRemoteObject> callStub)
 {
     auto abms = GetAbilityManager();

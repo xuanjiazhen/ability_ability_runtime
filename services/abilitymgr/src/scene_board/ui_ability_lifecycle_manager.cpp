@@ -343,6 +343,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
     } else {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "NewWant:%{public}d", sessionInfo->isNewWant);
         uiAbilityRecord = iter->second;
+        uiAbilityRecord->SetPrelaunchFlag(false);
         if (uiAbilityRecord == nullptr || uiAbilityRecord->GetSessionInfo() == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord invalid");
             return nullptr;
@@ -1325,6 +1326,11 @@ void UIAbilityLifecycleManager::MoveToBackground(const std::shared_ptr<AbilityRe
         selfObj->CompleteBackground(abilityRecord);
     };
     abilityRecord->BackgroundAbility(task);
+}
+
+int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abilityRequest)
+{
+    return 0;
 }
 
 int UIAbilityLifecycleManager::ResolveLocked(const AbilityRequest &abilityRequest, std::string &errMsg)
