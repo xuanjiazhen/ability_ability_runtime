@@ -562,7 +562,7 @@ void AppStateObserverManager::HandleAppStateChanged(const std::shared_ptr<AppRun
         appRecord->GetApplicationInfo()->bundleType : BundleType::APP;
     if (state == ApplicationState::APP_STATE_FOREGROUND && appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
         TAG_LOGI(AAFwkTag::APPMGR, "name:%{public}s, uid:%{public}d, prelaunch status cacel notify forground state",
-            data.bundleName.c_str(), data.uid);
+            appRecord->GetBundleName().c_str(), appRecord->GetUid());
     }
     if (state == ApplicationState::APP_STATE_FOREGROUND || state == ApplicationState::APP_STATE_BACKGROUND) {
         if (needNotifyApp && !isFromWindowFocusChanged) {
