@@ -331,7 +331,7 @@ public:
     {
         return 0;
     }
-    int StartAbilityForPrelaunch(const Want &want)
+    int StartAbilityForPrelaunch(const Want &want) override
     {
         return 0;
     }
