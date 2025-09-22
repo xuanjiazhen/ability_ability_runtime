@@ -244,10 +244,7 @@ bool EtsUIExtensionContentSession::BindNativePtrCleaner(ani_env *env)
 }
 
 ani_object EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(ani_env *env,
-    sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
-    std::weak_ptr<AbilityRuntime::Context> context,
-    std::shared_ptr<EtsAbilityResultListeners> &abilityResultListeners,
-    std::shared_ptr<EtsUIExtensionContentSession> contentSessionPtr)
+    EtsUIExtensionContentSession *contentSessionPtr)
 {
     ani_object object = nullptr;
     ani_method method = nullptr;
@@ -258,7 +255,7 @@ ani_object EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(ani_
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
-    ani_long nativeContextSession = reinterpret_cast<ani_long>(contentSessionPtr.get());
+    ani_long nativeContextSession = reinterpret_cast<ani_long>(contentSessionPtr);
     status = env->Class_FindMethod(cls, "<ctor>", "J:V", &method);
     if (status != ANI_OK) {
         return nullptr;

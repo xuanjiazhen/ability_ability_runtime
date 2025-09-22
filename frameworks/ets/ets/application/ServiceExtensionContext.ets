@@ -39,6 +39,9 @@ let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
 export default class ServiceExtensionContext extends ExtensionContext {
+  static {
+    loadLibrary("service_extension_context_ani_kit.z");
+  }
   constructor(context: long) {
     if (this.nativeEtsContext == 0) {
       this.nativeEtsContext = context;
@@ -57,6 +60,27 @@ export default class ServiceExtensionContext extends ExtensionContext {
 
   nativeEtsContext: long = 0;
   private cleaner: Cleaner | null = null;
+
+  private static native nativeTransferStatic(input: ESValue, type: string): Object;
+
+  private static native nativeTransferDynamic(input: Object): ESValue;
+
+  private static contextType: string = 'ServiceExtensionContext';
+
+  static transferStatic(input: Any): Object {
+    let type: string = '';
+    try {
+      type = ESValue.wrap(input).getProperty('__context_impl__').getProperty('contextType').toString();
+    } catch (err) {
+      console.log('transferStatic err: ' + err.toString());
+    }
+    console.log('transferStatic type: ' + type);
+    return InsightIntentContext.nativeTransferStatic(ESValue.wrap(input), type);
+  }
+
+  static transferDynamic(input: Object): Any {
+    return InsightIntentContext.nativeTransferDynamic(input).unwrap();
+  }
 
   native nativeTerminateSelf(callback: AsyncCallbackWrapper<void>): void;
 
