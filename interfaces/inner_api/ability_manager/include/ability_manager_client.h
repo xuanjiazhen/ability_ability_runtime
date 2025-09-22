@@ -999,7 +999,7 @@ public:
      * @param want, Special want for service type's ability.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t StartAbilitForPrelaunch(const Want &want);
+    int32_t StartAbilityForPrelaunch(const Want &want);
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
      *

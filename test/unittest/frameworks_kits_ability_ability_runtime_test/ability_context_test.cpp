@@ -372,7 +372,7 @@ public:
     {
         return ERR_OK;
     }
-    virtual int32_t StartAbilitForPrelaunch(const Want &want)
+    virtual int32_t StartAbilityForPrelaunch(const Want &want)
     {
         return ERR_OK;
     }

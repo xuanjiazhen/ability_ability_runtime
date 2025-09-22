@@ -104,7 +104,7 @@ int MockAbilityDelegatorStub::StartAbilityByCall(const Want& want, const sptr<IA
     return 0;
 }
 
-int MockAbilityDelegatorStub::StartAbilitForPrelaunch(const Want& want)
+int MockAbilityDelegatorStub::StartAbilityForPrelaunch(const Want& want)
 {
     return 0;
 }
@@ -303,7 +303,7 @@ int MockAbilityDelegatorStub2::StartAbilityByCall(const Want& want, const sptr<I
     return 0;
 }
 
-int MockAbilityDelegatorStub2::StartAbilitForPrelaunch(const Want& want)
+int MockAbilityDelegatorStub2::StartAbilityForPrelaunch(const Want& want)
 {
     return 0;
 }

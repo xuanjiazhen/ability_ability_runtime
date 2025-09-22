@@ -63,7 +63,7 @@ int MockServiceAbilityManagerService::StartAbilityByCall(const Want& want, const
     return 0;
 }
 
-int MockServiceAbilityManagerService::StartAbilitForPrelaunch(const Want &want)
+int MockServiceAbilityManagerService::StartAbilityForPrelaunch(const Want &want)
 {
     return 0;
 }
