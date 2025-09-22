@@ -9028,7 +9028,7 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
     return missionListMgr->ResolveLocked(abilityRequest);
 }
 
-int AbilityManagerService::StartAbilityForPreloaunch(const Want &want)
+int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
 {
     return 0;
 }
