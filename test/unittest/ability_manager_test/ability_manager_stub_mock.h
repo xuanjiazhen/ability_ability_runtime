@@ -361,7 +361,7 @@ public:
         return 0;
     }
     
-    int32_t StartAbilityForPrelaunch(const Want &want)
+    int StartAbilityForPrelaunch(const Want &want)
     {
         return 0;
     }

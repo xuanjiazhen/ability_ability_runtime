@@ -199,7 +199,7 @@ public:
      * @param abilityRequest target ability request.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int PrelaunchLocked(const AbilityRequest &abilityRequest);
+    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest);
 
     /**
      * Call UIAbility by SCB.
