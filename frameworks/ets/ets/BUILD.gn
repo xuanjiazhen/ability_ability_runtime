@@ -847,6 +847,7 @@ group("ets_packages") {
     ":ability_runtime_configuration_abc_etc",
     ":ability_runtime_configuration_constant_abc_etc",
     ":ability_runtime_context_abc_etc",
+    ":ability_runtime_event_hub_abc_etc",
     ":ability_runtime_extension_context_abc_etc",
     ":ability_runtime_insight_intent_abc_etc",
     ":ability_runtime_insight_intent_context_abc_etc",
