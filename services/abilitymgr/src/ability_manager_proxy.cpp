@@ -3933,12 +3933,11 @@ int AbilityManagerProxy::StartAbilityForPrelaunch(const Want &want)
     MessageOption option;
 
     if (!WriteInterfaceToken(data)) {
-        errMsg = "WriteInterfaceToken error";
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "WriteInterfaceToken error");
         return INNER_ERR;
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        errMsg = "want write fail";
         return ERR_INVALID_VALUE;
     }
 
