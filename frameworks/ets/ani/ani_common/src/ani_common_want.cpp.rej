@@ -1,0 +1,16 @@
+diff a/frameworks/ets/ani/ani_common/src/ani_common_want.cpp b/frameworks/ets/ani/ani_common/src/ani_common_want.cpp	(rejected hunks)
+@@ -37,10 +37,10 @@ namespace OHOS {
+ namespace AppExecFwk {
+ using namespace OHOS::AbilityRuntime;
+ namespace {
+-constexpr const char* ABILITY_WANT_CLASS_NAME = "L@ohos/app/ability/Want/Want;";
+-constexpr const char* TOOL_CLASS_NAME = "L@ohos/app/ability/Want/RecordSerializeTool;";
+-constexpr const char* INNER_CLASS_NAME = "Lability/abilityResult/AbilityResultInner;";
+-constexpr const char* ELEMENTNAME_CLASS_NAME = "LbundleManager/ElementNameInner/ElementNameInner;";
++constexpr const char *ABILITY_WANT_CLASS_NAME = "L@ohos/app/ability/Want/Want;";
++constexpr const char *TOOL_CLASS_NAME = "L@ohos/app/ability/Want/RecordSerializeTool;";
++constexpr const char *INNER_CLASS_NAME = "Lability/abilityResult/AbilityResultInner;";
++constexpr const char *ELEMENTNAME_CLASS_NAME = "LbundleManager/ElementNameInner/ElementNameInner;";
+ const int PROPERTIES_SIZE = 2;
+ 
+ bool InnerWrapWantParams(ani_env* env, ani_class wantCls, ani_object wantObject, const AAFwk::WantParams& wantParams)
