@@ -3333,6 +3333,7 @@ void MainThread::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &
     if (mainHandler_ == nullptr || !mainHandler_->PostTask(task, "MainThread:AcceptWant")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleAcceptWant end");
 }
 
 void MainThread::SchedulePrepareTerminate(const std::string &moduleName)
