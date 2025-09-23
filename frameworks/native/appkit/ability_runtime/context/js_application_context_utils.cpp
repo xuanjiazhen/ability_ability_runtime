@@ -49,7 +49,6 @@ constexpr size_t ARGC_THREE = 3;
 constexpr size_t INDEX_ZERO = 0;
 constexpr size_t INDEX_ONE = 1;
 constexpr size_t INDEX_TWO = 2;
-constexpr int32_t ERROR_CODE_ONE = 1;
 constexpr double FOUNT_SIZE = 0.0;
 const char* MD_NAME = "JsApplicationContextUtils";
 }  // namespace
@@ -1151,177 +1150,6 @@ void JsApplicationContextUtils::Finalizer(napi_env env, void *data, void *hint)
     std::unique_ptr<JsApplicationContextUtils>(static_cast<JsApplicationContextUtils *>(data));
 }
 
-napi_value JsApplicationContextUtils::RegisterAbilityLifecycleCallback(napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
-        OnRegisterAbilityLifecycleCallback, APPLICATION_CONTEXT_NAME);
-}
-
-napi_value JsApplicationContextUtils::UnregisterAbilityLifecycleCallback(
-    napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
-        OnUnregisterAbilityLifecycleCallback, APPLICATION_CONTEXT_NAME);
-}
-
-napi_value JsApplicationContextUtils::OnRegisterAbilityLifecycleCallback(
-    napi_env env, NapiCallbackInfo& info)
-{
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
-    // only support one params
-    if (info.argc != ARGC_ONE) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
-        return CreateJsUndefined(env);
-    }
-
-    auto applicationContext = applicationContext_.lock();
-    if (applicationContext == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
-        return CreateJsUndefined(env);
-    }
-    if (callback_ != nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "callback_ is not nullptr");
-        return CreateJsValue(env, callback_->Register(info.argv[0]));
-    }
-    callback_ = std::make_shared<JsAbilityLifecycleCallback>(env);
-    int32_t callbackId = callback_->Register(info.argv[INDEX_ZERO]);
-    applicationContext->RegisterAbilityLifecycleCallback(callback_);
-    return CreateJsValue(env, callbackId);
-}
-
-napi_value JsApplicationContextUtils::OnUnregisterAbilityLifecycleCallback(
-    napi_env env, NapiCallbackInfo& info)
-{
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
-    int32_t errCode = 0;
-    auto applicationContext = applicationContext_.lock();
-    if (applicationContext == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null ApplicationContext");
-        errCode = ERROR_CODE_ONE;
-    }
-    int32_t callbackId = -1;
-    if (info.argc != ARGC_ONE && info.argc != ARGC_TWO) {
-        TAG_LOGE(AAFwkTag::APPKIT, "not enough params");
-        errCode = ERROR_CODE_ONE;
-    } else {
-        napi_get_value_int32(env, info.argv[INDEX_ZERO], &callbackId);
-        TAG_LOGD(AAFwkTag::APPKIT, "callbackId is %{public}d.", callbackId);
-    }
-    std::weak_ptr<JsAbilityLifecycleCallback> callbackWeak(callback_);
-
-    NapiAsyncTask::CompleteCallback complete = [callbackWeak, callbackId, errCode](
-            napi_env env, NapiAsyncTask &task, int32_t status) {
-            if (errCode != 0) {
-                task.Reject(env, CreateJsError(env, errCode, "Invalidate params."));
-                return;
-            }
-            auto callback = callbackWeak.lock();
-            if (callback == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "null callback");
-                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "callback is nullptr"));
-                return;
-            }
-
-            TAG_LOGD(AAFwkTag::APPKIT, "OnUnregisterAbilityLifecycleCallback begin");
-            if (!callback->UnRegister(callbackId)) {
-                TAG_LOGE(AAFwkTag::APPKIT, "call UnRegister failed");
-                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "call UnRegister failed!"));
-                return;
-            }
-
-            task.Resolve(env, CreateJsUndefined(env));
-        };
-    napi_value lastParam = (info.argc <= ARGC_ONE) ? nullptr : info.argv[INDEX_ONE];
-    napi_value result = nullptr;
-    NapiAsyncTask::Schedule("JsApplicationContextUtils::OnUnregisterAbilityLifecycleCallback", env,
-        CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-    return result;
-}
-
-napi_value JsApplicationContextUtils::RegisterEnvironmentCallback(napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
-        OnRegisterEnvironmentCallback, APPLICATION_CONTEXT_NAME);
-}
-
-napi_value JsApplicationContextUtils::UnregisterEnvironmentCallback(
-    napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
-        OnUnregisterEnvironmentCallback, APPLICATION_CONTEXT_NAME);
-}
-
-napi_value JsApplicationContextUtils::OnRegisterEnvironmentCallback(
-    napi_env env, NapiCallbackInfo& info)
-{
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
-    // only support one params
-    if (info.argc != ARGC_ONE) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
-        return CreateJsUndefined(env);
-    }
-
-    auto applicationContext = applicationContext_.lock();
-    if (applicationContext == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
-        return CreateJsUndefined(env);
-    }
-    if (envCallback_ != nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "envCallback_ is not nullptr");
-        return CreateJsValue(env, envCallback_->Register(info.argv[0]));
-    }
-    envCallback_ = std::make_shared<JsEnvironmentCallback>(env);
-    int32_t callbackId = envCallback_->Register(info.argv[INDEX_ZERO]);
-    applicationContext->RegisterEnvironmentCallback(envCallback_);
-    return CreateJsValue(env, callbackId);
-}
-
-napi_value JsApplicationContextUtils::OnUnregisterEnvironmentCallback(
-    napi_env env, NapiCallbackInfo& info)
-{
-    int32_t errCode = 0;
-    auto applicationContext = applicationContext_.lock();
-    if (applicationContext == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
-        errCode = ERROR_CODE_ONE;
-    }
-    int32_t callbackId = -1;
-    if (info.argc != ARGC_ONE && info.argc != ARGC_TWO) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
-        errCode = ERROR_CODE_ONE;
-    } else {
-        napi_get_value_int32(env, info.argv[INDEX_ZERO], &callbackId);
-        TAG_LOGD(AAFwkTag::APPKIT, "callbackId is %{public}d", callbackId);
-    }
-    std::weak_ptr<JsEnvironmentCallback> envCallbackWeak(envCallback_);
-    NapiAsyncTask::CompleteCallback complete = [envCallbackWeak, callbackId, errCode](
-            napi_env env, NapiAsyncTask &task, int32_t status) {
-            if (errCode != 0) {
-                task.Reject(env, CreateJsError(env, errCode, "Invalidate params."));
-                return;
-            }
-            auto env_callback = envCallbackWeak.lock();
-            if (env_callback == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "null env_callback");
-                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "env_callback is nullptr"));
-                return;
-            }
-
-            if (!env_callback->UnRegister(callbackId)) {
-                TAG_LOGE(AAFwkTag::APPKIT, "call UnRegister failed");
-                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "call UnRegister failed!"));
-                return;
-            }
-
-            task.Resolve(env, CreateJsUndefined(env));
-        };
-    napi_value lastParam = (info.argc <= ARGC_ONE) ? nullptr : info.argv[INDEX_ONE];
-    napi_value result = nullptr;
-    NapiAsyncTask::Schedule("JsApplicationContextUtils::OnUnregisterEnvironmentCallback", env,
-        CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-    return result;
-}
-
 napi_value JsApplicationContextUtils::On(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils, OnOn, APPLICATION_CONTEXT_NAME);
@@ -1819,14 +1647,6 @@ void JsApplicationContextUtils::BindNativeApplicationContextOne(napi_env env, na
     BindNativeProperty(env, object, "bundleCodeDir", JsApplicationContextUtils::GetBundleCodeDir);
     BindNativeProperty(env, object, "cloudFileDir", JsApplicationContextUtils::GetCloudFileDir);
     BindNativeProperty(env, object, "processName", JsApplicationContextUtils::GetProcessName);
-    BindNativeFunction(env, object, "registerAbilityLifecycleCallback", MD_NAME,
-        JsApplicationContextUtils::RegisterAbilityLifecycleCallback);
-    BindNativeFunction(env, object, "unregisterAbilityLifecycleCallback", MD_NAME,
-        JsApplicationContextUtils::UnregisterAbilityLifecycleCallback);
-    BindNativeFunction(env, object, "registerEnvironmentCallback", MD_NAME,
-        JsApplicationContextUtils::RegisterEnvironmentCallback);
-    BindNativeFunction(env, object, "unregisterEnvironmentCallback", MD_NAME,
-        JsApplicationContextUtils::UnregisterEnvironmentCallback);
     BindNativeFunction(env, object, "createBundleContext", MD_NAME, JsApplicationContextUtils::CreateBundleContext);
     BindNativeFunction(env, object, "switchArea", MD_NAME, JsApplicationContextUtils::SwitchArea);
     BindNativeFunction(env, object, "getArea", MD_NAME, JsApplicationContextUtils::GetArea);

@@ -37,10 +37,6 @@ public:
     }
     virtual ~JsApplicationContextUtils() = default;
     static void Finalizer(napi_env env, void *data, void *hint);
-    static napi_value RegisterAbilityLifecycleCallback(napi_env env, napi_callback_info info);
-    static napi_value UnregisterAbilityLifecycleCallback(napi_env env, napi_callback_info info);
-    static napi_value RegisterEnvironmentCallback(napi_env env, napi_callback_info info);
-    static napi_value UnregisterEnvironmentCallback(napi_env env, napi_callback_info info);
     static napi_value On(napi_env env, napi_callback_info info);
     static napi_value Off(napi_env env, napi_callback_info info);
     static napi_value CreateBundleContext(napi_env env, napi_callback_info info);
@@ -52,12 +48,6 @@ public:
     static napi_value SetAutoStartup(napi_env env, napi_callback_info info);
     static napi_value CancelAutoStartup(napi_env env, napi_callback_info info);
     static napi_value IsAutoStartup(napi_env env, napi_callback_info info);
-
-    napi_value OnRegisterAbilityLifecycleCallback(napi_env env, NapiCallbackInfo& info);
-    napi_value OnUnregisterAbilityLifecycleCallback(napi_env env, NapiCallbackInfo& info);
-
-    napi_value OnRegisterEnvironmentCallback(napi_env env, NapiCallbackInfo& info);
-    napi_value OnUnregisterEnvironmentCallback(napi_env env, NapiCallbackInfo& info);
 
     napi_value OnOn(napi_env env, NapiCallbackInfo& info);
     napi_value OnOff(napi_env env, NapiCallbackInfo& info);
