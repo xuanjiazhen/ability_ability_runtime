@@ -300,6 +300,7 @@ ohos_unittest("ets_runtime_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "init:libbegetutil",
     "json:nlohmann_json_static",
     "napi:ace_napi",
     "runtime_core:ani",

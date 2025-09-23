@@ -15,6 +15,20 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 import("../../ets_environment.gni")
 
+ohos_prebuilt_etc("ets_environment.para") {
+    source = "//foundation/ability/ability_runtime/ets_environment/frameworks/ets_environment/ets_environment.para"
+    part_name = "ability_runtime"
+    subsystem_name = "ability"
+    module_install_dir = "etc/param"
+}
+
+ohos_prebuilt_etc("ets_environment.para.dac") {
+    source = "//foundation/ability/ability_runtime/ets_environment/frameworks/ets_environment/ets_environment.para.dac"
+    part_name = "ability_runtime"
+    subsystem_name = "ability"
+    module_install_dir = "etc/param"
+}
+
 config("public_ets_environment_config") {
   include_dirs = [
     "include",
@@ -49,6 +63,8 @@ ohos_shared_library("ets_environment") {
   deps = [
     "${ability_runtime_innerkits_path}/connect_server_manager:connect_server_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    ":ets_environment.para",
+    ":ets_environment.para.dac",
   ]
 
   external_deps = [
@@ -58,6 +74,7 @@ ohos_shared_library("ets_environment") {
     "eventhandler:libeventhandler",
     "faultloggerd:libunwinder",
     "hilog:libhilog",
+    "init:libbegetutil",
     "json:nlohmann_json_static",
     "napi:ace_napi",
     "runtime_core:ani",
