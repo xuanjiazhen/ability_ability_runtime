@@ -7262,5 +7262,38 @@ int32_t AbilityManagerProxy::PreloadApplication(const std::string &bundleName, i
 
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
+    const AAFwk::StartOptions &startOptions, bool isHaveOptions)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteString(specifiedFlag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag write fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteParcelable(&startOptions)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteBool(isHaveOptions)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "isHaveOptions write fail");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CURRENT_PROCESS, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS
