@@ -60,8 +60,8 @@ export default class UIExtensionContentSession {
   native setWindowBackgroundColor(color: string): void;
   native getUIExtensionHostWindowProxy(): uiExtensionHost.UIExtensionHostWindowProxy;
   native getUIExtensionWindowProxy(): uiExtension.WindowProxy;
-  native nativeSetReceiveDataCallback(callback: (data: Record<string, Object>) => void): void;
-  native nativeSetReceiveDataForResultCallback(callback: (data: Record<string, Object>) => Record<string, Object>): void;
+  native nativeSetReceiveDataCallback(callback: (data: Record<string, RecordData>) => void): void;
+  native nativeSetReceiveDataForResultCallback(callback: (data: Record<string, RecordData>) => Record<string, RecordData>): void;
   native terminateSelfSync(callback:AsyncCallbackWrapper<void>): void;
   native terminateSelfWithResultSync(parameter: AbilityResult, callback:AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, RecordData>, startCallback: AbilityStartCallback): BusinessError<void>;
@@ -76,11 +76,11 @@ export default class UIExtensionContentSession {
     this.nativeSendData(data);
   }
 
-  setReceiveDataCallback(callback: (data: Record<string, Object>) => void): void {
+  setReceiveDataCallback(callback: (data: Record<string, RecordData>) => void): void {
     this.nativeSetReceiveDataCallback(callback);
   }
 
-  setReceiveDataForResultCallback(callback: (data: Record<string, Object>) => Record<string, Object>): void {
+  setReceiveDataForResultCallback(callback: (data: Record<string, RecordData>) => Record<string, RecordData>): void {
     this.nativeSetReceiveDataForResultCallback(callback);
   }
 
