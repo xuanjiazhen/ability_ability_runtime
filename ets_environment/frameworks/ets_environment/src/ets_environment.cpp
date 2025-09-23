@@ -23,7 +23,7 @@
 #include <string>
 #include <thread>
 #include <vector>
-
+#include "parameters.h"
 #include "bundle_constants.h"
 #include "constants.h"
 #include "file_path_utils.h"
@@ -248,7 +248,8 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
     std::string debugEnalbeMode = "--ext:--debugger-enable=true";
     std::string debugLibraryPathMode = "--ext:--debugger-library-path=/system/lib64/libarkinspector.so";
     std::string breadonstartMode = "--ext:--debugger-break-on-start";
-    if (isStartWithDebug) {
+    bool isColdSwitchEnable = OHOS::system::GetBoolParameter("persist.ark.Debugger.ColdSwitch.Enable", false);
+    if (isColdSwitchEnable) {
         options.push_back(ani_option { interpreerMode.data(), nullptr });
         options.push_back(ani_option { debugEnalbeMode.data(), nullptr });
         options.push_back(ani_option { debugLibraryPathMode.data(), nullptr });
