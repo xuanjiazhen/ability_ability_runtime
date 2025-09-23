@@ -275,7 +275,7 @@ int32_t UriPermissionManagerStubImpl::GrantUriPermissionInner(const std::vector<
         }
         permissionedUriCount++;
         auto uriInner = Uri(uriVec[i]);
-        if (uriInner.GetAuthority() == FUDConstants::MEDIA_AUTHORITY) {
+        if (uriInner.GetAuthority() == "media") {
             permissionedMediaUris.emplace_back(uriVec[i]);
         } else {
             permissionedOtherUris.emplace_back(uriVec[i]);
