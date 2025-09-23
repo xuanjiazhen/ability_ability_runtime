@@ -79,6 +79,7 @@ public:
     virtual int GetColorMode() = 0;
     virtual int GetMissionId() = 0;
     virtual void StartAbilities(const std::vector<AAFwk::Want>& wants) = 0;
+    virtual std::string GetLogFileDir() = 0;
     friend DataAbilityHelper;
     friend DataShareHelper;
     friend ContinuationConnector;
