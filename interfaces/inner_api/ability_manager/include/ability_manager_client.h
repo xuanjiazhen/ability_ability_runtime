@@ -1942,6 +1942,17 @@ public:
      */
     ErrCode PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex);
 
+    /**
+     * Preload application.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @param startOptions Indicates the options used to start.
+     * @param isHaveOptions Is have start options.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool isHaveOptions);
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);
