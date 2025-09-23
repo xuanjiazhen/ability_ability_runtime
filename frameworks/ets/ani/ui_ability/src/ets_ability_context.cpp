@@ -800,58 +800,11 @@ void EtsAbilityContext::OnStartAbilityForResult(
     AppExecFwk::UnwrapWant(env, wantObj, want);
     AAFwk::StartOptions startOptions;
     if (startOptionsObj) {
+        AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions);
         UnwrapCompletionHandlerInStartOptions(env, startOptionsObj, startOptions);
     }
     TAG_LOGE(AAFwkTag::CONTEXT, "displayId:%{public}d", startOptions.GetDisplayID());
     StartAbilityForResultInner(env, startOptions, want, context, startOptionsObj, callback);
-}
-
-ani_object EtsAbilityContext::StartAbilityByCall(ani_env *env, ani_object aniObj, ani_object wantObj)
-{
-    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByCall");
-    auto etsContext = GetEtsAbilityContext(env, aniObj);
-    auto context = etsContext ? etsContext->context_.lock() : nullptr;
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "GetAbilityContext is nullptr");
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-        return nullptr;
-    }
-
-    AAFwk::Want want;
-    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "parse want failed");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
-        return nullptr;
-    }
-    auto callData = std::make_shared<StartAbilityByCallData>();
-    auto callerCallBack = std::make_shared<CallerCallBack>();
-    CallUtil::GenerateCallerCallBack(callData, callerCallBack);
-    auto ret = context->StartAbilityByCall(want, callerCallBack, -1);
-    if (ret != 0) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "startAbility failed");
-        EtsErrorUtil::ThrowErrorByNativeErr(env, ret);
-        return nullptr;
-    }
-    CallUtil::WaitForCalleeObj(callData);
-
-    if (callData->remoteCallee == nullptr) {
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
-        return nullptr;
-    }
-
-    std::weak_ptr<AbilityContext> abilityContext(context);
-    auto releaseCallFunc = [abilityContext] (std::shared_ptr<CallerCallBack> callback) -> ErrCode {
-        auto contextForRelease = abilityContext.lock();
-        if (contextForRelease == nullptr) {
-            return -1;
-        }
-        return contextForRelease->ReleaseCall(callback);
-    };
-    auto caller = EtsCallerComplex::CreateEtsCaller(env, releaseCallFunc, callData->remoteCallee, callerCallBack);
-    if (caller == nullptr) {
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
-    }
-    return caller;
 }
 
 ani_object EtsAbilityContext::StartAbilityByCall(ani_env *env, ani_object aniObj, ani_object wantObj)
@@ -1066,18 +1019,6 @@ void EtsAbilityContext::OnStartServiceExtensionAbility(ani_env *env, ani_object 
         errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
     }
     AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
-}
-
-static bool CheckUrl(std::string &urlValue)
-{
-    if (urlValue.empty()) {
-        return false;
-    }
-    Uri uri = Uri(urlValue);
-    if (uri.GetScheme().empty() || uri.GetHost().empty()) {
-        return false;
-    }
-    return true;
 }
 
 void EtsAbilityContext::OnStopServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
