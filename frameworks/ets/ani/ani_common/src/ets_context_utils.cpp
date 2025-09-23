@@ -123,6 +123,15 @@ void BindContextDir(ani_env *aniEnv, ani_object contextObj, std::shared_ptr<Cont
         TAG_LOGE(AAFwkTag::APPKIT, "tempDir SetField status: %{public}d", status);
         return;
     }
+
+    auto logFileDir = context->GetLogFileDir();
+    ani_string logFileDirString = nullptr;
+    aniEnv->String_NewUTF8(logFileDir.c_str(), logFileDir.size(), &logFileDirString);
+    if ((status = aniEnv->Object_SetFieldByName_Ref(contextObj, "logFileDir", logFileDirString)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "logFileDir SetField status: %{public}d", status);
+        return;
+    }
+
     BindContextDirInner(aniEnv, contextObj, context);
 }
 } // namespace
