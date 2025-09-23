@@ -27,6 +27,7 @@
 #include "bundle_constants.h"
 #include "constants.h"
 #include "file_path_utils.h"
+#include "parameters.h"
 #include "runtime.h"
 #include "static_core/plugins/ets/runtime/ets_namespace_manager.h"
 #include "static_core/runtime/tooling/inspector/debugger_arkapi.h"
@@ -252,7 +253,11 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
     std::string debugEnalbeMode = "--ext:--debugger-enable=true";
     std::string debugLibraryPathMode = "--ext:--debugger-library-path=/system/lib64/libarkinspector.so";
     std::string breadonstartMode = "--ext:--debugger-break-on-start";
-    if (isStartWithDebug) {
+
+    // Fetch the debugger system parameter configuration.
+    // Developers can set this parameter to 'true' in non-root mode and restart to enable debug mode.
+    bool enableDebugMode = OHOS::system::GetBoolParameter("persist.ark.enableDebugMode", false);
+    if (isStartWithDebug || enableDebugMode) {
         options.push_back(ani_option { interpreerMode.data(), nullptr });
         options.push_back(ani_option { debugEnalbeMode.data(), nullptr });
         options.push_back(ani_option { debugLibraryPathMode.data(), nullptr });
