@@ -29,17 +29,7 @@
 namespace OHOS::AbilityRuntime {
 namespace {
 constexpr const char* DATA_STORAGE = "/data/storage/";
-constexpr const char* BASE_CACHE = "/base/cache";
-constexpr const char* BASE_TEMP = "/base/temp";
-constexpr const char* BASE_FILES = "/base/files";
-constexpr const char* BASE_DATABASE = "/base/database";
-constexpr const char* BASE_PREFERENCES = "/base/preferences";
-constexpr const char* BASE_BUNDLE_CODE = "/base/bundleCode";
-constexpr const char* BASE_DISTRIBUTED_FILES = "/base/distributedFiles";
-constexpr const char* BASE_CLOUD_FILE = "/base/cloudFile";
-constexpr const char* BASE_LOG_FILE = "/base/logFile";
-constexpr const char* BASE_RESOURCE_DIR = "/base/resources/resfile";
-constexpr const char* ENTRY_MODULE_NAME = "entry";
+constexpr const char* BASE_LOG_FILE = "/log";
 constexpr const char* EL_LIST[] = { "el1", "el2", "el3", "el4", "el5" };
 constexpr int32_t BUFFER_SIZE = 1024;
 const std::string TEST_BUNDLE_NAME = "com.example.myapplication";
