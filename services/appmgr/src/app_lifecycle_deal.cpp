@@ -456,6 +456,19 @@ int AppLifeCycleDeal::DumpFfrt(std::string& result)
     return appThread->ScheduleDumpFfrt(result);
 }
 
+int AppLifeCycleDeal::DumpProcess(std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DumpProcess");
+    auto appThread = GetApplicationClient();
+    if (appThread == nullptr) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return appThread->ScheduleDumpFfrt(result);
+}
+
 void AppLifeCycleDeal::SetWatchdogBackgroundStatusRunning(bool status)
 {
     auto appThread = GetApplicationClient();

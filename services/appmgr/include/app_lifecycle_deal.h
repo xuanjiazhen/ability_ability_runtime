@@ -296,6 +296,7 @@ public:
     void ScheduleCacheProcess();
 
     int DumpFfrt(std::string& result);
+    int DumpProcess(std::string& result);
 
     /**
      * SetWatchdogBackgroundStatusRunning , call SetWatchdogBackgroundStatusRunning(bool status) through proxy project,

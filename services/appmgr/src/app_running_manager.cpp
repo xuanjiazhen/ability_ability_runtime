@@ -2098,6 +2098,37 @@ int AppRunningManager::DumpFfrt(const std::vector<int32_t>& pids, std::string& r
     return DumpErrorCode::ERR_OK;
 }
 
+int AppRunningManager::DumpByPid(const std::vector<int32_t>& pids, std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DumpByPid");
+    int errCode = DumpErrorCode::ERR_OK;
+    size_t count = 0;
+    for (const auto& pid : pids) {
+        TAG_LOGD(AAFwkTag::APPMGR, "Dump By pid:%{public}d", pid);
+        const auto& appRecord = GetAppRunningRecordByPid(pid);
+        if (!appRecord) {
+            TAG_LOGE(AAFwkTag::APPMGR, "pid %{public}d does not exist", pid);
+            ++count;
+            continue;
+        }
+        std::string currentResult;
+        //errCode = appRecord->DumpFfrt(currentResult);
+        if (errCode != DumpErrorCode::ERR_OK) {
+            continue;
+        }
+        result += currentResult + "\n";
+    }
+    if (count == pids.size()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no valid pid");
+        return DumpErrorCode::ERR_INVALID_PID_ERROR;
+    }
+    if (result.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "dump is empty");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return DumpErrorCode::ERR_OK;
+}
+
 bool AppRunningManager::HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid)
 {
     if (abilityToken == nullptr) {

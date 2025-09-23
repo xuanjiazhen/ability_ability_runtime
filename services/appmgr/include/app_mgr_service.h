@@ -1007,6 +1007,7 @@ private:
     int DumpIpcStat(const int32_t pid, std::string& result);
 
     int DumpFfrt(const std::vector<std::u16string>& args, std::string& result);
+    int DumpByPid(const std::vector<std::u16string>& args, std::string& result);
 
     bool JudgeAppSelfCalled(int32_t recordId);
 
@@ -1090,6 +1091,7 @@ private:
         const std::string& optionPid, std::string& result);
 
     int DumpFfrtInner(const std::string& pidsRaw, std::string& result);
+    int DumpByPidInner(const std::string& pidsRaw, std::string& result);
 
 private:
     AppMgrServiceState appMgrServiceState_;

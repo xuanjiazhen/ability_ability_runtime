@@ -50,12 +50,15 @@ using AAFwk::FdGuard;
 constexpr const char* OPTION_KEY_HELP = "-h";
 constexpr const char* OPTION_KEY_DUMP_IPC = "--ipc";
 constexpr const char* OPTION_KEY_DUMP_FFRT = "--ffrt";
+constexpr const char* OPTION_KEY_DUMP_PROCESS = "--eventhandle";
 const int32_t HIDUMPER_SERVICE_UID = 1212;
 constexpr const int INDEX_PID = 1;
 constexpr const int INDEX_CMD = 2;
 constexpr const size_t VALID_DUMP_IPC_ARG_SIZE = 3;
 constexpr const size_t VALID_DUMP_FFRT_ARG_SIZE = 2;
 constexpr const int MAX_DUMP_FFRT_PID_NUMBER = 3;
+constexpr const int MIN_DUMP_BY_PID_NUMBER = 2;
+constexpr const int MAX_DUMP_BY_PID_NUMBER = 3;
 constexpr const int BASE_TEN = 10;
 constexpr const char SIGN_TERMINAL = '\0';
 constexpr int32_t DEFAULT_CONCURRENT_NUMBER = 1;
@@ -759,6 +762,9 @@ int AppMgrService::Dump(int fd, const std::vector<std::u16string>& args)
 int AppMgrService::Dump(const std::vector<std::u16string>& args, std::string& result)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
+    for (auto arg : args) {
+        TAG_LOGE(AAFwkTag::APPMGR, "##zhawei# %{public}s", Str16ToStr8(arg).c_str());
+    }
     auto size = args.size();
     if (size == 0) {
         return ShowHelp(args, result);
@@ -773,6 +779,9 @@ int AppMgrService::Dump(const std::vector<std::u16string>& args, std::string& re
     }
     if (optionKey == OPTION_KEY_DUMP_FFRT) {
         return DumpFfrt(args, result);
+    }
+    if (optionKey == OPTION_KEY_DUMP_PROCESS) {
+        return DumpByPid(args, result);
     }
     result.append("error: unkown option.\n");
     TAG_LOGE(AAFwkTag::APPMGR, "option key %{public}s does not exist", optionKey.c_str());
@@ -885,6 +894,41 @@ int AppMgrService::DumpFfrtInner(const std::string& pidsRaw, std::string& result
     return appMgrServiceInner_->DumpFfrt(pids, result);
 }
 
+int AppMgrService::DumpByPidInner(const std::string& pidsRaw, std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DumpByPidInner");
+    std::vector<std::string> pidsStr;
+    SplitStr(pidsRaw, ",", pidsStr);
+    if (pidsStr.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "pids are empty");
+        return DumpErrorCode::ERR_INVALID_PID_ERROR;
+    }
+    if (pidsStr.size() > MAX_DUMP_BY_PID_NUMBER) {
+        pidsStr.resize(MAX_DUMP_BY_PID_NUMBER);
+    }
+    std::vector<int32_t> pids;
+    for (const auto& pidStr : pidsStr) {
+        int pid = -1;
+        char* end = nullptr;
+        pid = static_cast<int32_t>(std::strtol(pidStr.c_str(), &end, BASE_TEN));
+        if (end && *end != SIGN_TERMINAL) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid pid:%{public}s", pidStr.c_str());
+            continue;
+        }
+        if (pid < 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid pid: %{public}s", pidStr.c_str());
+            continue;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "valid pid:%{public}d", pid);
+        pids.push_back(pid);
+    }
+    if (pids.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "pids are empty");
+        return DumpErrorCode::ERR_INVALID_PID_ERROR;
+    }
+    return appMgrServiceInner_->DumpByPid(pids, result);
+}
+
 bool AppMgrService::GetDumpIpcKeyByOption(const std::string &option, DumpIpcKey &key)
 {
     if (option == "--start-stat") {
@@ -959,6 +1003,28 @@ int AppMgrService::DumpFfrt(const std::vector<std::u16string>& args, std::string
     TAG_LOGD(AAFwkTag::APPMGR, "pids:%{public}s", pidsRaw.c_str());
 
     return DumpFfrtInner(pidsRaw, result);
+}
+
+int AppMgrService::DumpByPid(const std::vector<std::u16string>& args, std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called. AppMgrService::DumpByPid start");
+    if (args.size() < MIN_DUMP_BY_PID_NUMBER) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_INVALILD_NUM_ARGS, strlen(MSG_DUMP_FAIL_REASON_INVALILD_NUM_ARGS));
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid arguments");
+        return DumpErrorCode::ERR_INVALID_NUM_ARGS_ERROR;
+    }
+    auto isHidumperServiceCall = (IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID);
+    if (!isHidumperServiceCall) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_PERMISSION_DENY, strlen(MSG_DUMP_FAIL_REASON_PERMISSION_DENY));
+        TAG_LOGE(AAFwkTag::APPMGR, "permission deny");
+        return DumpErrorCode::ERR_PERMISSION_DENY_ERROR;
+    }
+    std::string pidsRaw = Str16ToStr8(args[INDEX_PID]);
+    TAG_LOGD(AAFwkTag::APPMGR, "pids:%{public}s", pidsRaw.c_str());
+
+    return 0;
 }
 
 int AppMgrService::DumpIpcAllStart(std::string& result)

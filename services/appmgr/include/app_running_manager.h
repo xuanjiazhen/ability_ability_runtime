@@ -417,6 +417,8 @@ public:
 
     int DumpFfrt(const std::vector<int32_t>& pids, std::string& result);
 
+    int DumpByPid(const std::vector<int32_t>& pids, std::string& result);
+
     bool IsAppProcessesAllCached(const std::string &bundleName, int32_t uid,
         const std::set<std::shared_ptr<AppRunningRecord>> &cachedSet);
 

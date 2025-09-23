@@ -2482,6 +2482,18 @@ int AppRunningRecord::DumpFfrt(std::string& result)
     return appLifeCycleDeal_->DumpFfrt(result);
 }
 
+int AppRunningRecord::DumpProcess(std::string &result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DumpProcess");
+    if (appLifeCycleDeal_ == nullptr) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
+        TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return appLifeCycleDeal_->DumpProcess(result);
+}
+
 void AppRunningRecord::SetWatchdogBackgroundStatusRunning(bool status)
 {
     if (appLifeCycleDeal_) {
