@@ -748,10 +748,10 @@ ani_status BindNativeFunctions(ani_env *env)
         ani_native_function { "nativeTrigger", nullptr, reinterpret_cast<void *>(EtsWantAgent::Trigger) },
         ani_native_function { "nativeGetWant", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetWant) },
         ani_native_function { "nativeGetWantAgent", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetWantAgent) },
-        ani_native_function { "nativeCreateLocalWantAgent", 
-            nullptr, reinterpret_cast<void *>(EtsWantAgent::CreateLocalWantAgent) },
-        ani_native_function { "nativeIsLocalWantAgent", 
-            nullptr, reinterpret_cast<void *>(EtsWantAgent::IsLocalWantAgent) },
+        ani_native_function { "nativeCreateLocalWantAgent", nullptr,
+            reinterpret_cast<void *>(EtsWantAgent::CreateLocalWantAgent) },
+        ani_native_function { "nativeIsLocalWantAgent", nullptr,
+            reinterpret_cast<void *>(EtsWantAgent::IsLocalWantAgent) },
     };
     if ((status = env->Namespace_BindNativeFunctions(ns, functions.data(), functions.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Namespace_BindNativeFunctions failed status: %{public}d", status);
