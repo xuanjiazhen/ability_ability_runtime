@@ -413,7 +413,6 @@ std::string ContextImpl::GetCloudFileDir()
 std::string ContextImpl::GetLogFileDir()
 {
     std::string dir = CONTEXT_DATA_STORAGE + CONTEXT_ELS[1] + CONTEXT_FILE_SEPARATOR + CONTEXT_LOGFILE;
-    CreateDirIfNotExist(dir, MODE);
     return dir;
 }
 
