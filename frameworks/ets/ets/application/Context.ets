@@ -45,6 +45,7 @@ export class Context extends BaseContext {
   private cleaner: Cleaner | null = null;
   filesDir: string = "";
   tempDir: string = "";
+  logFileDir: string = "";
   preferencesDir: string = "";
   databaseDir: string = "";
   cacheDir: string = "";
