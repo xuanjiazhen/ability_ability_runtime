@@ -315,7 +315,7 @@ ohos_unittest("ets_runtime_test") {
 
 group("unittest") {
   testonly = true
-
+  
   deps = [
     ":hdc_register_test",
     ":ets_runtime_test",
