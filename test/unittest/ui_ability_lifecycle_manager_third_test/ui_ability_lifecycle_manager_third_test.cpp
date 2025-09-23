@@ -400,7 +400,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartSpecifiedRequest_003, TestSize
     SpecifiedRequest specifiedRequest(0, AbilityRequest());
     specifiedRequest.specifiedProcessState = SpecifiedProcessState::STATE_ABILITY;
     mgr->StartSpecifiedRequest(specifiedRequest);
-    EXPECT_FALSE(specifiedRequest.isCold);
+    EXPECT_TRUE(specifiedRequest.isCold);
 }
 
 /**
@@ -1256,7 +1256,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, IsSpecifiedModuleLoaded_001, TestSi
     AppMgrUtil::appMgr_ = nullptr;
     SysMrgClient::instance_ = nullptr;
     bool isDebug = false;
-    auto ret = uiAbilityLifecycleManager->IsSpecifiedModuleLoaded(abilityRequest, isDebug);
+    auto ret = uiAbilityLifecycleManager->IsSpecifiedModuleLoaded(abilityRequest, false, isDebug);
 
     EXPECT_EQ(ret, false);
 }

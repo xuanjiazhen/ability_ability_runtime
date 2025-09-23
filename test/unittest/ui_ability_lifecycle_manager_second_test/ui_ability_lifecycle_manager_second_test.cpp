@@ -184,8 +184,40 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, IsSpecifiedModuleLoaded_001, TestS
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
     bool isDebug = false;
-    EXPECT_FALSE(mgr->IsSpecifiedModuleLoaded(abilityRequest, isDebug));
+    EXPECT_FALSE(mgr->IsSpecifiedModuleLoaded(abilityRequest, false, isDebug));
     TAG_LOGI(AAFwkTag::TEST, "IsSpecifiedModuleLoaded_001 end.");
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_IsSpecifiedModuleLoaded_003
+ * @tc.desc: IsSpecifiedModuleLoaded
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerSecondTest, IsSpecifiedModuleLoaded_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSpecifiedModuleLoaded_003 begin.");
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    AbilityRequest abilityRequest;
+    bool isDebug = false;
+    auto ret = mgr->IsSpecifiedModuleLoaded(abilityRequest, true, isDebug);
+    EXPECT_EQ(ret, false);
+
+    mgr->sessionAbilityMap_.emplace(0, nullptr);
+
+    int32_t uid = 100;
+    std::string instanceKey = "testInstanceKey";
+    abilityRequest.abilityInfo.uid = uid;
+    abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    mgr->sessionAbilityMap_.emplace(1, abilityRecord);
+
+    ret = mgr->IsSpecifiedModuleLoaded(abilityRequest, true, isDebug);
+    EXPECT_EQ(ret, false);
+
+    abilityRecord->SetInstanceKey(instanceKey);
+    ret = mgr->IsSpecifiedModuleLoaded(abilityRequest, true, isDebug);
+    EXPECT_EQ(ret, true);
+    TAG_LOGI(AAFwkTag::TEST, "IsSpecifiedModuleLoaded_003 end.");
 }
 
 /**
@@ -945,7 +977,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, IsSpecifiedModuleLoaded_002, TestS
     AppMgrUtil::appMgr_= nullptr;
     AbilityRequest abilityRequest;
     bool isDebug = false;
-    auto ret = mgr->IsSpecifiedModuleLoaded(abilityRequest, isDebug);
+    auto ret = mgr->IsSpecifiedModuleLoaded(abilityRequest, false, isDebug);
     EXPECT_EQ(ret, false);
 }
 

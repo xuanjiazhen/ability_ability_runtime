@@ -3755,7 +3755,8 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
     auto &request = specifiedRequest.abilityRequest;
 
     bool isDebug = false;
-    bool isLoaded = IsSpecifiedModuleLoaded(request, isDebug);
+    bool isLoaded = IsSpecifiedModuleLoaded(request,
+        specifiedRequest.specifiedProcessState != SpecifiedProcessState::STATE_NONE, isDebug);
     if (specifiedRequest.specifiedProcessState == SpecifiedProcessState::STATE_PROCESS) {
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(request.want,
             request.abilityInfo, specifiedRequest.requestId);
@@ -3766,8 +3767,7 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
         if (TryProcessHookModule(specifiedRequest, IsHookModule(request))) {
             return;
         }
-        if (specifiedRequest.specifiedProcessState == SpecifiedProcessState::STATE_NONE &&
-            specifiedRequest.requestListId == REQUEST_LIST_ID_INIT && !isLoaded) {
+        if (specifiedRequest.requestListId == REQUEST_LIST_ID_INIT && !isLoaded) {
             specifiedRequest.isCold = true;
             auto sessionInfo = CreateSessionInfo(request, specifiedRequest.requestId);
             sessionInfo->requestCode = request.requestCode;
@@ -3832,17 +3832,32 @@ std::shared_ptr<SpecifiedRequest> UIAbilityLifecycleManager::PopAndGetNextSpecif
     return nullptr;
 }
 
-bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest, bool &isDebug)
+bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest,
+    bool isSpecifiedProcess, bool &isDebug)
 {
+    if (isSpecifiedProcess) {
+        auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
+        for (const auto &[persistentId, abilityRecord] : sessionAbilityMap_) {
+            if (abilityRecord == nullptr) {
+                continue;
+            }
+            if (abilityRecord->GetAbilityInfo().uid == abilityRequest.abilityInfo.uid &&
+                abilityRecord->GetInstanceKey() == instanceKey) {
+                isDebug = abilityRecord->IsDebug();
+                return true;
+            }
+        }
+        return false;
+    }
     auto appMgr = AppMgrUtil::GetAppMgr();
     if (appMgr == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "AppMgrUtil::GetAppMgr failed");
         return false;
     }
-    bool appExist = false;
+    bool isLoaded = false;
     auto ret = IN_PROCESS_CALL(appMgr->IsSpecifiedModuleLoaded(abilityRequest.want,
-        abilityRequest.abilityInfo, appExist, isDebug));
-    return ret == ERR_OK && appExist;
+        abilityRequest.abilityInfo, isLoaded, isDebug));
+    return ret == ERR_OK && isLoaded;
 }
 
 bool UIAbilityLifecycleManager::HandleStartSpecifiedCold(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
