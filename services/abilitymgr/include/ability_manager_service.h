@@ -178,6 +178,17 @@ public:
         int requestCode = DEFAULT_INVAL_VALUE) override;
 
     /**
+     * Start Self UIAbility In Current Process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @param startOptions Indicates the options used to start.
+     * @param isHaveOptions Is have start options.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool isHaveOptions) override;    
+
+    /**
      * StartAbilityWithSpecifyTokenIdInner with want and specialId, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -2673,6 +2684,8 @@ private:
 
     AAFwk::EventInfo BuildEventInfo(const Want &want, int32_t userId);
     AAFwk::EventInfo BuildEventInfoByAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
+
+    ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag);
 
 #ifdef WITH_DLP
     int CheckDlpForExtension(

@@ -1592,9 +1592,26 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_SetProcessCacheEnable_001, TestSize.Leve
     EXPECT_EQ(ret, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
 }
 
+/**	
+ * @tc.name: AppMgrClient_SetProcessCacheEnable_002	
+ * @tc.desc: SetProcessCacheEnable.	
+ * @tc.type: FUNC	
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_SetProcessCacheEnable_002, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    ASSERT_NE(appMgrClient, nullptr);
+    auto ret = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(ret, AppMgrResultCode::RESULT_OK);
+    int32_t pid = 1;
+    bool enable = false;
+    auto result = appMgrClient->SetProcessCacheEnable(pid, enable);
+    EXPECT_NE(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
+}
+
 /**
  * @tc.name: AppMgrClient_GetConfiguration_001
- * @tc.desc: SetProcessCacheEnable.
+ * @tc.desc: GetConfiguration.
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrClientTest, AppMgrClient_GetConfiguration_001, TestSize.Level2)
