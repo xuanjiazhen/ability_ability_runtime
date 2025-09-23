@@ -310,3 +310,4 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextSecondTest, GetLogFileDirTest_004, 
     ASSERT_EQ(writeLength, logFileDir.length());
     ASSERT_STREQ(buffer, logFileDir.c_str());
 }
+}
