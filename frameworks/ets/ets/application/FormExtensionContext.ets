@@ -36,7 +36,7 @@ export function callback(cleaner: Cleaner): void {
 
 let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
- 
+
 export default class FormExtensionContext extends ExtensionContext {
   constructor(context: long) {
     if (this.nativeEtsContext == 0) {
@@ -44,6 +44,7 @@ export default class FormExtensionContext extends ExtensionContext {
     }
     this.registerCleaner(this.nativeEtsContext);
   }
+
   registerCleaner(ptr: long): void {
     this.cleaner = new Cleaner(ptr);
     destroyRegister.register(this, this.cleaner!, unregisterToken);

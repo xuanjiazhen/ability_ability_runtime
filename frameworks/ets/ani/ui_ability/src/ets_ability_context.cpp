@@ -29,15 +29,15 @@
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_ui_extension_callback.h"
-+#include "hilog_tag_wrapper.h"
-+#include "hitrace_meter.h"
-+#include "ipc_skeleton.h"
-+#include "json_utils.h"
-+#include "tokenid_kit.h"
+#include "hilog_tag_wrapper.h"
+#include "hitrace_meter.h"
+#include "ipc_skeleton.h"
+#include "json_utils.h"
+#include "tokenid_kit.h"
 #include "want.h"
-+#ifdef SUPPORT_GRAPHICS
-+#include "pixel_map_taihe_ani.h"
-+#endif
+#ifdef SUPPORT_GRAPHICS
+#include "pixel_map_taihe_ani.h"
+#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -1781,21 +1781,6 @@ void EtsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     };
     requestCode = GenerateRequestCode();
     context->InsertResultCallbackTask(requestCode, std::move(task));
-}
-
-void EtsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<AppExecFwk::ETSNativeReference> &etsContext,
-    const std::shared_ptr<AppExecFwk::Configuration> &config)
-{
-    if (env == nullptr || etsContext == nullptr || config == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "env or etsContext or config is null");
-        return;
-    }
-    ani_ref configurationRef = AppExecFwk::WrapConfiguration(env, *config);
-    ani_status status = env->Object_SetFieldByName_Ref(etsContext->aniObj, "config", configurationRef);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "config SetField status: %{public}d", status);
-        return;
-    }
 }
 
 ani_object EtsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani_object input)

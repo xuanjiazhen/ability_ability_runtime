@@ -119,8 +119,6 @@ public:
     static EtsAbilityContext *GetEtsAbilityContext(ani_env *env, ani_object aniObj);
     static void ConfigurationUpdated(ani_env *env, std::shared_ptr<AppExecFwk::ETSNativeReference> etsContext,
         std::shared_ptr<AppExecFwk::Configuration> config);
-    static ani_object NativeTransferStatic(ani_env *env, ani_object aniObj, ani_object input);
-    static ani_object NativeTransferDynamic(ani_env *env, ani_object aniObj, ani_object input);
     static bool IsInstanceOf(ani_env *env, ani_object aniObj);
     static void NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled);
     static void NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj, ani_boolean isShow,
@@ -175,15 +173,13 @@ private:
         ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
     void OnOpenAtomicService(
         ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj);
-    void OnRevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback);
     ani_long OnConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_int aniAccountId, ani_object connectOptionsObj);
     void OnStopServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_int aniAccountId, ani_object callbackObj);
-    void OnStopServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
-        ani_object callbackObj);
     void OnStartServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_int aniAccountId, ani_object callbackObj);
+    void OnRevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback);
     void OnStartAbilityForResultWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_int etsAccountId, ani_object startOptionsObj, ani_object callback);
     void OnStartAbilityForResultWithAccountInner(ani_env *env, const AAFwk::StartOptions &startOptions,

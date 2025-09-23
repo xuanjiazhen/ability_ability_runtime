@@ -107,7 +107,6 @@ public:
     static void IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj, ani_string aniAppId, ani_object callbackObj);
     static void NativeOn(ani_env *env, ani_string aniType, ani_object aniObserver);
     static void NativeOff(ani_env *env, ani_string aniType, ani_object aniObserver);
-    static void GetExtensionRunningInfos(ani_env *env, ani_int upperLimit, ani_object callback);
     static void NativeNotifyDebugAssertResult(ani_env *env, ani_string aniSessionId, ani_object userStatusObj,
         ani_object callbackObj);
     static void NativeNotifyDebugAssertResultCheck(ani_env *env, ani_string aniSessionId, ani_object userStatusObj);
@@ -484,33 +483,6 @@ void EtsAbilityManager::NativeOff(ani_env *env, ani_string aniType, ani_object a
     TAG_LOGD(AAFwkTag::ABILITYMGR, "nativeOff end");
 }
 
-void EtsAbilityManager::GetExtensionRunningInfos(ani_env *env, ani_int upperLimit, ani_object callback)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call GetExtensionRunningInfos");
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
-        return;
-    }
-    std::vector<AAFwk::ExtensionRunningInfo> infos;
-    auto errcode = AAFwk::AbilityManagerClient::GetInstance()->GetExtensionRunningInfos(upperLimit, infos);
-    if (errcode != ERR_OK) {
-        AppExecFwk::AsyncCallback(env, callback,
-            EtsErrorUtil::CreateErrorByNativeErr(env, errcode), nullptr);
-        return;
-    }
-
-    ani_object extensionArray = nullptr;
-    AbilityManagerEts::WrapExtensionRunningInfoArray(env, extensionArray, infos);
-    if (extensionArray == nullptr) {
-        AppExecFwk::AsyncCallback(env, callback,
-            EtsErrorUtil::CreateErrorByNativeErr(env,
-                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), nullptr);
-        return;
-    }
-    AppExecFwk::AsyncCallback(env, callback,
-        EtsErrorUtil::CreateErrorByNativeErr(env, errcode), extensionArray);
-}
-
 bool CheckIsNumString(const std::string &numStr)
 {
     const std::regex regexJsperf(R"(^\d*)");
@@ -785,8 +757,6 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::QueryAtomicServiceStartupRuleCheck) },
         ani_native_function { "nativeOn", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOn) },
         ani_native_function { "nativeOff", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOff) },
-        ani_native_function {"nativeGetExtensionRunningInfos", "ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
-            reinterpret_cast<void *>(EtsAbilityManager::GetExtensionRunningInfos)},
         ani_native_function { "nativeNotifyDebugAssertResult",
             nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeNotifyDebugAssertResult) },
         ani_native_function { "nativeNotifyDebugAssertResultCheck",

@@ -171,33 +171,6 @@ private:
         AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), aniMissionInfo);
     }
 
-    ani_object GetEmptyMissionInfo(ani_env *env)
-    {
-        if (env == nullptr) {
-            TAG_LOGE(AAFwkTag::MISSION, "null env");
-            return nullptr;
-        }
-        ani_class cls = nullptr;
-        ani_status status = env->FindClass(ETS_MISSION_INFO_NAME, &cls);
-        if (status != ANI_OK || cls == nullptr) {
-            TAG_LOGE(AAFwkTag::MISSION, "find Context failed status: %{public}d", status);
-            return nullptr;
-        }
-        ani_method method = nullptr;
-        status = env->Class_FindMethod(cls, "<ctor>", ":V", &method);
-        if (status != ANI_OK || method == nullptr) {
-            TAG_LOGE(AAFwkTag::MISSION, "Class_FindMethod ctor failed status: %{public}d", status);
-            return nullptr;
-        }
-        ani_object objValue = nullptr;
-        status = env->Object_New(cls, method, &objValue);
-        if (status != ANI_OK || objValue == nullptr) {
-            TAG_LOGE(AAFwkTag::MISSION, "Object_New failed status: %{public}d", status);
-            return nullptr;
-        }
-        return objValue;
-    }
-
     void OnGetMissionInfos(ani_env *env, ani_string deviceId, ani_int numMax, ani_object callback)
     {
         TAG_LOGD(AAFwkTag::MISSION, "OnGetMissionInfos Call");
