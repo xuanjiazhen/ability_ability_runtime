@@ -337,6 +337,7 @@ constexpr const char* LIFE_CYCLE_PRELOAD = "preload";
 constexpr uint32_t TARGET_TYPE_INIT = 100;
 constexpr int64_t USER_SWITCH_TIMEOUT = 3 * 1000; // 3s
 constexpr const char* SUPPORT_LINKAGE_SCENE = "const.window.supportLinkageScene";
+constexpr const char* CALLER_PROCESS_NAME = "callerProcessName";
 
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<AbilityManagerService>::GetInstance().get());
@@ -1361,6 +1362,11 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
         }
     }
     result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
+    std::string callerProcessName = want.GetStringParam(CALLER_PROCESS_NAME);
+    if (!callerProcessName.empty()) {
+        abilityRequest.abilityInfo.process = callerProcessName;
+        abilityRequest.abilityInfo.isolationProcess = false;
+    }
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     std::string callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
     bool selfFreeInstallEnable = (result == RESOLVE_ABILITY_ERR && want.GetElement().GetModuleName() != "" &&
@@ -2168,6 +2174,11 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
 #endif
     result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
+    std::string callerProcessName = want.GetStringParam(CALLER_PROCESS_NAME);
+    if (!callerProcessName.empty()) {
+        abilityRequest.abilityInfo.process = callerProcessName;
+        abilityRequest.abilityInfo.isolationProcess = false;
+    }
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error:%{public}d", result);
         eventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
@@ -15579,6 +15590,78 @@ int32_t AbilityManagerService::ProcessUdmfKey(
         return AbilityRuntime::UdmfUtils::ProcessUdmfKey(key, targetTokenId);
     }
     return ERR_OK;
+}
+
+ErrCode AbilityManagerService::IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag)
+{
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    auto abilityRecords = uiAbilityManager->GetAbilityRecordsByName(want.GetElement());
+    for (const auto &abilityRecord : abilityRecords) {
+        CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+        if (abilityRecord->GetAbilityInfo().bundleName == want.GetBundle() &&
+            abilityRecord->GetAbilityInfo().name == want.GetElement().GetAbilityName()) {
+            return ERROR_UIABILITY_IS_ALREADY_EXIST;
+        }
+        if (abilityRecord->GetSpecifiedFlag() == specifiedFlag) {
+            return ERROR_UIABILITY_IS_ALREADY_EXIST;
+        }
+    }
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerService::StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
+    const AAFwk::StartOptions &startOptions, bool isHaveOptions)
+{
+    std::string targetBundleName = want.GetBundle();
+    std::string targetAbilityName = want.GetElement().GetAbilityName();
+    if (targetBundleName.empty() || targetAbilityName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "implicit start not allowed");
+        return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
+    }
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    AppExecFwk::RunningProcessInfo processInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByChildProcessPid(callingPid, processInfo);
+    CHECK_TRUE_RETURN_RET(processInfo.bundleNames.empty(), INNER_ERR, "failed to get by child process pid");
+    auto iter = std::find(processInfo.bundleNames.begin(), processInfo.bundleNames.end(), targetBundleName);
+    CHECK_TRUE_RETURN_RET(iter == processInfo.bundleNames.end(), ERROR_UIABILITY_NOT_BELONG_TO_CALLER,
+        "The UIAbility not belog to caller");
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
+    AppExecFwk::AbilityInfo abilityInfo;
+    auto callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    CHECK_TRUE_RETURN_RET(!IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(want,
+        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, callerUserId, abilityInfo)),
+        TARGET_BUNDLE_NOT_EXIST, "The specified ability not exist");
+
+    CHECK_TRUE_RETURN_RET(abilityInfo.type != AppExecFwk::AbilityType::PAGE,
+        RESOLVE_CALL_ABILITY_TYPE_ERR, "not UIAbility");
+    auto useWant = want;
+    useWant.RemoveParam(Want::PARAM_APP_CLONE_INDEX_KEY);
+    if (processInfo.appMode == AppExecFwk::MultiAppModeType::APP_CLONE ||
+        processInfo.appMode == AppExecFwk::MultiAppModeType::MULTI_INSTANCE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not support multi app mode");
+        return ERROR_UIABILITY_NOT_BELONG_TO_CALLER;
+    }
+    auto ret = IsUIAbilityAlreadyExist(want, specifiedFlag);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility already exist");
+        return ret;
+    }
+    
+    auto tokenId = abilityInfo.applicationInfo.accessTokenId;
+    StartSelfUIAbilityRecordGuard startSelfUIAbilityRecordGuard(callingPid, tokenId);
+    CHECK_TRUE_RETURN_RET(!PermissionVerification::GetInstance()->VerifyStartSelfUIAbility(tokenId),
+        CHECK_PERMISSION_FAILED, "permission denied");
+
+    CHECK_TRUE_RETURN_RET(processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND,
+        NOT_TOP_ABILITY, "caller not foreground");
+
+    useWant.SetParam(CALLER_PROCESS_NAME, processInfo.processName_);
+    if (isHaveOptions) {
+        return StartAbility(useWant, startOptions, nullptr);
+    }
+    return StartAbility(useWant);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
