@@ -807,6 +807,38 @@ ohos_prebuilt_etc("ability_runtime_vertical_panel_manager_abc_etc") {
   deps = [ ":ability_runtime_vertical_panel_manager_abc" ]
 }
 
+generate_static_abc("ability_runtime_kiosk_manager_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.kioskManager.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_kiosk_manager_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_kiosk_manager_abc") {
+  source = "$target_out_dir/ability_runtime_kiosk_manager_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_kiosk_manager_abc" ]
+}
+
+generate_static_abc("ability_runtime_kiosk_status_abc") {
+  base_url = "./"
+  files = [ "./application/KioskStatus.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_kiosk_status_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_kiosk_status_abc") {
+  source = "$target_out_dir/application/ability_runtime_kiosk_status_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_kiosk_status_abc" ]
+}
+
 group("ets_packages") {
   deps = [
     ":ability_application_abc_etc",
