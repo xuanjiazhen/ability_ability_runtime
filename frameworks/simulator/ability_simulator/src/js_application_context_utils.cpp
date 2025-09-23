@@ -60,7 +60,7 @@ napi_value JsApplicationContextUtils::OnSwitchArea(napi_env env, NapiCallbackInf
     BindNativeProperty(env, object, "preferencesDir", GetPreferencesDir);
     BindNativeProperty(env, object, "bundleCodeDir", GetBundleCodeDir);
     BindNativeProperty(env, object, "cloudFileDir", GetCloudFileDir);
-    BindNativeProperty(env, object, "logFileDir", GetLogFileDir");
+    BindNativeProperty(env, object, "logFileDir", GetLogFileDir);
     return CreateJsUndefined(env);
 }
 

@@ -141,7 +141,7 @@ std::shared_ptr<TestContextImpl> CapiAbilityRuntimeApplicationContextSecondTest:
  * @tc.desc: Function test with applicationContext is nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_001, TestSize.Level2)
+HWTEST_F(CapiAbilityRuntimeApplicationContextSecondTest, GetLogFileDirTest_001, TestSize.Level2)
 {
     char buffer[BUFFER_SIZE] = { 0 };
     int32_t writeLength = 0;
@@ -179,7 +179,7 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_001, TestSi
  * @tc.desc: Function test with applicationContextImpl is nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_002, TestSize.Level2)
+HWTEST_F(CapiAbilityRuntimeApplicationContextSecondTest, GetLogFileDirTest_002, TestSize.Level2)
 {
     InitApplicationContext();
     char buffer[BUFFER_SIZE] = { 0 };
@@ -218,7 +218,7 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_002, TestSi
  * @tc.desc: Function test
  * @tc.type: FUNC
  */
-HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_003, TestSize.Level2)
+HWTEST_F(CapiAbilityRuntimeApplicationContextSecondTest, GetLogFileDirTest_003, TestSize.Level2)
 {
     char buffer[BUFFER_SIZE] = { 0 };
     int32_t writeLength = 0;
@@ -266,7 +266,7 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_003, TestSi
  * @tc.desc: Function test
  * @tc.type: FUNC
  */
-HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetLogFileDirTest_004, TestSize.Level2)
+HWTEST_F(CapiAbilityRuntimeApplicationContextSecondTest, GetLogFileDirTest_004, TestSize.Level2)
 {
     char buffer[BUFFER_SIZE] = { 0 };
     int32_t writeLength = 0;
