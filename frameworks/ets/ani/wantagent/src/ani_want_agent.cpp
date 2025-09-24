@@ -706,7 +706,7 @@ ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
     }
 }
 
-ani_boolean EtsWantAgent::OnIsLocalWantAgent(ani_env *env, ani_object info, ani_object call)
+ani_boolean EtsWantAgent::OnIsLocalWantAgent(ani_env *env, ani_object info)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null env");
