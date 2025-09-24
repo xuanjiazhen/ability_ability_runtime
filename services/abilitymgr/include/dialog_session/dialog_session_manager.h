@@ -64,16 +64,58 @@ public:
     static DialogSessionManager &GetInstance();
     ~DialogSessionManager() = default;
 
+    /**
+     * @brief Get dialog session information by session ID
+     * @param dialogSessionId The unique identifier for the dialog session whose caller information is to be retrieved.
+     * @return sptr<DialogSessionInfo> Smart pointer to the dialog session information, 
+     *         returns nullptr if the session ID is invalid or session not found
+     */
     sptr<DialogSessionInfo> GetDialogSessionInfo(const std::string &dialogSessionId) const;
 
+    /**
+     * @brief Retrieves the caller information associated with a specific dialog session.
+     * @param dialogSessionId The unique identifier for the dialog session whose caller information is to be retrieved.
+     * @return std::shared_ptr<DialogCallerInfo> A shared pointer to the DialogCallerInfo object if found,
+     *         otherwise nullptr.
+     */
     std::shared_ptr<DialogCallerInfo> GetDialogCallerInfo(const std::string &dialogSessionId) const;
 
+    /**
+     * @brief Retrieves the startup session information based on the provided dialog session ID.
+     * @param dialogSessionId The unique identifier for the dialog session whose information 
+     *                        is to be retrieved.
+     * @return std::shared_ptr<StartupSessionInfo> A shared pointer to the StartupSessionInfo 
+     *         object if found; otherwise, returns nullptr.
+     */
     std::shared_ptr<StartupSessionInfo> GetStartupSessionInfo(const std::string &dialogSessionId) const;
 
+    /**
+     * @brief Processes and sends the dialog result based on user authorization and session context.
+     * @param want The ability invocation parameters containing target information.
+     * @param dialogSessionId Unique identifier for the current dialog session.
+     * @param isAllowed Boolean flag indicating whether user granted permission.
+     * @return int ERR_OK on success, or specific error codes for failure cases.
+     */
     int SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed);
 
+    /**
+     * @brief Creates and initializes a modal dialog for cross-ability jump operations.
+     * @param abilityRequest The AbilityRequest object containing target ability information.
+     * @param userId The user ID under which the ability operation is performed.
+     * @param replaceWant The Want object specifying parameters for the new ability.
+     * @return int ERR_OK on success, or ERR_INVALID_VALUE if session generation fails.
+     */
     int CreateJumpModalDialog(AbilityRequest &abilityRequest, int32_t userId, const Want &replaceWant);
 
+    /**
+     * @brief Creates a modal dialog for implicit ability selection with selector functionality.
+     * @param abilityRequest The AbilityRequest object containing target ability information.
+     * @param want The original Want object specifying the ability invocation parameters.
+     * @param userId The user ID under which the ability operation is performed.
+     * @param dialogAppInfos Output parameter containing collected application information.
+     * @param needGrantUriPermission Flag indicating whether URI permission granting is required.
+     * @return int ERR_OK on success, or ERR_INVALID_VALUE if session generation fails.
+     */
     int CreateImplicitSelectorModalDialog(AbilityRequest &abilityRequest, const Want &want, int32_t userId,
         std::vector<DialogAppInfo> &dialogAppInfos, bool needGrantUriPermission = false);
 
