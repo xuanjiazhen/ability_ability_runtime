@@ -387,7 +387,7 @@ void EtsWantAgent::OnGetOperationType(ani_env *env, ani_object agent, ani_object
     AsyncCallback(env, call, error, CreateInt(env, operType));
 }
 
-int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgentParams &params) 
+int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgentParams &params)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "GetWantAgentParam called");
     int32_t ret = ParseWantsArray(env, info, params.wants);
@@ -399,6 +399,10 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         return ret;
     }
     ret = ExtractRequestCode(env, info, params.requestCode);
+    if (ret != BUSINESS_ERROR_CODE_OK) {
+        return ret;
+    }
+    ret = ExtractExtraInfo(env, info, params.extraInfo);
     if (ret != BUSINESS_ERROR_CODE_OK) {
         return ret;
     }
@@ -456,7 +460,8 @@ int32_t EtsWantAgent::ExtractOperationType(ani_env *env, ani_object info, int32_
     }
     return BUSINESS_ERROR_CODE_OK;
 }
-int32_t EtsWantAgent::ExtractRequestCode(ani_env *env, ani_object info, int32_t &requestCode)
+int32_t EtsWantAgent::ExtractRequestCode(ani_env *env, ani_object info, int32_t &requestCode,
+    std::vector<WantAgentConstant::Flags> &wantAgentFlags)
 {
     ani_double dRequestCode = 0.0;
     ani_status status = env->Object_GetPropertyByName_Double(info, "requestCode", &dRequestCode);
@@ -488,9 +493,15 @@ int32_t EtsWantAgent::ExtractRequestCode(ani_env *env, ani_object info, int32_t 
             int32_t actionFlag = 0;
             AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
                 env, reinterpret_cast<ani_object>(actionFlagRef), actionFlag);
-            params.wantAgentFlags.emplace_back(static_cast<WantAgentConstant::Flags>(actionFlag));
+            wantAgentFlags.emplace_back(static_cast<WantAgentConstant::Flags>(actionFlag));
         }
     }
+    return BUSINESS_ERROR_CODE_OK;
+}
+
+int32_t EtsWantAgent::ExtractExtraInfo(ani_env *env, ani_object info, AAFwk::WantParams &extraInfo)
+{
+    ani_boolean isUndefined = true;
     ani_ref extraInfoRef = nullptr;
     if (!GetPropertyRef(env, info, "extraInfos", extraInfoRef, isUndefined)) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfos GetPropertyRef failed");
@@ -503,7 +514,7 @@ int32_t EtsWantAgent::ExtractRequestCode(ani_env *env, ani_object info, int32_t 
         }
     }
     if (!isUndefined) {
-        if (!UnwrapWantParams(env, extraInfoRef, params.extraInfo)) {
+        if (!UnwrapWantParams(env, extraInfoRef, extraInfo)) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "Convert extraInfo failed");
             return PARAMETER_ERROR;
         }
