@@ -20,20 +20,30 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include "ani.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 class JsStartAbilitiesObserver {
 public:
     static JsStartAbilitiesObserver &GetInstance();
-    ~JsStartAbilitiesObserver() = default;
+    virtual ~JsStartAbilitiesObserver();
     void AddObserver(const std::string &requestKey, std::function<void(int32_t)> &&callback);
+    void AddEtsObserver(const std::string &requestKey, ani_object callbackObj);
     void HandleFinished(const std::string &requestKey, int32_t resultCode);
+    void SetEtsVm(ani_vm *etsVm)
+    {
+        etsVm_ = etsVm;
+    }
 protected:
     JsStartAbilitiesObserver() = default;
 private:
+    void CallCallback(ani_object callback, int32_t resultCode);
+
     std::mutex jsObserverObjectListLock_;
     std::map<std::string, std::function<void(int32_t)>> jsObserverObjectList_;
+    ani_vm *etsVm_ = nullptr;
+    std::map<std::string, ani_ref>> etsObserverObjectList_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
