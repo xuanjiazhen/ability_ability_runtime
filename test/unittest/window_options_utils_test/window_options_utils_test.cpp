@@ -14,6 +14,11 @@
  */
 
 #include <gtest/gtest.h>
+
+#define private public
+#include "ability_record.h"
+#undef private
+
 #include "utils/window_options_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "mock_app_utils.h"
