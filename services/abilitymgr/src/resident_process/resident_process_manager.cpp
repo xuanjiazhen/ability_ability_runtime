@@ -216,6 +216,7 @@ void ResidentProcessManager::UpdateResidentProcessesStatus(
     auto iter = userIds.begin();
     while (iter != userIds.end()) {
         users.emplace(*iter);
+        iter++;
     }
     AppExecFwk::BundleInfo bundleInfo;
 
