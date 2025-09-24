@@ -124,14 +124,6 @@ void BindContextDir(ani_env *aniEnv, ani_object contextObj, std::shared_ptr<Cont
         return;
     }
 
-    auto logFileDir = context->GetLogFileDir();
-    ani_string logFileDirString = nullptr;
-    aniEnv->String_NewUTF8(logFileDir.c_str(), logFileDir.size(), &logFileDirString);
-    if ((status = aniEnv->Object_SetFieldByName_Ref(contextObj, "logFileDir", logFileDirString)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "logFileDir SetField status: %{public}d", status);
-        return;
-    }
-
     BindContextDirInner(aniEnv, contextObj, context);
 }
 } // namespace
@@ -278,6 +270,8 @@ void BindNativeFunction(ani_env *aniEnv)
                 reinterpret_cast<void *>(ContextUtil::SwitchArea)},
             ani_native_function {"getArea", nullptr,
                 reinterpret_cast<void *>(ContextUtil::GetArea)},
+            ani_native_function {"getLogFileDir", nullptr,
+                reinterpret_cast<void *>(ContextUtil::GetLogFileDir)},
             ani_native_function {"createModuleResourceManagerSync", "Lstd/core/String;Lstd/core/String;"
                 ":L@ohos/resourceManager/resourceManager/ResourceManager;",
                 reinterpret_cast<void *>(ContextUtil::CreateModuleResourceManagerSync)},
@@ -700,6 +694,17 @@ ani_enum_item GetArea(ani_env *env, ani_object obj)
     int32_t areaMode = static_cast<int32_t>(context->GetArea());
     OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env, AREA_MODE_ENUM_NAME, areaMode, areaModeItem);
     return areaModeItem;
+}
+
+std::string GetLogFileDir(ani_env *env, ani_object obj)
+{
+    auto context = GetBaseContext(env, obj);
+    if (env == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env or context is null");
+        return "";
+    }
+    auto logFileDir = context->GetLogFileDir();
+    return logFileDir;
 }
 }
 } // namespace AbilityRuntime
