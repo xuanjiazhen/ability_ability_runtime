@@ -204,13 +204,13 @@ void EtsWantAgent::GetWantAgent(ani_env *env, ani_object info, ani_object call)
 ani_object EtsWantAgent::CreateLocalWantAgent(ani_env *env, ani_object info, ani_object call)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "CreateLocalWantAgent called");
-    GetInstance().OnCreateLocalWantAgent(env, info, call);
+    return GetInstance().OnCreateLocalWantAgent(env, info, call);
 }
 
 ani_boolean EtsWantAgent::IsLocalWantAgent(ani_env *env, ani_object info, ani_object call)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "IsLocalWantAgent called");
-    GetInstance().OnIsLocalWantAgent(env, info, call);
+    return GetInstance().OnIsLocalWantAgent(env, info, call);
 }
 
 void EtsWantAgent::Clean(ani_env *env, ani_object object)
@@ -680,8 +680,8 @@ ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
     std::shared_ptr<WantAgentParams> parasobj = std::make_shared<WantAgentParams>();
     int32_t ret = GetWantAgentParam(env, info, *parasobj);
     if (ret != 0) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to get wantAgent parameter. Agent must be a WantAgent.");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to get wantAgent parameter. Agent must be a WantAgent.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to get wantAgent param");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error! Info must be a WantAgentInfo.");
         return nullptr;
     }
     LocalWantAgentInfo localWantAgentInfo(parasobj->requestCode,
@@ -694,7 +694,7 @@ ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
     WantAgent *pWantAgent = new (std::nothrow) WantAgent(wantAgent->GetLocalPendingWant());
     if (pWantAgent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null pWantAgent");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error! Info must be a WantAgentInfo.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error! New wantAgent failed.");
         return nullptr;
     } else {
         ani_object retObj = WrapWantAgent(env, pWantAgent);
