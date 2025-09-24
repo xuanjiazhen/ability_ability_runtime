@@ -886,8 +886,7 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
     // set app record terminating when close last page ability
     auto isLastAbility =
         clearMissionFlag ? appRecord->IsLastPageAbilityRecord(token) : appRecord->IsLastAbilityRecord(token);
-    if (isLastAbility && (!appRecord->IsKeepAliveApp() ||
-        !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
+    if (isLastAbility && (!appRecord->IsKeepAliveApp())) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr && cacheProcMgr->IsAppShouldCache(appRecord)) {
             cacheProcMgr->PenddingCacheProcess(appRecord);
