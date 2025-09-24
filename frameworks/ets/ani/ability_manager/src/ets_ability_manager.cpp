@@ -497,8 +497,13 @@ void EtsAbilityManager::NativeNotifyDebugAssertResultCheck(ani_env *env, ani_str
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param sessionId failed, must be a string.");
         return;
     }
-
-    uint64_t assertSessionId = std::stoull(sessionId);
+    try {
+        uint64_t assertSessionId = std::stoull(sessionId);
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Parse param sessionId failed.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param sessionId failed.");
+        return;
+    }
     if (assertSessionId == 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "convert sessionId failed");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param sessionId failed, value must not be equal to zero.");
@@ -526,7 +531,13 @@ void EtsAbilityManager::NativeNotifyDebugAssertResult(ani_env *env, ani_string a
         return;
     }
 
-    uint64_t assertSessionId = std::stoull(sessionId);
+    try {
+        uint64_t assertSessionId = std::stoull(sessionId);
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Parse param sessionId failed.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param sessionId failed.");
+        return;
+    }
     if (assertSessionId == 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "convert sessionId failed");
         return;
