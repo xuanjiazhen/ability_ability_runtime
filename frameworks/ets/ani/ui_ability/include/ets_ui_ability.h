@@ -276,6 +276,7 @@ private:
     void UpdateAbilityObj(std::shared_ptr<AbilityInfo> abilityInfo,
         const std::string &moduleName, const std::string &srcPath);
     void CreateEtsContext(int32_t screenMode);
+    void RemoveShareRouterByBundleType(const Want &want);
     bool BindNativeMethods();
 
     ETSRuntime &etsRuntime_;

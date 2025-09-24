@@ -82,6 +82,7 @@ private:
         ani_object callback);
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
         ani_object callbackObj, std::shared_ptr<ServiceExtensionContext> context);
+    void OnStartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj, ani_object callback);
 
     std::weak_ptr<ServiceExtensionContext> context_;
     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;
