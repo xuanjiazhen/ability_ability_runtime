@@ -387,33 +387,11 @@ void EtsWantAgent::OnGetOperationType(ani_env *env, ani_object agent, ani_object
     AsyncCallback(env, call, error, CreateInt(env, operType));
 }
 
-int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgentParams &params)
-{
+int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgentParams &params) {
     TAG_LOGD(AAFwkTag::WANTAGENT, "GetWantAgentParam called");
-    ani_ref wantsRef = nullptr;
-    ani_status status = env->Object_GetPropertyByName_Ref(info, "wants", &wantsRef);
-    if (status != ANI_OK || wantsRef == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "wants GetProperty status: %{public}d, or null wantsRef", status);
-        return PARAMETER_ERROR;
-    }
-    ani_array wantsArr = reinterpret_cast<ani_array>(wantsRef);
-    ani_size length = 0;
-    if ((status = env->Array_GetLength(wantsArr, &length)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "wants Array_GetLength failed status: %{public}d", status);
-        return PARAMETER_ERROR;
-    }
-    for (size_t i = 0; i < length; i++) {
-        ani_ref wantRef = nullptr;
-        if ((status = env->Array_Get(wantsArr, i, &wantRef)) != ANI_OK || wantRef == nullptr) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "Array_Get failed status: %{public}d, or null wantRef", status);
-            return PARAMETER_ERROR;
-        }
-        std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
-        if (!UnwrapWant(env, reinterpret_cast<ani_object>(wantRef), *want)) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "UnwrapWant  failed");
-            return PARAMETER_ERROR;
-        }
-        params.wants.emplace_back(want);
+    int32_t ret = ParseWantsArray(env, info, params.wants);
+    if (ret != BUSINESS_ERROR_CODE_OK) {
+        return ret;
     }
 
     ani_boolean isUndefined = true;
@@ -485,6 +463,37 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     }
     return BUSINESS_ERROR_CODE_OK;
 }
+
+int32_t EtsWantAgent::ParseWantsArray(ani_env *env, ani_object info, 
+                                     std::vector<std::shared_ptr<AAFwk::Want>> &wants) {
+    ani_ref wantsRef = nullptr;
+    ani_status status = env->Object_GetPropertyByName_Ref(info, "wants", &wantsRef);
+    if (status != ANI_OK || wantsRef == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "wants GetProperty status: %{public}d, or null wantsRef", status);
+        return PARAMETER_ERROR;
+    }
+    ani_array wantsArr = reinterpret_cast<ani_array>(wantsRef);
+    ani_size length = 0;
+    if ((status = env->Array_GetLength(wantsArr, &length)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "wants Array_GetLength failed status: %{public}d", status);
+        return PARAMETER_ERROR;
+    }
+    for (size_t i = 0; i < length; i++) {
+        ani_ref wantRef = nullptr;
+        if ((status = env->Array_Get(wantsArr, i, &wantRef)) != ANI_OK || wantRef == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "Array_Get failed status: %{public}d, or null wantRef", status);
+            return PARAMETER_ERROR;
+        }
+        std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
+        if (!UnwrapWant(env, reinterpret_cast<ani_object>(wantRef), *want)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "UnwrapWant failed");
+            return PARAMETER_ERROR;
+        }
+        wants.emplace_back(want);
+    }
+    return BUSINESS_ERROR_CODE_OK;
+}
+
 
 void EtsWantAgent::OnTrigger(ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object call)
 {
@@ -674,7 +683,7 @@ ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
 
     if (!CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
-        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
+        EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
         return nullptr;
     }
     std::shared_ptr<WantAgentParams> parasobj = std::make_shared<WantAgentParams>();
