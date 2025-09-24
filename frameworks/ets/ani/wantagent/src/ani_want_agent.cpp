@@ -398,7 +398,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     if (ret != BUSINESS_ERROR_CODE_OK) {
         return ret;
     }
-    ret = ExtractRequestCode(env, info, params.requestCode);
+    ret = ExtractRequestCode(env, info, params.requestCode, params.wantAgentFlags);
     if (ret != BUSINESS_ERROR_CODE_OK) {
         return ret;
     }
@@ -726,7 +726,10 @@ ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
     const auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
     std::shared_ptr<WantAgent> wantAgent = nullptr;
     ErrCode result = WantAgentHelper::CreateLocalWantAgent(context, localWantAgentInfo, wantAgent);
-
+    if (result != ERR_OK || wantAgent == nullptr) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error! CreateLocalWantAgent failed.");
+        return nullptr;
+    }
     WantAgent *pWantAgent = new (std::nothrow) WantAgent(wantAgent->GetLocalPendingWant());
     if (pWantAgent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null pWantAgent");
