@@ -1,0 +1,7 @@
+[Docs Uri Permission]
+services/uripermmgr/include/file_permission_manager.h @hobbycao @afwk_helper required_reviewers=2
+services/uripermmgr/src/file_permission_manager.cpp @hobbycao @afwk_helper required_reviewers=2
+
+[AAFWK ABILITY]
+services/uripermmgr/ @afwk_helper
+interfaces/inner_api/uri_permission/ @dsz2025
