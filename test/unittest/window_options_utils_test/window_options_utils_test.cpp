@@ -14,6 +14,11 @@
  */
 
 #include <gtest/gtest.h>
+
+#define private public
+#include "ability_record.h"
+#undef private
+
 #include "utils/window_options_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "mock_app_utils.h"
@@ -335,6 +340,59 @@ HWTEST_F(WindowOptionsUtilsTest, SetWindowPositionAndSize_010, TestSize.Level1)
     Window_->SetWindowPositionAndSize(want, callerToken, startOptions);
     EXPECT_EQ(startOptions.GetMaxWindowHeight(), length);
     TAG_LOGI(AAFwkTag::TEST, "WindowOptionsUtilsTest SetWindowPositionAndSize_010 end");
+}
+
+/*
+ * Feature: WindowOptionsUtils
+ * Function: SetWindowPositionAndSize
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService SetWindowPositionAndSize
+ */
+HWTEST_F(WindowOptionsUtilsTest, SetWindowPositionAndSize_011, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "WindowOptionsUtilsTest SetWindowPositionAndSize_011 start");
+    Want want;
+    sptr<IRemoteObject> callerToken;
+    StartOptions startOptions;
+    const int32_t length = 666;
+    startOptions.SetMaxWindowHeight(length);
+    startOptions.maxWindowHeightUsed_ = true;
+    AppUtils::isStartOptionsWithAnimation_ = false;
+    auto Window_ = std::make_shared<WindowOptionsUtils>();
+    ASSERT_NE(nullptr, Window_);
+    Window_->SetWindowPositionAndSize(want, callerToken, startOptions);
+    EXPECT_NE(startOptions.GetMaxWindowHeight(), length);
+    TAG_LOGI(AAFwkTag::TEST, "WindowOptionsUtilsTest SetWindowPositionAndSize_011 end");
+}
+
+/*
+ * Feature: WindowOptionsUtils
+ * Function: SetWindowPositionAndSize
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService SetWindowPositionAndSize
+ */
+HWTEST_F(WindowOptionsUtilsTest, SetWindowPositionAndSize_012, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "WindowOptionsUtilsTest SetWindowPositionAndSize_012 start");
+    const std::string bundleName = "com.example.unittest";
+    bool withAnimation = false;
+
+    OHOS::AppExecFwk::AbilityInfo abilityInfo;
+    OHOS::AppExecFwk::ApplicationInfo applicationInfo;
+    Want want;
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    ASSERT_NE(nullptr, abilityRecord);
+    abilityRecord->abilityInfo_.bundleName = bundleName;
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    ASSERT_NE(nullptr, callerToken);
+    StartOptions startOptions;
+    startOptions.SetWithAnimation(withAnimation);
+    want.SetBundle(bundleName);
+    auto Window_ = std::make_shared<WindowOptionsUtils>();
+    ASSERT_NE(nullptr, Window_);
+    Window_->SetWindowPositionAndSize(want, callerToken, startOptions);
+    EXPECT_EQ(startOptions.GetWithAnimation(), withAnimation);
+    TAG_LOGI(AAFwkTag::TEST, "WindowOptionsUtilsTest SetWindowPositionAndSize_012 end");
 }
 } // namespace AAFwk
 } // namespace OHOS
