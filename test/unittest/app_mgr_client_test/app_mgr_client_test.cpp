@@ -139,14 +139,14 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_GetAllRunningProcesses_001, TestSize.Lev
     EXPECT_NE(appMgrClient, nullptr);
 
     std::vector<RunningProcessInfo> info;
-    constexpr int MAX_RETRY = 3;
+    constexpr int MAX_RETRY_ = 3;
     appMgrClient->GetAllRunningProcesses(info);
-    for (int attempt = 0; attempt < MAX_RETRY; attempt++) {
+    for (int attempt = 0; attempt < MAX_RETRY_; attempt++) {
         info.clear();
         appMgrClient->GetAllRunningProcesses(info);
 
         if (!info.empty()) {
-            break; 
+            break;
         }
     }
     EXPECT_NE(info.size(), APP_NUMBER_ZERO);
