@@ -185,28 +185,28 @@ class RecordWriter {
 
   private writeValueType(obj: Object): boolean {
     if (obj instanceof Boolean) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Byte) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Char) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Short) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Int) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Long) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Float) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Double) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof BigInt) {
       this.buffer.append(JSON.stringify(obj));
@@ -218,37 +218,37 @@ class RecordWriter {
 
   private writeValueTypeToNative(wantParams: NativeWantParams | null, key: string, obj: Object): boolean {
     if (obj instanceof Boolean) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Byte) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Char) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Short) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Int) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Long) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Float) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Double) {
       // consistent with napi behavior
       if (key === VALUE_PROPERTY) {
-        let value: double = obj.unboxed();
+        let value: double = obj;
         if (Number.isInteger(value) && value > int32Min && value < int32Max) {
           wantParams?.setParam(key, value as int);
         } else {
           wantParams?.setParam(key, value as double);
         }
       } else {
-        wantParams?.setParam(key, obj.unboxed());
+        wantParams?.setParam(key, obj);
       }
       return true;
     } else if (obj instanceof BigInt) {
@@ -286,14 +286,14 @@ class RecordWriter {
           complexArray.doubleList.push(Number(num));
         });
         complexArray.intList = [];
-        complexArray.doubleList.push((element as number).unboxed());
+        complexArray.doubleList.push((element as number));
       } else {
-        complexArray.intList.push((element as int).unboxed());
+        complexArray.intList.push((element as int));
       }
     } else if (element instanceof Long) {
       hilog.debug(DOMAIN_ID, TAG, `array value type Long`);
       // consistent with napi behavior
-      const doubleValue = Number(element.unboxed());
+      const doubleValue = Number(element);
       if (complexArray.intList.length > 0) {
         complexArray.intList.forEach(num => {
           complexArray.doubleList.push(Number(num));
@@ -309,7 +309,7 @@ class RecordWriter {
         });
         complexArray.intList = [];
       }
-      complexArray.doubleList.push((element as number).unboxed());
+      complexArray.doubleList.push((element as number));
     } else {
       const objType = Type.of(element);
       // enum value are number
@@ -365,7 +365,7 @@ class RecordWriter {
           }
           break;
         case 'boolean':
-          complexArray.boolList.push((element as Boolean).unboxed());
+          complexArray.boolList.push((element as Boolean));
           break;
         case 'number':
           try {
