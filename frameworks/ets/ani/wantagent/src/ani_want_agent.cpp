@@ -201,16 +201,16 @@ void EtsWantAgent::GetWantAgent(ani_env *env, ani_object info, ani_object call)
     GetInstance().OnGetWantAgent(env, info, call);
 }
 
-ani_object EtsWantAgent::CreateLocalWantAgent(ani_env *env, ani_object info, ani_object call)
+ani_object EtsWantAgent::CreateLocalWantAgent(ani_env *env, ani_object info)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "CreateLocalWantAgent called");
-    return GetInstance().OnCreateLocalWantAgent(env, info, call);
+    return GetInstance().OnCreateLocalWantAgent(env, info);
 }
 
-ani_boolean EtsWantAgent::IsLocalWantAgent(ani_env *env, ani_object info, ani_object call)
+ani_boolean EtsWantAgent::IsLocalWantAgent(ani_env *env, ani_object info)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "IsLocalWantAgent called");
-    return GetInstance().OnIsLocalWantAgent(env, info, call);
+    return GetInstance().OnIsLocalWantAgent(env, info);
 }
 
 void EtsWantAgent::Clean(ani_env *env, ani_object object)
