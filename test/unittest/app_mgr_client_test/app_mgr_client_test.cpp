@@ -42,6 +42,7 @@ const int32_t ERROR_STATE = -1;
 const std::string EMPTY_STRING = "";
 const int32_t INIT_VALUE = 0;
 const int32_t ERROR_RET = 3;
+const int32_t MAX_RETRY = 3;
 }  // namespace
 
 class AppMgrClientTest : public testing::Test {
@@ -139,9 +140,8 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_GetAllRunningProcesses_001, TestSize.Lev
     EXPECT_NE(appMgrClient, nullptr);
 
     std::vector<RunningProcessInfo> info;
-    constexpr int MAX_RETRY_ = 3;
     appMgrClient->GetAllRunningProcesses(info);
-    for (int attempt = 0; attempt < MAX_RETRY_; attempt++) {
+    for (int attempt = 0; attempt < MAX_RETRY; attempt++) {
         info.clear();
         appMgrClient->GetAllRunningProcesses(info);
 
