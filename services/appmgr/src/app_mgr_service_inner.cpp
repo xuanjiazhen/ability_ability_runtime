@@ -4558,7 +4558,8 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
         OnAppStarted(appRecord);
     }
     PerfProfile::GetInstance().SetAppForkEndTime(GetTickCount());
-    SendProcessStartEvent(appRecord, isPreload, preloadMode);
+    SendProcessStartEvent(appRecord, isPreload || appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH,
+        appRecord->GetPreloadMode());
     ProcessAppDebug(appRecord, appRecord->IsDebugApp());
     return ERR_OK;
 }
