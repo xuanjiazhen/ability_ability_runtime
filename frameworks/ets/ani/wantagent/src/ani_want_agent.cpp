@@ -704,7 +704,6 @@ ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
         }
         return retObj;
     }
-
 }
 
 ani_boolean EtsWantAgent::OnIsLocalWantAgent(ani_env *env, ani_object info, ani_object call)
