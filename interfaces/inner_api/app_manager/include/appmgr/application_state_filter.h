@@ -105,7 +105,16 @@ enum class FilterCallback : uint32_t {
 
 class AppStateFilter : public Parcelable {
 public:
-    FilterCallback callbacks = FilterCallback::ALL;
+    FilterCallback callbacks = static_cast<FilterCallback>(
+            static_cast<uint32_t>(FilterCallback::ON_FOREGROUND_APPLICATION_CHANGED) |
+            static_cast<uint32_t>(FilterCallback::ON_ABILITY_STATE_CHANGED) |
+            static_cast<uint32_t>(FilterCallback::ON_PROCESS_CREATED) |
+            static_cast<uint32_t>(FilterCallback::ON_PROCESS_DIED) |
+            static_cast<uint32_t>(FilterCallback::ON_PROCESS_STATE_CHANGED) |
+            static_cast<uint32_t>(FilterCallback::ON_APP_STARTED) |
+            static_cast<uint32_t>(FilterCallback::ON_APP_STOPPED) |
+            static_cast<uint32_t>(FilterCallback::ON_EXTENSION_STATE_CHANGED)
+        );
     FilterBundleType bundleTypes = FilterBundleType::ALL;
     FilterAppStateType appStateTypes = FilterAppStateType::ALL;
     FilterProcessStateType processStateTypes = FilterProcessStateType::ALL;
