@@ -398,53 +398,9 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     if (ret != BUSINESS_ERROR_CODE_OK) {
         return ret;
     }
-    ani_double dRequestCode = 0.0;
-    if ((status = env->Object_GetPropertyByName_Double(info, "requestCode", &dRequestCode)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "requestCode GetProperty failed status: %{public}d", status);
-        return PARAMETER_ERROR;
-    }
-    params.requestCode = dRequestCode;
-    ani_ref actionFlagsRef = nullptr;
-    if (!GetPropertyRef(env, info, "actionFlags", actionFlagsRef, isUndefined)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "actionFlags GetPropertyRef failed");
-        return PARAMETER_ERROR;
-    }
-    if (!isUndefined) {
-        ani_array actionFlagsArr = reinterpret_cast<ani_array>(actionFlagsRef);
-        ani_size actionFlagsLen = 0;
-        if ((status = env->Array_GetLength(actionFlagsArr, &actionFlagsLen)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "Array_GetLength failed status: %{public}d", status);
-            return PARAMETER_ERROR;
-        }
-        for (size_t i = 0; i < actionFlagsLen; i++) {
-            ani_ref actionFlagRef = nullptr;
-            if ((status = env->Array_Get(actionFlagsArr, i, &actionFlagRef)) != ANI_OK ||
-                actionFlagRef == nullptr) {
-                TAG_LOGE(AAFwkTag::WANTAGENT, "Array_Get failed status: %{public}d, or null actionFlagRef", status);
-                return PARAMETER_ERROR;
-            }
-            int32_t actionFlag = 0;
-            AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
-                env, reinterpret_cast<ani_object>(actionFlagRef), actionFlag);
-            params.wantAgentFlags.emplace_back(static_cast<WantAgentConstant::Flags>(actionFlag));
-        }
-    }
-    ani_ref extraInfoRef = nullptr;
-    if (!GetPropertyRef(env, info, "extraInfos", extraInfoRef, isUndefined)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfos GetPropertyRef failed");
-        return PARAMETER_ERROR;
-    }
-    if (isUndefined) {
-        if (!GetPropertyRef(env, info, "extraInfo", extraInfoRef, isUndefined)) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfo GetPropertyRef failed");
-            return PARAMETER_ERROR;
-        }
-    }
-    if (!isUndefined) {
-        if (!UnwrapWantParams(env, extraInfoRef, params.extraInfo)) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "Convert extraInfo failed");
-            return PARAMETER_ERROR;
-        }
+    ret = ExtractRequestCode(env, info, params.requestCode);
+    if (ret != BUSINESS_ERROR_CODE_OK) {
+        return ret;
     }
     return BUSINESS_ERROR_CODE_OK;
 }
@@ -500,7 +456,60 @@ int32_t EtsWantAgent::ExtractOperationType(ani_env *env, ani_object info, int32_
     }
     return BUSINESS_ERROR_CODE_OK;
 }
-
+int32_t EtsWantAgent::ExtractRequestCode(ani_env *env, ani_object info, int32_t &requestCode)
+{
+    ani_double dRequestCode = 0.0;
+    ani_status status = env->Object_GetPropertyByName_Double(info, "requestCode", &dRequestCode);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "requestCode GetProperty failed status: %{public}d", status);
+        return PARAMETER_ERROR;
+    }
+    requestCode = dRequestCode;
+    ani_boolean isUndefined = true;
+    ani_ref actionFlagsRef = nullptr;
+    if (!GetPropertyRef(env, info, "actionFlags", actionFlagsRef, isUndefined)) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "actionFlags GetPropertyRef failed");
+        return PARAMETER_ERROR;
+    }
+    if (!isUndefined) {
+        ani_array actionFlagsArr = reinterpret_cast<ani_array>(actionFlagsRef);
+        ani_size actionFlagsLen = 0;
+        if ((status = env->Array_GetLength(actionFlagsArr, &actionFlagsLen)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "Array_GetLength failed status: %{public}d", status);
+            return PARAMETER_ERROR;
+        }
+        for (size_t i = 0; i < actionFlagsLen; i++) {
+            ani_ref actionFlagRef = nullptr;
+            if ((status = env->Array_Get(actionFlagsArr, i, &actionFlagRef)) != ANI_OK ||
+                actionFlagRef == nullptr) {
+                TAG_LOGE(AAFwkTag::WANTAGENT, "Array_Get failed status: %{public}d, or null actionFlagRef", status);
+                return PARAMETER_ERROR;
+            }
+            int32_t actionFlag = 0;
+            AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
+                env, reinterpret_cast<ani_object>(actionFlagRef), actionFlag);
+            params.wantAgentFlags.emplace_back(static_cast<WantAgentConstant::Flags>(actionFlag));
+        }
+    }
+    ani_ref extraInfoRef = nullptr;
+    if (!GetPropertyRef(env, info, "extraInfos", extraInfoRef, isUndefined)) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfos GetPropertyRef failed");
+        return PARAMETER_ERROR;
+    }
+    if (isUndefined) {
+        if (!GetPropertyRef(env, info, "extraInfo", extraInfoRef, isUndefined)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfo GetPropertyRef failed");
+            return PARAMETER_ERROR;
+        }
+    }
+    if (!isUndefined) {
+        if (!UnwrapWantParams(env, extraInfoRef, params.extraInfo)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "Convert extraInfo failed");
+            return PARAMETER_ERROR;
+        }
+    }
+    return BUSINESS_ERROR_CODE_OK;
+}
 
 void EtsWantAgent::OnTrigger(ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object call)
 {

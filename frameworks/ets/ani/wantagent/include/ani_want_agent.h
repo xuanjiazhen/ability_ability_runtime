@@ -87,6 +87,7 @@ private:
     int32_t GetWantAgentParam(ani_env *env, ani_object info, WantAgentParams &params);
     int32_t ParseWantsArray(ani_env *env, ani_object info, std::vector<std::shared_ptr<AAFwk::Want>> &wants);
     int32_t ExtractOperationType(ani_env *env, ani_object info, int32_t &operationType);
+    int32_t ExtractRequestCode(ani_env *env, ani_object info, int32_t &requestCode);
 };
 
 class TriggerCompleteCallBack : public CompletedCallback {
