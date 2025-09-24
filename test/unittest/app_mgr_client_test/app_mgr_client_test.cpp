@@ -144,7 +144,6 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_GetAllRunningProcesses_001, TestSize.Lev
     for (int attempt = 0; attempt < MAX_RETRY; attempt++) {
         info.clear();
         appMgrClient->GetAllRunningProcesses(info);
-
         if (!info.empty()) {
             break;
         }
