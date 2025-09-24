@@ -68,6 +68,7 @@ struct InsightIntentProfileInfo {
     std::string intentDomain;
     std::string intentVersion;
     std::string srcEntry;
+    std::string arkTSMode;
     UIAbilityProfileInfo uiAbilityProfileInfo;
     UIExtensionProfileInfo uiExtensionProfileInfo;
     ServiceExtensionProfileInfo serviceExtensionProfileInfo;
@@ -221,6 +222,7 @@ bool TransformToInsightIntentInfo(const InsightIntentProfileInfo &insightIntent,
     info.intentDomain = insightIntent.intentDomain;
     info.intentVersion = insightIntent.intentVersion;
     info.srcEntry = insightIntent.srcEntry;
+    info.arkTSMode = insightIntent.arkTSMode;
 
     info.uiAbilityIntentInfo.abilityName = insightIntent.uiAbilityProfileInfo.abilityName;
     for (const auto &executeMode: insightIntent.uiAbilityProfileInfo.supportExecuteMode) {

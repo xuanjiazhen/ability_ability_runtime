@@ -264,6 +264,8 @@ private:
         InsightIntentExecutorInfo& executeInfo);
     
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsWindowStageObj_;
+    std::shared_ptr<NativeReference> jsWindowStageObj_;
+    bool isJsInsightIntent_ = false;
     int32_t windowMode_ = 0;
 #endif
 

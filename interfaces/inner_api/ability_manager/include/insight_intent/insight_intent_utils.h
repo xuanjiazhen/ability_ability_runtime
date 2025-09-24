@@ -29,8 +29,8 @@ namespace AbilityRuntime {
 class InsightIntentUtils {
 public:
     static uint32_t GetSrcEntry(const AppExecFwk::ElementName &elementName, const std::string &intentName,
-        const AppExecFwk::ExecuteMode &executeMode, std::string &srcEntry);
-    static uint32_t ConvertExtractInsightIntentGenericInfo(
+        const AppExecFwk::ExecuteMode &executeMode, std::string &srcEntry, std::string *arkTSMode == nullptr);
+        static uint32_t ConvertExtractInsightIntentGenericInfo(
         ExtractInsightIntentGenericInfo &genericInfo, InsightIntentInfoForQuery &queryInfo);
     static uint32_t ConvertExtractInsightIntentInfo(
         ExtractInsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo, bool getEntity);
