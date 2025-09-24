@@ -744,6 +744,14 @@ void EtsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->Init");
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken != nullptr) {
         abilityContext_->SetWeakSessionToken(sessionToken);
+        RemoveShareRouterByBundleType(want);
+        TAG_LOGD(AAFwkTag::UIABILITY, "ATOMIC_SERVICE_SHARE_ROUTER start");
+        std::string navDestinationInfo = want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+        if (!navDestinationInfo.empty()) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "SetNavDestinationInfo :%{public}s", navDestinationInfo.c_str());
+            scene_->SetNavDestinationInfo(navDestinationInfo);
+        }
+        TAG_LOGD(AAFwkTag::UIABILITY, "ATOMIC_SERVICE_SHARE_ROUTER end");
         ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken, identityToken);
     } else {
         ret = scene_->Init(displayId, abilityContext_, sceneListener_, option);
@@ -896,6 +904,16 @@ void EtsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
     }
 }
 
+void EtsUIAbility::RemoveShareRouterByBundleType(const Want &want)
+{
+    auto abilityInfo = abilityContext_ ? abilityContext_->GetAbilityInfo() : nullptr;
+    if (abilityInfo == nullptr ||
+        abilityInfo->applicationInfo.bundleType != OHOS::AppExecFwk::BundleType::ATOMIC_SERVICE) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "not atomicService");
+        const_cast<Want &>(want).RemoveParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+    }
+    return;
+}
 void EtsUIAbility::ExecuteInsightIntentBackground(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)

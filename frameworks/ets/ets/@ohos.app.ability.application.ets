@@ -28,6 +28,7 @@ export default namespace application {
 
   export native function nativeGetApplicationContext(): ApplicationContext;
 
+  export native function nativeDemoteCurrentFromCandidateMasterProcess(callback: AsyncCallbackWrapper<void>): void;
   export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
     let p =
       new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
@@ -74,6 +75,30 @@ export default namespace application {
         });
         taskpool.execute((): void => {
           application.nativeCreateBundleContext(context, bundleName, myCall);
+        });
+      });
+    return p;
+  }
+
+    export function DemoteCurrentFromCandidateMasterProcess(callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      application.nativeDemoteCurrentFromCandidateMasterProcess(myCall);
+    });
+  }
+
+  export function DemoteCurrentFromCandidateMasterProcess(): Promise<void> {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          application.nativeDemoteCurrentFromCandidateMasterProcess(myCall);
         });
       });
     return p;

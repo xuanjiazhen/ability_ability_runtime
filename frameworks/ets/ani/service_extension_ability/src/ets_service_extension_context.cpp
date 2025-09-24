@@ -64,6 +64,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             reinterpret_cast<void *>(EtsServiceExtensionContext::ConnectServiceExtensionAbility) },
         ani_native_function { "nativeDisconnectServiceExtensionAbility", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
             reinterpret_cast<void *>(EtsServiceExtensionContext::DisconnectServiceExtensionAbility) },
+        ani_native_function { "nativeStartUIAbilities", nullptr,
+            reinterpret_cast<void *>(EtsServiceExtensionContext::StartUIAbilities) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK
         && status != ANI_ALREADY_BINDED) {
@@ -173,6 +175,56 @@ void EtsServiceExtensionContext::StartServiceExtensionAbility(
     etsServiceExtensionContext->OnStartServiceExtensionAbility(env, aniObj, wantObj, callbackobj);
 }
 
+void EtsServiceExtensionContext::OnStartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "OnStartUIAbilities");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+        return;
+    }
+    std::vector<AAFwk::Want> wantList;
+    if (!AppExecFwk::UnwrapWantList(env, wantListObj, wantList)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Unwrap wantList param failed.");
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateInvalidParamError(env, "Parse param wantList failed, must be an array of Want."),
+            nullptr);
+        return;
+    }
+    if (wantList.empty() || wantList.size() > 4) { 
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "wantList size not support");
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateErrorByNativeErr(env, AAFwk::START_UI_ABILITIES_WANT_LIST_SIZE_ERROR), nullptr);
+        return;
+    }
+    std::string requestKey = std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count());
+    JsStartAbilitiesObserver::GetInstance().AddEtsObserver(env, requestKey, callback);
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGW(AAFwkTag::SERVICE_EXT, "null context");
+        JsStartAbilitiesObserver::GetInstance().HandleFinished(requestKey,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        return;
+    }
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    auto execute = [context, wantList, requestKey, innerErrCode]() {
+        *innerErrCode = context->StartUIAbilities(wantList, requestKey);
+    };
+    
+    auto complete = [innerErrCode, requestKey]() {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "startUIAbilities complete innerErrCode: %{public}d", *innerErrCode);
+        if (*innerErrCode == AAFwk::START_UI_ABILITIES_WAITING_SPECIFIED_CODE) {
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "startUIAbilities waiting specified.");
+            return;
+        }
+        JsStartAbilitiesObserver::GetInstance().HandleFinished(requestKey, *innerErrCode);
+    };
+    AppExecFwk::AsyncTask(env, execute, complete);
+}
+
 void EtsServiceExtensionContext::StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "StartAbility");
@@ -202,6 +254,22 @@ void EtsServiceExtensionContext::StartAbilityWithOption(
         return;
     }
     etsServiceExtensionContext->OnStartAbility(env, aniObj, wantObj, opt, call);
+}
+
+void EtsServiceExtensionContext::StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "StartUIAbilities");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
+        return;
+    }
+    auto etsServiceExtensionContext = EtsServiceExtensionContext::GetEtsAbilityContext(env, aniObj);
+    if (etsServiceExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null etsServiceExtensionContext");
+        return;
+    }
+    etsServiceExtensionContext->OnStartUIAbilities(env, aniObj, wantObj, callbackobj);
 }
 
 void EtsServiceExtensionContext::StopServiceExtensionAbility(
