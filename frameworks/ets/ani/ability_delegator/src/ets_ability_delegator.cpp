@@ -195,7 +195,7 @@ ani_object EtsAbilityDelegator::GetAppContext(ani_env *env, [[maybe_unused]]ani_
 }
 
 void EtsAbilityDelegator::ExecuteShellCommand(ani_env *env, [[maybe_unused]]ani_object object,
-    ani_string cmd, ani_double timeoutSecs, ani_object callback)
+    ani_string cmd, ani_long timeoutSecs, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "ExecuteShellCommand called");
     if (env == nullptr) {

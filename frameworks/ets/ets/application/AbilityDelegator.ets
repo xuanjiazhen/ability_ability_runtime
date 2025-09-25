@@ -34,9 +34,9 @@ export interface AbilityDelegator {
 
   executeShellCommand(cmd: String, callback: AsyncCallback<ShellCmdResult>): void;
 
-  executeShellCommand(cmd: String, timeoutSecs: number, callback: AsyncCallback<ShellCmdResult>): void;
+  executeShellCommand(cmd: String, timeoutSecs: long, callback: AsyncCallback<ShellCmdResult>): void;
 
-  executeShellCommand(cmd: string, timeoutSecs?: number): Promise<ShellCmdResult>;
+  executeShellCommand(cmd: string, timeoutSecs?: long): Promise<ShellCmdResult>;
 
   addAbilityMonitor(monitor: AbilityMonitor, callback: AsyncCallback<void>): void;
 
@@ -108,7 +108,7 @@ class AbilityDelegatorInner implements AbilityDelegator {
 
   public native nativeFinishTest(msg: String, code: long, callback: AsyncCallbackWrapper<void>): void;
 
-  public native nativeExecuteShellCommand(cmd: string, timeoutSecs: number,
+  public native nativeExecuteShellCommand(cmd: string, timeoutSecs: long,
     callback: AsyncCallbackWrapper<ShellCmdResult>): void;
 
   public native nativeAddAbilityMonitor(monitor: AbilityMonitor, callback: AsyncCallbackWrapper<void>): void;
@@ -176,13 +176,13 @@ class AbilityDelegatorInner implements AbilityDelegator {
       this.nativeExecuteShellCommand(cmd, timeoutSecs, myCall);
     });
   }
-  executeShellCommand(cmd: string, timeoutSecs: number, callback: AsyncCallback<ShellCmdResult, void>): void {
+  executeShellCommand(cmd: string, timeoutSecs: long, callback: AsyncCallback<ShellCmdResult, void>): void {
     let myCall = new AsyncCallbackWrapper<ShellCmdResult>(callback);
     taskpool.execute((): void => {
       this.nativeExecuteShellCommand(cmd, timeoutSecs, myCall);
     });
   }
-  executeShellCommand(cmd: string, timeoutSecs?: number): Promise<ShellCmdResult> {
+  executeShellCommand(cmd: string, timeoutSecs?: long): Promise<ShellCmdResult> {
     let p = new Promise<ShellCmdResult>((resolve: (data: ShellCmdResult) => void,
       reject: (err: BusinessError) => void): void => {
       let myCall =
@@ -197,7 +197,7 @@ class AbilityDelegatorInner implements AbilityDelegator {
         if (timeoutSecs == null) {
           this.nativeExecuteShellCommand(cmd, 0, myCall);
         } else {
-          this.nativeExecuteShellCommand(cmd, timeoutSecs as double, myCall);
+          this.nativeExecuteShellCommand(cmd, timeoutSecs as long, myCall);
         }
       });
     });

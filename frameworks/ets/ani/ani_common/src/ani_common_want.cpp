@@ -16,7 +16,7 @@
 #include "ani_common_want.h"
 #include "ani_common_cache_mgr.h"
 #include "ani_common_util.h"
-#include "ani_remote_object.h"
+#include "remote_object_taihe_ani.h"
 #include "array_wrapper.h"
 #include "bool_wrapper.h"
 #include "byte_wrapper.h"
@@ -67,7 +67,7 @@ bool InnerWrapWantParamsFD(ani_env *env, ani_class wantCls, ani_object wantObjec
     return SetFieldRefByName(env, wantCls, wantObject, "fds", wantParamFDRef);
 }
 
-bool InnerUnwrapWantParams(ani_env* env, ani_object wantObject, AAFwk::WantParams& wantParams)
+bool InnerUnwrapWantParams(ani_env *env, ani_object wantObject, AAFwk::WantParams &wantParams)
 {
     ani_ref wantParamRef = nullptr;
     if (!GetFieldRefByName(env, wantObject, "parameters", wantParamRef)) {

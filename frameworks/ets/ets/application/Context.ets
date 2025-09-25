@@ -61,7 +61,7 @@ export class Context extends BaseContext {
       this.eventHub = new EventHub();
     }
   }
-  
+
   private setEtsContextPtr(ptr: long) {
     if (this.etsContextPtr == 0) {
       this.etsContextPtr = ptr;

@@ -42,8 +42,11 @@ export interface Callee {
 
 export default class UIAbility extends Ability {
   private destroyCallbackPoint: long;
+  private prepareToTerminateCallbackPointer: long;
 
   private native nativeOnDestroyCallback(): void;
+
+  private native nativeOnPrepareToTerminateCallback(prepareTermination: boolean): void;
 
   private callOnDestroy(): boolean {
     const derivedClassType = AbilityUtils.getClassType(this);
@@ -61,6 +64,23 @@ export default class UIAbility extends Ability {
       return true;
     }
     this.onDestroy();
+    return false;
+  }
+
+  private callOnPrepareToTerminateAsync(): boolean {
+    const derivedClassType = AbilityUtils.getClassType(this);
+    if (derivedClassType === undefined) {
+      return false;
+    }
+    const uiAbilityClassType = AbilityUtils.getClassType(new UIAbility());
+    if (uiAbilityClassType === undefined) {
+      return false;
+    }
+    if (AbilityUtils.isOverride(derivedClassType, "onPrepareToTerminateAsync", uiAbilityClassType)) {
+      this.onPrepareToTerminateAsync()
+        .then((prepareTermination: boolean) => this.nativeOnPrepareToTerminateCallback(prepareTermination));
+      return true;
+    }
     return false;
   }
 
@@ -112,5 +132,22 @@ export default class UIAbility extends Ability {
 
 
   onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+  }
+
+  onPrepareToTerminate(): boolean {
+    return false;
+  }
+
+  onPrepareToTerminateAsync(): Promise<boolean> {
+    return new Promise<boolean>((resolve: (a: boolean) => void,
+      reject: (err: Error) => void): boolean => {
+    });
+  }
+
+  onShare(wantParam: Record<string, Object>): void {
+  }
+
+  onCollaborate(wantParams: Record<string, Object>): AbilityConstant.CollaborateResult {
+    return AbilityConstant.CollaborateResult.REJECT;
   }
 }

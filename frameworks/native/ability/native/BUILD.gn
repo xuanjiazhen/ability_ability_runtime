@@ -945,18 +945,24 @@ ohos_shared_library("ui_ability_ani") {
     "ability_base:base",
     "ability_base:configuration",
     "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_callback_sdk",
+    "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:bms_ani_common",
     "c_utils:utils",
+    "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "ets_runtime:libark_jsruntime",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "image_framework:image",
+    "image_framework:image_taihe",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_ani",
+    "ipc:rpc_taihe",
     "resource_management:global_resmgr",
     "runtime_core:ani",
     "runtime_core:ani_helpers",
@@ -1200,6 +1206,7 @@ ohos_shared_library("ets_form_extension") {
   if (ability_runtime_graphics) {
     include_dirs = [
       "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
+      "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
       "${ability_runtime_path}/frameworks/ets/ani/form_extension_ability/include",
       "${ability_runtime_path}/interfaces/kits/native/ability/native",
       "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
@@ -1232,6 +1239,7 @@ ohos_shared_library("ets_form_extension") {
       "hitrace:hitrace_meter",
       "ipc:ipc_core",
       "ipc:ipc_napi",
+      "ipc:rpc_taihe",
       "napi:ace_napi",
       "runtime_core:ani",
     ]
@@ -1467,7 +1475,7 @@ ohos_shared_library("service_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_ani",
+    "ipc:rpc_taihe",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -1541,7 +1549,7 @@ ohos_shared_library("service_extension_ani") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_ani",
+    "ipc:rpc_taihe",
     "runtime_core:ani",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -2135,6 +2143,14 @@ ohos_shared_library("ui_extension") {
   part_name = "ability_runtime"
 }
 
+config("ui_extension_ani_public_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/include",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_base/include",
+  ]
+}
+
 ohos_shared_library("ui_extension_ani") {
   sanitize = {
     cfi = true
@@ -2147,6 +2163,7 @@ ohos_shared_library("ui_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback/include",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/include",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_base/include",
     "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
     "${ability_runtime_path}/interfaces/inner_api/insight_intent/insight_intent_context",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
@@ -2159,9 +2176,10 @@ ohos_shared_library("ui_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_content_session.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_context.cpp",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_base/src/ets_ui_extension_base.cpp",
   ]
 
-  public_configs = []
+  public_configs = [":ui_extension_ani_public_config"]
 
   deps = [
     ":abilitykit_native",
@@ -2198,7 +2216,7 @@ ohos_shared_library("ui_extension_ani") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_ani",
+    "ipc:rpc_taihe",
     "window_manager:embeddablewindowstage_kit",
     "window_manager:embeddablewindowstageani_kit",
     "window_manager:extensionwindow_napi",
@@ -2349,9 +2367,14 @@ config("share_extension_config") {
 ohos_shared_library("share_extension") {
   configs = [ ":share_extension_config" ]
 
+  include_dirs = [
+    "${ability_runtime_path}/frameworks/ets/ani/share_extension_ability/include",
+  ]
+
   sources = [
     "${ability_runtime_native_path}/ability/native/share_extension_ability/js_share_extension.cpp",
     "${ability_runtime_native_path}/ability/native/share_extension_ability/share_extension.cpp",
+    "${ability_runtime_path}/frameworks/ets/ani/share_extension_ability/src/ets_share_extension_instance.cpp",
   ]
 
   deps = [
@@ -2454,9 +2477,14 @@ config("action_extension_config") {
 ohos_shared_library("action_extension") {
   configs = [ ":action_extension_config" ]
 
+  include_dirs = [
+    "${ability_runtime_path}/frameworks/ets/ani/action_extension_ability/include",
+  ]
+
   sources = [
     "${ability_runtime_native_path}/ability/native/action_extension_ability/action_extension.cpp",
     "${ability_runtime_native_path}/ability/native/action_extension_ability/js_action_extension.cpp",
+    "${ability_runtime_path}/frameworks/ets/ani/action_extension_ability/src/ets_action_extension_instance.cpp",
   ]
 
   deps = [
@@ -2875,6 +2903,7 @@ config("auto_fill_extension_config") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/auto_fill_extension_ability",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
+    "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/include",
   ]
 }
 
@@ -2923,11 +2952,110 @@ ohos_shared_library("auto_fill_extension") {
       "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_auto_fill_extension_util.cpp",
       "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_fill_request_callback.cpp",
       "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_save_request_callback.cpp",
+      "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_auto_fill_extension_instance.cpp",
     ]
   }
 
   if (ability_runtime_graphics) {
     external_deps += [ "window_manager:libwm" ]
+  }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("auto_fill_extension_ani") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  include_dirs = [
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/include",
+    "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
+    "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/include",
+  ]
+
+  public_configs = [ ":auto_fill_extension_config" ]
+
+  sources = []
+
+  deps = [
+    ":abilitykit_native",
+    ":auto_fill_extension",
+    ":ui_extension",
+    ":ui_extension_ani",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_native_path}/appkit:app_context",
+  ]
+
+  external_deps = [
+    "ability_base:session_info",
+    "ability_base:view_data",
+    "ability_base:want",
+    "access_token:libtokenid_sdk",
+    "hilog:libhilog",
+    "runtime_core:ani",
+    "hitrace:hitrace_meter",
+    "window_manager:embeddablewindowstageani_kit",
+  ]
+
+  if (ability_runtime_auto_fill) {
+    sources += [
+      "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_auto_fill_extension_context.cpp",
+      "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_auto_fill_extension_util.cpp",
+      "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_auto_fill_extension.cpp",
+      "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_fill_request_callback.cpp",
+      "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_save_request_callback.cpp",
+    ]
+  }
+
+  if (ability_runtime_graphics) {
+    external_deps += [ "window_manager:libwm" ]
+  }
+
+  innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("auto_fill_extension_util") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":auto_fill_extension_config" ]
+
+  sources = []
+
+  deps = [
+    ":abilitykit_native",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+  ]
+
+  external_deps = [
+    "ability_base:view_data",
+    "ace_engine:ace_uicontent",
+  ]
+
+  if (ability_runtime_auto_fill) {
+    sources += [
+      "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/ets_auto_fill_extension_util.cpp",
+    ]
   }
 
   subsystem_name = "ability"
