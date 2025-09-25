@@ -111,6 +111,7 @@ export default class UIAbility extends Ability {
   }
 
 
-  onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+  onSaveState(reason: AbilityConstant.StateType, wantParams: Record<string, Object>): AbilityConstant.onSaveResult {
+    return AbilityConstant.onSaveResult.ALL_AGREE;
   }
 }
