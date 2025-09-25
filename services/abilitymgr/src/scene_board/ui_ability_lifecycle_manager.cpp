@@ -1335,6 +1335,8 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
 
     // Get target uiAbility record.
+    const auto& abilityInfo = abilityRequest.abilityInfo;
+    int32_t requestId = RequestIdUtil::GetRequestId();
     std::shared_ptr<AbilityRecord> uiAbilityRecord;
     bool reuse = false;
     auto persistentId = GetPersistentIdByAbilityRequest(abilityRequest, reuse);
@@ -1352,7 +1354,7 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
         uiAbilityRecord = sessionAbilityMap_.at(persistentId);
     }
     uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
-    uiAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CALL);
+    uiAbilityRecord->SetLaunchReason(LaunchReason::PRE_LAUNCH);
 
 #ifdef SUPPORT_UPMS
     if (InsightIntentExecuteParam::IsInsightIntentExecute(abilityRequest.want)) {

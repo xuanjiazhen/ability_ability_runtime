@@ -9032,7 +9032,7 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    int32_t oriValidUserId = GetVaildUserId(DEFAULT_INVAL_VALUE);
+    int32_t oriValidUserId = GetValidUserId(DEFAULT_INVAL_VALUE);
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, 0, oriValidUserId, true, nullptr,
         shouldBlockFunc);
@@ -9046,14 +9046,14 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
     abilityRequest.callerUid = IPCSkeleton::GetCallingUid();
     abilityRequest.startSetting = nullptr;
     abilityRequest.want = want;
-    result = GenerateAbilityRequest(want, -1, abilityRequest, callerToken, oriValidUserId);
+    result = GenerateAbilityRequest(want, -1, abilityRequest, nullptr, oriValidUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request error");
         return result;
     }
 
     abilityRequest.userId = oriValidUserId;
-    if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
+    if (!HandleExecuteSAInterceptor(want, nullptr, abilityRequest, result)) {
         return result;
     }
 
@@ -9067,7 +9067,7 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "checkStartByCallPermission fail, result:%{public}d", result);
         return result;
     }
-    UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
+    UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, nullptr);
 
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerTokenId);
@@ -9076,11 +9076,10 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
         return ERR_INVALID_VALUE;
     }
     abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
-    abilityRequset.hideStartWindow = true;
+    abilityRequest.hideStartWindow = true;
     auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
     if (uiAbilityManager == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityManager null, userId is invalid:%{public}d", oriValidUserId);
-        errMsg = "uiAbilityManager null, userId is invalid";
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityManager null, userId is invalid:%{public}d", oriValidUserId); 
         return ERR_INVALID_VALUE;
     }
     return uiAbilityManager->PrelaunchAbilityLocked(abilityRequest);
