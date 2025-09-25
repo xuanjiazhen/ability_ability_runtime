@@ -341,7 +341,11 @@ bool EtsUIExtension::ForegroundWindowInitInsightIntentExecutorInfo(const AAFwk::
         executorInfo.windowMode = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     }
     executorInfo.token = context->GetToken();
-    executorInfo.etsPageLoader = reinterpret_cast<void *>(contentSessions_[sessionInfo->uiExtensionComponentId]);
+    if (!isJsInsightIntent_) {
+        executorInfo.etsPageLoader = reinterpret_cast<void *>(contentSessions_[sessionInfo->uiExtensionComponentId].etsContentSession);
+    } else {
+        executorInfo.pageLoader = contentSessions_[sessionInfo->uiExtensionComponentId].jsContentSession;
+    }
     executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
     InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
     executorInfo.executeParam->executeMode_ = UI_EXTENSION_ABILITY;
@@ -382,16 +386,29 @@ bool EtsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
         }
         uiExtension->PostInsightIntentExecuted(sessionInfo, result, needForeground);
     });
-
+    const WantParams &wantParams = want.GetParams();
+    std::string arkTSMode = wantParams.GetStringParam(INSIGHT_INTENT_ARKTS_MODE);
     InsightIntentExecutorInfo executorInfo;
-    if (!ForegroundWindowInitInsightIntentExecutorInfo(want, sessionInfo, executorInfo)) {
-        return false;
-    }
-
-    int32_t ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
-        etsRuntime_, executorInfo, std::move(executorCallback));
-    if (!ret) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Execute insight intent failed");
+    if (arkTSMode == "dynamic") {
+        isJsInsightIntent_ = true;
+        if (!ForegroundWindowInitInsightIntentExecutorInfo(want, sessionInfo, executorInfo)) {
+            return false;
+        }
+        auto& jsRuntime = etsRuntime_.GetJsRuntime();
+        int32_t ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
+            *jsRuntime, executorInfo, std::move(executorCallback));
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Execute insight intent failed");
+        }
+    } else {
+        if (!ForegroundWindowInitInsightIntentExecutorInfo(want, sessionInfo, executorInfo)) {
+            return false;
+        }
+        int32_t ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
+            etsRuntime_, executorInfo, std::move(executorCallback));
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Execute insight intent failed");
+        } 
     }
     return true;
 }
@@ -497,7 +514,18 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
             return false;
         }
-        contentSessions_.emplace(compId, sessonObjRef);
+        const WantParams &wantParams = want.GetParams();
+        std::string arkTSMode = wantParams.GetStringParam(INSIGHT_INTENT_ARKTS_MODE);
+        ContentSessionType contentSession;
+        if (arkTSMode == "dynamic") {
+            //to do:
+            //auto jsContentSession = transfer(sessonObjRef);
+            contentSession.etsContentSession = sessonObjRef;
+            contentSessions_.emplace(compId, contentSession);
+        } else {
+            contentSession.etsContentSession = sessonObjRef;
+            contentSessions_.emplace(compId, contentSession);
+        }
         int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
         if (!IsEmbeddableStart(screenMode)) {
             CallObjectMethod(false, "onSessionCreate", nullptr, wantObj, sessonObj);
@@ -562,8 +590,9 @@ void EtsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
         TAG_LOGE(AAFwkTag::UI_EXT, "Wrong to find uiWindow");
         return;
     }
-    if (contentSessions_.find(componentId) != contentSessions_.end() && contentSessions_[componentId] != nullptr) {
-        ani_object contenSessionObj = reinterpret_cast<ani_object>(contentSessions_[componentId]);
+    //to do Destroy js contentSession
+    if (contentSessions_.find(componentId) != contentSessions_.end() && contentSessions_[componentId].etsContentSession != nullptr) {
+        ani_object contenSessionObj = reinterpret_cast<ani_object>(contentSessions_[componentId].etsContentSession);
         if (contenSessionObj == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "contenSessionObj null ptr");
             return;
