@@ -1064,7 +1064,7 @@ void AppRunningRecord::PopForegroundingAbilityTokens()
             if (preloadMode_ != PreloadMode::PRE_LAUNCH) {
                 StateChangedNotifyObserver(
                     ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
-            }           
+            }
         } else {
             TAG_LOGW(AAFwkTag::APPMGR, "null moduleRecord");
         }

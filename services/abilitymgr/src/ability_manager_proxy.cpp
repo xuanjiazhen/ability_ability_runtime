@@ -3925,7 +3925,6 @@ int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sp
 
 int AbilityManagerProxy::StartAbilityForPrelaunch(const Want &want)
 {
-
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerProxy::StartAbilityForPrelaunch begin.");
     int error;
     MessageParcel data;

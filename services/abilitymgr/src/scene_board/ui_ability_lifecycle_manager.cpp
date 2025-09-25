@@ -1330,7 +1330,57 @@ void UIAbilityLifecycleManager::MoveToBackground(const std::shared_ptr<AbilityRe
 
 int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abilityRequest)
 {
-    return 0;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "prelaunch ability: %{public}s", abilityRequest.want.GetElement().GetURI().c_str());
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+
+    // Get target uiAbility record.
+    std::shared_ptr<AbilityRecord> uiAbilityRecord;
+    bool reuse = false;
+    auto persistentId = GetPersistentIdByAbilityRequest(abilityRequest, reuse);
+    if (persistentId == 0) {
+        uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
+        if (uiAbilityRecord != nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "cache call request");
+            callRequestCache_[uiAbilityRecord].push_back(abilityRequest);
+            return ERR_OK;
+        }
+        uiAbilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+        uiAbilityRecord->SetOwnerMissionUserId(userId_);
+        SetReceiverInfo(abilityRequest, uiAbilityRecord);
+    } else {
+        uiAbilityRecord = sessionAbilityMap_.at(persistentId);
+    }
+    uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
+    uiAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CALL);
+
+#ifdef SUPPORT_UPMS
+    if (InsightIntentExecuteParam::IsInsightIntentExecute(abilityRequest.want)) {
+        uiAbilityRecord->GrantUriPermission();
+    }
+#endif // SUPPORT_UPMS
+
+    std::string value = abilityRequest.want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE);
+    if (!value.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "set launchReasonMessage:%{public}s", value.c_str());
+        uiAbilityRecord->SetLaunchReasonMessage(value);
+    }
+    NotifyAbilityToken(uiAbilityRecord->GetToken(), abilityRequest);
+    uiAbilityRecord->SetPrelaunchFlag(true);
+
+    auto sessionInfo = CreateSessionInfo(abilityRequest, requestId);
+    sessionInfo->persistentId = persistentId;
+    sessionInfo->reuse = reuse;
+    sessionInfo->uiAbilityId = uiAbilityRecord->GetAbilityRecordId();
+    sessionInfo->isAtomicService = (abilityInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE);
+    sessionInfo->state = CallToState::BACKGROUND;
+    sessionInfo->needClearInNotShowRecent = true;
+    
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Notify scb's abilityId is %{public}" PRIu64 ".", sessionInfo->uiAbilityId);
+    tmpAbilityMap_.emplace(sessionInfo->requestId, uiAbilityRecord);
+    PostCallTimeoutTask(sessionInfo->requestId);
+    std::string errMsg;
+    return NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
 }
 
 int UIAbilityLifecycleManager::ResolveLocked(const AbilityRequest &abilityRequest, std::string &errMsg)
