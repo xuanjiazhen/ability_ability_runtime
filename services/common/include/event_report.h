@@ -138,6 +138,11 @@ enum class EventName {
     USER_DATA_SIZE
 };
 
+enum StartAbilityType {
+    START_ABILITY_TYPE_NORMAL = 0,
+    START_ABILITY_TYPE_BY_CALL = 1
+};
+
 class EventReport {
 public:
     static void SendAppEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo);
