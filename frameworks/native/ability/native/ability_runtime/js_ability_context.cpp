@@ -212,6 +212,9 @@ void StartAbilityByCallExecuteDone(std::shared_ptr<StartAbilityByCallParameters>
     }
 
     if (calldata->condition.wait_for(lock, std::chrono::seconds(CALLER_TIME_OUT)) == std::cv_status::timeout) {
+        EventInfo eventInfo = BuildEventInfo(want, accountId);
+        eventInfo.startType = START_ABILITY_TYPE_BY_CALL;
+        eventHelper_.SendStartAbilityErrorEvent(eventInfo, ret, errMsg);
         TAG_LOGE(AAFwkTag::CONTEXT, "callExecute waiting callee timeout");
         calldata->err = -1;
     }
