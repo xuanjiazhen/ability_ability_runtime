@@ -322,6 +322,16 @@ public:
     virtual int32_t ScheduleDumpFfrt(std::string& result) = 0;
 
     /**
+     * ScheduleDumpEventQueue, call ScheduleDumpEventQueue(std::string& result) through proxy project,
+     * Start querying the application's process.
+     *
+     * @param result, dump process history queue event output.
+     *
+     * @return Returns 0 on success, error code on failure.
+     */
+    virtual int32_t ScheduleDumpEventQueue(std::string& result) = 0;
+
+    /**
      * SetWatchdogBackgroundStatus, call SetWatchdogBackgroundStatus(bool status) through proxy project,
      * Notify application to set watchdog background status.
      *
@@ -366,6 +376,7 @@ public:
         SCHEDULE_DUMP_IPC_STOP,
         SCHEDULE_DUMP_IPC_STAT,
         SCHEDULE_DUMP_FFRT,
+        SCHEDULE_DUMP_EVENTP_QUEUE,
         SCHEDULE_CACHE_PROCESS,
         SCHEDULE_CLEAR_PAGE_STACK,
         SCHEDULE_PREPARE_TERMINATE,
