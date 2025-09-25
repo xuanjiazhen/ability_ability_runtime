@@ -1336,7 +1336,6 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
 
     // Get target uiAbility record.
     const auto& abilityInfo = abilityRequest.abilityInfo;
-    int32_t requestId = RequestIdUtil::GetRequestId();
     std::shared_ptr<AbilityRecord> uiAbilityRecord;
     bool reuse = false;
     auto persistentId = GetPersistentIdByAbilityRequest(abilityRequest, reuse);
@@ -1370,7 +1369,7 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
     NotifyAbilityToken(uiAbilityRecord->GetToken(), abilityRequest);
     uiAbilityRecord->SetPrelaunchFlag(true);
 
-    auto sessionInfo = CreateSessionInfo(abilityRequest, requestId);
+    auto sessionInfo = CreateSessionInfo(abilityRequest, RequestIdUtil::GetRequestId());
     sessionInfo->persistentId = persistentId;
     sessionInfo->reuse = reuse;
     sessionInfo->uiAbilityId = uiAbilityRecord->GetAbilityRecordId();
