@@ -1006,6 +1006,43 @@ ErrCode AbilityContextImpl::SetMissionIcon(const std::shared_ptr<OHOS::Media::Pi
     return err;
 }
 
+ErrCode AbilityContextImpl::SetMissionWindowIcon(const std::shared_ptr<OHOS::Media::PixelMap>& windowIcon)
+{
+    // TAG_LOGD(AAFwkTag::CONTEXT, "call");
+    // ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->setMissionWindowIcon(token_, windowIcon);
+    // if (err != ERR_OK) {
+    //     TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
+    // } else {
+    //     auto abilityCallback = abilityCallback_.lock();
+    //     if (abilityCallback) {
+    //         abilityCallback->setMissionWindowIcon(windowIcon);
+    //     }
+    // }
+    // return err;
+    TAG_LOGI(AAFwkTag::CONTEXT, "mhm");
+    // TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    // if (!abilityInfo_ || abilityInfo_->type != AppExecFwk::AbilityType::PAGE) {
+    //     TAG_LOGE(AAFwkTag::UIABILITY, "null abilityInfo_ or not page type");
+    //     return ERR_INVALID_VALUE;
+    // }
+
+    // if (scene_ == nullptr) {
+    //     TAG_LOGE(AAFwkTag::UIABILITY, "null scene_");
+    //     return ERR_INVALID_VALUE;
+    // }
+    // auto window = scene_->GetMainWindow();
+    // if (window == nullptr) {
+    //     TAG_LOGE(AAFwkTag::UIABILITY, "null window");
+    //     return ERR_INVALID_VALUE;
+    // }
+
+    // if (window->SetAPPWindowIcon(icon) != OHOS::Rosen::WMError::WM_OK) {
+    //     TAG_LOGE(AAFwkTag::UIABILITY, "setAPPWindowIcon failed");
+    //     return ERR_INVALID_VALUE;
+    // }
+    return ERR_OK;
+}
+
 ErrCode AbilityContextImpl::SetAbilityInstanceInfo(const std::string& label,
     std::shared_ptr<OHOS::Media::PixelMap> icon)
 {
