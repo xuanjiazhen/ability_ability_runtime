@@ -962,7 +962,7 @@ ohos_shared_library("ui_ability_ani") {
     "image_framework:image_taihe",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_taihe",
+    #"ipc:rpc_taihe",
     "resource_management:global_resmgr",
     "runtime_core:ani",
     "runtime_core:ani_helpers",
@@ -1239,7 +1239,7 @@ ohos_shared_library("ets_form_extension") {
       "hitrace:hitrace_meter",
       "ipc:ipc_core",
       "ipc:ipc_napi",
-      "ipc:rpc_taihe",
+      #"ipc:rpc_taihe",
       "napi:ace_napi",
       "runtime_core:ani",
     ]
@@ -1263,6 +1263,7 @@ ohos_shared_library("form_extension") {
   if (ability_runtime_graphics) {
     include_dirs = [
       "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
+      "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
       "${ability_runtime_path}/frameworks/ets/ani/form_extension_ability/include",
       "${ability_runtime_path}/interfaces/kits/native/ability/native",
       "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
@@ -1475,7 +1476,7 @@ ohos_shared_library("service_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_taihe",
+    #"ipc:rpc_taihe",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -1549,7 +1550,7 @@ ohos_shared_library("service_extension_ani") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_taihe",
+    #"ipc:rpc_taihe",
     "runtime_core:ani",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -2216,7 +2217,7 @@ ohos_shared_library("ui_extension_ani") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_taihe",
+    #"ipc:rpc_taihe",
     "window_manager:embeddablewindowstage_kit",
     "window_manager:embeddablewindowstageani_kit",
     "window_manager:extensionwindow_napi",
@@ -3001,10 +3002,14 @@ ohos_shared_library("auto_fill_extension_ani") {
     "ability_base:view_data",
     "ability_base:want",
     "access_token:libtokenid_sdk",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "runtime_core:ani",
     "hitrace:hitrace_meter",
-    "window_manager:embeddablewindowstageani_kit",
+    "window_manager:embeddablewindowstage_kit",
+    #"window_manager:embeddablewindowstageani_kit",
+    "ipc:ipc_core",
+    "ipc:ipc_napi",
   ]
 
   if (ability_runtime_auto_fill) {
