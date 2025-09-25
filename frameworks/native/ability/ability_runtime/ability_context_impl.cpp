@@ -1006,6 +1006,12 @@ ErrCode AbilityContextImpl::SetMissionIcon(const std::shared_ptr<OHOS::Media::Pi
     return err;
 }
 
+ErrCode AbilityContextImpl::SetMissionWindowIcon(const std::shared_ptr<OHOS::Media::PixelMap>& windowIcon)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "invoking window interface");
+    return ERR_OK;
+}
+
 ErrCode AbilityContextImpl::SetAbilityInstanceInfo(const std::string& label,
     std::shared_ptr<OHOS::Media::PixelMap> icon)
 {
