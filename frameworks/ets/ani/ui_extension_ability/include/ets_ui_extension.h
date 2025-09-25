@@ -36,6 +36,11 @@ namespace OHOS {
 namespace AbilityRuntime {
 class UIExtension;
 class UIExtensionContext;
+struct ContentSessionType
+{
+    ani_ref etsContentSession = nullptr;
+    std::shared_ptr<NativeReference> jsContentSession = nullptr;
+};
 
 /**
  * @brief Basic ui extension components.
@@ -162,7 +167,7 @@ private:
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsObj_ = nullptr;
     std::shared_ptr<AppExecFwk::ETSNativeReference> shellContextRef_ = nullptr;
     std::mutex uiWindowMutex_;
-    std::map<uint64_t, ani_ref> contentSessions_;
+    std::map<uint64_t, ContentSessionType> contentSessions_;
     int32_t screenMode_ = AAFwk::IDLE_SCREEN_MODE;
     std::shared_ptr<int32_t> screenModePtr_;
     sptr<IRemoteObject> token_ = nullptr;
@@ -170,6 +175,7 @@ private:
     std::shared_ptr<EtsAbilityResultListeners> abilityResultListeners_ = nullptr;
     ani_ref contentSession_ = nullptr;
     std::shared_ptr<EtsUIExtensionContentSession> etsUiExtContentSession_;
+    bool isJsInsightIntent_ = false;
 
 #ifdef SUPPORT_GRAPHICS
     class EtsUIExtensionAbilityDisplayListener : public OHOS::Rosen::IDisplayInfoChangedListener {

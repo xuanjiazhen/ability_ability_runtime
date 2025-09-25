@@ -259,11 +259,14 @@ private:
     void GetPageStackFromWant(const Want &want, std::string &pageStack);
     void AbilityContinuationOrRecover(const Want &want);
     void UpdateEtsWindowStage(ani_ref windowStage);
+    std::unique_ptr<NativeReference> CreateJsAppWindowStage();
     inline bool GetInsightIntentExecutorInfo(const Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         InsightIntentExecutorInfo& executeInfo);
     
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsWindowStageObj_;
+    std::shared_ptr<NativeReference> jsWindowStageObj_;
+    bool isJsInsightIntent_ = false;
     int32_t windowMode_ = 0;
 #endif
 
