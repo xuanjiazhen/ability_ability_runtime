@@ -1647,7 +1647,8 @@ private:
 
     int32_t GenerateUidByUserId(int32_t userId, int32_t id);
 
-    bool GenerateChildProcessIsolationId(int32_t &userId);
+    bool GenerateIsolationId(std::set<int32_t>& set, int32_t beginId, int32_t endId,
+        int32_t &isolationId, int32_t &lastIsolationId);
 
     bool GenerateRenderUid(int32_t &renderUid);
 
