@@ -518,7 +518,7 @@ ani_object NativeCreateAreaModeContext(ani_env *env, ani_object aniObj, ani_obje
     }
     int areaMode = 0;
     if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, areaModeObj, areaMode)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "param areaMode err");
+        TAG_LOGE(AAFwkTag::APPKIT, "param areaMode err");
         EtsErrorUtil::ThrowInvalidNumParametersError(env);
         return reinterpret_cast<ani_object>(undefRef);
     }

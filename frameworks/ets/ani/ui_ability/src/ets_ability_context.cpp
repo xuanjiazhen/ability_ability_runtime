@@ -24,6 +24,7 @@
 #include "ani_enum_convert.h"
 #include "remote_object_taihe_ani.h"
 #include "app_utils.h"
+#include "cJSON.h"
 #include "common_fun_ani.h"
 #include "ets_caller_complex.h"
 #include "ets_context_utils.h"
@@ -773,17 +774,10 @@ void EtsAbilityContext::OnStartAbility(
     }
     AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
     if (innerErrCode != ERR_OK && !startOptions.requestId_.empty()) {
-        cJSON *jsonObject = cJSON_CreateObject();
-        if (jsonObject == nullptr) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "create json object failed");
-            return;
-        }
         std::string errMsg = want.GetBoolParam(AAFwk::Want::PARAM_RESV_START_RECENT, false) ?
             "Failed to call startRecentAbility" : "Failed to call startAbility";
-        cJSON_AddStringToObject(jsonObject, JSON_KEY_ERR_MSG.c_str(), errMsg.c_str());
-        std::string jsonStr = AAFwk::JsonUtils::GetInstance().ToString(jsonObject);
-        cJSON_Delete(jsonObject);
-        context->OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonStr);
+        nlohmann::json jsonObject = nlohmann::json { { JSON_KEY_ERR_MSG, errMsg } };
+        context->OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
     }
 }
 
@@ -1724,85 +1718,6 @@ void EtsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     context->InsertResultCallbackTask(requestCode, std::move(task));
 }
 
-ani_object EtsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani_object input)
-{
-    TAG_LOGD(AAFwkTag::CONTEXT, "transfer static UIAbilityContext");
-    void *unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "failed to unwrap");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    if (unwrapResult == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null unwrapResult");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto context = reinterpret_cast<std::weak_ptr<AbilityContext> *>(unwrapResult)->lock();
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto abilityContext = Context::ConvertTo<AbilityContext>(context);
-    if (abilityContext == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null abilityContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto &bindingObj = abilityContext->GetBindingObject();
-    if (bindingObj == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null bindingObj");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto staticContext = bindingObj->Get<ani_ref>();
-    if (staticContext == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null staticContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    return reinterpret_cast<ani_object>(*staticContext);
-}
-
-ani_object EtsAbilityContext::NativeTransferDynamic(ani_env *env, ani_object, ani_object input)
-{
-    TAG_LOGD(AAFwkTag::CONTEXT, "transfer dynamic UIAbilityContext");
-    if (!IsInstanceOf(env, input)) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "not UIAbilityContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto context = ContextUtil::GetBaseContext(env, input);
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto abilityContext = Context::ConvertTo<AbilityContext>(context);
-    if (abilityContext == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null abilityContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto &bindingObj = abilityContext->GetBindingObject();
-    if (bindingObj == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null bindingObj");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto dynamicContext = bindingObj->Get<NativeReference>();
-    if (dynamicContext == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null dynamicContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    // Not support yet
-    EtsErrorUtil::ThrowEtsTransferClassError(env);
-    return nullptr;
-}
-
 bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
 {
     ani_class cls {};
@@ -2124,15 +2039,10 @@ void EtsAbilityContext::OnStartAbilityWithAccount(
     }
     AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
     if (innerErrCode != ERR_OK && !startOptions.requestId_.empty()) {
-        cJSON *jsonObject = cJSON_CreateObject();
-        if (jsonObject == nullptr) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "create json object failed");
-            return;
-        }
-        cJSON_AddStringToObject(jsonObject, JSON_KEY_ERR_MSG.c_str(), "Failed to call startAbilityWithAccount");
-        std::string jsonStr = AAFwk::JsonUtils::GetInstance().ToString(jsonObject);
-        cJSON_Delete(jsonObject);
-        context->OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonStr);
+        nlohmann::json jsonObject = nlohmann::json {
+            { JSON_KEY_ERR_MSG, "Failed to call startAbilityWithAccount" }
+        };
+        context->OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
     }
 }
 

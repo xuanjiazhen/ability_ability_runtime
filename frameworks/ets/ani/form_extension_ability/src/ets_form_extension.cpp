@@ -21,6 +21,7 @@
 #include "ability_info.h"
 #include "ani_common_util.h"
 #include "ani_common_want.h"
+#include "ani_enum_convert.h"
 #include "ets_runtime.h"
 #include "form_provider_data.h"
 #include "form_runtime/form_extension_provider_client.h"

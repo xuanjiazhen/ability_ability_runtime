@@ -250,7 +250,7 @@ ani_object WrapMultiAppModeData(ani_env *env, const AppExecFwk::MultiAppModeData
         env, CLASSNAME_BUNDLEMANAGER_MULTIAPPMODE_TYPE, multiAppMode.multiAppModeType, modeItem);
     status = env->Object_SetPropertyByName_Ref(etsObject, "multiAppModeType", modeItem);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "multiAppModeType failed status:%{public}d", status);
+        TAG_LOGE(AAFwkTag::DIALOG, "multiAppModeType failed status:%{public}d", status);
         return etsObject;
     }
     status = env->Object_SetPropertyByName_Int(

@@ -49,6 +49,7 @@ ohos_shared_library("ability_auto_fill_manager_ani_kit") {
 
   external_deps = [
     "ability_base:view_data",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "ace_engine:ace_container_scope",
   ]

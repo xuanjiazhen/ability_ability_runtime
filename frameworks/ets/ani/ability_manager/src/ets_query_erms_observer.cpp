@@ -81,7 +81,7 @@ void EtsQueryERMSObserver::CallCallback(ani_object callback, const AtomicService
     }
     ani_env *env = AttachCurrentThread();
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "GetEnv failed");
+        TAG_LOGE(AAFwkTag::QUERY_ERMS, "GetEnv failed");
         return;
     }
     ani_object aniObject = nullptr;
@@ -166,7 +166,7 @@ ani_env *EtsQueryERMSObserver::AttachCurrentThread()
     ani_option interopEnabled { "--interop=disable", nullptr };
     ani_options aniArgs { 1, &interopEnabled };
     if ((status = etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::QUERY_ERMS, "status: %{public}d", status);
         return nullptr;
     }
     isAttachThread_ = true;
