@@ -198,6 +198,16 @@ export default class UIAbilityContext extends Context {
   private native nativeStartAbilityAsCaller(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
 
   private native nativeStartRecentAbility(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
+  
+  private native nativeOpenLinkCheck(link: string): void;
+
+  private native nativeOpenAtomicServiceCheck(): void;
+
+  private native nativeSetAbilityInstanceInfoCheck(icon: image.PixelMap): void;
+
+  private native nativeSetMissionIconCheck(icon: image.PixelMap): void;
+
+  private native nativeStartAbilityForResultWithAccountCheck(): void;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -361,6 +371,7 @@ export default class UIAbilityContext extends Context {
   }
 
   openLink(link: string, options?: OpenLinkOptions, callback?: AsyncCallback<AbilityResult, void>): Promise<void> {
+    this.nativeOpenLinkCheck(link);
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
@@ -563,6 +574,7 @@ hideAbility(): Promise<void> {
   }
 
   openAtomicService(appId: string, options?: AtomicServiceOptions): Promise<AbilityResult> {
+    this.nativeOpenAtomicServiceCheck();
     return new Promise<AbilityResult>((resolve: (data: AbilityResult) => void, reject: (err: BusinessError) => void): void => {
       let asyncCall = new AsyncCallbackWrapper<AbilityResult>((err: BusinessError | null, data: AbilityResult | undefined) => {
         if (err == null || err.code == 0) {
@@ -675,7 +687,8 @@ hideAbility(): Promise<void> {
     });
   }
 
- setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
+  setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
+    this.nativeSetAbilityInstanceInfoCheck(icon);
     let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
       let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
         if (err == null || err.code == 0) {
@@ -771,6 +784,7 @@ hideAbility(): Promise<void> {
   }
 
   setMissionIcon(icon: image.PixelMap, callback: AsyncCallback<void>): void {
+    this.nativeSetMissionIconCheck(icon);
     let syncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeSetMissionIcon(icon, syncCall);
@@ -778,6 +792,7 @@ hideAbility(): Promise<void> {
   }
 
   setMissionIcon(icon: image.PixelMap): Promise<void> {
+    this.nativeSetMissionIconCheck(icon);
     let p = new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
       let callback = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
@@ -870,6 +885,7 @@ hideAbility(): Promise<void> {
   }
 
   startAbilityForResultWithAccount(want: Want, accountId: int, callback: AsyncCallback<AbilityResult, void>): void {
+    this.nativeStartAbilityForResultWithAccountCheck();
     let myCall = new AsyncCallbackWrapper<AbilityResult>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbilityForResultWithAccount(want, accountId, myCall);
@@ -878,6 +894,7 @@ hideAbility(): Promise<void> {
 
   startAbilityForResultWithAccount(want: Want, accountId: int, options: StartOptions,
     callback: AsyncCallback<void>): void {
+    this.nativeStartAbilityForResultWithAccountCheck();
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbilityForResultWithAccountVoid(want, accountId, options, myCall);
@@ -885,6 +902,7 @@ hideAbility(): Promise<void> {
   }
 
   startAbilityForResultWithAccount(want: Want, accountId: int, options?: StartOptions): Promise<AbilityResult> {
+    this.nativeStartAbilityForResultWithAccountCheck();
     let p = new Promise<AbilityResult>((resolve: (data: AbilityResult) => void,
       reject: (err: BusinessError) => void): void => {
       let myCall =

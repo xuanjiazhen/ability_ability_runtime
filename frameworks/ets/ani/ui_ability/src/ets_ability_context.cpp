@@ -155,6 +155,18 @@ void RemoveConnection(int32_t connectId)
         TAG_LOGD(AAFwkTag::CONTEXT, "remove connection ability not exist");
     }
 }
+
+bool CheckUrl(std::string &urlValue)
+{
+    if (urlValue.empty()) {
+        return false;
+    }
+    Uri uri = Uri(urlValue);
+    if (uri.GetScheme().empty() || uri.GetHost().empty()) {
+        return false;
+    }
+    return true;
+}
 } // namespace
 
 EtsAbilityContext::~EtsAbilityContext()
@@ -407,6 +419,21 @@ void EtsAbilityContext::OpenLink(ani_env *env, ani_object aniObj, ani_string ani
         !isCallbackUndefined);
 }
 
+void EtsAbilityContext::OpenLinkCheck(ani_env *env, ani_object aniObj, ani_string aniLink)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OpenLinkCheck called");
+    if (env == nullptr || aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
+        return;
+    }
+    std::string link("");
+    if (!AppExecFwk::GetStdString(env, aniLink, link) || !CheckUrl(link)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid link params");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Parse param link or openLinkOptions failed, link must be string, openLinkOptions must be options.");
+    }
+}
+
 bool EtsAbilityContext::IsTerminating(ani_env *env, ani_object aniObj)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "IsTerminating called");
@@ -523,6 +550,26 @@ void EtsAbilityContext::OpenAtomicService(
         return;
     }
     etsContext->OnOpenAtomicService(env, aniObj, aniAppId, callbackObj, optionsObj);
+}
+
+void EtsAbilityContext::OpenAtomicServiceCheck(ani_env *env, ani_object aniObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OpenAtomicServiceCheck called");
+    if (env == nullptr || aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
+        return;
+    }
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    auto context = etsContext->context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    }
 }
 
 ani_long EtsAbilityContext::ConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj,
@@ -664,6 +711,21 @@ void EtsAbilityContext::SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, 
     etsContext->OnSetAbilityInstanceInfo(env, aniObj, labelObj, iconObj, callback);
 }
 
+void EtsAbilityContext::SetAbilityInstanceInfoCheck(ani_env *env, ani_object aniObj, ani_object iconObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "SetAbilityInstanceInfoCheck called");
+    if (env == nullptr || aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
+        return;
+    }
+    auto icon = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, iconObj);
+    if (icon == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse icon failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse icon failed.");
+        return;
+    }
+}
+
 void EtsAbilityContext::SetMissionIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj,
     ani_object callbackObj)
 {
@@ -674,6 +736,22 @@ void EtsAbilityContext::SetMissionIcon(ani_env *env, ani_object aniObj, ani_obje
         return;
     }
     etsContext->OnSetMissionIcon(env, aniObj, pixelMapObj, callbackObj);
+}
+
+void EtsAbilityContext::SetMissionIconCheck(
+    ani_env *env, ani_object aniObj, ani_object pixelMapObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "SetMissionIconCheck called");
+    if (env == nullptr || aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
+        return;
+    }
+    auto icon = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, pixelMapObj);
+    if (icon == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse icon failed");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return;
+    }
 }
 #endif
 
@@ -755,7 +833,7 @@ void EtsAbilityContext::OnStartAbility(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AAFwk::Want want;
-    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {	
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
         return;
     }
@@ -1064,18 +1142,6 @@ void EtsAbilityContext::OnStopServiceExtensionAbility(ani_env *env, ani_object a
     ret = context->StopExtensionAbilityWithExtensionType(want, extensionType);
     aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
     AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
-}
-
-static bool CheckUrl(std::string &urlValue)
-{
-    if (urlValue.empty()) {
-        return false;
-    }
-    Uri uri = Uri(urlValue);
-    if (uri.GetScheme().empty() || uri.GetHost().empty()) {
-        return false;
-    }
-    return true;
 }
 
 void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
@@ -2363,6 +2429,20 @@ void EtsAbilityContext::StartAbilityForResultWithAccount(ani_env *env, ani_objec
     etsContext->OnStartAbilityForResultWithAccount(env, aniObj, wantObj, etsAccountId, nullptr, callback);
 }
 
+void EtsAbilityContext::StartAbilityForResultWithAccountCheck(ani_env *env, ani_object aniObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilityForResultWithAccountCheck called");
+    if (env == nullptr || aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
+        return;
+    }
+    if (!AppExecFwk::CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "non system app forbidden to call");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return;
+    }
+}
+
 void EtsAbilityContext::StartAbilityForResultWithAccountVoid(ani_env *env, ani_object aniObj, ani_object wantObj,
     ani_int etsAccountId, ani_object startOptionsObj, ani_object callback)
 {
@@ -2479,6 +2559,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(EtsAbilityContext::StartServiceExtensionAbility) },
             ani_native_function { "nativeOpenLink", SIGNATURE_OPEN_LINK,
                 reinterpret_cast<void*>(EtsAbilityContext::OpenLink) },
+            ani_native_function { "nativeOpenLinkCheck", "Lstd/core/String;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::OpenLinkCheck) },
             ani_native_function { "nativeIsTerminating", ":Z",
                 reinterpret_cast<void*>(EtsAbilityContext::IsTerminating) },
             ani_native_function { "nativeMoveAbilityToBackground", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
@@ -2500,9 +2582,11 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 "L@ohos/app/ability/ConfigurationConstant/ConfigurationConstant/ColorMode;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetColorMode)},
             ani_native_function { "nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
-                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
+                reinterpret_cast<void *>(EtsAbilityContext::StartAbilityByType) },
             ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
                 reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicService) },
+            ani_native_function { "nativeOpenAtomicServiceCheck", ":V",
+                reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicServiceCheck) },
             ani_native_function{"nativeConnectUIServiceExtensionAbility", SIGNATURE_CONNECT_UI_SERVICE_EXTENSION,
                 reinterpret_cast<void*>(EtsAbilityContext::ConnectUIServiceExtension)},
             ani_native_function{"nativeStartUIServiceExtensionAbility", SIGNATURE_START_UI_SERVICE_EXTENSION,
@@ -2550,22 +2634,28 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void *>(EtsAbilityContext::StopAppServiceExtensionAbility) },
             ani_native_function { "nativeStartAbilityWithAccountSync", SIGNATURE_START_ABILITY_WITH_ACCOUNT,
-                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityWithAccount) },
+                reinterpret_cast<void *>(EtsAbilityContext::StartAbilityWithAccount) },
             ani_native_function { "nativeStartAbilityWithAccountSync", SIGNATURE_START_ABILITY_WITH_ACCOUNT_OPTIONS,
-                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityWithAccountAndOptions) },
+                reinterpret_cast<void *>(EtsAbilityContext::StartAbilityWithAccountAndOptions) },
 #ifdef SUPPORT_GRAPHICS
             ani_native_function { "nativeSetAbilityInstanceInfo",
                 "Lstd/core/String;L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetAbilityInstanceInfo) },
+            ani_native_function { "nativeSetAbilityInstanceInfoCheck", "L@ohos/multimedia/image/image/PixelMap;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::SetAbilityInstanceInfoCheck) },
             ani_native_function { "nativeSetMissionIcon",
                 "L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetMissionIcon) },
+            ani_native_function { "nativeSetMissionIconCheck", "L@ohos/multimedia/image/image/PixelMap;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::SetMissionIconCheck) },
 #endif
             ani_native_function { "nativeRevokeDelegator", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void *>(EtsAbilityContext::RevokeDelegator) },
             ani_native_function { "nativeStartAbilityForResultWithAccount",
                 "L@ohos/app/ability/Want/Want;ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccount) },
+            ani_native_function { "nativeStartAbilityForResultWithAccountCheck", ":V",
+                reinterpret_cast<void *>(EtsAbilityContext::StartAbilityForResultWithAccountCheck) },
             ani_native_function { "nativeStartAbilityForResultWithAccountVoid",
                 "L@ohos/app/ability/Want/Want;IL@ohos/app/ability/StartOptions/StartOptions;"
                 "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
