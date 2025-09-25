@@ -439,6 +439,22 @@ HWTEST_F(AppLifecycleDealTest, DumpFfrt_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ScheduleDumpEventQueue_001
+ * @tc.desc: Test ScheduleDumpEventQueue
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppLifecycleDealTest, ScheduleDumpEventQueue_001, TestSize.Level1)
+{
+    TAG_LOGD(AAFwkTag::TEST, "ScheduleDumpEventQueue_001 start.");
+    auto appLifeCycle = std::make_shared<AppLifeCycleDeal>();
+    sptr<MockAppScheduler> mockAppScheduler = new (std::nothrow) MockAppScheduler();
+    appLifeCycle->SetApplicationClient(mockAppScheduler);
+    std::string result;
+    EXPECT_CALL(*mockAppScheduler, ScheduleDumpEventQueue(_)).Times(1);
+    appLifeCycle->ScheduleDumpEventQueue(result);
+}
+
+/**
  * @tc.name: SetWatchdogBackgroundStatusRunning_001
  * @tc.desc: Test the normal state of SetWatchdogBackgroundStatusRunning
  * @tc.type: FUNC

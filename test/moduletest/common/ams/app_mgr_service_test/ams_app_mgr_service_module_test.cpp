@@ -139,6 +139,11 @@ public:
         return 0;
     }
 
+    int32_t ScheduleDumpEventQueue(std::string& result) override
+    {
+        return 0;
+    }
+
     void SetWatchdogBackgroundStatus(bool status) override
     {}
 
