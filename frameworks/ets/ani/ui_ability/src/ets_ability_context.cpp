@@ -22,7 +22,7 @@
 #include "ani_common_start_options.h"
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
-#include "remote_object_taihe_ani.h"
+//#include "remote_object_taihe_ani.h"
 #include "app_utils.h"
 #include "cJSON.h"
 #include "common_fun_ani.h"
@@ -33,6 +33,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_skeleton.h"
+#include "cJSON.h"
 #include "json_utils.h"
 #include "tokenid_kit.h"
 #include "want.h"
@@ -1034,7 +1035,7 @@ void EtsAbilityContext::OnStartServiceExtensionAbility(ani_env *env, ani_object 
     if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
         ret = context->StartServiceExtensionAbility(want);
     } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-        ret = context->StartAppServiceExtensionAbility(want);
+        // ret = context->StartAppServiceExtensionAbility(want);
     }
     if (ret == ERR_OK) {
         errorObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
@@ -1068,7 +1069,7 @@ void EtsAbilityContext::OnStopServiceExtensionAbility(ani_env *env, ani_object a
     if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
         ret = context->StopServiceExtensionAbility(want);
     } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-        ret = context->StopAppServiceExtensionAbility(want);
+        // ret = context->StopAppServiceExtensionAbility(want);
     }
     aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
     AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
@@ -1290,7 +1291,7 @@ ani_long EtsAbilityContext::OnConnectServiceExtensionAbility(ani_env *env, ani_o
     if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
         innerErrCode = context->ConnectAbility(want, connection);
     } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-        innerErrCode = context->ConnectAppServiceExtensionAbility(want, connection);
+        // innerErrCode = context->ConnectAppServiceExtensionAbility(want, connection);
     }
     int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
     if (errcode) {
@@ -2793,12 +2794,13 @@ void ETSAbilityConnection::HandleOnAbilityConnectDone(
         AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
-    ani_object refRemoteObject = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
-    if (refRemoteObject == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null refRemoteObject");
-        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
-        return;
-    }
+    ani_object refRemoteObject = nullptr;
+    // ani_object refRemoteObject = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
+    // if (refRemoteObject == nullptr) {
+    //     TAG_LOGE(AAFwkTag::CONTEXT, "null refRemoteObject");
+    //     AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+    //     return;
+    // }
     ani_status status = ANI_ERROR;
     ani_ref funRef;
     if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(etsConnectionRef_),
@@ -2895,11 +2897,11 @@ void EtsAbilityContext::UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_
     uint64_t time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count());
     std::string requestId = std::to_string(time);
-    if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "add completionHandler failed");
-        env->GlobalReference_Delete(refCompletionHandler);
-        return;
-    }
+    // if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+    //     TAG_LOGE(AAFwkTag::CONTEXT, "add completionHandler failed");
+    //     env->GlobalReference_Delete(refCompletionHandler);
+    //     return;
+    // }
     options.requestId_ = requestId;
 }
 

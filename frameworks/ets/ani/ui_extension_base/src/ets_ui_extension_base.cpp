@@ -24,7 +24,7 @@
 #include "ani_common_configuration.h"
 #include "ani_common_util.h"
 #include "ani_common_want.h"
-#include "remote_object_taihe_ani.h"
+//#include "remote_object_taihe_ani.h"
 #include "application_configuration_manager.h"
 #include "array_wrapper.h"
 #include "configuration_utils.h"
@@ -378,10 +378,10 @@ void EtsUIExtensionBase::OnStopCallBack()
         TAG_LOGD(AAFwkTag::UI_EXT, "service connection not disconnected");
     }
 
-    auto applicationContext = Context::GetApplicationContext();
-    if (applicationContext != nullptr) {
-        applicationContext->DispatchOnAbilityDestroy(etsObj_);
-    }
+    // auto applicationContext = Context::GetApplicationContext();
+    // if (applicationContext != nullptr) {
+    //     applicationContext->DispatchOnAbilityDestroy(etsObj_);
+    // }
 }
 
 void EtsUIExtensionBase::OnCommandWindow(

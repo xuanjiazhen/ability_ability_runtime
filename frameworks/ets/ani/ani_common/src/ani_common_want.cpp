@@ -16,7 +16,7 @@
 #include "ani_common_want.h"
 #include "ani_common_cache_mgr.h"
 #include "ani_common_util.h"
-#include "remote_object_taihe_ani.h"
+//#include "remote_object_taihe_ani.h"
 #include "array_wrapper.h"
 #include "bool_wrapper.h"
 #include "byte_wrapper.h"
@@ -458,13 +458,15 @@ bool InnerWrapWantParamsRemoteObject(
         TAG_LOGE(AAFwkTag::ANI, "null value");
         return false;
     }
-    auto remoteObject = AAFwk::RemoteObjectWrap::UnBox(ao);
-    ani_object aniValue = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
-    if (aniValue == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null aniValue");
-        return false;
-    }
-    return InnerSetRecord(env, recordObject, aniKey, aniValue);
+    //ani_object refRemoteObject = nullptr;
+    // auto remoteObject = AAFwk::RemoteObjectWrap::UnBox(ao);
+    // ani_object aniValue = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
+    // if (aniValue == nullptr) {
+    //     TAG_LOGE(AAFwkTag::ANI, "null aniValue");
+    //     return false;
+    // }
+    // return InnerSetRecord(env, recordObject, aniKey, aniValue);
+    return true;
 }
 
 bool InnerSetArrayString(ani_env *env, ani_object recordObject, ani_string aniKey,

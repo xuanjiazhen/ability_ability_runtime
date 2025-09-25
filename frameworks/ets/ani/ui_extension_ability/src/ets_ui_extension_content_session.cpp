@@ -525,14 +525,14 @@ void EtsUIExtensionContentSession::LoadContent(ani_env *env, ani_object object, 
         uiWindow_->TriggerBindModalUIExtension();
         isFirstTriggerBindModal_ = false;
     }
-    sptr<IRemoteObject> parentToken = sessionInfo_->parentToken;
-    Rosen::WMError ret = uiWindow_->AniSetUIContent(contextPath, env, storage,
-        Rosen::BackupAndRestoreType::NONE, parentToken);
-    if (ret != Rosen::WMError::WM_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "AniSetUIContent failed, ret=%{public}d", ret);
-        EtsErrorUtil::ThrowErrorByNativeErr(env,
-            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
-    }
+    //sptr<IRemoteObject> parentToken = sessionInfo_->parentToken;
+    // Rosen::WMError ret = uiWindow_->AniSetUIContent(contextPath, env, storage,
+    //     Rosen::BackupAndRestoreType::NONE, parentToken);
+    // if (ret != Rosen::WMError::WM_OK) {
+    //     TAG_LOGE(AAFwkTag::UI_EXT, "AniSetUIContent failed, ret=%{public}d", ret);
+    //     EtsErrorUtil::ThrowErrorByNativeErr(env,
+    //         static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
+    // }
     TAG_LOGD(AAFwkTag::UI_EXT, "LoadContent end");
     return;
 }
@@ -1002,13 +1002,13 @@ void EtsUIExtensionContentSession::LoadContentByName(ani_env *env, ani_object ob
         uiWindow_->TriggerBindModalUIExtension();
         isFirstTriggerBindModal_ = false;
     }
-    sptr<IRemoteObject> parentToken = sessionInfo_->parentToken;
-    Rosen::WMError ret = uiWindow_->AniSetUIContentByName(contextPath, env, storage,
-        Rosen::BackupAndRestoreType::NONE, parentToken);
-    if (ret != Rosen::WMError::WM_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "AniSetUIContent failed, ret=%{public}d", ret);
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
-    }
+    // sptr<IRemoteObject> parentToken = sessionInfo_->parentToken;
+    // Rosen::WMError ret = uiWindow_->AniSetUIContentByName(contextPath, env, storage,
+    //     Rosen::BackupAndRestoreType::NONE, parentToken);
+    // if (ret != Rosen::WMError::WM_OK) {
+    //     TAG_LOGE(AAFwkTag::UI_EXT, "AniSetUIContent failed, ret=%{public}d", ret);
+    //     EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    // }
     TAG_LOGD(AAFwkTag::UI_EXT, "LoadContent end");
 }
 

@@ -19,7 +19,7 @@
 #include "ani_common_start_options.h"
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
-#include "remote_object_taihe_ani.h"
+//#include "remote_object_taihe_ani.h"
 #include "common_fun_ani.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
@@ -1566,12 +1566,13 @@ void EtsUIExtensionConnection::HandleOnAbilityConnectDone(
         AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
-    ani_object refRemoteObject = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
-    if (refRemoteObject == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null refRemoteObject");
-        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
-        return;
-    }
+    ani_object refRemoteObject = nullptr;
+    //  = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
+    // if (refRemoteObject == nullptr) {
+    //     TAG_LOGE(AAFwkTag::UI_EXT, "null refRemoteObject");
+    //     AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+    //     return;
+    // }
     ani_status status = ANI_ERROR;
     ani_ref funRef;
     if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(etsConnectionRef_),
@@ -1692,11 +1693,11 @@ void EtsUIExtensionContext::UnwrapCompletionHandlerInStartOptions(ani_env *env, 
     uint64_t time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count());
     std::string requestId = std::to_string(time);
-    if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "add completionHandler failed");
-        env->GlobalReference_Delete(refCompletionHandler);
-        return;
-    }
+    // if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+    //     TAG_LOGE(AAFwkTag::UI_EXT, "add completionHandler failed");
+    //     env->GlobalReference_Delete(refCompletionHandler);
+    //     return;
+    // }
     options.requestId_ = requestId;
 }
 
