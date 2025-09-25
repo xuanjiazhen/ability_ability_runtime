@@ -106,6 +106,14 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
         TAG_LOGE(AAFwkTag::JSENV, "errorStack is empty");
         return;
     }
+
+#ifdef SUPPORT_GRAPHICS
+    std::string str = Ace::UIContent::GetCurrentUIStackInfo();
+    if (!str.empty()) {
+        summary.append(str);
+    }
+#endif // SUPPORT_GRAPHICS
+
     if (errorStack.find(BACKTRACE) != std::string::npos) {
         summary += "Stacktrace:\n" + GetFuncNameAndBuildId(errorStack);
         std::string submitterStack = GetSubmitterStackLocal();
@@ -115,13 +123,14 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
         }
     } else {
         summary += "Stacktrace:\n" + errorStack;
+        NativeEngine *engine = reinterpret_cast<NativeEngine*>(env_);
+        std::string stackTraceStr;
+        engine->GetHybridStackTraceForCrash(env_, stackTraceStr);
+        if (!stackTraceStr.empty()) {
+            summary += "HybridStack:\n" + stackTraceStr;
+        }
     }
-#ifdef SUPPORT_GRAPHICS
-    std::string str = Ace::UIContent::GetCurrentUIStackInfo();
-    if (!str.empty()) {
-        summary.append(str);
-    }
-#endif // SUPPORT_GRAPHICS
+
     if (uncaughtTask_) {
         uncaughtTask_(summary, errorObj);
     }
