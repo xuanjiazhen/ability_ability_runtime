@@ -26,6 +26,7 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
+constexpr const char *HIDE_FAILURE_TIP_DIALOG = "hideFailureTipDialog";
 }
 
 bool UnwrapStartOptionsWithProcessOption(ani_env* env, ani_object param, AAFwk::StartOptions &startOptions)
@@ -171,9 +172,9 @@ bool UnwrapStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &sta
         startOptions.SetWindowFocused(windowFocused);
     }
 
-    bool hideStartWindow = true;
+    bool hideStartWindow = false;
     if (GetFieldBoolByName(env, param, "hideStartWindow", hideStartWindow)) {
-        TAG_LOGD(AAFwkTag::ANI, "hideStartWindow:%{public}d", hideStartWindow);
+        TAG_LOGD(AAFwkTag::ANI, "hideStartWindow:%{public}hhu", hideStartWindow);
         startOptions.SetHideStartWindow(hideStartWindow);
     }
 
@@ -351,6 +352,12 @@ void UnWrapOpenLinkOptions(
     }
     if (!want.HasParameter(APP_LINKING_ONLY)) {
         want.SetParam(APP_LINKING_ONLY, false);
+    }
+
+    if ((status = env->Object_GetPropertyByName_Ref(optionsObj, HIDE_FAILURE_TIP_DIALOG, &paramRef)) == ANI_OK) {
+        bool hideFailureTipDialog = false;
+        AppExecFwk::GetBooleanPropertyObject(env, optionsObj, HIDE_FAILURE_TIP_DIALOG, hideFailureTipDialog);
+        openLinkOptions.SetHideFailureTipDialog(hideFailureTipDialog);
     }
 }
 } // namespace AppExecFwk
