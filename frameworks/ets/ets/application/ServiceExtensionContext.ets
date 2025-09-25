@@ -15,10 +15,12 @@
 
 import { AsyncCallback } from '@ohos.base';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
+import { Caller } from '@ohos.app.ability.UIAbility';
 import { BusinessError } from '@ohos.base';
 import { ConnectOptions } from 'ability.connectOptions';
 import ExtensionContext from 'application.ExtensionContext';
 import StartOptions from '@ohos.app.ability.StartOptions';
+import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import Want from '@ohos.app.ability.Want';
 
 class Cleaner {
@@ -70,7 +72,35 @@ export default class ServiceExtensionContext extends ExtensionContext {
 
   native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): long;
 
+  native nativeConnectServiceExtensionAbilityWithAccount(want: Want, accountId: int, options: ConnectOptions): long;
+
   native nativeDisconnectServiceExtensionAbility(connection: long, callback: AsyncCallbackWrapper<void>): void;
+
+  native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<void>, options?: AtomicServiceOptions): void;
+
+  native nativeStartUIServiceExtensionAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
+
+  native nativePreStartMission(bundleName: string, moduleName: string, abilityName: string, startTime: string, callback: AsyncCallbackWrapper<void>): void;
+
+  native nativeRequestModalUIExtension(want: Want, callback: AsyncCallbackWrapper<void>): void;
+
+  native nativeStopServiceExtensionAbilityWithAccount(want: Want, accountId: int, callback: AsyncCallbackWrapper<void>): void;
+
+  native nativeStartServiceExtensionAbilityWithAccount(want: Want, accountId: int, callback: AsyncCallbackWrapper<void>): void;
+
+  native nativeStartRecentAbility(want: Want, callback: AsyncCallbackWrapper<void>) void;
+
+  native nativeStartRecentAbility(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions) void;
+
+  native nativeStartAbilityWithAccount(want: Want, accountId: int, callback: AsyncCallbackWrapper<void>, options?: StartOptions) void;
+
+  native nativeStartAbilityWithAccount(want: Want, accountId: int, callback: AsyncCallbackWrapper<void>) void;
+
+  native nativeOpenLink(link: string, callback: AsyncCallbackWrapper<void>, options?: OpenLinkOptions);
+
+  native nativeStartAbilityByCallWithAccount(want: Want, accountId: int, callback: AsyncCallbackWrapper<Caller>): void;
+
+  native nativeStartAbilityByCall(want: Want, callback: AsyncCallbackWrapper<Caller>): void;
 
   terminateSelf(callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -190,5 +220,254 @@ export default class ServiceExtensionContext extends ExtensionContext {
         this.nativeDisconnectServiceExtensionAbility(connection, asyncCall);
       })
     });
+  }
+
+  openAtomicService(appId: string, options?: AtomicServiceOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeOpenAtomicService(appId, asyncCall, options);
+      });
+    });
+  }
+
+  startUIServiceExtensionAbility(want: Want): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeStartUIServiceExtensionAbility(want, myCall);
+        });
+      });
+  }
+
+  preStartMission(bundleName: string, moduleName: string, abilityName: string, startTime: string): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativePreStartMission(bundleName, moduleName, abilityName, startTime, myCall);
+        });
+      });
+  }
+
+  requestModalUIExtension(pickerWant: Want, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeRequestModalUIExtension(pickerWant, asyncCall);
+    });
+  }
+
+  requestModalUIExtension(pickerWant: Want): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeRequestModalUIExtension(pickerWant, myCall);
+        });
+      });
+  }
+
+  startRecentAbility(want: Want, options?: StartOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeStartRecentAbility(Want, asyncCall, options);
+        });
+      });
+  }
+
+  startRecentAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartRecentAbility(Want, asyncCall, options);
+    });
+  }
+
+  startRecentAbility(want: Want, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartRecentAbility(Want, asyncCall);
+    });
+  }
+
+  startAbilityByCallWithAccount(want: Want, accountId: int): Promise<Caller> {
+    let p = new Promise<Caller>((resolve: (data: Caller)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<Caller>((err: BusinessError | null, data: Caller | undefined)=>{
+        if (err == null || err.code == 0) {
+          resolve(data as Caller);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartAbilityByCallWithAccount(want, accountId, myCall);
+      });
+    });
+    return p;
+  }
+
+  startAbilityByCall(want: Want): Promise<Caller> {
+    let p = new Promise<Caller>((resolve: (data: Caller)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<Caller>((err: BusinessError | null, data: Caller | undefined)=>{
+        if (err == null || err.code == 0) {
+          resolve(data as Caller);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartAbilityByCall(want, myCall);
+      });
+    });
+    return p;
+  }
+
+  connectServiceExtensionAbilityWithAccount(want: Want, accountId: int, options: ConnectOptions): long {
+    return this.nativeConnectServiceExtensionAbilityWithAccount(want, accountId, options);
+  }
+
+  stopServiceExtensionAbilityWithAccount(want: Want, accountId: int): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeStopServiceExtensionAbilityWithAccount(want, accountId, myCall);
+        });
+      });
+  }
+
+  stopServiceExtensionAbilityWithAccount(want: Want, accountId: int, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStopServiceExtensionAbilityWithAccount(want, accountId, asyncCall);
+    });
+  }
+
+  startServiceExtensionAbilityWithAccount(want: Want, accountId: int): Promise<void> {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartServiceExtensionAbilityWithAccount(want, accountId, asyncCall);
+    });
+  }
+
+  startServiceExtensionAbilityWithAccount(want: Want, accountId: int, callback: AsyncCallback<void>): void {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeStartServiceExtensionAbilityWithAccount(want, accountId, myCall);
+        });
+      });
+  }
+
+  startAbilityWithAccount(want: Want, accountId: int, options?: StartOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeStartAbilityWithAccount(Want, accountId, myCall, options);
+        });
+      });
+  }
+
+  startAbilityWithAccount(want: Want, accountId: int, options: StartOptions, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilityWithAccount(want, accountId, asyncCall, options);
+    });
+  }
+
+  startAbilityWithAccount(want: Want, accountId: int, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilityWithAccount(want, accountId, asyncCall);
+    });
+  }
+
+  startAbilityAsCaller(want: Want, options?: StartOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeStartAbilityAsCaller(want, myCall, options);
+        });
+      });
+  }
+
+  startAbilityAsCaller(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilityAsCaller(want, asyncCall, options);
+    });
+  }
+
+  startAbilityAsCaller(want: Want, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilityAsCaller(want, asyncCall);
+    });
+  }
+
+  openLink(link: string, options?: OpenLinkOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeOpenLink(link, myCall, options);
+        });
+      });
   }
 }

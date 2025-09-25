@@ -66,7 +66,32 @@ public:
     static void StartServiceExtensionAbility(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj);
     static void StopServiceExtensionAbility(
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callbackobj);
-
+    static void OpenAtomicService(ani_env *env, ani_object aniObj, ani_string aniAppId,
+        ani_object callbackObj, ani_object optionsObj);
+    static void StartUIServiceExtensionAbility(ani_env *env, ani_object obj, ani_object wantObj,
+        ani_object callbackobj);
+    static void PreStartMission(ani_env *env, ani_object aniObj, ani_string aniBundleName, ani_string aniModuleName,
+        ani_string aniAbilityName, ani_string aniStartTime, ani_object callbackobj);
+    static void RequestModalUIExtension(ani_env *env, ani_object obj, ani_object wantObj,
+        ani_object callbackobj);
+    static ani_long ConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object obj, ani_object wantObj,
+        ani_int accountId, ani_object connectOptionsObj);
+    static void StopServiceExtensionAbilityWithAccount(ani_env *env, ani_object obj, ani_object wantObj, ani_int accountId,
+        ani_object callbackobj);
+    static void StartServiceExtensionAbilityWithAccount(ani_env *env, ani_object obj, ani_object wantObj, ani_int accountId,
+        ani_object callbackobj);
+    static void StartRecentAbilityWithOptions(ani_env *env, ani_object obj, ani_object wantObj,
+        ani_object callbackobj, ani_object optionsObj);
+    static void StartRecentAbility(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj);
+    static void StartAbilityWithAccountWithOptions(ani_env *env, ani_object obj, ani_object wantObj, ani_int accountId,
+        ani_object callbackobj, ani_object optionsObj);
+    static void StartAbilityWithAccount(ani_env *env, ani_object obj, ani_object wantObj, ani_int accountId, ani_object callbackObj);
+    static void StartAbilityAsCallerWithOptions(ani_env *env, ani_object obj, ani_object wantObj,
+        ani_object callbackobj, ani_object optionsObj);
+    static void StartAbilityAsCaller(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj);
+    static void OpenLink(ani_env *env, ani_object obj, ani_string link, ani_object callbackobj, ani_object openlinkOptionsObj);
+    static void StartAbilityByCallWithAccount(ani_env *env, ani_object obj, ani_object want, ani_int accountId, ani_object callbackobj);
+    static void StartAbilityByCall(ani_env *env, ani_object obj, ani_object want, ani_object callbackobj);
     std::weak_ptr<ServiceExtensionContext> GetAbilityContext()
     {
         return context_;
@@ -75,14 +100,40 @@ private:
     void OnTerminateSelf(ani_env *env, ani_object obj, ani_object callback);
     void OnStartServiceExtensionAbility(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj);
     void OnStopServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callbackobj);
-    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call);
+    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call, bool isStartRecent = false);
     ani_long OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
         ani_object wantObj, ani_object connectOptionsObj);
     void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
         ani_object callback);
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
         ani_object callbackObj, std::shared_ptr<ServiceExtensionContext> context);
-
+    void ClearFailedCallConnection(
+        std::shared_ptr<ServiceExtensionContext> context, const std::shared_ptr<CallerCallBack> &callback);
+    void OnOpenAtomicService(ani_env *env, ani_object aniObj, ani_string aniAppId,
+        ani_object callbackObj, ani_object optionsObj);
+    void OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
+        AAFwk::StartOptions &options, std::string appId, ani_object callbackObj);
+    void OnStartUIServiceExtensionAbility(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj);
+    void OnPreStartMission(ani_env *env, ani_object aniObj, ani_string aniBundleName, ani_string aniModuleName,
+        ani_string aniAbilityName, ani_string aniStartTime, ani_object callbackobj);
+    void OnRequestModalUIExtension(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj);
+    ani_long OnConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object obj, ani_object wantObj,
+        ani_int accountId, ani_object connectOptionsObj);
+    void OnStopServiceExtensionAbilityWithAccount(ani_env *env, ani_object obj, ani_object wantObj,
+        ani_int accountId, ani_object callbackobj);
+    void OnStartServiceExtensionAbilityWithAccount(ani_env *env, ani_object obj, ani_object wantObj,
+        ani_int accountId, ani_object callbackobj);
+    void OnStartAbilityWithAccount(ani_env *env, ani_object obj, ani_object wantObj, ani_int accountId,
+        ani_object callbackobj, ani_object optionsObj);
+    void OnStartAbilityAsCaller(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj,
+        ani_object optionsObj);
+    bool CheckUrl(std::string &urlValue);
+    void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
+        AAFwk::Want &want);
+    void OnOpenLink(ani_env *env, ani_object obj, ani_string link, ani_object callbackobj,
+        ani_object openlinkOptionsObj);
+    void OnStartAbilityByCallWithAccount(ani_env *env, ani_object obj, ani_object want, ani_int accountId,
+        ani_object callbackobj);
     std::weak_ptr<ServiceExtensionContext> context_;
     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;
 };
