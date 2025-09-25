@@ -46,6 +46,17 @@ EtsAbilityRouterMgr &EtsAbilityRouterMgr::GetInstance()
     return instance;
 }
 
+void EtsAbilityRouterMgr::BusinessAbilityFilterCheck(ani_env *env, ani_object filterObj)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "BusinessAbilityFilterCheck called");
+    BusinessAbilityFilter filter;
+    if (!UnwrapBusinessAbilityFilter(env, filterObj, filter)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to UnwrapBusinessAbilityFilter");
+        EtsErrorUtil::ThrowError(env, BusinessErrorAni::CreateCommonError(env, ERROR_PARAM_CHECK_ERROR,
+            TYPE_BUSINESS_AIBILITY_FILTER, "BusinessAbilityFilter"));
+    }
+}
+
 void EtsAbilityRouterMgr::QueryBusinessAbilityInfos(ani_env *env, ani_object filterObj, ani_object callbackObj)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "QueryBusinessAbilityInfos called");
@@ -61,8 +72,6 @@ void EtsAbilityRouterMgr::OnQueryBusinessAbilityInfos(ani_env *env, ani_object f
     BusinessAbilityFilter filter;
     if (!UnwrapBusinessAbilityFilter(env, filterObj, filter)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to UnwrapBusinessAbilityFilter");
-        AsyncCallback(env, callbackObj, BusinessErrorAni::CreateCommonError(env, ERROR_PARAM_CHECK_ERROR,
-            TYPE_BUSINESS_AIBILITY_FILTER, "BusinessAbilityFilter"), nullptr);
         return;
     }
     auto serviceRouterMgr = ServiceRouterMgrHelper::GetInstance().GetServiceRouterMgr();
@@ -114,6 +123,10 @@ void EtsBusinessAbilityRouterInit(ani_env *env)
             "C{@ohos.app.businessAbilityRouter.businessAbilityRouter.BusinessAbilityFilter}"
             "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityRouterMgr::QueryBusinessAbilityInfos)},
+        ani_native_function {"nativeBusinessAbilityFilterCheck",
+            "C{@ohos.app.businessAbilityRouter.businessAbilityRouter.BusinessAbilityFilter}:",
+            reinterpret_cast<void *>(EtsAbilityRouterMgr::BusinessAbilityFilterCheck)},
+            
     };
 
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
