@@ -1012,6 +1012,21 @@ ErrCode AbilityContextImpl::SetMissionIcon(const std::shared_ptr<OHOS::Media::Pi
     return err;
 }
 
+ErrCode AbilityContextImpl::SetMissionWindowIcon(const std::shared_ptr<OHOS::Media::PixelMap>& windowIcon)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT,
+        "windowIcon.Width: %{public}d, windowIcon.Height: %{public}d, "
+        "windowIcon.ByteCount: %{public}d, windowIcon.PixelBytes: %{public}d",
+        static_cast<int32_t>(windowIcon->GetWidth()), static_cast<int32_t>(windowIcon->GetHeight()),
+        static_cast<int32_t>(windowIcon->GetByteCount()), static_cast<int32_t>(windowIcon->GetPixelBytes()));
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "invoking window interface");
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::CONTEXT, "device not support scene board");
+    return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+}
+
 ErrCode AbilityContextImpl::SetAbilityInstanceInfo(const std::string& label,
     std::shared_ptr<OHOS::Media::PixelMap> icon)
 {
