@@ -2099,6 +2099,38 @@ int AppRunningManager::DumpFfrt(const std::vector<int32_t>& pids, std::string& r
     return DumpErrorCode::ERR_OK;
 }
 
+int AppRunningManager::DumpEventQueueByPid(const std::vector<int32_t>& pids, std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DumpEventQueueByPid");
+    std::string oldResult = result; // save old dump result
+    int errCode = DumpErrorCode::ERR_OK;
+    for (const auto& pid : pids) {
+        TAG_LOGD(AAFwkTag::APPMGR, "dump by pid:%{public}d", pid);
+        const auto& appRecord = GetAppRunningRecordByPid(pid);
+        if (!appRecord) {
+            TAG_LOGE(AAFwkTag::APPMGR, "pid %{public}d does not exist", pid);
+            result.append(MSG_DUMP_FAIL).append("pid: " + std::to_string(pid) + " ")
+                .append(MSG_DUMP_FAIL_PROCESS_NOT_EXIST);
+            continue;
+        }
+        std::string tmpResult;
+        errCode = appRecord->DumpEventQueue(tmpResult);
+        if (errCode != DumpErrorCode::ERR_OK) {
+            continue;
+        }
+        if (!tmpResult.empty()) {
+            result.append(tmpResult + '\n');
+        }
+    }
+    // result no change.
+    if (oldResult == result) {
+        TAG_LOGE(AAFwkTag::APPMGR, "dump result is empty");
+        result.append(MSG_DUMP_FAIL).append(MSG_DUMP_FAIL_REASON_INTERNAL);
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return DumpErrorCode::ERR_OK;
+}
+
 bool AppRunningManager::HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid)
 {
     if (abilityToken == nullptr) {

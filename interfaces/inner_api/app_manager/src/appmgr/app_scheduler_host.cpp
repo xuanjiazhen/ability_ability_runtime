@@ -153,6 +153,8 @@ int32_t AppSchedulerHost::OnRemoteRequestInnerThird(uint32_t code, MessageParcel
             return HandleScheduleDumpIpcStat(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_FFRT):
             return HandleScheduleDumpFfrt(data, reply);
+        case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_EVENTP_QUEUE):
+            return HandleScheduleDumpEventQueue(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CACHE_PROCESS):
             return HandleScheduleCacheProcess(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::WATCHDOG_BACKGROUND_STATUS_TRANSACTION):
@@ -521,6 +523,18 @@ int32_t AppSchedulerHost::HandleScheduleDumpFfrt(MessageParcel &data, MessagePar
     HITRACE_METER(HITRACE_TAG_APP);
     std::string result;
     ScheduleDumpFfrt(result);
+    if (!reply.WriteString(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpFfrt result");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppSchedulerHost::HandleScheduleDumpEventQueue(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::string result;
+    ScheduleDumpEventQueue(result);
     if (!reply.WriteString(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpFfrt result");
         return ERR_INVALID_VALUE;
