@@ -9183,6 +9183,17 @@ int AppMgrServiceInner::DumpFfrt(const std::vector<int32_t>& pids, std::string& 
     return appRunningManager_->DumpFfrt(pids, result);
 }
 
+int AppMgrServiceInner::DumpEventQueueByPid(const std::vector<int32_t>& pids, std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DumpEventQueueByPid");
+    if (!appRunningManager_) {
+        result.append(MSG_DUMP_FAIL).append(MSG_DUMP_FAIL_REASON_INTERNAL);
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return appRunningManager_->DumpEventQueueByPid(pids, result);
+}
+
 void AppMgrServiceInner::NotifyAppRunningStatusEvent(
     const std::string &bundle, int32_t uid, AbilityRuntime::RunningStatus runningStatus)
 {

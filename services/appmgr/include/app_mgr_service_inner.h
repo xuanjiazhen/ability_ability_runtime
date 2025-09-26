@@ -1472,6 +1472,8 @@ public:
 
     virtual int DumpFfrt(const std::vector<int32_t>& pids, std::string& result);
 
+    virtual int DumpEventQueueByPid(const std::vector<int32_t>& pids, std::string& result);
+
     /**
      * @brief set support process cache by self
      */

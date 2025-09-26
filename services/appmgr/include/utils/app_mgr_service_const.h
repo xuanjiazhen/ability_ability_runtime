@@ -29,6 +29,7 @@ constexpr const char* MSG_DUMP_FAIL_REASON_INVALILD_CMD = "invalid cmd.\n";
 constexpr const char* MSG_DUMP_FAIL_REASON_INVALILD_PID = "invalid pid.\n";
 constexpr const char* MSG_DUMP_FAIL_REASON_INVALILD_NUM_ARGS = "invalid number of arguments.\n";
 constexpr const char* MSG_DUMP_FAIL_REASON_PERMISSION_DENY = "permission deny.\n";
+constexpr const char* MSG_DUMP_FAIL_PROCESS_NOT_EXIST = "specified process not exist.\n";
 }  // namespace AppExecFwk
 }  // namespace OHOS
 

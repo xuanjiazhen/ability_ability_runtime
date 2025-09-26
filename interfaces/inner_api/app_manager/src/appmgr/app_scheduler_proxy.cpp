@@ -847,6 +847,33 @@ int32_t AppSchedulerProxy::ScheduleDumpFfrt(std::string& result)
     return DumpErrorCode::ERR_OK;
 }
 
+int32_t AppSchedulerProxy::ScheduleDumpEventQueue(std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "AppSchedulerProxy::ScheduleDumpEventQueue start");
+    uint32_t operation = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_EVENTP_QUEUE);
+    MessageParcel data;
+    MessageParcel reply;
+    reply.SetMaxCapacity(MAX_CAPACITY);
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        result.append(MSG_DUMP_FAIL).append(MSG_DUMP_FAIL_REASON_INTERNAL);
+        TAG_LOGE(AAFwkTag::APPMGR, "ScheduleDumpEventQueue WriteInterfaceToken failed!");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    int32_t ret = SendTransactCmd(operation, data, reply, option);
+    if (ret != NO_ERROR) {
+        result.append(MSG_DUMP_FAIL).append(MSG_DUMP_FAIL_REASON_INTERNAL);
+        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    if (!reply.ReadString(result)) {
+        result.append(MSG_DUMP_FAIL).append(MSG_DUMP_FAIL_REASON_INTERNAL);
+        TAG_LOGE(AAFwkTag::APPMGR, "Fail to read string of ScheduleDumpEventQueue result");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return DumpErrorCode::ERR_OK;
+}
+
 void AppSchedulerProxy::SetWatchdogBackgroundStatus(bool status)
 {
     MessageParcel data;

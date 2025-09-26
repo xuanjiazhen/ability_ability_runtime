@@ -3939,6 +3939,22 @@ int32_t MainThread::ScheduleDumpFfrt(std::string& result)
     return DumpFfrtHelper::DumpFfrt(result);
 }
 
+int32_t MainThread::ScheduleDumpEventQueue(std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "pid:%{public}d", getprocpid());
+    result.append("pid:" + std::to_string(getprocpid()) + "\nBundleName:" + applicationInfo_->bundleName);
+    result.append("\nMain handler dump start time: " + AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n");
+    if (mainHandler_ == nullptr) {
+        result.append("mainHandler is destructed!\n");
+    } else {
+        MainHandlerDumper handlerDumper;
+        result.append("mainHandler dump is:\n");
+        mainHandler_->Dump(handlerDumper);
+        result.append(handlerDumper.GetDumpInfo());
+    }
+    result += "Main handler dump end time: " + AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
+    return ERR_OK;
+}
 /**
  *
  * @brief Set watchdog background status of applicaton.
