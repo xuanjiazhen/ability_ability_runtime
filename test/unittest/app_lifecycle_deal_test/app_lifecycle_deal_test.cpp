@@ -451,7 +451,7 @@ HWTEST_F(AppLifecycleDealTest, ScheduleDumpEventQueue_001, TestSize.Level1)
     appLifeCycle->SetApplicationClient(mockAppScheduler);
     std::string result;
     EXPECT_CALL(*mockAppScheduler, ScheduleDumpEventQueue(_)).Times(1);
-    appLifeCycle->ScheduleDumpEventQueue(result);
+    appLifeCycle->DumpEventQueue(result);
 }
 
 /**

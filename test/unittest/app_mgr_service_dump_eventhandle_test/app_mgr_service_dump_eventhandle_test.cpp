@@ -168,7 +168,7 @@ HWTEST_F(AppMgrServiceDumpEventHandleTest, AppMgrServiceDumpEventHandle_0200, Te
 
 /*
  * @tc.number    : AppMgrServiceDumpEventHandle_0200
- * @tc.name      : AppMgrService DumpEventQueueByPid 
+ * @tc.name      : AppMgrService DumpEventQueueByPid
  * @tc.desc      : 1.Test args.
  */
 HWTEST_F(AppMgrServiceDumpEventHandleTest, AppMgrServiceDumpEventHandle_0300, TestSize.Level1)

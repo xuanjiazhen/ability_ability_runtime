@@ -802,7 +802,7 @@ int AppMgrService::ShowHelp(const std::vector<std::u16string>& args, std::string
         .append("--ipc pid ARG               ")
         .append("ipc load statistic; pid must be specified or set to -a dump all processes. ARG must be one of "
             "--start-stat | --stop-stat | --stat\n")
-        .append("--eventhandle pid1[,pid2,pid3] [-t] [testname]\n");
+        .append("--eventhandle pid1[,pid2,pid3] [-t taskname]\n");
 
     return ERR_OK;
 }
@@ -1041,7 +1041,7 @@ int AppMgrService::DumpEventQueueByPid(const std::vector<std::u16string>& args, 
     std::string pidsRaw = Str16ToStr8(args[INDEX_PID]);
     TAG_LOGD(AAFwkTag::APPMGR, "pids:%{public}s", pidsRaw.c_str());
 
-    return DumpEventQueueByPidInner(pidsRaw, result);;
+    return DumpEventQueueByPidInner(pidsRaw, result);
 }
 
 int AppMgrService::DumpIpcAllStart(std::string& result)
