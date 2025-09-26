@@ -49,7 +49,7 @@ public:
     {
         std::string dir;
         dir.append(DATA_STORAGE);
-        dir.append(areaMode_);
+        dir.append(EL_LIST[1]);
         dir.append(BASE_LOG_FILE);
         return dir;
     }
@@ -269,8 +269,8 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextSecondTest, GetLogFileDirTest_004, 
         OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);
     ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     std::string logFileDir = contextImpl->GetLogFileDir();
-    ASSERT_EQ(writeLength, logFileDir.length());
     ASSERT_STREQ(buffer, logFileDir.c_str());
+    ASSERT_EQ(writeLength, logFileDir.length());
 
     contextImpl->SwitchArea(ABILITY_RUNTIME_AREA_MODE_EL2);
     code = OH_AbilityRuntime_ApplicationContextGetLogFileDir(buffer, BUFFER_SIZE, &writeLength);

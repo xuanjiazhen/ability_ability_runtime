@@ -37,7 +37,6 @@ constexpr const char* BASE_PREFERENCES = "/base/preferences";
 constexpr const char* BASE_BUNDLE_CODE = "/base/bundleCode";
 constexpr const char* BASE_DISTRIBUTED_FILES = "/base/distributedFiles";
 constexpr const char* BASE_CLOUD_FILE = "/base/cloudFile";
-constexpr const char* BASE_LOG_FILE = "/base/logFile";
 constexpr const char* BASE_RESOURCE_DIR = "/base/resources/resfile";
 constexpr const char* ENTRY_MODULE_NAME = "entry";
 constexpr const char* EL_LIST[] = { "el1", "el2", "el3", "el4", "el5" };
@@ -129,15 +128,6 @@ public:
         dir.append(DATA_STORAGE);
         dir.append(areaMode_);
         dir.append(BASE_CLOUD_FILE);
-        return dir;
-    }
-
-    std::string GetLogFileDir() override
-    {
-        std::string dir;
-        dir.append(DATA_STORAGE);
-        dir.append(areaMode_);
-        dir.append(BASE_LOG_FILE);
         return dir;
     }
 
