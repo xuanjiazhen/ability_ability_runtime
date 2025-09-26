@@ -27,7 +27,7 @@ std::recursive_mutex AbilityAutoStartupClient::mutex_;
 
 #define CHECK_POINTER_RETURN_NOT_CONNECTED(object)             \
     if (!(object)) {                                             \
-        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null proxy"); \
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null proxy."); \
         return ABILITY_SERVICE_NOT_CONNECTED;                  \
     }
 
