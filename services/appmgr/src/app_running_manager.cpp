@@ -2109,7 +2109,8 @@ int AppRunningManager::DumpEventQueueByPid(const std::vector<int32_t>& pids, std
         const auto& appRecord = GetAppRunningRecordByPid(pid);
         if (!appRecord) {
             TAG_LOGE(AAFwkTag::APPMGR, "pid %{public}d does not exist", pid);
-            result.append(MSG_DUMP_FAIL).append("pid: " + std::to_string(pid) + " ").append(MSG_DUMP_FAIL_PROCESS_NOT_EXIST);
+            result.append(MSG_DUMP_FAIL).append("pid: " + std::to_string(pid) + " ")
+                .append(MSG_DUMP_FAIL_PROCESS_NOT_EXIST);
             continue;
         }
         std::string tmpResult;

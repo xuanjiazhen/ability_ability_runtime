@@ -1097,6 +1097,11 @@ int AppRunningRecord::DumpFfrt(std::string& result)
     return 0;
 }
 
+int AppRunningRecord::DumpEventQueue(std::string &result)
+{
+    return 0;
+}
+
 void AppRunningRecord::SetWatchdogBackgroundStatusRunning(bool status)
 {
 }
