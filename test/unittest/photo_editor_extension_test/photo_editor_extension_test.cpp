@@ -27,7 +27,7 @@ using namespace testing::ext;
 
 class PhotoEditorExtensionTest : public testing::Test {
 public:
-    static void SetUpTestCase(void);
+    static void SetUpTestCase(void)
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();

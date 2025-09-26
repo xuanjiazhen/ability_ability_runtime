@@ -38,7 +38,6 @@ const std::string JSON_KEY_SUB_KILL_REASON = "sub_kill_reason";
 const std::string JSON_KEY_EXIT_MSG = "exit_msg";
 constexpr uint32_t ACCESS_TOKEN_ID = 123;
 const int SESSION_ID = 111;
-constexpr int32_t TIME_SLEEP = 4000;
 } // namespace
 
 class AppExitReasonDataManagerTest : public testing::Test {
@@ -517,11 +516,12 @@ HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_PutAsync_001, Te
 {
     std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
     DelayedSingleton<AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = kvStorePtr;
+    kvStorePtr->putCallTimes_ = 0;
 
     DistributedKv::Key key("test_key");
     DistributedKv::Value value("test_value");
     AppExitReasonDataManager::PutAsync(key, value);
-    usleep(TIME_SLEEP);
+    sleep(1);
     EXPECT_EQ(kvStorePtr->putCallTimes_, 1);
 }
 
@@ -535,11 +535,12 @@ HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_PutAsync_002, Te
     std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
     kvStorePtr->Put_ = DistributedKv::Status::ERROR;
     DelayedSingleton<AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = kvStorePtr;
+    kvStorePtr->putCallTimes_ = 0;
 
     DistributedKv::Key key("test_key");
     DistributedKv::Value value("test_value");
     AppExitReasonDataManager::PutAsync(key, value);
-    usleep(TIME_SLEEP);
+    sleep(1);
     EXPECT_EQ(kvStorePtr->putCallTimes_, 1);
 }
 } // namespace AbilityRuntime
