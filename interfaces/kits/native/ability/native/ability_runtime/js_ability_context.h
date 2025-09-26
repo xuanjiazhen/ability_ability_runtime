@@ -93,11 +93,13 @@ public:
 public:
     static napi_value SetMissionLabel(napi_env env, napi_callback_info info);
     static napi_value SetMissionIcon(napi_env env, napi_callback_info info);
+    static napi_value SetMissionWindowIcon(napi_env env, napi_callback_info info);
     static napi_value SetAbilityInstanceInfo(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnSetMissionLabel(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetMissionIcon(napi_env env, NapiCallbackInfo& info);
+    napi_value OnSetMissionWindowIcon(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetAbilityInstanceInfo(napi_env env, NapiCallbackInfo& info);
 #endif
 
