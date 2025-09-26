@@ -464,6 +464,11 @@ int AppRunningManager::DumpFfrt(const std::vector<int32_t>& pids, std::string& r
     return AAFwk::MyStatus::GetInstance().dumpFfrt_;
 }
 
+int AppRunningManager::DumpEventQueueByPid(const std::vector<int32_t>& pids, std::string& result)
+{
+    return ERR_OK;
+}
+
 bool AppRunningManager::HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid)
 {
     pid = AAFwk::MyStatus::GetInstance().handleUserRequestCleanPid_;
