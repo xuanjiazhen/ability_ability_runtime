@@ -766,9 +766,6 @@ int AppMgrService::Dump(int fd, const std::vector<std::u16string>& args)
 int AppMgrService::Dump(const std::vector<std::u16string>& args, std::string& result)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    for (auto arg : args) {
-        TAG_LOGE(AAFwkTag::APPMGR, "##zhawei# %{public}s", Str16ToStr8(arg).c_str());
-    }
     auto size = args.size();
     if (size == 0) {
         return ShowHelp(args, result);
