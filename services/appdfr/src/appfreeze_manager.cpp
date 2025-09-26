@@ -1003,5 +1003,11 @@ std::string AppfreezeManager::GetFirstLine(const std::string &path)
     inFile.close();
     return firstLine;
 }
+
+bool AppfreezeManager::CheckInBackGround(const FaultData &faultData)
+{
+    return faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_6S &&
+        !faultData.isInForeground;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
