@@ -298,10 +298,13 @@ void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntim
             abilityRecord->GetAbilityThread()->ScheduleUpdateConfiguration(config);
         }
     }
-    for (auto it = abilityStages_.begin(); it != abilityStages_.end(); it++) {
-        auto abilityStage = it->second;
-        if (abilityStage) {
-            abilityStage->OnConfigurationUpdated(config);
+    {
+        std::lock_guard<std::mutex> lock(abilityStageMutex_);
+        for (auto it = abilityStages_.begin(); it != abilityStages_.end(); it++) {
+            auto abilityStage = it->second;
+            if (abilityStage) {
+                abilityStage->OnConfigurationUpdated(config);
+            }
         }
     }
 #ifdef SUPPORT_GRAPHICS
@@ -355,12 +358,14 @@ void OHOSApplication::OnMemoryLevel(int32_t level)
             }
         }
     }
-
-    TAG_LOGD(AAFwkTag::APPKIT, "Number of abilityStage to be notified : [%{public}zu]", abilityStages_.size());
-    for (auto it = abilityStages_.begin(); it != abilityStages_.end(); it++) {
-        auto abilityStage = it->second;
-        if (abilityStage) {
-            abilityStage->OnMemoryLevel(level);
+    {
+        std::lock_guard<std::mutex> lock(abilityStageMutex_);
+        TAG_LOGD(AAFwkTag::APPKIT, "Number of abilityStage to be notified : [%{public}zu]", abilityStages_.size());
+        for (auto it = abilityStages_.begin(); it != abilityStages_.end(); it++) {
+            auto abilityStage = it->second;
+            if (abilityStage) {
+                abilityStage->OnMemoryLevel(level);
+            }
         }
     }
 
@@ -515,7 +520,10 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             want = *(abilityRecord->GetWant());
         }
         abilityStage->OnCreate(want);
-        abilityStages_[moduleName] = abilityStage;
+        {
+            std::lock_guard<std::mutex> lock(abilityStageMutex_);
+            abilityStages_[moduleName] = abilityStage;
+        }
     } else {
         abilityStage = iterator->second;
     }
@@ -698,7 +706,10 @@ void OHOSApplication::AutoStartupDone(const std::shared_ptr<AbilityLocalRecord> 
     }
 
     abilityStage->OnCreate(want);
-    abilityStages_[moduleName] = abilityStage;
+    {
+        std::lock_guard<std::mutex> lock(abilityStageMutex_);
+        abilityStages_[moduleName] = abilityStage;
+    }
     const sptr<IRemoteObject> &token = abilityRecord->GetToken();
     if (token == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null token");
@@ -718,7 +729,10 @@ void OHOSApplication::AutoStartupDone(
 
     Want want;
     abilityStage->OnCreate(want);
-    abilityStages_[hapModuleInfo.moduleName] = abilityStage;
+    {
+        std::lock_guard<std::mutex> lock(abilityStageMutex_);
+        abilityStages_[hapModuleInfo.moduleName] = abilityStage;
+    }
     TAG_LOGI(AAFwkTag::APPKIT, "abilityStage insert and initialization");
     return;
 }
@@ -757,9 +771,12 @@ bool OHOSApplication::AddAbilityStage(
         return false;
     }
 
-    if (abilityStages_.find(hapModuleInfo.moduleName) != abilityStages_.end()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "object exist");
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(abilityStageMutex_);
+        if (abilityStages_.find(hapModuleInfo.moduleName) != abilityStages_.end()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "object exist");
+            return false;
+        }
     }
 
     auto stageContext = std::make_shared<AbilityRuntime::AbilityStageContext>();
@@ -808,7 +825,10 @@ bool OHOSApplication::AddAbilityStage(
     TAG_LOGD(AAFwkTag::APPKIT, "no wait startup second");
     Want want;
     abilityStage->OnCreate(want);
-    abilityStages_[hapModuleInfo.moduleName] = abilityStage;
+    {
+        std::lock_guard<std::mutex> lock(abilityStageMutex_);
+        abilityStages_[hapModuleInfo.moduleName] = abilityStage;
+    }
     TAG_LOGI(AAFwkTag::APPKIT, "abilityStage insert and initialization");
     return true;
 }
@@ -835,7 +855,10 @@ void OHOSApplication::CleanAbilityStage(const sptr<IRemoteObject> &token,
         abilityStage->RemoveAbility(token);
         if (!abilityStage->ContainsAbility() && !isCacheProcess) {
             abilityStage->OnDestroy();
-            abilityStages_.erase(moduleName);
+            {
+                std::lock_guard<std::mutex> lock(abilityStageMutex_);
+                abilityStages_.erase(moduleName);
+            }
         }
     }
 }
@@ -933,12 +956,12 @@ void OHOSApplication::SchedulePrepareTerminate(const std::string &moduleName,
 void OHOSApplication::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName,
     std::function<void(std::string)> callback, bool &isAsync)
 {
+    std::lock_guard<std::mutex> lock(abilityStageMutex_);
     TAG_LOGD(AAFwkTag::APPKIT, "ScheduleNewProcessRequest call");
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null callback");
         return;
     }
-
     if (abilityStages_.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "abilityStages_ empty");
         return;
@@ -1052,6 +1075,7 @@ void OHOSApplication::UpdateAppContextResMgr(const Configuration &config)
 
 void OHOSApplication::CleanEmptyAbilityStage()
 {
+    std::lock_guard<std::mutex> lock(abilityStageMutex_);
     bool containsNonEmpty = false;
     for (auto it = abilityStages_.begin(); it != abilityStages_.end();) {
         auto abilityStage = it->second;

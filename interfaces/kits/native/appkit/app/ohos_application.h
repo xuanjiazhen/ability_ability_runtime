@@ -20,6 +20,7 @@
 #include <string>
 #include <list>
 #include <memory>
+#include <mutex>
 
 #include "ability_stage.h"
 #include "app_context.h"
@@ -308,6 +309,7 @@ private:
     std::map<int32_t, std::string> extensionTypeMap_;
     std::string entryLoadPath_ = "";
     bool deduplicate_ = false;
+    std::mutex abilityStageMutex_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
