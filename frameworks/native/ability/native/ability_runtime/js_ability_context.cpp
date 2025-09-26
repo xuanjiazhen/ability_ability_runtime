@@ -2340,6 +2340,7 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
     BindNativeFunction(env, object, "setMissionLabel", moduleName, JsAbilityContext::SetMissionLabel);
     BindNativeFunction(env, object, "setMissionIcon", moduleName, JsAbilityContext::SetMissionIcon);
     BindNativeFunction(env, object, "setAbilityInstanceInfo", moduleName, JsAbilityContext::SetAbilityInstanceInfo);
+    BindNativeFunction(env, object, "setMissionWindowIcon", moduleName, JsAbilityContext::SetMissionWindowIcon);
 #endif
     BindNativeFunction(env, object, "startAppServiceExtensionAbility", moduleName,
         JsAbilityContext::StartAppServiceExtensionAbility);
@@ -2752,6 +2753,11 @@ napi_value JsAbilityContext::SetMissionIcon(napi_env env, napi_callback_info inf
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetMissionIcon);
 }
 
+napi_value JsAbilityContext::SetMissionWindowIcon(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetMissionWindowIcon);
+}
+
 napi_value JsAbilityContext::SetAbilityInstanceInfo(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetAbilityInstanceInfo);
@@ -2836,6 +2842,52 @@ napi_value JsAbilityContext::OnSetMissionIcon(napi_env env, NapiCallbackInfo& in
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnSetMissionIcon",
         env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsAbilityContext::OnSetMissionWindowIcon(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(info.argc));
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    auto windowIcon = OHOS::Media::PixelMapNapi::GetPixelMap(env, info.argv[INDEX_ZERO]);
+    if (!windowIcon) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse windowIcon failed");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return CreateJsUndefined(env);
+    }
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [weak = context_, windowIcon, innerErrCode]() {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+                *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                return;
+            }
+            TAG_LOGI(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(windowIcon->GetWidth()));
+            *innerErrCode = context->SetMissionWindowIcon(windowIcon);
+    };
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                task.Resolve(env, CreateJsUndefined(env));
+                return;
+            }
+            if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                return;
+            }
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+        };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::SetMissionWindowIcon",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
     return result;
 }
 
