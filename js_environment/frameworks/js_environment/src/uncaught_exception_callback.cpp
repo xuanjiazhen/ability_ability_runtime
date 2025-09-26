@@ -107,13 +107,6 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
         return;
     }
 
-#ifdef SUPPORT_GRAPHICS
-    std::string str = Ace::UIContent::GetCurrentUIStackInfo();
-    if (!str.empty()) {
-        summary.append(str);
-    }
-#endif // SUPPORT_GRAPHICS
-
     if (errorStack.find(BACKTRACE) != std::string::npos) {
         summary += "Stacktrace:\n" + GetFuncNameAndBuildId(errorStack);
         std::string submitterStack = GetSubmitterStackLocal();
@@ -130,6 +123,13 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
             summary += "HybridStack:\n" + stackTraceStr;
         }
     }
+
+#ifdef SUPPORT_GRAPHICS
+    std::string str = Ace::UIContent::GetCurrentUIStackInfo();
+    if (!str.empty()) {
+        summary.append(str);
+    }
+#endif // SUPPORT_GRAPHICS
 
     if (uncaughtTask_) {
         uncaughtTask_(summary, errorObj);
