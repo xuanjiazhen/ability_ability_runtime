@@ -161,6 +161,7 @@ constexpr int32_t APP_ALIVE_TIME_MS = 1000;  // Allow background startup within 
 constexpr int32_t REGISTER_FOCUS_DELAY = 5000;
 constexpr size_t OFFSET = 32;
 constexpr int32_t PENG_LAI_UID = 7655;
+constexpr int32_t RSS_UID = 1901;
 constexpr const char* IS_DELEGATOR_CALL = "isDelegatorCall";
 
 // Startup rule switch
@@ -9032,6 +9033,9 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    if (IPCSkeleton::GetCallingUid() != RSS_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "uid check fail");
+    }
     int32_t oriValidUserId = GetValidUserId(DEFAULT_INVAL_VALUE);
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, 0, oriValidUserId, true, nullptr,
@@ -9060,6 +9064,12 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
     if (!abilityRequest.abilityInfo.isStageBasedModel) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target ability not stage base model");
         return RESOLVE_CALL_ABILITY_VERSION_ERR;
+    }
+    if (abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE ||
+        abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED ||
+        abilityRequest.abilityInfo.isolationProcess) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not support prelaunch");
+        return RESOLVE_CALL_ABILITY_TYPE_ERR;
     }
 
     result = CheckStartByCallPermission(abilityRequest);

@@ -1353,13 +1353,7 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
         uiAbilityRecord = sessionAbilityMap_.at(persistentId);
     }
     uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
-    uiAbilityRecord->SetLaunchReason(LaunchReason::PRE_LAUNCH);
-
-#ifdef SUPPORT_UPMS
-    if (InsightIntentExecuteParam::IsInsightIntentExecute(abilityRequest.want)) {
-        uiAbilityRecord->GrantUriPermission();
-    }
-#endif // SUPPORT_UPMS
+    uiAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_START_ABILITY);
 
     std::string value = abilityRequest.want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE);
     if (!value.empty()) {
