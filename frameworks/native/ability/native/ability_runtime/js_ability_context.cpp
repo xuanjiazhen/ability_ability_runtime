@@ -464,6 +464,11 @@ napi_value JsAbilityContext::SetOnNewWantSkipScenarios(napi_env env, napi_callba
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetOnNewWantSkipScenarios);
 }
 
+napi_value JsAbilityContext::SetMissionWindowIcon(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetMissionWindowIcon);
+}
+
 void JsAbilityContext::ClearFailedCallConnection(
     const std::weak_ptr<AbilityContext>& abilityContext, const std::shared_ptr<CallerCallBack> &callback)
 {
@@ -2351,6 +2356,7 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
         JsAbilityContext::DisconnectAppServiceExtensionAbility);
     BindNativeFunction(env, object, "setOnNewWantSkipScenarios", moduleName,
         JsAbilityContext::SetOnNewWantSkipScenarios);
+    BindNativeFunction(env, object, "setMissionWindowIcon", moduleName, JsAbilityContext::SetMissionWindowIcon);
     return object;
 }
 
@@ -3263,6 +3269,56 @@ napi_value JsAbilityContext::OnConnectAppServiceExtensionAbility(napi_env env, N
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     return ConnectExtensionAbilityCommon(env, info, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+}
+
+napi_value JsAbilityContext::OnSetMissionWindowIcon(napi_env env, NapiCallbackInfo& info)
+{
+#ifdef SUPPORT_SCREEN
+    TAG_LOGD(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(info.argc));
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    auto windowIcon = OHOS::Media::PixelMapNapi::GetPixelMap(env, info.argv[INDEX_ZERO]);
+    if (!windowIcon) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse windowIcon failed");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return CreateJsUndefined(env);
+    }
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [weak = context_, windowIcon, innerErrCode]() {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+                *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                return;
+            }
+            TAG_LOGI(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(windowIcon->GetWidth()));
+            *innerErrCode = context->SetMissionWindowIcon(windowIcon);
+    };
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                task.Resolve(env, CreateJsUndefined(env));
+                return;
+            }
+            if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                return;
+            }
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+        };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::SetMissionWindowIcon",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+#else
+    return CreateJsUndefined(env);
+#endif
 }
 
 int32_t JsAbilityContext::GenerateRequestCode()
