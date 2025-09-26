@@ -2766,5 +2766,23 @@ HWTEST_F(AbilityContextImplTest, GetFailureInfoByMessage_0100, Function | Medium
     EXPECT_EQ(faileCode, 0);
     EXPECT_EQ(failReason, "A system error occurred");
 }
+
+/**
+ * @tc.name: Ability_Context_Impl_SetMissionWindowIcon_0100
+ * @tc.desc: test set mission window icon.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetMissionWindowIcon_0100, Function | MediumTest | Level1)
+{
+    ASSERT_TRUE(context_ != nullptr);
+    auto icon = std::make_shared<Media::PixelMap>();
+    auto ret = context_->SetMissionWindowIcon(icon);
+    EXPECT_NE(ret, 0);
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(ret, ERR_OK);
+    } else {
+        EXPECT_EQ(ret, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
+    }
+}
 } // namespace AppExecFwk
 } // namespace OHOS
