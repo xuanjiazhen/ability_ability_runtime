@@ -74,18 +74,15 @@ const char *GetDataPath()
 int32_t GetAppPreload()
 {
     OHOS::AppExecFwk::ApplicationEnvImpl *pApplicationEnvIml = OHOS::AppExecFwk::ApplicationEnvImpl::GetInstance();
-
     if (pApplicationEnvIml) {
         return pApplicationEnvIml->GetAppPreloadType();
     }
-
     return 0;
 }
 
 void ClearAppPreload()
 {
     OHOS::AppExecFwk::ApplicationEnvImpl *pApplicationEnvIml = OHOS::AppExecFwk::ApplicationEnvImpl::GetInstance();
-
     if (pApplicationEnvIml) {
         pApplicationEnvIml->ClearAppPreloadType();
     }
