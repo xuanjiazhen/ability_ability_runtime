@@ -16,6 +16,7 @@
 #include "js_application_utils.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

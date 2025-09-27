@@ -57,7 +57,7 @@ private:
     napi_value OnExitMasterProcessRole(napi_env env, NapiCallbackInfo& info);
     bool VerifyCreatePluginContextParams(napi_env env, NapiCallbackInfo &info, std::string &moduleName,
         std::string &pluginBundleName, std::string &hostBundleName);
-    napi_value OnGetAppPreloadType(napi_env env, napi_callback_info info);
+    napi_value OnGetAppPreloadType(napi_env env, NapiCallbackInfo &info);
 };
 
 napi_value ApplicationInit(napi_env env, napi_value exportObj);

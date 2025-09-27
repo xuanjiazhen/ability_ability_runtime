@@ -80,7 +80,7 @@ const std::string &ApplicationEnvImpl::GetDataPath() const
 * @param -
 * @return AppPreloadType
 */
-int32_t &ApplicationEnvImpl::GetAppPreloadType() const
+const int32_t &ApplicationEnvImpl::GetAppPreloadType() const
 {
     return appPreloadType_;
 }

@@ -98,7 +98,7 @@ public:
      * @param -
      * @return AppPreloadType
      */
-    int32_t &GetAppPreloadType() const;
+    const int32_t &GetAppPreloadType() const;
 
     /**
      * @brief Clear the app preload type of the application's runtime environment

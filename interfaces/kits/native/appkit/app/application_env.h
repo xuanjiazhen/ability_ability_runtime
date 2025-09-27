@@ -44,8 +44,16 @@ const char *GetSrcPath();
  */
 const char *GetDataPath();
 
+/**
+* @brief Obtains the app preload type of the application
+* @param -
+* @return Returns the application preload type identifier
+*/
 int32_t GetAppPreload();
 
+/**
+* @brief Clears the application preload state
+*/
 void ClearAppPreload();
 
 #ifdef __cplusplus
