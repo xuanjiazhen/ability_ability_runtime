@@ -630,8 +630,7 @@ napi_value JsApplication::OnExitMasterProcessRole(napi_env env, NapiCallbackInfo
 napi_value JsApplication::OnGetAppPreloadType(napi_env env, NapiCallbackInfo& info)
 {
     auto appPreload = GetAppPreload();
-    
-    return result;
+    return CreateJsValue(env, appPreload);
 }
 
 napi_value ApplicationInit(napi_env env, napi_value exportObj)
@@ -679,7 +678,7 @@ napi_value ApplicationInit(napi_env env, napi_value exportObj)
 
 void JsApplicationInitProperty(napi_env env, napi_value exportObj)
 {
-    napi_set_named_property(env, exportObj, "AppPreloadType", AppPreloadTypeInit(env, ));
+    napi_set_named_property(env, exportObj, "AppPreloadType", AppPreloadTypeInit(env));
 } 
 } // namespace AbilityRuntime
 } // namespace OHOS

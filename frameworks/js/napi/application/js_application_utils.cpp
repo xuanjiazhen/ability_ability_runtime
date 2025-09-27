@@ -22,17 +22,17 @@ namespace AbilityRuntime {
 
 napi_value AppPreloadTypeInit(napi_env env)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
 
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null env");
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return nullptr;
     }
 
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null obj");
+        TAG_LOGE(AAFwkTag::APPKIT, "null obj");
         return nullptr;
     }
 
