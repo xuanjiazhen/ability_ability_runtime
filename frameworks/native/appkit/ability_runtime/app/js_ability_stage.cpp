@@ -255,6 +255,7 @@ void JsAbilityStage::OnCreate(const AAFwk::Want &want) const
     napi_call_function(env, obj, methodOnCreate, 0, nullptr, nullptr);
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "JsAbilityStage::OnCreate end");
     ClearAppPreload();
+
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
     if (delegator) {
         delegator->PostPerformStageStart(CreateStageProperty());

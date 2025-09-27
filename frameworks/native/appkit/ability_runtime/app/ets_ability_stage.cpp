@@ -114,6 +114,7 @@ void ETSAbilityStage::OnCreate(const AAFwk::Want &want) const
     CallObjectMethod(false, "onCreate", ":V");
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnCreate end");
     ClearAppPreload();
+
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
     if (delegator) {
         delegator->PostPerformStageStart(CreateStageProperty());
