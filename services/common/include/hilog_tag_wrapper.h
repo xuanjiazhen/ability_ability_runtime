@@ -187,6 +187,106 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
+static bool ConvertFileName1(const std::string& fileBaseName, std::string& abbrFileName)
+{
+    if (fileBaseName == "ability_connect_manager") {
+        abbrFileName = "ABCM";
+        return true;
+    }
+    if (fileBaseName == "ability_manager_client") {
+        abbrFileName = "AMC";
+        return true;
+    }
+    if (fileBaseName == "ability_manager_service") {
+        abbrFileName = "ABMS";
+        return true;
+    }
+    if (fileBaseName == "ability_connect_callback_stub") {
+        abbrFileName = "ACCS";
+        return true;
+    }
+    return false;
+}
+
+static bool ConvertFileName2(const std::string& fileBaseName, std::string& abbrFileName)
+{
+    if (fileBaseName == "app_running_manager") {
+        abbrFileName = "ARM";
+        return true;
+    }
+    if (fileBaseName == "app_mgr_service_inner") {
+        abbrFileName = "AMSI";
+        return true;
+    }
+    if (fileBaseName == "app_running_record") {
+        abbrFileName = "ARR";
+        return true;
+    }
+    if (fileBaseName == "cache_process_manager") {
+        abbrFileName = "CPM";
+        return true;
+    }
+    return false;
+}
+
+static bool ConvertFileName3(const std::string& fileBaseName, std::string& abbrFileName)
+{
+    if (fileBaseName == "js_service_extension_context") {
+        abbrFileName = "JSEC";
+        return true;
+    }
+    if (fileBaseName == "js_ui_ability") {
+        abbrFileName = "JUA";
+        return true;
+    }
+    if (fileBaseName == "js_service_extension") {
+        abbrFileName = "JSE";
+        return true;
+    }
+    if (fileBaseName == "app_spawn_client") {
+        abbrFileName = "ASC";
+        return true;
+    }
+    if (fileBaseName == "service_extension_context") {
+        abbrFileName = "SEC";
+        return true;
+    }
+    if (fileBaseName == "ui_ability_lifecycle_manager") {
+        abbrFileName = "UALM";
+        return true;
+    }
+    return false;
+}
+
+static bool ConvertFileName4(const std::string& fileBaseName, std::string& abbrFileName)
+{
+    if (fileBaseName == "connection_record") {
+        abbrFileName = "CONN";
+        retrurn true;
+    }
+    if (fileBaseName == "dump_runtime_helper") {
+        abbrFileName = "DRH";
+        return true;
+    }
+    if (fileBaseName == "main_thread") {
+        abbrFileName = "MTHD";
+        return true;
+    }
+    if (fileBaseName == "ability_record") {
+        abbrFileName = "ABR";
+        return true;
+    }
+    if (fileBaseName == "connect_server_manager") {
+        abbrFileName = "CSM";
+        return true;
+    }
+    if (fileBaseName == "prload_uiext_state_observer") {
+        abbrFileName = "PUSO";
+        return true;
+    }
+    return false;
+}
+
 [[maybe_unused]] static std::string CovertFileName(const std::string& fileName)
 {
     std::string fileBaseName = fileName;
@@ -195,32 +295,10 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
         return fileBaseName;
     }
     fileBaseName = fileName.substr(0, pos);
-    if (fileBaseName == "ability_manager_client") {
-        return "AMC";
-    }
-    if (fileBaseName == "app_running_manager") {
-        return "ARM";
-    }
-    if (fileBaseName == "ability_manager_service") {
-        return "ABMS";
-    }
-    if (fileBaseName == "app_mgr_service_inner") {
-        return "AMSI";
-    }
-    if (fileBaseName == "app_running_record") {
-        return "ARR";
-    }
-    if (fileBaseName == "connect_server_manager") {
-        return "CSM";
-    }
-    if (fileBaseName == "js_ui_ability") {
-        return "JUA";
-    }
-    if (fileBaseName == "js_service_extension") {
-        return "JSE";
-    }
-    if (fileBaseName == "ability_connect_callback_stub") {
-        return "ACCS";
+    std::string abbrFileName;
+    if (ConvertFileName1(fileBaseName, abbrFileName) || ConvertFileName2(fileBaseName, abbrFileName) ||
+        ConvertFileName3(fileBaseName, abbrFileName) || ConvertFileName4(fileBaseName, abbrFileName)) {
+        return abbrFileName;
     }
     return fileBaseName;
 }
