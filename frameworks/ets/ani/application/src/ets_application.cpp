@@ -281,7 +281,8 @@ ani_enum_item EtsApplication::GetAppPreloadType(ani_env *env)
         return appPreloadTypeItem;
     }
     auto appPreload = GetAppPreload();
-    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env, APP_PRELOAD_TYPE_NAME, appPreload, appPreloadTypeItem);
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
+        env, APP_PRELOAD_TYPE_NAME, appPreload, appPreloadTypeItem);
     return appPreloadTypeItem;
 }
 
