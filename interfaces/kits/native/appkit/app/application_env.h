@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_APPLICATION_ENV_H
 #define OHOS_ABILITY_RUNTIME_APPLICATION_ENV_H
 
+#include <cstdint>
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
@@ -42,6 +43,10 @@ const char *GetSrcPath();
  * @return Returns the pointer to the data path of this application.
  */
 const char *GetDataPath();
+
+int32_t GetAppPreload();
+
+void ClearAppPreload();
 
 #ifdef __cplusplus
 #if __cplusplus

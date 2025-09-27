@@ -22,6 +22,7 @@
 /**
  * L1 App_info define
  */
+#include <cstdint>
 #include <list>
 #include <string>
 
@@ -92,6 +93,19 @@ public:
      */
     const std::string &GetDataPath() const;
 
+    /**
+     * @brief Gets the app preload type of the application's runtime environment
+     * @param -
+     * @return AppPreloadType
+     */
+    int32_t &GetAppPreloadType() const;
+
+    /**
+     * @brief Clear the app preload type of the application's runtime environment
+     * @param -
+     */
+    void ClearAppPreloadType() ;
+
 private:
     ApplicationEnvImpl() = default;
 
@@ -100,6 +114,8 @@ private:
     std::string srcPath_;
 
     std::string dataPath_;
+
+    int32_t appPreloadType_ = 0;
 
     static ApplicationEnvImpl instance_;
 };

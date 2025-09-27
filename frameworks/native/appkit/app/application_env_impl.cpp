@@ -42,6 +42,7 @@ void ApplicationEnvImpl::SetAppInfo(const ApplicationInfo &appInfo)
     bundleName_ = appInfo.bundleName;
     dataPath_ = appInfo.dataDir;
     srcPath_ = appInfo.codePath;
+    appPreloadType_ = static_cast<int32_t>(appInfo.appPreloadPhase);
 }
 
 /**
@@ -72,6 +73,25 @@ const std::string &ApplicationEnvImpl::GetSrcPath() const
 const std::string &ApplicationEnvImpl::GetDataPath() const
 {
     return dataPath_;
+}
+
+/**
+* @brief Gets the app preload type of the application's runtime environment
+* @param -
+* @return AppPreloadType
+*/
+int32_t &ApplicationEnvImpl::GetAppPreloadType() const
+{
+    return appPreloadType_;
+}
+
+/**
+* @brief Clear the app preload type of the application's runtime environment
+* @param -
+*/
+void ApplicationEnvImpl::ClearAppPreloadType()
+{
+    appPreloadType_ = 0;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

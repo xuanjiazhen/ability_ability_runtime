@@ -31,6 +31,7 @@
 #include "hitrace_meter.h"
 #include "ohos_application.h"
 #include "startup_manager.h"
+#include "application_env.h"
 
 #ifdef WINDOWS_PLATFORM
 #define ETS_EXPORT __declspec(dllexport)
@@ -112,7 +113,7 @@ void ETSAbilityStage::OnCreate(const AAFwk::Want &want) const
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnCreate begin");
     CallObjectMethod(false, "onCreate", ":V");
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnCreate end");
-
+    ClearAppPreload();
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
     if (delegator) {
         delegator->PostPerformStageStart(CreateStageProperty());
