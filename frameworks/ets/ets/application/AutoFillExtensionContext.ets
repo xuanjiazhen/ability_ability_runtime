@@ -34,6 +34,10 @@ let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
 export default class AutoFillExtensionContext extends ExtensionContext {
+  static {
+    loadLibrary("auto_fill_extension_context_ani_kit.z");
+  }
+
   autoFillExtensionContextPtr: long = 0;
   private cleaner: Cleaner | null = null;
   constructor(ptr: long) {
@@ -68,5 +72,24 @@ export default class AutoFillExtensionContext extends ExtensionContext {
         });
       });
     return p;
+  }
+
+  private static native nativeTransferStatic(input: ESValue, type: string): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
+  private static contextType: string = 'AutoFillExtensionContext';
+
+  static transferStatic(input: Any): Object {
+    let type: string = '';
+    try {
+      type = ESValue.wrap(input).getProperty('__context_impl__').getProperty('contextType').toString();
+    } catch (err) {
+      console.log('transferStatic err: ' + err.toString());
+    }
+    console.log('transferStatic type: ' + type);
+    return AutoFillExtensionContext.nativeTransferStatic(ESValue.wrap(input), type);
+  }
+
+  static transferDynamic(input: Object): Any {
+    return AutoFillExtensionContext.nativeTransferDynamic(input).unwrap();
   }
 }
