@@ -232,6 +232,7 @@ void JsAbilityStage::OnCreate(const AAFwk::Want &want) const
 
     if (!jsAbilityStageObj_) {
         TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        ClearAppPreload();
         return;
     }
 

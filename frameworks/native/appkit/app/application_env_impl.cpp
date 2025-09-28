@@ -18,6 +18,11 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace  {
+    constexpr int32_t UNSPECIFIED = 0;
+    constexpr int32_t TYPE_CREATE_PROCESS = 1;
+    constexpr int32_t TYPE_CREATE_ABILITY_STAGE = 2;
+}
 /**
  * @brief Sets L1 information about the runtime environment of the application to which the
  *        ability belongs, including the bundle name, source code path, and data path.
@@ -37,12 +42,26 @@ void ApplicationEnvImpl::SetAppInfo(const AppInfo &appInfo)
  * @param appInfo indicates
  * @return void
  */
-void ApplicationEnvImpl::SetAppInfo(const ApplicationInfo &appInfo)
+void ApplicationEnvImpl::SetAppInfo(const ApplicationInfo &appInfo, PreloadMode preloadMode)
 {
     bundleName_ = appInfo.bundleName;
     dataPath_ = appInfo.dataDir;
     srcPath_ = appInfo.codePath;
-    appPreloadType_ = static_cast<int32_t>(appInfo.appPreloadPhase);
+    switch (preloadMode) {
+        case PreloadMode::PRESS_DOWN:
+        case PreloadMode::PRE_MAKE:
+            appPreloadType_ = TYPE_CREATE_PROCESS;
+            break;
+        case PreloadMode::PRELOAD_MODULE:
+            appPreloadType_ = TYPE_CREATE_ABILITY_STAGE;
+            break;
+        case PreloadMode::PRELOAD_BY_PHASE:
+            appPreloadType_ = static_cast<int32_t>(appInfo.appPreloadPhase);
+            break;
+        default:
+            appPreloadType_ = UNSPECIFIED;
+            break;
+    }
 }
 
 /**
@@ -80,7 +99,7 @@ const std::string &ApplicationEnvImpl::GetDataPath() const
 * @param -
 * @return AppPreloadType
 */
-const int32_t &ApplicationEnvImpl::GetAppPreloadType() const
+int32_t ApplicationEnvImpl::GetAppPreloadType() const
 {
     return appPreloadType_;
 }

@@ -70,7 +70,7 @@ public:
      * @param appInfo
      * @return void
      */
-    void SetAppInfo(const ApplicationInfo &appInfo);
+    void SetAppInfo(const ApplicationInfo &appInfo, PreloadMode preloadMode);
 
     /**
      * @brief Gets the bundlename of the application's runtime environment
@@ -98,7 +98,7 @@ public:
      * @param -
      * @return AppPreloadType
      */
-    const int32_t &GetAppPreloadType() const;
+    int32_t GetAppPreloadType() const;
 
     /**
      * @brief Clear the app preload type of the application's runtime environment
