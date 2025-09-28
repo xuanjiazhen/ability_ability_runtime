@@ -44,48 +44,40 @@ public:
     void UnregisterEnvironmentCallback(const std::shared_ptr<EnvironmentCallback> &environmentCallback);
     void RegisterApplicationStateChangeCallback(
         const std::weak_ptr<ApplicationStateChangeCallback> &applicationStateChangeCallback);
-    void DispatchOnAbilityCreate(std::shared_ptr<NativeReference> ability);
-    void DispatchOnAbilityCreate(std::shared_ptr<AppExecFwk::ETSNativeReference> ability);
-    void DispatchOnWindowStageCreate(std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage);
-    void DispatchOnWindowStageCreate(std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
-        std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage);
-    void DispatchOnWindowStageDestroy(std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage);
-    void DispatchOnWindowStageDestroy(std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
-        std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage);
-    void DispatchWindowStageFocus(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage);
-    void DispatchWindowStageUnfocus(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage);
-    void DispatchOnAbilityDestroy(std::shared_ptr<NativeReference> ability);
-    void DispatchOnAbilityDestroy(std::shared_ptr<AppExecFwk::ETSNativeReference> ability);
-    void DispatchOnAbilityForeground(std::shared_ptr<NativeReference> ability);
-    void DispatchOnAbilityForeground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability);
-    void DispatchOnAbilityBackground(std::shared_ptr<NativeReference> ability);
-    void DispatchOnAbilityBackground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability);
-    void DispatchOnAbilityContinue(const std::shared_ptr<NativeReference> &ability);
-    void DispatchOnAbilityWillContinue(const std::shared_ptr<NativeReference> &ability);
-    void DispatchOnWindowStageWillRestore(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage);
-    void DispatchOnWindowStageRestore(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage);
-    void DispatchOnAbilityWillSaveState(const std::shared_ptr<NativeReference> &ability);
-    void DispatchOnAbilitySaveState(const std::shared_ptr<NativeReference> &ability);
+    void DispatchOnAbilityCreate(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnWindowStageCreate(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnWindowStageDestroy(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchWindowStageFocus(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchWindowStageUnfocus(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnAbilityDestroy(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityForeground(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityBackground(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityContinue(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillContinue(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnWindowStageWillRestore(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnWindowStageRestore(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnAbilityWillSaveState(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilitySaveState(const AbilityLifecycleCallbackArgs &ability);
     void DispatchConfigurationUpdated(const AppExecFwk::Configuration &config);
     void DispatchMemoryLevel(const int level);
     void NotifyApplicationForeground();
     void NotifyApplicationBackground();
-    void DispatchOnWillNewWant(const std::shared_ptr<NativeReference> &ability);
-    void DispatchOnNewWant(const std::shared_ptr<NativeReference> &ability);
-    void DispatchOnAbilityWillCreate(const std::shared_ptr<NativeReference> &ability);
-    void DispatchOnWindowStageWillCreate(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage);
-    void DispatchOnWindowStageWillDestroy(const std::shared_ptr<NativeReference> &ability,
-        const std::shared_ptr<NativeReference> &windowStage);
-    void DispatchOnAbilityWillDestroy(const std::shared_ptr<NativeReference> &ability);
-    void DispatchOnAbilityWillForeground(const std::shared_ptr<NativeReference> &ability);
-    void DispatchOnAbilityWillBackground(const std::shared_ptr<NativeReference> &ability);
+    void DispatchOnWillNewWant(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnNewWant(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillCreate(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnWindowStageWillCreate(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnWindowStageWillDestroy(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnAbilityWillDestroy(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillForeground(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillBackground(const AbilityLifecycleCallbackArgs &ability);
 
     std::string GetBundleName() const override;
     std::shared_ptr<Context> CreateBundleContext(const std::string &bundleName) override;

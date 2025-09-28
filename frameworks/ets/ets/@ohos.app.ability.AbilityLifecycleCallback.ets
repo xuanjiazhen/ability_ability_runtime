@@ -16,6 +16,21 @@
 import UIAbility from '@ohos.app.ability.UIAbility';
 import window from '@ohos.window';
 
+export type OnNewWantFn = (ability: UIAbility) => void;
+export type OnAbilityWillBackgroundFn = (ability: UIAbility) => void;
+export type OnAbilityWillForegroundFn = (ability: UIAbility) => void;
+export type OnAbilityWillCreateFn = (ability: UIAbility) => void;
+export type OnWindowStageWillDestroyFn = (ability: UIAbility, windowStage: window.WindowStage) => void;
+export type OnAbilityWillDestroyFn = (ability: UIAbility) => void;
+export type OnWindowStageRestoreFn = (ability: UIAbility, windowStage: window.WindowStage) => void;
+export type OnAbilitySaveStateFn = (ability: UIAbility) => void;
+export type OnAbilityWillContinueFn = (ability: UIAbility) => void;
+export type OnAbilityWillSaveStateFn = (ability: UIAbility) => void;
+export type OnWillNewWantFn = (ability: UIAbility) => void;
+export type OnWindowStageWillCreateFn = (ability: UIAbility, windowStage: window.WindowStage) => void;
+export type OnWindowStageWillRestoreFn = (ability: UIAbility, windowStage: window.WindowStage) => void;
+
+
 interface AbilityLifecycleCallback {
   onAbilityCreate(ability: UIAbility): void;
   onAbilityForeground(ability: UIAbility): void;
@@ -23,6 +38,23 @@ interface AbilityLifecycleCallback {
   onAbilityDestroy(ability: UIAbility): void;
   onWindowStageCreate(ability: UIAbility, windowStage: window.WindowStage): void;
   onWindowStageDestroy(ability: UIAbility, windowStage: window.WindowStage): void;
+  onAbilityContinue(ability: UIAbility): void;
+  onWindowStageInactive(ability: UIAbility, windowStage: window.WindowStage): void;
+  onWindowStageActive(ability: UIAbility, windowStage: window.WindowStage): void;
+
+  onNewWant?: OnNewWantFn;
+  onAbilityWillBackground?: OnAbilityWillBackgroundFn;
+  onAbilityWillForeground?: OnAbilityWillForegroundFn;
+  onAbilityWillCreate?: OnAbilityWillCreateFn;
+  onWindowStageWillDestroy?: OnWindowStageWillDestroyFn;
+  onAbilityWillDestroy?: OnAbilityWillDestroyFn;
+  onWindowStageRestore?: OnWindowStageRestoreFn;
+  onAbilitySaveState?: OnAbilitySaveStateFn;
+  onAbilityWillContinue?: OnAbilityWillContinueFn;
+  onAbilityWillSaveState?: OnAbilityWillSaveStateFn;
+  onWillNewWant?: OnWillNewWantFn;
+  onWindowStageWillCreate?: OnWindowStageWillCreateFn;
+  onWindowStageWillRestore?: OnWindowStageWillRestoreFn;
 }
 
 class AbilityLifecycleCallbackInner implements AbilityLifecycleCallback {
@@ -32,6 +64,23 @@ class AbilityLifecycleCallbackInner implements AbilityLifecycleCallback {
   onAbilityDestroy(ability: UIAbility): void {};
   onWindowStageCreate(ability: UIAbility, windowStage: window.WindowStage): void {};
   onWindowStageDestroy(ability: UIAbility, windowStage: window.WindowStage): void {};
+  onAbilityContinue(ability: UIAbility): void {};
+  onWindowStageInactive(ability: UIAbility, windowStage: window.WindowStage): void {};
+  onWindowStageActive(ability: UIAbility, windowStage: window.WindowStage): void {};
+
+  onNewWant?: OnNewWantFn;
+  onAbilityWillBackground?: OnAbilityWillBackgroundFn;
+  onAbilityWillForeground?: OnAbilityWillForegroundFn;
+  onAbilityWillCreate?: OnAbilityWillCreateFn;
+  onWindowStageWillDestroy?: OnWindowStageWillDestroyFn;
+  onAbilityWillDestroy?: OnAbilityWillDestroyFn;
+  onWindowStageRestore?: OnWindowStageRestoreFn;
+  onAbilitySaveState?: OnAbilitySaveStateFn;
+  onAbilityWillContinue?: OnAbilityWillContinueFn;
+  onAbilityWillSaveState?: OnAbilityWillSaveStateFn;
+  onWillNewWant?: OnWillNewWantFn;
+  onWindowStageWillCreate?: OnWindowStageWillCreateFn;
+  onWindowStageWillRestore?: OnWindowStageWillRestoreFn;
 }
 
 export default AbilityLifecycleCallback;
