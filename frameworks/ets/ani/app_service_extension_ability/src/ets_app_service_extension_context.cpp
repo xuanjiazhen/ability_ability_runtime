@@ -274,6 +274,17 @@ ani_object CreateEtsAppServiceExtensionContext(ani_env *env, std::shared_ptr<App
     }
     ContextUtil::CreateEtsBaseContext(env, cls, contextObj, context);
     CreateEtsExtensionContext(env, cls, contextObj, context, context->GetAbilityInfo());
+    ani_ref *contextGlobalRef = new (std::nothrow) ani_ref;
+    if (contextGlobalRef == nullptr) {
+        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "new contextGlobalRef failed");
+        return nullptr;
+    }
+    if ((status = env->GlobalReference_Create(contextObj, contextGlobalRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "GlobalReference_Create failed status: %{public}d", status);
+        delete contextGlobalRef;
+        return nullptr;
+    }
+    context->Bind(contextGlobalRef);
     return contextObj;
 }
 

@@ -33,6 +33,10 @@ export function callback(cleaner: Cleaner): void {
 let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 export default class AppServiceExtensionContext extends ExtensionContext {
+  static {
+    loadLibrary("app_service_extension_context_ani_kit.z");
+  }
+
   constructor(context: long) {
     super();
     if (this.nativeEtsContext == 0) {
@@ -55,6 +59,9 @@ export default class AppServiceExtensionContext extends ExtensionContext {
     callback: AsyncCallbackWrapper<void>): void;
   public native nativeStartAbility(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
   public native nativeTerminateSelf(callback: AsyncCallbackWrapper<void>): void;
+  private static native nativeTransferStatic(input: ESValue, type: string): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
+  private static contextType: string = 'AppServiceExtensionContext';
 
   connectAppServiceExtensionAbility(want: Want, callback: ConnectOptions): long {
     return this.nativeConnectAppServiceExtensionAbility(want, callback);
@@ -108,5 +115,20 @@ export default class AppServiceExtensionContext extends ExtensionContext {
       });
     });
     return p;
+  }
+
+  static transferStatic(input: Any): Object {
+    let type: string = '';
+    try {
+      type = ESValue.wrap(input).getProperty('__context_impl__').getProperty('contextType').toString();
+    } catch (err) {
+      console.log('transferStatic err: ' + err.toString());
+    }
+    console.log('transferStatic type: ' + type);
+    return AppServiceExtensionContext.nativeTransferStatic(ESValue.wrap(input), type);
+  }
+
+  static transferDynamic(input: Object): Any {
+    return AppServiceExtensionContext.nativeTransferDynamic(input).unwrap();
   }
 }
