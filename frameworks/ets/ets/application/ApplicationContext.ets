@@ -248,10 +248,10 @@ export default class ApplicationContext extends Context {
   }
 
   offAbilityLifecycle(callbackId: int, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
-    taskpool.execute((): void => {
-      this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
-    });
+    // let myCall = new AsyncCallbackWrapper<void>(callback);
+    // taskpool.execute((): void => {
+    //   this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
+    // });
   }
 
   offEnvironment(callbackId: int): Promise<void> {
@@ -281,9 +281,9 @@ export default class ApplicationContext extends Context {
             reject(err);
           }
         });
-        taskpool.execute((): void => {
-          this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
-        });
+        // taskpool.execute((): void => {
+        //   this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
+        // });
       });
     return p;
   }
@@ -319,16 +319,17 @@ export default class ApplicationContext extends Context {
     return ApplicationContext.nativeTransferDynamic(input).unwrap();
   }
 
-  onAbilityLifecycle(callback: AbilityLifecycleCallback): int {
-    return this.nativeOnLifecycleCallbackSync('abilityLifecycle', callback);
-  }
+  // onAbilityLifecycle(callback: AbilityLifecycleCallback): int {
+  //   let aaa : int = 1;
+  //   return  aaa; //this.nativeOnLifecycleCallbackSync('abilityLifecycle', callback);
+  // }
 
-  public native nativeOnInteropLifecycleCallbackSync(type: string, callback: InteropAbilityLifecycleCallback): void;
-  public native nativeOffInteropLifecycleCallbackSync(type: string, callback?: InteropAbilityLifecycleCallback): void;
-  onInteropAbilityLifecycle(callback: InteropAbilityLifecycleCallback): void {
-    this.nativeOnInteropLifecycleCallbackSync('interopAbilityLifecycle', callback);
-  }
-  offInteropAbilityLifecycle(callback?: InteropAbilityLifecycleCallback): void {
-    this.nativeOffInteropLifecycleCallbackSync('interopAbilityLifecycle', callback);
-  }
+  // public native nativeOnInteropLifecycleCallbackSync(type: string, callback: InteropAbilityLifecycleCallback): void;
+  // public native nativeOffInteropLifecycleCallbackSync(type: string, callback?: InteropAbilityLifecycleCallback): void;
+  // onInteropAbilityLifecycle(callback: InteropAbilityLifecycleCallback): void {
+  //   this.nativeOnInteropLifecycleCallbackSync('interopAbilityLifecycle', callback);
+  // }
+  // offInteropAbilityLifecycle(callback?: InteropAbilityLifecycleCallback): void {
+  //   this.nativeOffInteropLifecycleCallbackSync('interopAbilityLifecycle', callback);
+  // }
 }

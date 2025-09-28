@@ -16,7 +16,7 @@
 #include "ani_want_module.h"
 
 #include "ani_common_util.h"
-//#include "remote_object_taihe_ani.h"
+#include "remote_object_taihe_ani.h"
 #include "array_wrapper.h"
 #include "bool_wrapper.h"
 #include "double_wrapper.h"
@@ -637,11 +637,11 @@ ani_boolean EtsWantParams::NativeSetRemoteObjectParam(ani_env *env, ani_object, 
         return false;
     }
 
-    auto remoteObject = nullptr; //AniGetNativeRemoteObject(env, value);
-    // if (remoteObject == nullptr) {
-    //     TAG_LOGE(AAFwkTag::WANT, "null remoteObject");
-    //     return false;
-    // }
+    auto remoteObject = AniGetNativeRemoteObject(env, value);
+    if (remoteObject == nullptr) {
+        TAG_LOGE(AAFwkTag::WANT, "null remoteObject");
+        return false;
+    }
     params->SetParam(keyString, AAFwk::RemoteObjectWrap::Box(remoteObject));
     return true;
 }

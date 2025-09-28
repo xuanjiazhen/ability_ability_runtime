@@ -19,7 +19,7 @@
 #include "ani_common_start_options.h"
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
-//#include "remote_object_taihe_ani.h"
+#include "remote_object_taihe_ani.h"
 #include "common_fun_ani.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
@@ -1566,13 +1566,12 @@ void EtsUIExtensionConnection::HandleOnAbilityConnectDone(
         AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
-    ani_object refRemoteObject = nullptr;
-    //  = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
-    // if (refRemoteObject == nullptr) {
-    //     TAG_LOGE(AAFwkTag::UI_EXT, "null refRemoteObject");
-    //     AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
-    //     return;
-    // }
+    ani_object refRemoteObject = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
+    if (refRemoteObject == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null refRemoteObject");
+        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+        return;
+    }
     ani_status status = ANI_ERROR;
     ani_ref funRef;
     if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(etsConnectionRef_),

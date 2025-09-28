@@ -21,7 +21,7 @@
 #include "ability_manager_client.h"
 #include "ani_common_configuration.h"
 #include "ani_common_want.h"
-//#include "remote_object_taihe_ani.h"
+#include "remote_object_taihe_ani.h"
 #include "configuration_utils.h"
 #include "display_util.h"
 #include "ets_service_extension_context.h"
@@ -97,19 +97,19 @@ void ConnectPromiseCallback(ani_env *env, ani_object aniObj, ani_object obj)
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
         return;
     }
-    // auto remoteObject = AniGetNativeRemoteObject(env, obj);
-    // if (remoteObject == nullptr) {
-    //     TAG_LOGE(AAFwkTag::SERVICE_EXT, "null remoteObject");
-    // }
-    // auto *callbackInfo =
-    //     reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>> *>(connectCallback);
-    // if (callbackInfo == nullptr) {
-    //     TAG_LOGE(AAFwkTag::SERVICE_EXT, "null callbackInfo");
-    //     return;
-    // }
+    auto remoteObject = AniGetNativeRemoteObject(env, obj);
+    if (remoteObject == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null remoteObject");
+    }
+    auto *callbackInfo =
+        reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>> *>(connectCallback);
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null callbackInfo");
+        return;
+    }
 
-    // callbackInfo->Call(remoteObject);
-    // AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>>::Destroy(callbackInfo);
+    callbackInfo->Call(remoteObject);
+    AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>>::Destroy(callbackInfo);
 }
 } // namespace
 
@@ -314,13 +314,13 @@ sptr<IRemoteObject> EtsServiceExtension::OnConnect(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null wantRef");
         return nullptr;
     }
-    // ani_ref result = CallObjectMethod(true, "onConnect", nullptr, wantRef);
-    // auto obj = reinterpret_cast<ani_object>(result);
-    auto remoteObj = nullptr; //AniGetNativeRemoteObject(env, obj);
-    // if (remoteObj == nullptr) {
-    //     TAG_LOGE(AAFwkTag::SERVICE_EXT, "remoteObj null");
-    //     return nullptr;
-    // }
+    ani_ref result = CallObjectMethod(true, "onConnect", nullptr, wantRef);
+    auto obj = reinterpret_cast<ani_object>(result);
+    auto remoteObj = AniGetNativeRemoteObject(env, obj);
+    if (remoteObj == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "remoteObj null");
+        return nullptr;
+    }
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
     return remoteObj;
 }
@@ -366,10 +366,10 @@ sptr<IRemoteObject> EtsServiceExtension::OnConnect(const AAFwk::Want &want,
     }
     if (!isPromise) {
         isAsyncCallback = false;
-        auto remoteObj = nullptr;//AniGetNativeRemoteObject(env, aniRemoteobj);
-        // if (remoteObj == nullptr) {
-        //     TAG_LOGE(AAFwkTag::SERVICE_EXT, "null remoteObj");
-        // }
+        auto remoteObj = AniGetNativeRemoteObject(env, aniRemoteobj);
+        if (remoteObj == nullptr) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "null remoteObj");
+        }
         return remoteObj;
     }
     return OnConnectInner(env, aniRemoteobj, isAsyncCallback);
