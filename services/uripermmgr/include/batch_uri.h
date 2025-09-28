@@ -51,7 +51,7 @@ public:
 
     void SetOtherUriCheckResult(const std::vector<bool> &otherUriResult);
 
-    void GetNeedCheckProxyPermissionURI(std::vector<PolicyInfo> &proxyUrisByPolicy, std::vector<Uri> &proxyUrisByMap);
+    void GetNeedCheckProxyPermissionURI(std::vector<PolicyInfo> &proxyUrisByPolicy);
 
     void SetCheckProxyByMapResult(std::vector<bool> &proxyResultByMap);
 
@@ -83,6 +83,9 @@ public:
     std::vector<Uri> otherUris;
     std::vector<int32_t> otherIndexes;
     std::vector<PolicyInfo> otherPolicyInfos;
+
+    // content uri
+    std::vector<std::string> contentUris;
 
     // caller's uri
     std::vector<PolicyInfo> selfBundlePolicyInfos;
