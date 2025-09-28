@@ -187,6 +187,39 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
+static std::map<std::string, std::string> gFileNameMap = {
+    {"ability_connect_callback_stub", "ACCS"},
+    {"ability_connect_manager", "ABCM"},
+    {"ability_manager_client", "AMC"},
+    {"ability_manager_service", "ABMS"},
+    {"ability_record", "ABR"},
+    {"app_mgr_service_inner", "AMSI"},
+    {"app_running_manager", "ARM"},
+    {"app_running_record", "ARR"},
+    {"app_spawn_client", "ASC"},
+    {"cache_process_manager", "CPM"},
+    {"connect_server_manager", "CSM"},
+    {"connection_record", "CONN"},
+    {"dump_runtime_helper", "DRH"},
+    {"js_service_extension_context", "JSEC"},
+    {"js_ui_ability", "JUA"},
+    {"js_service_extension", "JSE"},
+    {"main_thread", "MAINTHD"},
+    {"prload_uiext_state_observer", "PUSO"},
+    {"service_extension_context", "SEC"},
+    {"ui_ability_lifecycle_manager", "UALM"}
+};
+
+static bool ConvertFileName(const std::string& fileBaseName, std::string& abbrFileName)
+{
+    auto iter = gFileNameMap.find(fileBaseName);
+    if (iter == gFileNameMap.end()) {
+        return false;
+    }
+    abbrFileName = iter->second;
+    return true;
+}
+
 [[maybe_unused]] static std::string CovertFileName(const std::string& fileName)
 {
     std::string fileBaseName = fileName;
@@ -195,32 +228,9 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
         return fileBaseName;
     }
     fileBaseName = fileName.substr(0, pos);
-    if (fileBaseName == "ability_manager_client") {
-        return "AMC";
-    }
-    if (fileBaseName == "app_running_manager") {
-        return "ARM";
-    }
-    if (fileBaseName == "ability_manager_service") {
-        return "ABMS";
-    }
-    if (fileBaseName == "app_mgr_service_inner") {
-        return "AMSI";
-    }
-    if (fileBaseName == "app_running_record") {
-        return "ARR";
-    }
-    if (fileBaseName == "connect_server_manager") {
-        return "CSM";
-    }
-    if (fileBaseName == "js_ui_ability") {
-        return "JUA";
-    }
-    if (fileBaseName == "js_service_extension") {
-        return "JSE";
-    }
-    if (fileBaseName == "ability_connect_callback_stub") {
-        return "ACCS";
+    std::string abbrFileName;
+    if (ConvertFileName(fileBaseName, abbrFileName)) {
+        return abbrFileName;
     }
     return fileBaseName;
 }
