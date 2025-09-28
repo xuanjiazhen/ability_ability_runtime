@@ -195,23 +195,47 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
         return fileBaseName;
     }
     fileBaseName = fileName.substr(0, pos);
-    if (fileBaseName == "ability_manager_client") {
-        return "AMC";
-    }
-    if (fileBaseName == "app_running_manager") {
-        return "ARM";
+    if (fileBaseName == "ability_connect_manager") {
+        return "ABCM";
     }
     if (fileBaseName == "ability_manager_service") {
         return "ABMS";
     }
+    if (fileBaseName == "ability_record") {
+        return "ABR";
+    }
+    if (fileBaseName == "ability_connect_callback_stub") {
+        return "ACCS";
+    }
+    if (fileBaseName == "ability_manager_client") {
+        return "AMC";
+    }
     if (fileBaseName == "app_mgr_service_inner") {
         return "AMSI";
+    }
+    if (fileBaseName == "app_running_manager") {
+        return "ARM";
     }
     if (fileBaseName == "app_running_record") {
         return "ARR";
     }
+    if (fileBaseName == "app_spawn_client") {
+        return "ASC";
+    }
+    if (fileBaseName == "cache_process_manager") {
+        return "CPM";
+    }
     if (fileBaseName == "connect_server_manager") {
         return "CSM";
+    }
+    if (fileBaseName == "connection_record") {
+        return "CONN";
+    }
+    if (fileBaseName == "dump_runtime_helper") {
+        return "DRH";
+    }
+    if (fileBaseName == "js_service_extension_context") {
+        return"JSEC";
     }
     if (fileBaseName == "js_ui_ability") {
         return "JUA";
@@ -219,8 +243,17 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     if (fileBaseName == "js_service_extension") {
         return "JSE";
     }
-    if (fileBaseName == "ability_connect_callback_stub") {
-        return "ACCS";
+    if (fileBaseName == "main_thread") {
+        return "MAINTHD";
+    }
+    if (fileBaseName == "prload_uiext_state_observer") {
+        return "PUSO";
+    }
+    if (fileBaseName == "service_extension_context") {
+        return "SEC";
+    }
+    if (fileBaseName == "ui_ability_lifecycle_manager") {
+        return "UALM";
     }
     return fileBaseName;
 }
