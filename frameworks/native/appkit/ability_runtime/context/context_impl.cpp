@@ -1031,6 +1031,9 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
         TAG_LOGE(AAFwkTag::APPKIT, "null resourceManager");
         return resourceManager;
     }
+    if (deduplicate != nullptr) {
+        *deduplicate = false;
+    }
     if (!moduleName.empty() || !bundleInfo.applicationInfo.multiProjects) {
         TAG_LOGD(AAFwkTag::APPKIT, "hapModuleInfos count: %{public}zu", bundleInfo.hapModuleInfos.size());
         std::regex inner_pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR)
@@ -1053,7 +1056,7 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
                     continue;
                 }
                 if (deduplicate != nullptr) {
-                    *deduplicate |= hapModuleInfo.deduplicateHar;
+                    *deduplicate = *deduplicate || hapModuleInfo.deduplicateHar;
                 }
                 if (currentBundle) {
                     loadPath = std::regex_replace(loadPath, inner_pattern, LOCAL_CODE_PATH);
