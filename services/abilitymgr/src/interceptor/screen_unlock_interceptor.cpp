@@ -23,6 +23,7 @@
 #include "startup_util.h"
 #ifdef SUPPORT_SCREEN
 #ifdef ABILITY_RUNTIME_SCREENLOCK_ENABLE
+#include "os_account_manager.h"
 #include "screenlock_manager.h"
 #endif // ABILITY_RUNTIME_SCREENLOCK_ENABLE
 #endif
@@ -44,31 +45,39 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam param)
             return ERR_OK;
         }
     }
-    if (targetAbilityInfo.applicationInfo.allowAppRunWhenDeviceFirstLocked) {
-        return ERR_OK;
-    }
-#ifdef SUPPORT_SCREEN
-#ifdef ABILITY_RUNTIME_SCREENLOCK_ENABLE
-    if (!OHOS::ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
-        return ERR_OK;
-    }
-#endif // ABILITY_RUNTIME_SCREENLOCK_ENABLE
-#endif
     if (targetAbilityInfo.applicationInfo.isSystemApp &&
-        targetAbilityInfo.type != AppExecFwk::AbilityType::EXTENSION) {
+        targetAbilityInfo.type != AppExecFwk::AbilityType::EXTENSION &&
+        targetAbilityInfo.applicationInfo.allowAppRunWhenDeviceFirstLocked) {
         EventInfo eventInfo;
         eventInfo.bundleName = targetAbilityInfo.applicationInfo.bundleName;
         eventInfo.moduleName = "StartScreenUnlock";
         EventReport::SendStartAbilityOtherExtensionEvent(EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
         return ERR_OK;
     }
+    if (targetAbilityInfo.applicationInfo.allowAppRunWhenDeviceFirstLocked) {
+        return ERR_OK;
+    }
+    bool isVerified = false;
+    int32_t ret = ERR_OK;
+    bool isScreenLocked = false;
+#ifdef SUPPORT_SCREEN
+#ifdef ABILITY_RUNTIME_SCREENLOCK_ENABLE
+    ret = AccountSA::OsAccountManager::IsOsAccountVerified(param.userId, isVerified);
+    isScreenLocked = OHOS::ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked();
+    if (!isScreenLocked && ret == ERR_OK && isVerified) {
+        return ERR_OK;
+    }
+#endif // ABILITY_RUNTIME_SCREENLOCK_ENABLE
+#endif
     if (targetAbilityInfo.type == AppExecFwk::AbilityType::EXTENSION &&
         !DelayedSingleton<ExtensionConfig>::GetInstance()->IsScreenUnlockIntercept(
             targetAbilityInfo.extensionTypeName, targetAbilityInfo.applicationInfo.isSystemApp,
             targetAbilityInfo.applicationInfo.bundleName)) {
         return ERR_OK;
     }
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "no startup before device first unlock");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "no startup before device first unlock,"
+        " isScreenLocked=%{public}d, retUserUnlocked=%{public}d, userUnlocked=%{public}d",
+        isScreenLocked, ret, isVerified);
     return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
 }
 
