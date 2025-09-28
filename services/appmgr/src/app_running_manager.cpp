@@ -53,6 +53,7 @@ constexpr int32_t QUICKFIX_UID = 5524;
 constexpr int32_t DEAD_APP_RECORD_CLEAR_TIME = 3000; // ms
 constexpr int32_t DEAD_CHILD_RELATION_CLEAR_TIME = 3000; // ms
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+constexpr const char* MEDIALIBRARY_DATA_BUNDLE_NAME = "com.ohos.medialibrary.medialibrarydata";
 }
 using EventFwk::CommonEventSupport;
 
@@ -839,6 +840,19 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
     if ((isPage || appRecord->IsLastAbilityRecord(token)) && (!appRecord->IsKeepAliveApp() ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
         appRecord->SetTerminating();
+        bool isDataShare = false;
+        if (abilityRecord->GetAbilityInfo() != nullptr) {
+            isDataShare = (abilityRecord->GetAbilityInfo()->extensionAbilityType ==
+                AppExecFwk::ExtensionAbilityType::DATASHARE);
+        }
+        if((appRecord->GetBundleName() == MEDIALIBRARY_DATA_BUNDLE_NAME) && isDataShare) {
+            auto priorityObject = appRecord->GetPriorityObject();
+            if (priorityObject != nullptr && serviceInner != nullptr) {
+                TAG_LOGI(AAFwkTag::APPMGR, "kill process %{public}d", priorityObject->GetPid());
+                serviceInner->KillProcessByPid(priorityObject->GetPid(), "HandleAbilityAttachTimeOut");
+                return;
+            }
+        }
     }
 
     std::weak_ptr<AppRunningRecord> appRecordWptr(appRecord);
