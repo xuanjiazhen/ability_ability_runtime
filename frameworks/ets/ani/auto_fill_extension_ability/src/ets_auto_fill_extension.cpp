@@ -16,10 +16,8 @@
 #include "ets_auto_fill_extension.h"
 
 #include "ability_manager_client.h"
-#include "event_handler.h"
 #include "ani_common_want.h"
-//#include "ani_extension_window.h"
-#include "window.h"
+#include "ani_extension_window.h"
 #include "connection_manager.h"
 #include "ets_auto_fill_extension_context.h"
 #include "ets_auto_fill_extension_util.h"
@@ -263,10 +261,10 @@ void EtsAutoFillExtension::OnStopCallBack()
         TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "service connection not disconnected");
     }
 
-    // auto applicationContext = Context::GetApplicationContext();
-    // if (applicationContext != nullptr) {
-    //     applicationContext->DispatchOnAbilityDestroy(etsObj_);
-    // }
+    auto applicationContext = Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        applicationContext->DispatchOnAbilityDestroy(etsObj_);
+    }
 }
 
 void EtsAutoFillExtension::OnCommandWindow(
