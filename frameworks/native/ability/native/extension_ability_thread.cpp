@@ -661,7 +661,6 @@ void ExtensionAbilityThread::ScheduleAbilityRequestFailure(const std::string &re
     bool ret = abilityHandler_->PostTask(task, "ExtensionAbilityThread:ScheduleAbilityRequestFailure");
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "postTask error");
-        return;
     }
 }
 
@@ -688,7 +687,6 @@ void ExtensionAbilityThread::ScheduleAbilityRequestSuccess(const std::string &re
     bool ret = abilityHandler_->PostTask(task, "ExtensionAbilityThread:ScheduleAbilityRequestSuccess");
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "postTask error");
-        return;
     }
 }
 
