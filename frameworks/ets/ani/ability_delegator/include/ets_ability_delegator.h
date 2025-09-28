@@ -33,7 +33,7 @@ public:
     EtsAbilityDelegator();
     ~EtsAbilityDelegator();
     static void ExecuteShellCommand(ani_env *env, [[maybe_unused]]ani_object object,
-        ani_string cmd, ani_double timeoutSecs, ani_object callback);
+        ani_string cmd, ani_long timeoutSecs, ani_object callback);
 
     static void FinishTest(ani_env *env, [[maybe_unused]]ani_object object,
         ani_string msg, ani_long code, ani_object callback);

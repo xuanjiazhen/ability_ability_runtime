@@ -35,16 +35,6 @@ constexpr int32_t PARAMETER_ERROR = -1;
 constexpr const char* COMPLETE_DATA_IMPL_CLASS_NAME = "L@ohos/app/ability/wantAgent/wantAgent/CompleteDataImpl;";
 constexpr const char* WANT_AGENT_NAMESPACE = "L@ohos/app/ability/wantAgent/wantAgent;";
 constexpr const char* CLEANER_CLASS = "L@ohos/app/ability/wantAgent/wantAgent/Cleaner;";
-
-bool CheckCallerIsSystemApp()
-{
-    auto selfToken = IPCSkeleton::GetSelfTokenID();
-    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app forbidden to call");
-        return false;
-    }
-    return true;
-}
 } // namespace
 
 TriggerCompleteCallBack::TriggerCompleteCallBack()
@@ -335,7 +325,7 @@ void EtsWantAgent::OnGetWant(ani_env *env, ani_object agent, ani_object call)
         return;
     }
     WantAgent* pWantAgent = nullptr;
-    if (!CheckCallerIsSystemApp()) {
+    if (!AppExecFwk::CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
         EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP,
             AbilityRuntimeErrorUtil::GetErrMessage(ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP));
@@ -394,7 +384,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         TAG_LOGE(AAFwkTag::WANTAGENT, "wants GetProperty status: %{public}d, or null wantsRef", status);
         return PARAMETER_ERROR;
     }
-    ani_array_ref wantsArr = reinterpret_cast<ani_array_ref>(wantsRef);
+    ani_array wantsArr = reinterpret_cast<ani_array>(wantsRef);
     ani_size length = 0;
     if ((status = env->Array_GetLength(wantsArr, &length)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "wants Array_GetLength failed status: %{public}d", status);
@@ -402,8 +392,8 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     }
     for (size_t i = 0; i < length; i++) {
         ani_ref wantRef = nullptr;
-        if ((status = env->Array_Get_Ref(wantsArr, i, &wantRef)) != ANI_OK || wantRef == nullptr) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "Array_Get_Ref failed status: %{public}d, or null wantRef", status);
+        if ((status = env->Array_Get(wantsArr, i, &wantRef)) != ANI_OK || wantRef == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "Array_Get failed status: %{public}d, or null wantRef", status);
             return PARAMETER_ERROR;
         }
         std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
@@ -438,7 +428,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         return PARAMETER_ERROR;
     }
     if (!isUndefined) {
-        ani_array_ref actionFlagsArr = reinterpret_cast<ani_array_ref>(actionFlagsRef);
+        ani_array actionFlagsArr = reinterpret_cast<ani_array>(actionFlagsRef);
         ani_size actionFlagsLen = 0;
         if ((status = env->Array_GetLength(actionFlagsArr, &actionFlagsLen)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "Array_GetLength failed status: %{public}d", status);
@@ -446,9 +436,9 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         }
         for (size_t i = 0; i < actionFlagsLen; i++) {
             ani_ref actionFlagRef = nullptr;
-            if ((status = env->Array_Get_Ref(actionFlagsArr, i, &actionFlagRef)) != ANI_OK ||
+            if ((status = env->Array_Get(actionFlagsArr, i, &actionFlagRef)) != ANI_OK ||
                 actionFlagRef == nullptr) {
-                TAG_LOGE(AAFwkTag::WANTAGENT, "Array_Get_Ref failed status: %{public}d, or null actionFlagRef", status);
+                TAG_LOGE(AAFwkTag::WANTAGENT, "Array_Get failed status: %{public}d, or null actionFlagRef", status);
                 return PARAMETER_ERROR;
             }
             int32_t actionFlag = 0;
@@ -588,7 +578,7 @@ int32_t EtsWantAgent::GetTriggerInfo(ani_env *env, ani_object triggerInfoObj, Tr
     }
     std::shared_ptr<AAFwk::StartOptions> startOptions = nullptr;
     if (!isUndefined) {
-        if (!CheckCallerIsSystemApp()) {
+        if (!AppExecFwk::CheckCallerIsSystemApp()) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
             EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP,
                 AbilityRuntimeErrorUtil::GetErrMessage(ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP));

@@ -68,6 +68,8 @@ public:
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callbackobj);
     static void StartUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callback);
     static void WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj);
+    static void OpenAtomicService(ani_env *env, ani_object aniObj, ani_string aniAppId,
+        ani_object callbackObj, ani_object optionsObj);
 
     std::weak_ptr<ServiceExtensionContext> GetAbilityContext()
     {
@@ -82,9 +84,17 @@ private:
         ani_object wantObj, ani_object connectOptionsObj);
     void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
         ani_object callback);
+    void OnOpenAtomicService(ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj,
+        ani_object optionsObj);
+    void OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
+        AAFwk::StartOptions &options, std::string appId, ani_object callbackObj);
+
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
         ani_object callbackObj, std::shared_ptr<ServiceExtensionContext> context);
     void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
+    void UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &options);
+    void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
+        OnRequestResult &onRequestCallback, const char *callbackName);
 
     std::weak_ptr<ServiceExtensionContext> context_;
     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;

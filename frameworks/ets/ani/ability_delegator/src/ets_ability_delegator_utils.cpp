@@ -25,8 +25,7 @@ namespace {
 constexpr const char* ABILITY_DELEGATOR_CLASS_NAME = "Lapplication/AbilityDelegator/AbilityDelegatorInner;";
 constexpr const char* RECORD_CLASS_NAME = "Lescompat/Record;";
 constexpr const char* VOID_CONTEXT = ":Lapplication/Context/Context;";
-constexpr const char* STRING_NUMBER_ASYNCCALLBACK = "Lstd/core/String;DLutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char* STRING_LONG_ASYNCCALLBACK = "Lstd/core/String;JLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr const char* STRING_NUMBER_ASYNCCALLBACK = "Lstd/core/String;JLutils/AbilityUtils/AsyncCallbackWrapper;:V";
 constexpr const char* STRING_VOID = "Lstd/core/String;:V";
 constexpr const char* MONITOR_ASYNCCALLBACK_VOID =
     "Lapplication/AbilityMonitor/AbilityMonitor;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
@@ -64,7 +63,7 @@ bool BindFunctions(ani_env *aniEnv, ani_class abilityDelegator)
             reinterpret_cast<void *>(EtsAbilityDelegator::GetAppContext)},
         ani_native_function {"nativeExecuteShellCommand", STRING_NUMBER_ASYNCCALLBACK,
             reinterpret_cast<void *>(EtsAbilityDelegator::ExecuteShellCommand)},
-        ani_native_function {"nativeFinishTest", STRING_LONG_ASYNCCALLBACK,
+        ani_native_function {"nativeFinishTest", STRING_NUMBER_ASYNCCALLBACK,
             reinterpret_cast<void *>(EtsAbilityDelegator::FinishTest)},
         ani_native_function {"printSync", STRING_VOID, reinterpret_cast<void *>(EtsAbilityDelegator::PrintSync)},
         ani_native_function {"nativeAddAbilityMonitor", MONITOR_ASYNCCALLBACK_VOID,

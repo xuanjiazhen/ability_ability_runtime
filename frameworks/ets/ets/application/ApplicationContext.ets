@@ -236,18 +236,14 @@ export default class ApplicationContext extends Context {
     return p;
   }
 
-  on(type: 'environment', callback: EnvironmentCallback): int {
+  onEnvironment(callback: EnvironmentCallback): int {
     return this.nativeOnEnvironmentSync(callback);
   }
 
-  off(type: string, callbackId: int, callback: AsyncCallback<void>): void {
+  offEnvironment(callbackId: int, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      if (type == 'environment') {
-        this.nativeOffEnvironmentSync(callbackId, myCall);
-      } else if (type == 'abilityLifecycle') {
-        this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
-      }
+      this.nativeOffEnvironmentSync(callbackId, myCall);
     });
   }
 
@@ -258,7 +254,7 @@ export default class ApplicationContext extends Context {
     });
   }
 
-  off(type: string, callbackId: int): Promise<void> {
+  offEnvironment(callbackId: int): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -269,11 +265,7 @@ export default class ApplicationContext extends Context {
           }
         });
         taskpool.execute((): void => {
-          if (type == 'environment') {
-            this.nativeOffEnvironmentSync(callbackId, myCall);
-          } else if (type == 'abilityLifecycle') {
-            this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
-          }
+          this.nativeOffEnvironmentSync(callbackId, myCall);
         });
       });
     return p;
@@ -296,11 +288,11 @@ export default class ApplicationContext extends Context {
     return p;
   }
 
-  on(type: 'applicationStateChange', callback: ApplicationStateChangeCallback): void {
+  onApplicationStateChange(callback: ApplicationStateChangeCallback): void {
     this.nativeOnApplicationStateChangeSync(callback);
   }
 
-  off(type: 'applicationStateChange', callback?: ApplicationStateChangeCallback): void {
+  offApplicationStateChange(callback?: ApplicationStateChangeCallback): void {
     this.nativeOffApplicationStateChangeSync(callback);
   }
 
@@ -329,5 +321,14 @@ export default class ApplicationContext extends Context {
 
   onAbilityLifecycle(callback: AbilityLifecycleCallback): int {
     return this.nativeOnLifecycleCallbackSync('abilityLifecycle', callback);
+  }
+
+  public native nativeOnInteropLifecycleCallbackSync(type: string, callback: InteropAbilityLifecycleCallback): void;
+  public native nativeOffInteropLifecycleCallbackSync(type: string, callback?: InteropAbilityLifecycleCallback): void;
+  onInteropAbilityLifecycle(callback: InteropAbilityLifecycleCallback): void {
+    this.nativeOnInteropLifecycleCallbackSync('interopAbilityLifecycle', callback);
+  }
+  offInteropAbilityLifecycle(callback?: InteropAbilityLifecycleCallback): void {
+    this.nativeOffInteropLifecycleCallbackSync('interopAbilityLifecycle', callback);
   }
 }
