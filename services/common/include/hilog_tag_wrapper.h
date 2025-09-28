@@ -269,7 +269,7 @@ static bool ConvertFileName4(const std::string& fileBaseName, std::string& abbrF
         return true;
     }
     if (fileBaseName == "main_thread") {
-        abbrFileName = "MTHD";
+        abbrFileName = "MAINTHD";
         return true;
     }
     if (fileBaseName == "ability_record") {
