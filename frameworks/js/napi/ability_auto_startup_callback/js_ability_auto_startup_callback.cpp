@@ -28,7 +28,12 @@ const std::string METHOD_OFF = "onAutoStartupOff";
 } // namespace
 JsAbilityAutoStartupCallBack::JsAbilityAutoStartupCallBack(napi_env env) : env_(env) {}
 
-JsAbilityAutoStartupCallBack::~JsAbilityAutoStartupCallBack() {}
+JsAbilityAutoStartupCallBack::~JsAbilityAutoStartupCallBack() {
+    for (const auto &callback : callbacks_) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "~JsAbilityAutoStartupCallBack");
+        napi_delete_reference(env_, reinterpret_cast<napi_ref>(callback.get()));
+    }
+}
 
 void JsAbilityAutoStartupCallBack::OnAutoStartupOn(const AutoStartupInfo &info)
 {
@@ -70,12 +75,17 @@ void JsAbilityAutoStartupCallBack::UnRegister(napi_value value)
     std::lock_guard<std::mutex> lock(mutexlock_);
     if (type == napi_undefined || type == napi_null) {
         TAG_LOGD(AAFwkTag::AUTO_STARTUP, "invalid callback, clear all callback");
+        for (const auto &callback : callbacks_) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "clear start");
+            napi_delete_reference(env_, reinterpret_cast<napi_ref>(callback.get()));
+        }
         callbacks_.clear();
         return;
     }
 
     for (auto item = callbacks_.begin(); item != callbacks_.end();) {
         if (IsJsCallbackEquals(*item, value)) {
+            napi_delete_reference(env_, reinterpret_cast<napi_ref>(item->get()));
             item = callbacks_.erase(item);
         } else {
             item++;
