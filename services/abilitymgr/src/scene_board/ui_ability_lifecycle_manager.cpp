@@ -1352,7 +1352,7 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
     } else {
         uiAbilityRecord = sessionAbilityMap_.at(persistentId);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "already has abilityrecord");
-        return ERR_OK;
+        return ERR_INVALID_VALUE;
     }
     uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     uiAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_START_ABILITY);
