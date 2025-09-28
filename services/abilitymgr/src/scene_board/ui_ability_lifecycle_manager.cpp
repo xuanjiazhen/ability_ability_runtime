@@ -1329,7 +1329,9 @@ void UIAbilityLifecycleManager::MoveToBackground(const std::shared_ptr<AbilityRe
 
 int UIAbilityLifecycleManager::ResolveLocked(const AbilityRequest &abilityRequest, std::string &errMsg)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ByCall, ability:%{public}s", abilityRequest.want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ByCall, ability:%{public}s/%{public}s",
+        abilityRequest.want.GetElement().GetBundleName().c_str(),
+        abilityRequest.want.GetElement().GetAbilityName().c_str());
 
     if (!abilityRequest.IsCallType(AbilityCallType::CALL_REQUEST_TYPE)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, resolve ability_name:", __func__);
@@ -1378,6 +1380,9 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
             return ERR_OK;
         }
         uiAbilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+        if (uiAbilityRecord == nullptr) {
+            return INNER_ERR;
+        }
         uiAbilityRecord->SetOwnerMissionUserId(userId_);
         SetReceiverInfo(abilityRequest, uiAbilityRecord);
     } else {
@@ -1925,11 +1930,6 @@ int UIAbilityLifecycleManager::CloseUIAbility(const std::shared_ptr<AbilityRecor
         terminateAbilityList_.remove(abilityRecord);
         return abilityRecord->TerminateAbility();
     }
-    if (abilityRecord->IsDebug() && isClearSession) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "notify AppMS terminate");
-        terminateAbilityList_.remove(abilityRecord);
-        return abilityRecord->TerminateAbility();
-    }
     if (abilityRecord->GetPendingState() != AbilityState::INITIAL) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state: FOREGROUND/ BACKGROUND, dropped. independentRecovery:%{public}d",
             isIndependentRecovery);
@@ -2358,7 +2358,8 @@ void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, co
 void UIAbilityLifecycleManager::HandleLegacyAcceptWantDone(SpecifiedRequest &specifiedRequest,
     const std::string &flag, const AAFwk::Want &want)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleLegacyAcceptWantDone, ability:%{public}s/%{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
     auto &abilityRequest = specifiedRequest.abilityRequest;
     auto callerAbility = GetAbilityRecordByToken(abilityRequest.callerToken);
     abilityRequest.specifiedFlag = flag;
@@ -2400,11 +2401,11 @@ void UIAbilityLifecycleManager::OnStartSpecifiedFailed(int32_t requestId)
         hookSpecifiedMap_.erase(iter);
         return;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedFailed %{public}d", requestId);
     auto curRequest = GetSpecifiedRequest(requestId);
     if (curRequest == nullptr) {
         return;
     }
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "OnStartSpecifiedFailed %{public}d", requestId);
     if (curRequest->persistentId != 0) {
         auto iter = sessionAbilityMap_.find(curRequest->persistentId);
         if (iter != sessionAbilityMap_.end() && iter->second != nullptr) {
@@ -2991,46 +2992,71 @@ void UIAbilityLifecycleManager::OnAppStateChanged(const AppInfo &info)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
-    if (info.state == AppState::TERMINATED || info.state == AppState::END) {
-        for (const auto& abilityRecord : terminateAbilityList_) {
-            if (abilityRecord == nullptr) {
-                TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
-                continue;
-            }
-            if (info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
-                info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
-                abilityRecord->SetAppState(info.state);
-            }
-        }
-        return;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "OnAppStateChanged Call.");
+
+    switch (info.state) {
+        case AppState::TERMINATED:
+        case AppState::END:
+            HandleTerminatedOrEndState(info);
+            break;
+        case AppState::COLD_START:
+            HandleColdStartState(info);
+            break;
+        default:
+            HandleOtherAppState(info);
+            break;
     }
-    if (info.state == AppState::COLD_START) {
-        for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
-            if (abilityRecord == nullptr) {
-                TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
-                continue;
-            }
-            if (info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
-                info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
-#ifdef SUPPORT_SCREEN
-                abilityRecord->SetColdStartFlag(true);
-#endif // SUPPORT_SCREEN
-                break;
-            }
-        }
-        return;
-    }
-    for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
+}
+
+void UIAbilityLifecycleManager::HandleTerminatedOrEndState(const AppInfo &info)
+{
+    for (const auto &abilityRecord : terminateAbilityList_) {
         if (abilityRecord == nullptr) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
             continue;
         }
-        if (info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
-            info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
+        if (IsMatchingAppInfo(info, abilityRecord)) {
             abilityRecord->SetAppState(info.state);
         }
     }
+}
+
+void UIAbilityLifecycleManager::HandleColdStartState(const AppInfo &info)
+{
+    for (const auto &[sessionId, abilityRecord] : sessionAbilityMap_) {
+        if (abilityRecord == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
+            continue;
+        }
+        if (IsMatchingAppInfo(info, abilityRecord)) {
+#ifdef SUPPORT_SCREEN
+            abilityRecord->SetColdStartFlag(true);
+#endif // SUPPORT_SCREEN
+            break;
+        }
+    }
+}
+
+void UIAbilityLifecycleManager::HandleOtherAppState(const AppInfo &info)
+{
+    for (const auto &[sessionId, abilityRecord] : sessionAbilityMap_) {
+        if (abilityRecord == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
+            continue;
+        }
+        if (IsMatchingAppInfo(info, abilityRecord)) {
+            abilityRecord->SetAppState(info.state);
+        }
+    }
+}
+
+bool UIAbilityLifecycleManager::IsMatchingAppInfo(
+    const AppInfo &info, const std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    return info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
+        info.appIndex == abilityRecord->GetAppIndex() &&
+        info.instanceKey == abilityRecord->GetInstanceKey() &&
+        info.pid == abilityRecord->GetPid();
 }
 
 void UIAbilityLifecycleManager::UninstallApp(const std::string &bundleName, int32_t uid)
@@ -3774,8 +3800,9 @@ void UIAbilityLifecycleManager::AddSpecifiedRequest(std::shared_ptr<SpecifiedReq
     }
 
     auto &abilityRequest = request->abilityRequest;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "AddSpecifiedRequest: %{public}d, %{public}s", request->requestId,
-        abilityRequest.want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AddSpecifiedRequest: %{public}d, %{public}s/%{public}s", request->requestId,
+        abilityRequest.want.GetElement().GetBundleName().c_str(),
+        abilityRequest.want.GetElement().GetAbilityName().c_str());
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     auto accessTokenIdStr = std::to_string(abilityRequest.abilityInfo.applicationInfo.accessTokenId);
     auto &list = specifiedRequestList_[accessTokenIdStr + instanceKey];

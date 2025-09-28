@@ -1214,8 +1214,6 @@ HWTEST_F(AbilityManagerServiceElevenTest, ReleaseCall_002, TestSize.Level1)
 
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     abilityMs->subManagersHelper_->missionListManagers_.clear();
-    std::shared_ptr<UIAbilityLifecycleManager> uiAbilityManager = std::make_shared<UIAbilityLifecycleManager>(0);
-    abilityMs->subManagersHelper_->uiAbilityManagers_.emplace(0, uiAbilityManager);
 
     sptr<IAbilityConnection> connect = new AbilityConnectCallback();
     AppExecFwk::ElementName emptyElement;
@@ -1242,9 +1240,6 @@ HWTEST_F(AbilityManagerServiceElevenTest, ReleaseCall_003, TestSize.Level1)
 
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     abilityMs->subManagersHelper_->missionListManagers_.clear();
-    std::shared_ptr<MockMissionListManagerInterface> missionListManager =
-        std::make_shared<MockMissionListManagerInterface>();
-    abilityMs->subManagersHelper_->missionListManagers_.emplace(0, missionListManager);
 
     sptr<IAbilityConnection> connect = new AbilityConnectCallback();
     AppExecFwk::ElementName emptyElement;
@@ -1434,63 +1429,6 @@ HWTEST_F(AbilityManagerServiceElevenTest, GetUidByCloneBundleInfo_001, TestSize.
     EXPECT_EQ(result, uid);
 
     GTEST_LOG_(INFO) << "GetUidByCloneBundleInfo_001 end";
-}
-
-/*
- * Feature: AbilityManagerService
- * Name: VerificationToken_001
- * Function: VerificationToken
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService VerificationToken
- */
-HWTEST_F(AbilityManagerServiceElevenTest, VerificationToken_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_001 start");
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
-    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
-    abilityMs->subManagersHelper_->currentDataAbilityManager_ = nullptr;
-    EXPECT_FALSE(abilityMs->VerificationToken(token));
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_001 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Name: VerificationToken_002
- * Function: VerificationToken
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService VerificationToken
- */
-HWTEST_F(AbilityManagerServiceElevenTest, VerificationToken_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_002 start");
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
-    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
-    abilityMs->subManagersHelper_->currentConnectManager_ = nullptr;
-    EXPECT_FALSE(abilityMs->VerificationToken(token));
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_002 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Name: VerificationToken_003
- * Function: VerificationToken
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService VerificationToken
- */
-HWTEST_F(AbilityManagerServiceElevenTest, VerificationToken_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_003 start");
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
-    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
-    abilityMs->subManagersHelper_->currentMissionListManager_ = nullptr;
-    EXPECT_FALSE(abilityMs->VerificationToken(token));
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_003 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

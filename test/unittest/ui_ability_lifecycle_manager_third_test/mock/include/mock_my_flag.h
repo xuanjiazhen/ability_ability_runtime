@@ -15,6 +15,7 @@
 
 #ifndef MOCK_MY_FLAG_H
 #define MOCK_MY_FLAG_H
+
 namespace OHOS {
 namespace AAFwk {
 class MyFlag {

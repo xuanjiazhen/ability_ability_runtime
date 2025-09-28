@@ -15,13 +15,15 @@
 
 #include "ui_extension_context.h"
 
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "bool_wrapper.h"
+#include "configuration.h"
+#include "configuration_convertor.h"
 #include "connection_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "configuration_convertor.h"
-#include "configuration.h"
+#include "string_wrapper.h"
 #include "ui_content.h"
 
 namespace OHOS {
@@ -138,8 +140,8 @@ ErrCode UIExtensionContext::DisconnectAbility(
 
 ErrCode UIExtensionContext::StartServiceExtensionAbility(const AAFwk::Want& want, int32_t accountId)
 {
-    TAG_LOGI(AAFwkTag::UI_EXT, "Start service extension %{public}s, accountId: %{public}d",
-        want.GetElement().GetURI().c_str(), accountId);
+    TAG_LOGI(AAFwkTag::UI_EXT, "Start service extension %{public}s/%{public}s, accountId: %{public}d",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), accountId);
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
         want, token_, accountId, AppExecFwk::ExtensionAbilityType::SERVICE);
     if (ret != ERR_OK) {

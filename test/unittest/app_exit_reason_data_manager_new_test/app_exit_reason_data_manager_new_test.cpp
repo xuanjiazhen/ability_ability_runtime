@@ -98,6 +98,24 @@ HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_PutAsync_002, Te
     DelayedSingleton<AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = nullptr;
 }
 
+/**
+ * @tc.name: AppExitReasonDataManager_PutAsync_003
+ * @tc.desc: PutAsync
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_PutAsync_003, TestSize.Level1)
+{
+    std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
+    DelayedSingleton<AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = nullptr;
+
+    DistributedKv::Key key("test_key");
+    DistributedKv::Value value("test_value");
+    AppExitReasonDataManager::PutAsync(key, value);
+    usleep(TIME_SLEEP);
+    auto pThis = DelayedSingleton<AppExitReasonDataManager>::GetInstance();
+    EXPECT_EQ(pThis->kvStorePtr_, nullptr);
+}
+
 /* *
  * @tc.name: AppExitReasonDataManager_AddAbilityRecoverInfo_001
  * @tc.desc: AddAbilityRecoverInfo
@@ -544,5 +562,6 @@ HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_ConvertAppExitRe
     auto exitMsg = jsonObject.at(JSON_KEY_EXIT_MSG).get<std::string>();
     EXPECT_EQ(exitMsg, exitReason.exitMsg);
 }
+
 } // namespace AbilityRuntime
 } // namespace OHOS

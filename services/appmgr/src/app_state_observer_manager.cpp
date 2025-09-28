@@ -276,7 +276,8 @@ void AppStateObserverManager::OnAppStateChanged(
         TAG_LOGD(AAFwkTag::APPMGR, "OnAppStateChanged come.");
         self->HandleAppStateChanged(appRecord, state, needNotifyApp, isFromWindowFocusChanged);
     };
-    handler_->SubmitTask(task);
+    AAFwk::TaskAttribute taskAttribute{ .taskName_ = "AppStateChanged", .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE };
+    handler_->SubmitTask(task, taskAttribute);
 }
 
 void AppStateObserverManager::OnProcessDied(const std::shared_ptr<AppRunningRecord> &appRecord)
@@ -654,7 +655,7 @@ void AppStateObserverManager::HandleStateChangedNotifyObserver(
             AppStateFilter appStateFilter {FilterCallback::ON_EXTENSION_STATE_CHANGED,
                 GetFilterTypeFromBundleType(bundleType),
                 FilterAppStateType::NONE, FilterProcessStateType::NONE,
-                GetFilterTypeFromAbilityState(static_cast<AbilityState>(abilityStateData.abilityState))};
+                GetFilterTypeFromExtensionState(static_cast<ExtensionState>(abilityStateData.abilityState))};
             if (it->second.appStateFilter.Match(appStateFilter)) {
                 it->first->OnExtensionStateChanged(abilityStateData);
             }

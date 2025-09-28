@@ -2518,6 +2518,10 @@ void MissionListManager::BackToCaller(const std::shared_ptr<AbilityRecord> &call
 
     // caller is already the top ability and foregroundnew.
     auto topAbility = GetCurrentTopAbilityLocked();
+    if (topAbility == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "topAbility null");
+        return;
+    }
     if (callerAbility == topAbility && topAbility->IsAbilityState(AbilityState::FOREGROUND)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "caller is already the top ability and foregroundnew.");
         return;
@@ -3318,7 +3322,9 @@ void MissionListManager::DumpMission(int missionId, std::vector<std::string> &in
 
 int MissionListManager::ResolveLocked(const AbilityRequest &abilityRequest)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability_name:%{public}s", abilityRequest.want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability_name:%{public}s/%{public}s",
+        abilityRequest.want.GetElement().GetBundleName().c_str(),
+        abilityRequest.want.GetElement().GetAbilityName().c_str());
 
     if (!abilityRequest.IsCallType(AbilityCallType::CALL_REQUEST_TYPE)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, resolve ability_name:", __func__);
@@ -3793,11 +3799,11 @@ void MissionListManager::RegisterSnapshotHandler(const sptr<ISnapshotHandler>& h
     DelayedSingleton<MissionInfoMgr>::GetInstance()->RegisterSnapshotHandler(handler);
 }
 
-bool MissionListManager::GetMissionSnapshot(int32_t missionId, const sptr<IRemoteObject>& abilityToken,
-    MissionSnapshot& missionSnapshot, bool isLowResolution)
+bool MissionListManager::GetMissionSnapshot(int32_t missionId, MissionSnapshot& missionSnapshot, bool isLowResolution)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "snapshot: Start get mission snapshot.");
+    auto abilityToken = GetAbilityTokenByMissionId(missionId);
     bool forceSnapshot = false;
     {
         std::lock_guard guard(managerLock_);
@@ -4258,12 +4264,13 @@ int MissionListManager::PrepareClearMissionLocked(int missionId, const std::shar
     }
 
     bool res = abilityRecord->PrepareTerminateAbility(false);
-    if (res) {
+    if (handler) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "stop terminating");
         handler->CancelTask("PrepareTerminate_" + std::to_string(abilityRecord->GetAbilityRecordId()));
+    }
+    if (res) {
         return ERR_OK;
     }
-    handler->CancelTask("PrepareTerminate_" + std::to_string(abilityRecord->GetAbilityRecordId()));
     return ClearMissionLocked(missionId, mission);
 }
 

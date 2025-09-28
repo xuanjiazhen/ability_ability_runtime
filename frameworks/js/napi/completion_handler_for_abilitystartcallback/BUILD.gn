@@ -14,28 +14,29 @@
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-ohos_shared_library("context_ani") {
-  branch_protector_ret = "pac_ret"
+ohos_shared_library("completionhandlerforabilitystartcallback") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
-    cfi_vcall_icall_only = true
     debug = false
   }
-
-  sources = [
-    "context_native_constructor.cpp",
-  ]
-
   include_dirs = [
     "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_services_path}/abilitymgr/include",
   ]
 
+  sources = [ "completion_handler_for_abilitystartcallback_module.cpp" ]
+
+  deps = []
+
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
-    "runtime_core:ani",
+    "ipc:ipc_single",
+    "napi:ace_napi",
   ]
+
+  relative_install_dir = "module/app/ability"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  output_extension = "so"
 }
