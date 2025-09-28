@@ -327,6 +327,7 @@ group("fuzztest") {
     "continuemission_fuzzer:fuzztest",
     "crowdtestinterceptor_fuzzer:fuzztest",
     "dataabilitymanager_fuzzer:fuzztest",
+    "startoptionsutils_fuzzer:fuzztest",
     "dataabilityrecord_fuzzer:fuzztest",
     "dataabilityrecordfirst_fuzzer:fuzztest",
     "dataabilityrecordsecond_fuzzer:fuzztest",
