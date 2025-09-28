@@ -1569,5 +1569,18 @@ void AbilityContextImpl::GetFailureInfoByMessage(
         failureMessage = "A system error occurred";
     }
 }
+
+ErrCode AbilityContextImpl::StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want,
+    const std::string &specifiedFlag, const AAFwk::StartOptions &startOptions, bool isHaveOptions)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartSelfUIAbilityInCurrentProcess(
+        want, specifiedFlag, startOptions, isHaveOptions, token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
+    }
+    return err;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
