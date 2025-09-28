@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "bundlemgrhelper_fuzzer.h"
+#include "bundlemgrhelperfirst_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
