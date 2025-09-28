@@ -9035,6 +9035,11 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (IPCSkeleton::GetCallingUid() != RSS_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uid check fail");
+        return RESOLVE_CALL_NO_PERMISSIONS;
+    }
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SceneBoard not Enabled");
+        return ERR_INVALID_VALUE;
     }
     int32_t oriValidUserId = GetValidUserId(DEFAULT_INVAL_VALUE);
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
@@ -9065,13 +9070,12 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target ability not stage base model");
         return RESOLVE_CALL_ABILITY_VERSION_ERR;
     }
-    if (abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE ||
+    if (abilityRequest.abilityInfo.type != AppExecFwk::AbilityType::PAGE ||
         abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED ||
         abilityRequest.abilityInfo.isolationProcess) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not support prelaunch");
         return RESOLVE_CALL_ABILITY_TYPE_ERR;
     }
-
     result = CheckStartByCallPermission(abilityRequest);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "checkStartByCallPermission fail, result:%{public}d", result);
@@ -9081,10 +9085,6 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
 
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerTokenId);
-    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SceneBoard not Enabled");
-        return ERR_INVALID_VALUE;
-    }
     abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
     abilityRequest.hideStartWindow = true;
     auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
