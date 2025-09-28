@@ -156,36 +156,6 @@ void ApplicationContext::DispatchOnWindowStageDestroy(const AbilityLifecycleCall
             continue;
         }
         if (callback != nullptr) {
-            callback->OnWindowStageCreate(ability, windowStage);
-        }
-    }
-}
-
-void ApplicationContext::DispatchOnWindowStageDestroy(std::shared_ptr<NativeReference> ability,
-    std::shared_ptr<NativeReference> windowStage)
-{
-    if (!ability || !windowStage) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null ability or windowStage");
-        return;
-    }
-    std::lock_guard<std::recursive_mutex> lock(callbackLock_);
-    for (auto callback : callbacks_) {
-        if (callback != nullptr) {
-            callback->OnWindowStageDestroy(ability, windowStage);
-        }
-    }
-}
-
-void ApplicationContext::DispatchOnWindowStageDestroy(std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
-    std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage)
-{
-    if (ability == nullptr || windowStage == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null env or ability or windowStage");
-        return;
-    }
-    std::lock_guard<std::recursive_mutex> lock(callbackLock_);
-    for (auto callback : callbacks_) {
-        if (callback != nullptr) {
             callback->OnWindowStageDestroy(ability, windowStage);
         }
     }

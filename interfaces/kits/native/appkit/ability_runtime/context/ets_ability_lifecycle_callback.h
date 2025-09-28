@@ -32,19 +32,50 @@ namespace AppExecFwk {
 struct ETSNativeReference;
 }  // namespace AppExecFwk
 namespace AbilityRuntime {
+class EtsAbilityLifecycleCallbackArgs : public AbilityLifecycleCallbackArgs {
+public:
+    explicit EtsAbilityLifecycleCallbackArgs(const std::shared_ptr<AppExecFwk::ETSNativeReference> &ref) : ref_(ref)
+    {
+        type_ = AbilityLifecycleCallbackType::ETS;
+    }
+    bool IsValid() const override { return ref_ != nullptr; }
+    const std::shared_ptr<AppExecFwk::ETSNativeReference> &ref_;
+};
 
 class EtsAbilityLifecycleCallback : public AbilityLifecycleCallback,
-                                   public std::enable_shared_from_this<EtsAbilityLifecycleCallback> {
+                                    public std::enable_shared_from_this<EtsAbilityLifecycleCallback> {
 public:
     explicit EtsAbilityLifecycleCallback(ani_env *env);
-    void OnAbilityCreate(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) override;
-    void OnWindowStageCreate(std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
-        std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage) override;
-    void OnWindowStageDestroy(std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
-        std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage) override;
-    void OnAbilityDestroy(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) override;
-    void OnAbilityForeground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) override;
-    void OnAbilityBackground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) override;
+    void OnAbilityCreate(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnWindowStageCreate(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) override;
+    void OnWindowStageDestroy(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) override;
+    void OnAbilityDestroy(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnAbilityForeground(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnAbilityBackground(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnAbilitySaveState(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnWindowStageRestore(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) override;
+    void OnAbilityWillDestroy(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnWindowStageWillDestroy(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) override;
+    void OnWindowStageWillCreate(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) override;
+    void OnAbilityWillBackground(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnWindowStageWillRestore(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) override;
+    void OnAbilityWillCreate(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnAbilityWillForeground(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnNewWant(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnAbilityWillContinue(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnWillNewWant(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnAbilityWillSaveState(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnAbilityContinue(const AbilityLifecycleCallbackArgs &ability) override;
+    void OnWindowStageInactive(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) override;
+    void OnWindowStageActive(const AbilityLifecycleCallbackArgs &ability,
+        const AbilityLifecycleCallbackArgs &windowStage) override;
 
     int32_t Register(ani_object callback);
     bool Unregister(int32_t callbackId);
@@ -57,6 +88,10 @@ private:
     void CallObjectMethod(const char *methodName, const char *signature,
         std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
         std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage);
+    void CallObjectProperty(const char *name, std::shared_ptr<AppExecFwk::ETSNativeReference> ability);
+    void CallObjectProperty(const char *name, std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
+        std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage);
+    void CallObjectPropertyCommon(ani_env *env, const char *name, ani_ref ability, ani_ref windowStage);
 
 private:
     static int32_t serialNumber_;

@@ -19,7 +19,6 @@
 #include <memory>
 #include <mutex>
 
-#include "ability_lifecycle_callback.h"
 #include "application_context.h"
 #include "application_state_change_callback.h"
 #include "js_ability_auto_startup_callback.h"

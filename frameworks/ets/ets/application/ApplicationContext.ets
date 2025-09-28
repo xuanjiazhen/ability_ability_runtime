@@ -64,7 +64,7 @@ export default class ApplicationContext extends Context {
     destroyRegister.unregister(unregisterToken);
   }
 
-  public native nativeOnLifecycleCallbackSync(type: string, callback: Object): int;
+  public native nativeOnLifecycleCallbackSync(type: string, callback: AbilityLifecycleCallback): int;
   public native nativeOffLifecycleCallbackSync(type: string, callbackId: int,
     callback: AsyncCallbackWrapper<void>): void;
   public native nativekillAllProcessesSync(clearPageStack: boolean, callback: AsyncCallbackWrapper<void>): void;
@@ -75,7 +75,7 @@ export default class ApplicationContext extends Context {
   public native nativesetLanguage(language: string): void;
   public native nativesetFontSizeScale(fontSizeScale: double): void;
   public native nativesetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
-  public native nativesetFont(font: string): void; 
+  public native nativesetFont(font: string): void;
   public native nativerestartApp(want: Want): void;
   public native nativeGetAllRunningInstanceKeys(callback: AsyncCallbackWrapper<Array<string>>): void;
   public native nativeOnEnvironmentSync(callback: EnvironmentCallback): int;
@@ -245,6 +245,8 @@ export default class ApplicationContext extends Context {
     taskpool.execute((): void => {
       if (type == 'environment') {
         this.nativeOffEnvironmentSync(callbackId, myCall);
+      } else if (type == 'abilityLifecycle') {
+        this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
       }
     });
   }
@@ -262,6 +264,8 @@ export default class ApplicationContext extends Context {
         taskpool.execute((): void => {
           if (type == 'environment') {
             this.nativeOffEnvironmentSync(callbackId, myCall);
+          } else if (type == 'abilityLifecycle') {
+            this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
           }
         });
       });
@@ -301,29 +305,5 @@ export default class ApplicationContext extends Context {
 
   on(type: 'abilityLifecycle', callback: AbilityLifecycleCallback): int {
     return this.nativeOnLifecycleCallbackSync(type, callback);
-  }
-
-  off(type: 'abilityLifecycle', callbackId: int): Promise<void> {
-    let p: Promise<void> =
-      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
-          if (err == null || err.code == 0) {
-            resolve(undefined);
-          } else {
-            reject(err);
-          }
-        });
-        taskpool.execute((): void => {
-          this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
-        });
-      });
-    return p;
-  }
-
-  off(type: 'abilityLifecycle', callbackId: int, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
-    taskpool.execute((): void => {
-      this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
-    });
   }
 }
