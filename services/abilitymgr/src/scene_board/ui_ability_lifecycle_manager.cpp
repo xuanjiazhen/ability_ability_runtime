@@ -4143,6 +4143,26 @@ int32_t UIAbilityLifecycleManager::NotifyStartupExceptionBySCB(int32_t requestId
     return ERR_OK;
 }
 
+ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(
+    const std::string &bundleName, const std::string &abilityName, const std::string &specifiedFlag)
+{
+    for (auto it = sessionAbilityMap_.begin(); it != sessionAbilityMap_.end(); it++) {
+        if (it->second == nullptr) {
+            continue;
+        }
+        if (it->second->GetAbilityInfo().bundleName == bundleName &&
+            it->second->GetAbilityInfo().name == abilityName) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility is already exist");
+            return ERROR_UIABILITY_IS_ALREADY_EXIST;
+        }
+        if (it->second->GetSpecifiedFlag() == specifiedFlag) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag is already exist");
+            return ERROR_UIABILITY_IS_ALREADY_EXIST;
+        }
+    }
+    return ERR_OK;
+}
+
 void UIAbilityLifecycleManager::SendAbilityEvent(const AppExecFwk::AbilityInfo &abilityInfo,
     const std::string &reason) const
 {

@@ -527,6 +527,9 @@ public:
      */
     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
 
+    ErrCode IsUIAbilityAlreadyExist(const std::string &bundleName, const std::string &abilityName,
+        const std::string &specifiedFlag);
+
 private:
     /**
      * @brief Add starting process ID to tracking list
