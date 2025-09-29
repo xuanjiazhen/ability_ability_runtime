@@ -577,7 +577,7 @@ ohos_unittest("application_impl_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${ability_runtime_test_path}/new_test/mock/app_mgr_constants",
+    "${ability_runtime_innerkits_path}/app_manager/include/appmgr",,
   ]
 
   sources = [
