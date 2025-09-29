@@ -91,6 +91,7 @@ constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr const char* KEY_SESSION_ID = "com.ohos.param.sessionId";
 constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
+constexpr const char* START_ABILITY_IN_CURRENT_PROCESS = "com.ohos.param.startAbilityInCurrentProcess";
 using OHOS::AppExecFwk::IAbilityController;
 struct StartAbilityInfo;
 struct StartAbilityWrapParam;
@@ -176,6 +177,17 @@ public:
         const sptr<IRemoteObject> &callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * Start Self UIAbility In Current Process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @param startOptions Indicates the options used to start.
+     * @param isHaveOptions Is have start options.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken) override;
 
     /**
      * StartAbilityWithSpecifyTokenIdInner with want and specialId, send want to ability manager service.
@@ -2693,6 +2705,12 @@ private:
 
     AAFwk::EventInfo BuildEventInfo(const Want &want, int32_t userId);
     AAFwk::EventInfo BuildEventInfoByAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
+
+    ErrCode IsUIAbilityAlreadyExist(const std::string &bundleName, const std::string &abilityName,
+        const std::string &specifiedFlag, int32_t appIndex);
+    
+    bool IsAppCloneOrMultiInstance(Want &want, const sptr<IRemoteObject> &callerToken,
+        int32_t appIndex, const std::string &callerInstanceKey);
 
 #ifdef WITH_DLP
     int CheckDlpForExtension(
