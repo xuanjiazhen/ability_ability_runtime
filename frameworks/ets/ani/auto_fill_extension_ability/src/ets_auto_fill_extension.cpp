@@ -16,8 +16,9 @@
 #include "ets_auto_fill_extension.h"
 
 #include "ability_manager_client.h"
+#include "event_handler.h"
 #include "ani_common_want.h"
-#include "ani_extension_window.h"
+//#include "ani_extension_window.h"
 #include "connection_manager.h"
 #include "ets_auto_fill_extension_context.h"
 #include "ets_auto_fill_extension_util.h"
