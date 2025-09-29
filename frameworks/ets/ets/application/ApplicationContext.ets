@@ -245,9 +245,9 @@ export default class ApplicationContext extends Context {
 
   offAbilityLifecycle(callbackId: int, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
-    taskpool.execute((): void => {
-      this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
-    });
+    // taskpool.execute((): void => {
+    //   this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
+    // });
   }
 
   offEnvironment(callbackId: int): Promise<void> {
@@ -277,9 +277,9 @@ export default class ApplicationContext extends Context {
             reject(err);
           }
         });
-        taskpool.execute((): void => {
-          this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
-        });
+        // taskpool.execute((): void => {
+        //   this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
+        // });
       });
     return p;
   }
