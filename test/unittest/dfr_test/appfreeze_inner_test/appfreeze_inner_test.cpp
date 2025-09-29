@@ -311,5 +311,79 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_MainThreadSample_001, TestSize.Level
     appfreezeInner->SetMainThreadSample(false);
     EXPECT_TRUE(!appfreezeInner->GetMainThreadSample());
 }
+
+/**
+ * @tc.number: AppfreezeInner_GetApplicationInfo_001
+ * @tc.name: GetApplicationInfo
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetApplicationInfo_001, TestSize.Level1)
+{
+    std::string ret = appfreezeInner->GetApplicationInfo();
+    printf("%s\n", ret.c_str());
+    appfreezeInner->application_ == nullptr;
+    ret = appfreezeInner->GetApplicationInfo();
+    EXPECT_TRUE(ret.empty());
+}
+
+/**
+ * @tc.number: AppfreezeInner_LogFormat_001
+ * @tc.name: LogFormat
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_LogFormat_001, TestSize.Level1)
+{
+    AppfreezeInner::LogEntry logEntry;
+    std::string ret = appfreezeInner->LogFormat(logEntry);
+    EXPECT_TRUE(!ret.empty());
+    logEntry = {
+        .heapTotalSize = 1234,
+        .heapUsedSize = 1234,
+        .processLifeTime = "1234"
+    };
+    ret = appfreezeInner->LogFormat(logEntry);
+    EXPECT_TRUE(!ret.empty());
+}
+
+/**
+ * @tc.number: AppfreezeInner_GetProcessLifeCycle_001
+ * @tc.name: GetProcessLifeCycle
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetProcessLifeCycle_001, TestSize.Level1)
+{
+    std::string ret = appfreezeInner->GetProcessLifeCycle();
+    printf("%s\n", ret.c_str());
+    ret = appfreezeInner->GetProcessLifeCycle();
+    printf("%s\n", ret.c_str());
+    EXPECT_TRUE(appfreezeInner);
+}
+
+/**
+ * @tc.number: AppfreezeInner_GetProcessStartTime_001
+ * @tc.name: GetProcessStartTime
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetProcessStartTime_001, TestSize.Level1)
+{
+    unsigned long long startTime = 0;
+    bool ret = appfreezeInner->GetProcessStartTime(gettid(), startTime);
+    printf("%d\n", ret);
+    startTime = 123456;
+    ret = appfreezeInner->GetProcessStartTime(gettid(), startTime);
+    printf("%d\n", ret);
+    EXPECT_TRUE(appfreezeInner);
+}
+
+/**
+ * @tc.number: AppfreezeInner_ReadFdToString_001
+ * @tc.name: ReadFdToString
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ReadFdToString_001, TestSize.Level1)
+{
+    std::string content;
+    bool ret = appfreezeInner->ReadFdToString(0, content);
+    printf("%d\n", ret);
+    content = "1234";
+    ret = appfreezeInner->ReadFdToString(-1, content);
+    printf("%d\n", ret);
+    EXPECT_TRUE(appfreezeInner);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
