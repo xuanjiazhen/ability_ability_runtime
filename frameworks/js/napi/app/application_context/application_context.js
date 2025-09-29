@@ -130,7 +130,7 @@ class EventHub {
     }
   }
 
-  off (event, callback) {
+  off(event, callback) {
     if (typeof (event) !== 'string') {
       throw new BusinessError(ERROR_CODE_INVALID_PARAM);
       return;
