@@ -84,6 +84,10 @@ public:
         ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
     static void OpenAtomicService(
         ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj);
+    static void StartSelfUIAbilityInCurrentProcess(
+        ani_env *env, ani_object aniObj, ani_object wantObj, ani_string aniSpecifiedFlag, ani_object call);
+    static void StartSelfUIAbilityInCurrentProcessWithOptions(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
 
     static void Clean(ani_env *env, ani_object object);
     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
@@ -123,6 +127,8 @@ private:
         ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
     void OnOpenAtomicService(
         ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj);
+    void OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
 
     void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
         AAFwk::Want &want);
