@@ -75,11 +75,11 @@ export default class ServiceExtensionContext extends ExtensionContext {
       console.log('transferStatic err: ' + err.toString());
     }
     console.log('transferStatic type: ' + type);
-    return InsightIntentContext.nativeTransferStatic(ESValue.wrap(input), type);
+    return ServiceExtensionContext.nativeTransferStatic(ESValue.wrap(input), type);
   }
 
   static transferDynamic(input: Object): Any {
-    return InsightIntentContext.nativeTransferDynamic(input).unwrap();
+    return ServiceExtensionContext.nativeTransferDynamic(input).unwrap();
   }
 
   native nativeTerminateSelf(callback: AsyncCallbackWrapper<void>): void;

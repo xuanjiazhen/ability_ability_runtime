@@ -36,7 +36,8 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *INSIGHT_INTENT_CONTEXT_CLASS_NAME = "Lapplication/InsightIntentContext/InsightIntentContext;";
+constexpr const char *INSIGHT_INTENT_CONTEXT_CLASS_NAME =
+    "L@ohos/app/ability/InsightIntentContext/InsightIntentContext;";
 } // namespace
 
 ani_object EtsInsightIntentContextModule::NativeTransferStatic(
@@ -62,7 +63,7 @@ ani_object EtsInsightIntentContextModule::NativeTransferStatic(
         return nullptr;
     }
 
-    auto jsIntentContext = reinterpret_cast<std::weak_ptr<JsInsightIntentContext> *>(unwrapResult)->lock();
+    auto jsIntentContext = reinterpret_cast<JsInsightIntentContext *>(unwrapResult);
     if (jsIntentContext == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null JsInsightIntentContext");
         EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
