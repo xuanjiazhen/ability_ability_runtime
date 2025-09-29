@@ -314,17 +314,4 @@ export default class ApplicationContext extends Context {
   static transferDynamic(input: Object): Any {
     return ApplicationContext.nativeTransferDynamic(input).unwrap();
   }
-
-  onAbilityLifecycle(callback: AbilityLifecycleCallback): int {
-    return this.nativeOnLifecycleCallbackSync('abilityLifecycle', callback);
-  }
-
-  public native nativeOnInteropLifecycleCallbackSync(type: string, callback: InteropAbilityLifecycleCallback): void;
-  public native nativeOffInteropLifecycleCallbackSync(type: string, callback?: InteropAbilityLifecycleCallback): void;
-  onInteropAbilityLifecycle(callback: InteropAbilityLifecycleCallback): void {
-    this.nativeOnInteropLifecycleCallbackSync('interopAbilityLifecycle', callback);
-  }
-  offInteropAbilityLifecycle(callback?: InteropAbilityLifecycleCallback): void {
-    this.nativeOffInteropLifecycleCallbackSync('interopAbilityLifecycle', callback);
-  }
 }
