@@ -302,15 +302,6 @@ int32_t CJAbilityContext::SetMissionLabel(const std::string& label)
     }
     return context_->SetMissionLabel(label);
 }
-
-int32_t CJAbilityContext::SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap>& icon)
-{
-    if (context_ == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
-        return ERR_INVALID_INSTANCE_CODE;
-    }
-    return context_->SetMissionIcon(icon);
-}
 #endif
 
 void CJAbilityContext::InheritWindowMode(AAFwk::Want& want)

@@ -2338,7 +2338,6 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
 
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction(env, object, "setMissionLabel", moduleName, JsAbilityContext::SetMissionLabel);
-    BindNativeFunction(env, object, "setMissionIcon", moduleName, JsAbilityContext::SetMissionIcon);
     BindNativeFunction(env, object, "setAbilityInstanceInfo", moduleName, JsAbilityContext::SetAbilityInstanceInfo);
 #endif
     BindNativeFunction(env, object, "startAppServiceExtensionAbility", moduleName,

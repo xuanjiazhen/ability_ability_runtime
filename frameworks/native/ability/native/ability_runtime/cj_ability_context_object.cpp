@@ -959,7 +959,6 @@ void BindJsAbilityContextOther(napi_env env, napi_value result)
         JsAbilityContext::DisconnectUIServiceExtension);
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction((napi_env)env, result, "setMissionLabel", moduleName, JsAbilityContext::SetMissionLabel);
-    BindNativeFunction((napi_env)env, result, "setMissionIcon", moduleName, JsAbilityContext::SetMissionIcon);
 #endif
 }
 
