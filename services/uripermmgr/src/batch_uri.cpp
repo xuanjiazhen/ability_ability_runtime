@@ -200,6 +200,10 @@ int32_t BatchUri::GetUriToGrantByPolicy(std::vector<PolicyInfo> &docsPolicyInfoV
     return count;
 }
 
+
+
+
+
 bool BatchUri::GetUriToGrantByPolicy(std::vector<PolicyInfo> &policyVec)
 {
     // self bundle uris
