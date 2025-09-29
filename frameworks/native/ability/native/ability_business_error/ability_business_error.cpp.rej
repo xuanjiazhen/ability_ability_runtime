@@ -1,0 +1,12 @@
+diff a/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp b/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp	(rejected hunks)
+@@ -151,6 +151,10 @@ constexpr const char* ERROR_MSG_NOT_MASTER_PROCESS =
+     "Not a master process.";
+ constexpr const char* ERROR_MSG_NOT_ON_NEW_PROCESS_REQUEST_DONE =
+     "Cannot exit because there is an unfinished onNewProcessRequest.";
++constexpr const char* ERROR_MSG_UIABILITY_NOT_BELONG_TO_CALLER =
++    "The UIAbility does not belong to the caller.";
++constexpr const char* ERROR_MSG_UIABILITY_IS_ALREADY_EXIST =
++    "The UIAbility is already exist.";
+ 
+ // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
+ constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
