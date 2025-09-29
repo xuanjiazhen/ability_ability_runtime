@@ -13,14 +13,15 @@
  * limitations under the License.
  */
 
-import { BusinessError, AsyncCallback } from '@ohos.base';
+import { BusinessError, AsyncCallback, RecordData } from '@ohos.base';
 import Want from '@ohos.app.ability.Want';
 import { WantAgentInfo as _WantAgentInfo } from 'wantAgent.wantAgentInfo';
 import { TriggerInfo as _TriggerInfo } from 'wantAgent.triggerInfo';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
+import Context from 'application.Context';
 
 namespace wantAgent {
-  loadLibraryWithPermissionCheck("aniwantagent.z", "@ohos.app.ability.wantAgent");
+  loadLibrary("aniwantagent.z");
 
   class Cleaner {
     public ptr: long = 0;
@@ -68,7 +69,7 @@ namespace wantAgent {
   native function nativeTrigger(agent: WantAgent, triggerInfo: TriggerInfo, callback?: AsyncCallbackWrapper<CompleteData>): void;
   native function nativeGetWant(agent: WantAgent, callback: AsyncCallbackWrapper<Want>): void;
   native function nativeGetWantAgent(agent: WantAgentInfo, callback: AsyncCallbackWrapper<WantAgent>): void;
-
+  native function nativeTriggerAsync(agent: WantAgent, triggerInfo: TriggerInfo, context: Context, callback: AsyncCallbackWrapper<CompleteData>): void;
   export function getBundleName(agent: WantAgent, callback: AsyncCallback<string>): void {
     let call = new AsyncCallbackWrapper<string>(callback);
     taskpool.execute((): void => {
@@ -78,6 +79,30 @@ namespace wantAgent {
         callback(err, "");
       }
     });
+  }
+  
+  export function triggerAsync(agent: WantAgent, triggerInfo: TriggerInfo, context: Context): Promise<CompleteData> {
+    return new Promise<CompleteData>((resolve: (data: CompleteData) => void,
+      reject: (err: BusinessError) => void): void => {
+      let call = new AsyncCallbackWrapper<CompleteData>((err: BusinessError | null, data: CompleteData | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as CompleteData);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        try {
+          nativeTriggerAsync(agent, triggerInfo, context, call);
+        } catch (err: BusinessError) {
+          reject(err);
+        }
+      });
+    });
+  }
+
+  export function setWantAgentMultithreading(isMultithreadingSupported: boolean): void {
+ 
   }
 
   export function getBundleName(agent: WantAgent): Promise<string> {
@@ -198,7 +223,7 @@ namespace wantAgent {
         try {
           nativeTrigger(agent, triggerInfo, call);
         } catch (err: BusinessError) {
-          callback(err, {} as CompleteData);
+          callback(err, {info: new Object(), want: new Want(), finalCode: 0, finalData: 'undefined'} as CompleteData);
         }
       }
     });
@@ -323,7 +348,7 @@ namespace wantAgent {
     want: Want;
     finalCode: int;
     finalData: string;
-    extraInfo?: Record<string, Object>;
+    extraInfo?: Record<string, RecordData>;
   }
 
   class CompleteDataImpl implements CompleteData {
@@ -331,7 +356,7 @@ namespace wantAgent {
     public want: Want;
     public finalCode: int;
     public finalData: string;
-    public extraInfo?: Record<string, Object>;
+    public extraInfo?: Record<string, RecordData>;
   }
 
   export type TriggerInfo = _TriggerInfo;

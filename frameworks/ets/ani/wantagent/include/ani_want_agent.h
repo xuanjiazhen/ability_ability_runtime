@@ -69,9 +69,13 @@ public:
     static void Trigger(ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object call);
     static void GetWantAgent(ani_env *env, ani_object info, ani_object call);
     static void Clean(ani_env *env, ani_object object);
+    static void TriggerAsync(
+        ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj, ani_object call);
 
 private:
     void OnEqual(ani_env *env, ani_object agent, ani_object otherAgent, ani_object call);
+    void OnTriggerAsync(
+        ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj, ani_object call);
     void OnGetWant(ani_env *env, ani_object agent, ani_object call);
     void OnGetOperationType(ani_env *env, ani_object agent, ani_object call);
     void OnGetBundleName(ani_env *env, ani_object agent, ani_object call);
@@ -79,8 +83,10 @@ private:
     void OnCancel(ani_env *env, ani_object agent, ani_object call);
     void OnTrigger(ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object call);
     void OnGetWantAgent(ani_env *env, ani_object info, ani_object call);
+    ani_object CreateEtsCompletedData(ani_env *env, const CompletedDispatcher &data);
     int32_t GetTriggerInfo(ani_env *env, ani_object triggerInfoObj, TriggerInfo &triggerInfo);
     int32_t GetWantAgentParam(ani_env *env, ani_object info, WantAgentParams &params);
+    std::shared_ptr<AbilityRuntime::Context> ConvertToContext(std::shared_ptr<AbilityRuntime::Context> context);
 };
 
 class TriggerCompleteCallBack : public CompletedCallback {
