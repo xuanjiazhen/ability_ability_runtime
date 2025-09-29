@@ -46,7 +46,7 @@ EtsDialogRequestCallback *EtsDialogRequestCallback::GetEtsDialogReqCallback(ani_
     }
     return dialogReqCallback;
 }
-void EtsDialogRequestCallback::SetRequestResult(ani_env *env,ani_object param, ani_object result)
+void EtsDialogRequestCallback::SetRequestResult(ani_env *env, ani_object param, ani_object result)
 {
     if (env == nullptr || result == nullptr) {
         TAG_LOGE(AAFwkTag::DIALOG, "null %{public}s", ((env == nullptr) ? "env" : "result"));
@@ -60,7 +60,8 @@ void EtsDialogRequestCallback::OnSetRequestResult(ani_env *env, ani_object param
     TAG_LOGI(AAFwkTag::DIALOG, "call");
     ani_boolean isResultCodeUndefined = true;
     ani_ref resultCodeRef = nullptr;
-    if (AppExecFwk::GetPropertyRef(env, result, "result", resultCodeRef, isResultCodeUndefined) && isResultCodeUndefined) {
+    if (AppExecFwk::GetPropertyRef(env, result, "result",
+        resultCodeRef, isResultCodeUndefined) && isResultCodeUndefined) {
         TAG_LOGE(AAFwkTag::DIALOG, " resultCode is undefined");
         return;
     }
@@ -121,7 +122,8 @@ ani_object CreateEtsDialogRequestCallback(ani_env *env, const sptr<IDialogReques
     }
 
     std::array methods = {
-        ani_native_function {"setRequestResult", nullptr, reinterpret_cast<void *>(EtsDialogRequestCallback::SetRequestResult)},
+        ani_native_function {"setRequestResult", nullptr,
+            reinterpret_cast<void *>(EtsDialogRequestCallback::SetRequestResult)},
     };
     
     status = env->Class_BindNativeMethods(cls, methods.data(), methods.size());

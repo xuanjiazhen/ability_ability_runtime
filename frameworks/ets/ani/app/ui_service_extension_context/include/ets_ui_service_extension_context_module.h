@@ -47,7 +47,7 @@ private:
         ani_env *aniEnv, ani_class aniCls, std::shared_ptr<UIServiceExtensionContext> uiServiceExtContext);
 };
 
-void EtsServiceExtensionContextModuleInit(ani_env *aniEnv);
+void EtsUIServiceExtensionContextModuleInit(ani_env *aniEnv);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_ETS_ABILITY_CONTEXT_MODULE_H

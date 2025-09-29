@@ -39,7 +39,7 @@ sptr<IRemoteObject> RequestInfo::GetToken()
 
 ani_object RequestInfo::WrapRequestInfo(ani_env *env, RequestInfo *request)
 {
-     TAG_LOGD(AAFwkTag::DIALOG, "call");
+    TAG_LOGD(AAFwkTag::DIALOG, "call");
     if (env == nullptr || request == nullptr) {
         TAG_LOGE(AAFwkTag::DIALOG, "null input");
         return nullptr;
@@ -64,7 +64,8 @@ ani_object RequestInfo::WrapRequestInfo(ani_env *env, RequestInfo *request)
         return nullptr;
     }
 
-    ani_object windowRectObj = CreateEtsWindowRect(env, request->left_, request->top_, request->width_, request->height_);
+    ani_object windowRectObj = CreateEtsWindowRect(env, request->left_,
+        request->top_, request->width_, request->height_);
     if (windowRectObj == nullptr) {
         TAG_LOGE(AAFwkTag::DIALOG, "CreateEtsWindowRect failed");
         return nullptr;
@@ -147,7 +148,7 @@ ani_object RequestInfo::CreateEtsWindowRect(
 
 std::shared_ptr<RequestInfo> RequestInfo::UnwrapRequestInfo(ani_env *env, ani_object etsParam)
 {
-     TAG_LOGI(AAFwkTag::DIALOG, "call");
+    TAG_LOGI(AAFwkTag::DIALOG, "call");
     if (env == nullptr || etsParam == nullptr) {
         TAG_LOGE(AAFwkTag::DIALOG, "null input");
         return nullptr;

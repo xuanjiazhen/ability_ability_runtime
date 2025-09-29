@@ -352,7 +352,7 @@ bool EtsUiServiceExtensionContextModule::IsInstanceOf(ani_env *aniEnv, ani_objec
     return isInstanceOf;
 }
 
-void EtsServiceExtensionContextModuleInit(ani_env *aniEnv)
+void EtsUIServiceExtensionContextModuleInit(ani_env *aniEnv)
 {
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "Init UIServiceExtensionContext kit");
     if (aniEnv == nullptr) {
@@ -429,7 +429,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         return ANI_NOT_FOUND;
     }
 
-    EtsServiceExtensionContextModuleInit(aniEnv);
+    EtsUIServiceExtensionContextModuleInit(aniEnv);
     *result = ANI_VERSION_1;
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "ANI_Constructor finish");
     return ANI_OK;

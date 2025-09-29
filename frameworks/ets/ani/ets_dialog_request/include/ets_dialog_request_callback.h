@@ -25,7 +25,7 @@ public:
     explicit EtsDialogRequestCallback(const sptr<IDialogRequestCallback> remoteObj) :callback_(remoteObj) {}
     virtual ~EtsDialogRequestCallback() = default;
     static EtsDialogRequestCallback *GetEtsDialogReqCallback(ani_env *env, ani_object aniObj);
-    static void SetRequestResult(ani_env *env,ani_object param, ani_object result);
+    static void SetRequestResult(ani_env *env, ani_object param, ani_object result);
 private:
     void OnSetRequestResult(ani_env *env, ani_object param, ani_object result);
     sptr<IDialogRequestCallback> GetDialogRequestCallback(ani_env *env, ani_object object);

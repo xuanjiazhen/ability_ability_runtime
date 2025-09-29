@@ -57,7 +57,7 @@ public:
         ani_object etsRequestInfo = RequestInfo::WrapRequestInfo(env, requestInfo);
         if (etsRequestInfo == nullptr) {
             TAG_LOGE(AAFwkTag::DIALOG, "WrapRequestInfo failed");
-            return nullptr;   
+            return nullptr;
         }
         return etsRequestInfo;
     }
@@ -158,7 +158,7 @@ void EtsDialogRequestInit(ani_env *env)
         return;
     }
 
-     ani_class cleanerCls = nullptr;
+    ani_class cleanerCls = nullptr;
     if ((status = env->FindClass(
         "L@ohos/app/ability/dialogRequest/dialogRequest/Cleaner;", &cleanerCls)) != ANI_OK || cleanerCls == nullptr) {
         TAG_LOGE(AAFwkTag::DIALOG, "Cleaner FindClass failed status: %{public}d, or null cleanerCls", status);
@@ -166,7 +166,8 @@ void EtsDialogRequestInit(ani_env *env)
     }
     std::array cleanerMethods = {
         ani_native_function {"cleanToReqInfo", nullptr, reinterpret_cast<void *>(EtsDialogRequest::CleanToReqInfo) },
-        ani_native_function {"cleanToReqCallback", nullptr, reinterpret_cast<void *>(EtsDialogRequest::CleanToReqCallback) },
+        ani_native_function {"cleanToReqCallback", nullptr,
+            reinterpret_cast<void *>(EtsDialogRequest::CleanToReqCallback) },
     };
     if ((status = env->Class_BindNativeMethods(cleanerCls, cleanerMethods.data(), cleanerMethods.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::DIALOG, "Class_BindNativeMethods failed status: %{public}d", status);

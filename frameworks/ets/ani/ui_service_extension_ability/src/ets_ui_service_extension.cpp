@@ -669,10 +669,6 @@ void EtsUIServiceExtension::OnSceneWillCreated(std::shared_ptr<Rosen::ExtensionW
         return;
     }
     TAG_LOGI(AAFwkTag::UISERVC_EXT, "end OnSceneWillCreated");
-    extensionWindowConfig->windowName = "sub_window";
-    extensionWindowConfig->windowAttribute = Rosen::ExtensionWindowAttribute::SYSTEM_WINDOW;
-    extensionWindowConfig->windowRect = {100,100,500,500};
-    extensionWindowConfig->systemWindowOptions.windowType = 1;
 }
 
 void EtsUIServiceExtension::OnSceneDidCreated(sptr<Rosen::Window>& window)
