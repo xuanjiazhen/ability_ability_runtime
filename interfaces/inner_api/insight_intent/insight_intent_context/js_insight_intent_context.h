@@ -44,7 +44,8 @@ public:
      */
     static napi_value StartAbiity(napi_env env, napi_callback_info info);
 
-    std::shared_ptr<InsightIntentContext> GetContext() {
+    std::shared_ptr<InsightIntentContext> GetContext()
+    {
         return context_.lock();
     }
 

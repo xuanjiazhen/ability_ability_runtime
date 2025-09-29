@@ -45,7 +45,8 @@ public:
     static ani_object StartAbiitySync(ani_env *env, ani_object aniObj, ani_object wantObj);
     static EtsInsightIntentContext *GetContext(ani_env *env, ani_object aniObj);
 
-    std::shared_ptr<InsightIntentContext> GetNativeContext() {
+    std::shared_ptr<InsightIntentContext> GetNativeContext()
+    {
         return context_.lock();
     }
 
