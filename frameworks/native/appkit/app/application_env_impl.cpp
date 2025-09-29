@@ -15,6 +15,7 @@
 
 #include "application_env_impl.h"
 #include "application_info.h"
+#include "app_mgr_constants.h"
 
 namespace OHOS {
 namespace AppExecFwk {
