@@ -259,6 +259,34 @@ HWTEST_F(JsRuntimeTest, JsRuntimeDumpHeapSnapshotTest_0100, TestSize.Level2)
 }
 
 /**
+ * @tc.name: JsRuntimeGetHeapTotalSizeTest_0100
+ * @tc.desc: JsRuntime test for GetHeapTotalSize.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeGetHeapTotalSizeTest_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetHeapTotalSize start");
+    std::unique_ptr<JsRuntime> jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
+    size_t ret = jsRuntime->GetHeapTotalSize();
+    EXPECT_TRUE(ret >= 0);
+    TAG_LOGI(AAFwkTag::TEST, "GetHeapTotalSize end");
+}
+
+/**
+ * @tc.name: JsRuntimeGetHeapUsedSizeTest_0100
+ * @tc.desc: JsRuntime test for GetHeapUsedSize.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeGetHeapUsedSizeTest_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetHeapUsedSize start");
+    std::unique_ptr<JsRuntime> jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
+    size_t ret = jsRuntime->GetHeapUsedSize();
+    EXPECT_TRUE(ret >= 0);
+    TAG_LOGI(AAFwkTag::TEST, "GetHeapUsedSize end");
+}
+
+/**
  * @tc.name: JsRuntimePreloadSystemModuleTest_0100
  * @tc.desc: JsRuntime test for PreloadSystemModule.
  * @tc.type: FUNC
