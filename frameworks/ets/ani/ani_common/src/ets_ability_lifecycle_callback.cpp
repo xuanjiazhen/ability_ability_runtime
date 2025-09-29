@@ -35,6 +35,9 @@ constexpr const int32_t ERROR_CODE_NULL_REF = -3;
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
 }
+
+int32_t EtsAbilityLifecycleCallback::serialNumber_ = 0;
+
 EtsAbilityLifecycleCallback::EtsAbilityLifecycleCallback(ani_env *env)
 {
     type_ = AbilityLifecycleCallbackType::ETS;
@@ -63,8 +66,6 @@ ani_env *EtsAbilityLifecycleCallback::GetAniEnv()
     }
     return env;
 }
-
-int32_t EtsAbilityLifecycleCallback::serialNumber_ = 0;
 
 void EtsAbilityLifecycleCallback::CallObjectMethod(const char *methodName,
     const char *signature, std::shared_ptr<AppExecFwk::ETSNativeReference> ability)
