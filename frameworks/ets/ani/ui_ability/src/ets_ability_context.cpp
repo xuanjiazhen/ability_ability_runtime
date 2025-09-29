@@ -1031,11 +1031,7 @@ void EtsAbilityContext::OnStartServiceExtensionAbility(ani_env *env, ani_object 
         errorObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant filed");
         AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
     }
-    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-        ret = context->StartServiceExtensionAbility(want);
-    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-        ret = context->StartAppServiceExtensionAbility(want);
-    }
+    ret = context->StartExtensionAbilityWithExtensionType(want, extensionType);
     if (ret == ERR_OK) {
         errorObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
     } else {
@@ -1065,11 +1061,7 @@ void EtsAbilityContext::OnStopServiceExtensionAbility(ani_env *env, ani_object a
         AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
         return;
     }
-    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-        ret = context->StopServiceExtensionAbility(want);
-    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-        ret = context->StopAppServiceExtensionAbility(want);
-    }
+    ret = context->StopExtensionAbilityWithExtensionType(want, extensionType);
     aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
     AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
 }
@@ -1287,11 +1279,7 @@ ani_long EtsAbilityContext::OnConnectServiceExtensionAbility(ani_env *env, ani_o
         return FAILED_CODE;
     }
     int32_t innerErrCode = 0;
-    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-        innerErrCode = context->ConnectAbility(want, connection);
-    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-        innerErrCode = context->ConnectAppServiceExtensionAbility(want, connection);
-    }
+    innerErrCode = context->ConnectExtensionAbilityWithExtensionType(want, connection, extensionType);
     int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
     if (errcode) {
         connection->CallEtsFailed(errcode);
