@@ -57,11 +57,12 @@ int32_t AbilityAutoStartupService::RegisterAutoStartupSystemCallback(const sptr<
             item++;
         }
         if (!isFound) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Callback not found");
             callbackVector_.emplace_back(callback);
             SetDeathRecipient(
                 callback, new (std::nothrow) AbilityAutoStartupService::ClientDeathRecipient(weak_from_this()));
         } else {
-            TAG_LOGD(AAFwkTag::AUTO_STARTUP, "Callback already exist");
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Callback already exist");
         }
     }
     return ERR_OK;
@@ -87,7 +88,7 @@ int32_t AbilityAutoStartupService::UnregisterAutoStartupSystemCallback(const spt
             }
         }
         if (!isFound) {
-            TAG_LOGD(AAFwkTag::AUTO_STARTUP, "Callback not exist");
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Callback not exist");
         }
     }
     return ERR_OK;
@@ -326,8 +327,10 @@ void AbilityAutoStartupService::ExecuteCallbacks(bool isCallOn, const AutoStartu
         auto remoteSystemCallback = iface_cast<IAutoStartupCallBack>(item);
         if (remoteSystemCallback != nullptr) {
             if (isCallOn) {
+                TAG_LOGE(AAFwkTag::AUTO_STARTUP, "OnAutoStartupOn");
                 remoteSystemCallback->OnAutoStartupOn(info);
             } else {
+                TAG_LOGE(AAFwkTag::AUTO_STARTUP, "OnAutoStartupOff");
                 remoteSystemCallback->OnAutoStartupOff(info);
             }
         }

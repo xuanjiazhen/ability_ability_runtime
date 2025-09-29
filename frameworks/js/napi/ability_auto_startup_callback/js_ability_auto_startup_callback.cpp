@@ -26,9 +26,12 @@ namespace {
 const std::string METHOD_ON = "onAutoStartupOn";
 const std::string METHOD_OFF = "onAutoStartupOff";
 } // namespace
-JsAbilityAutoStartupCallBack::JsAbilityAutoStartupCallBack(napi_env env) : env_(env) {}
+JsAbilityAutoStartupCallBack::JsAbilityAutoStartupCallBack(napi_env env) : env_(env) {
+    TAG_LOGE(AAFwkTag::AUTO_STARTUP, "JsAbilityAutoStartupCallBack");
+}
 
-JsAbilityAutoStartupCallBack::~JsAbilityAutoStartupCallBack() {
+JsAbilityAutoStartupCallBack::~JsAbilityAutoStartupCallBack()
+{
     for (const auto &callback : callbacks_) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "~JsAbilityAutoStartupCallBack");
         napi_delete_reference(env_, reinterpret_cast<napi_ref>(callback.get()));
@@ -37,24 +40,26 @@ JsAbilityAutoStartupCallBack::~JsAbilityAutoStartupCallBack() {
 
 void JsAbilityAutoStartupCallBack::OnAutoStartupOn(const AutoStartupInfo &info)
 {
-    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
+    TAG_LOGE(AAFwkTag::AUTO_STARTUP, "called");
     JSCallFunction(info, METHOD_ON);
 }
 
 void JsAbilityAutoStartupCallBack::OnAutoStartupOff(const AutoStartupInfo &info)
 {
-    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
+    TAG_LOGE(AAFwkTag::AUTO_STARTUP, "called");
     JSCallFunction(info, METHOD_OFF);
 }
 
 void JsAbilityAutoStartupCallBack::Register(napi_value value)
 {
-    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
+    TAG_LOGE(AAFwkTag::AUTO_STARTUP, "called");
     std::lock_guard<std::mutex> lock(mutexlock_);
     for (const auto &callback : callbacks_) {
         if (IsJsCallbackEquals(callback, value)) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "callback exist");
             return;
+        } else {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "callback not exist");
         }
     }
 
@@ -85,6 +90,7 @@ void JsAbilityAutoStartupCallBack::UnRegister(napi_value value)
 
     for (auto item = callbacks_.begin(); item != callbacks_.end();) {
         if (IsJsCallbackEquals(*item, value)) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "clear start second");
             napi_delete_reference(env_, reinterpret_cast<napi_ref>(item->get()));
             item = callbacks_.erase(item);
         } else {
