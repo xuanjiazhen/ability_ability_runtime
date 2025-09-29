@@ -69,7 +69,7 @@ namespace wantAgent {
   native function nativeTrigger(agent: WantAgent, triggerInfo: TriggerInfo, callback?: AsyncCallbackWrapper<CompleteData>): void;
   native function nativeGetWant(agent: WantAgent, callback: AsyncCallbackWrapper<Want>): void;
   native function nativeGetWantAgent(agent: WantAgentInfo, callback: AsyncCallbackWrapper<WantAgent>): void;
-  native function nativeIsLocalWantAgent(agent: WantAgentInfo): boolean;
+  native function nativeIsLocalWantAgent(agent: WantAgent): boolean;
   native function nativeCreateLocalWantAgent(info: LocalWantAgentInfo): WantAgent;
 
   export function getBundleName(agent: WantAgent, callback: AsyncCallback<string>): void {
@@ -299,7 +299,7 @@ namespace wantAgent {
     });
   }
 
-  export function isLocalWantAgent(agent: WantAgentInfo): boolean {
+  export function isLocalWantAgent(agent: WantAgent): boolean {
     return nativeIsLocalWantAgent(agent);
   }
 
