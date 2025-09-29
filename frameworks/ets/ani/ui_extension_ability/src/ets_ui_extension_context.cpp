@@ -1692,11 +1692,11 @@ void EtsUIExtensionContext::UnwrapCompletionHandlerInStartOptions(ani_env *env, 
     uint64_t time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count());
     std::string requestId = std::to_string(time);
-    // if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
-    //     TAG_LOGE(AAFwkTag::UI_EXT, "add completionHandler failed");
-    //     env->GlobalReference_Delete(refCompletionHandler);
-    //     return;
-    // }
+    if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "add completionHandler failed");
+        env->GlobalReference_Delete(refCompletionHandler);
+        return;
+    }
     options.requestId_ = requestId;
 }
 

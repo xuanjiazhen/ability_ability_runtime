@@ -378,10 +378,10 @@ void EtsUIExtensionBase::OnStopCallBack()
         TAG_LOGD(AAFwkTag::UI_EXT, "service connection not disconnected");
     }
 
-    // auto applicationContext = Context::GetApplicationContext();
-    // if (applicationContext != nullptr) {
-    //     applicationContext->DispatchOnAbilityDestroy(etsObj_);
-    // }
+    auto applicationContext = Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        applicationContext->DispatchOnAbilityDestroy(etsObj_);
+    }
 }
 
 void EtsUIExtensionBase::OnCommandWindow(

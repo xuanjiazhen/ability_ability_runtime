@@ -1267,7 +1267,6 @@ ohos_shared_library("form_extension") {
   if (ability_runtime_graphics) {
     include_dirs = [
       "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
-      "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
       "${ability_runtime_path}/frameworks/ets/ani/form_extension_ability/include",
       "${ability_runtime_path}/interfaces/kits/native/ability/native",
       "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
@@ -3247,7 +3246,6 @@ ohos_shared_library("auto_fill_extension_ani") {
     "ability_base:view_data",
     "ability_base:want",
     "access_token:libtokenid_sdk",
-    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
