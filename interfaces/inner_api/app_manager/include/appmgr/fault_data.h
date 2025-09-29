@@ -94,6 +94,7 @@ struct FaultData : public Parcelable {
     std::string procStatm;
     bool isInForeground;
     bool isEnableMainThreadSample;
+    std::string logEntry;
 };
 
 /**
@@ -127,6 +128,7 @@ struct AppFaultDataBySA : public Parcelable {
     std::string procStatm;
     bool isInForeground;
     bool isEnableMainThreadSample;
+    std::string logEntry;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
