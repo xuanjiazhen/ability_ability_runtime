@@ -31,6 +31,9 @@
 #include "xcollie/watchdog.h"
 #include "time_util.h"
 #include "parameters.h"
+#include "js_runtime.h"
+#include "js_runtime.h"
+#include "unique_fd.h"
 
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
@@ -42,6 +45,11 @@ const bool BETA_VERSION = OHOS::system::GetParameter("const.logsystem.versiontyp
 static constexpr const char *const IN_FOREGROUND = "Yes";
 static constexpr const char *const IN_BACKGROUND = "No";
 constexpr int32_t APPFREEZE_INNER_TASKWORKER_NUM = 1;
+static constexpr const char *const HEAP_TOTAL_SIZE = "HEAP_TOTAL_SIZE";
+static constexpr const char *const HEAP_USED_SIZE = "HEAP_TOTAL_SIZE";
+static constexpr const char *const PROCESS_TIME = "PROCESS_TIME";
+static constexpr const char *const COLON_SEPARATOR = ":";
+static constexpr const char *const COMMA_SEPARATOR = ",";
 }
 std::weak_ptr<EventHandler> AppfreezeInner::appMainHandler_;
 std::shared_ptr<AppfreezeInner> AppfreezeInner::instance_ = nullptr;
@@ -178,10 +186,117 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
     return;
 }
 
+bool GetProcessStartTime(pid_t tid, unsigned long long &startTime)
+{
+    std::string path = "/proc/" +std::to_string(tid);
+    UniqueFd dirFd(open(path.c_str(), O_DIRECTORY | O_RDONLY));
+    if (dirFd == -1) {
+        TAG_LOGE(AAFwkTag::APPDFR, "GetProcessInfo open %{public}s fail. errno %{public}d", path.c_str(), errno);
+        return false;
+    }
+
+    UniqueFd statFd(openat(dirFd.Get(), "stat", O_RDONLY | O_CLOEXEC));
+    if (statFd == -1) {
+        TAG_LOGE(AAFwkTag::APPDFR, "GetProcessInfo open %{public}s/stat fail. errno %{public}d", path.c_str(), errno);
+        return false;
+    }
+
+    std::string statStr;
+    if (!OHOS::LoadStringFromFd(statFd.Get(), statStr)) {
+        TAG_LOGE(AAFwkTag::APPDFR, "GetProcessInfo read string fail.");
+        return false;
+    }
+
+    std::string eoc = statStr.substr(statStr.find_last_of(")"));
+    std::istringstream is(eoc);
+    constexpr int startTimePos = 21;
+    constexpr int base = 10;
+    int pos = 0;
+    std::string tmp;
+    while (is >> tmp && pos <= startTimePos) {
+        pos++;
+        if (pos == startTimePos) {
+            startTime = strtoull(tmp.c_str(), nullptr, base);
+            return true;
+        }
+    }
+    TAG_LOGE(AAFwkTag::APPDFR, "GetProcessInfo Get process info fail.");
+    return false;
+}
+
+std::string DfxProcess::GetProcessLifeCycle()
+{
+    struct timespec ts;
+    (void)clock_gettime(CLOCK_BOOTTIME, &ts);
+    uint64_t sysUpTime = static_cast<uint64_t>(ts.tv_sec + static_cast<time_t>(ts.tv_nsec != 0 ? 1L : 0L));
+
+    unsigned long long startTime = 0;
+    if (GetProcessStartTime(processInfo_.pid, startTime)) {
+        auto clkTck = sysconf(_SC_CLK_TCK);
+        if (clkTck == -1) {
+            TAG_LOGE(AAFwkTag::APPDFR, "Get _SC_CLK_TCK fail. errno %{public}d", errno);
+            return "";
+        }
+        uint64_t procUpTime = sysUpTime - startTime / static_cast<uint32_t>(clkTck);
+        constexpr uint64_t invalidTimeLimit = 10 * 365 * 24 * 3600; // 10 year
+        if (procUpTime > invalidTimeLimit) {
+            TAG_LOGE(AAFwkTag::APPDFR, "invalid system upTime %{public}" PRIu64"  proc upTime: %{public}" PRIu64 ",  "
+                "startTime: %{public}llu.", sysUpTime, procUpTime, startTime);
+            return "";
+        }
+        return std::to_string(procUpTime) + "s";
+    }
+    return "";
+}
+
+std::string AppfreezeInner::LogFormat(LogEntry& logEntry)
+{
+    std::ostringstream oss;
+    oss << HEAP_TOTAL_SIZE << COLON_SEPARATOR << logEntry.heapTotalSize << COMMA_SEPARATOR <<
+        HEAP_USED_SIZE << COLON_SEPARATOR << logEntry.heapUsedSize <<COMMA_SEPARATOR <<
+        PROCESS_TIME << COLON_SEPARATOR << logEntry.processTimeStr <<COMMA_SEPARATOR;
+    TAG_LOGD(AAFwkTag::APPDFR, "logEntry: %{public}s", oss.str().c_str());
+    return oss.str();
+}
+
+std::string AppfreezeInner::GetApplicationInfo()
+{
+    TAG_LOGD(AAFwkTag::APPDFR, "called");
+    if (!application_) {
+        TAG_LOGE(AAFwkTag::APPDFR, "null application_");
+        return "";
+    }
+    auto &runtime = application_->GetRuntime();
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
+        return "";
+    }
+
+    if (runtime->GetLanguage() != AbilityRuntime::Runtime::Language::JS) {
+        TAG_LOGE(AAFwkTag::APPDFR, "only support js");
+        return "";
+    }
+
+    AbilityRuntime::JsRuntime* jsRuntime = static_cast<AbilityRuntime::JsRuntime*>(runtime.get());
+    if (jsRuntime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
+        return "";
+    }
+
+    LogEntry logEntry = {
+        .heapTotalSize = jsRuntime->GetHeapTotalSize(),
+        .heapUsedSize = jsRuntime->GetHeapUsedSize(),
+        .processTimeStr = jsRuntime->GetProcessLifeCycle()
+    };
+
+    return LogFormat(logEntry);
+}
+
 void AppfreezeInner::EnableFreezeSample(FaultData& newFaultData)
 {
     std::string eventName = newFaultData.errorObject.name;
     newFaultData.isInForeground = GetAppInForeground();
+    newFaultData.logEntry = GetApplicationInfo();
     if (eventName == AppFreezeType::THREAD_BLOCK_3S || eventName == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
         OHOS::HiviewDFX::Watchdog::GetInstance().StartSample(HALF_DURATION, HALF_INTERVAL);
         TAG_LOGI(AAFwkTag::APPDFR, "start to sample freeze stack, eventName:%{public}s", eventName.c_str());
@@ -384,6 +499,15 @@ void AppfreezeInner::SetMainThreadSample(bool isEnableMainThreadSample)
 bool AppfreezeInner::GetMainThreadSample()
 {
     return isEnableMainThreadSample_;
+}
+
+void ApplicationImpl::SetApplication(const std::shared_ptr<OHOSApplication> &application)
+{
+    if (application == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "null application");
+        return;
+    }
+    application_ = application;
 }
 
 void MainHandlerDumper::Dump(const std::string &message)

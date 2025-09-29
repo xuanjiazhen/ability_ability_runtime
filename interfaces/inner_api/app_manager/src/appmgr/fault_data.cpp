@@ -91,6 +91,9 @@ bool FaultData::ReadContent(Parcel &parcel)
 
     isInForeground = parcel.ReadBool();
     isEnableMainThreadSample = parcel.ReadBool();
+
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "LogEntry read string failed.");
+    logEntry = strValue;
     return true;
 }
 
@@ -137,6 +140,10 @@ bool FaultData::WriteContent(Parcel &parcel) const
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(isEnableMainThreadSample),
         "isEnableMainThreadSample [%{public}d] write bool failed.", isEnableMainThreadSample
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(logEntry),
+        "logEntry [%{public}s] write string failed.", logEntry.c_str()
     );
     return true;
 }
@@ -271,6 +278,8 @@ bool AppFaultDataBySA::ReadContent(Parcel &parcel)
     procStatm = strValue;
     isInForeground = parcel.ReadBool();
     isEnableMainThreadSample = parcel.ReadBool();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "LogEntry read string failed.");
+    logEntry = strValue;
     return true;
 }
 
@@ -313,6 +322,10 @@ bool AppFaultDataBySA::WriteContent(Parcel &parcel) const
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(isEnableMainThreadSample),
         "isEnableMainThreadSample [%{public}d] write bool failed.", isEnableMainThreadSample
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(logEntry),
+        "logEntry [%{public}s] write string failed.", logEntry.c_str()
     );
     return true;
 }
