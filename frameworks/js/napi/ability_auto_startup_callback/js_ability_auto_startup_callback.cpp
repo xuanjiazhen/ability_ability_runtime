@@ -26,7 +26,8 @@ namespace {
 const std::string METHOD_ON = "onAutoStartupOn";
 const std::string METHOD_OFF = "onAutoStartupOff";
 } // namespace
-JsAbilityAutoStartupCallBack::JsAbilityAutoStartupCallBack(napi_env env) : env_(env) {
+JsAbilityAutoStartupCallBack::JsAbilityAutoStartupCallBack(napi_env env) : env_(env)
+{
     TAG_LOGE(AAFwkTag::AUTO_STARTUP, "JsAbilityAutoStartupCallBack");
 }
 
@@ -34,7 +35,7 @@ JsAbilityAutoStartupCallBack::~JsAbilityAutoStartupCallBack()
 {
     for (const auto &callback : callbacks_) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "~JsAbilityAutoStartupCallBack");
-        napi_delete_reference(env_, reinterpret_cast<napi_ref>(callback.get()));
+        // napi_delete_reference(env_, reinterpret_cast<napi_ref>(callback.get()));
     }
 }
 
@@ -62,7 +63,7 @@ void JsAbilityAutoStartupCallBack::Register(napi_value value)
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "callback not exist");
         }
     }
-
+    TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Register");
     napi_ref ref = nullptr;
     napi_status createStatus = napi_create_reference(env_, value, 1, &ref);
     if (createStatus != napi_ok || ref == nullptr) {
@@ -74,7 +75,7 @@ void JsAbilityAutoStartupCallBack::Register(napi_value value)
 
 void JsAbilityAutoStartupCallBack::UnRegister(napi_value value)
 {
-    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
+    TAG_LOGE(AAFwkTag::AUTO_STARTUP, "called");
     napi_valuetype type = napi_undefined;
     napi_typeof(env_, value, &type);
     std::lock_guard<std::mutex> lock(mutexlock_);
@@ -82,7 +83,7 @@ void JsAbilityAutoStartupCallBack::UnRegister(napi_value value)
         TAG_LOGD(AAFwkTag::AUTO_STARTUP, "invalid callback, clear all callback");
         for (const auto &callback : callbacks_) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "clear start");
-            napi_delete_reference(env_, reinterpret_cast<napi_ref>(callback.get()));
+            // napi_delete_reference(env_, reinterpret_cast<napi_ref>(callback.get()));
         }
         callbacks_.clear();
         return;
@@ -91,7 +92,7 @@ void JsAbilityAutoStartupCallBack::UnRegister(napi_value value)
     for (auto item = callbacks_.begin(); item != callbacks_.end();) {
         if (IsJsCallbackEquals(*item, value)) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "clear start second");
-            napi_delete_reference(env_, reinterpret_cast<napi_ref>(item->get()));
+            // napi_delete_reference(env_, reinterpret_cast<napi_ref>(item->get()));
             item = callbacks_.erase(item);
         } else {
             item++;
