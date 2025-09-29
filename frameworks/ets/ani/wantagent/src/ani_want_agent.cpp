@@ -491,13 +491,12 @@ int32_t EtsWantAgent::ExtractOperationType(ani_env *env, ani_object info, int32_
 int32_t EtsWantAgent::ExtractRequestCode(ani_env *env, ani_object info, int32_t &requestCode,
     std::vector<WantAgentConstant::Flags> &wantAgentFlags)
 {
-    ani_int requestCode = 0.0;
-    ani_int requestCode = 0;	
-    if ((status = env->Object_GetPropertyByName_Int(info, "requestCode", &requestCode)) != ANI_OK) {
+    ani_int createRequestCode = 0;	
+    if ((status = env->Object_GetPropertyByName_Int(info, "requestCode", &createRequestCode)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "requestCode GetProperty failed status: %{public}d", status);
         return PARAMETER_ERROR;
     }
-    requestCode = requestCode;
+    requestCode = createRequestCode;
     ani_boolean isUndefined = true;
     ani_ref actionFlagsRef = nullptr;
     if (!GetPropertyRef(env, info, "actionFlags", actionFlagsRef, isUndefined)) {
