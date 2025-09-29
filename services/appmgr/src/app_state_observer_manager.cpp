@@ -696,7 +696,7 @@ void AppStateObserverManager::HandleOnAppProcessCreated(const std::shared_ptr<Ap
         TAG_LOGI(AAFwkTag::APPMGR, "change processType to NORMAL");
         data.processType = ProcessType::NORMAL;
     }
-    TAG_LOGI(AAFwkTag::APPMGR,
+    TAG_LOGD(AAFwkTag::APPMGR,
         "bundle:%{public}s, pid:%{public}d, uid:%{public}d, processType:%{public}d, "
         "extensionType:%{public}d, processName:%{public}s, renderUid:%{public}d, isTestMode:%{public}d, "
         "callerPid:%{public}d, callerUid:%{public}d",
