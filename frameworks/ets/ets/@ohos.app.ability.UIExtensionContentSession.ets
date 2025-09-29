@@ -21,7 +21,7 @@ import { LocalStorage } from '@ohos.arkui.stateManagement';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 import AbilityStartCallback from 'application.AbilityStartCallback';
 import StartOptions from '@ohos.app.ability.StartOptions';
-import uiExtension from '@ohos.arkui.uiExtension';
+// import uiExtension from '@ohos.arkui.uiExtension';
 import StartOptions from '@ohos.app.ability.StartOptions';
 import Want from '@ohos.app.ability.Want';
 
@@ -58,8 +58,8 @@ export default class UIExtensionContentSession {
   native loadContent(path: string, storage?: LocalStorage): void;
   native loadContentByName(path: string, storage?: LocalStorage): void;
   native setWindowBackgroundColor(color: string): void;
-  native getUIExtensionHostWindowProxy(): uiExtensionHost.UIExtensionHostWindowProxy;
-  native getUIExtensionWindowProxy(): uiExtension.WindowProxy;
+  // native getUIExtensionHostWindowProxy(): uiExtensionHost.UIExtensionHostWindowProxy;
+  // native getUIExtensionWindowProxy(): uiExtension.WindowProxy;
   native nativeSetReceiveDataCallback(callback: (data: Record<string, Object>) => void): void;
   native nativeSetReceiveDataForResultCallback(callback: (data: Record<string, Object>) => Record<string, Object>): void;
   native terminateSelfSync(callback:AsyncCallbackWrapper<void>): void;
