@@ -83,9 +83,8 @@ ani_object EtsInsightIntentContextModule::NativeTransferStatic(
         return nullptr;
     }
     TAG_LOGD(AAFwkTag::INTENT, "contextType %{public}s", contextType.c_str());
-    std::shared_ptr<EtsInsightIntentContext> contextCpp =
-        std::make_shared<EtsInsightIntentContext>(insightIntentContext);
-    auto newContext = CreateEtsInsightIntentContext(aniEnv, contextCpp);
+    EtsInsightIntentContext *etsSession = new EtsInsightIntentContext(insightIntentContext);
+    auto newContext = CreateEtsInsightIntentContext(aniEnv, etsSession);
     if (newContext == nullptr || newContext->aniObj == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "create insightIntentContext failed");
         return nullptr;
@@ -196,20 +195,31 @@ napi_value EtsInsightIntentContextModule::GetOrCreateDynamicObject(
     return object;
 }
 
-std::shared_ptr<InsightIntentContext> GetNativeInsightIntentContext(ani_env *env, ani_object object)
+EtsInsightIntentContext *GetEtsInsightIntentContext(ani_env *env, ani_object aniObj)
 {
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "env is nullptr");
-        return nullptr;
-    }
     ani_long nativeContextLong;
-    ani_status status = env->Object_GetFieldByName_Long(object, "nativeContext", &nativeContextLong);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "Object_GetField_Long failed, status: %{public}d", status);
+    ani_class cls {};
+    ani_field contextField = nullptr;
+    ani_status status = ANI_ERROR;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null env");
         return nullptr;
     }
-    auto weakContext = reinterpret_cast<std::weak_ptr<InsightIntentContext> *>(nativeContextLong);
-    return weakContext != nullptr ? weakContext->lock() : nullptr;
+
+    if ((status = env->FindClass(INSIGHT_INTENT_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
+        return nullptr;
+    }
+
+    if ((status = env->Class_FindField(cls, "nativeContext", &contextField)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_GetField_Long(aniObj, contextField, &nativeContextLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
+        return nullptr;
+    }
+    return reinterpret_cast<EtsInsightIntentContext *>(nativeContextLong);
 }
 
 ani_object EtsInsightIntentContextModule::NativeTransferDynamic(ani_env *aniEnv, ani_class aniCls, ani_object input)
@@ -222,14 +232,14 @@ ani_object EtsInsightIntentContextModule::NativeTransferDynamic(ani_env *aniEnv,
         return nullptr;
     }
 
-    auto context = GetNativeInsightIntentContext(aniEnv, input);
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "null insightIntentContext");
+    auto etsContext = GetEtsInsightIntentContext(aniEnv, input);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null etsInsightIntentContext");
         EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
         return nullptr;
     }
 
-    ani_object object = CreateDynamicObject(aniEnv, aniCls, context);
+    ani_object object = CreateDynamicObject(aniEnv, aniCls, etsContext->GetNativeContext());
     if (object == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid object");
         EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
