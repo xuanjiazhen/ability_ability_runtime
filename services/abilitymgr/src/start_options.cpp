@@ -324,5 +324,14 @@ bool StartOptions::GetHideStartWindow() const
     return hideStartWindow_;
 }
 
+void StartOptions::SetCurrentProcessName(const std::string &processName)
+{
+    currentProcessName_ = processName;
+}
+
+std::string StartOptions::GetCurrentProcessName() const
+{
+    return currentProcessName_;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
