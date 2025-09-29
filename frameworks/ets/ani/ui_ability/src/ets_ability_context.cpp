@@ -73,6 +73,11 @@ constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION =
 constexpr const char *SIGNATURE_WANT_CHK = "L@ohos/app/ability/Want/Want;:V";
 constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK = "Lapplication/UIServiceProxy/UIServiceProxy;:V";
 constexpr const char* UI_SERVICE_HOSTPROXY_KEY = "ohos.ability.params.UIServiceHostProxy";
+constexpr const char *REQUEST_RESULT_INNER_CLASS_NAME =
+    "L@ohos/app/ability/dialogRequest/dialogRequest/RequestResultInner;";
+constexpr const char *RESULT_ENUM_NAME = "L@ohos/app/ability/dialogRequest/dialogRequest/ResultCode;";
+constexpr const char *SIGNATURE_REQUEST_DIALOG_SERVICE =
+    "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
 
@@ -1327,6 +1332,101 @@ void EtsAbilityContext::ConnectUIServiceExtension(ani_env *env, ani_object aniOb
     etsContext->OnConnectUIServiceExtension(env, wantObj, uiServiceExtConCallbackObj, callback);
 }
 
+void EtsAbilityContext::RequestDialogService(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "RequestDialogService called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnRequestDialogService(env, aniObj, wantObj, call);
+}
+
+ani_object EtsAbilityContext::WrapRequestDialogResult(ani_env *env, int32_t resultCode, const AAFwk::Want &want)
+{
+    ani_class requestResultInner = nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return nullptr;
+    }
+    ani_status status = env->FindClass(REQUEST_RESULT_INNER_CLASS_NAME, &requestResultInner);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "RequestResultInner FindClass status: %{public}d", status);
+        return nullptr;
+    }
+    ani_method method = nullptr;
+    if ((status = env->Class_FindMethod(requestResultInner, "<ctor>", ":V", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "RequestResultInner Class_FindMethod status: %{public}d", status);
+        return nullptr;
+    }
+    ani_object object = nullptr;
+    if ((status = env->Object_New(requestResultInner, method, &object)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "RequestResultInner Object_New status: %{public}d", status);
+        return nullptr;
+    }
+    ani_enum_item resultItem = nullptr;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env, RESULT_ENUM_NAME, resultCode, resultItem) ||
+        resultItem == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "resultItem failed, or null resultItem");
+        return nullptr;
+    }
+    env->Object_SetPropertyByName_Ref(object, "result", resultItem);
+    env->Object_SetPropertyByName_Ref(object, "want", AppExecFwk::WrapWant(env, want));
+    return object;
+}
+
+void EtsAbilityContext::OnRequestDialogService(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    AAFwk::Want want;
+    AppExecFwk::UnwrapWant(env, wantObj, want);
+    TAG_LOGD(AAFwkTag::CONTEXT, "target:%{public}s.%{public}s", want.GetBundle().c_str(),
+        want.GetElement().GetAbilityName().c_str());
+    ani_vm *vm = nullptr;
+    ani_status status = env->GetVM(&vm);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "GetVM status: %{public}d", status);
+        return;
+    }
+    ani_ref callbackRef = nullptr;
+    env->GlobalReference_Create(call, &callbackRef);
+    RequestDialogResultTask task =
+        [vm, callbackRef](int32_t resultCode, const AAFwk::Want &resultWant) {
+        bool isAttachThread = false;
+        ani_env *env = AppExecFwk::AttachAniEnv(vm, isAttachThread);
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+            return;
+        }
+        ani_object requestResult = EtsAbilityContext::WrapRequestDialogResult(env, resultCode, resultWant);
+        if (requestResult == nullptr) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null requestResult");
+            EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        } else {
+            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), nullptr, requestResult);
+        }
+        env->GlobalReference_Delete(callbackRef);
+        AppExecFwk::DetachAniEnv(vm, isAttachThread);
+        TAG_LOGD(AAFwkTag::CONTEXT, "end async callback");
+    };
+
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    } else {
+        auto errCode = context->RequestDialogService(want, std::move(task));
+        if (errCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "errCode: %{public}d", errCode);
+            EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateError(env, GetJsErrorCodeByNativeError(errCode)));
+        }
+    }
+}
+
 void EtsAbilityContext::OnConnectUIServiceExtension(ani_env *env, ani_object wantObj,
     ani_object uiServiceExtConCallbackObj, ani_object callback)
 {
@@ -1582,6 +1682,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function{"nativeDisconnectUIServiceExtensionCheck",
                 SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK,
                 reinterpret_cast<void*>(EtsAbilityContext::DisconnectUIServiceExtensionCheck)},
+            ani_native_function { "nativeRequestDialogService", SIGNATURE_REQUEST_DIALOG_SERVICE,
+                reinterpret_cast<void*>(EtsAbilityContext::RequestDialogService) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);

@@ -97,6 +97,8 @@ public:
         ani_object callback);
     static void WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj);
     static void DisconnectUIServiceExtensionCheck(ani_env *env, ani_object aniObj, ani_object proxyObj);
+    static void RequestDialogService(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call);
+    static ani_object WrapRequestDialogResult(ani_env *env, int32_t resultCode, const AAFwk::Want &want);
 
     static void Clean(ani_env *env, ani_object object);
     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
@@ -149,6 +151,7 @@ private:
     void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
     void OnDisconnectUIServiceExtension(ani_env *env, ani_object proxyObj, ani_object callback);
     bool CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want& want, ani_object callback, ani_object myCallback);
+    void OnRequestDialogService(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call);
 
     std::weak_ptr<AbilityContext> context_;
     static std::mutex requestCodeMutex_;
