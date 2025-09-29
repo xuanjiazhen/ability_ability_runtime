@@ -492,8 +492,8 @@ int32_t EtsWantAgent::ExtractRequestCode(ani_env *env, ani_object info, int32_t 
     std::vector<WantAgentConstant::Flags> &wantAgentFlags)
 {
     ani_int requestCode = 0.0;
-    ani_status status = env->Object_GetPropertyByName_Double(info, "requestCode", &dRequestCode);
-    if (status != ANI_OK) {
+    ani_int requestCode = 0;	
+    if ((status = env->Object_GetPropertyByName_Int(info, "requestCode", &requestCode)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "requestCode GetProperty failed status: %{public}d", status);
         return PARAMETER_ERROR;
     }
