@@ -266,14 +266,6 @@ public:
      */
     ErrCode SetMissionLabel(const std::string &label) override;
 
-    /**
-     * @brief Set mission icon of this ability.
-     *
-     * @param icon the icon of this ability.
-     * @return Returns ERR_OK if success.
-     */
-    ErrCode SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap> &icon) override;
-
      /**
      * @brief Set ability label and icon of this ability.
      *

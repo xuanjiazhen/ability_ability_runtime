@@ -2338,7 +2338,6 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
 
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction(env, object, "setMissionLabel", moduleName, JsAbilityContext::SetMissionLabel);
-    BindNativeFunction(env, object, "setMissionIcon", moduleName, JsAbilityContext::SetMissionIcon);
     BindNativeFunction(env, object, "setAbilityInstanceInfo", moduleName, JsAbilityContext::SetAbilityInstanceInfo);
 #endif
     BindNativeFunction(env, object, "startAppServiceExtensionAbility", moduleName,
@@ -2747,11 +2746,6 @@ napi_value JsAbilityContext::SetMissionLabel(napi_env env, napi_callback_info in
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetMissionLabel);
 }
 
-napi_value JsAbilityContext::SetMissionIcon(napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetMissionIcon);
-}
-
 napi_value JsAbilityContext::SetAbilityInstanceInfo(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetAbilityInstanceInfo);
@@ -2792,50 +2786,6 @@ napi_value JsAbilityContext::OnSetMissionLabel(napi_env env, NapiCallbackInfo& i
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnSetMissionLabel",
         env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-    return result;
-}
-
-napi_value JsAbilityContext::OnSetMissionIcon(napi_env env, NapiCallbackInfo& info)
-{
-    TAG_LOGI(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(info.argc));
-    if (info.argc < ARGC_ONE) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
-        ThrowTooFewParametersError(env);
-        return CreateJsUndefined(env);
-    }
-
-    auto icon = OHOS::Media::PixelMapNapi::GetPixelMap(env, info.argv[INDEX_ZERO]);
-    if (!icon) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "parse icon failed");
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
-        return CreateJsUndefined(env);
-    }
-    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
-    NapiAsyncTask::ExecuteCallback execute =
-        [weak = context_, icon, innerErrCode]() {
-            auto context = weak.lock();
-            if (!context) {
-                TAG_LOGW(AAFwkTag::CONTEXT, "null context");
-                *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-                return;
-            }
-            *innerErrCode = context->SetMissionIcon(icon);
-    };
-    NapiAsyncTask::CompleteCallback complete =
-        [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
-            if (*innerErrCode == ERR_OK) {
-                task.Resolve(env, CreateJsUndefined(env));
-            } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
-                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
-            } else {
-                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
-            }
-        };
-
-    napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[INDEX_ONE] : nullptr;
-    napi_value result = nullptr;
-    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnSetMissionIcon",
-        env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
     return result;
 }
 

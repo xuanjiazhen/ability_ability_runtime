@@ -611,12 +611,6 @@ napi_value JsEmbeddableUIAbilityContext::SetMissionLabel(napi_env env, napi_call
     GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetMissionLabel);
 }
 
-napi_value JsEmbeddableUIAbilityContext::SetMissionIcon(napi_env env, napi_callback_info info)
-{
-    TAG_LOGI(AAFwkTag::UI_EXT, "called");
-    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetMissionIcon);
-}
-
 napi_value JsEmbeddableUIAbilityContext::OnSetMissionLabel(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
@@ -626,17 +620,6 @@ napi_value JsEmbeddableUIAbilityContext::OnSetMissionLabel(napi_env env, NapiCal
     }
     CHECK_POINTER_RETURN(env, jsAbilityContext_);
     return jsAbilityContext_->OnSetMissionLabel(env, info);
-}
-
-napi_value JsEmbeddableUIAbilityContext::OnSetMissionIcon(napi_env env, NapiCallbackInfo& info)
-{
-    if (IsEmbeddableStart(screenMode_)) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Set mission icon in embedded screen mode");
-        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
-        return CreateJsUndefined(env);
-    }
-    CHECK_POINTER_RETURN(env, jsAbilityContext_);
-    return jsAbilityContext_->OnSetMissionIcon(env, info);
 }
 #endif
 
@@ -738,7 +721,6 @@ napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi
 
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction(env, objValue, "setMissionLabel", moduleName, SetMissionLabel);
-    BindNativeFunction(env, objValue, "setMissionIcon", moduleName, SetMissionIcon);
     BindNativeFunction(env, objValue, "moveAbilityToBackground", moduleName, MoveAbilityToBackground);
 #endif
     return objValue;

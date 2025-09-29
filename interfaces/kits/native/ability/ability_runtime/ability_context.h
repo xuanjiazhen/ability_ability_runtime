@@ -420,14 +420,6 @@ public:
     virtual ErrCode SetMissionLabel(const std::string &label) = 0;
 
     /**
-     * @brief Set mission icon of this ability.
-     *
-     * @param icon the icon of this ability.
-     * @return Returns ERR_OK if success.
-     */
-    virtual ErrCode SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap> &icon) = 0;
-
-    /**
      * @brief Set ability label and icon of this ability.
      *
      * @param label the label of this ability.

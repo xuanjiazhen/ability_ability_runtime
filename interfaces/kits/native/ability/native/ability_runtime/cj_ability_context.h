@@ -83,7 +83,6 @@ public:
 
 #ifdef SUPPORT_GRAPHICS
     int32_t SetMissionLabel(const std::string& label);
-    int32_t SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap>& icon);
 #endif
 
 private:

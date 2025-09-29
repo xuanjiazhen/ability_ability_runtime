@@ -991,21 +991,6 @@ ErrCode AbilityContextImpl::SetMissionLabel(const std::string& label)
     return err;
 }
 
-ErrCode AbilityContextImpl::SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap>& icon)
-{
-    TAG_LOGD(AAFwkTag::CONTEXT, "call");
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->SetMissionIcon(token_, icon);
-    if (err != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
-    } else {
-        auto abilityCallback = abilityCallback_.lock();
-        if (abilityCallback) {
-            abilityCallback->SetMissionIcon(icon);
-        }
-    }
-    return err;
-}
-
 ErrCode AbilityContextImpl::SetAbilityInstanceInfo(const std::string& label,
     std::shared_ptr<OHOS::Media::PixelMap> icon)
 {
