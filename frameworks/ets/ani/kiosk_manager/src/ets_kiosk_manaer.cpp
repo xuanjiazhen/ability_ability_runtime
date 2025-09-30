@@ -44,6 +44,26 @@ bool IsRefUndefined(ani_env *env, ani_ref ref)
     return isUndefined;
 }
 
+void EnterKioskModeSyncCheck([[maybe_unused]]ani_env *env, ani_object contextObj)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
+        if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Failed to get context, context must not be nullptr.");
+    }
+    auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
+    if (uiAbilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null UIAbilityContext");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Failed to get uiAbilityContext, uiAbilityContext must not be nullptr.");
+    }
+}
+
 void EnterKioskModeSync([[maybe_unused]]ani_env *env, ani_object contextObj, ani_object callback)
 {
     if (env == nullptr) {
@@ -51,14 +71,14 @@ void EnterKioskModeSync([[maybe_unused]]ani_env *env, ani_object contextObj, ani
         return;
     }
     uintptr_t ability = 0;
-    if (!IsNull(env, contextObj) && !IsRefUndefined(env, contextObj)) {
-        ani_long contextLong{};
-        if (ANI_OK != env->Object_GetFieldByName_Long(contextObj, "nativeContext", &contextLong)) {
-            TAG_LOGE(AAFwkTag::APPKIT, "get nativeContext failed.");
-            return;
-        }
-        ability = static_cast<unsigned long>(contextLong);
-    }
+    // if (!IsNull(env, contextObj) && !IsRefUndefined(env, contextObj)) {
+    //     ani_long contextLong{};
+    //     if (ANI_OK != env->Object_GetFieldByName_Long(contextObj, "nativeContext", &contextLong)) {
+    //         TAG_LOGE(AAFwkTag::APPKIT, "get nativeContext failed.");
+    //         return;
+    //     }
+    //     ability = static_cast<unsigned long>(contextLong);
+    // }
     auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
     auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
     if (uiAbilityContext == nullptr) {
@@ -195,6 +215,13 @@ void EtsKioskManagerInit(ani_env *env)
             // "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             nullptr,
             reinterpret_cast<void*>(EnterKioskModeSync)
+        },
+        ani_native_function {
+            "nativeEnterKioskModeCheck",
+            // "Lapplication/UIAbilityContext/UIAbilityContext;"
+            // "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            nullptr,
+            reinterpret_cast<void*>(EnterKioskModeSyncCheck)
         },
         ani_native_function {
             "nativeExitKioskMode",
