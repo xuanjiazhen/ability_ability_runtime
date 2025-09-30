@@ -161,6 +161,30 @@ void EventReport::LogStartErrorEvent(const std::string &name, HiSysEventType typ
         EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
 }
 
+void EventReport::LogWantAgentNumberEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_CALLER_UID, eventInfo.callerUid,
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
+        EVENT_KEY_WANTAGENT_NUMBER, eventInfo.wantAgentNumber);
+}
+
+void EventReport::LogTriggerFailedEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_CALLER_UID, eventInfo.callerUid,
+        EVENT_KEY_APP_UID, eventInfo.appUid,
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode);
+}
+
 void EventReport::LogSystemErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
 {
     HiSysEventWrite(
@@ -386,6 +410,32 @@ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType ty
         default:
             break;
     }
+}
+
+void EventReport::SendWantAgentEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwktag::DEFAULT, "invalid eventName");
+        return;
+    }
+
+    if (eventname == EventName::WANTAGENT_NUMBER) {
+        LogWantAgentNumberEvent(name, type, eventInfo);
+    }
+}
+
+void EventReport::SendTriggerEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwktag::DEFAULT, "invalid eventName");
+        return;
+    }
+
+    LogTriggerFailedEvent(name, type, eventInfo);
 }
 
 void EventReport::SendAtomicServiceEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
@@ -915,6 +965,12 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         
         // uri permission
         "SHARE_UNPRIVILEGED_FILE_URI",
+
+        // want_agent
+        "WANTAGENT_NUMBER",
+
+        //trigger
+        "TRIGGER_FAILED",
 
         // report data
         "USER_DATA_SIZE"
