@@ -92,6 +92,7 @@ private:
     static int32_t serialNumber_;
     ani_vm *vm_ = nullptr;
     std::map<int32_t, ani_ref> callbacks_;
+    std::mutex mutex_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

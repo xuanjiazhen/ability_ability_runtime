@@ -76,6 +76,7 @@ void EtsAbilityLifecycleCallback::CallObjectMethod(const char *methodName,
         return;
     }
     ani_status status = ANI_ERROR;
+    std::lock_guard<std::mutex> lock(mutex_);
     for (const auto &callback : callbacks_) {
         if (callback.second == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null callback");
@@ -99,6 +100,7 @@ void EtsAbilityLifecycleCallback::CallObjectMethod(const char *methodName, const
         return;
     }
     ani_status status = ANI_ERROR;
+    std::lock_guard<std::mutex> lock(mutex_);
     for (const auto &callback : callbacks_) {
         if (callback.second == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null callback");
@@ -140,6 +142,7 @@ void EtsAbilityLifecycleCallback::CallObjectPropertyCommon(ani_env *env, const c
     ani_ref ability, ani_ref windowStage)
 {
     ani_status status = ANI_ERROR;
+    std::lock_guard<std::mutex> lock(mutex_);
     for (const auto &callback : callbacks_) {
         if (callback.second == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null callback");
@@ -196,6 +199,7 @@ int32_t EtsAbilityLifecycleCallback::Register(ani_object callback)
         TAG_LOGE(AAFwkTag::APPKIT, "failed to create reference, status=%{public}d", status);
         return ERROR_CODE_NULL_REF;
     }
+    std::lock_guard<std::mutex> lock(mutex_);
     callbacks_.emplace(callbackId, ref);
     return callbackId;
 }
@@ -203,6 +207,7 @@ int32_t EtsAbilityLifecycleCallback::Register(ani_object callback)
 bool EtsAbilityLifecycleCallback::Unregister(int32_t callbackId)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "Unregister callbackId : %{public}d", callbackId);
+    std::lock_guard<std::mutex> lock(mutex_);
     return callbacks_.erase(callbackId);
 }
 
