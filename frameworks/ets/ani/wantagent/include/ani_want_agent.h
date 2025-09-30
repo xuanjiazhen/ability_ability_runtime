@@ -86,12 +86,7 @@ private:
     ani_boolean OnIsLocalWantAgent(ani_env *env, ani_object info);
     int32_t GetTriggerInfo(ani_env *env, ani_object triggerInfoObj, TriggerInfo &triggerInfo);
     int32_t GetWantAgentParam(ani_env *env, ani_object info, WantAgentParams &params);
-    int32_t ParseWantsArray(ani_env *env, ani_object info, std::vector<std::shared_ptr<AAFwk::Want>> &wants);
-    int32_t ExtractOperationType(ani_env *env, ani_object info, int32_t &operationType);
-    int32_t ExtractRequestCode(ani_env *env, ani_object info, int32_t &requestCode,
-        std::vector<WantAgentConstant::Flags> &wantAgentFlags);
-    int32_t ExtractExtraInfo(ani_env *env, ani_object info, AAFwk::WantParams &extraInfo);
-};
+    };
 
 class TriggerCompleteCallBack : public CompletedCallback {
 public:
