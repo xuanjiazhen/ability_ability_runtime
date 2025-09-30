@@ -17,7 +17,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
-#include "Insight_Intent_extension_context_module.h"
+#include "insight_intent_extension_context_module.h"
 #include "ani_base_context.h"
 #include "ani_common_util.h"
 #include "context_transfer.h"
