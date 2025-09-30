@@ -76,6 +76,64 @@ sptr<IWantSender> PendingWantManager::GetWantSender(int32_t callingUid, int32_t 
     return GetWantSenderLocked(callingUid, uid, wantSenderInfo.userId, info, callerToken, appIndex);
 }
 
+void PendingWantManager::AddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey)
+{
+    TAG_LOGI(AAFwkTag::WANTAGENT, "add wantAgent number");
+    if (PermissionVerification::GetInstance()->IsSystemAppCall()
+        || PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "systemCall");
+        return;
+    }
+
+    std::string bundleName = pendingKey->GetBundleName();
+    auto it = wantAgentCount_.find(bundleName);
+    if(it == wantAgentCount_.end()) {
+        wantAgentCount_.insert(std::make_pair(bundleName, std::make_pair(1, 1)));
+    } else {
+        it->second.first = it->second.first + 1;
+        if(it->second.first > it->second.second) {
+            it->second.second = it->second.first;
+        }
+    }
+
+}
+
+void SendWantAgentNumberEvent(std::shared_ptr<PendingWantKey> pendingKey)
+{
+    std::string bundleName = pendingKey->GetBundleName();
+    std::int32_t appIndex = pendingKey->GetAppIndex();
+
+    EventInfo eventInfo;
+    eventInfo.callerBundleName = bundleName;
+    eventInfo.callerUid = appIndex;
+    eventInfo.wantAgentNumber = it->second;
+    EventReport::SendWantAgentEvent(EventName::WANTAGENT_NUMBER, HiSysEventType::STATISTIC, eventInfo);
+}
+
+void PendingWantManager::ReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey) {
+    TAG_LOGI(AAFwkTag::WANTAGENT, "reduce wantAgent number");
+    if (PermissionVerification::GetInstance()->IsSystemAppCall()
+        || PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "systemCall");
+        return;
+    }
+
+    std::string bundleName = pendingKey->GetBundleName();
+    auto it = wantAgentCount_.find(bundleName);
+    if(it == wantAgentCount_.end()) {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "No WantAgent");
+    } else {
+        if (it->second.first == 1) {
+            if (it->second.second > 360) {
+                SendWantAgentNumberEvent(pendingKey);
+            }
+            wantAgentCount_.erase(bundleName);
+        } else {
+            it->second.first = it->second.first - 1;
+        }
+    }
+}
+
 sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingUid, const int32_t uid,
     const int32_t userId, WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex)
 {
@@ -118,6 +176,7 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
         }
         MakeWantSenderCanceledLocked(*ref);
         wantRecords_.erase(ref->GetKey());
+        ReduceWantAgentNumber(ref->GetKey());
     }
 
     if (!needCreate) {
@@ -130,6 +189,7 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
     if (rec != nullptr) {
         rec->SetCallerUid(callingUid);
         pendingKey->SetCode(PendingRecordIdCreate());
+        AddWantAgentNumber(pendingKey);
         wantRecords_.insert(std::make_pair(pendingKey, rec));
         TAG_LOGI(AAFwkTag::WANTAGENT,
             "wantRecords_ size %{public}zu, bundleName=%{public}s, flags=%{public}d, type=%{public}d, code=%{public}d",
@@ -299,6 +359,7 @@ void PendingWantManager::CancelWantSenderLocked(PendingWantRecord &record, bool 
     MakeWantSenderCanceledLocked(record);
     if (cleanAbility) {
         wantRecords_.erase(record.GetKey());
+        ReduceWantAgentNumber(record.GetKey());
     }
 }
 
@@ -675,6 +736,7 @@ void PendingWantManager::ClearPendingWantRecordTask(const std::string &bundleNam
             }
             if (hasBundle) {
                 iter = wantRecords_.erase(iter);
+                ReduceWantAgentNumber(iter->first);
                 TAG_LOGI(AAFwkTag::WANTAGENT, "wantRecords_ size %{public}zu", wantRecords_.size());
             } else {
                 ++iter;
