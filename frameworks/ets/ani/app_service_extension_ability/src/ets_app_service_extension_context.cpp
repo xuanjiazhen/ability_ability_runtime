@@ -58,9 +58,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
         ani_native_function { "nativeStartAbility",
             "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(EtsAppServiceExtensionContext::StartAbility) },
-        ani_native_function { "nativeStartAbilityWithOption",
-            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;"
-            "L@ohos/app/ability/StartOptions/StartOptions;:V",
+        ani_native_function { "nativeStartAbility",
+            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;"
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(EtsAppServiceExtensionContext::StartAbilityWithOption) },
         ani_native_function { "nativeConnectAppServiceExtensionAbility",
             "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:J",
@@ -234,7 +234,7 @@ void EtsAppServiceExtensionContext::StartAbility(ani_env *env, ani_object aniObj
         TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null etsAppServiceExtensionContext");
         return;
     }
-    etsAppServiceExtensionContext->OnStartAbility(env, aniObj, wantObj, call);
+    etsAppServiceExtensionContext->OnStartAbility(env, aniObj, wantObj, nullptr, call);
 }
 
 void EtsAppServiceExtensionContext::StartAbilityWithOption(ani_env *env, ani_object aniObj, ani_object wantObj,

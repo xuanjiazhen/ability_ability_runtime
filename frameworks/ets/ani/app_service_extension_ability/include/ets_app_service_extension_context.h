@@ -55,8 +55,8 @@ private:
         ani_object connectOptionsObj);
     void OnDisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
         ani_object callback);
-    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj = nullptr,
-        ani_object callbackObj = nullptr);
+    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj,
+        ani_object callbackObj);
 };
 
 ani_object CreateEtsAppServiceExtensionContext(ani_env *env, std::shared_ptr<AppServiceExtensionContext> context);
