@@ -2557,5 +2557,34 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_004, TestSiz
     EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_004 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: CheckCallAbilityPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckCallAbilityPermission
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_005 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    OHOS::AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityInfo.uid = 100;
+    OHOS::AppExecFwk::ApplicationInfo applicationInfo;
+    applicationInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
+    applicationInfo.uid = 100;
+    Want want;
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    abilityRecord->Init();
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityRequest.abilityInfo.uid = callerUid;
+
+    abilityRequest.callerToken = abilityRecord->GetToken();
+    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_005 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
