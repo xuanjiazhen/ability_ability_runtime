@@ -36,7 +36,7 @@ ohos_shared_library("insight_intent_context_ani_kit") {
   configs = []
   public_configs = []
 
-  sources = [ "./src/Insight_Intent_context_module.cpp" ]
+  sources = [ "./src/insight_intent_context_module.cpp" ]
 
   cflags = []
   if (target_cpu == "arm") {
