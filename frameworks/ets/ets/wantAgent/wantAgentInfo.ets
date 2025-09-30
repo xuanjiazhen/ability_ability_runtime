@@ -43,5 +43,5 @@ class WantAgentInfoImpl implements WantAgentInfo {
 export interface LocalWantAgentInfo {
   wants: Array<Want>;
   operationType?: abilityWantAgent.OperationType;
-  requestCode: number;
+  requestCode: int;
 }
