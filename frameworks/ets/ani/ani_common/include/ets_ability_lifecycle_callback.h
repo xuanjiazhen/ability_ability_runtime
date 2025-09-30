@@ -18,6 +18,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 
 #include "ability_lifecycle_callback.h"
 #include "ani.h"
