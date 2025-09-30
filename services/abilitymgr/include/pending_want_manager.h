@@ -173,6 +173,7 @@ public:
     void Dump(std::vector<std::string> &info);
     void DumpByRecordId(std::vector<std::string> &info, const std::string &args);
     int32_t GetAllRunningInstanceKeysByBundleName(const std::string &bundleName, std::vector<std::string> &appKey);
+    void checkWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
 
 private:
     sptr<IWantSender> GetWantSenderLocked(const int32_t callingUid, const int32_t uid, const int32_t userId,
@@ -194,6 +195,7 @@ private:
 
 private:
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
+    std::unordered_map<std::string bundlename, int32_t> wantAgentCount_;
     std::map<std::shared_ptr<PendingWantKey>, sptr<PendingWantRecord>> wantRecords_;
     ffrt::mutex mutex_;
 };

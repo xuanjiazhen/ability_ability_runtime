@@ -76,6 +76,32 @@ sptr<IWantSender> PendingWantManager::GetWantSender(int32_t callingUid, int32_t 
     return GetWantSenderLocked(callingUid, uid, wantSenderInfo.userId, info, callerToken, appIndex);
 }
 
+void PendingWantManager::checkWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey)
+{
+    TAG_LOGI(AAFwkTag::WANTAGENT, "check wantAgent number");
+    if (PermissionVerification::GetInstance()->IsSystemAppCall()
+        || PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "systemCall NO Need Record");
+        return;
+    }
+    std::string bundleName = pendingKey->GetBundleName();
+    std::int32_t appIndex = pendingKey->GetAppIndex();
+    auto it = wantAgentCount_.find(bundleName);
+    if(it == table.end()) {
+        wantAgentCount_.insert(bundleName, 1);
+    } else {
+        it->second = it->second + 1;
+    }
+
+    if (it->second > 360) {
+        EventInfo eventInfo;
+        eventInfo.callerBundleName = bundleName;
+        eventInfo.callerUid = appIndex;
+        eventInfo.wantAgentNumber = it->second;
+        EventReport::SendWantAgentEvent(EventName::WANTAGENT_NUMBER, HiSysEventType::STATIC, eventInfo);
+    }
+}
+
 sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingUid, const int32_t uid,
     const int32_t userId, WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex)
 {
@@ -130,6 +156,7 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
     if (rec != nullptr) {
         rec->SetCallerUid(callingUid);
         pendingKey->SetCode(PendingRecordIdCreate());
+        checkWantAgentNumber(pendingKey);
         wantRecords_.insert(std::make_pair(pendingKey, rec));
         TAG_LOGI(AAFwkTag::WANTAGENT,
             "wantRecords_ size %{public}zu, bundleName=%{public}s, flags=%{public}d, type=%{public}d, code=%{public}d",
