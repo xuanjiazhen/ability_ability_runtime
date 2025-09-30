@@ -174,12 +174,12 @@ void JsEnvironment::RegisterUncatchableExceptionHandler(const JsEnv::Uncatchable
 
     std::weak_ptr<JsEnvironment> weakThis = shared_from_this();
     panda::JSNApi::RegisterUncatchableErrorHandler(const_cast<EcmaVM *>(engine_->GetEcmaVm()),
-        [weakThis, uncatchableTask] (auto& trycatch) {
+        [weakThis, uncatchableTask] (const panda::UncatchableErrorInfo& errorInfo) {
             auto sharedThis = weakThis.lock();
             if (sharedThis) {
                 NapiUncaughtExceptionCallback napiUncaughtExceptionCallback(uncatchableTask,
                     sharedThis->sourceMapOperator_, reinterpret_cast<napi_env>(sharedThis->engine_));
-                napiUncaughtExceptionCallback(trycatch);
+                napiUncaughtExceptionCallback(errorInfo);
             } else {
                 TAG_LOGE(AAFwkTag::JSENV, "JsEnvironment has been destructed.");
             }

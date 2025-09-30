@@ -83,6 +83,11 @@ void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
     }
 }
 
+void NapiUncaughtExceptionCallback::operator()(const panda::UncatchableErrorInfo& errorInfo)
+{
+    CallbackTaskOOM(errorInfo);
+}
+
 void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
 {
     std::string errorMsg = GetNativeStrFromJsTaggedObj(obj, "message");
@@ -115,6 +120,44 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
     } else {
         summary += "Stacktrace:\n" + errorStack;
     }
+#ifdef SUPPORT_GRAPHICS
+    std::string str = Ace::UIContent::GetCurrentUIStackInfo();
+    if (!str.empty()) {
+        summary.append(str);
+    }
+#endif // SUPPORT_GRAPHICS
+    if (uncaughtTask_) {
+        uncaughtTask_(summary, errorObj);
+    }
+}
+
+void NapiUncaughtExceptionCallback::CallbackTaskOOM(const panda::UncatchableErrorInfo& errorInfo)
+{
+    std::string summary = "Error name:" + errorInfo.errorName + "\n";
+    summary += "Error message:" + errorInfo.errorMsg + "\n";
+    const JsEnv::ErrorObject errorObj = {
+        .name = errorInfo.errorName,
+        .message = errorInfo.errorMsg,
+        .stack = errorInfo.errorStack
+    };
+    if (errorInfo.hasProperty) {
+        summary += "Error code:" + errorInfo.errorCode + "\n";
+    }
+    if (!errorInfo.errorStack.empty()) {
+        if (errorInfo.errorStack.find(BACKTRACE) != std::string::npos) {
+            summary += "Stacktrace:\n" + GetFuncNameAndBuildId(errorInfo.errorStack);
+            std::string submitterStack = GetSubmitterStackLocal();
+            if (!submitterStack.empty()) {
+                summary.append("========SubmitterStacktrace========\n");
+                summary.append(submitterStack);
+            }
+        } else {
+            summary += "Stacktrace:\n" + errorInfo.errorStack;
+        }
+    } else {
+        TAG_LOGE(AAFwkTag::JSENV, "errorStack is empty");
+    }
+    
 #ifdef SUPPORT_GRAPHICS
     std::string str = Ace::UIContent::GetCurrentUIStackInfo();
     if (!str.empty()) {
