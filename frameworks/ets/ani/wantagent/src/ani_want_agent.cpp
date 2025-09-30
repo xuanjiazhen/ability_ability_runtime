@@ -492,6 +492,9 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         }
     }
 
+    if (IsExistsField(env, info, "operationType")) {
+        return BUSINESS_ERROR_CODE_OK;
+    }
     ani_ref extraInfoRef = nullptr;
     if (!GetPropertyRef(env, info, "extraInfos", extraInfoRef, isUndefined)) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfos GetPropertyRef failed");
