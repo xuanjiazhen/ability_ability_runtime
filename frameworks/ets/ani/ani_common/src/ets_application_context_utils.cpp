@@ -16,7 +16,6 @@
 
 #include "ani_enum_convert.h"
 #include "application_context_manager.h"
-#include "ets_ability_lifecycle_callback.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_native_reference.h"

@@ -21,6 +21,7 @@
 #include "ani_common_util.h"
 #include "ani_common_want.h"
 #include "application_context.h"
+#include "ets_ability_lifecycle_callback.h"
 #include "ets_application_state_change_callback.h"
 #include "ets_context_utils.h"
 #include "ets_enviroment_callback.h"
