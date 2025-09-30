@@ -86,6 +86,8 @@ private:
     ani_int OnNativeOnEnvironmentSync(ani_env *env, ani_object aniObj, ani_object envCallback);
     std::shared_ptr<EtsEnviromentCallback> etsEnviromentCallback_;
     std::shared_ptr<EtsApplicationStateChangeCallback> applicationStateCallback_;
+    static std::mutex abilityLifecycleCallbackLock_;
+    static std::shared_ptr<EtsAbilityLifecycleCallback> abilityLifecycleCallback_ ;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

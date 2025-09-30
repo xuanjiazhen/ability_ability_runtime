@@ -37,8 +37,9 @@ constexpr double ERROR_CODE_INVALID_PARAM = -4;
 const std::string TYPE_ABILITY_LIFECYCLE = "abilityLifecycle";
 }
 
-std::mutex g_abilityLifecycleCallbackLock;;
-std::shared_ptr<EtsAbilityLifecycleCallback> abilityLifecycleCallback_ = nullptr;
+std::mutex EtsApplicationContextUtils::abilityLifecycleCallbackLock_;
+std::shared_ptr<EtsAbilityLifecycleCallback> EtsApplicationContextUtils::abilityLifecycleCallback_ = nullptr;
+
 void EtsApplicationContextUtils::Clean(ani_env *env, ani_object object)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Clean Call");
@@ -609,7 +610,7 @@ ani_int EtsApplicationContextUtils::RegisterAbilityLifecycleCallback(ani_env *en
         EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return ani_int(ERROR_CODE_NULL_CONTEXT);
     }
-    std::lock_guard<std::mutex> lock(g_abilityLifecycleCallbackLock);
+    std::lock_guard<std::mutex> lock(abilityLifecycleCallbackLock_);
     if (abilityLifecycleCallback_ != nullptr) {
         auto result =  abilityLifecycleCallback_->Register(callback);
         if (result < 0) {
@@ -680,7 +681,7 @@ void EtsApplicationContextUtils::UnregisterAbilityLifecycleCallback(ani_env *env
             (ani_int)AbilityErrorCode::ERROR_CODE_INVALID_PARAM, "applicationContext is null"), nullptr);
         return;
     }
-    std::lock_guard<std::mutex> lock(g_abilityLifecycleCallbackLock);
+    std::lock_guard<std::mutex> lock(abilityLifecycleCallbackLock_);
     if (abilityLifecycleCallback_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "abilityLifecycleCallback_ is null");
         AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,

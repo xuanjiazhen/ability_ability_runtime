@@ -22,11 +22,6 @@
 #include "ability_lifecycle_callback.h"
 #include "ani.h"
 
-typedef struct __ani_env ani_env;
-typedef struct __ani_vm ani_vm;
-typedef class __ani_object *ani_object;
-typedef class __ani_ref *ani_ref;
-
 namespace OHOS {
 namespace AppExecFwk {
 struct ETSNativeReference;
