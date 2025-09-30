@@ -404,8 +404,12 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandlePromoteCurrentToCandidateMasterProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::DEMOTE_CURRENT_FROM_CANDIDATE_MASTER_PROCESS):
             return HandleDemoteCurrentFromCandidateMasterProcess(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::EXIT_MASTER_PROCESS_ROLE):
+            return HandleExitMasterProcessRole(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::QUERY_RUNNING_SHARED_BUNDLES):
             return HandleQueryRunningSharedBundles(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::SET_SPECIFIED_PROCESS_REQUEST_ID):
+            return HandleSetSpecifiedProcessRequestId(data, reply);
     }
     return INVALID_FD;
 }
@@ -2038,6 +2042,26 @@ int32_t AppMgrStub::HandleDemoteCurrentFromCandidateMasterProcess(MessageParcel 
         return IPC_STUB_ERR;
     }
 
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleExitMasterProcessRole(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    int32_t ret = ExitMasterProcessRole();
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
+        return IPC_STUB_ERR;
+    }
+
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleSetSpecifiedProcessRequestId(MessageParcel &data, MessageParcel &reply)
+{
+    auto recordId = data.ReadInt32();
+    auto requestId = data.ReadInt32();
+    SetSpecifiedProcessRequestId(recordId, requestId);
     return NO_ERROR;
 }
 

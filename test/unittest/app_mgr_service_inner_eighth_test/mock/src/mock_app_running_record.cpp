@@ -119,7 +119,7 @@ void AppRunningRecord::SetSpecifiedProcessFlag(const std::string &flag)
 
 const std::string &AppRunningRecord::GetSpecifiedProcessFlag() const
 {
-    return specifiedProcessFlag_;
+    return AAFwk::MyStatus::GetInstance().specifiedProcessFlag_;
 }
 void AppRunningRecord::SetCustomProcessFlag(const std::string &flag)
 {
@@ -577,7 +577,7 @@ void AppRunningRecord::SetScheduleNewProcessRequestState(int32_t requestId,
 
 bool AppRunningRecord::IsNewProcessRequest() const
 {
-    return false;
+    return AAFwk::MyStatus::GetInstance().specifiedProcessRequest_ != nullptr;
 }
 
 bool AppRunningRecord::IsStartSpecifiedAbility() const

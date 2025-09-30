@@ -1007,6 +1007,11 @@ public:
     {
         return 0;
     }
+
+    virtual int32_t ExitMasterProcessRole()
+    {
+        return 0;
+    }
     
     /**
      * Query running shared bundle infos.
@@ -1019,6 +1024,8 @@ public:
     {
         return 0;
     }
+
+    virtual void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

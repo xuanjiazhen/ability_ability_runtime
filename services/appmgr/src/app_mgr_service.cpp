@@ -1913,8 +1913,8 @@ int32_t AppMgrService::PromoteCurrentToCandidateMasterProcess(bool isInsertToHea
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call");
     if (!IsReady()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
     return appMgrServiceInner_->PromoteCurrentToCandidateMasterProcess(isInsertToHead);
 }
@@ -1923,10 +1923,36 @@ int32_t AppMgrService::DemoteCurrentFromCandidateMasterProcess()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!IsReady()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
     return appMgrServiceInner_->DemoteCurrentFromCandidateMasterProcess();
+}
+
+int32_t AppMgrService::ExitMasterProcessRole()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    return appMgrServiceInner_->ExitMasterProcessRole();
+}
+
+void AppMgrService::SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return;
+    }
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    pid_t pid = getprocpid();
+    if (callingPid != pid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not process call");
+        return;
+    }
+    appMgrServiceInner_->SetSpecifiedProcessRequestId(recordId, requestId);
 }
 
 int32_t AppMgrService::QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles)

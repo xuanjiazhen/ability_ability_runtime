@@ -200,6 +200,8 @@ private:
     int32_t HandleLaunchAbility(MessageParcel &data, MessageParcel &reply);
     int32_t HandlePromoteCurrentToCandidateMasterProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDemoteCurrentFromCandidateMasterProcess(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetSpecifiedProcessRequestId(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleExitMasterProcessRole(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

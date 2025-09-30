@@ -126,7 +126,7 @@ public:
     void OnTimeoutResponse(int32_t requestId) override
     {}
     void OnNewProcessRequestResponse(const std::string &flag, int32_t requestId,
-        const std::string &callerProcessName) override
+        const std::string &callerProcessName, int32_t recordId) override
     {}
     void OnNewProcessRequestTimeoutResponse(int32_t requestId) override
     {}
@@ -2637,10 +2637,12 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PromoteCurrentToCandidateMasterProcess_01
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     ASSERT_NE(appMgrServiceInner, nullptr);
     AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = true;
+    AAFwk::MyStatus::GetInstance().specifiedProcessFlag_ = "test";
     std::shared_ptr<ApplicationInfo> info1 = nullptr;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
-    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(true);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(false);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetTimeStamp(0);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetHasBeenExistedMasterProcessRole(false);
     int32_t res = appMgrServiceInner->PromoteCurrentToCandidateMasterProcess(true);
     EXPECT_EQ(res, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "PromoteCurrentToCandidateMasterProcess_0100 end");
@@ -2657,10 +2659,12 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PromoteCurrentToCandidateMasterProcess_02
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     ASSERT_NE(appMgrServiceInner, nullptr);
     AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = true;
+    AAFwk::MyStatus::GetInstance().specifiedProcessFlag_ = "";
     std::shared_ptr<ApplicationInfo> info1 = nullptr;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(false);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetTimeStamp(1);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetHasBeenExistedMasterProcessRole(false);
     int32_t res = appMgrServiceInner->PromoteCurrentToCandidateMasterProcess(true);
     EXPECT_EQ(res, AAFwk::ERR_NOT_ISOLATION_PROCESS);
     TAG_LOGI(AAFwkTag::TEST, "PromoteCurrentToCandidateMasterProcess_0200 end");
@@ -2684,6 +2688,28 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PromoteCurrentToCandidateMasterProcess_03
     int32_t res = appMgrServiceInner->PromoteCurrentToCandidateMasterProcess(true);
     EXPECT_EQ(res, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
     TAG_LOGI(AAFwkTag::TEST, "PromoteCurrentToCandidateMasterProcess_0300 end");
+}
+
+/**
+ * @tc.name: PromoteCurrentToCandidateMasterProcess_0400
+ * @tc.desc: test SetPreloadDebugApp
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PromoteCurrentToCandidateMasterProcess_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PromoteCurrentToCandidateMasterProcess_0400 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = true;
+    AAFwk::MyStatus::GetInstance().specifiedProcessFlag_ = "";
+    std::shared_ptr<ApplicationInfo> info1 = nullptr;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(true);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetTimeStamp(0);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetHasBeenExistedMasterProcessRole(false);
+    int32_t res = appMgrServiceInner->PromoteCurrentToCandidateMasterProcess(true);
+    EXPECT_EQ(res, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "PromoteCurrentToCandidateMasterProcess_0400 end");
 }
 
 /**
@@ -2765,6 +2791,89 @@ HWTEST_F(AppMgrServiceInnerEighthTest, DemoteCurrentFromCandidateMasterProcess_0
     int32_t res = appMgrServiceInner->DemoteCurrentFromCandidateMasterProcess();
     EXPECT_EQ(res, AAFwk::ERR_NOT_CANDIDATE_MASTER_PROCESS);
     TAG_LOGI(AAFwkTag::TEST, "DemoteCurrentFromCandidateMasterProcess_0400 end");
+}
+
+/**
+ * @tc.name: ExitMasterProcessRole_0100
+ * @tc.desc: test ExitMasterProcessRole
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ExitMasterProcessRole_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExitMasterProcessRole_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = false;
+    AAFwk::MyStatus::GetInstance().specifiedProcessFlag_ = "test";
+    std::shared_ptr<ApplicationInfo> info1 = nullptr;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(false);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetTimeStamp(0);
+    int32_t res = appMgrServiceInner->ExitMasterProcessRole();
+    EXPECT_EQ(res, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
+    TAG_LOGI(AAFwkTag::TEST, "ExitMasterProcessRole_0100 end");
+}
+
+/**
+ * @tc.name: ExitMasterProcessRole_0200
+ * @tc.desc: test ExitMasterProcessRole
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ExitMasterProcessRole_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExitMasterProcessRole_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = true;
+    std::shared_ptr<ApplicationInfo> info1 = nullptr;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(false);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetTimeStamp(0);
+    int32_t res = appMgrServiceInner->ExitMasterProcessRole();
+    EXPECT_EQ(res, AAFwk::ERR_NOT_MASTER_PROCESS);
+    TAG_LOGI(AAFwkTag::TEST, "ExitMasterProcessRole_0200 end");
+}
+
+/**
+ * @tc.name: ExitMasterProcessRole_0300
+ * @tc.desc: test ExitMasterProcessRole
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ExitMasterProcessRole_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExitMasterProcessRole_0300 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = true;
+    std::shared_ptr<ApplicationInfo> info1 = nullptr;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(true);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetTimeStamp(0);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetSpecifiedProcessRequestId(1);
+    int32_t res = appMgrServiceInner->ExitMasterProcessRole();
+    EXPECT_EQ(res, AAFwk::ERR_NOT_ON_NEW_PROCESS_REQUEST_DONE);
+    TAG_LOGI(AAFwkTag::TEST, "ExitMasterProcessRole_0300 end");
+}
+
+/**
+ * @tc.name: ExitMasterProcessRole_0400
+ * @tc.desc: test ExitMasterProcessRole
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ExitMasterProcessRole_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExitMasterProcessRole_0400 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().isStartSpecifiedProcess_ = true;
+    std::shared_ptr<ApplicationInfo> info1 = nullptr;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(info1, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetMasterProcess(true);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetTimeStamp(0);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_->SetSpecifiedProcessRequestId(-1);
+    int32_t res = appMgrServiceInner->ExitMasterProcessRole();
+    EXPECT_EQ(res, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "ExitMasterProcessRole_0400 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

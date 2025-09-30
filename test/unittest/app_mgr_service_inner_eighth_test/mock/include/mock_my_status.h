@@ -137,6 +137,9 @@ public:
     ErrCode handleRequireBigMemoryOptimization_ = ERR_OK;
     ErrCode handleNoRequireBigMemoryOptimization_ = ERR_OK;
     bool isStartSpecifiedProcess_ = true;
+    std::shared_ptr<AppExecFwk::SpecifiedRequest> specifiedProcessRequest_ = nullptr;
+    std::shared_ptr<AppExecFwk::SpecifiedRequest> specifiedAbilityRequest_ = nullptr;
+    std::string specifiedProcessFlag_;
 private:
     MyStatus() = default;
 };
