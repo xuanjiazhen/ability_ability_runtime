@@ -36,7 +36,7 @@ export default class AppServiceExtensionAbility extends ExtensionAbility {
   onDestroy(): void{
   }
 
-  onRequest(want: Want, startId: number): void{
+  onRequest(want: Want, startId: int): void{
   }
 
   onConnect(want: Want): rpc.RemoteObject{

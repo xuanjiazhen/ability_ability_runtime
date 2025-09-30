@@ -38,7 +38,8 @@ public:
         ani_object connectOptionsObj);
     static void DisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
         ani_object callback);
-    static void StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj,
+    static void StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call);
+    static void StartAbilityWithOption(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj,
         ani_object call);
     static EtsAppServiceExtensionContext *GetEtsAbilityContext(ani_env *env, ani_object obj);
     std::weak_ptr<AppServiceExtensionContext> GetAbilityContext()
@@ -54,8 +55,8 @@ private:
         ani_object connectOptionsObj);
     void OnDisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
         ani_object callback);
-    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj,
-        ani_object callbackObj);
+    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj = nullptr,
+        ani_object callbackObj = nullptr);
 };
 
 ani_object CreateEtsAppServiceExtensionContext(ani_env *env, std::shared_ptr<AppServiceExtensionContext> context);
