@@ -57,7 +57,8 @@ export default class AppServiceExtensionContext extends ExtensionContext {
   public native nativeConnectAppServiceExtensionAbility(want: Want, callback: ConnectOptions): long;
   public native nativeDisconnectAppServiceExtensionAbility(connection: long,
     callback: AsyncCallbackWrapper<void>): void;
-  public native nativeStartAbility(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
+  public native nativeStartAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
+  public native nativeStartAbilityWithOption(want: Want, callback: AsyncCallbackWrapper<void>, options: StartOptions): void;
   public native nativeTerminateSelf(callback: AsyncCallbackWrapper<void>): void;
   private static native nativeTransferStatic(input: ESValue, type: string): Object;
   private static native nativeTransferDynamic(input: Object): ESValue;
@@ -94,7 +95,11 @@ export default class AppServiceExtensionContext extends ExtensionContext {
         }
       });
       taskpool.execute((): void => {
-        this.nativeStartAbility(want, asyncCallback, options);
+        if (options == null) {
+          this.nativeStartAbility(want, asyncCallback);
+        } else {
+          this.nativeStartAbilityWithOption(want, asyncCallback, options);
+        }
       }).catch((err: Error): void => {
         reject(err as BusinessError);
       });
