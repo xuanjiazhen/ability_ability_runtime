@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_ETS_ABILITY_CONTEXT_MODULE_H
-#define OHOS_ABILITY_RUNTIME_ETS_ABILITY_CONTEXT_MODULE_H
+#ifndef OHOS_ABILITY_RUNTIME_INSIGHT_CONTEXT_MODULE_H
+#define OHOS_ABILITY_RUNTIME_INSIGHT_CONTEXT_MODULE_H
 
 #include <memory>
 
@@ -50,4 +50,4 @@ private:
 void EtsInsightIntentContextModuleInit(ani_env *aniEnv);
 } // namespace AbilityRuntime
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_ETS_ABILITY_CONTEXT_MODULE_H
+#endif // OHOS_ABILITY_RUNTIME_INSIGHT_CONTEXT_MODULE_H
