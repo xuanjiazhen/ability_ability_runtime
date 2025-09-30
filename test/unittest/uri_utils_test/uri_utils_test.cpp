@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "app_utils.h"
 #include "array_wrapper.h"
@@ -48,6 +49,8 @@ void UriUtilsTest::TearDownTestCase() {}
 void UriUtilsTest::SetUp()
 {
     AccessTokenKit::InitMockResult();
+    AbilityManagerClient::IsNullInstance_ = false;
+    AbilityManagerClient::collaborator_ = nullptr;
 }
 
 void UriUtilsTest::TearDown() {}
@@ -705,11 +708,13 @@ HWTEST_F(UriUtilsTest, GrantUriPermission_001, TestSize.Level1)
 HWTEST_F(UriUtilsTest, GrantUriPermissionInner_001, TestSize.Level1)
 {
     std::vector<std::string> uriVec = {"file://data/storage/el2/distributedfiles/test.txt"};
-    uint32_t callerTokenId = 0;
-    std::string targetBundleName = "com.example.tsapplication";
-    int32_t appIndex = 0;
     Want want;
-    bool res = UriUtils::GetInstance().GrantUriPermissionInner(uriVec, callerTokenId, targetBundleName, appIndex, want);
+    GrantUriPermissionInfo grantInfo;
+    grantInfo.callerTokenId = 0;
+    grantInfo.appIndex = 0;
+    grantInfo.targetBundleName = "com.example.tsapplication";
+    grantInfo.isNotifyCollaborator = false;
+    bool res = UriUtils::GetInstance().GrantUriPermissionInner(uriVec, grantInfo, want);
     EXPECT_EQ(res, false);
 }
 #endif // SUPPORT_UPMS
