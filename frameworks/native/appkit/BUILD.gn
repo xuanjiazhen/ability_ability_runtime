@@ -441,7 +441,6 @@ ohos_shared_library("app_context") {
   branch_protector_ret = "pac_ret"
 
   include_dirs = [
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
@@ -487,7 +486,6 @@ ohos_shared_library("app_context") {
     "json:nlohmann_json_static",
     "napi:ace_napi",
     "resource_management:global_resmgr",
-    "runtime_core:ani",
     "samgr:samgr_proxy",
   ]
   public_external_deps = [
