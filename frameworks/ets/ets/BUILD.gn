@@ -1242,11 +1242,13 @@ generate_static_abc("ability_runtime_ui_service_extension_ability_abc") {
   files = [ "./@ohos.app.ability.UIServiceExtensionAbility.ets" ]
 
   is_boot_abc = "True"
-  device_dst_file = "/system/framework/ability_runtime_ui_service_extension_ability_abc.abc"
+  device_dst_file =
+      "/system/framework/ability_runtime_ui_service_extension_ability_abc.abc"
 }
 
 ohos_prebuilt_etc("ability_runtime_ui_service_extension_ability_abc_etc") {
-  source = "$target_out_dir/ability_runtime_ui_service_extension_ability_abc.abc"
+  source =
+      "$target_out_dir/ability_runtime_ui_service_extension_ability_abc.abc"
   module_install_dir = "framework"
   subsystem_name = "ability"
   part_name = "ability_runtime"
@@ -1323,7 +1325,8 @@ generate_static_abc("ui_service_extension_connect_callback_abc") {
   files = [ "./application/UIServiceExtensionConnectCallback.ets" ]
 
   is_boot_abc = "True"
-  device_dst_file = "/system/framework/ui_service_extension_connect_callback_abc.abc"
+  device_dst_file =
+      "/system/framework/ui_service_extension_connect_callback_abc.abc"
 }
 
 ohos_prebuilt_etc("ui_service_extension_connect_callback_abc_etc") {
@@ -1424,17 +1427,17 @@ group("ets_packages") {
     ":ability_runtime_want_constant_abc_etc",
     ":appRecovery_abc_etc",
     ":app_foreground_state_observer_abc_etc",
+    ":app_service_extension_ability_abc_etc",
     ":application_state_observer_abc_etc",
     ":atomic_service_options_abc_etc",
-    ":app_service_extension_ability_abc_etc",
     ":form_extension_ability_etc",
     ":quick_fix_manager_abc_etc",
     ":service_extension_ability_abc_etc",
     ":ui_extension_ability_ani_etc",
-    ":uri_permission_manager_abc_etc",
-    ":ui_service_extension_context_abc_etc",
-    ":ui_service_proxy_abc_etc",
-    ":ui_service_host_proxy_abc_etc",
     ":ui_service_extension_connect_callback_abc_etc",
+    ":ui_service_extension_context_abc_etc",
+    ":ui_service_host_proxy_abc_etc",
+    ":ui_service_proxy_abc_etc",
+    ":uri_permission_manager_abc_etc",
   ]
 }

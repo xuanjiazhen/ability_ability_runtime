@@ -28,9 +28,9 @@ ohos_shared_library("dialog_request_info_ani_kit") {
     "${ability_runtime_services_path}/common/include",
   ]
 
-  configs = [ ]
+  configs = []
 
-  public_configs = [ ]
+  public_configs = []
 
   sources = [ "./src/ets_request_info.cpp" ]
 

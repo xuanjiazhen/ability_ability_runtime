@@ -45,14 +45,14 @@ ohos_shared_library("ui_service_extension_context_ani_kit") {
   }
 
   deps = [
-    "${ability_runtime_innerkits_path}/ani_base_context:ani_base_context",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_native_path}/ability/native:ui_service_extension_ani",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
-    "${ability_runtime_native_path}/ability/native:ui_service_extension",
-    "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ani_base_context:ani_base_context",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
+    "${ability_runtime_native_path}/ability/native:ui_service_extension",
+    "${ability_runtime_native_path}/ability/native:ui_service_extension_ani",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
   ]
 
   external_deps = [
