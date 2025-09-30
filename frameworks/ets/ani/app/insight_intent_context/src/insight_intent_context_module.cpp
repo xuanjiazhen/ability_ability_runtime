@@ -83,10 +83,11 @@ ani_object EtsInsightIntentContextModule::NativeTransferStatic(
         return nullptr;
     }
     TAG_LOGD(AAFwkTag::INTENT, "contextType %{public}s", contextType.c_str());
-    EtsInsightIntentContext *etsSession = new EtsInsightIntentContext(insightIntentContext);
-    auto newContext = CreateEtsInsightIntentContext(aniEnv, etsSession);
+    EtsInsightIntentContext *etsContext = new (std::nothrow) EtsInsightIntentContext(insightIntentContext);
+    auto newContext = CreateEtsInsightIntentContext(aniEnv, etsContext);
     if (newContext == nullptr || newContext->aniObj == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "create insightIntentContext failed");
+        delete etsContext;
         return nullptr;
     }
     return newContext->aniObj;

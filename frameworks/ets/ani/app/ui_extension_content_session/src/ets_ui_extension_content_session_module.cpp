@@ -74,10 +74,14 @@ ani_object EtsUiExtensionContentSessionModule::NativeTransferStatic(ani_env *ani
     }
 
     auto abilityResultListeners = std::make_shared<EtsAbilityResultListeners>();
-    EtsUIExtensionContentSession *etsSession = new EtsUIExtensionContentSession(
+    EtsUIExtensionContentSession *etsSession = new (std::nothrow) EtsUIExtensionContentSession(
         jsSession->GetSessionInfo(), jsSession->GetUIWindow(), weakContext, abilityResultListeners);
 
     ani_object sessionObj = EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(aniEnv, etsSession);
+    if (sessionObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "CreateEtsUIExtensionContentSession failed");
+        delete etsSession;
+    }
     return sessionObj;
 }
 
