@@ -8394,6 +8394,13 @@ void AbilityManagerService::UnSubscribeScreenUnlockedEvent()
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Screen unlocked event subscriber unsubscribe result is %{public}d.", subResult);
 }
 
+void AbilityManagerService::UnSubscribeScreenUnlockedEventSync()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    bool subResult = EventFwk::CommonEventManager::UnSubscribeCommonEventSync(screenSubscriber_);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Screen unlocked event subscriber unsubscribesync result is %{public}d.", subResult);
+}
+
 void AbilityManagerService::RetrySubscribeScreenUnlockedEvent(int32_t retryCount)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "RetryCount: %{public}d.", retryCount);
@@ -8887,6 +8894,7 @@ int AbilityManagerService::LogoutUser(int32_t userId, sptr<IUserCallback> callba
 
     // Lister screen unlock for auto startup apps.
     if (system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        UnSubscribeScreenUnlockedEventSync();
         InitInterceptorForScreenUnlock();
         SubscribeScreenUnlockedEvent();
     }
