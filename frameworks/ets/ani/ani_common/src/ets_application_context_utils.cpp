@@ -611,7 +611,7 @@ ani_int EtsApplicationContextUtils::RegisterAbilityLifecycleCallback(ani_env *en
     }
     std::lock_guard<std::mutex> lock(abilityLifecycleCallbackLock_);
     if (abilityLifecycleCallback_ != nullptr) {
-        auto result =  abilityLifecycleCallback_->Register(callback);
+        auto result = abilityLifecycleCallback_->Register(callback);
         if (result < 0) {
             TAG_LOGE(AAFwkTag::APPKIT, "register failed: %{public}d", result);
             EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
