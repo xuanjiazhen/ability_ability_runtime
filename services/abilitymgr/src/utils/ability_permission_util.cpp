@@ -389,5 +389,25 @@ int32_t AbilityPermissionUtil::CheckPrepareTerminateEnable(std::shared_ptr<Abili
         return ERR_INVALID_VALUE; // CHECK_PERMISSION_FAILED;
     }
     return ERR_OK;
-}} // AAFwk
+}
+
+bool AbilityPermissionUtil::NeedCheckStatusBar(std::shared_ptr<AbilityRecord> abilityRecord, const AbilityRequest &abilityRequest)
+{
+    int32_t callerUid = abilityRecord->GetUid();
+    bool isMultiInstance =
+        abilityRequest.appInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
+    auto callerInstanceKey = abilityRecord->GetInstanceKey();
+    auto requestInstanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
+    if (!abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE ||
+        !abilityRequest.abilityInfo.uid == callerUid) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "not uiAbility or not same uid.");
+            return false;
+    }
+    if (isMultiInstance && callerInstanceKey != requestInstanceKey) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "is multiInstance but not the same instanceKey.");
+        return false;
+    }
+    return true;
+}
+} // AAFwk
 } // OHOS
