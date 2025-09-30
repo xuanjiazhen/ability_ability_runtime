@@ -179,6 +179,9 @@ private:
         WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex = 0);
     void MakeWantSenderCanceledLocked(PendingWantRecord &record);
 
+    void AddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
+    void ReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
+
     sptr<PendingWantRecord> GetPendingWantRecordByKey(const std::shared_ptr<PendingWantKey> &key);
     bool CheckPendingWantRecordByKey(
         const std::shared_ptr<PendingWantKey> &inputKey, const std::shared_ptr<PendingWantKey> &key);
@@ -194,6 +197,7 @@ private:
 
 private:
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
+    std::unordered_map<std::string, pair<int32_t, int32_t>> wantAgentCount_;
     std::map<std::shared_ptr<PendingWantKey>, sptr<PendingWantRecord>> wantRecords_;
     ffrt::mutex mutex_;
 };

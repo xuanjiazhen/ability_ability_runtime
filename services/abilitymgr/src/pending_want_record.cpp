@@ -19,6 +19,8 @@
 #include "pending_want_manager.h"
 #include "int_wrapper.h"
 #include "multi_app_utils.h"
+#include "event_report.h"
+#include "permission_verification.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -138,6 +140,18 @@ int32_t PendingWantRecord::ExecuteOperation(
         default:
             break;
     }
+
+    // if (res != NO_ERROR && !PermissionVerification::GetInstance()->IsSystemAppCall()
+    //     && !AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+    //     EventInfo eventInfo;
+    //     eventInfo.errCode = res;
+    //     eventinfo.bundlename = want.GetBundle();
+    //     eventInfo.appUid = senderInfo.uid();
+    //     eventInfo.callerBundleName = GetKey()->GetBundleName();
+    //     eventInfo.callerUid = GetUid();
+    //     EventInfo::SendTriggerFailedEvent(EventName::TRIGGER_FAILED, HiSysEventType::FAULT, eventInfo);
+    // }
+
     return res;
 }
 
