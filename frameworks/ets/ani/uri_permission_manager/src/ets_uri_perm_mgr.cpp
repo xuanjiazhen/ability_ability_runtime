@@ -247,7 +247,7 @@ void EtsUriPermissionManagerInit(ani_env *env)
         },
         ani_native_function {
             "grantUriPermissionByKeyAsCallerCallbackSync",
-            nullptr, //to do
+            nullptr,
             reinterpret_cast<void*>(grantUriPermissionByKeyAsCallerCallbackSync)
         }
     };
