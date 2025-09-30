@@ -776,7 +776,7 @@ void EtsWantAgent::OnTriggerAsync(
         TAG_LOGE(AAFwkTag::WANTAGENT, "GetVM failed status: %{public}d, or null etsVm", status);
         return;
     }
-    if (!AppExecFwk::CheckCallerIsSystemApp()) {
+    if (!CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
         EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP,
             AbilityRuntimeErrorUtil::GetErrMessage(ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP));
