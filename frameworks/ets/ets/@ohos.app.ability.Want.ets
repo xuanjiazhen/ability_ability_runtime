@@ -76,8 +76,8 @@ class RecordWriter {
     } else if (obj instanceof Record) {
       this.writeRecord(obj as Object as Record<string, valueType>);
     } else {
-      const objType = Type.of(obj);
-      if (objType instanceof ArrayType) {
+      const objType = Class.of(obj);
+      if (objType.isFixedArray()) {
         this.writeBuildArray(obj as Object, reflect.Value.of(obj) as ArrayValue);
       } else {
         this.buffer.append('null');
@@ -88,7 +88,7 @@ class RecordWriter {
   private tupleToArray(tuple: Tuple): Array<valueType> {
     let arr: Array<valueType> = [];
 
-    const objType = Type.of(tuple as Object) as ClassType;
+    const objType = Class.of(tuple as Object);
     const writableFields = this.getWritableFields(objType, reflect.Value.of(tuple as Object) as ClassValue);
     for (let fieldIdx = 0; fieldIdx < writableFields.length; fieldIdx++) {
         const fieldValue = writableFields[fieldIdx][1].getData();
@@ -136,7 +136,7 @@ class RecordWriter {
       localWantParams?.setParam(key, newWantParams);
       return true;
     } else {
-      const objType = Type.of(obj);
+      const objType = Class.of(obj);
       if (objType instanceof ClassType) {
         // enum value are string
         if (typeof obj === 'string') {
@@ -311,7 +311,7 @@ class RecordWriter {
       }
       complexArray.doubleList.push((element as number).unboxed());
     } else {
-      const objType = Type.of(element);
+      const objType = Class.of(element);
       // enum value are number
       if (objType instanceof ClassType) {
         let value: string = String(element as Object);
@@ -357,7 +357,7 @@ class RecordWriter {
           if (element instanceof String) {
             complexArray.stringList.push(element as string);
           } else {
-            const objType = Type.of(element);
+            const objType = Class.of(element);
             if (objType instanceof ClassType) {
               let value: string = String(element as Object);
               complexArray.stringList.push(value as string);
@@ -404,7 +404,7 @@ class RecordWriter {
       hilog.debug(DOMAIN_ID, TAG, `array object element type Record`);
       this.writeRecordToNative(obj as Object as Record<string, valueType>, wantParams);
     } else {
-      const objType = Type.of(obj);
+      const objType = Class.of(obj);
       if (objType instanceof ClassType) {
         hilog.debug(DOMAIN_ID, TAG, `array object element type class`);
         this.writeClassValueToNative(obj, objType as ClassType, wantParams);
@@ -582,7 +582,7 @@ class RecordWriter {
       return false;
     }
 
-    const fieldValType = Type.of(fieldVal);
+    const fieldValType = Class.ofAny(fieldVal);
     if (fieldValType instanceof LambdaType) {
       return false;
     }
