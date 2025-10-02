@@ -76,8 +76,8 @@ class RecordWriter {
     } else if (obj instanceof Record) {
       this.writeRecord(obj as Object as Record<string, valueType>);
     } else {
-      const objType = Type.of(obj);
-      if (objType instanceof ArrayType) {
+      const objCls = Class.of(obj);
+      if (objCls.isFixedArray()) {
         this.writeBuildArray(obj as Object, reflect.Value.of(obj) as ArrayValue);
       } else {
         this.buffer.append('null');
@@ -88,8 +88,8 @@ class RecordWriter {
   private tupleToArray(tuple: Tuple): Array<valueType> {
     let arr: Array<valueType> = [];
 
-    const objType = Type.of(tuple as Object) as ClassType;
-    const writableFields = this.getWritableFields(objType, reflect.Value.of(tuple as Object) as ClassValue);
+    const objClass = Class.of(tuple as Object);
+    const writableFields = this.getWritableFields(objClass, reflect.Value.of(tuple as Object) as ClassValue);
     for (let fieldIdx = 0; fieldIdx < writableFields.length; fieldIdx++) {
         const fieldValue = writableFields[fieldIdx][1].getData();
         arr.push(fieldValue);
@@ -136,8 +136,8 @@ class RecordWriter {
       localWantParams?.setParam(key, newWantParams);
       return true;
     } else {
-      const objType = Type.of(obj);
-      if (objType instanceof ClassType) {
+      const objCls = Class.of(obj);
+      if (objCls instanceof ClassType) {
         // enum value are string
         if (typeof obj === 'string') {
           hilog.debug(DOMAIN_ID, TAG, `key: %{public}s,  value is ClassType string`, key);
@@ -162,7 +162,7 @@ class RecordWriter {
           return true;
         }
         let newWantParams = new NativeWantParams();
-        this.writeClassValueToNative(obj as Object, objType as ClassType, newWantParams);
+        this.writeClassValueToNative(obj as Object, objCls, newWantParams);
         localWantParams?.setParam(key, newWantParams);
         return true;
       } else {
@@ -311,7 +311,7 @@ class RecordWriter {
       }
       complexArray.doubleList.push((element as number).unboxed());
     } else {
-      const objType = Type.of(element);
+      const objType = Class.of(element);
       // enum value are number
       if (objType instanceof ClassType) {
         let value: string = String(element as Object);
@@ -357,7 +357,7 @@ class RecordWriter {
           if (element instanceof String) {
             complexArray.stringList.push(element as string);
           } else {
-            const objType = Type.of(element);
+            const objType = Class.of(element);
             if (objType instanceof ClassType) {
               let value: string = String(element as Object);
               complexArray.stringList.push(value as string);
@@ -404,10 +404,10 @@ class RecordWriter {
       hilog.debug(DOMAIN_ID, TAG, `array object element type Record`);
       this.writeRecordToNative(obj as Object as Record<string, valueType>, wantParams);
     } else {
-      const objType = Type.of(obj);
-      if (objType instanceof ClassType) {
+      const objCls = Class.of(obj);
+      if (objCls instanceof ClassType) {
         hilog.debug(DOMAIN_ID, TAG, `array object element type class`);
-        this.writeClassValueToNative(obj, objType as ClassType, wantParams);
+        this.writeClassValueToNative(obj, objCls, wantParams);
       } else {
         hilog.error(DOMAIN_ID, TAG, `array member object type invalid`);
         return false;
@@ -563,8 +563,8 @@ class RecordWriter {
     return isSuccess;
   }
 
-  private writeClassValueToNative(obj: Object, objType: ClassType, wantParams: NativeWantParams): boolean {
-    const writableFields = this.getWritableFields(objType, reflect.Value.of(obj) as ClassValue);
+  private writeClassValueToNative(obj: Object, objCls: Class, wantParams: NativeWantParams): boolean {
+    const writableFields = this.getWritableFields(objCls, reflect.Value.of(obj) as ClassValue);
 
     let isSuccess = false;
     if (writableFields.length > 0) {
@@ -582,7 +582,7 @@ class RecordWriter {
       return false;
     }
 
-    const fieldValType = Type.of(fieldVal);
+    const fieldValType = Class.ofAny(fieldVal);
     if (fieldValType instanceof LambdaType) {
       return false;
     }
@@ -591,17 +591,17 @@ class RecordWriter {
   }
 
   private writeClassFields(writableFields: Array<[Field, reflect.Value]>, wantParams: NativeWantParams): boolean {
-    const FIELD_TYPE = 0
+    const FIELD_NAME = 0
     const FIELD_VALUE = 1
 
     let isSuccess = false;
     for (let fieldIdx = 0; fieldIdx < writableFields.length; fieldIdx++) {
       const fieldTypeValuePair = writableFields[fieldIdx];
 
-      const objField = fieldTypeValuePair[0] as Field;
-      const objFieldValue = fieldTypeValuePair[1] as reflect.Value;
+      const objFieldName = fieldTypeValuePair[FIELD_NAME];
+      const objFieldValue = fieldTypeValuePair[FIELD_VALUE] as reflect.Value;
 
-      if (this.writeField(objField.getName(), objFieldValue.getData(), wantParams) == true) {
+      if (this.writeField(objFieldName, objFieldValue.getData(), wantParams) == true) {
         isSuccess= true;
       }
     }
@@ -609,29 +609,50 @@ class RecordWriter {
     return isSuccess;
   }
 
-  private findKeyIndex(field: Field, fields: Array<[Field, reflect.Value]>): number {
-    return fields.findIndex((value, index, array) => {return value[0].getName() == field.getName()});
+  private findKeyIndex(fieldName: string, fields: Array<[string, reflect.Value]>): number {
+    return fields.findIndex((writableField) => writableField[0]  == fieldName);
   }
 
-  private getWritableFields(classType: ClassType, classValue: ClassValue): Array<[Field, reflect.Value]> {
-    const writableFields = new Array<[Field, reflect.Value]>();
+  private addWritableProperty(cls: Class, clsVal: ClassValue, propName: string, writableFields: Array<[string, reflect.Value]>): void {
+      const getterName = JSONWriter.GETTER_PREFIX + propName
+      const getter = cls.getInstanceMethodByName(getterName)
+      if (getter === undefined) {
+          return
+      }
+
+      const propVal = getter.invoke(clsVal.getData() as object)
+
+      const propNameValuePair: [string, reflect.Value] = [propName, reflect.Value.of(propVal)]
+      writableFields.push(propNameValuePair)
+  }
+
+  private addWritableProperties(cls: Class, clsVal: ClassValue, writableFields: Array<[string, reflect.Value]>): void {
+      for (const method of cls.getInstanceMethods()) {
+          const methodName = method.getName()
+          if (methodName.startsWith(JSONWriter.GETTER_PREFIX)) {
+              const propName = methodName.substring(JSONWriter.GETTER_PREFIX.length)
+              const propValue = method.invoke(clsVal.getData() as object)
+              const fieldNameValuePair: [string, reflect.Value] = [propName, reflect.Value.of(propValue)]
+              writableFields.push(fieldNameValuePair)
+          }
+      }
+  }
+
+  private getWritableFields(cls: Class, classValue: ClassValue): Array<[string, reflect.Value]> {
+    const writableFields = new Array<[string, reflect.Value]>();
     let fieldRename : string | undefined = undefined;
 
-    const fieldsCount = classValue.getFieldsNum();
-    for (let fieldIdx = 0; fieldIdx < fieldsCount; fieldIdx++) {
-      const field = classType.getField(fieldIdx);
-      if (field.isStatic()) {
-        continue;
-      }
-      const index: int = this.findKeyIndex(field, writableFields).toInt();
-      const fieldValue = classValue.getField(fieldIdx);
+    for (const field of cls.getInstanceFields()) {
+      const index: int = this.findKeyIndex(field.getName(), writableFields).toInt();
+      const fieldValue = classValue.getFieldByName(field.getName());
 
-      const fieldTypeValuePair: [Field, reflect.Value] = [field, fieldValue];
+      const fieldNameValuePair: [string, reflect.Value] = [field.getName(), fieldValue];
       if (fieldRename != undefined || index == -1) {
-        writableFields.push(fieldTypeValuePair);
+        writableFields.push(fieldNameValuePair);
       } else {
-        writableFields[index] = fieldTypeValuePair;
+        writableFields[index] = fieldNameValuePair;
       }
+      this.addWritableProperties(cls, classValue, writableFields)
     }
 
     return writableFields;
