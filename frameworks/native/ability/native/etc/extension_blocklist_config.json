@@ -686,6 +686,24 @@
         ],
         "WebNativeMessagingExtension": [
             "window"
+        ],
+        "NotificationSubscriberExtension": [
+        "notification",
+        "notificationManager",
+        "app.form.formProvider",
+        "app.form.formInfo",
+        "app.form.formHost",
+        "app.form.formBindingData",
+        "app.form.FormExtensionAbility",
+        "application.formBindingData",
+        "application.formHost",
+        "application.formInfo",
+        "application.formProvider",
+        "prompt",
+        "promptAction",
+        "window",
+        "core.liveview.liveViewManager",
+        "telephony.voipCall"
         ]
     }
 }
