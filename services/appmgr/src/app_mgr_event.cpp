@@ -61,7 +61,7 @@ void AppMgrEventUtil::UpdateStartupType(const std::shared_ptr<AbilityInfo> &abil
     if (abilityInfo == nullptr) {
         return;
     }
-    TAG_LOGD(AAFwkTag::APPMGR, "bundleName:%{public}s, abilityName:%{public}s", abilityInfo->bundleName.c_str(),
+    TAG_LOGD(AAFwkTag::APPMGR, "UpdateStartupType %{public}s/%{public}s", abilityInfo->bundleName.c_str(),
         abilityInfo->name.c_str());
     abilityType = static_cast<int32_t>(abilityInfo->type);
     if (abilityInfo->type != AbilityType::EXTENSION) {

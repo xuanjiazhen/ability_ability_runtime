@@ -129,8 +129,7 @@ bool CacheProcessManager::CheckAndCacheProcess(const std::shared_ptr<AppRunningR
         return false;
     }
     if (!IsAppAbilitiesEmpty(appRecord)) {
-        TAG_LOGD(AAFwkTag::APPMGR, "%{public}s not cache for abilities not empty",
-            appRecord->GetName().c_str());
+        TAG_LOGD(AAFwkTag::APPMGR, "%{public}s not cache for abilities not empty", appRecord->GetName().c_str());
         return true;
     }
     if (!warmStartProcesEnable_) {
@@ -397,8 +396,7 @@ bool CacheProcessManager::IsAppShouldCache(const std::shared_ptr<AppRunningRecor
         return false;
     }
     if (!CheckSupportState(appRecord)) {
-        TAG_LOGI(AAFwkTag::APPMGR, "App %{public}s defines not support.",
-            appRecord->GetBundleName().c_str());
+        TAG_LOGI(AAFwkTag::APPMGR, "App %{public}s defines not support.", appRecord->GetBundleName().c_str());
         return false;
     }
     if (IsCachedProcess(appRecord) && !appRecord->GetProcessCacheBlocked()) {

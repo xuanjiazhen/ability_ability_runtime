@@ -1486,9 +1486,9 @@ void AppStateObserverManager::HandleOnKeepAliveStateChanged(const std::shared_pt
     }
     ProcessData data = WrapProcessData(appRecord);
     TAG_LOGI(AAFwkTag::APPMGR,
-        "bundle:%{public}s, pid:%{public}d, uid:%{public}d, processType:%{public}d, "
-        "extensionType:%{public}d, processName:%{public}s, renderUid:%{public}d, isTestMode:%{public}d, "
-        "callerPid:%{public}d, callerUid:%{public}d, isKeepAlive:%{public}d",
+        "b:%{public}s, pid:%{public}d, u:%{public}d, pType:%{public}d, "
+        "extType:%{public}d, pname:%{public}s, rUid:%{public}d, tMode:%{public}d, "
+        "cPid:%{public}d, cUid:%{public}d, isKeepAlive:%{public}d",
         data.bundleName.c_str(), data.pid, data.uid, data.processType, data.extensionType, data.processName.c_str(),
         data.renderUid, data.isTestMode, data.callerPid, data.callerUid, data.isKeepAlive);
 
@@ -1550,7 +1550,7 @@ void AppStateObserverManager::HandleOnProcessPreForegroundChanged(std::shared_pt
     preloadProcessData.bundleName = bundleName;
 
     TAG_LOGI(AAFwkTag::APPMGR,
-        "HandleOnProcessPreForegroundChanged, pid:%{public}d, bundle:%{public}s, uid:%{public}d, isPreFore:%{public}d",
+        "HandleOnProcessPreForegroundChanged, pid:%{public}d, b:%{public}s, u:%{public}d, isPreFore:%{public}d",
         preloadProcessData.pid, bundleName.c_str(), preloadProcessData.uid, preloadProcessData.isPreForeground);
     auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
     for (auto it = appStateObserverMapCopy.begin(); it != appStateObserverMapCopy.end(); ++it) {

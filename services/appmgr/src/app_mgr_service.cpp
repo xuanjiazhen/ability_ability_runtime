@@ -921,8 +921,7 @@ int AppMgrService::DumpIpc(const std::vector<std::u16string>& args, std::string&
 
     std::string optionCmd = Str16ToStr8(args[INDEX_CMD]);
     std::string optionPid = Str16ToStr8(args[INDEX_PID]);
-    TAG_LOGD(AAFwkTag::APPMGR, "option pid:%{public}s, option cmd:%{public}s",
-        optionPid.c_str(), optionCmd.c_str());
+    TAG_LOGD(AAFwkTag::APPMGR, "option pid:%{public}s, option cmd:%{public}s", optionPid.c_str(), optionCmd.c_str());
 
     DumpIpcKey key;
     if (!GetDumpIpcKeyByOption(optionCmd, key)) {
@@ -1439,8 +1438,7 @@ int32_t AppMgrService::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
 
 int32_t AppMgrService::NotifyPageShow(const sptr<IRemoteObject> &token, const PageStateData &pageStateData)
 {
-    TAG_LOGD(AAFwkTag::APPMGR,
-        "bundleName: %{public}s, moduelName: %{public}s, abilityName: %{public}s, pageName: %{public}s",
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyPageShow %{public}s/%{public}s/%{public}s, pageName: %{public}s",
         pageStateData.bundleName.c_str(), pageStateData.moduleName.c_str(), pageStateData.abilityName.c_str(),
         pageStateData.pageName.c_str());
     if (!IsReady()) {
@@ -1452,8 +1450,7 @@ int32_t AppMgrService::NotifyPageShow(const sptr<IRemoteObject> &token, const Pa
 
 int32_t AppMgrService::NotifyPageHide(const sptr<IRemoteObject> &token, const PageStateData &pageStateData)
 {
-    TAG_LOGD(AAFwkTag::APPMGR,
-        "bundleName: %{public}s, moduelName: %{public}s, abilityName: %{public}s, pageName: %{public}s",
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyPageHide %{public}s/%{public}s/%{public}s, pageName: %{public}s",
         pageStateData.bundleName.c_str(), pageStateData.moduleName.c_str(), pageStateData.abilityName.c_str(),
         pageStateData.pageName.c_str());
     if (!IsReady()) {

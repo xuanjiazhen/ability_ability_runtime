@@ -429,8 +429,7 @@ bool AppRunningRecord::AddAbilityStageBySpecifiedAbility(const std::string &bund
     if (GetTheModuleInfoNeedToUpdated(bundleName, hapModuleInfo)) {
         if (!AppEventUtil::GetInstance().HasEvent(shared_from_this(),
             AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG)) {
-            TAG_LOGI(
-                AAFwkTag::APPMGR, "ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG not exist");
+            TAG_LOGI(AAFwkTag::APPMGR, "ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG not exist");
             auto timeout = GetAddStageTimeout() * AppUtils::GetInstance().GetTimeoutUnitTimeRatio();
             SendEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT);
             SendEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG, timeout);
@@ -1054,8 +1053,7 @@ bool AppRunningRecord::AbilityUnfocused(const std::shared_ptr<AbilityRunningReco
 
 void AppRunningRecord::PopForegroundingAbilityTokens()
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "ability size: %{public}d",
-        static_cast<int32_t>(foregroundingAbilityTokens_.size()));
+    TAG_LOGI(AAFwkTag::APPMGR, "ability size: %{public}d", static_cast<int32_t>(foregroundingAbilityTokens_.size()));
     for (auto iter = foregroundingAbilityTokens_.begin(); iter != foregroundingAbilityTokens_.end();) {
         auto ability = GetAbilityRunningRecordByToken(*iter);
         auto moduleRecord = GetModuleRunningRecordByToken(*iter);
