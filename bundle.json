@@ -34,9 +34,7 @@
         "ability_runtime_check_internet_permission",
         "ability_runtime_no_screen"
       ],
-      "adapted_system_type": [
-          "standard"
-      ],
+      "adapted_system_type": ["standard"],
       "rom": "",
       "ram": "",
       "hisysevent_config":[
