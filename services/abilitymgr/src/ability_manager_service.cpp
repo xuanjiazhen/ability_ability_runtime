@@ -745,8 +745,7 @@ int AbilityManagerService::StartAbilityWithSpecifyTokenIdInner(const Want &want,
         return ERR_INVALID_CONTINUATION_FLAG;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "start ability come, ability:%{public}s, userId:%{public}d, specifyTokenId:%{public}u",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start %{public}s, u:%{public}d, specifyTokenId:%{public}u",
         want.GetElement().GetAbilityName().c_str(), userId, specifyTokenId);
     StartAbilityWrapParam startAbilityWrapParam = {
         want, callerToken, requestCode, isPendingWantCaller, userId, false, specifyTokenId };
@@ -902,8 +901,7 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
         return ERR_INVALID_CONTINUATION_FLAG;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "start, ability: %{public}s, userId: %{public}d, specifyTokenId: %{public}u",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility: %{public}s, u: %{public}d, specifyTokenId: %{public}u",
         want.GetElement().GetAbilityName().c_str(), DEFAULT_INVAL_VALUE, specifyTokenId);
     StartAbilityWrapParam startAbilityWrapParam = {
         want, callerToken, DEFAULT_INVAL_VALUE, false, DEFAULT_INVAL_VALUE, false, specifyTokenId, false, false, true };
@@ -956,7 +954,7 @@ int AbilityManagerService::StartAbilityAsCallerDetails(const Want &want, const s
 
     AAFwk::Want newWant = want;
     UpdateCallerInfoUtil::GetInstance().UpdateAsCallerSourceInfo(newWant, asCallerSourceToken, callerToken);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability come, ability:%{public}s, userId:%{public}d",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "startAbility: %{public}s u:%{public}d",
         want.GetElement().GetAbilityName().c_str(), userId);
     std::string callerPkg;
     std::string targetPkg;
@@ -3441,7 +3439,7 @@ void AbilityManagerService::UnSubscribeBackgroundTask()
 
 void AbilityManagerService::SubscribeBundleEventCallback()
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "subscribeBundleEventCallback begin");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "subscribeBundleEventCallback");
     if (taskHandler_) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "submit startResidentApps task");
         auto startResidentAppsTask = [aams = shared_from_this()]() { aams->StartResidentApps(U0_USER_ID); };
@@ -3709,8 +3707,7 @@ int AbilityManagerService::RequestModalUIExtensionInner(Want want)
         // current focus appliaction
         std::string callerName = want.GetParams().GetStringParam("bundleName");
 
-        TAG_LOGI(AAFwkTag::ABILITYMGR,
-               "focusbundlename: %{public}s, callerbundlename: %{public}s",
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "focusbundlename: %{public}s, callerbundlename: %{public}s",
                focusName.c_str(), callerName.c_str());
 
         // Compare
@@ -3779,8 +3776,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
     bool isDlp, bool isStartAsCaller)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::SERVICE_EXT,
-        "Start extension ability come, bundlename: %{public}s, ability is %{public}s, userId is %{public}d",
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "StartExtAbility: %{public}s/%{public}s, u:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     CheckExtensionRateLimit();
     if (checkSystemCaller) {
@@ -4318,8 +4314,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
 int AbilityManagerService::StopExtensionAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
     int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
 {
-    TAG_LOGI(AAFwkTag::SERVICE_EXT,
-        "bundlename:%{public}s, ability:%{public}s, userId:%{public}d",
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "StopExtAbility %{public}s/%{public}s, u:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     if (extensionType != AppExecFwk::ExtensionAbilityType::VPN &&
         extensionType != AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
@@ -5260,8 +5255,7 @@ int AbilityManagerService::ConnectUIExtensionAbility(const Want &want, const spt
     }
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::UI_EXT,
-        "ConnectUIExtensionAbility bundlename: %{public}s, ability is %{public}s, userId is %{private}d",
+    TAG_LOGI(AAFwkTag::UI_EXT, "ConnectUIExtensionAbility %{public}s/%{public}s, u: %{private}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     CheckExtensionRateLimit();
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
@@ -5562,7 +5556,7 @@ int AbilityManagerService::ConnectRemoteAbility(Want &want, const sptr<IRemoteOb
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s addStartControlParam failed", __func__);
         return ERR_INVALID_VALUE;
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, abilityName: %{public}s",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ConnectRemoteAbility %{public}s/%{public}s",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
     DistributedClient dmsClient;
     return dmsClient.ConnectRemoteAbility(want, connect);
@@ -5656,7 +5650,7 @@ int AbilityManagerService::ContinueAbility(const std::string &deviceId, int32_t 
 
 int AbilityManagerService::StartContinuation(const Want &want, const sptr<IRemoteObject> &abilityToken, int32_t status)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "start continuation");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartContinuation");
     if (!CheckIfOperateRemote(want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "deviceId or bundleName or abilityName empty");
         return ERR_INVALID_VALUE;
@@ -5940,8 +5934,8 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
         return nullptr;
     }
     const_cast<WantSenderInfo&>(wantSenderInfo).userId = userId;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, appIndex: %{public}d, isSystemApp: %{public}d, "
-        "isSACall: %{public}d, userId: %{public}d, appUid: %{public}d", bundleName.c_str(), appIndex, isSystemApp,
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s#%{public}d, isSystemApp: %{public}d, "
+        "isSACall: %{public}d, u: %{public}d, appUid: %{public}d", bundleName.c_str(), appIndex, isSystemApp,
         isSACall, userId, appUid);
 
     return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
@@ -6005,7 +5999,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
     bool isSystemApp = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s#%{public}d, isSystemApp: %{public}d, "
-        "userId: %{public}d", wantSenderInfo.bundleName.c_str(), appIndex, isSystemApp, userId);
+        "u: %{public}d", wantSenderInfo.bundleName.c_str(), appIndex, isSystemApp, userId);
     return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
 }
 
@@ -6117,7 +6111,7 @@ void AbilityManagerService::CancelWantSenderByFlags(const sptr<IWantSender> &sen
 
 int AbilityManagerService::GetPendingWantUid(const sptr<IWantSender> &target)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s:begin", __func__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
     if (target == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%s, target null", __func__);
         return -1;
@@ -6146,7 +6140,7 @@ int AbilityManagerService::GetPendingWantUid(const sptr<IWantSender> &target)
 
 int AbilityManagerService::GetPendingWantUserId(const sptr<IWantSender> &target)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s:begin", __func__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
     auto pendingWantManager = GetCurrentPendingWantManager();
     CHECK_POINTER_AND_RETURN(pendingWantManager, -1);
     if (target == nullptr) {
@@ -6186,7 +6180,7 @@ std::string AbilityManagerService::GetPendingWantBundleName(const sptr<IWantSend
 
 int AbilityManagerService::GetPendingWantCode(const sptr<IWantSender> &target)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s:begin", __func__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
     if (target == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%s, target null", __func__);
         return -1;
@@ -6622,7 +6616,7 @@ bool AbilityManagerService::GenerateDataAbilityRequestByUri(const std::string& d
 {
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, false);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "dataAbilityUri: %{public}s, userId: %{public}d", dataAbilityUri.c_str(), userId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "dataAbilityUri: %{public}s, u: %{public}d", dataAbilityUri.c_str(), userId);
     bool queryResult = IN_PROCESS_CALL(bms->QueryAbilityInfoByUri(dataAbilityUri, userId, abilityRequest.abilityInfo));
     if (!queryResult || abilityRequest.abilityInfo.name.empty() || abilityRequest.abilityInfo.bundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid ability info acquiring");
@@ -7321,7 +7315,7 @@ int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &toke
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN_LOG(abilityRecord, ERR_INVALID_VALUE, "Ability record is nullptr.");
     auto callerPid = IPCSkeleton::GetCallingPid();
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityTransitionDone, ability:%{public}s, state:%{public}d, callerPid:%{public}d",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityTransitionDone %{public}s, state:%{public}d, callerPid:%{public}d",
         abilityRecord->GetURI().c_str(), state, callerPid);
     if (!JudgeSelfCalled(abilityRecord)) {
         return CHECK_PERMISSION_FAILED;
@@ -7673,7 +7667,7 @@ int AbilityManagerService::StartHighestPriorityAbility(int32_t userId, uint64_t 
     } else {
         /* highest priority extension ability */
         TAG_LOGI(AAFwkTag::ABILITYMGR,
-            "start highest priority extension ability bundleName:%{public}s, ability:%{public}s,"
+            "start highest priority extension ability: %{public}s/%{public}s,"
             "BMScntTime:%{public}" PRId64 " ms, queryTime:%{public}" PRId64 " ms",
             extensionAbilityInfo.bundleName.c_str(), extensionAbilityInfo.name.c_str(), 
             bmsCntTime - startTime, queryTime - bmsCntTime);
@@ -8079,9 +8073,8 @@ int32_t AbilityManagerService::UninstallApp(const std::string &bundleName, int32
 int32_t AbilityManagerService::UpgradeApp(const std::string &bundleName, const int32_t uid, const std::string &exitMsg,
     int32_t appIndex)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "upgradeApp app, bundleName: %{public}s, uid=%{public}d, exitMsg:%{public}s, appIndex:%{public}d",
-        bundleName.c_str(), uid, exitMsg.c_str(), appIndex);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "upgradeApp %{public}s#%{public}d, u=%{public}d, exitMsg:%{public}s",
+        bundleName.c_str(), appIndex, uid, exitMsg.c_str());
     return UninstallAppInner(bundleName, uid, appIndex, true, exitMsg);
 }
 
@@ -8166,8 +8159,7 @@ void AbilityManagerService::PreLoadAppDataAbilitiesTask(const std::string &bundl
     bool ret = IN_PROCESS_CALL(
         bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, userId));
     if (!ret) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR,
-            "get bundleInfo preloading failed, userId:%{public}d", userId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundleInfo preloading failed, u:%{public}d", userId);
         return;
     }
 
@@ -8857,7 +8849,7 @@ sptr<IRemoteObject> AbilityManagerService::GetAbilityTokenByMissionId(int32_t mi
 int AbilityManagerService::StartRemoteAbilityByCall(const Want &want, const sptr<IRemoteObject> &callerToken,
     const sptr<IRemoteObject> &connect)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s begin startRemoteAbilityByCall", __func__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
     Want remoteWant = want;
     UpdateCallerInfoUtil::GetInstance().UpdateDmsCallerInfo(remoteWant, callerToken);
     if (AddStartControlParam(remoteWant, callerToken) != ERR_OK) {
@@ -9677,8 +9669,7 @@ void AbilityManagerService::SubmitSaveRecoveryInfo(const sptr<IRemoteObject>& to
         }
         abilityName += std::to_string(abilityRecord->GetMissionId());
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "submitInfo bundleName = %{public}s, moduleName = %{public}s, abilityName = %{public}s, tokenId = %{public}d",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SubmitSaveRecoveryInfo %{public}s/%{public}s/%{public}s, tokenId = %{public}d",
         abilityInfo.bundleName.c_str(),  abilityInfo.moduleName.c_str(), abilityName.c_str(), tokenId);
     RecoveryInfo recoveryInfo;
     recoveryInfo.bundleName = abilityInfo.bundleName;

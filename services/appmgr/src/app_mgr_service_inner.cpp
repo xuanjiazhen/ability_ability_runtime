@@ -551,9 +551,8 @@ int32_t AppMgrServiceInner::PreloadApplicationByPhase(const std::string &bundleN
     AppExecFwk::PreloadPhase preloadPhase)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "PreloadApplicationByPhase bundleName:%{public}s, userId:%{public}d, \
-    appIndex:%{public}d, preloadPhase:%{public}d", bundleName.c_str(), userId, appIndex,
-        static_cast<int32_t>(preloadPhase));
+    TAG_LOGI(AAFwkTag::APPMGR, "PreloadApplicationByPhase %{public}s#%{public}d u:%{public}d preloadPhase:%{public}d",
+        bundleName.c_str(), appIndex, userId, static_cast<int32_t>(preloadPhase));
     if (!AAFwk::AppUtils::GetInstance().IsPreloadApplicationEnabled()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "preload application not supported");
         return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
@@ -576,8 +575,8 @@ int32_t AppMgrServiceInner::PreloadApplication(const std::string &bundleName, in
     AppExecFwk::PreloadMode preloadMode, AppExecFwk::PreloadPhase preloadPhase)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "PreloadApplication %{public}s#%{public}d userId:%{public}d \
-        preloadMode:%{public}d preloadPhase:%{public}d", bundleName.c_str(), appIndex, userId,
+    TAG_LOGI(AAFwkTag::APPMGR, "PreloadApplication %{public}s#%{public}d u:%{public}d "
+        "preloadMode:%{public}d preloadPhase:%{public}d", bundleName.c_str(), appIndex, userId,
         static_cast<int32_t>(preloadMode), static_cast<int32_t>(preloadPhase));
 
     if (!appPreloader_) {
@@ -626,7 +625,7 @@ int32_t AppMgrServiceInner::PreloadApplication(const std::string &bundleName, in
 
 void AppMgrServiceInner::PreloadModuleFinished(const int32_t pid)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "AppMgrServiceInner PreloadModuleFinished call.");
+    TAG_LOGD(AAFwkTag::APPMGR, "AppMgrServiceInner PreloadModuleFinished.");
     auto appRecord = GetAppRunningRecordByPid(pid);
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord not found by pid %{public}d", pid);
@@ -667,8 +666,8 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
         return;
     }
     auto bundleInfo = request.bundleInfo;
-    TAG_LOGI(AAFwkTag::APPMGR, "bundleName:%{public}s, abilityName:%{public}s, \
-    appIndex:%{public}d", bundleInfo.name.c_str(), abilityInfo->name.c_str(), request.appIndex);
+    TAG_LOGI(AAFwkTag::APPMGR, "HandlePreloadApplication %{public}s#%{public}d/%{public}s"
+        bundleInfo.name.c_str(), request.appIndex, abilityInfo->name.c_str());
 
     CHECK_POINTER_AND_RETURN_LOG(appRunningManager_, "handlePreloadApplication fail, appRunningManager null");
     std::string processName;
@@ -683,7 +682,7 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
     auto want = request.want;
 
     bool isExtensionSandBox = IsIsolateExtensionSandBox(abilityInfo, hapModuleInfo);
-    TAG_LOGD(AAFwkTag::APPMGR, "HandlePreloadApplication processName = %{public}s", processName.c_str());
+    TAG_LOGD(AAFwkTag::APPMGR, "HandlePreloadApplication pname%{public}s", processName.c_str());
     CHECK_POINTER_AND_RETURN_LOG(appInfo, "appInfo null");
     AAFwk::ResSchedUtil::GetInstance().ReportPreloadApplicationToRSS(abilityInfo,
         static_cast<int32_t>(request.preloadMode));
@@ -715,8 +714,7 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
 bool AppMgrServiceInner::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "CheckPreload, bundleName:%{public}s, userId:%{public}d, appIndex:%{public}d",
-        bundleName.c_str(), userId, appIndex);
+    TAG_LOGI(AAFwkTag::APPMGR, "CheckPreload %{public}s#%{public}d, u:%{public}d", bundleName.c_str(), appIndex, userId);
     if (!appPreloader_) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appPreloader");
         return false;
@@ -789,7 +787,7 @@ int32_t AppMgrServiceInner::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject>
         return AAFwk::ERR_NOTIFY_PRELOAD_ABILITY_HAS_OTHER;
     }
     TAG_LOGI(AAFwkTag::APPMGR,
-        "NotifyPreloadAbilityStateChanged bundle:%{public}s, pid:%{public}d, isPreForeground:%{public}d",
+        "NotifyPreloadAbilityStateChanged %{public}s, pid:%{public}d, isPreForeground:%{public}d",
         appRecord->GetBundleName().c_str(), appRecord->GetPid(), isPreForeground);
     appRecord->SetPreForeground(isPreForeground);
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessPreForegroundChanged(appRecord);
@@ -1316,8 +1314,7 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     sptr<IRemoteObject> token, const std::string &customProcessFlag, bool isStartupHide)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "processName:%{public}s, isPreload:%{public}d",
-        processName.c_str(), isPreload);
+    TAG_LOGI(AAFwkTag::APPMGR, "pname:%{public}s, isPreload:%{public}d", processName.c_str(), isPreload);
     if (!appRecord || !abilityInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord or abilityInfo");
         return;
@@ -2363,8 +2360,7 @@ int32_t AppMgrServiceInner::ClearUpApplicationData(const std::string &bundleName
             newUserId = UserController::GetInstance().GetForegroundUserId(DEFAULT_DISPLAY_ID);
         }
     }
-    TAG_LOGI(AAFwkTag::APPMGR, "bundleName: %{public}s, uId: %{public}d, appIndex: %{public}d", bundleName.c_str(),
-        newUserId, appCloneIndex);
+    TAG_LOGI(AAFwkTag::APPMGR, "%{public}s#%{public}d, u: %{public}d", bundleName.c_str(), appCloneIndex, newUserId);
     return ClearUpApplicationDataByUserId(bundleName, callerUid, callerPid, appCloneIndex, newUserId,
         false, "ClearUpApplicationData");
 }
@@ -3710,7 +3706,7 @@ void AppMgrServiceInner::StartAbility(sptr<IRemoteObject> token, sptr<IRemoteObj
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER_AND_RETURN_LOG(abilityInfo, "abilityInfo null");
-    TAG_LOGI(AAFwkTag::APPMGR, "start %{public}s-%{public}s",
+    TAG_LOGI(AAFwkTag::APPMGR, "start %{public}s/%{public}s",
         abilityInfo->bundleName.c_str(), abilityInfo->name.c_str());
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
@@ -6646,7 +6642,7 @@ int AppMgrServiceInner::StartRenderProcess(const pid_t hostPid, const std::strin
 void AppMgrServiceInner::AttachRenderProcess(const pid_t pid, const sptr<IRenderScheduler> &scheduler)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "attachRenderProcess start");
+    TAG_LOGI(AAFwkTag::APPMGR, "attachRenderProcess");
     if (pid <= 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid render process pid:%{public}d", pid);
         return;
