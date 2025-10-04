@@ -285,6 +285,25 @@ HWTEST_F(JsRuntimeTest, StartProfiler_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "StartProfiler_0100 end");
 }
 
+/**
+ * @tc.name: InheritPluginNamespace_0100
+ * @tc.desc: JsRuntime test for InheritPluginNamespace.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, InheritPluginNamespace_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InheritPluginNamespace_0100 start");
+    AbilityRuntime::Runtime::Options options;
+    options.preload = true;
+    auto jsRuntime = AbilityRuntime::JsRuntime::Create(options);
+    ASSERT_NE(jsRuntime, nullptr);
+    jsRuntime->instanceId_ = 999;
+    jsRuntime->InheritPluginNamespace("testModule");
+    EXPECT_EQ(jsRuntime->instanceId_, 999);
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "InheritPluginNamespace_0100 end");
+}
 
 }  // namespace AbilityRuntime
 }  // namespace OHOS
