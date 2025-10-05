@@ -222,6 +222,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
             uiExtensionMap_[remoteObj] = UIExtWindowMapValType(targetService, abilityRequest.sessionInfo);
         }
         AddUIExtWindowDeathRecipient(remoteObj);
+        targetService->AddUIExtensionLaunchTimestamp();
     }
 
     ret = ReportXiaoYiToRSSIfNeeded(abilityRequest.abilityInfo);
@@ -1124,6 +1125,7 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
         case AbilityState::FOREGROUND: {
             abilityRecord->RemoveSignatureInfo();
             if (IsUIExtensionAbility(abilityRecord)) {
+                abilityRecord->RemoveUIExtensionLaunchTimestamp();
                 DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
                     token, AppExecFwk::ExtensionState::EXTENSION_STATE_FOREGROUND);
             }
