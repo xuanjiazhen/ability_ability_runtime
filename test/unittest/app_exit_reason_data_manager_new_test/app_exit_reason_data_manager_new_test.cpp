@@ -556,8 +556,9 @@ HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_PutAsync_003, Te
     DistributedKv::Key key("test_key");
     DistributedKv::Value value("test_value");
     AppExitReasonDataManager::PutAsync(key, value);
-    usleep(TIME_SLEEP);
+    
     auto pThis = DelayedSingleton<AppExitReasonDataManager>::GetInstance();
+    usleep(TIME_SLEEP);
     EXPECT_EQ(pThis->kvStorePtr_, nullptr);
 }
 } // namespace AbilityRuntime
