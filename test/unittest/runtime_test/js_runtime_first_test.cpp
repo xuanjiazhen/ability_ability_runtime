@@ -298,7 +298,9 @@ HWTEST_F(JsRuntimeTest, InheritPluginNamespace_0100, TestSize.Level1)
     auto jsRuntime = AbilityRuntime::JsRuntime::Create(options);
     ASSERT_NE(jsRuntime, nullptr);
     jsRuntime->instanceId_ = 999;
-    jsRuntime->InheritPluginNamespace("testModule");
+    std::vector<std::string> moduleNames;
+    moduleNames.push_back("testModule");
+    jsRuntime->InheritPluginNamespace(moduleNames);
     EXPECT_EQ(jsRuntime->instanceId_, 999);
     jsRuntime.reset();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
