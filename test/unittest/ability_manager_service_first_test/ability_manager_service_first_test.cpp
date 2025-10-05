@@ -956,7 +956,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, IsCallFromBackground_001, TestSize.Leve
 
     // IsSACall
     MyFlag::flag_ = 1;
-    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall), ERR_OK);
+    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall, false), ERR_OK);
 
     // IsShellCall
     MyFlag::flag_ = 2;
