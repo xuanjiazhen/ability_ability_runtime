@@ -174,6 +174,7 @@ constexpr char EVENT_KEY_PROCESS_RSS_MEMINFO[] = "PROCESS_RSS_MEMINFO";
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
 constexpr char KILL_REASON[] = "Kill Reason:Js Error";
+constexpr const char* INHERIT_PLUGIN_NAMESPACE = "persist.sys.abilityms.inherit_plugin_namespace";
 
 const int32_t JSCRASH_TYPE = 3;
 const std::string JSVM_TYPE = "ARK";
@@ -1622,6 +1623,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     std::map<std::string, std::string> pkgContextInfoJsonStringMap;
     std::vector<AppExecFwk::PluginBundleInfo> pluginBundleInfos;
     AppLibPathMap appLibPaths {};
+    std::vector<std::string> pluginModuleNames;
     if (appInfo.hasPlugin) {
         if (bundleMgrHelper->GetPluginInfosForSelf(pluginBundleInfos) != ERR_OK) {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "GetPluginInfosForSelf failed");
@@ -1631,6 +1633,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             for (auto &pluginModuleInfo : pluginBundleInfo.pluginModuleInfos) {
                 pkgContextInfoJsonStringMap[pluginModuleInfo.moduleName] = pluginModuleInfo.hapPath;
             }
+        }
+        for (const auto &appLibPath : appLibPaths) {
+            pluginModuleNames.emplace_back(appLibPath.first);
         }
     }
 
@@ -1657,9 +1662,16 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
             GetEtsNativeLibPath(bundleInfo, hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
             AbilityRuntime::ETSRuntime::SetAppLibPath(etsAppLibPaths, abcPathsToBundleModuleNameMap, isSystemApp);
+            if (IsPluginNamespaceInherited()) {
+                AbilityRuntime::ETSRuntime::InheritPluginNamespace(pluginModuleNames);
+            }
         } else {
             AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
+            if (IsPluginNamespaceInherited()) {
+                AbilityRuntime::JsRuntime::InheritPluginNamespace(pluginModuleNames);
+            }
         }
+    }
 #ifdef CJ_FRONTEND
     }
 #endif
@@ -2291,6 +2303,8 @@ void MainThread::HandleUpdatePluginInfoInstalled(const ApplicationInfo &pluginAp
         TAG_LOGE(AAFwkTag::JSRUNTIME, "GetPluginInfosForSelf failed");
         return;
     }
+
+    std::vector<std::string> pluginModuleNames;
     for (auto &pluginBundleInfo : pluginBundleInfos) {
         for (auto &pluginModuleInfo : pluginBundleInfo.pluginModuleInfos) {
             if (moduleName == pluginModuleInfo.moduleName &&
@@ -2299,9 +2313,14 @@ void MainThread::HandleUpdatePluginInfoInstalled(const ApplicationInfo &pluginAp
                 TAG_LOGI(AAFwkTag::APPKIT,
                     "UpdatePkgContextInfoJson moduleName: %{public}s, hapPath: %{public}s",
                     moduleName.c_str(), pluginModuleInfo.hapPath.c_str());
+                pluginModuleNames.emplace_back(moduleName);
             }
         }
     }
+    if (IsPluginNamespaceInherited() && !pluginModuleNames.empty()) {
+        AbilityRuntime::JsRuntime::InheritPluginNamespace(pluginModuleNames);
+    }
+
 }
 
 void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleNames)
@@ -4176,6 +4195,13 @@ bool MainThread::GetTestRunnerTypeAndPath(const std::string bundleName, const st
 void MainThread::OnLoadAbilityFinished(uint64_t callbackId, int32_t pid)
 {
     LoadAbilityCallbackManager::GetInstance().OnLoadAbilityFinished(callbackId, pid);
+}
+
+bool MainThread::IsPluginNamespaceInherited()
+{
+    isPluginNamespaceInherited_ = system::GetBoolParameter(INHERIT_PLUGIN_NAMESPACE, false);
+    TAG_LOGD(AAFwkTag::DEFAULT, "inherit_plugin_namespace: %{public}d", isPluginNamespaceInherited_);
+    return isPluginNamespaceInherited_;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
