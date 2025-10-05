@@ -1671,7 +1671,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 AbilityRuntime::JsRuntime::InheritPluginNamespace(pluginModuleNames);
             }
         }
-    }
 #ifdef CJ_FRONTEND
     }
 #endif
