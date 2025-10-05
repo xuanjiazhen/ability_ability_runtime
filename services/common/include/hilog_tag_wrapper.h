@@ -18,11 +18,12 @@
 
 #include <cinttypes>
 #include <map>
+#include <string>
 
 #include "hilog/log.h"
 
 #ifndef AAFWK_FUNC_FMT
-#define AAFWK_FUNC_FMT "[%{public}s:%{public}d]"
+#define AAFWK_FUNC_FMT "[%{public}s%{public}d]"
 #endif
 
 #ifndef AAFWK_FILE_NAME
@@ -100,6 +101,7 @@ enum class AAFwkLogTag : uint32_t {
     SA_INTERCEPTOR,
     APP_SERVICE_EXT,
     VERTICAL_PANEL,
+    USER_CONTROLLER,
 
     END = 256,               // N.B. never use it
 };
@@ -185,6 +187,71 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
+static bool ConvertFileName1(const std::string& fileBaseName, std::string& abbrFileName)
+{
+    if (fileBaseName == "ability_connect_callback_stub") {
+        abbrFileName = "ACCS";
+    } else if (fileBaseName == "ability_connect_manager") {
+        abbrFileName = "ABCM";
+    } else if (fileBaseName == "ability_manager_client") {
+        abbrFileName = "AMC";
+    } else if (fileBaseName == "ability_manager_service") {
+        abbrFileName = "ABMS";
+    } else if (fileBaseName == "ability_record") {
+        abbrFileName = "ABR";
+    } else if (fileBaseName == "app_mgr_service_inner") {
+        abbrFileName = "AMSI";
+    } else if (fileBaseName == "app_running_manager") {
+        abbrFileName = "ARM";
+    } else if (fileBaseName == "app_running_record") {
+        abbrFileName = "ARR";
+    } else if (fileBaseName == "app_spawn_client") {
+        abbrFileName = "ASC";
+    } else if (fileBaseName == "app_state_observer_manager") {
+        abbrFileName = "ASOM";
+    } else if (fileBaseName == "cache_process_manager") {
+        abbrFileName = "CPM";
+    } else if (fileBaseName == "connect_server_manager") {
+        abbrFileName = "CSM";
+    } else if (fileBaseName == "connection_record") {
+        abbrFileName = "CONN";
+    } else if (fileBaseName == "dump_runtime_helper") {
+        abbrFileName = "DRH";
+    } else if (fileBaseName == "js_service_extension_context") {
+        abbrFileName = "JSEC";
+    } else if (fileBaseName == "js_ui_ability") {
+        abbrFileName = "JUA";
+    } else if (fileBaseName == "js_service_extension") {
+        abbrFileName = "JSE";
+    } else if (fileBaseName == "main_thread") {
+        abbrFileName = "MAINTHD";
+    } else if (fileBaseName == "prload_uiext_state_observer") {
+        abbrFileName = "PUSO";
+    } else if (fileBaseName == "service_extension_context") {
+        abbrFileName = "SEC";
+    } else if (fileBaseName == "ui_ability_lifecycle_manager") {
+        abbrFileName = "UALM";
+    } else {
+        return false;
+    }
+    return true;
+}
+
+[[maybe_unused]] static std::string CovertFileName(const std::string& fileName)
+{
+    std::string fileBaseName = fileName;
+    auto pos = fileName.find_last_of(".");
+    if (pos == std::string::npos) {
+        return fileBaseName;
+    }
+    fileBaseName = fileName.substr(0, pos);
+    std::string abbrFileName;
+    if (ConvertFileName1(fileBaseName, abbrFileName)) {
+        return abbrFileName;
+    }
+    return fileBaseName;
+}
+
 constexpr uint32_t BASE_DEFAULT = 0;
 constexpr uint32_t BASE_APPDFR = 1;
 constexpr uint32_t BASE_JSENV = 2;
@@ -215,8 +282,10 @@ using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
 #define AAFWK_PRINT_LOG(level, tag, fmt, ...)                                                           \
     do {                                                                                                \
         AAFwkTag logTag = tag;                                                                          \
-        ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                                  \
-        OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, AAFWK_FUNC_INFO, ##__VA_ARGS__)); \
+        std::string abbrFileName = OHOS::AAFwk::ConvertFileName(std::string(AAFWK_FILE_NAME));          \
+        ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                               \
+        OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, \
+        abbrFileName.c_str(), __LINE__, ##__VA_ARGS__));  \
     } while (0)
 
 #define TAG_LOGD(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_DEBUG, tag, fmt, ##__VA_ARGS__)
