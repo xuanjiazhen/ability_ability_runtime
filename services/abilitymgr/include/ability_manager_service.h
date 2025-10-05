@@ -1892,10 +1892,14 @@ public:
      * @param isBackgroundCall, Indicates the Caller-Application state.
      *                          TRUE: The Caller-Application is not in focus and not in foreground state.
      *                          FALSE: The Caller-Application is in focus or in foreground state.
+     * @param isSelector Indicates the scenario of an application selection box. When set to true,
+     * the specifiedTokenId is used to verify permissions.
+     * @param specifyTokenId The origin accessTokenId.
+     * @param isData Is DataAbility.
      * @return Returns ERR_OK on check success, others on check failure.
      */
-    int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall,
-        uint32_t callerAccessTokenId = 0, bool isData = false);
+    int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall, bool isSelector,
+        uint32_t specifyTokenId = 0, bool isData = false);
 
     void EnableListForSCBRecovery(int32_t userId) const;
 
@@ -2204,6 +2208,9 @@ protected:
      */
     int32_t CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
         std::shared_ptr<AbilityRecord> targetService, bool isFromConnect);
+
+    static void HandleAutoStartupReadyCallback(const char *key, const char *value, void *context);
+
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);
@@ -2243,7 +2250,7 @@ private:
     void InitGlobalConfiguration();
 
     int StartRemoteAbility(const Want &want, int requestCode, int32_t validUserId,
-        const sptr<IRemoteObject> &callerToken);
+        const sptr<IRemoteObject> &callerToken, uint32_t specifyTokenId = 0);
     int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool &isColdStart);
     int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo, uint32_t specifyTokenId,
         uint32_t sceneFlag, bool &isColdStart);
@@ -2382,6 +2389,8 @@ private:
     void UnSubscribeScreenUnlockedEvent();
     void RetrySubscribeScreenUnlockedEvent(int32_t retryCount);
     void RemoveScreenUnlockInterceptor();
+    void AddWatchParameters();
+
     void RemoveUnauthorizedLaunchReasonMessage(const Want &want, AbilityRequest &abilityRequest,
         uint32_t callerTokenId);
 
@@ -2491,9 +2500,12 @@ private:
      * Check if Caller is allowed to start PageAbility(FA) or Ability(Stage).
      *
      * @param abilityRequest, abilityRequest.
+     * @param isSelector Indicates the scenario of an application selection box.
+     * @param specifyTokenId The origin accessTokenId.
+     * @param isCallByShortcut The start reason.
      * @return Returns whether the caller is allowed to start Ability.
      */
-    int CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId = 0,
+    int CheckCallAbilityPermission(const AbilityRequest &abilityRequest, bool isSelector, uint32_t specifyTokenId = 0,
         bool isCallByShortcut = false);
 
     /**
@@ -2670,12 +2682,12 @@ private:
         const AppExecFwk::AbilityInfo& abilityInfo);
 
     int CheckAbilityCallPermission(const AbilityRequest& abilityRequest,
-        const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId);
+        const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId, bool isSelector);
 
     int CheckCallPermission(const Want& want, const AppExecFwk::AbilityInfo& abilityInfo,
         const AbilityRequest& abilityRequest, bool isForegroundToRestartApp,
         bool isSendDialogResult, uint32_t specifyTokenId,
-        const std::string& callerBundleName);
+        const std::string& callerBundleName, bool isSelector);
 
     void CheckExtensionRateLimit();
 
