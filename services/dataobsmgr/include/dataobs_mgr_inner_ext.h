@@ -33,7 +33,6 @@
 
 namespace OHOS {
 namespace AAFwk {
-static const int32_t MAX_ENTRY_CNT = 100000;
 class DataObsMgrInnerExt : public std::enable_shared_from_this<DataObsMgrInnerExt> {
 public:
 
@@ -56,14 +55,9 @@ private:
 
     struct Entry {
         Entry(sptr<IDataAbilityObserver> obs, int32_t userId, uint32_t tokenId,
-            std::shared_ptr<DeathRecipientRef> deathRef, bool isDes)
+              std::shared_ptr<DeathRecipientRef> deathRef, bool isDes)
             : observer(obs), userId(userId), tokenId(tokenId), deathRecipientRef(deathRef), isDescendants(isDes)
         {
-            entryId = nextEntryId_++;
-            if (nextEntryId_ > MAX_ENTRY_CNT) {
-                // reset nextEntryId_
-                nextEntryId_ = 1;
-            }
         }
         sptr<IDataAbilityObserver> observer;
         int32_t userId;

@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace AAFwk {
-static const int32_t MAX_OBSERVER_NODE_CNT = 100000;
 struct ObserverInfo {
     ObserverInfo() {}
     ObserverInfo(uint32_t tokenId, uint64_t fullTokenId, uint32_t firstCallerTokenId, int32_t userId, bool isExtension)

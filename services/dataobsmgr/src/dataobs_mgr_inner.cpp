@@ -115,8 +115,6 @@ int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId)
         obsList = obsPair->second;
     }
 
-    std::string obsStr = "";
-    bool logFlag = false;
     for (auto &obs : obsList) {
         if (obs.observer_ == nullptr) {
             continue;
@@ -138,12 +136,6 @@ int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId)
                 uriStr, msg);
         }
         obs.observer_->OnChange();
-        obsStr += "pid:" + std::to_string(obs.pid_) + "nodeId:" + std::to_string(obs.nodeId_) + ",";
-        logFlag = true;
-    }
-    if (logFlag) {
-        TAG_LOGI(AAFwkTag::DBOBSMGR, "notify uri:%{public}s obsList:%{public}s",
-            CommonUtils::Anonymous(uri.ToString()).c_str(), obsStr.c_str());
     }
 
     TAG_LOGD(AAFwkTag::DBOBSMGR, "uri end:%{public}s,obs num:%{public}zu",
