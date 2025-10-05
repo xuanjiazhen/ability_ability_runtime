@@ -5773,7 +5773,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
 
     bool isSystemApp = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, appIndex: %{public}d, isSystemApp: %{public}d, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s#%{public}d, isSystemApp: %{public}d, "
         "userId: %{public}d", wantSenderInfo.bundleName.c_str(), appIndex, isSystemApp, userId);
     return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
 }
@@ -6384,7 +6384,7 @@ int AbilityManagerService::AttachAbilityThread(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AttachAbilityThread");
     CHECK_POINTER_AND_RETURN(scheduler, ERR_INVALID_VALUE);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && !VerificationAllToken(token)) {
         return ERR_INVALID_VALUE;
@@ -6398,6 +6398,7 @@ int AbilityManagerService::AttachAbilityThread(
     auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE;
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     auto type = abilityInfo.type;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", abilityRecord->GetURI().c_str());
     // force timeout ability for test
     if (IsNeedTimeoutForTest(abilityInfo.name, AbilityRecord::ConvertAbilityState(AbilityState::INITIAL))) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
@@ -7202,7 +7203,7 @@ void AbilityManagerService::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER(abilityRecord);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnAbilityRequestDone, bundleName: %{public}s, abilityName: %{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnAbilityRequestDone %{public}s/%{public}s",
         abilityRecord->GetAbilityInfo().bundleName.c_str(), abilityRecord->GetAbilityInfo().name.c_str());
     auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE;
 
