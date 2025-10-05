@@ -377,6 +377,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     loadParam.isStartupHide = isStartupHide;
     loadParam.callingPid = callingPid;
     loadParam.loadAbilityCallbackId = loadAbilityCallbackId;
+    loadParam.isPreloadStart = isPreloadStart_;
     auto userId = abilityInfo_.uid / BASE_USER_RANGE;
     bool isMainUIAbility =
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);

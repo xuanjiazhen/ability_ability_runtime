@@ -1033,6 +1033,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         appRecord = CreateAppRunningRecord(loadParam, appInfo, abilityInfo,
             processName, bundleInfo, hapModuleInfo, want, isKia);
 
+        if (loadParam->isPreloadStart) {
+            appRecord->SetPreloadMode(PreloadMode::PRELOAD_BY_PHASE);
+        }
+
         if (abilityInfo->isolationProcess) {
             bool isMasterProcessExist = appRunningManager_->CheckMasterProcessAppRunningRecordIsExist(
                                     appInfo->name, *abilityInfo, appInfo->uid);
