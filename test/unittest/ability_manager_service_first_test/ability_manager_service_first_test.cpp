@@ -2459,7 +2459,8 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_002, TestSiz
     abilityRecord->Init();
     AbilityRequest abilityRequest;
     abilityRequest.callerToken = abilityRecord->GetToken();
-    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest), ERR_OK);
+    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), ERR_OK);
+    
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_002 end");
 }
 
@@ -2503,7 +2504,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_004, TestSiz
     abilityRecord->Init();
     AbilityRequest abilityRequest;
     abilityRequest.callerToken = abilityRecord->GetToken();
-    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest), ERR_OK);
+    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_004 end");
 }
 } // namespace AAFwk
