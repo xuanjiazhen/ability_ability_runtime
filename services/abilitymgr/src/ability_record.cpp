@@ -3996,10 +3996,6 @@ void AbilityRecord::AddUIExtensionLaunchTimestamp()
 
 void AbilityRecord::RemoveUIExtensionLaunchTimestamp()
 {
-    if (sessionInfo_->uiExtensionUsage != AAFwk::UIExtensionUsage::MODAL) {
-        TAG_LOGD(AAFwkTag::UI_EXT, "not modal uiExtension");
-        return;
-    }
     std::lock_guard guard(wantLock_);
     want_.RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP);
 }
