@@ -53,6 +53,7 @@ namespace AbilityRuntime {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP = "ohos.ability.params.uiExtensionLaunchTimestamp";
 } // namespace
 napi_value AttachUIExtensionBaseContext(napi_env env, void *value, void*)
 {
@@ -739,7 +740,8 @@ bool JsUIExtensionBase::CallJsOnSessionCreate(const AAFwk::Want &want, const spt
     return true;
 }
 
-sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo)
+sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo,
+    const AAFwk::Want &want)
 {
     auto option = sptr<Rosen::WindowOption>::MakeSptr();
     if (option == nullptr) {
@@ -761,6 +763,7 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
         option->SetConstrainedModal(isNotAllow);
     }
+    option->SetStartModelExtensionTimeStamp(static_cast<int64_t>(want.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP, -1)));
     return option;
 }
 
@@ -784,7 +787,7 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             TAG_LOGE(AAFwkTag::UI_EXT, "null context");
             return false;
         }
-        auto option = CreateWindowOption(sessionInfo);
+        auto option = CreateWindowOption(sessionInfo, want);
         if (option == nullptr) {
             return false;
         }
@@ -798,6 +801,7 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
             return false;
         }
+        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP);
         uiWindow->UpdateExtensionConfig(sharedWant);
         if (!CallJsOnSessionCreate(*sharedWant, sessionInfo, uiWindow, componentId)) {
             return false;
