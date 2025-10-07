@@ -619,7 +619,7 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
     auto compId = sessionInfo->uiExtensionComponentId;
     if (uiWindowMap_.find(compId) == uiWindowMap_.end()) {
         auto context = GetContext();
-        auto uiWindow = CreateUIWindow(context, sessionInfo);
+        auto uiWindow = CreateUIWindow(context, sessionInfo, want);
         if (uiWindow == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
             return false;
