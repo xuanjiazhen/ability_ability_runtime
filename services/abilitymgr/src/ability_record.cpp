@@ -3991,7 +3991,7 @@ void AbilityRecord::AddUIExtensionLaunchTimestamp()
     std::lock_guard guard(wantLock_);
     struct timespec t;
     auto launchTimestamp = clock_gettime(CLOCK_BOOTTIME, &t) != 0 ? 0 : (t.tv_sec * 1000LL) + (t.tv_nsec / 1000000LL);
-    want_.SetParam(UIEXTENSION_LAUNCH_TIMESTAMP, AAFwk::Integer::Box(launchTimestamp));
+    want_.SetParam(UIEXTENSION_LAUNCH_TIMESTAMP, launchTimestamp);
 }
 
 void AbilityRecord::RemoveUIExtensionLaunchTimestamp()
