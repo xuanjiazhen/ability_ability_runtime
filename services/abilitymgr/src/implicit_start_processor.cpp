@@ -154,6 +154,8 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     AbilityUtil::WantSetParameterWindowMode(request.want, windowMode);
     request.callerAccessTokenId = IPCSkeleton::GetCallingTokenID();
 
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "ImplicitStartAbility %{public}d", IPCSkeleton::GetCallingTokenID());
+
     auto identity = IPCSkeleton::ResetCallingIdentity();
     auto startAbilityTask = [imp = shared_from_this(), request, userId, identity]
         (const std::string& bundle, const std::string& abilityName) mutable {
@@ -174,6 +176,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
     int32_t tokenId = request.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN,
         static_cast<int32_t>(IPCSkeleton::GetCallingTokenID()));
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "ImplicitStartAbility %{public}d %{public}s", IPCSkeleton::GetCallingTokenID(), identity);
     AddIdentity(tokenId, identity);
 
     if (!isAppCloneSelector && request.want.HasParameter(APP_LAUNCH_TRUSTLIST)) {
@@ -182,9 +185,10 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
 
     if (dialogAppInfos.size() == 0 &&
         (request.want.GetFlags() & Want::FLAG_START_WITHOUT_TIPS) == Want::FLAG_START_WITHOUT_TIPS) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "hint dialog generate fail");
-            return ERR_IMPLICIT_START_ABILITY_FAIL;
-        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hint dialog generate fail");
+        return ERR_IMPLICIT_START_ABILITY_FAIL;
+    }
+
     if (dialogAppInfos.size() == 0 && AppUtils::GetInstance().IsSelectorDialogDefaultPossion()) {
         ret = sysDialogScheduler->GetSelectorDialogWant(dialogAppInfos, request.want, want, request.callerToken);
         if (ret != ERR_OK && ret != ERR_APP_SELECTOR_NOT_EXISTS) {
@@ -240,11 +244,12 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
             TAG_LOGE(AAFwkTag::ABILITYMGR, "GetPcSelectorDialogWant failed");
             return ret;
         }
-        ret = abilityMgr->StartAbility(request.want, request.callerToken);
         // reset calling indentity
         IPCSkeleton::SetCallingIdentity(identity);
-        return ret;
+        return IN_PROCESS_CALL(abilityMgr->StartAbility(request.want, request.callerToken));
     }
+    // reset calling indentity
+    IPCSkeleton::SetCallingIdentity(identity);
 
     //There is a default opening method add Only one application supports
     bool defaultPicker = false;
@@ -265,7 +270,8 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
 
     if (AppUtils::GetInstance().IsSelectorDialogDefaultPossion()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitQueryInfos success, multiple apps available");
-        ret = sysDialogScheduler->GetSelectorDialogWant(dialogAppInfos, request.want, want, request.callerToken);
+        ret = IN_PROCESS_CALL(sysDialogScheduler->GetSelectorDialogWant(dialogAppInfos, request.want, want,
+            request.callerToken));
         if (ret != ERR_OK && ret != ERR_APP_SELECTOR_NOT_EXISTS) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "GetSelectorDialogWant failed");
             return ret;
@@ -273,24 +279,21 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         if (want.GetBoolParam("isCreateAppGallerySelector", false)) {
             want.RemoveParam("isCreateAppGallerySelector");
             if (isAppCloneSelector) {
-                return DialogSessionManager::GetInstance().CreateCloneSelectorModalDialog(request, want,
-                    userId, dialogAppInfos, replaceWantString);
+                return IN_PROCESS_CALL(DialogSessionManager::GetInstance().CreateCloneSelectorModalDialog(request, want,
+                    userId, dialogAppInfos, replaceWantString));
             }
             bool needGrantUriPermission = true;
-            return DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request,
-                want, userId, dialogAppInfos, needGrantUriPermission);
+            return IN_PROCESS_CALL(DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request,
+                want, userId, dialogAppInfos, needGrantUriPermission));
         }
-        ret = abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr);
-        // reset calling indentity
-        IPCSkeleton::SetCallingIdentity(identity);
-        return ret;
+        return IN_PROCESS_CALL(abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr));
     }
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitQueryInfos success, multiple apps available in pc");
     std::string type = MatchTypeAndUri(request.want);
 
-    ret = sysDialogScheduler->GetPcSelectorDialogWant(dialogAppInfos, request.want, want,
-        type, userId, request.callerToken);
+    ret = IN_PROCESS_CALL(sysDialogScheduler->GetPcSelectorDialogWant(dialogAppInfos, request.want, want,
+        type, userId, request.callerToken));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetPcSelectorDialogWant failed");
         return INNER_ERR;
@@ -298,16 +301,13 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     if (want.GetBoolParam("isCreateAppGallerySelector", false)) {
         want.RemoveParam("isCreateAppGallerySelector");
         if (isAppCloneSelector) {
-            return DialogSessionManager::GetInstance().CreateCloneSelectorModalDialog(request, want, userId,
-                dialogAppInfos, replaceWantString);
+            return IN_PROCESS_CALL(DialogSessionManager::GetInstance().CreateCloneSelectorModalDialog(request, want,
+                userId, dialogAppInfos, replaceWantString));
         }
-        return DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want, userId,
-            dialogAppInfos);
+        return IN_PROCESS_CALL(DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want,
+            userId, dialogAppInfos));
     }
-    ret = abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr);
-    // reset calling indentity
-    IPCSkeleton::SetCallingIdentity(identity);
-    return ret;
+    return IN_PROCESS_CALL(abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr));
 }
 
 std::string ImplicitStartProcessor::MatchTypeAndUri(const AAFwk::Want &want)
