@@ -78,11 +78,12 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
         if (it == appList.end()) {
             auto ret = ExitKioskModeInner(kioskStatus_.kioskBundleName_, kioskStatus_.kioskToken_, true);
             if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "ExitKioskModeInner Failed");    
                 return ret;
             }
         }
     }
-    whitelist_.clear();
+    whitelist_ = appList;
     for (const auto &app : appList) {
         whitelist_.insert(app);
     }
@@ -121,7 +122,7 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
     kioskStatus_.kioskBundleName_ = bundleName;
     kioskStatus_.kioskBundleUid_ = IPCSkeleton::GetCallingUid();
     kioskStatus_.kioskToken_ = callerToken;
-    GetEnterKioskModeCallback()();
+    AddKioskInterceptor();
     NotifyKioskModeChanged(true);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
@@ -159,8 +160,7 @@ int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRe
         TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName %{public}s is not the currently kiosk app", bundleName.c_str());
         return ERR_NOT_IN_KIOSK_MODE;
     }
-
-    GetExitKioskModeCallback()();
+    RemoveKioskInterceptor();
     NotifyKioskModeChanged(false);
     kioskStatus_.Clear();
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
@@ -301,12 +301,12 @@ void KioskManager::RemoveKioskInterceptor()
 
 bool KioskManager::CheckCallerIsForeground(sptr<IRemoteObject> callerToken)
 {
-    AppExecFwk::RunningProcessInfo processInfo;
-    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByToken(
-        callerToken, processInfo);
-
-    return processInfo.state_ ==
-           AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    if (abilityRecord->IsAbilityState(FOREGROUND) || abilityRecord->IsAbilityState(FOREGROUNDING)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability foregorund state");
+        return true;
+    }
 }
 } // namespace AAFwk
 } // namespace OHOS
