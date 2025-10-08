@@ -2261,6 +2261,7 @@ public:
     static constexpr uint32_t FOREGROUND_HALF_TIMEOUT_MSG = 9;
     static constexpr uint32_t CONNECT_TIMEOUT_MSG = 10;
     static constexpr uint32_t CONNECT_HALF_TIMEOUT_MSG = 11;
+    static constexpr uint32_t BY_CALL_TIMEOUT_MSG = 12;
 
     static constexpr uint32_t MIN_DUMP_ARGUMENT_NUM = 2;
     static constexpr uint32_t MAX_WAIT_SYSTEM_UI_NUM = 600;
