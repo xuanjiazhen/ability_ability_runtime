@@ -30,6 +30,10 @@ AbilityRuntime::FreezeUtil::TimeoutState TimeoutStateUtils::MsgId2FreezeTimeOutS
             return AbilityRuntime::FreezeUtil::TimeoutState::BACKGROUND;
         case AbilityManagerService::CONNECT_TIMEOUT_MSG:
             return AbilityRuntime::FreezeUtil::TimeoutState::CONNECT;
+        case AbilityManagerService::BY_CALL_TIMEOUT_MSG:
+            return AbilityRuntime::FreezeUtil::TimeoutState::BY_CALL;
+        case AbilityManagerService::BY_CALL_HALF_TIMEOUT_MSG:
+            return AbilityRuntime::FreezeUtil::TimeoutState::BY_CALL;
         default:
             return AbilityRuntime::FreezeUtil::TimeoutState::UNKNOWN;
     }

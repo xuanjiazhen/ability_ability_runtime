@@ -26,6 +26,8 @@ using HiSysEvent = OHOS::HiviewDFX::HiSysEvent;
 namespace OHOS {
 namespace AAFwk {
 struct EventInfo {
+    bool isStartAbilityByCall = false;
+    int32_t requestId = -1;
     bool isPreload = false;
     bool shouldKillForeground = true;
     int32_t pid = -1;
@@ -135,7 +137,13 @@ enum class EventName {
     SHARE_UNPRIVILEGED_FILE_URI,
 
     // report data
-    USER_DATA_SIZE
+    USER_DATA_SIZE,
+
+    // start ability by call events
+    START_ABILITY_BY_CALL,
+    CALL_UI_ABILITY_BY_SCB,
+    NOTIFY_STARTUP_EXCEPTION_BY_SCB,
+    BY_CALL_LOAD_ABILITY
 };
 
 class EventReport {
