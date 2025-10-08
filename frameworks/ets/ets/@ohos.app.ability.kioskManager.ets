@@ -30,6 +30,7 @@ export default namespace kioskManager {
     export native function nativeGetKioskStatus(callback: AsyncCallbackWrapper<KioskStatus>): void;
 
     private native function nativeEnterKioskModeCheck(context: UIAbilityContext): void;
+    private native function nativeExitKioskModeCheck(context: UIAbilityContext): void;
     function enterKioskMode(context: UIAbilityContext): Promise<void> {
       kioskManager.nativeEnterKioskModeCheck(context);
       let p: Promise<void> =
@@ -48,6 +49,7 @@ export default namespace kioskManager {
       return p;
     }
     function exitKioskMode(context: UIAbilityContext): Promise<void> {
+      kioskManager.nativeExitKioskModeCheck(context);
       let p: Promise<void> =
         new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
             let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=> {
