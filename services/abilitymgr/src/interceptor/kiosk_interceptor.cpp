@@ -37,6 +37,7 @@ int KioskInterceptor::DoProcess(AbilityInterceptorParam param)
     }
     auto bundleName = param.want.GetElement().GetBundleName();
     if (!kioskManager.IsInWhiteList(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "target not in whitelist");
         return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
     }
     return ERR_OK;
