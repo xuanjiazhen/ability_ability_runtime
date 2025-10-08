@@ -329,6 +329,17 @@ std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         return nullptr;
     }
+    ani_ref *contextGlobalRef = new (std::nothrow) ani_ref;
+    if (contextGlobalRef == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextGlobalRef");
+        return nullptr;
+    }
+    if ((status = env->GlobalReference_Create(contextObj, contextGlobalRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Create failed status: %{public}d", status);
+        delete contextGlobalRef;
+        return nullptr;
+    }
+    nativeContext->Bind(contextGlobalRef);
     auto weakContext = reinterpret_cast<std::weak_ptr<Context>*>(nativeContextLong);
     return weakContext != nullptr ? weakContext->lock() : nullptr;
 }

@@ -63,6 +63,7 @@ private:
     void OnkillAllProcesses(ani_env *env, ani_object aniObj, ani_boolean clearPageStack, ani_object callback);
     void OnPreloadUIExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callback);
     void OnSetSupportedProcessCacheSync(ani_env *env, ani_object aniObj, ani_boolean value);
+    static void SetEventHubContextIsApplicationContext(ani_env *aniEnv, ani_ref eventHubRef);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
