@@ -36,6 +36,7 @@ static std::once_flag g_bindNativeMethodsFlag;
 constexpr const char* CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
 constexpr const char* AREA_MODE_ENUM_NAME = "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;";
 constexpr const char* CLEANER_CLASS = "Lapplication/Context/Cleaner;";
+constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "Lapplication/EventHub/EventHub;";
 
 void BindContextDir(ani_env *aniEnv, ani_object contextObj, std::shared_ptr<Context> context)
 {
@@ -278,7 +279,33 @@ void CreateEtsBaseContext(ani_env *aniEnv, ani_class contextClass, ani_object co
     }
     BindParentProperty(aniEnv, contextClass, contextObj, context);
     BindNativeFunction(aniEnv);
+    SetEventHubContext(aniEnv, eventHubRef, nativeContextLong);
 }
+
+void SetEventHubContext(ani_env *aniEnv, ani_ref eventHubRef, ani_long nativeContextLong)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_class contextCls = nullptr;
+    if ((status = aniEnv->FindClass(ETS_EVENT_HUB_CLASS_NAME, &contextCls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass Context failed status: %{public}d", status);
+        return;
+    }
+    ani_field contextField;
+    if ((status = aniEnv->Class_FindField(contextCls, "nativeContext", &contextField)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed status: %{public}d", status);
+        return;
+    }
+    if ((status = aniEnv->Object_SetField_Long(static_cast<ani_object>(eventHubRef), contextField,
+        nativeContextLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Long failed status: %{public}d", status);
+        return;
+    }
+ }
 
 std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
 {

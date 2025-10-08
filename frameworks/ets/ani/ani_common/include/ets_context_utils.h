@@ -36,6 +36,7 @@ ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
     ani_string bundleName, ani_string moduleName);
 void Clean(ani_env *env, ani_object object);
 bool SetNativeContextLong(ani_env *env, ani_object aniObj, ani_long nativeContextLong);
+void SetEventHubContext(ani_env *aniEnv, ani_ref eventHubRef, ani_long nativeContextLong);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
