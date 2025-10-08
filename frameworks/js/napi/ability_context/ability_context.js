@@ -264,6 +264,10 @@ class AbilityContext extends Context {
   setOnNewWantSkipScenarios(scenarios) {
     return this.__context_impl__.setOnNewWantSkipScenarios(scenarios);
   }
+
+  restartApp(want) {
+    return this.__context_impl__.restartApp(want);
+  }
 }
 
 export default AbilityContext;
