@@ -255,6 +255,8 @@ int AppfreezeManager::AppfreezeHandleWithStack(const FaultData& faultData, const
     faultNotifyData.procStatm = faultData.procStatm;
     faultNotifyData.isInForeground = faultData.isInForeground;
     faultNotifyData.isEnableMainThreadSample = faultData.isEnableMainThreadSample;
+    faultNotifyData.applicationHeapInfo = faultData.applicationHeapInfo;
+    faultNotifyData.processLifeTime = faultData.processLifeTime;
     HITRACE_METER_FMT(HITRACE_TAG_APP, "AppfreezeHandleWithStack pid:%{public}d-name:%{public}s",
         appInfo.pid, faultData.errorObject.name.c_str());
     return MergeNotifyInfo(faultNotifyData, appInfo);
@@ -354,6 +356,9 @@ FaultData AppfreezeManager::GetFaultNotifyData(const FaultData& faultData, int p
     faultNotifyData.appfreezeInfo = faultData.appfreezeInfo;
     faultNotifyData.appRunningUniqueId = faultData.appRunningUniqueId;
     faultNotifyData.procStatm = faultData.procStatm;
+    faultNotifyData.isInForeground = faultData.isInForeground;
+    faultNotifyData.processLifeTime = faultData.processLifeTime;
+    faultNotifyData.isEnableMainThreadSample = faultData.isEnableMainThreadSample;
     return faultNotifyData;
 }
 
@@ -491,6 +496,8 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     eventInfo.hitraceInfo = GetHitraceInfo();
     eventInfo.foregroundState = faultData.isInForeground;
     eventInfo.enableFreeze = faultData.isEnableMainThreadSample;
+    eventInfo.applicationHeapInfo = faultData.applicationHeapInfo;
+    eventInfo.processLifeTime = faultData.processLifeTime;
 
     int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
         OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
