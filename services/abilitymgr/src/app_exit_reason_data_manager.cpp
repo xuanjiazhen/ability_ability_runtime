@@ -1008,7 +1008,7 @@ void AppExitReasonDataManager::PutAsync(const DistributedKv::Key &key, const Dis
         AAFwk::RecordCostTimeUtil timeRecord(PUT_TASK_NAME);
         std::lock_guard lock(pThis->kvStorePtrMutex_);
         if (!pThis || !pThis->kvStorePtr_) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "null pThis or null kvStorePtr_");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null pThis or null kvStorePtr_.");
             return;
         }
         auto status = pThis->kvStorePtr_->Put(key, value);
