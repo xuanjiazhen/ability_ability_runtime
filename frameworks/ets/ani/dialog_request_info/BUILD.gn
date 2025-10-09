@@ -14,6 +14,13 @@
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
+config("ets_dialog_request_info_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "${ability_runtime_path}/frameworks/ets/ani/dialog_request_info/include",
+  ]
+}
+
 ohos_shared_library("dialog_request_info_ani_kit") {
   branch_protector_ret = "pac_ret"
   sanitize = {
@@ -30,7 +37,7 @@ ohos_shared_library("dialog_request_info_ani_kit") {
 
   configs = []
 
-  public_configs = []
+  public_configs = [ ":ets_dialog_request_info_config" ]
 
   sources = [ "./src/ets_request_info.cpp" ]
 
