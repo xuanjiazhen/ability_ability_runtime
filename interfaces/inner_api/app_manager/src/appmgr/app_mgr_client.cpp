@@ -178,6 +178,17 @@ AppMgrResultCode AppMgrClient::LoadAbility(const AbilityInfo &abilityInfo, const
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
+void AppMgrClient::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        if (amsService != nullptr) {
+            amsService->NotifyLoadAbilityFinished(callingPid, targetPid, callbackId);
+        }
+    }
+}
+
 AppMgrResultCode AppMgrClient::TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
@@ -638,6 +649,19 @@ AppMgrResultCode AppMgrClient::GetConfiguration(Configuration& config)
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
+AppMgrResultCode AppMgrClient::GetConfiguration(Configuration& config, int32_t userId)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        int32_t result = service->GetConfiguration(config, userId);
+        if (result == ERR_OK) {
+            return AppMgrResultCode::RESULT_OK;
+        }
+        return AppMgrResultCode::ERROR_SERVICE_NOT_READY;
+    }
+    return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+}
+
 AppMgrResultCode AppMgrClient::ConnectAppMgrService()
 {
     if (mgrHolder_) {
@@ -881,6 +905,17 @@ AppMgrResultCode AppMgrClient::UpdateConfiguration(const Configuration &config, 
     return AppMgrResultCode::RESULT_OK;
 }
 
+AppMgrResultCode AppMgrClient::UpdateConfigurationByUserIds(
+    const Configuration &config, const std::vector<int32_t> userIds)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    service->UpdateConfigurationByUserIds(config, userIds);
+    return AppMgrResultCode::RESULT_OK;
+}
+
 AppMgrResultCode AppMgrClient::UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
     int32_t appIndex)
 {
@@ -895,11 +930,12 @@ AppMgrResultCode AppMgrClient::UpdateConfigurationByBundleName(const Configurati
     return AppMgrResultCode::RESULT_OK;
 }
 
-AppMgrResultCode AppMgrClient::RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer)
+AppMgrResultCode AppMgrClient::RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer,
+    const int32_t userId)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        int32_t result = service->RegisterConfigurationObserver(observer);
+        int32_t result = service->RegisterConfigurationObserver(observer, userId);
         if (result == ERR_OK) {
             return AppMgrResultCode::RESULT_OK;
         }
@@ -1022,19 +1058,6 @@ int AppMgrClient::GetRenderProcessTerminationStatus(pid_t renderPid, int &status
 sptr<IRemoteObject> AppMgrClient::GetRemoteObject()
 {
     return mgrHolder_->GetRemoteObject();
-}
-
-void AppMgrClient::SetCurrentUserId(const int32_t userId)
-{
-    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
-    if (service == nullptr) {
-        return;
-    }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
-    if (amsService == nullptr) {
-        return;
-    }
-    amsService->SetCurrentUserId(userId);
 }
 
 void AppMgrClient::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
@@ -1437,7 +1460,7 @@ int32_t AppMgrClient::PreloadApplication(const std::string &bundleName, int32_t 
 
 int32_t AppMgrClient::SetSupportedProcessCacheSelf(bool isSupport)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "Called");
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
@@ -1448,7 +1471,7 @@ int32_t AppMgrClient::SetSupportedProcessCacheSelf(bool isSupport)
 
 int32_t AppMgrClient::SetSupportedProcessCache(int32_t pid, bool isSupport)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "Called");
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
@@ -1684,7 +1707,11 @@ AppMgrResultCode AppMgrClient::IsAppRunningByBundleNameAndUserId(const std::stri
 
 int32_t AppMgrClient::PromoteCurrentToCandidateMasterProcess(bool isInsertToHead)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "Called");
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
@@ -1695,13 +1722,47 @@ int32_t AppMgrClient::PromoteCurrentToCandidateMasterProcess(bool isInsertToHead
 
 int32_t AppMgrClient::DemoteCurrentFromCandidateMasterProcess()
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "Called");
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
     return service->DemoteCurrentFromCandidateMasterProcess();
+}
+
+int32_t AppMgrClient::ExitMasterProcessRole()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->ExitMasterProcessRole();
+}
+
+void AppMgrClient::SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return;
+    }
+    service->SetSpecifiedProcessRequestId(recordId, requestId);
 }
 
 int32_t AppMgrClient::QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles)
@@ -1716,6 +1777,36 @@ int32_t AppMgrClient::QueryRunningSharedBundles(pid_t pid, std::map<std::string,
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
     return service->QueryRunningSharedBundles(pid, sharedBundles);
+}
+
+int32_t AppMgrClient::VerifyKillProcessPermission(const std::string &bundleName) const
+{
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return amsService->VerifyKillProcessPermission(bundleName);
+}
+
+int32_t AppMgrClient::RegisterApplicationStateObserverWithFilter(sptr<IApplicationStateObserver> observer,
+    const std::vector<std::string> &bundleNameList, const AppStateFilter &appStateFilter, bool isUsingFilter)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->RegisterApplicationStateObserverWithFilter(observer,
+        bundleNameList, appStateFilter, isUsingFilter);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

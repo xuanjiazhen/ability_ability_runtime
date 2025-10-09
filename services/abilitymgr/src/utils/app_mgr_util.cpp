@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,15 +15,20 @@
 
 #include "utils/app_mgr_util.h"
 
+#include <mutex>
+
+#include "ffrt.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AAFwk {
+ffrt::mutex g_appMgrMutex;
 sptr<OHOS::AppExecFwk::IAppMgr> AppMgrUtil::appMgr_ = nullptr;
 
 OHOS::sptr<OHOS::AppExecFwk::IAppMgr> AppMgrUtil::GetAppMgr()
 {
+    std::lock_guard<ffrt::mutex> guard(g_appMgrMutex);
     if (appMgr_) {
         return appMgr_;
     }

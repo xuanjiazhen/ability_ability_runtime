@@ -39,6 +39,7 @@ constexpr const char* PERMISSION_ABILITY_BACKGROUND_COMMUNICATION = "ohos.permis
 constexpr const char* PERMISSION_MANAGER_ABILITY_FROM_GATEWAY = "ohos.permission.MANAGER_ABILITY_FROM_GATEWAY";
 constexpr const char* PERMISSION_PROXY_AUTHORIZATION_URI = "ohos.permission.PROXY_AUTHORIZATION_URI";
 constexpr const char* PERMISSION_FILE_ACCESS_MANAGER = "ohos.permission.FILE_ACCESS_MANAGER";
+constexpr const char* PERMISSION_SANDBOX_ACCESS_MANAGER = "ohos.permission.SANDBOX_ACCESS_MANAGER";
 constexpr const char* PERMISSION_WRITE_IMAGEVIDEO = "ohos.permission.WRITE_IMAGEVIDEO";
 constexpr const char* PERMISSION_READ_IMAGEVIDEO = "ohos.permission.READ_IMAGEVIDEO";
 constexpr const char* PERMISSION_WRITE_AUDIO = "ohos.permission.WRITE_AUDIO";
@@ -81,6 +82,7 @@ constexpr const char* PERMISSION_SUPPORT_APP_SERVICE_EXTENSION = "ohos.permissio
 constexpr const char* PERMISSION_MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
 constexpr const char* PERMISSION_TRIGGER_LOCAL_WANTAGENT = "ohos.permission.TRIGGER_LOCAL_WANTAGENT";
 constexpr const char* PERMISSION_GET_EDM_CONFIG = "ohos.permission.GET_EDM_CONFIG";
+constexpr const char* PERMISSION_ALL_DEBUG = "ohos.permission.kernel.ALLOW_DEBUG";
 } // namespace PermissionConstants
 } // namespace AAFwk
 } // namespace OHOS

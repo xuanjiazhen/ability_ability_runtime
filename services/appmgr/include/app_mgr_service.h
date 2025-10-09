@@ -34,6 +34,7 @@
 #include "app_scheduler_proxy.h"
 #include "appexecfwk_errors.h"
 #include "application_info.h"
+#include "application_state_filter.h"
 #include "if_system_ability_manager.h"
 #include "nocopyable.h"
 #include "system_ability.h"
@@ -367,6 +368,13 @@ public:
     virtual void ScheduleAcceptWantDone(
         const int32_t recordId, const AAFwk::Want &want, const std::string &flag) override;
 
+    /**
+     * @brief called when the module's onNewProcessRequest returns a flag
+     * 
+     * @param recordId app record id
+     * @param want want parameter
+     * @param flag process flag
+     */
     virtual void ScheduleNewProcessRequestDone(
         const int32_t recordId, const AAFwk::Want &want, const std::string &flag) override;
 
@@ -424,6 +432,7 @@ public:
      * @return ERR_OK ,return back success，others fail.
      */
     virtual int32_t GetConfiguration(Configuration& config) override;
+    virtual int32_t GetConfiguration(Configuration& config, int32_t userId) override;
 
     /**
      * UpdateConfiguration, ANotify application update system environment changes.
@@ -433,6 +442,9 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
+    
+    virtual int32_t UpdateConfigurationByUserIds(
+        const Configuration &config, const std::vector<int32_t> userIds = {}) override;
 
     /**
      * Internally, an asynchronous task will be initiated and tasks in the task list will be scheduled according to
@@ -465,11 +477,11 @@ public:
     /**
      * @brief register a configuration observer which will receive notifies when updated.
      * @param observer the configuration observer to receive notify.
-     *
+     * @param userId The userId provided by caller.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer) override;
-
+    virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer,
+        const int32_t userId = -1) override;
     /**
      * @brief unregister a configuration observer registered before.
      * @param observer the configuration observer registered before.
@@ -805,6 +817,15 @@ public:
     int32_t DemoteCurrentFromCandidateMasterProcess() override;
 
     /**
+     * Exit from the master process role of the current process.
+     *
+     * @return Return ERR_OK if success, others fail.
+     */
+    int32_t ExitMasterProcessRole() override;
+
+    void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId) override;
+
+    /**
      * set browser channel for caller
      */
     virtual void SaveBrowserChannel(sptr<IRemoteObject> browser) override;
@@ -821,12 +842,12 @@ public:
     /**
      * Start native child process, callde by ChildProcessManager.
      * @param libName lib file name to be load in child process
-     * @param childProcessCount current started child process count
      * @param callback callback for notify start result
+     * @param request, the request of child process
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t CreateNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-        const sptr<IRemoteObject> &callback, const std::string &customProcessName) override;
+    int32_t CreateNativeChildProcess(const std::string &libName,
+        const sptr<IRemoteObject> &callback, const ChildProcessRequest &request) override;
 #endif // SUPPORT_CHILD_PROCESS
 
     /**
@@ -863,6 +884,14 @@ public:
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) override;
 
+    /**
+     * Get if the specified module has been loaded.
+     * @param want info to query module.
+     * @param abilityInfo ability info.
+     * @param result out parameter, true for loaded, else false.
+     * @param isDebug out parameter, true for debug mode, else false.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     int32_t IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result,
         bool &isDebug) override;
 
@@ -883,6 +912,17 @@ public:
     int32_t LaunchAbility(sptr<IRemoteObject> token) override;
     
     virtual int32_t QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles) override;
+
+    /**
+     * Register application/process/ability state observer.
+     * @param observer, bundleNameList, appStateFilter.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RegisterApplicationStateObserverWithFilter(sptr<IApplicationStateObserver> observer,
+        const std::vector<std::string> &bundleNameList = {},
+        const AppStateFilter &appStateFilter = AppStateFilter(),
+        bool isUsingFilter = false) override;
+
 private:
     /**
      * Init, Initialize application services.

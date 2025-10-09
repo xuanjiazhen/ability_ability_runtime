@@ -60,7 +60,8 @@ void MockAbilityDelegatorStub::DumpState(const std::string& args, std::vector<st
     return;
 }
 
-int MockAbilityDelegatorStub::StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery)
+int MockAbilityDelegatorStub::StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback,
+    bool isAppRecovery)
 {
     return 0;
 }
@@ -99,6 +100,11 @@ int MockAbilityDelegatorStub::UnRegisterMissionListener(const std::string& devic
 
 int MockAbilityDelegatorStub::StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
     const sptr<IRemoteObject>& callerToken, int32_t accountId, bool isSilent)
+{
+    return 0;
+}
+
+int MockAbilityDelegatorStub::StartAbilityForPrelaunch(const Want& want)
 {
     return 0;
 }
@@ -253,7 +259,8 @@ int MockAbilityDelegatorStub2::StopServiceAbility(const Want& want, int32_t user
     return 0;
 }
 
-int MockAbilityDelegatorStub2::StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery)
+int MockAbilityDelegatorStub2::StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback,
+    bool isAppRecovery)
 {
     return 0;
 }
@@ -292,6 +299,11 @@ int MockAbilityDelegatorStub2::UnRegisterMissionListener(const std::string& devi
 
 int MockAbilityDelegatorStub2::StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
     const sptr<IRemoteObject>& callerToken, int32_t accountId, bool isSilent)
+{
+    return 0;
+}
+
+int MockAbilityDelegatorStub2::StartAbilityForPrelaunch(const Want& want)
 {
     return 0;
 }

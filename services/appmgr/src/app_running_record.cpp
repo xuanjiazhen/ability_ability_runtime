@@ -760,6 +760,7 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
         abilityStateData.callerAbilityName = ability->GetWant()->GetStringParam(Want::PARAM_RESV_CALLER_ABILITY_NAME);
         abilityStateData.callerBundleName = ability->GetWant()->GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
         abilityStateData.callerUid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
+        abilityStateData.callerPid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_PID, -1);
     }
     if (applicationInfo && applicationInfo->bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE) {
         abilityStateData.isAtomicService = true;
@@ -773,9 +774,10 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
         }
     }
     abilityStateData.processType = static_cast<int32_t>(processType_);
+    BundleType bundleType = applicationInfo ? applicationInfo->bundleType : AppExecFwk::BundleType::APP;
     auto serviceInner = appMgrServiceInner_.lock();
     if (serviceInner) {
-        serviceInner->StateChangedNotifyObserver(abilityStateData, isAbility, isFromWindowFocusChanged);
+        serviceInner->StateChangedNotifyObserver(abilityStateData, isAbility, isFromWindowFocusChanged, bundleType);
     }
 }
 
@@ -864,7 +866,7 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
         TAG_LOGE(AAFwkTag::APPMGR, "can not find ability record");
         return;
     }
-    if (state == AbilityState::ABILITY_STATE_CREATE) {
+    if (state == AbilityState::ABILITY_STATE_CREATE && preloadMode_ != PreloadMode::PRE_LAUNCH) {
         StateChangedNotifyObserver(
             abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE), true, false);
         return;
@@ -898,7 +900,7 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         return;
     }
 
-    TAG_LOGI(AAFwkTag::APPMGR, "appState: %{public}d, pState: %{public}d, bundle: %{public}s, ability: %{public}s",
+    TAG_LOGI(AAFwkTag::APPMGR, "appState: %{public}d, pState: %{public}d, %{public}s/%{public}s",
         curState_, pendingState_, mainBundleName_.c_str(), ability->GetName().c_str());
     // We need schedule application to foregrounded when current application state is ready or background running.
     if (curState_ == ApplicationState::APP_STATE_FOREGROUND
@@ -1059,8 +1061,10 @@ void AppRunningRecord::PopForegroundingAbilityTokens()
         auto moduleRecord = GetModuleRunningRecordByToken(*iter);
         if (moduleRecord != nullptr) {
             moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_FOREGROUND);
-            StateChangedNotifyObserver(
-                ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
+            if (preloadMode_ != PreloadMode::PRE_LAUNCH) {
+                StateChangedNotifyObserver(
+                    ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
+            }
         } else {
             TAG_LOGW(AAFwkTag::APPMGR, "null moduleRecord");
         }
@@ -1081,7 +1085,7 @@ void AppRunningRecord::TerminateAbility(const sptr<IRemoteObject> &token, const 
 
     auto abilityRecord = GetAbilityRunningRecordByToken(token);
     if (abilityRecord) {
-        TAG_LOGI(AAFwkTag::APPMGR, "TerminateAbility:%{public}s", abilityRecord->GetName().c_str());
+        TAG_LOGI(AAFwkTag::APPMGR, "terminate %{public}s", abilityRecord->GetName().c_str());
     }
     if (!isTimeout) {
         StateChangedNotifyObserver(
@@ -1174,7 +1178,7 @@ void AppRunningRecord::SetAppMgrServiceInner(const std::weak_ptr<AppMgrServiceIn
 
     auto moduleRecordList = GetAllModuleRecord();
     if (moduleRecordList.empty()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "empty moduleRecordList");
+        TAG_LOGW(AAFwkTag::APPMGR, "empty moduleRecordList");
         return;
     }
 
@@ -1248,7 +1252,6 @@ void AppRunningRecord::SendEvent(uint32_t msg, int64_t timeOut)
     appEventId_++;
     auto param = appEventId_;
 
-    TAG_LOGI(AAFwkTag::APPMGR, "eventId %{public}d", static_cast<int>(param));
     eventHandler_->SendEvent(AAFwk::EventWrap(msg, param), timeOut, false);
     AppEventUtil::GetInstance().AddEvent(shared_from_this(), msg, param);
 }
@@ -1592,6 +1595,7 @@ void AppRunningRecord::SetScheduleNewProcessRequestState(int32_t requestId,
     specifiedProcessRequest_->requestId = requestId;
     specifiedProcessRequest_->want = want;
     moduleName_ = moduleName;
+    specifiedProcessRequestId_ = requestId;
 }
 
 bool AppRunningRecord::IsNewProcessRequest() const
@@ -2056,7 +2060,7 @@ void AppRunningRecord::OnWindowVisibilityChanged(
 
     for (const auto &info : windowVisibilityInfos) {
         if (info == nullptr || info->pid_ != GetPid()) {
-            TAG_LOGE(AAFwkTag::APPMGR, "null info or info pid is not matched");
+            TAG_LOGW(AAFwkTag::APPMGR, "null info or info pid is not matched");
             continue;
         }
         std::lock_guard windowIdsLock(windowIdsLock_);
@@ -2489,14 +2493,14 @@ void AppRunningRecord::SetWatchdogBackgroundStatusRunning(bool status)
 
 bool AppRunningRecord::SetSupportedProcessCache(bool isSupport)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
     procCacheSupportState_ = isSupport ? SupportProcessCacheState::SUPPORT : SupportProcessCacheState::NOT_SUPPORT;
     return true;
 }
 
 bool AppRunningRecord::SetEnableProcessCache(bool enable)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
     enableProcessCache_ = enable;
     return true;
 }

@@ -63,6 +63,7 @@ struct AppInfo {
     int32_t appIndex = 0;
     std::string instanceKey = "";
     std::string bundleName = "";
+    int32_t userId = -1;
 };
 
 class AppStateCallback {};
@@ -125,12 +126,8 @@ public:
         return false;
     }
 
-    void SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess) {}
-
     void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
         sptr<AAFwk::IUserCallback> callback = nullptr) {}
-
-    void SetCurrentUserId(int32_t userId) {}
 };
 }  // namespace AAFwk
 }  // namespace OHOS

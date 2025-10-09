@@ -39,8 +39,8 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam param)
         QueryTargetAbilityInfo(param, targetAbilityInfo);
         if (targetAbilityInfo.applicationInfo.name.empty() ||
             targetAbilityInfo.applicationInfo.bundleName.empty()) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "Cannot find targetAbilityInfo, element uri: %{public}s",
-                param.want.GetElement().GetURI().c_str());
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "Cannot find targetAbilityInfo, element uri: %{public}s/%{public}s",
+                param.want.GetElement().GetBundleName().c_str(), param.want.GetElement().GetAbilityName().c_str());
             return ERR_OK;
         }
     }
@@ -64,7 +64,8 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam param)
     }
     if (targetAbilityInfo.type == AppExecFwk::AbilityType::EXTENSION &&
         !DelayedSingleton<ExtensionConfig>::GetInstance()->IsScreenUnlockIntercept(
-            targetAbilityInfo.extensionTypeName, targetAbilityInfo.applicationInfo.isSystemApp)) {
+            targetAbilityInfo.extensionTypeName, targetAbilityInfo.applicationInfo.isSystemApp,
+            targetAbilityInfo.applicationInfo.bundleName)) {
         return ERR_OK;
     }
     TAG_LOGE(AAFwkTag::ABILITYMGR, "no startup before device first unlock");

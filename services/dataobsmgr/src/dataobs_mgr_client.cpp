@@ -17,6 +17,7 @@
 #include "dataobs_mgr_client.h"
 
 #include "common_utils.h"
+#include "dataobs_mgr_interface.h"
 #include "datashare_log.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -49,8 +50,10 @@ void DataObsMgrClient::SystemAbilityStatusChangeListener::OnAddSystemAbility(
 {
     TAG_LOGI(AAFwkTag::DBOBSMGR, "called");
     if (systemAbilityId != DATAOBS_MGR_SERVICE_SA_ID) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "OnAddSystemAbility! systemAbilityId:%{public}d", systemAbilityId);
         return;
     }
+    GetInstance()->ResetService();
     GetInstance()->ReRegister();
 }
 
@@ -119,6 +122,29 @@ ErrCode DataObsMgrClient::RegisterObserver(const Uri &uri, sptr<IDataAbilityObse
     return status;
 }
 
+ErrCode DataObsMgrClient::RegisterObserverFromExtension(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+    int userId, DataObsOption opt)
+{
+    auto [errCode, dataObsManger] = GetObsMgr();
+    if (errCode != SUCCESS) {
+        LOG_ERROR("Failed to get ObsMgr, errCode: %{public}d.", errCode);
+        return DATAOBS_SERVICE_NOT_CONNECTED;
+    }
+    auto status = dataObsManger->RegisterObserverFromExtension(uri, dataObserver, userId, opt);
+    if (status != NO_ERROR) {
+        return status;
+    }
+    uint32_t firstCallerTokenID = opt.FirstCallerTokenID();
+    observers_.Compute(dataObserver, [&uri, userId, firstCallerTokenID](const auto &key, auto &value) {
+        ObserverInfo info(uri, userId);
+        info.isExtension = true;
+        info.firstCallerTokenID = firstCallerTokenID;
+        value.emplace_back(uri, userId);
+        return true;
+    });
+    return status;
+}
+
 /**
  * Deregisters an observer used for DataObsMgr specified by the given Uri.
  *
@@ -161,6 +187,22 @@ ErrCode DataObsMgrClient::NotifyChange(const Uri &uri, int userId, DataObsOption
         return DATAOBS_SERVICE_NOT_CONNECTED;
     }
     return dataObsManger->NotifyChange(uri, userId, opt);
+}
+
+/**
+ * Notifies the registered observers of a change to the data resource specified by Uri.
+ *
+ * @param uri, Indicates the path of the data to operate.
+ *
+ * @return Returns ERR_OK on success, others on failure.
+ */
+ErrCode DataObsMgrClient::NotifyChangeFromExtension(const Uri &uri, int userId, DataObsOption opt)
+{
+    auto [errCode, dataObsManger] = GetObsMgr();
+    if (errCode != SUCCESS) {
+        return DATAOBS_SERVICE_NOT_CONNECTED;
+    }
+    return dataObsManger->NotifyChangeFromExtension(uri, userId, opt);
 }
 
 /**
@@ -283,19 +325,35 @@ void DataObsMgrClient::ResetService()
 
 void DataObsMgrClient::OnRemoteDied()
 {
-    std::this_thread::sleep_for(std::chrono::seconds(RESUB_INTERVAL));
-    ResetService();
-    auto [errCode, dataObsManger] = GetObsMgr();
-    if (errCode != SUCCESS) {
-        sptr<ISystemAbilityManager> systemManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (systemManager == nullptr) {
-            TAG_LOGE(AAFwkTag::DBOBSMGR, "null systemmgr");
-            return;
-        }
-        systemManager->SubscribeSystemAbility(DATAOBS_MGR_SERVICE_SA_ID, callback_);
+    sptr<ISystemAbilityManager> systemManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemManager == nullptr) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "null systemmgr");
         return;
     }
-    ReRegister();
+    systemManager->SubscribeSystemAbility(DATAOBS_MGR_SERVICE_SA_ID, callback_);
+}
+
+int32_t DataObsMgrClient::TryRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> key, int userId,
+    bool isExtension, DataObsOption opt)
+{
+    int32_t ret;
+    int retryCount = 0;
+    const int maxRetries = 3;
+    do {
+        if (isExtension) {
+            ret = RegisterObserverFromExtension(uri, key, userId, opt);
+        } else {
+            ret = RegisterObserver(uri, key, userId);
+        }
+        if (ret != SUCCESS) {
+            TAG_LOGE(AAFwkTag::DBOBSMGR,
+                "RegisterObserver failed, uri:%{public}s, ret:%{public}d, isExtension %{public}d, attempt:%{public}d",
+                CommonUtils::Anonymous(uri.ToString()).c_str(), ret, isExtension, retryCount + 1
+                );
+        }
+        ++retryCount;
+    } while (ret != SUCCESS && retryCount < maxRetries);
+    return ret;
 }
 
 void DataObsMgrClient::ReRegister()
@@ -304,22 +362,24 @@ void DataObsMgrClient::ReRegister()
     observers_.Clear();
     observers.ForEach([this](const auto &key, const auto &value) {
         for (const auto &val : value) {
-            auto ret = RegisterObserver(val.uri, key, val.userId);
+            int32_t ret = (val.isExtension)
+                ? TryRegisterObserver(val.uri, key, val.userId, true, DataObsOption{val.firstCallerTokenID})
+                : TryRegisterObserver(val.uri, key, val.userId, false);
+
             if (ret != SUCCESS) {
-                LOG_ERROR("RegisterObserver failed, uri:%{public}s, ret:%{public}d",
+                TAG_LOGE(AAFwkTag::DBOBSMGR, "RegisterObserver failed after 3 attempts, uri:%{public}s, ret:%{public}d",
                     CommonUtils::Anonymous(val.uri.ToString()).c_str(), ret);
             }
         }
         return false;
     });
-
     decltype(observerExts_) observerExts(std::move(observerExts_));
     observerExts_.Clear();
     observerExts.ForEach([this](const auto &key, const auto &value) {
         for (const auto &param : value) {
-            auto ret = RegisterObserverExt(param.uri, key, param.isDescendants);
+            int32_t ret = RegisterObserverExt(param.uri, key, param.isDescendants);
             if (ret != SUCCESS) {
-                LOG_ERROR(
+                TAG_LOGE(AAFwkTag::DBOBSMGR,
                     "RegisterObserverExt failed, param.uri:%{public}s, ret:%{public}d, param.isDescendants:%{public}d",
                     CommonUtils::Anonymous(param.uri.ToString()).c_str(), ret, param.isDescendants
                 );
@@ -328,5 +388,6 @@ void DataObsMgrClient::ReRegister()
         return false;
     });
 }
+
 }  // namespace AAFwk
 }  // namespace OHOS

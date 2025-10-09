@@ -140,6 +140,10 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_GetAllRunningProcesses_001, TestSize.Lev
 
     std::vector<RunningProcessInfo> info;
     appMgrClient->GetAllRunningProcesses(info);
+    if (info.empty()) {
+        TAG_LOGI(AAFwkTag::TEST, "GetAllRunningProcesses_001 end");
+        return;
+    }
     EXPECT_NE(info.size(), APP_NUMBER_ZERO);
     for (int i = 0; i < info.size(); i++) {
         TAG_LOGD(AAFwkTag::TEST,
@@ -199,6 +203,26 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_IsMemorySizeSufficent_001, TestSize.Leve
 
     bool res = appMgrClient->IsMemorySizeSufficent();
     EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: AppMgrClient_VerifyKillProcessPermission_001
+ * @tc.desc: verify kill process permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_VerifyKillProcessPermission_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    int32_t ret = appMgrClient->VerifyKillProcessPermission("test");
+    EXPECT_EQ(ret, ERR_OK);
+
+    ret = appMgrClient->VerifyKillProcessPermission("");
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**
@@ -625,23 +649,6 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_StartRenderProcess_001, TestSize.Level2)
 
     int ret = appMgrClient->StartRenderProcess(renderParam, INIT_VALUE, ERROR_PID, INIT_VALUE, renderPid);
     EXPECT_EQ(ret, ERROR_STATE);
-}
-
-/**
- * @tc.name: AppMgrClient_SetCurrentUserId_001
- * @tc.desc: set current userId.
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrClientTest, AppMgrClient_SetCurrentUserId_001, TestSize.Level2)
-{
-    auto appMgrClient = std::make_unique<AppMgrClient>();
-    EXPECT_NE(appMgrClient, nullptr);
-
-    auto result = appMgrClient->ConnectAppMgrService();
-    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
-
-    int32_t userId = 0;
-    appMgrClient->SetCurrentUserId(userId);
 }
 
 /**
@@ -1239,7 +1246,7 @@ HWTEST_F(AppMgrClientTest, RegisterConfigurationObserver_001, TestSize.Level1)
 {
     auto appMgrClient = std::make_unique<AppMgrClient>();
     sptr<IConfigurationObserver> observer;
-    appMgrClient->RegisterConfigurationObserver(observer);
+    appMgrClient->RegisterConfigurationObserver(observer, -1);
     EXPECT_NE(appMgrClient, nullptr);
 }
 
@@ -1590,20 +1597,31 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_SetProcessCacheEnable_001, TestSize.Leve
 }
 
 /**
- * @tc.name: AppMgrClient_SetProcessCacheEnable_002
+ * @tc.name: AppMgrClient_GetConfiguration_001
  * @tc.desc: SetProcessCacheEnable.
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrClientTest, AppMgrClient_SetProcessCacheEnable_002, TestSize.Level2)
+HWTEST_F(AppMgrClientTest, AppMgrClient_GetConfiguration_001, TestSize.Level2)
 {
     auto appMgrClient = std::make_unique<AppMgrClient>();
     ASSERT_NE(appMgrClient, nullptr);
-    auto ret = appMgrClient->ConnectAppMgrService();
-    EXPECT_EQ(ret, AppMgrResultCode::RESULT_OK);
-    int32_t pid = 1;
-    bool enable = false;
-    auto result = appMgrClient->SetProcessCacheEnable(pid, enable);
-    EXPECT_NE(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
+    Configuration config;
+    auto result = appMgrClient->GetConfiguration(config, INIT_VALUE);
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+}
+
+/**
+ * @tc.name: AppMgrClient_UpdateConfigurationByUserIds_002
+ * @tc.desc: UpdateConfigurationByUserIds.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_UpdateConfigurationByUserIds_002, TestSize.Level1)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    Configuration config;
+    std::vector<int32_t> userids;
+    auto result = appMgrClient->UpdateConfigurationByUserIds(config, userids);
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

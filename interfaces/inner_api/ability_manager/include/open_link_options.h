@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,18 @@
 #include "want.h"
 namespace OHOS {
 namespace AAFwk {
+using OnOpenLinkRequestFunc = std::function<void(const AppExecFwk::ElementName&, const std::string&)>;
+
+struct OnOpenLinkRequestResult {
+    std::string requestId_;
+    OnOpenLinkRequestFunc onRequestSuccess_;
+    OnOpenLinkRequestFunc onRequestFailure_;
+
+    OnOpenLinkRequestResult(const std::string &requestId, OnOpenLinkRequestFunc onRequestSucc,
+        OnOpenLinkRequestFunc onRequestFail) : requestId_(requestId), onRequestSuccess_(onRequestSucc),
+        onRequestFailure_(onRequestFail)
+    {}
+};
 class OpenLinkOptions final : public Parcelable {
 public:
     OpenLinkOptions() = default;
@@ -35,12 +47,15 @@ public:
 
     void SetAppLinkingOnly(bool appLinkingOnly);
     bool GetAppLinkingOnly() const;
+    void SetHideFailureTipDialog(bool hideFailureTipDialog);
+    bool GetHideFailureTipDialog() const;
     void SetParameters(WantParams parameters);
     WantParams GetParameters() const;
     bool WriteParameters(const WantParams &parameters, Parcel &parcel) const;
 
 private:
     bool appLinkingOnly_ = false;
+    bool hideFailureTipDialog_ = false;
     WantParams parameters_;
     // no object in parcel
     static constexpr int VALUE_NULL = -1;

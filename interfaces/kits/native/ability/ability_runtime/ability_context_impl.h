@@ -230,8 +230,8 @@ public:
      */
     ErrCode SetMissionContinueState(const AAFwk::ContinueState &state) override;
 #ifdef SUPPORT_SCREEN
-    ErrCode StartAbilityByType(const std::string &type,
-        AAFwk::WantParams &wantParam, const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks) override;
+    ErrCode StartAbilityByType(const std::string &type, AAFwk::WantParams &wantParam,
+        std::shared_ptr<UIExtensionCallback> uiExtensionCallback) override;
 #endif
     ErrCode RequestModalUIExtension(const Want &want) override;
 
@@ -239,7 +239,7 @@ public:
 
     ErrCode AddFreeInstallObserver(const sptr<AbilityRuntime::IFreeInstallObserver> &observer) override;
 
-    ErrCode OpenLink(const AAFwk::Want& want, int requestCode) override;
+    ErrCode OpenLink(const AAFwk::Want &want, int requestCode, bool hideFailureTipDialog = false) override;
 
     ErrCode OpenAtomicService(AAFwk::Want& want, const AAFwk::StartOptions &options, int requestCode,
         RuntimeTask &&task) override;
@@ -364,6 +364,11 @@ public:
     void OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message, int32_t resultCode = 0) override;
 
+    void OnOpenLinkRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
+    void OnOpenLinkRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message) override;
+
     ErrCode StartExtensionAbilityWithExtensionType(const AAFwk::Want &want,
         AppExecFwk::ExtensionAbilityType extensionType) override;
     ErrCode StopExtensionAbilityWithExtensionType(const AAFwk::Want& want,
@@ -374,6 +379,9 @@ public:
 
     ErrCode AddCompletionHandlerForAtomicService(const std::string &requestId, OnAtomicRequestSuccess onRequestSucc,
         OnAtomicRequestFailure onRequestFail, const std::string &appId) override;
+    
+    ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
+        AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail) override;
 
 private:
     sptr<IRemoteObject> token_ = nullptr;
@@ -407,8 +415,10 @@ private:
 
     std::mutex onRequestResultMutex_;
     std::mutex onAtomicRequestResultMutex_;
+    std::mutex onOpenLinkRequestResultMutex_;
     std::vector<std::shared_ptr<OnRequestResultElement>> onRequestResults_;
     std::vector<std::shared_ptr<OnAtomicRequestResult>> onAtomicRequestResults_;
+    std::vector<std::shared_ptr<AAFwk::OnOpenLinkRequestResult>> onOpenLinkRequestResults_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

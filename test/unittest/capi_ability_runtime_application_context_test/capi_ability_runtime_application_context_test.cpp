@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include "context/application_context.h"
 #include "securec.h"
 #include "start_options_impl.h"
+#include "string_wrapper.h"
 #include "want_manager.h"
 #include "want_utils.h"
 
@@ -2394,6 +2395,148 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUI
 }
 
 /**
+ * @tc.number: OH_AbilityRuntime_ApplicationContextGetLaunchParameter_001
+ * @tc.desc: Function test with buffer is nullptr and applicationContext is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_ApplicationContextGetLaunchParameter_001,
+    TestSize.Level2)
+{
+    char buffer[BUFFER_SIZE] = { 0 };
+    int32_t writeLength = 0;
+
+    AbilityRuntime_ErrorCode code =
+        OH_AbilityRuntime_ApplicationContextGetLaunchParameter(NULL, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLaunchParameter(buffer, BUFFER_SIZE, NULL);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLaunchParameter(buffer, BUFFER_SIZE, nullptr);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLaunchParameter(buffer, -1, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLaunchParameter(buffer, 0, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLaunchParameter(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_ApplicationContextGetLaunchParameter_002
+ * @tc.desc: Function test
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_ApplicationContextGetLaunchParameter_002,
+    TestSize.Level2)
+{
+    char buffer[BUFFER_SIZE] = { 0 };
+    int32_t writeLength = 0;
+    OHOS::AAFwk::Want want;
+    std::string abilityName = "testAbility";
+    std::string deviceId = "testDeviceId";
+    std::string bundleName = "testBundleName";
+    want.SetElementName(deviceId, bundleName, abilityName);
+    OHOS::AAFwk::WantParams wantParams;
+    wantParams.SetParam("key1", AAFwk::String::Box("value1"));
+    wantParams.SetParam("key2", AAFwk::String::Box("value2"));
+    want.SetParams(wantParams);
+    auto applicationContext = ApplicationContext::GetInstance();
+    ASSERT_NE(applicationContext, nullptr);
+    auto contextImpl = std::make_shared<TestContextImpl>(TEST_BUNDLE_NAME);
+    ASSERT_NE(contextImpl, nullptr);
+    AbilityRuntime_ErrorCode code =
+        OH_AbilityRuntime_ApplicationContextGetLaunchParameter(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+
+    applicationContext->AttachContextImpl(contextImpl);
+    applicationContext->SetLaunchParameter(want);
+    code = OH_AbilityRuntime_ApplicationContextGetLaunchParameter(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_EQ(wantParams.ToString(), buffer);
+    ASSERT_GT(writeLength, 0);
+    ASSERT_LT(writeLength, BUFFER_SIZE);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_ApplicationContextGetLatestParameter_001
+ * @tc.desc: Function test with buffer is nullptr and applicationContext is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_ApplicationContextGetLatestParameter_001,
+    TestSize.Level2)
+{
+    char buffer[BUFFER_SIZE] = { 0 };
+    int32_t writeLength = 0;
+
+    AbilityRuntime_ErrorCode code =
+        OH_AbilityRuntime_ApplicationContextGetLatestParameter(NULL, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLatestParameter(buffer, BUFFER_SIZE, NULL);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLatestParameter(buffer, BUFFER_SIZE, nullptr);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLatestParameter(buffer, -1, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLatestParameter(buffer, 0, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+
+    code = OH_AbilityRuntime_ApplicationContextGetLatestParameter(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    ASSERT_EQ(writeLength, 0);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_ApplicationContextGetLatestParameter_002
+ * @tc.desc: Function test
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_ApplicationContextGetLatestParameter_002,
+    TestSize.Level2)
+{
+    char buffer[BUFFER_SIZE] = { 0 };
+    int32_t writeLength = 0;
+    OHOS::AAFwk::Want want;
+    std::string abilityName = "testAbility";
+    std::string deviceId = "testDeviceId";
+    std::string bundleName = "testBundleName";
+    want.SetElementName(deviceId, bundleName, abilityName);
+    OHOS::AAFwk::WantParams wantParams;
+    wantParams.SetParam("key1", AAFwk::String::Box("value1"));
+    wantParams.SetParam("key2", AAFwk::String::Box("value2"));
+    want.SetParams(wantParams);
+    auto applicationContext = ApplicationContext::GetInstance();
+    ASSERT_NE(applicationContext, nullptr);
+    auto contextImpl = std::make_shared<TestContextImpl>(TEST_BUNDLE_NAME);
+    ASSERT_NE(contextImpl, nullptr);
+    AbilityRuntime_ErrorCode code =
+        OH_AbilityRuntime_ApplicationContextGetLatestParameter(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+
+    applicationContext->AttachContextImpl(contextImpl);
+    applicationContext->SetLatestParameter(want);
+    code = OH_AbilityRuntime_ApplicationContextGetLatestParameter(buffer, BUFFER_SIZE, &writeLength);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_EQ(wantParams.ToString(), buffer);
+    ASSERT_GT(writeLength, 0);
+    ASSERT_LT(writeLength, BUFFER_SIZE);
+}
+
+/**
  * @tc.number: ConvertToCommonBusinessErrorCode_001
  * @tc.desc: ConvertToCommonBusinessErrorCode
  * @tc.type: FUNC
@@ -2504,124 +2647,227 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToCommonBusinessErrorC
 }
 
 /**
- * @tc.number: ConvertToAPI18BusinessErrorCode_001
- * @tc.desc: ConvertToAPI18BusinessErrorCode
+ * @tc.number: ConvertToAPI17BusinessErrorCode_001
+ * @tc.desc: ConvertToAPI17BusinessErrorCode
  * @tc.type: FUNC
  */
-HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToAPI18BusinessErrorCode_001, TestSize.Level2)
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToAPI17BusinessErrorCode_001, TestSize.Level2)
 {
     int32_t abilityManagerError = OHOS::ERR_OK;
     AbilityRuntime_ErrorCode errCode = ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 
     abilityManagerError = OHOS::ERR_OK;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
     abilityManagerError = OHOS::AAFwk::CHECK_PERMISSION_FAILED;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED);
 
     abilityManagerError = OHOS::ERR_PERMISSION_DENIED;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED);
 
     abilityManagerError = OHOS::AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED);
 
     abilityManagerError = OHOS::AAFwk::RESOLVE_ABILITY_ERR;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY);
 
     abilityManagerError = OHOS::AAFwk::TARGET_BUNDLE_NOT_EXIST;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY);
 
     abilityManagerError = OHOS::AAFwk::ERR_NOT_ALLOW_IMPLICIT_START;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY);
 
     abilityManagerError = OHOS::AAFwk::ERR_WRONG_INTERFACE_CALL;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
 
     abilityManagerError = OHOS::AAFwk::TARGET_ABILITY_NOT_SERVICE;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
 
     abilityManagerError = OHOS::AAFwk::RESOLVE_CALL_ABILITY_TYPE_ERR;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
 
     abilityManagerError = OHOS::AAFwk::ERR_CROWDTEST_EXPIRED;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CROWDTEST_EXPIRED);
 
     abilityManagerError = OHOS::ERR_WOULD_BLOCK;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_WUKONG_MODE);
 
     abilityManagerError = -1;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
 }
 
 /**
- * @tc.number: ConvertToAPI18BusinessErrorCode_002
- * @tc.desc: ConvertToAPI18BusinessErrorCode
+ * @tc.number: ConvertToAPI17BusinessErrorCode_002
+ * @tc.desc: ConvertToAPI17BusinessErrorCode
  * @tc.type: FUNC
  */
-HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToAPI18BusinessErrorCode_002, TestSize.Level2)
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToAPI17BusinessErrorCode_002, TestSize.Level2)
 {
     int32_t abilityManagerError = OHOS::ERR_OK;
     AbilityRuntime_ErrorCode errCode = ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 
     abilityManagerError = OHOS::AAFwk::ERR_APP_CONTROLLED;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CONTROLLED);
 
     abilityManagerError = OHOS::AAFwk::ERR_EDM_APP_CONTROLLED;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_EDM_CONTROLLED);
 
     abilityManagerError = OHOS::AAFwk::ERR_START_OTHER_APP_FAILED;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CROSS_APP);
 
     abilityManagerError = OHOS::AAFwk::NOT_TOP_ABILITY;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NOT_TOP_ABILITY);
 
     abilityManagerError = OHOS::AAFwk::ERR_START_OPTIONS_CHECK_FAILED;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED);
 
     abilityManagerError = OHOS::AAFwk::ERR_UPPER_LIMIT;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED);
 
     abilityManagerError = OHOS::AAFwk::ERR_APP_INSTANCE_KEY_NOT_SUPPORT;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED);
 
     abilityManagerError = OHOS::AAFwk::ERR_NOT_SELF_APPLICATION;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CROSS_APP);
 
     abilityManagerError = OHOS::AAFwk::ERR_MULTI_APP_NOT_SUPPORTED;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED);
 
     abilityManagerError = OHOS::AAFwk::ERR_INVALID_APP_INSTANCE_KEY;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY);
 
     abilityManagerError = OHOS::AAFwk::ERR_MULTI_INSTANCE_NOT_SUPPORTED;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_MULTI_INSTANCE_NOT_SUPPORTED);
 
     abilityManagerError = -1;
-    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    errCode = ConvertToAPI17BusinessErrorCode(abilityManagerError);
     EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+/**
+ * @tc.number: ConvertToAPI21BusinessErrorCode_001
+ * @tc.desc: ConvertToAPI21BusinessErrorCode
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToAPI21BusinessErrorCode_001, TestSize.Level2)
+{
+    int32_t abilityManagerError = OHOS::ERR_OK;
+    AbilityRuntime_ErrorCode errCode = ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+
+    abilityManagerError = OHOS::ERR_OK;
+    errCode = ConvertToAPI21BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+
+    abilityManagerError = OHOS::AAFwk::CHECK_PERMISSION_FAILED;
+    errCode = ConvertToAPI21BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_MULTI_APP_NOT_SUPPORTED;
+    errCode = ConvertToAPI21BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_ATTACH_ABILITY_THREAD_FAILED;
+    errCode = ConvertToAPI21BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_START_TIMEOUT);
+
+    abilityManagerError = OHOS::AAFwk::ERR_WRITE_INT_FAILED;
+    errCode = ConvertToAPI21BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+/**
+ * @tc.number: GetVersionCode_001
+ * @tc.desc: Function test with applicationContextImpl is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetVersionCode_001, TestSize.Level2)
+{
+    auto contextImpl = InitApplicationContextImpl(TEST_BUNDLE_NAME);
+    ASSERT_NE(contextImpl, nullptr);
+
+    auto applicationInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    applicationInfo->versionCode = 111;
+    contextImpl->SetApplicationInfo(applicationInfo);
+
+    int64_t versionCode;
+    AbilityRuntime_ErrorCode code = OH_AbilityRuntime_ApplicationContextGetVersionCode(nullptr);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+
+    code = OH_AbilityRuntime_ApplicationContextGetVersionCode(&versionCode);
+    ASSERT_EQ(code, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_EQ(versionCode, 111);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbilityWithPidResult_001
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbilityWithPidResult returns 16000134
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbilityWithPidResult_001,
+    TestSize.Level2)
+{
+    // Act
+    int32_t pid = -1;
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbilityWithPidResult(nullptr, nullptr, &pid);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_MAIN_THREAD_NOT_SUPPORTED, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbilityWithPidResult_002
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbilityWithPidResult does not return ERR_OK when everything is ok
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbilityWithPidResult_002,
+    TestSize.Level2)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
+    ASSERT_NE(options, nullptr);
+
+    // Act
+    int32_t pid = -1;
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbilityWithPidResult(&want, options, &pid);
+
+    // Assert
+    EXPECT_NE(ABILITY_RUNTIME_ERROR_CODE_NO_ERROR, result);
+
+    ASSERT_EQ(OH_AbilityRuntime_DestroyStartOptions(&options), ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_EQ(options, nullptr);
 }
 } // namespace OHOS::AbilityRuntime

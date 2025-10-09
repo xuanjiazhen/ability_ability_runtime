@@ -240,6 +240,11 @@ int UIAbilityLifecycleManager::ResolveLocked(const AbilityRequest &abilityReques
     return 0;
 }
 
+int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abilityRequest)
+{
+    return 0;
+}
+
 bool UIAbilityLifecycleManager::IsAbilityStarted(AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> &targetRecord)
 {
@@ -255,7 +260,8 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
 {
 }
 
-sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequest &abilityRequest) const
+sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequest &abilityRequest,
+    int32_t requestId) const
 {
     return nullptr;
 }
@@ -414,25 +420,11 @@ void UIAbilityLifecycleManager::OnStartSpecifiedFailed(int32_t requestId)
 }
 
 void UIAbilityLifecycleManager::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId,
-    const std::string &callerProcessName)
+    const std::string &callerProcessName, int32_t recordId)
 {
 }
 
 void UIAbilityLifecycleManager::OnStartSpecifiedProcessTimeoutResponse(int32_t requestId)
-{
-}
-
-int32_t UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(AbilityRequest &abilityRequest)
-{
-    return 0;
-}
-
-void UIAbilityLifecycleManager::NotifyRestartSpecifiedAbility(const AbilityRequest &request,
-    const sptr<IRemoteObject> &token)
-{
-}
-
-void UIAbilityLifecycleManager::NotifyStartSpecifiedAbility(AbilityRequest &abilityRequest, const AAFwk::Want &want)
 {
 }
 
@@ -726,7 +718,8 @@ std::shared_ptr<SpecifiedRequest> UIAbilityLifecycleManager::PopAndGetNextSpecif
     return nullptr;
 }
 
-bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest, bool &isDebug)
+bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest,
+    bool isSpecifiedProcess, bool &isDebug)
 {
     return true;
 }

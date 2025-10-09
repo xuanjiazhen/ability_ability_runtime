@@ -1,7 +1,59 @@
 {
     "blocklist": {
         "ServiceExtension": [],
-	"VpnExtension":[],
+        "FaultLogExtension": [
+            "backgroundTaskManager",
+            "resourceschedule.backgroundTaskManager",
+            "multimedia.audio",
+            "multimedia.avsession",
+            "multimedia.camera",
+            "multimedia.cameraPicker",
+            "multimedia.mediaLibrary",
+            "multimedia.movingphotoview",
+            "telephony.call",
+            "telephony.sim",
+            "telephony.sms",
+            "power",
+            "window",
+            "reminderAgent",
+            "reminderAgentManager",
+            "notification",
+            "notificationManager",
+            "notificationSubscribe",
+            "wifiext",
+            "wifiManager",
+            "wifiManagerExt",
+            "inputMethod",
+            "UIAbilityContext",
+            "userIAM.faceAuth",
+            "userIAM.userAuth",
+            "vibrator",
+            "wallpaper"
+        ],
+        "VpnExtension":[
+            "contact",
+            "geolocation",
+            "geoLocationManager",
+            "multimedia.camera",
+            "multimedia.audio",
+            "multimedia.media",
+            "multimedia.mediaLibrary",
+            "telephony.call",
+            "telephony.sim",
+            "telephony.sms"
+        ],
+        "PrintExtension":[
+            "contact",
+            "geolocation",
+            "geoLocationManager",
+            "multimedia.camera",
+            "multimedia.audio",
+            "multimedia.media",
+            "multimedia.mediaLibrary",
+            "telephony.call",
+            "telephony.sim",
+            "telephony.sms"
+        ],
         "AdsServiceExtension": [
             "multimedia.camera",
             "multimedia.mediaLibrary",
@@ -631,6 +683,9 @@
             "core.account.accountPicker",
             "collaboration.devicePicker",
             "collaboration.CollaborationDevicePicker"
+        ],
+        "WebNativeMessagingExtension": [
+            "window"
         ]
     }
 }

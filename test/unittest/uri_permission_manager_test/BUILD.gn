@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ability_runtime/ability_runtime/abilitymgr"
+module_output_path = "ability_runtime/ability_runtime/uripermmgr"
 
 ohos_unittest("uri_permission_manager_test") {
   module_out_path = module_output_path
@@ -49,6 +49,11 @@ ohos_unittest("uri_permission_manager_test") {
     "hilog:libhilog",
     "storage_service:storage_manager_sa_proxy",
   ]
+
+  if (ability_runtime_feature_sandboxmanager) {
+    external_deps += [ "sandbox_manager:libsandbox_manager_sdk" ]
+    defines = [ "ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER" ]
+  }
 }
 
 group("unittest") {

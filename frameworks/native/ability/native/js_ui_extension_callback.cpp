@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,17 @@ constexpr const char* ERROR_MSG_INNER = "Inner error.";
 #endif // SUPPORT_SCREEN
 JsUIExtensionCallback::~JsUIExtensionCallback()
 {
+    if (env_ != nullptr) {
+        if (onRequestSuccess_ != nullptr) {
+            napi_delete_reference(env_, onRequestSuccess_);
+            onRequestSuccess_ = nullptr;
+        }
+        if (onRequestFailure_ != nullptr) {
+            napi_delete_reference(env_, onRequestFailure_);
+            onRequestFailure_ = nullptr;
+        }
+    }
+
     if (jsCallbackObject_  == nullptr) {
         return;
     }
@@ -69,16 +80,7 @@ JsUIExtensionCallback::~JsUIExtensionCallback()
     }
 }
 
-void JsUIExtensionCallback::SetSessionId(int32_t sessionId)
-{
-    sessionId_ = sessionId;
-}
 #ifdef SUPPORT_SCREEN
-void JsUIExtensionCallback::SetUIContent(Ace::UIContent* uiContent)
-{
-    uiContent_ = uiContent;
-}
-
 void JsUIExtensionCallback::SetJsCallbackObject(napi_value jsCallbackObject)
 {
     napi_ref ref = nullptr;
@@ -108,11 +110,7 @@ void JsUIExtensionCallback::OnError(int32_t number)
     std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
     NapiAsyncTask::Schedule("JsUIExtensionCallback::OnError:",
         env_, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
-    if (uiContent_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null uiContent_");
-        return;
-    }
-    uiContent_->CloseModalUIExtension(sessionId_);
+    CloseModalUIExtension();
 }
 
 void JsUIExtensionCallback::OnResult(int32_t resultCode, const AAFwk::Want &want)
@@ -134,11 +132,7 @@ void JsUIExtensionCallback::OnResult(int32_t resultCode, const AAFwk::Want &want
     std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
     NapiAsyncTask::Schedule("JsUIExtensionCallback::OnResult:",
         env_, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
-    if (uiContent_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null uiContent_");
-        return;
-    }
-    uiContent_->CloseModalUIExtension(sessionId_);
+    CloseModalUIExtension();
 }
 
 void JsUIExtensionCallback::CallJsResult(int32_t resultCode, const AAFwk::Want &want)
@@ -177,15 +171,6 @@ void JsUIExtensionCallback::CallJsResult(int32_t resultCode, const AAFwk::Want &
     TAG_LOGI(AAFwkTag::UI_EXT, "end");
 }
 
-void JsUIExtensionCallback::OnRelease(int32_t code)
-{
-    TAG_LOGI(AAFwkTag::UI_EXT, "call, code:%{public}d", code);
-    if (uiContent_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null uiContent_");
-        return;
-    }
-    uiContent_->CloseModalUIExtension(sessionId_);
-}
 #endif // SUPPORT_SCREEN
 void JsUIExtensionCallback::CallJsError(int32_t number)
 {
@@ -226,6 +211,82 @@ void JsUIExtensionCallback::CallJsError(int32_t number)
     napi_value argv[] = { nativeNumber, nativeName, nativeMessage };
     napi_call_function(env_, obj, method, ArraySize(argv), argv, nullptr);
     TAG_LOGI(AAFwkTag::UI_EXT, "end");
+}
+
+void JsUIExtensionCallback::SetCompletionHandler(napi_env env, napi_value completionHandler)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "call");
+    if (env == nullptr || completionHandler == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid parameters");
+        return;
+    }
+    if (onRequestSuccess_ != nullptr) {
+        napi_delete_reference(env, onRequestSuccess_);
+        onRequestSuccess_ = nullptr;
+    }
+    if (onRequestFailure_ != nullptr) {
+        napi_delete_reference(env, onRequestFailure_);
+        onRequestFailure_ = nullptr;
+    }
+    napi_value onSuccess = AppExecFwk::GetPropertyValueByPropertyName(
+        env, completionHandler, "onRequestSuccess", napi_function);
+    if (onSuccess != nullptr) {
+        napi_status status = napi_create_reference(env, onSuccess, 1, &onRequestSuccess_);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "create onRequestSuccess, failed: %{public}d", status);
+        }
+    }
+    napi_value onFailure = AppExecFwk::GetPropertyValueByPropertyName(
+        env, completionHandler, "onRequestFailure", napi_function);
+    if (onFailure != nullptr) {
+        napi_status status = napi_create_reference(env, onFailure, 1, &onRequestFailure_);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "create onRequestFailure, failed: %{public}d", status);
+        }
+    }
+}
+
+void JsUIExtensionCallback::OnRequestSuccess(const std::string& name)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "call");
+    if (onRequestSuccess_ == nullptr || env_ == nullptr) {
+        return;
+    }
+    napi_value callback = nullptr;
+    napi_get_reference_value(env_, onRequestSuccess_, &callback);
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid callback");
+        return;
+    }
+    napi_value argv[] = { CreateJsValue(env_, name) };
+    napi_status status = napi_call_function(env_, nullptr, callback, ArraySize(argv), argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "call OnRequestSuccess, failed: %{public}d", status);
+    }
+}
+
+void JsUIExtensionCallback::OnRequestFailure(const std::string& name,
+    int32_t failureCode, const std::string& failureMessage)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "call");
+    if (onRequestFailure_ == nullptr || env_ == nullptr) {
+        return;
+    }
+    napi_value callback = nullptr;
+    napi_get_reference_value(env_, onRequestFailure_, &callback);
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid callback");
+        return;
+    }
+    napi_value argv[] = {
+        CreateJsValue(env_, name),
+        CreateJsValue(env_, failureCode),
+        CreateJsValue(env_, failureMessage)
+    };
+    napi_status status = napi_call_function(env_, nullptr, callback, ArraySize(argv), argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestFailure, failed: %{public}d", status);
+    }
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

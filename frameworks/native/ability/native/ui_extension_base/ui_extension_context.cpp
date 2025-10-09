@@ -15,13 +15,15 @@
 
 #include "ui_extension_context.h"
 
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "bool_wrapper.h"
+#include "configuration.h"
+#include "configuration_convertor.h"
 #include "connection_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "configuration_convertor.h"
-#include "configuration.h"
+#include "string_wrapper.h"
 #include "ui_content.h"
 
 namespace OHOS {
@@ -60,6 +62,18 @@ ErrCode UIExtensionContext::StartAbility(const AAFwk::Want &want, const AAFwk::S
     TAG_LOGD(AAFwkTag::UI_EXT, "begin, ability:%{public}s", want.GetElement().GetAbilityName().c_str());
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_,
         ILLEGAL_REQUEST_CODE);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "ret = %{public}d", err);
+    }
+    return err;
+}
+
+ErrCode UIExtensionContext::StartUIAbilitiesInSplitWindowMode(int32_t primaryWindowId,
+    const AAFwk::Want &secondaryWant) const
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartUIAbilitiesInSplitWindowMode(
+        primaryWindowId, secondaryWant, token_);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "ret = %{public}d", err);
     }
@@ -126,8 +140,8 @@ ErrCode UIExtensionContext::DisconnectAbility(
 
 ErrCode UIExtensionContext::StartServiceExtensionAbility(const AAFwk::Want& want, int32_t accountId)
 {
-    TAG_LOGI(AAFwkTag::UI_EXT, "Start service extension %{public}s, accountId: %{public}d",
-        want.GetElement().GetURI().c_str(), accountId);
+    TAG_LOGI(AAFwkTag::UI_EXT, "Start service extension %{public}s/%{public}s, accountId: %{public}d",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), accountId);
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
         want, token_, accountId, AppExecFwk::ExtensionAbilityType::SERVICE);
     if (ret != ERR_OK) {
@@ -333,10 +347,9 @@ ErrCode UIExtensionContext::AddFreeInstallObserver(const sptr<IFreeInstallObserv
     return ret;
 }
 
-ErrCode UIExtensionContext::OpenLink(const AAFwk::Want& want, int requestCode)
+ErrCode UIExtensionContext::OpenLink(const AAFwk::Want &want, int requestCode, bool hideFailureTipDialog)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
-    return AAFwk::AbilityManagerClient::GetInstance()->OpenLink(want, token_, -1, requestCode);
+    return AAFwk::AbilityManagerClient::GetInstance()->OpenLink(want, token_, -1, requestCode, hideFailureTipDialog);
 }
 
 std::shared_ptr<Global::Resource::ResourceManager> UIExtensionContext::GetResourceManager() const
@@ -507,7 +520,7 @@ void UIExtensionContext::OnRequestSuccess(const std::string &requestId, const Ap
         return;
     }
 
-    TAG_LOGE(AAFwkTag::UI_EXT, "requestId=%{public}s not exist", requestId.c_str());
+    OnOpenLinkRequestSuccess(requestId, element, message);
 }
 
 void UIExtensionContext::OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
@@ -531,6 +544,74 @@ void UIExtensionContext::OnRequestFailure(const std::string &requestId, const Ap
         std::string failureMessage;
         GetFailureInfoByMessage(message, failureCode, failureMessage, resultCode);
         atomicResult->onRequestFailure_(atomicResult->appId_, failureCode, failureMessage);
+        return;
+    }
+
+    OnOpenLinkRequestFailure(requestId, element, message);
+}
+
+ErrCode UIExtensionContext::AddCompletionHandlerForOpenLink(const std::string &requestId,
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail)
+{
+    if (onRequestSucc == nullptr || onRequestFail == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "either func is null");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard lock(onOpenLinkRequestResultMutex_);
+    for (auto iter = onOpenLinkRequestResults_.begin(); iter != onOpenLinkRequestResults_.end(); iter++) {
+        if ((*iter)->requestId_ == requestId) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "requestId=%{public}s already exists", requestId.c_str());
+            return ERR_OK;
+        }
+    }
+    onOpenLinkRequestResults_.emplace_back(std::make_shared<AAFwk::OnOpenLinkRequestResult>(
+        requestId, onRequestSucc, onRequestFail));
+    return ERR_OK;
+}
+
+void UIExtensionContext::OnOpenLinkRequestSuccess(const std::string &requestId,
+    const AppExecFwk::ElementName &element, const std::string &message)
+{
+    std::shared_ptr<AAFwk::OnOpenLinkRequestResult> openLinkResult = nullptr;
+    {
+        std::lock_guard lock(onOpenLinkRequestResultMutex_);
+        for (auto iter = onOpenLinkRequestResults_.begin(); iter != onOpenLinkRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                openLinkResult = *iter;
+                onOpenLinkRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (openLinkResult != nullptr) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "requestId=%{public}s, call onRequestSuccess", requestId.c_str());
+        openLinkResult->onRequestSuccess_(element, message);
+        return;
+    }
+
+    TAG_LOGE(AAFwkTag::UI_EXT, "requestId=%{public}s not exist", requestId.c_str());
+}
+
+void UIExtensionContext::OnOpenLinkRequestFailure(const std::string &requestId,
+    const AppExecFwk::ElementName &element, const std::string &message)
+{
+    if (requestId.empty()) {
+        return;
+    }
+    std::shared_ptr<AAFwk::OnOpenLinkRequestResult> openLinkResult = nullptr;
+    {
+        std::lock_guard lock(onOpenLinkRequestResultMutex_);
+        for (auto iter = onOpenLinkRequestResults_.begin(); iter != onOpenLinkRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                openLinkResult = *iter;
+                onOpenLinkRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (openLinkResult != nullptr) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "requestId=%{public}s, call onRequestFailure", requestId.c_str());
+        openLinkResult->onRequestFailure_(element, message);
         return;
     }
 

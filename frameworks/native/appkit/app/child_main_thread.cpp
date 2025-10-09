@@ -24,6 +24,7 @@
 #endif // SUPPORT_CHILD_PROCESS
 #include "constants.h"
 #include "hilog_tag_wrapper.h"
+#include "load_ability_callback_manager.h"
 #include "js_runtime.h"
 #include "native_lib_util.h"
 #include "sys_mgr_client.h"
@@ -123,13 +124,12 @@ bool ChildMainThread::Init(const std::shared_ptr<EventRunner> &runner, const Chi
     processInfo_ = std::make_shared<ChildProcessInfo>(processInfo);
     processArgs_->entryParams = processInfo.entryParams;
     mainHandler_ = std::make_shared<EventHandler>(runner);
-    BundleInfo bundleInfo;
-    if (!ChildProcessManager::GetInstance().GetBundleInfo(bundleInfo)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "GetBundleInfo failed");
+    bundleInfo_ = processInfo.bundleInfo;
+    if (bundleInfo_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null bundleInfo");
         return false;
     }
-    bundleInfo_ = std::make_shared<BundleInfo>(bundleInfo);
-    InitNativeLib(bundleInfo);
+    InitNativeLib(*bundleInfo_, processInfo.hspList);
     return true;
 }
 
@@ -278,15 +278,8 @@ void ChildMainThread::HandleLoadNative()
     ExitProcessSafely();
 }
 
-void ChildMainThread::InitNativeLib(const BundleInfo &bundleInfo)
+void ChildMainThread::InitNativeLib(const BundleInfo &bundleInfo, const HspList hspList)
 {
-    HspList hspList;
-    ErrCode ret = DelayedSingleton<BundleMgrHelper>::GetInstance()->GetBaseSharedBundleInfos(bundleInfo.name, hspList,
-        AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Get base shared bundle infos failed: %{public}d", ret);
-    }
-
     AppLibPathMap appLibPaths {};
     GetNativeLibPath(bundleInfo, hspList, appLibPaths);
     bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
@@ -451,6 +444,11 @@ void ChildMainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspLi
             hspInfo.moduleName.c_str(), hspInfo.nativeLibraryPath.c_str());
         GetHspNativeLibPath(hspInfo, appLibPaths, hspInfo.hapPath.find(ABS_CODE_PATH) != 0u);
     }
+}
+
+void ChildMainThread::OnLoadAbilityFinished(uint64_t callbackId, int32_t pid)
+{
+    LoadAbilityCallbackManager::GetInstance().OnLoadAbilityFinished(callbackId, pid);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

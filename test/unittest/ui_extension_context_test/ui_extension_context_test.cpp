@@ -184,6 +184,24 @@ HWTEST_F(UIExtensionContextTest, StartAbilityForResult_0200, TestSize.Level1)
 }
 
 /**
+ * @tc.number: StartUIAbilitiesInSplitWindowMode_0100
+ * @tc.name: StartUIAbilitiesInSplitWindowMode
+ * @tc.desc: StartUIAbilitiesInSplitWindowMode.
+ */
+HWTEST_F(UIExtensionContextTest, StartUIAbilitiesInSplitWindowMode_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartUIAbilitiesInSplitWindowMode_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    int32_t primaryWindowId = 1;
+    AAFwk::Want want;
+    auto ret = context->StartUIAbilitiesInSplitWindowMode(primaryWindowId, want);
+    EXPECT_NE(ret, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartUIAbilitiesInSplitWindowMode_0100 end");
+}
+
+/**
  * @tc.number: StartUIAbilities_0100
  * @tc.name: StartUIAbilities
  * @tc.desc: StartUIAbilities.
@@ -824,6 +842,239 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0400, TestSize.Level1)
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0400 end");
+}
+
+/**
+ * @tc.number: OnOpenLinkRequestSuccess_0001
+ * @tc.name: OnOpenLinkRequestSuccess
+ * @tc.desc: OpenLinkRequest not exist.
+ */
+HWTEST_F(UIExtensionContextTest, OnOpenLinkRequestSuccess_0001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestSuccess_0001 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), false);
+    std::string norequestId = "test";
+    context->OnOpenLinkRequestSuccess(norequestId, want.GetElement(), message);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), false);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestSuccess_0001 end");
+}
+
+/**
+ * @tc.number: OnOpenLinkRequestSuccess_0002
+ * @tc.name: OnOpenLinkRequestSuccess
+ * @tc.desc: OpenLinkRequest exist.
+ */
+HWTEST_F(UIExtensionContextTest, OnOpenLinkRequestSuccess_0002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestSuccess_0002 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), false);
+
+    context->OnOpenLinkRequestSuccess(requestId, want.GetElement(), message);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), true);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestSuccess_0002 end");
+}
+
+/**
+ * @tc.number: OnOpenLinkRequestFailure_0001
+ * @tc.name: OnOpenLinkRequestFailure
+ * @tc.desc: OpenLinkRequest not exist.
+ */
+HWTEST_F(UIExtensionContextTest, OnOpenLinkRequestFailure_0001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestFailure_0001 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), false);
+    std::string norequestId = "test";
+    context->OnOpenLinkRequestFailure(norequestId, want.GetElement(), message);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), false);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestFailure_0001 end");
+}
+
+/**
+ * @tc.number: OnOpenLinkRequestFailure_0002
+ * @tc.name: OnOpenLinkRequestFailure
+ * @tc.desc: OpenLinkRequest exist.
+ */
+HWTEST_F(UIExtensionContextTest, OnOpenLinkRequestFailure_0002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestFailure_0002 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), false);
+
+    context->OnOpenLinkRequestFailure(requestId, want.GetElement(), message);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), true);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestFailure_0002 end");
+}
+
+/**
+ * @tc.number: OnOpenLinkRequestFailure_0003
+ * @tc.name: OnOpenLinkRequestFailure
+ * @tc.desc: requestId empty.
+ */
+HWTEST_F(UIExtensionContextTest, OnOpenLinkRequestFailure_0003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestFailure_0003 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), false);
+    std::string norequestId = "";
+    context->OnOpenLinkRequestFailure(norequestId, want.GetElement(), message);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.empty(), false);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "OnOpenLinkRequestFailure_0003 end");
+}
+
+/**
+ * @tc.number: AddCompletionHandlerForOpenLink_0001
+ * @tc.name: AddCompletionHandlerForOpenLink
+ * @tc.desc: param onRequestSucc error
+ */
+HWTEST_F(UIExtensionContextTest, AddCompletionHandlerForOpenLink_0001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0001 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, nullptr, onRequestFail);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0001 end");
+}
+
+/**
+ * @tc.number: AddCompletionHandlerForOpenLink_0002
+ * @tc.name: AddCompletionHandlerForOpenLink
+ * @tc.desc: param onRequestFail error
+ */
+HWTEST_F(UIExtensionContextTest, AddCompletionHandlerForOpenLink_0002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0002 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, nullptr);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0002 end");
+}
+
+/**
+ * @tc.number: AddCompletionHandlerForOpenLink_0003
+ * @tc.name: AddCompletionHandlerForOpenLink
+ * @tc.desc: param onRequestSucc onRequestFail error
+ */
+HWTEST_F(UIExtensionContextTest, AddCompletionHandlerForOpenLink_0003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0003 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, nullptr, nullptr);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0003 end");
+}
+
+/**
+ * @tc.number: AddCompletionHandlerForOpenLink_0004
+ * @tc.name: AddCompletionHandlerForOpenLink
+ * @tc.desc: insert success.
+ */
+HWTEST_F(UIExtensionContextTest, AddCompletionHandlerForOpenLink_0004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0004 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail);
+    EXPECT_EQ(result, ERR_OK);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0004 end");
+}
+
+/**
+ * @tc.number: AddCompletionHandlerForOpenLink_0005
+ * @tc.name: AddCompletionHandlerForOpenLink
+ * @tc.desc: already exists.
+ */
+HWTEST_F(UIExtensionContextTest, AddCompletionHandlerForOpenLink_0005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0005 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    std::string requestId = "1234567890";
+    AAFwk::Want want;
+    std::string message = "message";
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {};
+    AAFwk::OnOpenLinkRequestFunc onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {};
+    auto result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail);
+    EXPECT_EQ(result, ERR_OK);
+    result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->onOpenLinkRequestResults_.size(), 1);
+    context->onOpenLinkRequestResults_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddCompletionHandlerForOpenLink_0005 end");
 }
 
  /**

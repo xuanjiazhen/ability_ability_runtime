@@ -30,26 +30,29 @@
 #include "parameter.h"
 #include "xcollie/watchdog.h"
 #include "time_util.h"
+#include "parameters.h"
 
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
 namespace AppExecFwk {
 namespace {
-constexpr char EVENT_UID[] = "UID";
-constexpr char EVENT_PID[] = "PID";
-constexpr char EVENT_MESSAGE[] = "MSG";
-constexpr char EVENT_PACKAGE_NAME[] = "PACKAGE_NAME";
-constexpr char EVENT_PROCESS_NAME[] = "PROCESS_NAME";
-constexpr char EVENT_STACK[] = "STACK";
 constexpr int32_t HALF_DURATION = 3000;
 constexpr int32_t HALF_INTERVAL = 300;
+const bool BETA_VERSION = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
+static constexpr const char *const IN_FOREGROUND = "Yes";
+static constexpr const char *const IN_BACKGROUND = "No";
+constexpr int32_t APPFREEZE_INNER_TASKWORKER_NUM = 1;
 }
 std::weak_ptr<EventHandler> AppfreezeInner::appMainHandler_;
 std::shared_ptr<AppfreezeInner> AppfreezeInner::instance_ = nullptr;
 std::mutex AppfreezeInner::singletonMutex_;
 
 AppfreezeInner::AppfreezeInner()
-{}
+{
+    appfreezeInnerTaskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler(
+        "app_freeze_inner_task_queue", APPFREEZE_INNER_TASKWORKER_NUM, AAFwk::TaskQoS::USER_INITIATED);
+    appfreezeInnerTaskHandler_->SetPrintTaskLog(true);
+}
 
 AppfreezeInner::~AppfreezeInner()
 {}
@@ -151,11 +154,17 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
         "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
     faultData.errorObject.message += "App main thread is not response!";
     faultData.faultType = FaultDataType::APP_FREEZE;
-    faultData.timeoutMarkers = "";
+    int32_t pid = static_cast<int32_t>(getpid());
     if (isSixSecondEvent) {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
-        faultData.procStatm = GetProcStatm(static_cast<int32_t>(getpid()));
+        faultData.procStatm = GetProcStatm(pid);
     } else {
+        if (!BETA_VERSION) {
+            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "HIVIEW_HALF_FREEZE_LOG",
+                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "");
+            TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write HIVIEW_HALF_FREEZE_LOG, pid:%{public}d, packageName:,"
+                " ret:%{public}d", pid, ret);
+        }
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
     }
     if (!IsHandleAppfreeze()) {
@@ -163,9 +172,56 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
         return;
     }
     std::string msgContent;
+    EnableFreezeSample(faultData);
     GetMainHandlerDump(msgContent);
     ChangeFaultDateInfo(faultData, msgContent);
     return;
+}
+
+void AppfreezeInner::EnableFreezeSample(FaultData& newFaultData)
+{
+    std::string eventName = newFaultData.errorObject.name;
+    newFaultData.isInForeground = GetAppInForeground();
+    if (eventName == AppFreezeType::THREAD_BLOCK_3S || eventName == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
+        OHOS::HiviewDFX::Watchdog::GetInstance().StartSample(HALF_DURATION, HALF_INTERVAL);
+        TAG_LOGI(AAFwkTag::APPDFR, "start to sample freeze stack, eventName:%{public}s", eventName.c_str());
+        return;
+    }
+    if (eventName == AppFreezeType::THREAD_BLOCK_6S || eventName == AppFreezeType::LIFECYCLE_TIMEOUT ||
+        eventName == AppFreezeType::APP_INPUT_BLOCK) {
+        newFaultData.appfreezeInfo = OHOS::HiviewDFX::Watchdog::GetInstance().StopSample(HALF_DURATION / HALF_INTERVAL);
+        newFaultData.isEnableMainThreadSample = GetMainThreadSample();
+        OHOS::HiviewDFX::Watchdog::GetInstance().GetSamplerResult(newFaultData.samplerStartTime,
+            newFaultData.samplerFinishTime, newFaultData.samplerCount);
+        TAG_LOGI(AAFwkTag::APPDFR, "stop to sample freeze stack, eventName:%{public}s freezeFile:%{public}s "
+            "foreGround:%{public}d enbleMainThreadSample:%{public}d.",
+            eventName.c_str(), newFaultData.appfreezeInfo.c_str(), newFaultData.isInForeground,
+            newFaultData.isEnableMainThreadSample);
+    }
+}
+
+void AppfreezeInner::ReportAppfreezeTask(const FaultData& faultData, bool onlyMainThread)
+{
+    FaultData newFaultData = faultData;
+    EnableFreezeSample(newFaultData);
+    auto reportFreeze = [newFaultData, onlyMainThread]() {
+        if (newFaultData.errorObject.name == "") {
+            TAG_LOGE(AAFwkTag::APPDFR, "null name");
+            return;
+        }
+        AppExecFwk::AppfreezeInner::GetInstance()->AcquireStack(newFaultData, onlyMainThread);
+    };
+
+    {
+        std::lock_guard<std::mutex> lock(handlingMutex_);
+        handlinglist_.emplace_back(newFaultData);
+        constexpr int HANDLING_MIN_SIZE = 1;
+        if (handlinglist_.size() <= HANDLING_MIN_SIZE) {
+            TAG_LOGW(AAFwkTag::APPDFR, "submit reportAppFreeze, name:%{public}s, startTime:%{public}s\n",
+                newFaultData.errorObject.name.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str());
+            appfreezeInnerTaskHandler_->SubmitTask(reportFreeze, "reportFreeze");
+        }
+    }
 }
 
 int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThread)
@@ -174,24 +230,8 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
         NotifyANR(faultData);
         return -1;
     }
-    auto reportFreeze = [faultData, onlyMainThread]() {
-        if (faultData.errorObject.name == "") {
-            TAG_LOGE(AAFwkTag::APPDFR, "null name");
-            return;
-        }
-        AppExecFwk::AppfreezeInner::GetInstance()->AcquireStack(faultData, onlyMainThread);
-    };
-
-    {
-        std::lock_guard<std::mutex> lock(handlingMutex_);
-        handlinglist_.emplace_back(faultData);
-        constexpr int HANDLING_MIN_SIZE = 1;
-        if (handlinglist_.size() <= HANDLING_MIN_SIZE) {
-            TAG_LOGW(AAFwkTag::APPDFR, "submit reportAppFreeze, eventName:%{public}s, startTime:%{public}s\n",
-                faultData.errorObject.name.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str());
-            ffrt::submit(reportFreeze, {}, {}, ffrt::task_attr().name("reportAppFreeze"));
-        }
-    }
+    auto watchdogTask = [faultData, onlyMainThread, this] { this->ReportAppfreezeTask(faultData, onlyMainThread); };
+    OHOS::HiviewDFX::Watchdog::GetInstance().RunOneShotTask("ReportAppfreezeInnerTask", watchdogTask);
     return 0;
 }
 
@@ -238,12 +278,22 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
         faultData.appfreezeInfo = it->appfreezeInfo;
         faultData.appRunningUniqueId = it->appRunningUniqueId;
         faultData.procStatm = it->procStatm;
+        faultData.isInForeground = it->isInForeground;
+        faultData.isEnableMainThreadSample = it->isEnableMainThreadSample;
+        faultData.schedTime = it->schedTime;
+        faultData.detectTime = it->detectTime;
+        faultData.appStatus = it->appStatus;
+        faultData.samplerStartTime = it->samplerStartTime;
+        faultData.samplerFinishTime = it->samplerFinishTime;
+        faultData.samplerCount = it->samplerCount;
+        faultData.pid = it->pid;
         ChangeFaultDateInfo(faultData, msgContent);
     }
     return 0;
 }
 
-void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent)
+void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent, uint64_t schedTime,
+    uint64_t now, bool isInBackground)
 {
     FaultData faultData;
     faultData.errorObject.message =
@@ -251,6 +301,11 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent)
     faultData.errorObject.message += "App main thread is not response!";
     faultData.faultType = FaultDataType::APP_FREEZE;
     bool onlyMainThread = false;
+    int32_t pid = static_cast<int32_t>(getpid());
+    faultData.pid = pid;
+    faultData.schedTime = schedTime;
+    faultData.detectTime = now;
+    faultData.appStatus = isInBackground ? AppStatus::APP_STATUS_BACKGROUND : AppStatus::APP_STATUS_FOREGROUND;
 
     if (isSixSecondEvent) {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
@@ -258,15 +313,17 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent)
 #ifdef APP_NO_RESPONSE_DIALOG
         isSixSecondEvent.store(false);
 #endif
-        faultData.procStatm = GetProcStatm(static_cast<int32_t>(getpid()));
+        faultData.procStatm = GetProcStatm(pid);
     } else {
+        if (!BETA_VERSION) {
+            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "HIVIEW_HALF_FREEZE_LOG",
+                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "");
+            TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write HIVIEW_HALF_FREEZE_LOG, pid:%{public}d, packageName:,"
+                " ret:%{public}d", pid, ret);
+        }
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
         isSixSecondEvent.store(true);
-        std::string outFile;
-        OHOS::HiviewDFX::Watchdog::GetInstance().StartSample(HALF_DURATION, HALF_INTERVAL, outFile);
-        faultData.appfreezeInfo = outFile;
     }
-    faultData.timeoutMarkers = "";
 
     if (!IsHandleAppfreeze()) {
         return;
@@ -307,6 +364,26 @@ void AppfreezeInner::AppFreezeRecovery()
 void AppfreezeInner::SetAppDebug(bool isAppDebug)
 {
     isAppDebug_ = isAppDebug;
+}
+
+void AppfreezeInner::SetAppInForeground(bool isInForeground)
+{
+    isInForeground_ = isInForeground;
+}
+
+bool AppfreezeInner::GetAppInForeground()
+{
+    return isInForeground_;
+}
+
+void AppfreezeInner::SetMainThreadSample(bool isEnableMainThreadSample)
+{
+    isEnableMainThreadSample_ = isEnableMainThreadSample;
+}
+
+bool AppfreezeInner::GetMainThreadSample()
+{
+    return isEnableMainThreadSample_;
 }
 
 void MainHandlerDumper::Dump(const std::string &message)

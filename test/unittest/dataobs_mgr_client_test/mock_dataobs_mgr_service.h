@@ -83,6 +83,10 @@ public:
         return SUCCESS;
     }
 
+    MOCK_METHOD4(RegisterObserverFromExtension, int(const Uri&, sptr<IDataAbilityObserver>,
+        int32_t userId, DataObsOption opt));
+    MOCK_METHOD3(NotifyChangeFromExtension, int(const Uri&, int32_t userId, DataObsOption opt));
+
     void OnStart() {}
     void OnStop() {}
 

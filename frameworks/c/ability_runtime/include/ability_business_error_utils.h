@@ -22,6 +22,8 @@
 
 AbilityRuntime_ErrorCode ConvertToCommonBusinessErrorCode(int32_t abilityManagerErrorCode);
 
-AbilityRuntime_ErrorCode ConvertToAPI18BusinessErrorCode(int32_t abilityManagerErrorCode);
+AbilityRuntime_ErrorCode ConvertToAPI17BusinessErrorCode(int32_t abilityManagerErrorCode);
+
+AbilityRuntime_ErrorCode ConvertToAPI21BusinessErrorCode(int32_t abilityManagerErrorCode);
 
 #endif // ABILITY_RUNTIME_ABILITY_BUSINESS_ERROR_UTILS_H

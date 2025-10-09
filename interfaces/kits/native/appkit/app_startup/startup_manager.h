@@ -60,13 +60,12 @@ public:
 
     const std::string &GetPendingConfigEntry() const;
 
-    void ClearAppStartupTask();
-
     int32_t RegisterAppStartupTask(
         const std::string &name, const std::shared_ptr<AppStartupTask> &startupTask);
 
     int32_t BuildAutoAppStartupTaskManager(std::shared_ptr<AAFwk::Want> want,
-        std::shared_ptr<StartupTaskManager> &startupTaskManager, const std::string &moduleName);
+        std::shared_ptr<StartupTaskManager> &startupTaskManager, const std::string &moduleName,
+        bool preAbilityStageLoad);
 
     int32_t BuildAppStartupTaskManager(const std::vector<std::string> &inputDependencies,
         std::shared_ptr<StartupTaskManager> &startupTaskManager, bool supportFeatureModule);
@@ -101,11 +100,19 @@ public:
         std::shared_ptr<StartupTaskManager> &startupTaskManager);
 
     bool EnableLazyLoadingAppStartupTasks() const;
+    
+    const std::string &GetBundleName() const;
+
+    int32_t GetAppIndex() const;
+
+    int32_t GetUid() const;
 
 private:
     // read only after initialization
     std::vector<ModuleStartupConfigInfo> moduleStartupConfigInfos_;
     std::string bundleName_;
+    int32_t appIndex_ = -1;
+    int32_t uid_ = -1;
 
     std::mutex appStartupConfigInitializationMutex_;
     std::atomic<bool> isAppStartupConfigInited_ = false;
@@ -142,13 +149,13 @@ private:
     bool FilterMatchedStartupTask(const AppStartupTaskMatcher &taskMatcher,
         const std::map<std::string, std::shared_ptr<AppStartupTask>> &inTasks,
         std::map<std::string, std::shared_ptr<StartupTask>> &outTasks,
-        std::set<std::string> &dependenciesSet);
+        std::shared_ptr<std::set<std::string>> dependenciesSet);
     int32_t AddAppPreloadSoTask(const std::vector<std::string> &preloadSoList,
         std::map<std::string, std::shared_ptr<StartupTask>> &currentStartupTasks);
     std::shared_ptr<NativeStartupTask> CreateAppPreloadSoTask(
         const std::map<std::string, std::shared_ptr<StartupTask>> &currentPreloadSoTasks);
 
-    void InitPreloadSystemSoAllowlist();
+    void InitPreloadSystemSoAllowlist(std::unordered_set<std::string> &preloadSystemSoAllowlist);
     bool ReadPreloadSystemSoAllowlistFile(nlohmann::json &jsonStr);
     bool ParsePreloadSystemSoAllowlist(const nlohmann::json &jsonStr, std::unordered_set<std::string> &allowlist);
 
@@ -190,6 +197,7 @@ private:
     void SetOptionalParameters(const nlohmann::json &module, AppExecFwk::ModuleType moduleType,
         std::shared_ptr<PreloadSoStartupTask> &task);
     void SetMatchRules(const nlohmann::json &module, StartupTaskMatchRules &matchRules, bool isPreloadSoStartupTask);
+    void SetSchedulerPhase(const nlohmann::json &module, StartupTaskInfo &startupTaskInfo);
     static bool ParseJsonStringArray(const nlohmann::json &json, const std::string &key, std::vector<std::string> &arr);
 };
 } // namespace AbilityRuntime

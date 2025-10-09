@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 #include "js_data_struct_converter.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "js_ui_extension_callback.h"
 #include "napi/native_api.h"
 #include "napi_common_ability.h"
 #include "napi_common_want.h"
@@ -242,9 +243,13 @@ private:
             ThrowError(env, INVALID_PARAM, "Parameter error. The type of \"WantParams\" must be array");
             return CreateJsUndefined(env);
         }
-
         std::shared_ptr<JsUIExtensionCallback> callback = std::make_shared<JsUIExtensionCallback>(env);
         callback->SetJsCallbackObject(info.argv[INDEX_TWO]);
+        napi_value completionHandler = AppExecFwk::GetPropertyValueByPropertyName(
+            env, info.argv[INDEX_TWO], "completionHandler", napi_object);
+        if (completionHandler != nullptr) {
+            callback->SetCompletionHandler(env, completionHandler);
+        }
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, type, wantParam, callback, innerErrCode]() mutable {
             auto context = weak.lock();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -113,7 +113,7 @@ void ApplicationContext::DispatchOnAbilityCreate(const std::shared_ptr<NativeRef
         return;
     }
     std::lock_guard<std::recursive_mutex> lock(callbackLock_);
-    for (auto callback : callbacks_) {
+    for (const auto& callback : callbacks_) {
         if (callback != nullptr) {
             callback->OnAbilityCreate(ability);
         }
@@ -128,7 +128,7 @@ void ApplicationContext::DispatchOnWindowStageCreate(const std::shared_ptr<Nativ
         return;
     }
     std::lock_guard<std::recursive_mutex> lock(callbackLock_);
-    for (auto callback : callbacks_) {
+    for (const auto& callback : callbacks_) {
         if (callback != nullptr) {
             callback->OnWindowStageCreate(ability, windowStage);
         }
@@ -668,6 +668,35 @@ std::string ApplicationContext::GetDistributedFilesDir()
 std::string ApplicationContext::GetCloudFileDir()
 {
     return (contextImpl_ != nullptr) ? contextImpl_->GetCloudFileDir() : "";
+}
+
+std::string ApplicationContext::GetLaunchParameter() const
+{
+    return (contextImpl_ != nullptr) ? contextImpl_->GetLaunchParameter() : "";
+}
+
+void ApplicationContext::SetLaunchParameter(const AAFwk::Want &want)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl_");
+        return;
+    }
+    contextImpl_->SetLaunchParameter(want);
+    contextImpl_->SetLatestParameter(want);
+}
+
+std::string ApplicationContext::GetLatestParameter() const
+{
+    return (contextImpl_ != nullptr) ? contextImpl_->GetLatestParameter() : "";
+}
+
+void ApplicationContext::SetLatestParameter(const AAFwk::Want &want)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl_");
+        return;
+    }
+    contextImpl_->SetLatestParameter(want);
 }
 
 sptr<IRemoteObject> ApplicationContext::GetToken()

@@ -16,12 +16,15 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 import(
     "//foundation/ability/ability_runtime/services/abilitymgr/abilitymgr.gni")
 
-group("abilityms_target") {
+ohos_shared_headers("abilityms_target") {
+  include_dirs = [ "include/" ]
   deps = [
     ":abilityms",
     ":ams_service_config",
     ":mission_list",
   ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
 }
 
 config("abilityms_exception_config") {
@@ -148,12 +151,9 @@ ohos_shared_library("abilityms") {
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:event_report",
     "${ability_runtime_services_path}/common:perm_verification",
-    "${ability_runtime_services_path}/common:rate_limiter",
-    "${ability_runtime_services_path}/common:record_cost_time_util",
-    "${ability_runtime_services_path}/common:res_sched_util",
     "${ability_runtime_services_path}/common:task_handler_wrap",
+    "${ability_runtime_services_path}/common:user_controller",
   ]
 
   external_deps = [
@@ -173,7 +173,6 @@ ohos_shared_library("abilityms") {
     "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
     "config_policy:configpolicy_util",
-    "dsoftbus:softbus_client",
     "eventhandler:libeventhandler",
     "faultloggerd:libbacktrace_local",
     "ffrt:libffrt",
@@ -199,6 +198,7 @@ ohos_shared_library("abilityms") {
     "window_manager:scene_session",
     "window_manager:session_manager_lite",
     "window_manager:sms",
+    "udmf:udmf_client",
   ]
   public_external_deps = [ "background_task_mgr:bgtaskmgr_innerkits" ]
 
@@ -223,6 +223,11 @@ ohos_shared_library("abilityms") {
   }
 
   defines = []
+
+  if (ability_runtime_dsoftbus_enable) {
+    external_deps += [ "dsoftbus:softbus_client" ]
+    defines += [ "SUPPORT_RECORDER_DSOFTBUS" ]
+  }
 
   if (ability_runtime_auto_fill) {
     defines += [ "SUPPORT_AUTO_FILL" ]
@@ -450,9 +455,7 @@ ohos_shared_library("mission_list") {
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:event_report",
     "${ability_runtime_services_path}/common:perm_verification",
-    "${ability_runtime_services_path}/common:res_sched_util",
     "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
 
@@ -472,7 +475,6 @@ ohos_shared_library("mission_list") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "config_policy:configpolicy_util",
-    "dsoftbus:softbus_client",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "graphic_2d:color_manager",
@@ -493,6 +495,11 @@ ohos_shared_library("mission_list") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (ability_runtime_dsoftbus_enable) {
+    external_deps += [ "dsoftbus:softbus_client" ]
+    defines += [ "SUPPORT_RECORDER_DSOFTBUS" ]
+  }
 
   if (ability_runtime_child_process) {
     defines += [ "SUPPORT_CHILD_PROCESS" ]

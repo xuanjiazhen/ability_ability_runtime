@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "mock_permission_verification.h"
+#include "mock_my_flag.h"
 
 #define private public
 #define protected public
@@ -25,10 +25,10 @@
 #include "ability_scheduler.h"
 #include "ability_start_setting.h"
 #include "recovery_param.h"
+#include "app_utils.h"
 #undef private
 #undef protected
 #include "ability_manager_errors.h"
-#include "app_utils.h"
 #include "connection_observer_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_manager.h"
@@ -182,10 +182,13 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_001, TestSiz
     EXPECT_TRUE(abilityMs_->startUpNewRule_);
     abilityMs_->startUpNewRule_ = false;
     abilityRequest.abilityInfo.visible = true;
-    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest), CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = CHECK_PERMISSION_FAILED;
+    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), CHECK_PERMISSION_FAILED);
 
     abilityMs_->startUpNewRule_ = true;
-    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest), CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = CHECK_PERMISSION_FAILED;
+    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_001 end");
 }
 
@@ -203,6 +206,8 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallServicePermission_001, TestSiz
     abilityMs_->startUpNewRule_ = false;
     EXPECT_FALSE(abilityMs_->startUpNewRule_);
     request.abilityInfo.visible = true;
+    // IsShellCall
+    MyFlag::flag_ = 2;
     EXPECT_EQ(abilityMs_->CheckCallServicePermission(request), ERR_OK);
 
     abilityMs_->startUpNewRule_ = true;
@@ -218,7 +223,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallServicePermission_001, TestSiz
 
     request.abilityInfo.extensionAbilityType = ExtensionAbilityType::FILESHARE;
     EXPECT_EQ(abilityMs_->CheckCallServicePermission(request), ERR_OK);
-    abilityMs_->startUpNewRule_ = false;
+    MyFlag::flag_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallServicePermission_001 end");
 }
 
@@ -233,10 +238,13 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckStartByCallPermission_002, TestSiz
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckStartByCallPermission_002 start");
     abilityRequest_.abilityInfo.type = AbilityType::PAGE;
+    // IsShellCall
+    MyFlag::flag_ = 2;
     EXPECT_EQ(abilityMs_->CheckStartByCallPermission(abilityRequest_), ERR_OK);
 
     abilityRequest_.abilityInfo.type = AbilityType::DATA;
     EXPECT_EQ(abilityMs_->CheckStartByCallPermission(abilityRequest_), RESOLVE_CALL_ABILITY_TYPE_ERR);
+    MyFlag::flag_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckStartByCallPermission_002 end");
 }
 
@@ -297,9 +305,10 @@ HWTEST_F(AbilityManagerServiceFirstTest, KillProcessForPermissionUpdate_002, Tes
     uint32_t accessTokenId = 1;
     AAFwk::IsMockSaCall::IsMockKillAppProcessesPermission();
     TAG_LOGI(AAFwkTag::TEST, "MockKillAppProcessesPermission");
+    MyFlag::flag_ = 1;
     EXPECT_EQ(abilityMs_->KillProcessForPermissionUpdate(accessTokenId), ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST,
-        "AbilityManagerServiceFirstTest KillProcessForPermissionUpdate_002 end");
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest KillProcessForPermissionUpdate_002 end");
 }
 
 /*
@@ -947,30 +956,30 @@ HWTEST_F(AbilityManagerServiceFirstTest, IsCallFromBackground_001, TestSize.Leve
 
     // IsSACall
     MyFlag::flag_ = 1;
-    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall), ERR_OK);
+    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall, false), ERR_OK);
 
     // IsShellCall
     MyFlag::flag_ = 2;
-    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall), ERR_OK);
+    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall, false), ERR_OK);
 
     // IsStartFreeInstall
     unsigned int flag = 0x00000800;
     abilityRequest.want.SetFlags(flag);
-    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall), ERR_OK);
+    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall, false), ERR_OK);
 
     // set abilityRequest.callerToken and abilityRequest.want
     MyFlag::flag_ = 0;
     abilityRequest.callerToken = nullptr;
     abilityRequest.want.SetFlags(0);
-    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall, false), ERR_INVALID_VALUE);
 
     abilityRequest.callerToken = MockToken(AbilityType::PAGE);
     abilityRequest.want.SetParam("isDelegatorCall", true);
-    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall, false), ERR_INVALID_VALUE);
 
     abilityRequest.callerToken = nullptr;
     abilityRequest.want.SetParam("isDelegatorCall", true);
-    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->IsCallFromBackground(abilityRequest, isBackgroundCall, false), ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest IsCallFromBackground_001 end");
 }
 
@@ -1073,7 +1082,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StopExtensionAbility_003, TestSize.Leve
     abilityRecord->abilityInfo_.applicationInfo.bundleName = "com.ix.hiservcie";
     MyFlag::flag_ = 1;
     EXPECT_EQ(abilityMs_->StopExtensionAbility(want, abilityRecord->GetToken(), -1, ExtensionAbilityType::SERVICE),
-        ERR_INVALID_CALLER);
+        RESOLVE_ABILITY_ERR);
     MyFlag::flag_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StopExtensionAbility_003 end");
 }
@@ -1119,7 +1128,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StopExtensionAbility_005, TestSize.Leve
     abilityRecord->abilityInfo_.applicationInfo.bundleName = "com.ix.hiservcie";
     MyFlag::flag_ = 1;
     EXPECT_EQ(abilityMs_->StopExtensionAbility(want, abilityRecord->GetToken(), -1, ExtensionAbilityType::SERVICE),
-        ERR_INVALID_CALLER);
+        RESOLVE_ABILITY_ERR);
     MyFlag::flag_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StopExtensionAbility_005 end");
 }
@@ -1243,6 +1252,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_002, TestS
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_002 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     Want want;
     ElementName element("", "com.test.demo", "MainAbility", "");
     want.SetElement(element);
@@ -1254,7 +1264,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_002, TestS
     auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
-    EXPECT_EQ(ERR_INVALID_CALLER, result);
+    EXPECT_EQ(RESOLVE_ABILITY_ERR, result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_002 end");
 }
 
@@ -1270,6 +1280,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_003, TestS
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_003 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     Want want;
     ElementName element("", "com.test.demo1", "MainAbility", "Entry");
     want.SetElement(element);
@@ -1281,7 +1292,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_003, TestS
     auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
-    EXPECT_EQ(ERR_INVALID_CALLER, result);
+    EXPECT_EQ(RESOLVE_ABILITY_ERR, result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_003 end");
 }
 
@@ -1297,6 +1308,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_004, TestS
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_004 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     Want want;
     ElementName element("", "com.test.demo", "MainAbility1", "Entry");
     want.SetElement(element);
@@ -1308,7 +1320,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_004, TestS
     auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
-    EXPECT_EQ(ERR_INVALID_CALLER, result);
+    EXPECT_EQ(RESOLVE_ABILITY_ERR, result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_004 end");
 }
 
@@ -1324,6 +1336,8 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_005, TestS
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_005 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->freeInstallManager_ = std::make_shared<FreeInstallManager>();
     Want want;
     ElementName element("", "com.test.demo", "MainAbility", "Entry");
     want.SetElement(element);
@@ -1336,7 +1350,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_005, TestS
     auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
-    EXPECT_EQ(ERR_INVALID_CALLER, result);
+    EXPECT_EQ(RESOLVE_ABILITY_ERR, result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_005 end");
 }
 
@@ -1352,6 +1366,8 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_006, TestS
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_006 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->freeInstallManager_ = std::make_shared<FreeInstallManager>();
     Want want;
     ElementName element("", "com.test.demo", "MainAbility");
     want.SetElement(element);
@@ -1365,7 +1381,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_006, TestS
     auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
-    EXPECT_EQ(ERR_INVALID_CALLER, result);
+    EXPECT_EQ(ERR_OK, result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInnerFreeInstall_006 end");
 }
 
@@ -1512,6 +1528,28 @@ HWTEST_F(AbilityManagerServiceFirstTest, AttachAppDebug_001, TestSize.Level1)
     std::string bundleName;
     abilityMs_->AttachAppDebug(bundleName, false);
     EXPECT_NE(abilityMs_, nullptr);
+}
+
+/**
+ * @tc.name: IsAllowAttachOrDetachAppDebug
+ * @tc.desc: Test the state of IsAllowAttachOrDetachAppDebug
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, IsAllowAttachOrDetachAppDebug, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    std::string bundleName = "testName";
+    AppExecFwk::ApplicationInfo applicationInfo;
+    applicationInfo.bundleName = bundleName;
+    applicationInfo.appProvisionType = AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG;
+    EXPECT_TRUE(abilityMs_->IsAllowAttachOrDetachAppDebug(applicationInfo));
+    applicationInfo.appProvisionType = AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE;
+    EXPECT_FALSE(abilityMs_->IsAllowAttachOrDetachAppDebug(applicationInfo));
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isSupportAllowDebugPermission_.isLoaded = true;
+    appUtils.isSupportAllowDebugPermission_.value = true;
+    EXPECT_FALSE(abilityMs_->IsAllowAttachOrDetachAppDebug(applicationInfo));
 }
 
 /**
@@ -1684,6 +1722,35 @@ HWTEST_F(AbilityManagerServiceFirstTest, QueryAllAutoStartupApplications_0200, T
     EXPECT_NE(abilityMs_->abilityAutoStartupService_, nullptr);
     std::vector<AutoStartupInfo> infoList;
     auto result = abilityMs_->QueryAllAutoStartupApplications(infoList);
+    EXPECT_NE(result, ERR_NO_INIT);
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_GetAutoStartupStatusForSelf_0100
+ * @tc.desc: Test the state of GetAutoStartupStatusForSelf
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, GetAutoStartupStatusForSelf_0100, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->abilityAutoStartupService_ = nullptr;
+    bool isAutoStartEnabled = false;
+    auto result = abilityMs_->GetAutoStartupStatusForSelf(isAutoStartEnabled);
+    EXPECT_EQ(result, ERR_NO_INIT);
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_GetAutoStartupStatusForSelf_0200
+ * @tc.desc: Test the state of GetAutoStartupStatusForSelf
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, GetAutoStartupStatusForSelf_0200, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->abilityAutoStartupService_ = std::make_shared<AbilityRuntime::AbilityAutoStartupService>();
+    EXPECT_NE(abilityMs_->abilityAutoStartupService_, nullptr);
+    bool isAutoStartEnabled = false;
+    auto result = abilityMs_->GetAutoStartupStatusForSelf(isAutoStartEnabled);
     EXPECT_NE(result, ERR_NO_INIT);
 }
 
@@ -2443,7 +2510,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_002, TestSiz
     abilityRecord->Init();
     AbilityRequest abilityRequest;
     abilityRequest.callerToken = abilityRecord->GetToken();
-    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest), ERR_OK);
+    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_002 end");
 }
 
@@ -2465,7 +2532,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_003, TestSiz
     abilityRecord->Init();
     AbilityRequest abilityRequest;
     abilityRequest.callerToken = nullptr;
-    EXPECT_NE(abilityMs_->CheckCallAbilityPermission(abilityRequest), ERR_OK);
+    EXPECT_NE(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_003 end");
 }
 
@@ -2487,7 +2554,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_004, TestSiz
     abilityRecord->Init();
     AbilityRequest abilityRequest;
     abilityRequest.callerToken = abilityRecord->GetToken();
-    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest), ERR_OK);
+    EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_004 end");
 }
 } // namespace AAFwk

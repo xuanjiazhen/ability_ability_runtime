@@ -98,7 +98,7 @@ public:
      * @brief Set bundle info.
      *
      */
-    void SetBundleInfo(const std::string& bundleName, const std::string& bundleVersion);
+    void SetBundleInfo(const std::string& bundleName, const std::string& bundleVersion, bool isSystemApp);
 
     /**
      *
@@ -110,6 +110,7 @@ public:
 private:
     void Timer();
     void ReportEvent();
+    void SetMainThreadSample();
 #ifdef ABILITY_RUNTIME_HITRACE_ENABLE
     void SetHiTraceChainId();
 
@@ -122,11 +123,14 @@ private:
     std::atomic_bool isSixSecondEvent_ = false;
     std::atomic_bool isInBackground_ = true;
     std::atomic_bool isBgWorkingThread_ = false;
+    std::atomic_int backgroundReportCount_ = 0;
     std::atomic_int watchdogReportCount_ = 0;
     std::mutex cvMutex_;
     std::condition_variable cvWatchdog_;
     static std::shared_ptr<EventHandler> appMainHandler_;
     int64_t lastWatchTime_ = 0;
+    std::string bundleName_;
+    bool isSystemApp_ = true;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

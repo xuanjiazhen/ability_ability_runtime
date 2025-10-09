@@ -51,6 +51,17 @@ public:
         DataObsOption opt = DataObsOption());
 
     /**
+     * Registers an observer to DataObsMgr specified by the given Uri.
+     *
+     * @param uri, Indicates the path of the data to operate.
+     * @param dataObserver, Indicates the IDataAbilityObserver object.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode RegisterObserverFromExtension(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        int32_t userId = IDataObsMgr::DATAOBS_DEFAULT_CURRENT_USER, DataObsOption opt = DataObsOption());
+
+    /**
      * Deregisters an observer used for DataObsMgr specified by the given Uri.
      *
      * @param uri, Indicates the path of the data to operate.
@@ -69,6 +80,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode NotifyChange(const Uri &uri, int32_t userId = IDataObsMgr::DATAOBS_DEFAULT_CURRENT_USER,
+        DataObsOption opt = DataObsOption());
+
+    /**
+     * Notifies the registered observers of a change to the data resource specified by Uri.
+     *
+     * @param uri, Indicates the path of the data to operate.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode NotifyChangeFromExtension(const Uri &uri, int32_t userId = IDataObsMgr::DATAOBS_DEFAULT_CURRENT_USER,
         DataObsOption opt = DataObsOption());
 
     /**
@@ -135,6 +156,8 @@ private:
     void ResetService();
     void OnRemoteDied();
     void ReRegister();
+    int32_t TryRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> key, int userId,
+        bool isExtension, DataObsOption opt = {});
 
     class ServiceDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
@@ -142,22 +165,25 @@ private:
         void OnRemoteDied(const wptr<IRemoteObject> &object) override
         {
             auto serviceClient = owner_.lock();
-            if (serviceClient != nullptr) {
+            if (serviceClient != nullptr && isFirst) {
+                isFirst = false;
                 serviceClient->OnRemoteDied();
             }
         }
 
     private:
+        bool isFirst = true;
         std::weak_ptr<DataObsMgrClient> owner_;
     };
 
-    static constexpr int RESUB_INTERVAL = 2;
     static std::mutex mutex_;
     sptr<IDataObsMgr> dataObsManger_;
 
     struct ObserverInfo {
         Uri uri;
         int32_t userId;
+        bool isExtension = false;
+        uint32_t firstCallerTokenID;
         ObserverInfo(Uri uri, int32_t userId) : uri(uri), userId(userId) {};
     };
     ConcurrentMap<sptr<IDataAbilityObserver>, std::list<struct ObserverInfo>> observers_;

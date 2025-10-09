@@ -49,13 +49,16 @@ ohos_shared_library("app_manager") {
     "${ability_runtime_services_path}/appdfr/include",
     "${ability_runtime_services_path}/appmgr/include",
     "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_utils_path}/global/constant",
   ]
 
   sources = [
+    "${ability_runtime_services_path}/appdfr/src/appfreeze_event_report.cpp",
     "${ability_runtime_services_path}/appdfr/src/appfreeze_cpu_freq_manager.cpp",
     "${ability_runtime_services_path}/appdfr/src/appfreeze_manager.cpp",
     "${ability_runtime_services_path}/appdfr/src/appfreeze_util.cpp",
     "${ability_runtime_services_path}/appdfr/src/cpu_data_processor.cpp",
+    "${ability_runtime_services_path}/appdfr/src/cpu_sys_config.cpp",
     "src/appmgr/ability_controller_proxy.cpp",
     "src/appmgr/ability_controller_stub.cpp",
     "src/appmgr/ability_debug_response_proxy.cpp",
@@ -89,6 +92,7 @@ ohos_shared_library("app_manager") {
     "src/appmgr/app_state_callback_host.cpp",
     "src/appmgr/app_state_callback_proxy.cpp",
     "src/appmgr/app_state_data.cpp",
+    "src/appmgr/application_state_filter.cpp",
     "src/appmgr/application_state_observer_proxy.cpp",
     "src/appmgr/application_state_observer_stub.cpp",
     "src/appmgr/background_app_info.cpp",
@@ -101,6 +105,9 @@ ohos_shared_library("app_manager") {
     "src/appmgr/fault_data.cpp",
     "src/appmgr/kia_interceptor_proxy.cpp",
     "src/appmgr/kia_interceptor_stub.cpp",
+    "src/appmgr/load_ability_callback_manager.cpp",
+    "src/appmgr/load_ability_callback_proxy.cpp",
+    "src/appmgr/load_ability_callback_stub.cpp",
     "src/appmgr/memory_level_info.cpp",
     "src/appmgr/native_child_notify_proxy.cpp",
     "src/appmgr/native_child_notify_stub.cpp",
@@ -142,8 +149,6 @@ ohos_shared_library("app_manager") {
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:hitrace_chain_util",
-    "${ability_runtime_services_path}/common:res_sched_util",
   ]
 
   external_deps = [

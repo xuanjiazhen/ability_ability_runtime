@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1061,8 +1061,8 @@ Ace::UIContent* AbilityContextImpl::GetUIContent()
     return abilityCallback->GetUIContent();
 }
 
-ErrCode AbilityContextImpl::StartAbilityByType(const std::string &type,
-    AAFwk::WantParams &wantParams, const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks)
+ErrCode AbilityContextImpl::StartAbilityByType(
+    const std::string &type, AAFwk::WantParams &wantParams, std::shared_ptr<UIExtensionCallback> uiExtensionCallback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "call");
     auto uiContent = GetUIContent();
@@ -1079,24 +1079,44 @@ ErrCode AbilityContextImpl::StartAbilityByType(const std::string &type,
         wantParams.Remove(FLAG_AUTH_READ_URI_PERMISSION);
     }
     Ace::ModalUIExtensionCallbacks callback;
-    callback.onError = [uiExtensionCallbacks](int32_t arg, const std::string &str1, const std::string &str2) {
-        uiExtensionCallbacks->OnError(arg);
+    if (uiExtensionCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null uiExtensionCallback");
+        return ERR_INVALID_VALUE;
+    }
+    callback.onError = [uiExtensionCallback](int32_t arg, const std::string &str1, const std::string &str2) {
+        uiExtensionCallback->OnError(arg);
     };
-    callback.onRelease = [uiExtensionCallbacks](int32_t arg) {
-        uiExtensionCallbacks->OnRelease(arg);
+    callback.onRelease = [uiExtensionCallback](int32_t arg) {
+        uiExtensionCallback->OnRelease(arg);
     };
-    callback.onResult = [uiExtensionCallbacks](int32_t arg1, const OHOS::AAFwk::Want arg2) {
-        uiExtensionCallbacks->OnResult(arg1, arg2);
+    callback.onResult = [uiExtensionCallback](int32_t arg1, const OHOS::AAFwk::Want arg2) {
+        uiExtensionCallback->OnResult(arg1, arg2);
     };
-
+    callback.onReceive = [uiExtensionCallback](const AAFwk::WantParams& data) {
+        if (data.HasParam("onRequestSuccess")) {
+            auto successParam = data.GetWantParams("onRequestSuccess");
+            auto elementName = successParam.GetStringParam("name");
+            uiExtensionCallback->OnRequestSuccess(elementName);
+        } else if (data.HasParam("onRequestFailure")) {
+            auto failureParam = data.GetWantParams("onRequestFailure");
+            auto elementName = failureParam.GetStringParam("name");
+            int32_t failureCode = failureParam.GetIntParam("failureCode", 0);
+            if (failureCode != 0 && failureCode != 1) {
+                TAG_LOGE(AAFwkTag::CONTEXT, "Invalid failureCode: %{public}d", failureCode);
+                return;
+            }
+            std::string failureMsg = failureParam.GetStringParam("failureMessage");
+            uiExtensionCallback->OnRequestFailure(elementName, failureCode, failureMsg);
+        }
+    };
     Ace::ModalUIExtensionConfig config;
     int32_t sessionId = uiContent->CreateModalUIExtension(want, callback, config);
     if (sessionId == 0) {
         TAG_LOGE(AAFwkTag::CONTEXT, "createModalUIExtension failed");
         return ERR_INVALID_VALUE;
     }
-    uiExtensionCallbacks->SetUIContent(uiContent);
-    uiExtensionCallbacks->SetSessionId(sessionId);
+    uiExtensionCallback->SetUIContent(uiContent);
+    uiExtensionCallback->SetSessionId(sessionId);
     return ERR_OK;
 }
 
@@ -1235,10 +1255,10 @@ bool AbilityContextImpl::GetRestoreEnabled()
     return restoreEnabled_.load();
 }
 
-ErrCode AbilityContextImpl::OpenLink(const AAFwk::Want& want, int requestCode)
+ErrCode AbilityContextImpl::OpenLink(const AAFwk::Want &want, int requestCode, bool hideFailureTipDialog)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    return AAFwk::AbilityManagerClient::GetInstance()->OpenLink(want, token_, -1, requestCode);
+    return AAFwk::AbilityManagerClient::GetInstance()->OpenLink(want, token_, -1, requestCode, hideFailureTipDialog);
 }
 
 std::shared_ptr<AAFwk::Want> AbilityContextImpl::GetWant()
@@ -1357,8 +1377,7 @@ void AbilityContextImpl::OnRequestSuccess(const std::string &requestId, const Ap
         atomicResult->onRequestSuccess_(atomicResult->appId_);
         return;
     }
-
-    TAG_LOGE(AAFwkTag::CONTEXT, "requestId=%{public}s not exist", requestId.c_str());
+    OnOpenLinkRequestSuccess(requestId, element, message);
 }
 
 void AbilityContextImpl::OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
@@ -1397,6 +1416,54 @@ void AbilityContextImpl::OnRequestFailure(const std::string &requestId, const Ap
         std::string failureMessage;
         GetFailureInfoByMessage(message, failureCode, failureMessage, resultCode);
         atomicResult->onRequestFailure_(atomicResult->appId_, failureCode, failureMessage);
+        return;
+    }
+    OnOpenLinkRequestFailure(requestId, element, message);
+}
+
+void AbilityContextImpl::OnOpenLinkRequestSuccess(const std::string &requestId,
+    const AppExecFwk::ElementName &element, const std::string &message)
+{
+    std::shared_ptr<AAFwk::OnOpenLinkRequestResult> openLinkResult = nullptr;
+    {
+        std::lock_guard lock(onOpenLinkRequestResultMutex_);
+        for (auto iter = onOpenLinkRequestResults_.begin(); iter != onOpenLinkRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                openLinkResult = *iter;
+                onOpenLinkRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (openLinkResult != nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onRequestSuccess", requestId.c_str());
+        openLinkResult->onRequestSuccess_(element, message);
+        return;
+    }
+
+    TAG_LOGE(AAFwkTag::CONTEXT, "requestId=%{public}s not exist", requestId.c_str());
+}
+
+void AbilityContextImpl::OnOpenLinkRequestFailure(const std::string &requestId,
+    const AppExecFwk::ElementName &element, const std::string &message)
+{
+    if (requestId.empty()) {
+        return;
+    }
+    std::shared_ptr<AAFwk::OnOpenLinkRequestResult> openLinkResult = nullptr;
+    {
+        std::lock_guard lock(onOpenLinkRequestResultMutex_);
+        for (auto iter = onOpenLinkRequestResults_.begin(); iter != onOpenLinkRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                openLinkResult = *iter;
+                onOpenLinkRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (openLinkResult != nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onRequestFailure", requestId.c_str());
+        openLinkResult->onRequestFailure_(element, message);
         return;
     }
 
@@ -1466,6 +1533,25 @@ ErrCode AbilityContextImpl::AddCompletionHandlerForAtomicService(const std::stri
     }
     onAtomicRequestResults_.emplace_back(std::make_shared<OnAtomicRequestResult>(
         requestId, appId, onRequestSucc, onRequestFail));
+    return ERR_OK;
+}
+
+ErrCode AbilityContextImpl::AddCompletionHandlerForOpenLink(const std::string &requestId,
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail)
+{
+    if (onRequestSucc == nullptr || onRequestFail == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "either func is null");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard lock(onOpenLinkRequestResultMutex_);
+    for (auto iter = onOpenLinkRequestResults_.begin(); iter != onOpenLinkRequestResults_.end(); iter++) {
+        if ((*iter)->requestId_ == requestId) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "requestId=%{public}s already exists", requestId.c_str());
+            return ERR_OK;
+        }
+    }
+    onOpenLinkRequestResults_.emplace_back(std::make_shared<AAFwk::OnOpenLinkRequestResult>(
+        requestId, onRequestSucc, onRequestFail));
     return ERR_OK;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,6 +38,7 @@ public:
     MOCK_METHOD4(UpdateApplicationInfoInstalled, AppMgrResultCode(const std::string &bundleName, const int uid,
         const std::string&, bool));
     MOCK_METHOD0(UpdateApplicationInfoInstalledDone, AppMgrResultCode());
+    MOCK_METHOD1(VerifyKillProcessPermission, int32_t(const std::string &bundleName));
     MOCK_METHOD3(KillApplication, AppMgrResultCode(const std::string&, const bool clearPageStack, int32_t appIndex));
     MOCK_METHOD3(KillApplicationByUid,
         AppMgrResultCode(const std::string &bundleName, const int uid, const std::string&));

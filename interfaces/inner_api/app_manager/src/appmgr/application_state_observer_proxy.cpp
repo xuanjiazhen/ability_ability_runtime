@@ -67,7 +67,7 @@ void ApplicationStateObserverProxy::OnAbilityStateChanged(const AbilityStateData
         return;
     }
     if (!data.WriteParcelable(&abilityStateData)) {
-        TAG_LOGD(AAFwkTag::APPMGR, "write profile failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write profile failed");
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -268,7 +268,7 @@ void ApplicationStateObserverProxy::OnAppStateChanged(const AppStateData &appSta
         static_cast<uint32_t>(IApplicationStateObserver::Message::TRANSACT_ON_APP_STATE_CHANGED),
         data, reply, option);
     if (ret != NO_ERROR && ret != ERR_INVALID_STUB) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d, , bundleName: %{public}s",
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d, bundleName: %{public}s",
             ret, appStateData.bundleName.c_str());
     }
 }
@@ -283,7 +283,7 @@ void ApplicationStateObserverProxy::OnAppStarted(const AppStateData &appStateDat
         return;
     }
     if (!data.WriteParcelable(&appStateData)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write processData failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write appStateData failed");
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -305,7 +305,7 @@ void ApplicationStateObserverProxy::OnAppStopped(const AppStateData &appStateDat
         return;
     }
     if (!data.WriteParcelable(&appStateData)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write processData failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write appStateData failed");
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -323,11 +323,10 @@ void ApplicationStateObserverProxy::OnPageShow(const PageStateData &pageStateDat
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
         return;
     }
     if (!data.WriteParcelable(&pageStateData)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write processData failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write pageStateData failed");
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -345,11 +344,10 @@ void ApplicationStateObserverProxy::OnPageHide(const PageStateData &pageStateDat
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
         return;
     }
     if (!data.WriteParcelable(&pageStateData)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write processData failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write pageStateData failed");
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -371,7 +369,7 @@ void ApplicationStateObserverProxy::OnAppCacheStateChanged(const AppStateData &a
         return;
     }
     if (!data.WriteParcelable(&appStateData)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write processData failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write appStateData failed");
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -405,7 +403,7 @@ void ApplicationStateObserverProxy::OnProcessBindingRelationChanged(const Proces
         return;
     }
     if (!data.WriteParcelable(&processBindData)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write processData failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "Write processBindData failed");
         return;
     }
     int32_t ret = SendTransactCmd(

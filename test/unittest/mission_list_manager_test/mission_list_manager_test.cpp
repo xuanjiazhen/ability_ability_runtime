@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -388,9 +388,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_003, TestSize.Level3)
     AbilityRequest abilityRequest;
     abilityRequest.want.SetFlags(Want::FLAG_ABILITY_CONTINUATION);
     InitMockMission(missionListManager, abilityRequest, want, ability);
-    if (ability == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(ability != nullptr);
 
     missionListManager->OnAcceptWantResponse(want, "flag");
     EXPECT_EQ(ability->lifeCycleStateInfo_.launchParam.launchReason, LaunchReason::LAUNCHREASON_CONTINUATION);
@@ -414,9 +412,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_004, TestSize.Level3)
     AbilityRequest abilityRequest;
     abilityRequest.want.SetParam(Want::PARAM_ABILITY_RECOVERY_RESTART, true);
     InitMockMission(missionListManager, abilityRequest, want, ability);
-    if (ability == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(ability != nullptr);
 
     missionListManager->OnAcceptWantResponse(want, "flag");
     EXPECT_EQ(ability->lifeCycleStateInfo_.launchParam.launchReason, LaunchReason::LAUNCHREASON_APP_RECOVERY);
@@ -439,9 +435,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_005, TestSize.Level3)
     std::shared_ptr<AbilityRecord> ability;
     AbilityRequest abilityRequest;
     InitMockMission(missionListManager, abilityRequest, want, ability);
-    if (ability == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(ability != nullptr);
 
     missionListManager->OnAcceptWantResponse(want, "flag");
     EXPECT_EQ(ability->lifeCycleStateInfo_.launchParam.launchReason, LaunchReason::LAUNCHREASON_START_ABILITY);
@@ -5731,13 +5725,11 @@ HWTEST_F(MissionListManagerTest, GetMissionSnapshot_001, TestSize.Level1)
 {
     int userId = 3;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
+    missionListManager->Init();
     int32_t missionId = 1;
     MissionSnapshot missionSnapshot;
     bool isLowResolution = true;
-    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
-    abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
-    missionListManager->terminateAbilityList_.push_back(abilityRecord);
-    bool res = missionListManager->GetMissionSnapshot(missionId, abilityRecord->GetToken(), missionSnapshot, isLowResolution);
+    bool res = missionListManager->GetMissionSnapshot(missionId, missionSnapshot, isLowResolution);
     EXPECT_FALSE(res);
     missionListManager.reset();
 }
@@ -5754,39 +5746,16 @@ HWTEST_F(MissionListManagerTest, GetMissionSnapshot_002, TestSize.Level1)
 {
     int userId = 3;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
+    missionListManager->Init();
     int32_t missionId = 1;
     MissionSnapshot missionSnapshot;
     bool isLowResolution = true;
-    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
-    abilityRecord->SetAbilityState(AbilityState::BACKGROUND);
-    missionListManager->terminateAbilityList_.push_back(abilityRecord);
-    bool res = missionListManager->GetMissionSnapshot(missionId, abilityRecord->GetToken(), missionSnapshot, isLowResolution);
-    EXPECT_FALSE(res);
-    missionListManager.reset();
-}
-
-/*
- * Feature: MissionListManager
- * Function: GetMissionSnapshot
- * SubFunction: NA
- * FunctionPoints: MissionListManager GetMissionSnapshot
- * EnvConditions: NA
- * CaseDescription: Verify GetMissionSnapshot
- */
-HWTEST_F(MissionListManagerTest, GetMissionSnapshot_003, TestSize.Level1)
-{
-    int userId = 3;
-    auto missionListManager = std::make_shared<MissionListManager>(userId);
-    int32_t missionId = 1;
-    MissionSnapshot missionSnapshot;
-    bool isLowResolution = true;
-    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     std::shared_ptr<MissionList> missionList = std::make_shared<MissionList>();
     missionListManager->terminateAbilityList_.clear();
     missionListManager->currentMissionLists_.clear();
     missionListManager->defaultSingleList_ = missionList;
     missionListManager->defaultStandardList_ = missionList;
-    bool res = missionListManager->GetMissionSnapshot(missionId, abilityRecord->GetToken(), missionSnapshot, isLowResolution);
+    bool res = missionListManager->GetMissionSnapshot(missionId, missionSnapshot, isLowResolution);
     EXPECT_FALSE(res);
     missionListManager.reset();
 }

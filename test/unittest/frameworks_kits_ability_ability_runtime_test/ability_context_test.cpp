@@ -282,7 +282,7 @@ public:
     {
         return ERR_OK;
     }
-    virtual ErrCode OpenLink(const AAFwk::Want& want, int requestCode)
+    virtual ErrCode OpenLink(const AAFwk::Want& want, int requestCode, bool hideFailureTipDialog = false)
     {
         return ERR_OK;
     }
@@ -369,6 +369,10 @@ public:
     }
     virtual ErrCode StartAbilityByCall(const AAFwk::Want& want,
         const std::shared_ptr<CallerCallBack> &callback, int32_t accountId = DEFAULT_INVAL_VALUE)
+    {
+        return ERR_OK;
+    }
+    virtual ErrCode StartAbilityForPrelaunch(const Want &want)
     {
         return ERR_OK;
     }
@@ -476,7 +480,7 @@ public:
         return nullptr;
     }
     virtual ErrCode StartAbilityByType(const std::string &type, AAFwk::WantParams &wantParam,
-        const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks)
+        std::shared_ptr<UIExtensionCallback> uiExtensionCallback)
     {
         return ERR_OK;
     }
@@ -526,6 +530,12 @@ public:
         return 0;
     }
 
+    virtual ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
+        AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail)
+    {
+        return 0;
+    }
+
     /**
      * @brief Callback on request success.
      *
@@ -548,6 +558,18 @@ public:
      */
     virtual void OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message, int32_t resultCode)
+    {
+        return;
+    }
+
+    virtual void OnOpenLinkRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message)
+    {
+        return;
+    }
+
+    virtual void OnOpenLinkRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message)
     {
         return;
     }

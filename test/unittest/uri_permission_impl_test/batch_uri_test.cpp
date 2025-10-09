@@ -17,6 +17,7 @@
 #define private public
 #define protected public
 #include "batch_uri.h"
+#include "mock_my_flag.h"
 #undef private
 #undef protected
 using namespace testing::ext;
@@ -37,7 +38,9 @@ void BatchUriTest::TearDownTestCase()
 {}
 
 void BatchUriTest::SetUp()
-{}
+{
+    MyFlag::Init();
+}
 
 void BatchUriTest::TearDown()
 {}
@@ -76,6 +79,65 @@ HWTEST_F(BatchUriTest, Init_0200, TestSize.Level2)
     std::string targetAlterBundleName = "targetBundleName";
     auto ret = batchUri->Init(uriVec, mode, callerAlterBundleName, targetAlterBundleName);
     EXPECT_EQ(ret, 1);
+}
+
+/**
+ * @tc.number: Init_0300
+ * @tc.name: Init
+ * @tc.desc: Test Init.
+ */
+HWTEST_F(BatchUriTest, Init_0300, TestSize.Level2)
+{
+    auto batchUri = std::make_shared<BatchUri>();
+    ASSERT_NE(batchUri, nullptr);
+    std::vector<std::string> uriVec;
+    uriVec.push_back("file://com.example.insertdata/data/storage/el2/base/haps/entry/files/temp1.txt");
+    uriVec.push_back("file://docs/temp1.txt");
+    uint32_t mode = 0;
+    std::string callerAlterBundleName = "callerBundleName";
+    std::string targetAlterBundleName = "targetBundleName";
+    auto ret = batchUri->Init(uriVec, mode, callerAlterBundleName, targetAlterBundleName, true);
+    EXPECT_EQ(ret, 2);
+    EXPECT_EQ(batchUri->checkResult[0], true);
+}
+
+/**
+ * @tc.number: Init_0400
+ * @tc.name: Init
+ * @tc.desc: Test Init.
+ */
+HWTEST_F(BatchUriTest, Init_0400, TestSize.Level2)
+{
+    auto batchUri = std::make_shared<BatchUri>();
+    ASSERT_NE(batchUri, nullptr);
+    std::vector<std::string> uriVec;
+    uriVec.push_back("file://com.example.insertdata/data/storage/el2/base/haps/entry/files/temp1.txt");
+    uriVec.push_back("file://docs/temp1.txt");
+    uint32_t mode = 0;
+    std::string callerAlterBundleName = "callerBundleName";
+    std::string targetAlterBundleName = "targetBundleName";
+    auto ret = batchUri->Init(uriVec, mode, callerAlterBundleName, targetAlterBundleName, false);
+    EXPECT_EQ(ret, 2);
+    EXPECT_EQ(batchUri->checkResult[0], false);
+}
+
+/**
+ * @tc.number: Init_0500
+ * @tc.name: Init
+ * @tc.desc: Test Init.
+ */
+HWTEST_F(BatchUriTest, Init_0500, TestSize.Level2)
+{
+    auto batchUri = std::make_shared<BatchUri>();
+    ASSERT_NE(batchUri, nullptr);
+    std::vector<std::string> uriVec;
+    uriVec.push_back("content://temp.txt");
+    uint32_t mode = 0;
+    std::string callerAlterBundleName = "callerBundleName";
+    std::string targetAlterBundleName = "targetBundleName";
+    auto ret = batchUri->Init(uriVec, mode, callerAlterBundleName, targetAlterBundleName, false);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(batchUri->contentUris.size(), 1);
 }
 
 /**
@@ -141,6 +203,35 @@ HWTEST_F(BatchUriTest, GetUriToGrantByPolicy_0300, TestSize.Level2)
     std::vector<PolicyInfo> policys;
     auto ret = batchUri->GetUriToGrantByPolicy(policys);
     EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.number: GetUriToGrantByPolicy_0500
+ * @tc.name: GetUriToGrantByPolicy
+ * @tc.desc: Test GetUriToGrantByPolicy.
+ */
+HWTEST_F(BatchUriTest, GetUriToGrantByPolicy_0500, TestSize.Level2)
+{
+    auto batchUri = std::make_shared<BatchUri>();
+    ASSERT_NE(batchUri, nullptr);
+    std::vector<std::string> uriVec;
+    uriVec.emplace_back("file://docs/temp.txt");
+    uriVec.emplace_back("file://com.example.test/temp.txt");
+    batchUri->otherPolicyInfos = { PolicyInfo(), PolicyInfo() };
+
+    uint32_t mode = 0;
+    std::string callerAlterBundleName = "callerBundleName";
+    std::string targetAlterBundleName = "targetBundleName";
+    auto ret = batchUri->Init(uriVec, mode, callerAlterBundleName, targetAlterBundleName, false);
+    EXPECT_EQ(ret, 2);
+
+    std::vector<PolicyInfo> docsPolicyInfoVec;
+    std::vector<PolicyInfo> bundlePolicyInfoVec;
+    batchUri->checkResult = { true, true };
+    auto count = batchUri->GetUriToGrantByPolicy(docsPolicyInfoVec, bundlePolicyInfoVec);
+    EXPECT_EQ(count, 2);
+    EXPECT_EQ(docsPolicyInfoVec.size(), 1);
+    EXPECT_EQ(bundlePolicyInfoVec.size(), 1);
 }
 
 /**
