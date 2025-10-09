@@ -465,7 +465,9 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         return PARAMETER_ERROR;
     }
     params.requestCode = requestCode;
-
+    if (IsExistsField(env, info, "operationType")) {
+        return BUSINESS_ERROR_CODE_OK;
+    }
     ani_ref actionFlagsRef = nullptr;
     if (!GetPropertyRef(env, info, "actionFlags", actionFlagsRef, isUndefined)) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "actionFlags GetPropertyRef failed");
@@ -490,10 +492,6 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
                 env, reinterpret_cast<ani_object>(actionFlagRef), actionFlag);
             params.wantAgentFlags.emplace_back(static_cast<WantAgentConstant::Flags>(actionFlag));
         }
-    }
-
-    if (IsExistsField(env, info, "operationType")) {
-        return BUSINESS_ERROR_CODE_OK;
     }
     ani_ref extraInfoRef = nullptr;
     if (!GetPropertyRef(env, info, "extraInfos", extraInfoRef, isUndefined)) {
