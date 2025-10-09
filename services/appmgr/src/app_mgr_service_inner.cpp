@@ -1046,6 +1046,9 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             if (loadParam->isPrelaunch) {
                 appRecord->SetPreloadMode(PreloadMode::PRE_LAUNCH);
             }
+            if (loadParam->isPreloadStart) {
+                appRecord->SetPreloadMode(PreloadMode::PRELOAD_BY_PHASE);
+            }
         }
         LoadAbilityNoAppRecord(appRecord, loadParam->isShellCall, appInfo, abilityInfo, processName,
             specifiedProcessFlag, bundleInfo, hapModuleInfo, want, appExistFlag, false,
@@ -7329,7 +7332,8 @@ void AppMgrServiceInner::AppRecoveryNotifyApp(int32_t pid, const std::string& bu
 void AppMgrServiceInner::ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid,
     const std::string &bundleName, const std::string &processName, const bool isOccurException)
 {
-    if (faultData.faultType == FaultDataType::APP_FREEZE) {
+    if (faultData.faultType == FaultDataType::APP_FREEZE ||
+        faultData.faultType == FaultDataType::BACKGROUND_WARNING) {
         AppfreezeManager::AppInfo info = {
             .isOccurException = isOccurException,
             .pid = pid,
@@ -7368,7 +7372,9 @@ int AppMgrServiceInner::GetExceptionTimerId(const FaultData &faultData, const st
                 TAG_LOGI(AAFwkTag::APPMGR, "Ffrt Exception faultData: %{public}s,pid: %{public}d "
                     "will exit because"" %{public}s", bundleName.c_str(), pid,
                     innerService->FaultTypeToString(faultData.faultType).c_str());
-                innerService->KillProcessByPid(pid, faultData.errorObject.name);
+                std::string reason = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData) ?
+                    AppFreezeType::BACKGROUND_WARNING : faultData.errorObject.name;
+                innerService->KillProcessByPid(pid, reason);
                 return;
             }
         };
@@ -7458,7 +7464,7 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         return ERR_OK;
     }
 
-    if (faultData.faultType == FaultDataType::APP_FREEZE) {
+    if (faultData.faultType == FaultDataType::APP_FREEZE || faultData.faultType == FaultDataType::BACKGROUND_WARNING) {
         if (CheckAppFault(appRecord, faultData)) {
             return ERR_OK;
         }
@@ -7467,14 +7473,9 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
             AppRecoveryNotifyApp(pid, bundleName, FaultDataType::APP_FREEZE, "recoveryTimeout");
         }
     }
-    if (eventName == AppFreezeType::LIFECYCLE_TIMEOUT || eventName == AppFreezeType::APP_INPUT_BLOCK ||
-        eventName == AppFreezeType::THREAD_BLOCK_6S || eventName == AppFreezeType::THREAD_BLOCK_3S ||
-        eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_3S || eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
-        if (AppExecFwk::AppfreezeManager::GetInstance()->IsNeedIgnoreFreezeEvent(pid, eventName)) {
-            TAG_LOGE(AAFwkTag::APPDFR, "appFreeze happend, pid:%{public}d, eventName:%{public}s",
-                pid, eventName.c_str());
-            return ERR_OK;
-        }
+
+    if (AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(pid, eventName)) {
+        return ERR_OK;
     }
 
     if (appRunningManager_ && eventName.find("THREAD_BLOCK_") != std::string::npos) {
@@ -7532,7 +7533,9 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
             uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
             AppExecFwk::AppfreezeManager::GetInstance()->RegisterAppKillTime(pid, now);
-            innerService->KillProcessByPid(pid, faultData.errorObject.name);
+            std::string reason = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData) ?
+                AppFreezeType::BACKGROUND_WARNING : faultData.errorObject.name;
+            innerService->KillProcessByPid(pid, reason);
             return;
         };
         constexpr int32_t waitTime = 3500;
@@ -7559,7 +7562,7 @@ void AppMgrServiceInner::TimeoutNotifyApp(int32_t pid, int32_t uid,
 #else
     KillFaultApp(pid, bundleName, faultData, isNeedExit);
 #endif
-    if (faultData.faultType == FaultDataType::APP_FREEZE) {
+    if (faultData.faultType == FaultDataType::APP_FREEZE || faultData.faultType == FaultDataType::BACKGROUND_WARNING) {
         AppfreezeManager::AppInfo info = {
             .pid = pid,
             .uid = uid,
@@ -7599,7 +7602,8 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
             std::to_string(pid) + "-" + std::to_string(SystemTimeMillisecond());
     }
     const int64_t timeout = 1000;
-    if (faultData.faultType == FaultDataType::APP_FREEZE) {
+    if (faultData.faultType == FaultDataType::APP_FREEZE ||
+        faultData.faultType == FaultDataType::BACKGROUND_WARNING) {
         if (!AppExecFwk::AppfreezeManager::GetInstance()->IsHandleAppfreeze(bundleName) || record->IsDebugging()) {
             return ERR_OK;
         }
@@ -7719,6 +7723,9 @@ std::string AppMgrServiceInner::FaultTypeToString(AppExecFwk::FaultDataType type
             break;
         case AppExecFwk::FaultDataType::RESOURCE_CONTROL:
             typeStr = "RESOURCE_CONTROL";
+            break;
+        case AppExecFwk::FaultDataType::BACKGROUND_WARNING:
+            typeStr = "BACKGROUND_WARNING";
             break;
         default:
             break;
@@ -7863,6 +7870,11 @@ bool AppMgrServiceInner::AllowDebugCheck(const ApplicationInfo &appInfo)
         TAG_LOGI(AAFwkTag::APPMGR, "debug type ok");
         return true;
     }
+    return HasPermissionAllDebug(appInfo);
+}
+
+bool AppMgrServiceInner::HasPermissionAllDebug(const ApplicationInfo &appInfo)
+{
     if (!AAFwk::AppUtils::GetInstance().IsSupportAllowDebugPermission()) {
         return false;
     }
@@ -7911,7 +7923,7 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
     auto&& pefCmd = want.GetStringParam(PERF_CMD);
     std::string debugCmd = "";
     if (pefCmd.empty()) {
-        if (!appInfo->debug) {
+        if (!appInfo->debug && !HasPermissionAllDebug(*appInfo)) {
             TAG_LOGE(AAFwkTag::APPMGR, "app don't debug mode");
             return ERR_INVALID_OPERATION;
         }

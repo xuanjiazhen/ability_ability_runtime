@@ -78,6 +78,7 @@ int AppfreezeEventReport::LogAppInputBlockEvent(const std::string &name, HiSysEv
         EVENT_FREEZE_MEMORY, eventInfo.freezeMemory,
         EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze,
         EVENT_FOREGROUND, eventInfo.foregroundState,
+        EVENT_FREEZE_INFO_PATH, eventInfo.freezeInfoFile,
         EVENT_APPLICATION_HEAP_INFO, eventInfo.applicationHeapInfo,
         EVENT_PROCESS_LIFECYCLE_INFO, eventInfo.processLifeTime);
     return ret;
@@ -104,7 +105,6 @@ int AppfreezeEventReport::LogThreadBlockEvent(const std::string &name, HiSysEven
         EVENT_TRACE_ID, eventInfo.hitraceInfo,
         EVENT_FREEZE_INFO_PATH, eventInfo.freezeInfoFile,
         EVENT_FOREGROUND, eventInfo.foregroundState,
-        EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze,
         EVENT_APPLICATION_HEAP_INFO, eventInfo.applicationHeapInfo,
         EVENT_PROCESS_LIFECYCLE_INFO, eventInfo.processLifeTime);
     return ret;
@@ -130,6 +130,7 @@ int AppfreezeEventReport::LogLifeCycleTimeoutEvent(const std::string &name, HiSy
         EVENT_FREEZE_MEMORY, eventInfo.freezeMemory,
         EVENT_FREEZE_INFO_PATH, eventInfo.freezeInfoFile,
         EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze,
+        EVENT_FOREGROUND, eventInfo.foregroundState,
         EVENT_APPLICATION_HEAP_INFO, eventInfo.applicationHeapInfo,
         EVENT_PROCESS_LIFECYCLE_INFO, eventInfo.processLifeTime);
     return ret;
@@ -154,7 +155,8 @@ int AppfreezeEventReport::LogGeneralEvent(const std::string &name, HiSysEventTyp
         EVENT_APP_RUNNING_UNIQUE_ID, eventInfo.appRunningUniqueId,
         EVENT_FREEZE_MEMORY, eventInfo.freezeMemory,
         EVENT_FREEZE_INFO_PATH, eventInfo.freezeInfoFile,
-        EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze);
+        EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze,
+        EVENT_FOREGROUND, eventInfo.foregroundState);
     return ret;
 }
 }  // namespace AppExecFwk
