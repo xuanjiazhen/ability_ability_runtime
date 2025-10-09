@@ -19,7 +19,7 @@
 #include <regex>
 
 #include "ability_manager_client.h"
-#include "errors.h"
+#include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "js_error_utils.h"
 #include "napi/native_api.h"
@@ -67,14 +67,15 @@ napi_value JsKioskManager::CreateJsKioskStatus(napi_env env,
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
-    if (objValue == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null ObjValue");
-        return nullptr;
-    }
     if (kioskStatus == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null kioskStatus");
         return nullptr;
     }
+    if (objValue == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null ObjValue");
+        return nullptr;
+    }
+
     napi_set_named_property(env, objValue, "isKioskMode",
                             CreateJsValue(env, kioskStatus->isKioskMode_));
     napi_set_named_property(env, objValue, "kioskBundleName",
@@ -96,7 +97,6 @@ napi_value JsKioskManager::OnUpdateKioskApplicationList(napi_env env, NapiCallba
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
     }
-    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
 
     std::vector<std::string> appList;
     if (!OHOS::AppExecFwk::UnwrapArrayStringFromJS(env, info.argv[ARGC_ZERO], appList)) {
@@ -104,6 +104,7 @@ napi_value JsKioskManager::OnUpdateKioskApplicationList(napi_env env, NapiCallba
         ThrowInvalidParamError(env, "Failed to parse application list. Application list must be an Array<string>.");
         return CreateJsUndefined(env);
     }
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
     NapiAsyncTask::ExecuteCallback execute = [innerErrCode, appList]() {
         auto amsClient = AbilityManagerClient::GetInstance();
         if (amsClient == nullptr) {
@@ -289,7 +290,6 @@ napi_value JsKioskManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "exitKioskMode", moduleName, JsKioskManager::ExitKioskMode);
     BindNativeFunction(env, exportObj, "getKioskStatus", moduleName, JsKioskManager::GetKioskStatus);
 
-    TAG_LOGD(AAFwkTag::APPKIT, "end");
     return CreateJsUndefined(env);
 }
 }  // namespace AbilityRuntime

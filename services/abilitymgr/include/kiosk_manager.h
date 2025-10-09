@@ -21,7 +21,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "app_scheduler.h"
 #include "interceptor/ability_interceptor_executer.h"
 #include "kiosk_status.h"
 #include "nocopyable.h"
