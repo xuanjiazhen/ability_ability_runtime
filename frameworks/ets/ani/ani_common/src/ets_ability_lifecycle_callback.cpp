@@ -70,6 +70,7 @@ ani_env *EtsAbilityLifecycleCallback::GetAniEnv()
 void EtsAbilityLifecycleCallback::CallObjectMethod(const char *methodName,
     const char *signature, std::shared_ptr<AppExecFwk::ETSNativeReference> ability)
 {
+    TAG_LOGD(AAFwkTag::APPKIT, "CallObjectMethod called");
     ani_env *aniEnv = GetAniEnv();
     if (aniEnv == nullptr || ability == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or ability");
@@ -94,6 +95,7 @@ void EtsAbilityLifecycleCallback::CallObjectMethod(const char *methodName, const
     std::shared_ptr<AppExecFwk::ETSNativeReference> ability,
     std::shared_ptr<AppExecFwk::ETSNativeReference> windowStage)
 {
+    TAG_LOGD(AAFwkTag::APPKIT, "CallObjectMethod called");
     ani_env *aniEnv = GetAniEnv();
     if (aniEnv == nullptr || ability == nullptr || windowStage == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or ability or windowStage");
@@ -141,6 +143,7 @@ void EtsAbilityLifecycleCallback::CallObjectProperty(const char *name,
 void EtsAbilityLifecycleCallback::CallObjectPropertyCommon(ani_env *env, const char *name,
     ani_ref ability, ani_ref windowStage)
 {
+    TAG_LOGD(AAFwkTag::APPKIT, "CallObjectPropertyCommon called");
     ani_status status = ANI_ERROR;
     std::lock_guard<std::mutex> lock(mutex_);
     for (const auto &callback : callbacks_) {
