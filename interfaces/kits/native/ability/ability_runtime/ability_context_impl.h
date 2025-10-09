@@ -33,6 +33,8 @@ public:
     AbilityContextImpl();
     virtual ~AbilityContextImpl() = default;
 
+    static int32_t TransferWSError(Rosen::WSError srcError);
+
     Global::Resource::DeviceType GetDeviceType() const override;
     std::string GetBaseDir() const override;
     std::string GetBundleCodeDir() override;

@@ -1518,6 +1518,14 @@ ErrCode AbilityContextImpl::SetOnNewWantSkipScenarios(int32_t scenarios)
     return AAFwk::AbilityManagerClient::GetInstance()->SetOnNewWantSkipScenarios(token_, scenarios);
 }
 
+static int32_t AbilityContextImpl::TransferWSError(Rosen::WSError srcError)
+{
+    if (srcError == Rosen::WSError::WS_OK) {
+        return ERR_OK;
+    }
+    return ERR_INVALID_VALUE;
+}
+
 ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1544,11 +1552,11 @@ ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
         return ERR_INVALID_VALUE;
     }
     TAG_LOGI(AAFwkTag::CONTEXT, "scb call, restartApp");
-    ErrCode ret = static_cast<int32_t>(ifaceSessionToken->RestartApp(std::make_shared<Want>(want)));
-    if (ret != ERR_OK) {
+    auto ret = ifaceSessionToken->RestartApp(std::make_shared<Want>(want));
+    if (ret != Rosen::WSError::WS_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "scb call, RestartApp err: %{public}d", ret);
     }
-    return ret;
+    return TransferWSError(ret);
 #else
     return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
 #endif
