@@ -79,20 +79,26 @@ sptr<IWantSender> PendingWantManager::GetWantSender(int32_t callingUid, int32_t 
 void PendingWantManager::AddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "add wantAgent number");
-    if (PermissionVerification::GetInstance()->IsSystemAppCall()
-        || PermissionVerification::GetInstance()->IsSACall()) {
+    if (PermissionVerification::GetInstance()->IsSystemAppCall() ||
+        PermissionVerification::GetInstance()->IsSACall()) {
         TAG_LOGI(AAFwkTag::WANTAGENT, "systemCall");
         return;
     }
 
     std::string bundleName = pendingKey->GetBundleName();
     auto it = wantAgentCount_.find(bundleName);
-    if(it == wantAgentCount_.end()) {
-        wantAgentCount_.insert(std::make_pair(bundleName, AgentCount{1, 1}));
+    if (it == wantAgentCount_.end()) {
+        wantAgentCount_.insert(std::make_pair(bundleName, AgentCount{1, 1, false}));
     } else {
-        it->second.countNumber = it->second.countNumber + 1;
-        if(it->second.countNumber > it->second.maxNumber) {
-            it->second.maxNumber = it->second.countNumber;
+        it->second.currentNumber = it->second.currentNumber + 1;
+        if (it->second.DFXFlag) { // Not First DFX
+            if (it->second.currentNumber - it->second.latestMinNumber > WANTAGENT_FLOAT_THRESHOLD) {
+                SendWantAgentNumberEvent(pendingKey, it->second.maxNumber);
+            }
+        } else { // First DFX
+            if (it->second.currentNumber > WANTAGENT_NUMBER_THRESHOLD) {
+                SendWantAgentNumberEvent(pendingKey, it->second.maxNumber);
+            }
         }
     }
 
@@ -112,8 +118,8 @@ void SendWantAgentNumberEvent(std::shared_ptr<PendingWantKey> pendingKey, int32_
 
 void PendingWantManager::ReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey) {
     TAG_LOGI(AAFwkTag::WANTAGENT, "reduce wantAgent number");
-    if (PermissionVerification::GetInstance()->IsSystemAppCall()
-        || PermissionVerification::GetInstance()->IsSACall()) {
+    if (PermissionVerification::GetInstance()->IsSystemAppCall() ||
+        PermissionVerification::GetInstance()->IsSACall()) {
         TAG_LOGI(AAFwkTag::WANTAGENT, "systemCall");
         return;
     }
@@ -123,13 +129,13 @@ void PendingWantManager::ReduceWantAgentNumber(std::shared_ptr<PendingWantKey> p
     if(it == wantAgentCount_.end()) {
         TAG_LOGI(AAFwkTag::WANTAGENT, "No WantAgent");
     } else {
-        if (it->second.countNumber == 1) {
-            if (it->second.maxNumber > WANTAGENT_NUMBER_THRESHOLD) {
-                SendWantAgentNumberEvent(pendingKey, it->second.maxNumber);
-            }
+        if (it->second.currentNumber == 1) {
             wantAgentCount_.erase(bundleName);
         } else {
-            it->second.countNumber = it->second.countNumber - 1;
+            it->second.currentNumber = it->second.currentNumber - 1;
+            if (it->second.currentNumber < it->second.latestMinNumber) {
+                it->second.latestMinNumber = it->second.currentNumber;
+            }
         }
     }
 }
@@ -419,8 +425,8 @@ int32_t PendingWantManager::PendingWantStartAbility(const Want &want, const sptr
 int32_t PendingWantManager::PendingWantStartServiceExtension(Want &want, const sptr<IRemoteObject> &callerToken)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "start service extension");
-    if (!PermissionVerification::GetInstance()->IsSystemAppCall()
-        && !PermissionVerification::GetInstance()->IsSACall()) {
+    if (!PermissionVerification::GetInstance()->IsSystemAppCall() &&
+        !PermissionVerification::GetInstance()->IsSACall()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "non-system app called");
         return ERR_INVALID_VALUE;
     }
