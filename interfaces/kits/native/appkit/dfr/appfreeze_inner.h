@@ -31,6 +31,15 @@
 #include "fault_data.h"
 #include "task_handler_wrap.h"
 
+#define OHOS_TEMP_FAILURE_RETRY(exp)               \
+    ({                                             \
+        long int _rc;                              \
+        do {                                       \
+            _rc = (long int)(exp);                 \
+        } while ((_rc == -1) && (errno == EINTR)); \
+        _rc;                                       \
+    })
+
 namespace OHOS {
 namespace AppExecFwk {
 class AppfreezeInner {
@@ -52,6 +61,7 @@ public:
     void SetAppInForeground(bool isInForeground);
     void SetMainThreadSample(bool isEnableMainThreadSample);
     void SetAppfreezeApplication(const std::shared_ptr<OHOSApplication> &application);
+    std::string GetProcessLifeCycle();
 
 private:
     static std::weak_ptr<EventHandler> appMainHandler_;
@@ -68,8 +78,8 @@ private:
     void ReportAppfreezeTask(const FaultData& faultData, bool onlyMainThread);
     std::string LogFormat(size_t totalSize, size_t objectSize);
     void GetApplicationInfo(FaultData& faultData);
-    std::string GetProcessLifeCycle();
     bool GetProcessStartTime(pid_t tid, unsigned long long &startTime);
+    bool ReadFdToString(int fd, std::string& content);
 
     static std::mutex singletonMutex_;
     static std::shared_ptr<AppfreezeInner> instance_;
