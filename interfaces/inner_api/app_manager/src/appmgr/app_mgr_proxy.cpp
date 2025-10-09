@@ -1851,6 +1851,10 @@ int32_t AppMgrProxy::GetChildProcessInfoForSelf(ChildProcessInfo &info)
     auto result = reply.ReadInt32();
     if (result == ERR_OK) {
         std::unique_ptr<ChildProcessInfo> infoReply(reply.ReadParcelable<ChildProcessInfo>());
+        if (!infoReply) {
+            TAG_LOGE(AAFwkTag::APPMGR, "infoReply nullptr");
+            return result;  //这里返回result合理吗？以及如果result是ERR_OK，infoReply有可能是空指针吗？
+        }
         info = *infoReply;
     }
     return result;

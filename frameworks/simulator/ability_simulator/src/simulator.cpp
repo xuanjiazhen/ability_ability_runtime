@@ -434,6 +434,12 @@ bool SimulatorImpl::LoadAbilityStage(uint8_t *buffer, size_t len)
     srcEntrance.append(".abc");
     srcEntrance = srcEntrance.substr(srcEntrance.find('/') + 1, srcEntrance.length());
 
+    auto pos = srcEntrance.find("..");
+    if (pos != std::string::npos) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "invalid srcEntrance");
+        return false;   
+    }
+
     auto moduleSrcPath = BUNDLE_INSTALL_PATH + options_.moduleName + "/" + srcEntrance;
     TAG_LOGD(AAFwkTag::ABILITY_SIM, "moduleSrcPath is %{public}s", moduleSrcPath.c_str());
     if (!reinterpret_cast<NativeEngine*>(nativeEngine_)->RunScriptBuffer(moduleSrcPath, buffer, len, false)) {

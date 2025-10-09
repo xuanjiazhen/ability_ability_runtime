@@ -158,6 +158,8 @@ private:
     std::string callerName_;
     std::map<sptr<IRemoteObject>, std::shared_ptr<ConnectedExtension>> connectionMap_; // key:targetExtension token
     std::map<sptr<IRemoteObject>, std::shared_ptr<ConnectedDataAbility>> dataAbilityMap_; // key:targetDatability token
+    std::mutex connectionMapMutex_;
+    std::mutex dataAbilityMapMutex_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

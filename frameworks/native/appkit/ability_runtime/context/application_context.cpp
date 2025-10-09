@@ -791,6 +791,16 @@ bool ApplicationContext::SetFontSizeScale(double fontSizeScale)
 
 void ApplicationContext::SetMcc(const std::string &mcc)
 {
+    if (mcc.length() != 3) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid mcc length");
+        return;
+    }
+    for (char c : mcc) {
+        if (!std::isdigit(static_cast<unsigned char>(c))) {
+            TAG_LOGE(AAFwkTag::APPKIT, "invalid mcc");
+            return;
+        }
+    }
     if (contextImpl_ != nullptr) {
         contextImpl_->SetMcc(mcc);
     }
@@ -798,6 +808,16 @@ void ApplicationContext::SetMcc(const std::string &mcc)
 
 void ApplicationContext::SetMnc(const std::string &mnc)
 {
+    if (mnc.length() != 2 && mnc.length() != 3) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid mnc length");
+        return;
+    }
+    for (char c : mnc) {
+        if (!std::isdigit(static_cast<unsigned char>(c))) {
+            TAG_LOGE(AAFwkTag::APPKIT, "invalid mnc");
+            return;
+        }
+    }
     if (contextImpl_ != nullptr) {
         contextImpl_->SetMnc(mnc);
     }
