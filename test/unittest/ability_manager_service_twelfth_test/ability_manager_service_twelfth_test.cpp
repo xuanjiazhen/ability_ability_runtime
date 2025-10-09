@@ -520,6 +520,38 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetUserScreenUnlockCallback_001, Test
 
 /*
  * Feature: AbilityManagerService
+ * Function: GetUserScreenUnlockCallback
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetUserScreenUnlockCallback
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetUserScreenUnlockCallback_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetUserScreenUnlockCallback_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->UnSubscribeScreenUnlockedEventSync();
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->RemoveScreenUnlockInterceptor();
+    int32_t retryCount = 1;
+    abilityMs_->RetrySubscribeScreenUnlockedEvent(retryCount);
+    Want want;
+    AbilityRequest abilityRequest;
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
+    abilityMs_->RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerTokenId);
+    std::string testText = "AbilityManagerServiceTwelfthTest";
+    want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, testText);
+    abilityMs_->RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerTokenId);
+    auto ret = abilityMs_->GetUserScreenUnlockCallback();
+    if (ret) {
+        ret();
+        abilityMs_.reset();
+        ret();
+    }
+    EXPECT_EQ(static_cast<bool>(ret), true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetUserScreenUnlockCallback_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: StartAbilityJust
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService StartAbilityJust
