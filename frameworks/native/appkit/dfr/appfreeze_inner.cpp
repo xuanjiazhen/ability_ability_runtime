@@ -128,6 +128,22 @@ void AppfreezeInner::GetMainHandlerDump(std::string& msgContent)
     msgContent += "Main handler dump end time: " + AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
 }
 
+bool AppfreezeInner::ReadFdToString(int fd, std::string& content)
+{
+    content.clear();
+    struct stat sb;
+    if (fstat(fd, &sb) != -1 && sb.st_size > 0) {
+        content.reserve(sb.st_size);
+    }
+
+    char buf[BUFSIZ] = {0};
+    ssize_t n;
+    while ((n = OHOS_TEMP_FAILURE_RETRY(read(fd, buf, sizeof(buf)))) > 0) {
+        content.append(buf, n);
+    }
+    return (n == 0);
+}
+
 bool AppfreezeInner::GetProcessStartTime(pid_t tid, unsigned long long &startTime)
 {
     std::string path = "/proc/" +std::to_string(tid);
@@ -144,7 +160,7 @@ bool AppfreezeInner::GetProcessStartTime(pid_t tid, unsigned long long &startTim
     }
 
     std::string statStr;
-    if (!OHOS::LoadStringFromFd(statFd.Get(), statStr)) {
+    if (!ReadFdToString(statFd.Get(), statStr)) {
         TAG_LOGE(AAFwkTag::APPDFR, "GetProcessInfo read string fail.");
         return false;
     }
