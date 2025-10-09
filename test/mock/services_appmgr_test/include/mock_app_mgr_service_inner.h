@@ -33,7 +33,7 @@ public:
     {}
 
     MOCK_METHOD4(LoadAbility, void(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<ApplicationInfo> appInfo,
-        std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam));
+            std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam));
     MOCK_METHOD2(AttachApplication, void(const pid_t pid, const sptr<IAppScheduler>& app));
     MOCK_METHOD1(ApplicationForegrounded, void(const int32_t recordId));
     MOCK_METHOD1(ApplicationBackgrounded, void(const int32_t recordId));
@@ -78,8 +78,8 @@ public:
     MOCK_METHOD0(ClearNonPersistWaitingDebugFlag, void());
     MOCK_METHOD0(IsMemorySizeSufficient, bool());
 #ifdef SUPPORT_CHILD_PROCESS
-    MOCK_METHOD5(CreateNativeChildProcess, int32_t(const pid_t hostPid, const std::string &libName,
-        int32_t childProcessCount, const sptr<IRemoteObject> &callback, const std::string &customProcessName));
+    MOCK_METHOD4(CreateNativeChildProcess, int32_t(const pid_t hostPid, const std::string &libName,
+        const sptr<IRemoteObject> &callback, const ChildProcessRequest &request));
 #endif // SUPPORT_CHILD_PROCESS
     MOCK_METHOD4(PreloadApplicationByPhase, int32_t(const std::string&, int32_t, int32_t, AppExecFwk::PreloadPhase));
     MOCK_METHOD2(NotifyPreloadAbilityStateChanged, int32_t(sptr<IRemoteObject>, bool));

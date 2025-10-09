@@ -41,6 +41,8 @@ struct ETSRuntimeAPI {
     ani_status (*ANI_CreateVM)(const ani_options *options, uint32_t version, ani_vm **result);
 };
 
+using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
+
 class ETSEnvironment final : public std::enable_shared_from_this<ETSEnvironment> {
 public:
     ETSEnvironment() {};
@@ -50,7 +52,7 @@ public:
     static void InitETSSysNS(const std::string &path);
     static ETSEnvFuncs *RegisterFuncs();
 
-    bool Initialize();
+    bool Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isDebug);
     void RegisterUncaughtExceptionHandler(const ETSUncaughtExceptionInfo &handle);
     ani_env *GetAniEnv();
     bool HandleUncaughtError();
@@ -58,8 +60,18 @@ public:
     bool LoadModule(const std::string &modulePath, const std::string &srcEntrance, void *&cls,
         void *&obj, void *&ref);
     bool FinishPreload();
-    bool PostFork(void *napiEnv, const std::string &aotPath);
+    bool PostFork(void *napiEnv, const std::string &aotPath, const std::vector<std::string>& appInnerHspPathList,
+        const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos);
     bool PreloadSystemClass(const char *className);
+
+    void RemoveInstance(uint32_t instanceId);
+    void StopDebugMode(void *jsVm);
+    void StartDebuggerForSocketPair(std::string &option, int32_t socketFd);
+    void NotifyDebugMode(uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm);
+    void PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime);
+    void BroadcastAndConnect(const std::string& bundleName, int socketFd);
+
+    DebuggerPostTask GetDebuggerPostTask();
 
     struct VMEntry {
         ani_vm *aniVm_;
@@ -72,6 +84,11 @@ public:
     };
 
 private:
+    bool ConvertHspPathToAniArray(ani_env *aniEnv, const std::vector<std::string> &hapPathInfos,
+        ani_array_ref &refArray);
+    std::vector<std::string> GetHspPathList();
+    bool GetHspAbcRuntimeLinker(ani_array_ref &refHspLinkerArray, ani_class cls);
+    ani_object CreateRuntimeLinker(ani_env *aniEnv, ani_class cls, ani_ref undefined_ref, ani_array_ref &refArray);
     bool LoadRuntimeApis();
     bool LoadSymbolCreateVM(void *handle, ETSRuntimeAPI &apis);
     bool LoadSymbolANIGetCreatedVMs(void *handle, ETSRuntimeAPI &apis);
@@ -80,9 +97,15 @@ private:
     EtsEnv::ETSErrorObject GetETSErrorObject();
     std::string GetErrorProperty(ani_error aniError, const char *property);
     bool LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj);
+    void InitEventHandler(const std::shared_ptr<AppExecFwk::EventRunner> &eventRunner);
+    int32_t ParseHdcRegisterOption(std::string& option);
     static ETSRuntimeAPI lazyApis_;
     VMEntry vmEntry_;
     ETSUncaughtExceptionInfo uncaughtExceptionInfo_;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
+    bool debugMode_ = false;
+    std::vector<std::string> appInnerHspPathList_;
+    std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> commonHspBundleInfos_;
 };
 } // namespace EtsEnv
 } // namespace OHOS

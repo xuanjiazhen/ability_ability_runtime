@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -969,7 +969,7 @@ HWTEST_F(AppMgrServiceTest, RegisterConfigurationObserver_001, TestSize.Level2)
     auto appMgrService = std::make_shared<AppMgrService>();
     sptr<IConfigurationObserver> observer = nullptr;
     appMgrService->SetInnerService(nullptr);
-    int32_t res = appMgrService->RegisterConfigurationObserver(observer);
+    int32_t res = appMgrService->RegisterConfigurationObserver(observer, -1);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 }
 
@@ -988,7 +988,7 @@ HWTEST_F(AppMgrServiceTest, RegisterConfigurationObserver_002, TestSize.Level2)
     appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    int32_t res = appMgrService->RegisterConfigurationObserver(observer);
+    int32_t res = appMgrService->RegisterConfigurationObserver(observer, -1);
     EXPECT_NE(res, ERR_INVALID_OPERATION);
 }
 
@@ -1956,13 +1956,21 @@ HWTEST_F(AppMgrServiceTest, CreateNativeChildProcess_0100, TestSize.Level1)
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = eventHandler_;
 
-    EXPECT_CALL(*mockAppMgrServiceInner_, CreateNativeChildProcess(_, _, _, _, _))
+    EXPECT_CALL(*mockAppMgrServiceInner_, CreateNativeChildProcess(_, _, _, _))
         .Times(1)
         .WillOnce(Return(ERR_OK));
 
     pid_t pid = 0;
     sptr<IRemoteObject> callback;
-    int32_t res = appMgrService->CreateNativeChildProcess("test.so", 1, callback, "");
+    ChildProcessOptions options;
+    options.isolationMode = false;
+    options.customProcessName = "";
+    options.isolationUid = false;
+    ChildProcessRequest request;
+    request.childProcessType = CHILD_PROCESS_TYPE_NATIVE;
+    request.childProcessCount = 1;
+    request.options = options;
+    int32_t res = appMgrService->CreateNativeChildProcess("test.so", callback, request);
     EXPECT_EQ(res, ERR_OK);
 }
 
@@ -1981,13 +1989,21 @@ HWTEST_F(AppMgrServiceTest, CreateNativeChildProcess_0200, TestSize.Level1)
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = eventHandler_;
 
-    EXPECT_CALL(*mockAppMgrServiceInner_, CreateNativeChildProcess(_, _, _, _, _))
+    EXPECT_CALL(*mockAppMgrServiceInner_, CreateNativeChildProcess(_, _, _, _))
         .Times(1)
         .WillOnce(Return(ERR_OK));
 
     pid_t pid = 0;
     sptr<IRemoteObject> callback;
-    int32_t res = appMgrService->CreateNativeChildProcess("test.so", 1, callback, "abc_123");
+    ChildProcessOptions options;
+    options.isolationMode = false;
+    options.customProcessName = "abc_123";
+    options.isolationUid = false;
+    ChildProcessRequest request;
+    request.childProcessType = CHILD_PROCESS_TYPE_NATIVE;
+    request.childProcessCount = 1;
+    request.options = options;
+    int32_t res = appMgrService->CreateNativeChildProcess("test.so", callback, request);
     EXPECT_EQ(res, ERR_OK);
 }
 #endif // SUPPORT_CHILD_PROCESS
@@ -2032,7 +2048,7 @@ HWTEST_F(AppMgrServiceTest, GetSupportedProcessCachePids_002, TestSize.Level2)
     std::string bundleName = "testBundleName";
     std::vector<int32_t> pidList;
     int32_t res = appMgrService->GetSupportedProcessCachePids(bundleName, pidList);
-    EXPECT_EQ(res, ERR_OK);
+    EXPECT_EQ(res, AAFwk::CHECK_PERMISSION_FAILED);
 }
 
 /*
@@ -2367,6 +2383,62 @@ HWTEST_F(AppMgrServiceTest, QueryRunningSharedBundles_003, TestSize.Level1)
     int32_t result = appMgrService->QueryRunningSharedBundles(pid, sharedBundles);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "QueryRunningSharedBundles_003 end.");
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: GetConfiguration
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService GetConfiguration
+ * EnvConditions: NA
+ * CaseDescription: Verify GetConfiguration
+ */
+HWTEST_F(AppMgrServiceTest, GetConfiguration_003, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    Configuration config;
+    int32_t userId = 1;
+    appMgrService->SetInnerService(nullptr);
+    int32_t res = appMgrService->GetConfiguration(config, userId);
+    EXPECT_EQ(res, ERR_INVALID_OPERATION);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: GetConfiguration
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService GetConfiguration
+ * EnvConditions: NA
+ * CaseDescription: Verify GetConfiguration
+ */
+HWTEST_F(AppMgrServiceTest, GetConfiguration_004, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    Configuration config;
+    int32_t userId = 1;
+    appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
+    int32_t res = appMgrService->GetConfiguration(config, userId);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: UpdateConfigurationByUserIds
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService UpdateConfigurationByUserIds
+ * EnvConditions: NA
+ * CaseDescription: Verify UpdateConfigurationByUserIds
+ */
+HWTEST_F(AppMgrServiceTest, UpdateConfigurationByUserIds_001, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    Configuration config;
+    std::vector<int32_t> userIds;
+    appMgrService->SetInnerService(nullptr);
+    int32_t res = appMgrService->UpdateConfigurationByUserIds(config, userIds);
+    EXPECT_EQ(res, ERR_INVALID_OPERATION);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

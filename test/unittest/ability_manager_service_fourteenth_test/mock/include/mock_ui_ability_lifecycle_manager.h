@@ -192,6 +192,14 @@ public:
      * @param abilityRequest target ability request.
      */
     int ResolveLocked(const AbilityRequest &abilityRequest, std::string &errMsg);
+    
+    /**
+     * resolve the call ipc of ability for prelaunch.
+     *
+     * @param abilityRequest target ability request.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest);
 
     /**
      * Call UIAbility by SCB.
@@ -216,7 +224,7 @@ public:
      * @param requestId target ability requestId.
      */
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId,
-        const std::string &callerProcessName = "");
+        const std::string &callerProcessName = "", int32_t recordId = 0);
 
     /**
      * OnStartSpecifiedAbilityTimeoutResponse.
@@ -239,8 +247,6 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     void OnStartSpecifiedFailed(int32_t requestId);
-
-    int32_t StartSpecifiedAbilityBySCB(AbilityRequest &abilityRequest);
 
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
@@ -499,7 +505,7 @@ private:
     void AddSpecifiedRequest(std::shared_ptr<SpecifiedRequest> request);
     void StartSpecifiedRequest(SpecifiedRequest &specifiedRequest);
     std::shared_ptr<SpecifiedRequest> PopAndGetNextSpecified(int32_t requestId);
-    bool IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest, bool &isDebug);
+    bool IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest, bool isSpecifiedProcess, bool &isDebug);
     bool HandleStartSpecifiedCold(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, uint32_t sceneFlag);
     bool HandleColdAcceptWantDone(const AAFwk::Want &want, const std::string &flag,
         const SpecifiedRequest &specifiedRequest);

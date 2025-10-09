@@ -99,6 +99,10 @@ int32_t StartAbilityByCallComplete(std::shared_ptr<AbilityContext> abilityContex
     if (calldata->err != 0) {
         TAG_LOGE(AAFwkTag::CONTEXT, "err: %{public}d", calldata->err);
         TAG_LOGD(AAFwkTag::CONTEXT, "clear failed call of startup is called");
+        if (abilityContext == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+            return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+        }
         abilityContext->ClearFailedCallConnection(callerCallBack);
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
@@ -109,7 +113,7 @@ int32_t StartAbilityByCallComplete(std::shared_ptr<AbilityContext> abilityContex
         TAG_LOGD(AAFwkTag::CONTEXT, "callComplete end");
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
-    auto releaseCallAbilityFunc = [abilityContext] (const std::shared_ptr<CallerCallBack> &callback) -> ErrCode {
+    auto releaseCallAbilityFunc = [abilityContext] (std::shared_ptr<CallerCallBack> callback) -> ErrCode {
         auto contextForRelease = abilityContext;
         if (contextForRelease == nullptr) {
             TAG_LOGE(AAFwkTag::CONTEXT, "null releaseCallAbilityFunction");

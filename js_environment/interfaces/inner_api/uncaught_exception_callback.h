@@ -59,7 +59,9 @@ public:
     * @param errorInfo The error information defined in jsnapi_expo.h.
     */
     void CallbackTaskOOM(const panda::UncatchableErrorInfo& errorInfo);
-    
+
+    void HandleAndLogIfNotJsError(napi_value obj);
+
     std::string GetNativeStrFromJsTaggedObj(napi_value obj, const char* key);
 
     static std::string GetFuncNameAndBuildId(std::string nativeStack);

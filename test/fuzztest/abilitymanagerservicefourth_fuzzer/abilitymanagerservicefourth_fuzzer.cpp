@@ -66,10 +66,10 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     AppExecFwk::AbilityInfo abilityInfo;
     abilityms->JudgeAbilityVisibleControl(abilityInfo);
     sptr<IUserCallback> callback;
-    abilityms->StartUser(intParam, callback);
+    abilityms->StartUser(intParam, 0, callback);
     abilityms->StopUser(intParam, callback);
-    abilityms->OnAcceptWantResponse(*want, stringParam, 0);
-    abilityms->OnStartSpecifiedAbilityTimeoutResponse(0);
+    abilityms->OnAcceptWantResponse(*want, stringParam, 0, intParam);
+    abilityms->OnStartSpecifiedAbilityTimeoutResponse(0, intParam);
     if (want) {
         delete want;
         want = nullptr;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #include "js_error_utils.h"
 #include "js_extension_window.h"
 #include "js_runtime_utils.h"
+#include "js_ui_extension_callback.h"
 #include "js_ui_extension_context.h"
 #include "napi_common_start_options.h"
 #include "napi_common_util.h"
@@ -911,6 +912,11 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
 #endif
     std::shared_ptr<JsUIExtensionCallback> uiExtensionCallback = std::make_shared<JsUIExtensionCallback>(env);
     uiExtensionCallback->SetJsCallbackObject(info.argv[INDEX_TWO]);
+    napi_value completionHandler = AppExecFwk::GetPropertyValueByPropertyName(
+        env, info.argv[INDEX_TWO], "completionHandler", napi_object);
+    if (completionHandler != nullptr) {
+        uiExtensionCallback->SetCompletionHandler(env, completionHandler);
+    }
     NapiAsyncTask::CompleteCallback complete = [uiWindow = uiWindow_, type, want, uiExtensionCallback]
         (napi_env env, NapiAsyncTask& task, int32_t status) {
             if (uiWindow == nullptr || uiWindow->GetUIContent() == nullptr) {
@@ -924,6 +930,23 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
             };
             callback.onRelease = [uiExtensionCallback](const auto &arg) {
                 uiExtensionCallback->OnRelease(arg);
+            };
+            callback.onReceive = [uiExtensionCallback](const AAFwk::WantParams& data) {
+                if (data.HasParam("onRequestSuccess")) {
+                    auto successParam = data.GetWantParams("onRequestSuccess");
+                    auto elementName = successParam.GetStringParam("name");
+                    uiExtensionCallback->OnRequestSuccess(elementName);
+                } else if (data.HasParam("onRequestFailure")) {
+                    auto failureParam = data.GetWantParams("onRequestFailure");
+                    auto elementName = failureParam.GetStringParam("name");
+                    int32_t failureCode = failureParam.GetIntParam("failureCode", 0);
+                    if (failureCode != 0 && failureCode != 1) {
+                        TAG_LOGE(AAFwkTag::CONTEXT, "Invalid failureCode: %{public}d", failureCode);
+                        return;
+                    }
+                    std::string failureMsg = failureParam.GetStringParam("failureMessage");
+                    uiExtensionCallback->OnRequestFailure(elementName, failureCode, failureMsg);
+                }
             };
             Ace::ModalUIExtensionConfig config;
             int32_t sessionId = uiWindow->GetUIContent()->CreateModalUIExtension(want, callback, config);

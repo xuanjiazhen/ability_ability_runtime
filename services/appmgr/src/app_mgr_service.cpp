@@ -25,6 +25,7 @@
 #include "ability_manager_xcollie.h"
 #include "app_death_recipient.h"
 #include "app_mgr_constants.h"
+#include "application_state_filter.h"
 #include "datetime_ex.h"
 #include "fd_guard.h"
 #include "freeze_util.h"
@@ -59,6 +60,11 @@ constexpr const int BASE_TEN = 10;
 constexpr const char SIGN_TERMINAL = '\0';
 constexpr int32_t DEFAULT_CONCURRENT_NUMBER = 1;
 namespace {
+#define CHECK_CALLER_IS_SYSTEM_APP                                                             \
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) { \
+        TAG_LOGE(AAFwkTag::APPMGR, "can't use SA");    \
+        return AAFwk::ERR_NOT_SYSTEM_APP;                                                      \
+    }
 using namespace std::chrono_literals;
 constexpr const char* TASK_INIT_APPMGRSERVICEINNER = "InitAppMgrServiceInnerTask";
 constexpr const char* TASK_ATTACH_APPLICATION = "AttachApplicationTask";
@@ -304,7 +310,7 @@ void AppMgrService::AbilityCleaned(const sptr<IRemoteObject> &token)
     auto callerUid = IPCSkeleton::GetCallingUid();
     auto appRecord = appMgrServiceInner_->GetTerminatingAppRunningRecord(token);
     if (!appRecord || appRecord->GetUid() != callerUid) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "verification failed");
         return;
     }
 
@@ -779,7 +785,10 @@ int AppMgrService::ShowHelp(const std::vector<std::u16string>& args, std::string
         .append("-h                          ")
         .append("help text for the tool\n")
         .append("--ffrt pid1[,pid2,pid3]     ")
-        .append("dump ffrt info\n");
+        .append("dump ffrt info\n")
+        .append("--ipc pid ARG               ")
+        .append("ipc load statistic; pid must be specified or set to -a dump all processes. ARG must be one of "
+            "--start-stat | --stop-stat | --stat\n");
 
     return ERR_OK;
 }
@@ -1113,6 +1122,16 @@ int32_t AppMgrService::GetConfiguration(Configuration& config)
     return ERR_OK;
 }
 
+int32_t AppMgrService::GetConfiguration(Configuration& config, int32_t userId)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    config = *(appMgrServiceInner_->GetConfiguration(userId));
+    return ERR_OK;
+}
+
 int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1121,6 +1140,18 @@ int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const in
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->UpdateConfiguration(config, userId);
+}
+
+int32_t AppMgrService::UpdateConfigurationByUserIds(
+    const Configuration& config, const std::vector<int32_t> userIds)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+
+    return appMgrServiceInner_->UpdateConfigurationByUserIds(config, userIds);
 }
 
 int32_t AppMgrService::UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo>& appInfos,
@@ -1148,13 +1179,14 @@ int32_t AppMgrService::UpdateConfigurationByBundleName(const Configuration& conf
     return appMgrServiceInner_->UpdateConfigurationByBundleName(config, name, appIndex);
 }
 
-int32_t AppMgrService::RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer)
+int32_t AppMgrService::RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer,
+    const int32_t userId)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->RegisterConfigurationObserver(observer);
+    return appMgrServiceInner_->RegisterConfigurationObserver(observer, userId);
 }
 
 int32_t AppMgrService::UnregisterConfigurationObserver(const sptr<IConfigurationObserver> &observer)
@@ -1668,7 +1700,7 @@ int32_t AppMgrService::NotifyMemorySizeStateChanged(int32_t memorySizeState)
 
 int32_t AppMgrService::SetSupportedProcessCacheSelf(bool isSupport)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
@@ -1678,7 +1710,7 @@ int32_t AppMgrService::SetSupportedProcessCacheSelf(bool isSupport)
 
 int32_t AppMgrService::SetSupportedProcessCache(int32_t pid, bool isSupport)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "Called");
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Not ready.");
         return ERR_INVALID_OPERATION;
@@ -1731,8 +1763,8 @@ void AppMgrService::SetAppAssertionPauseState(bool flag)
 }
 
 #ifdef SUPPORT_CHILD_PROCESS
-int32_t AppMgrService::CreateNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-    const sptr<IRemoteObject> &callback, const std::string &customProcessName)
+int32_t AppMgrService::CreateNativeChildProcess(const std::string &libName,
+    const sptr<IRemoteObject> &callback, const ChildProcessRequest &request)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "call");
@@ -1740,9 +1772,9 @@ int32_t AppMgrService::CreateNativeChildProcess(const std::string &libName, int3
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-
+    
     return appMgrServiceInner_->CreateNativeChildProcess(
-        IPCSkeleton::GetCallingPid(), libName, childProcessCount, callback, customProcessName);
+        IPCSkeleton::GetCallingPid(), libName, callback, request);
 }
 #endif // SUPPORT_CHILD_PROCESS
 
@@ -1913,8 +1945,8 @@ int32_t AppMgrService::PromoteCurrentToCandidateMasterProcess(bool isInsertToHea
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call");
     if (!IsReady()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
     return appMgrServiceInner_->PromoteCurrentToCandidateMasterProcess(isInsertToHead);
 }
@@ -1923,10 +1955,36 @@ int32_t AppMgrService::DemoteCurrentFromCandidateMasterProcess()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!IsReady()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
     return appMgrServiceInner_->DemoteCurrentFromCandidateMasterProcess();
+}
+
+int32_t AppMgrService::ExitMasterProcessRole()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    return appMgrServiceInner_->ExitMasterProcessRole();
+}
+
+void AppMgrService::SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return;
+    }
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    pid_t pid = getprocpid();
+    if (callingPid != pid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not process call");
+        return;
+    }
+    appMgrServiceInner_->SetSpecifiedProcessRequestId(recordId, requestId);
 }
 
 int32_t AppMgrService::QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles)
@@ -1941,6 +1999,36 @@ int32_t AppMgrService::QueryRunningSharedBundles(pid_t pid, std::map<std::string
         return ERR_PERMISSION_DENIED;
     }
     return appMgrServiceInner_->QueryRunningSharedBundles(pid, sharedBundles);
+}
+
+int32_t AppMgrService::RegisterApplicationStateObserverWithFilter(sptr<IApplicationStateObserver> observer,
+    const std::vector<std::string> &bundleNameList, const AppStateFilter &appStateFilter, bool isUsingFilter)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    int32_t ret = 0;
+    if (isUsingFilter) {
+        CHECK_CALLER_IS_SYSTEM_APP;
+        ret = appMgrServiceInner_->RegisterApplicationStateObserver(observer, bundleNameList, appStateFilter);
+    } else {
+        FilterCallback callbacks = static_cast<FilterCallback>(
+            static_cast<uint32_t>(FilterCallback::ON_FOREGROUND_APPLICATION_CHANGED) |
+            static_cast<uint32_t>(FilterCallback::ON_ABILITY_STATE_CHANGED) |
+            static_cast<uint32_t>(FilterCallback::ON_PROCESS_CREATED) |
+            static_cast<uint32_t>(FilterCallback::ON_PROCESS_DIED) |
+            static_cast<uint32_t>(FilterCallback::ON_PROCESS_STATE_CHANGED) |
+            static_cast<uint32_t>(FilterCallback::ON_APP_STARTED) |
+            static_cast<uint32_t>(FilterCallback::ON_APP_STOPPED) |
+            static_cast<uint32_t>(FilterCallback::ON_EXTENSION_STATE_CHANGED)
+        );
+        AppStateFilter defaultAppStateFilter {callbacks, FilterBundleType::ALL, FilterAppStateType::ALL,
+            FilterProcessStateType::ALL, FilterAbilityStateType::ALL};
+        ret = appMgrServiceInner_->RegisterApplicationStateObserver(observer, bundleNameList, defaultAppStateFilter);
+    }
+    return ret;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

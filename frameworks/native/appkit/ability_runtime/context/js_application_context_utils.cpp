@@ -206,7 +206,6 @@ napi_value JsApplicationContextUtils::OnCreateModuleContext(napi_env env, NapiCa
     }
 
     if (!moduleContext) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null moduleContext");
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return CreateJsUndefined(env);
     }
@@ -1011,6 +1010,12 @@ napi_value JsApplicationContextUtils::OnGetAllRunningInstanceKeys(napi_env env, 
     };
     auto complete = [applicationContext = applicationContext_, innerErrCode, instanceKeys](
         napi_env env, NapiAsyncTask& task, int32_t status) {
+        if (*innerErrCode == ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST ||
+            *innerErrCode == static_cast<int>(AbilityErrorCode::ERROR_MULTI_INSTANCE_NOT_SUPPORTED)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
+            task.Reject(env, CreateJsError(env, *innerErrCode, GetErrorMsg(AbilityErrorCode(*innerErrCode))));
+            return;
+        }
         if (*innerErrCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
             task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));

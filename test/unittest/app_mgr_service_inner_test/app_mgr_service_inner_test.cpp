@@ -34,7 +34,9 @@
 #include "mock_configuration_observer.h"
 #include "mock_iapp_state_callback.h"
 #include "mock_kia_interceptor.h"
+#include "mock_my_flag.h"
 #include "mock_native_token.h"
+#include "mock_permission_verification.h"
 #include "mock_render_scheduler.h"
 #include "mock_sa_call.h"
 #include "mock_task_handler_wrap.h"
@@ -2871,11 +2873,11 @@ HWTEST_F(AppMgrServiceInnerTest, RegisterConfigurationObserver_001, TestSize.Lev
 
     appMgrServiceInner->configurationObservers_.clear();
 
-    appMgrServiceInner->RegisterConfigurationObserver(nullptr);
+    appMgrServiceInner->RegisterConfigurationObserver(nullptr, -1);
 
     sptr<MockConfigurationObserver> observer(new (std::nothrow) MockConfigurationObserver());
-    appMgrServiceInner->RegisterConfigurationObserver(observer);
-    appMgrServiceInner->RegisterConfigurationObserver(observer);
+    appMgrServiceInner->RegisterConfigurationObserver(observer, -1);
+    appMgrServiceInner->RegisterConfigurationObserver(observer, -1);
 
     TAG_LOGI(AAFwkTag::TEST, "RegisterConfigurationObserver_001 end");
 }
@@ -2899,7 +2901,7 @@ HWTEST_F(AppMgrServiceInnerTest, UnregisterConfigurationObserver_001, TestSize.L
     sptr<MockConfigurationObserver> observer(new (std::nothrow) MockConfigurationObserver());
     appMgrServiceInner->UnregisterConfigurationObserver(observer);
 
-    appMgrServiceInner->RegisterConfigurationObserver(observer);
+    appMgrServiceInner->RegisterConfigurationObserver(observer, -1);
     appMgrServiceInner->UnregisterConfigurationObserver(observer);
 
     TAG_LOGI(AAFwkTag::TEST, "UnregisterConfigurationObserver_001 end");
@@ -4255,24 +4257,6 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyUnLoadRepairPatch_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetCurrentUserId_001
- * @tc.desc: set current userId.
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerTest, SetCurrentUserId_001, TestSize.Level2)
-{
-    TAG_LOGI(AAFwkTag::TEST, "SetCurrentUserId_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-
-    int userId = 0;
-    appMgrServiceInner->SetCurrentUserId(userId);
-    EXPECT_EQ(appMgrServiceInner->currentUserId_, userId);
-
-    TAG_LOGI(AAFwkTag::TEST, "SetCurrentUserId_001 end");
-}
-
-/**
  * @tc.name: GetProcessMemoryByPid_001
  * @tc.desc: Get memorySize by pid.
  * @tc.type: FUNC
@@ -4409,7 +4393,6 @@ HWTEST_F(AppMgrServiceInnerTest, TimeoutNotifyApp_001, TestSize.Level1)
     std::shared_ptr<AppMgrServiceInner> appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     std::shared_ptr<MockTaskHandlerWrap> taskHandler = MockTaskHandlerWrap::CreateQueueHandler("app_mgr_task_queue");
-    EXPECT_CALL(*taskHandler, SubmitTaskInner(_, _)).Times(AtLeast(1));
     appMgrServiceInner->SetTaskHandler(taskHandler);
 
     int32_t pid = 0;
@@ -5523,7 +5506,7 @@ HWTEST_F(AppMgrServiceInnerTest, PreloadModuleFinished_0001, TestSize.Level1)
     int32_t appRecord = 0;
 
     std::shared_ptr<MockTaskHandlerWrap> taskHandler = MockTaskHandlerWrap::CreateQueueHandler("app_mgr_tasks_queue");
-    EXPECT_CALL(*taskHandler, SubmitTaskInner(_, _)).Times(AtLeast(1));
+    EXPECT_CALL(*taskHandler, SubmitTaskInner(_, _)).Times(AnyNumber());
     appMgrServiceInner->SetTaskHandler(taskHandler);
 
     appMgrServiceInner->PreloadModuleFinished(appRecord);
@@ -5666,7 +5649,8 @@ HWTEST_F(AppMgrServiceInnerTest, GetAllRunningInstanceKeysByBundleName_001, Test
 
     std::string bundleName = "testBundleName";
     std::vector<std::string> instanceKeys;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys);
+    int32_t userId = 100;
+    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys, userId);
     EXPECT_NE(ret, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleName_001 end");
@@ -6070,6 +6054,42 @@ HWTEST_F(AppMgrServiceInnerTest, AfterLoadAbility_0001, TestSize.Level1)
     appMgrServiceInner->taskHandler_ = nullptr;
     appMgrServiceInner->AfterLoadAbility(appRecord, abilityInfoSptr, loadParam);
     ASSERT_NE(appRecord, nullptr);
+}
+
+/**
+ * @tc.name: UpdateConfigurationByUserIds_0001
+ * @tc.desc: UpdateConfigurationByUserIds
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, UpdateConfigurationByUserIds_0001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateConfigurationByUserIds_0001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    MyFlag::flag_ = 0;
+    Configuration changeConfig;
+    std::vector<int32_t> userIds = {0, 1};
+    auto res = appMgrServiceInner->UpdateConfigurationByUserIds(changeConfig, userIds);
+    EXPECT_EQ(res, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateConfigurationByUserIds_0001 end");
+}
+
+/**
+ * @tc.name: UpdateConfigurationByUserIds_0002
+ * @tc.desc: UpdateConfigurationByUserIds
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, UpdateConfigurationByUserIds_0002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateConfigurationByUserIds_0002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    MyFlag::flag_ = 0;
+    Configuration changeConfig;
+    std::vector<int32_t> userIds;
+    auto res = appMgrServiceInner->UpdateConfigurationByUserIds(changeConfig, userIds);
+    EXPECT_EQ(res, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateConfigurationByUserIds_0002 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

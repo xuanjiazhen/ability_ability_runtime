@@ -493,7 +493,7 @@ HWTEST_F(WatchdogTest, WatchdogTest_ReportEvent_009, TestSize.Level1)
         system_clock::now().time_since_epoch()).count() - TEST_INTERVAL_TIME;
     watchdog_->isInBackground_ = true;
     watchdog_->ReportEvent();
-    watchdog_->SetBundleInfo("test", "1.1.0");
+    watchdog_->SetBundleInfo("test", "1.1.0", true);
     watchdog_->SetBgWorkingThreadStatus(false);
 }
 
@@ -531,5 +531,22 @@ HWTEST_F(WatchdogTest, WatchdogTest_SetHiTraceChainId_001, TestSize.Level1)
     EXPECT_TRUE(watchdog_->hitraceId_ != nullptr);
 }
 #endif
+
+/**
+ * @tc.number: WatchdogTest_CheckBgThread_000
+ * @tc.desc: Verify that function ReportEvent.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckBgThread_000, TestSize.Level1)
+{
+    watchdog_->isInBackground_.store(true);
+    watchdog_->bundleName_ = "com.ohos.sceneboard";
+    watchdog_->lastWatchTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
+        system_clock::now().time_since_epoch()).count() - 3000; // 3000: test value
+    int count = 5; // 5: test value
+    for (int i = 0; i <= count; i++) {
+        watchdog_->ReportEvent();
+    }
+    EXPECT_TRUE(watchdog_->backgroundReportCount_.load() >= count);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

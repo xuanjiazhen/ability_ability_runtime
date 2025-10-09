@@ -102,6 +102,8 @@ public:
     bool CheckAppRunningRecordIsExist(const std::string &bundleName, const std::string &abilityName);
 #endif
 
+    bool IsAppRunningRecordValid(const std::shared_ptr<AppRunningRecord> &appRecord);
+
     /**
      * CheckMasterProcessAppRunningRecordIsExist, Get master process record by application name and ability information.
      *
@@ -463,6 +465,7 @@ private:
     std::mutex updateConfigurationDelayedLock_;
     std::map<const int32_t, bool> updateConfigurationDelayedMap_;
 
+    std::mutex appInfosLock_;
     std::vector<BackgroundAppInfo> appInfos_;
     std::mutex uiExtensionBindMapLock_;
     std::map<int32_t, UIExtensionProcessBindInfo> uiExtensionBindMap_;

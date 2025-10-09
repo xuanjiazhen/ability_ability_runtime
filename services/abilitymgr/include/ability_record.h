@@ -244,6 +244,7 @@ enum CollaboratorType {
 };
 
 struct AbilityRequest {
+    bool isStartInSplitMode = false;
     bool restart = false;
     bool startRecent = false;
     bool uriReservedFlag = false;
@@ -254,12 +255,13 @@ struct AbilityRequest {
     bool isEmbeddedAllowed = false;
     bool callSpecifiedFlagTimeout = false;
     bool hideStartWindow = false;
+    int32_t primaryWindowId = -1;
     int32_t restartCount = -1;
     int32_t uid = 0;
     int32_t collaboratorType = CollaboratorType::DEFAULT_TYPE;
     int32_t callerTokenRecordId = -1;
     int32_t userId = -1;
-    uint32_t callerAccessTokenId = -1;
+    uint32_t callerAccessTokenId = 0;
     uint32_t specifyTokenId = 0;
     int callerUid = -1;         // call ability
     int requestCode = -1;
@@ -285,6 +287,7 @@ struct AbilityRequest {
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo appInfo;
     StartOptions startOptions;
+    bool hideFailureTipDialog = false;
     std::pair<bool, LaunchReason> IsContinuation() const
     {
         auto flags = want.GetFlags();
@@ -371,6 +374,16 @@ public:
     std::string perfCmd;
 };
 
+struct ForegroundOptions {
+    uint32_t sceneFlag = 0;
+    bool isShellCall = false;
+    bool isStartupHide = false;
+    pid_t callingPid = -1;
+    uint64_t loadAbilityCallbackId = 0;
+};
+
+static ForegroundOptions DEFAULT_FOREGROUND_OPTIONS;
+
 /**
  * @class AbilityRecord
  * AbilityRecord records ability info and states and used to schedule ability life.
@@ -408,7 +421,8 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    int LoadAbility(bool isShellCall = false, bool isStartupHide = false);
+    int LoadAbility(bool isShellCall = false, bool isStartupHide = false, pid_t callingPid = -1,
+        uint64_t loadAbilityCallbackId = 0);
 
     /**
      * foreground the ability.
@@ -421,8 +435,7 @@ public:
      * process request of foregrounding the ability.
      *
      */
-    void ProcessForegroundAbility(
-        uint32_t tokenId, uint32_t sceneFlag = 0, bool isShellCall = false, bool isStartupHide = false);
+    void ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options = DEFAULT_FOREGROUND_OPTIONS);
 
      /**
      * post foreground timeout task for ui ability.
@@ -629,6 +642,8 @@ public:
     bool IsCompleteFirstFrameDrawing() const;
     bool GetColdStartFlag();
     void SetColdStartFlag(bool isColdStart);
+    bool GetPrelaunchFlag();
+    void SetPrelaunchFlag(bool isPrelaunch);
 #endif
 
     /**
@@ -1502,6 +1517,7 @@ private:
     bool isStartingWindow_ = false;
     bool isCompleteFirstFrameDrawing_ = false;
     bool coldStart_ = false;
+    bool isPrelaunch_ = false;
     uint32_t bgColor_ = 0;
     std::shared_ptr<Media::PixelMap> startingWindowBg_ = nullptr;
 #endif

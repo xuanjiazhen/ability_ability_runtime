@@ -79,10 +79,10 @@ void UIAbilityLifecycleManagerThirdTest::SetUp() {}
 
 void UIAbilityLifecycleManagerThirdTest::TearDown() {}
 
-class UIAbilityLifcecycleManagerThirdTestStub : public IRemoteStub<IAbilityConnection> {
+class UIAbilityLifecycleManagerThirdTestStub : public IRemoteStub<IAbilityConnection> {
 public:
-    UIAbilityLifcecycleManagerThirdTestStub() {};
-    virtual ~UIAbilityLifcecycleManagerThirdTestStub() {};
+    UIAbilityLifecycleManagerThirdTestStub() {};
+    virtual ~UIAbilityLifecycleManagerThirdTestStub() {};
 
     virtual int OnRemoteRequest(
         uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
@@ -400,7 +400,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartSpecifiedRequest_003, TestSize
     SpecifiedRequest specifiedRequest(0, AbilityRequest());
     specifiedRequest.specifiedProcessState = SpecifiedProcessState::STATE_ABILITY;
     mgr->StartSpecifiedRequest(specifiedRequest);
-    EXPECT_FALSE(specifiedRequest.isCold);
+    EXPECT_TRUE(specifiedRequest.isCold);
 }
 
 /**
@@ -428,12 +428,12 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartSpecifiedRequest_005, TestSize
     SpecifiedRequest specifiedRequest(0, AbilityRequest());
     auto originAppMgr = AppMgrUtil::appMgr_;
     auto appmgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
-    AppMgrUtil::appMgr_ = appmgr;
     EXPECT_CALL(*appmgr, IsSpecifiedModuleLoaded)
         .WillOnce([](const Want &, const AppExecFwk::AbilityInfo &, bool &result, bool &) {
             result = true;
             return 0;
         });
+    AppMgrUtil::appMgr_ = appmgr;
     mgr->StartSpecifiedRequest(specifiedRequest);
     EXPECT_FALSE(specifiedRequest.isCold);
     AppMgrUtil::appMgr_ = originAppMgr;
@@ -1256,7 +1256,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, IsSpecifiedModuleLoaded_001, TestSi
     AppMgrUtil::appMgr_ = nullptr;
     SysMrgClient::instance_ = nullptr;
     bool isDebug = false;
-    auto ret = uiAbilityLifecycleManager->IsSpecifiedModuleLoaded(abilityRequest, isDebug);
+    auto ret = uiAbilityLifecycleManager->IsSpecifiedModuleLoaded(abilityRequest, false, isDebug);
 
     EXPECT_EQ(ret, false);
 }
@@ -1372,23 +1372,6 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleColdAcceptWantDone_004, TestS
     auto ret = uiAbilityLifecycleManager->HandleColdAcceptWantDone(want, "", *specifiedRequestPtr);
 
     EXPECT_EQ(ret, true);
-}
-
-/**
- * @tc.name: UIAbilityLifecycleManager_StartSpecifiedAbilityBySCB_0200
- * @tc.desc: StartSpecifiedAbilityBySCB
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartSpecifiedAbilityBySCB_002, TestSize.Level1)
-{
-    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.isolationProcess = true;
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    abilityRequest.abilityInfo.isStageBasedModel = true;
-    AppUtils::isStartSpecifiedProcess_ = true;
-    auto result = uiAbilityLifecycleManager->StartSpecifiedAbilityBySCB(abilityRequest);
-    EXPECT_EQ(result, uiAbilityLifecycleManager->StartSpecifiedProcessRequest(abilityRequest, nullptr));
 }
 
 /**

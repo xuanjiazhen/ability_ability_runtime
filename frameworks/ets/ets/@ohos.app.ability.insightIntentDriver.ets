@@ -21,7 +21,7 @@ import AsyncCallbackWrapper from './utils/AbilityUtils';
 
 export default namespace insightIntentDriver {
 
-  loadLibrary("insight_intent_driver_ani_kit.z")
+  loadLibraryWithPermissionCheck("insight_intent_driver_ani_kit.z", "@ohos.app.ability.insightIntentDriver")
 
   export interface ExecuteParam {
     bundleName: string;
@@ -30,9 +30,9 @@ export default namespace insightIntentDriver {
     insightIntentName: string;
     insightIntentParam: Record<string, Object>;
     executeMode: insightIntent.ExecuteMode;
-    displayId?: number;
+    displayId?: long;
     uris?: Array<string>;
-    flags?: number;
+    flags?: int;
   }
 
   export native function nativeExecuteSync(param: ExecuteParam,

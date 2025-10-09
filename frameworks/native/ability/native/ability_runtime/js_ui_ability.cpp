@@ -180,7 +180,12 @@ napi_value AttachJsAbilityContext(napi_env env, void *value, void *)
     }
     CHECK_POINTER_AND_RETURN(systemModule, nullptr);
     auto contextObj = systemModule->GetNapiValue();
-    napi_coerce_to_native_binding_object(env, contextObj, DetachCallbackFunc, AttachJsAbilityContext, value, nullptr);
+    auto coerceStatus = napi_coerce_to_native_binding_object(env,
+        contextObj, DetachCallbackFunc, AttachJsAbilityContext, value, nullptr);
+    if (coerceStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "coerceStatus Failed: %{public}d", coerceStatus);
+        return nullptr;
+    }
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::AbilityContext>(ptr);
     if (workContext != nullptr) {
         napi_status status = napi_wrap(env, contextObj, workContext,
@@ -209,16 +214,25 @@ void BindContext(napi_env env, std::unique_ptr<NativeReference> contextRef, JsRu
     }
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::AbilityContext>(abilityContext);
     CHECK_POINTER(workContext);
-    napi_coerce_to_native_binding_object(
+    auto coerceStatus = napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachJsAbilityContext, workContext, nullptr);
+    if (coerceStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "coerceStatus Failed: %{public}d", coerceStatus);
+        delete workContext;
+        return;
+    }
     abilityContext->Bind(jsRuntime, contextRef.release());
-    napi_wrap(
+    napi_status wrapStatus = napi_wrap(
         env, contextObj, workContext,
         [](napi_env, void* data, void* hint) {
             TAG_LOGD(AAFwkTag::UIABILITY, "finalizer for weak_ptr ability context is called");
             delete static_cast<std::weak_ptr<AbilityRuntime::AbilityContext>*>(data);
         },
         nullptr, nullptr);
+    if (wrapStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "napi_wrap failed");
+        delete workContext;
+    }
 }
 } // namespace
 
@@ -347,7 +361,6 @@ void JsUIAbility::CreateAndBindContext(const std::shared_ptr<AbilityRuntime::Abi
 void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
     std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, const std::string &srcPath)
 {
-    TAG_LOGI(AAFwkTag::UIABILITY, "called");
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
     UpdateAbilityObj(abilityInfo, moduleName, srcPath);
@@ -374,8 +387,13 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::AbilityContext>(abilityContext_);
     CHECK_POINTER(workContext);
 
-    napi_coerce_to_native_binding_object(
+    auto coerceStatus = napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachJsAbilityContext, workContext, nullptr);
+    if (coerceStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "coerceStatus Failed: %{public}d", coerceStatus);
+        delete workContext;
+        return;
+    }
     abilityContext_->Bind(jsRuntime_, shellContextRef_.get());
     napi_set_named_property(env, obj, "context", contextObj);
     TAG_LOGD(AAFwkTag::UIABILITY, "set ability context");
@@ -392,7 +410,6 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
         delete workContext;
         return;
     }
-    TAG_LOGI(AAFwkTag::UIABILITY, "End");
 }
 
 void JsUIAbility::CreateJSContext(napi_env env, napi_value &contextObj, int32_t screenMode)
@@ -451,6 +468,7 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
 
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        applicationContext->SetLaunchParameter(want);
         applicationContext->DispatchOnAbilityWillCreate(jsAbilityObj_);
     }
 
@@ -632,7 +650,7 @@ void JsUIAbility::OnSceneCreated()
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
     auto property = std::make_shared<AppExecFwk::ADelegatorAbilityProperty>();
     if (delegator && CreateProperty(abilityContext_, property)) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceCreated");
+        TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformSceneCreated");
         property->object_ = jsAbilityObj_;
         delegator->PostPerformScenceCreated(property);
     }
@@ -1045,7 +1063,9 @@ void JsUIAbility::DoOnForeground(const Want &want)
         if (window != nullptr && want.HasParameter(Want::PARAM_RESV_WINDOW_MODE)) {
             auto windowMode = want.GetIntParam(
                 Want::PARAM_RESV_WINDOW_MODE, AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED);
-            window->SetWindowMode(static_cast<Rosen::WindowMode>(windowMode));
+            if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+                window->SetWindowMode(static_cast<Rosen::WindowMode>(windowMode));
+            }
             windowMode_ = windowMode;
             TAG_LOGD(AAFwkTag::UIABILITY, "set window mode: %{public}d", windowMode);
         }
@@ -1141,7 +1161,8 @@ void JsUIAbility::RequestFocus(const Want &want)
         return;
     }
     auto window = scene_->GetMainWindow();
-    if (window != nullptr && want.HasParameter(Want::PARAM_RESV_WINDOW_MODE)) {
+    if (window != nullptr && want.HasParameter(Want::PARAM_RESV_WINDOW_MODE) &&
+        !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto windowMode = want.GetIntParam(
             Want::PARAM_RESV_WINDOW_MODE, AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED);
         window->SetWindowMode(static_cast<Rosen::WindowMode>(windowMode));
@@ -1501,7 +1522,11 @@ int32_t JsUIAbility::OnContinue(WantParams &wantParams, bool &isAsyncOnContinue,
     }
     std::weak_ptr<UIAbility> weakPtr = shared_from_this();
     napi_ref jsWantParamsRef;
-    napi_create_reference(env, jsWantParams, 1, &jsWantParamsRef);
+    napi_status createStatus = napi_create_reference(env, jsWantParams, 1, &jsWantParamsRef);
+    if (createStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "napi_create_reference failed, %{public}d", createStatus);
+        return AppExecFwk::ContinuationManagerStage::OnContinueResult::ON_CONTINUE_ERR;
+    }
     ReleaseOnContinueAsset(env, result, jsWantParamsRef, callbackInfo);
     auto asyncCallback = [jsWantParamsRef, abilityWeakPtr = weakPtr, abilityInfo](int32_t status) {
         auto ability = abilityWeakPtr.lock();
@@ -1766,6 +1791,7 @@ void JsUIAbility::OnNewWant(const Want &want)
 
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        applicationContext->SetLatestParameter(want);
         applicationContext->DispatchOnWillNewWant(jsAbilityObj_);
     }
 
@@ -1885,7 +1911,7 @@ napi_value JsUIAbility::CallObjectMethod(const char *name, napi_value const *arg
     }
     int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
     napi_status status = napi_call_function(env, obj, methodOnCreate, argc, argv, nullptr);
-    if (status != napi_ok) {
+    if (status != napi_ok && status != napi_function_expected) {
         TAG_LOGE(AAFwkTag::UIABILITY, "napi err: %{public}d", status);
     }
     int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
@@ -2233,7 +2259,7 @@ void JsUIAbility::OnAfterFocusedCommon(bool isFocused)
 void JsUIAbility::SetContinueState(int32_t state)
 {
     if (scene_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "windowScene is nullptr.");
+        TAG_LOGW(AAFwkTag::UIABILITY, "windowScene is nullptr.");
         return;
     }
     auto window = scene_->GetMainWindow();

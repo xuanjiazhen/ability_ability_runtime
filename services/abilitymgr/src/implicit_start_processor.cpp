@@ -102,7 +102,7 @@ int ImplicitStartProcessor::CheckImplicitCallPermission(const AbilityRequest& ab
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
     CHECK_POINTER_AND_RETURN(abilityMgr, ERR_INVALID_VALUE);
     bool isBackgroundCall = true;
-    if (abilityMgr->IsCallFromBackground(abilityRequest, isBackgroundCall) != ERR_OK) {
+    if (abilityMgr->IsCallFromBackground(abilityRequest, isBackgroundCall, false) != ERR_OK) {
         return ERR_CHECK_CALL_FROM_BACKGROUND_FAILED;
     }
     if (!isBackgroundCall) {
@@ -110,11 +110,19 @@ int ImplicitStartProcessor::CheckImplicitCallPermission(const AbilityRequest& ab
         return ERR_OK;
     }
     auto ret = AAFwk::PermissionVerification::GetInstance()->VerifyBackgroundCallPermission(isBackgroundCall);
-    if (!ret) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "CheckImplicitCallPermission failed");
+    if (ret) {
+        return ERR_OK;
+    }
+    std::shared_ptr<AbilityRecord> callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
+    if (callerAbility == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission failed");
         return CHECK_PERMISSION_FAILED;
     }
-    return ERR_OK;
+    auto sessionInfo = callerAbility->GetSessionInfo();
+    int32_t persistentId = (sessionInfo == nullptr) ? -1 : sessionInfo->persistentId;
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "permission failed %{public}s,%{public}d",
+        callerAbility->GetAbilityInfo().name.c_str(), persistentId);
+    return CHECK_PERMISSION_FAILED;
 }
 
 int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_t userId, int32_t windowMode,
@@ -144,6 +152,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         return ret;
     }
     AbilityUtil::WantSetParameterWindowMode(request.want, windowMode);
+    request.callerAccessTokenId = IPCSkeleton::GetCallingTokenID();
 
     auto identity = IPCSkeleton::ResetCallingIdentity();
     auto startAbilityTask = [imp = shared_from_this(), request, userId, identity]
@@ -185,8 +194,12 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         if (want.GetBoolParam("isCreateAppGallerySelector", false)) {
             want.RemoveParam("isCreateAppGallerySelector");
             bool needGrantUriPermission = true;
-            DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want, userId,
-                dialogAppInfos, needGrantUriPermission);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "openLinkOptions hideFailureTipDialog: %{public}d",
+                request.hideFailureTipDialog);
+            if (!request.hideFailureTipDialog) {
+                DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want, userId,
+                    dialogAppInfos, needGrantUriPermission);
+            }
             return ERR_IMPLICIT_START_ABILITY_FAIL;
         }
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, show tips dialog");
@@ -203,8 +216,10 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         }
         if (want.GetBoolParam("isCreateAppGallerySelector", false)) {
             want.RemoveParam("isCreateAppGallerySelector");
-            DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want, userId,
-                dialogAppInfos);
+            if (!request.hideFailureTipDialog) {
+                DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want, userId,
+                    dialogAppInfos);
+            }
             return ERR_IMPLICIT_START_ABILITY_FAIL;
         }
         std::vector<DialogAppInfo> dialogAllAppInfos;
@@ -495,6 +510,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
         "ImplicitQueryInfos, abilityInfo size : %{public}zu, extensionInfos size: %{public}zu", abilityInfos.size(),
         extensionInfos.size());
 
+    KioskManager::GetInstance().FilterAbilityInfos(abilityInfos);
     if (appLinkingOnly && abilityInfos.size() == 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not match app");
         return ERR_IMPLICIT_START_ABILITY_FAIL;
@@ -603,6 +619,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
         dialogAppInfo.multiAppMode = info.applicationInfo.multiAppMode;
         dialogAppInfos.emplace_back(dialogAppInfo);
     }
+    KioskManager::GetInstance().FilterDialogAppInfos(dialogAppInfos);
 
     return ERR_OK;
 }
@@ -782,8 +799,9 @@ int32_t ImplicitStartProcessor::ImplicitStartAbilityInner(const Want &targetWant
                 targetWant, request.callerToken, userId, request.extensionType);
             break;
         default:
-            result = abilityMgr->StartAbilityWrap(
-                targetWant, request.callerToken, request.requestCode, false, userId, false, 0, false, true);
+            StartAbilityWrapParam startAbilityWrapParam = {
+                targetWant, request.callerToken, request.requestCode, false, userId, false, 0, false, true };
+            result = abilityMgr->StartAbilityWrap(startAbilityWrapParam);
             break;
     }
 

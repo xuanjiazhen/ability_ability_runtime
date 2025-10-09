@@ -23,10 +23,11 @@
 #include "context.h"
 #include "free_install_observer_interface.h"
 #include "iability_callback.h"
-#include "js_ui_extension_callback.h"
+#include "ui_extension_callback.h"
 #include "mission_info.h"
 #include "native_engine/native_reference.h"
 #include "native_engine/native_value.h"
+#include "open_link_options.h"
 #include "start_options.h"
 #include "want.h"
 #include <functional>
@@ -177,7 +178,7 @@ public:
 
     virtual ErrCode RequestModalUIExtension(const AAFwk::Want& want) = 0;
 
-    virtual ErrCode OpenLink(const AAFwk::Want& want, int requestCode) = 0;
+    virtual ErrCode OpenLink(const AAFwk::Want &want, int requestCode, bool hideFailureTipDialog = false) = 0;
 
     virtual ErrCode OpenAtomicService(AAFwk::Want& want, const AAFwk::StartOptions &options, int requestCode,
         RuntimeTask &&task) = 0;
@@ -454,7 +455,7 @@ public:
      */
     virtual Ace::UIContent* GetUIContent() = 0;
     virtual ErrCode StartAbilityByType(const std::string &type, AAFwk::WantParams &wantParam,
-        const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks) = 0;
+        std::shared_ptr<UIExtensionCallback> uiExtensionCallback) = 0;
     virtual ErrCode CreateModalUIExtensionWithApp(const AAFwk::Want &want) = 0;
     virtual void EraseUIExtension(int32_t sessionId) = 0;
 #endif
@@ -499,8 +500,15 @@ public:
     virtual void OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message, int32_t resultCode = 0) = 0;
 
+    virtual void OnOpenLinkRequestSuccess(const std::string &requestId,
+        const AppExecFwk::ElementName &element, const std::string &message) = 0;
+    virtual void OnOpenLinkRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message) = 0;
+
     virtual ErrCode AddCompletionHandlerForAtomicService(const std::string &requestId,
         OnAtomicRequestSuccess onRequestSucc, OnAtomicRequestFailure onRequestFail, const std::string &appId) = 0;
+    virtual ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
+        AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail) = 0;
 
 protected:
     bool IsContext(size_t contextTypeId) override

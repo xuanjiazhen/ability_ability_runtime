@@ -285,11 +285,15 @@ public:
     {
         return 0;
     }
+    int StartAbilityForPrelaunch(const Want &want)  override
+    {
+        return 0;
+    }
     int ReleaseCall(const sptr<IAbilityConnection> &connect, const AppExecFwk::ElementName &element) override
     {
         return 0;
     }
-    int StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery = false) override
+    int StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery = false) override
     {
         return 0;
     }

@@ -40,16 +40,18 @@ public:
     BatchUri() {}
 
     int32_t Init(const std::vector<std::string> &uriVec, uint32_t mode = 0,
-        const std::string &callerAlterBundleName = "", const std::string &targetAlterBundleName = "");
+        const std::string &callerAlterBundleName = "", const std::string &targetAlterBundleName = "",
+        bool haveSandboxAccessPermission = false);
 
     void InitFileUriInfo(Uri &uriInner, uint32_t index, const uint32_t mode = 0,
-        const std::string &callerBundleName = "", const std::string &targetBundleName = "");
+        const std::string &callerBundleName = "", const std::string &targetBundleName = "",
+        bool haveSandboxAccessPermission = false);
 
     void SetMediaUriCheckResult(const std::vector<bool> &mediaUriResult);
 
     void SetOtherUriCheckResult(const std::vector<bool> &otherUriResult);
 
-    void GetNeedCheckProxyPermissionURI(std::vector<PolicyInfo> &proxyUrisByPolicy, std::vector<Uri> &proxyUrisByMap);
+    void GetNeedCheckProxyPermissionURI(std::vector<PolicyInfo> &proxyUrisByPolicy);
 
     void SetCheckProxyByMapResult(std::vector<bool> &proxyResultByMap);
 
@@ -81,6 +83,9 @@ public:
     std::vector<Uri> otherUris;
     std::vector<int32_t> otherIndexes;
     std::vector<PolicyInfo> otherPolicyInfos;
+
+    // content uri
+    std::vector<std::string> contentUris;
 
     // caller's uri
     std::vector<PolicyInfo> selfBundlePolicyInfos;

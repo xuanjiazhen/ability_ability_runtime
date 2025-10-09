@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,8 +30,6 @@
 
 namespace OHOS {
 namespace AAFwk {
-class AbilityManagerService;
-
 struct FreeInstallInfo {
     bool isInstalled = false;
     bool isPreStartMissionCalled = false;
@@ -49,6 +47,7 @@ struct FreeInstallInfo {
     std::shared_ptr<Want> originalWant = nullptr;
     std::shared_ptr<StartOptions> startOptions = nullptr;
     Want want;
+    bool isFreeInstallFromService = false;
 };
 
 struct FreeInstallParams {
@@ -65,7 +64,7 @@ struct FreeInstallParams {
  */
 class FreeInstallManager : public std::enable_shared_from_this<FreeInstallManager> {
 public:
-    explicit FreeInstallManager(const std::weak_ptr<AbilityManagerService> &server);
+    explicit FreeInstallManager();
     virtual ~FreeInstallManager() = default;
 
     /**
@@ -97,7 +96,7 @@ public:
      * @param isOpenAtomicServiceShortUrl, the flag of open atomic service short url.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int StartFreeInstall(const Want &want, int32_t userId, int requestCode, const sptr<IRemoteObject> &callerToken,
+    int StartFreeInstall(const Want &want, int32_t userId, int requestCode, sptr<IRemoteObject> callerToken,
         std::shared_ptr<FreeInstallParams> param = nullptr);
 
     /**
@@ -109,8 +108,8 @@ public:
      * @param callerToken, caller ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int StartRemoteFreeInstall(const Want &want, int requestCode, int32_t validUserId,
-        const sptr<IRemoteObject> &callerToken);
+    int StartRemoteFreeInstall(Want &want, int requestCode, int32_t validUserId,
+        sptr<IRemoteObject> callerToken);
 
     /**
      * Start to free install from another devices.
@@ -122,7 +121,7 @@ public:
      * @param requestCode, ability request code.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int FreeInstallAbilityFromRemote(const Want &want, const sptr<IRemoteObject> &callback,
+    int FreeInstallAbilityFromRemote(const Want &want, sptr<IRemoteObject> callback,
         int32_t userId, int requestCode);
 
     /**
@@ -133,16 +132,15 @@ public:
      * @param localDeviceId, the device id of local.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int ConnectFreeInstall(const Want &want, int32_t userId, const sptr<IRemoteObject> &callerToken,
-        const std::string& localDeviceId);
+    int ConnectFreeInstall(const Want &want, int32_t userId, sptr<IRemoteObject> callerToken,
+        const std::string &localDeviceId);
 
     /**
      * Add an observer from application into freeInstallObserverManager.
      * @param observer, the observer of the ability to free install.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int AddFreeInstallObserver(const sptr<IRemoteObject> &callerToken,
-        const sptr<AbilityRuntime::IFreeInstallObserver> &observer);
+    int AddFreeInstallObserver(sptr<IRemoteObject> callerToken, sptr<AbilityRuntime::IFreeInstallObserver> observer);
 
     /**
      * Get free install task info.
@@ -199,13 +197,12 @@ public:
         const std::string& startTime, const std::string& sessionId);
 
 private:
-    std::weak_ptr<AbilityManagerService> server_;
     std::vector<FreeInstallInfo> freeInstallList_;
     std::vector<FreeInstallInfo> dmsFreeInstallCbs_;
-    std::map<std::string, std::time_t> timeStampMap_;
+    std::map<std::string, std::time_t> timestampMap_;
     ffrt::mutex distributedFreeInstallLock_;
     ffrt::mutex freeInstallListLock_;
-    ffrt::mutex freeInstallObserverLock_;
+    ffrt::mutex timestampMapLock_;
 
     int SetAppRunningState(Want &want);
 
@@ -218,21 +215,18 @@ private:
      * @param callerToken, caller ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int RemoteFreeInstall(const Want &want, int32_t userId, int requestCode, const sptr<IRemoteObject> &callerToken);
+    int RemoteFreeInstall(const Want &want, int32_t userId, int requestCode, sptr<IRemoteObject> callerToken);
 
-    int NotifyDmsCallback(const Want &want, int resultCode);
-    bool IsTopAbility(const sptr<IRemoteObject> &callerToken);
+    void NotifyDmsCallback(const Want &want, int resultCode);
+    bool IsTopAbility(sptr<IRemoteObject> callerToken);
     void NotifyFreeInstallResult(int32_t recordId, const Want &want, int resultCode, bool isAsync = false);
     FreeInstallInfo BuildFreeInstallInfo(const Want &want, int32_t userId, int requestCode,
-        const sptr<IRemoteObject> &callerToken, std::shared_ptr<FreeInstallParams> param = nullptr);
-    std::time_t GetTimeStamp();
+        sptr<IRemoteObject> callerToken, std::shared_ptr<FreeInstallParams> param = nullptr);
 
     void RemoveFreeInstallInfo(const std::string &bundleName, const std::string &abilityName,
         const std::string &startTime);
 
     void PostUpgradeAtomicServiceTask(int resultCode, const Want &want, int32_t userId);
-
-    void RemoveTimeoutTask(const std::string &bundleName, const std::string &abilityName, const std::string &startTime);
 
     void StartAbilityByFreeInstall(FreeInstallInfo &info, std::string &bundleName, std::string &abilityName,
         std::string &startTime);
@@ -244,8 +238,8 @@ private:
     void HandleOnFreeInstallFail(int32_t recordId, FreeInstallInfo &freeInstallInfo, int resultCode, bool isAsync);
     void StartAbilityByConvertedWant(FreeInstallInfo &info, const std::string &startTime);
     void StartAbilityByOriginalWant(FreeInstallInfo &info, const std::string &startTime);
-    bool VerifyStartFreeInstallPermission(const sptr<IRemoteObject> &callerToken);
-    int32_t GetRecordIdByToken(const sptr<IRemoteObject> &callerToken);
+    bool VerifyStartFreeInstallPermission(sptr<IRemoteObject> callerToken);
+    int32_t GetRecordIdByToken(sptr<IRemoteObject> callerToken);
     void NotifyInsightIntentFreeInstallResult(const Want &want, int resultCode);
     void NotifyInsightIntentExecuteDone(const Want &want, int resultCode);
 };

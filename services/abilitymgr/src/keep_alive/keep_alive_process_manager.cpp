@@ -25,6 +25,7 @@
 #include "parameters.h"
 #include "permission_constants.h"
 #include "process_options.h"
+#include "user_controller/user_controller.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -117,8 +118,7 @@ void KeepAliveProcessManager::StartKeepAliveProcessWithMainElementPerBundle(cons
             TAG_LOGI(AAFwkTag::KEEP_ALIVE, "retry result:%{public}d", ret);
         }
         if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::KEEP_ALIVE, "reach max retry, failed:%{public}d, unsetting keep-alive", ret);
-            KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleName, userId, false, true, true);
+            TAG_LOGW(AAFwkTag::KEEP_ALIVE, "reach max retry, failed:%{public}d", ret);
             return;
         }
         KeepAliveProcessManager::GetInstance().AfterStartKeepAliveApp(bundleName, accessTokenId, uid, userId,
@@ -219,7 +219,7 @@ int32_t KeepAliveProcessManager::SetApplicationKeepAlive(const std::string &bund
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, INNER_ERR);
 
-    userId = userId < 0 ? DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() : userId;
+    userId = userId < 0 ? AbilityRuntime::UserController::GetInstance().GetCallerUserId() : userId;
     AppExecFwk::BundleInfo bundleInfo;
     if (!IN_PROCESS_CALL(bms->GetBundleInfo(
         bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId))) {
@@ -385,7 +385,7 @@ int32_t KeepAliveProcessManager::QueryKeepAliveApplications(int32_t appType, int
 }
 
 int32_t KeepAliveProcessManager::SetAppServiceExtensionKeepAlive(const std::string &bundleName, bool updateEnable,
-    bool isByEDM, bool isallowUserToCancel)
+    bool isByEDM, bool isAllowUserToCancel)
 {
     auto result = isByEDM ? CheckPermissionForEDM() : CheckPermission();
     CHECK_RET_RETURN_RET(result, "permission denied");
@@ -414,7 +414,7 @@ int32_t KeepAliveProcessManager::SetAppServiceExtensionKeepAlive(const std::stri
     info.setterId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
     info.appType = bundleInfo.applicationInfo.isSystemApp ? KeepAliveAppType::SYSTEM : KeepAliveAppType::THIRD_PARTY;
     info.setter = isByEDM ? KeepAliveSetter::SYSTEM : KeepAliveSetter::USER;
-    info.policy = isByEDM ? (isallowUserToCancel ? KeepAlivePolicy::ALLOW_CANCEL : KeepAlivePolicy::NOT_ALLOW_CANCEL) :
+    info.policy = isByEDM ? (isAllowUserToCancel ? KeepAlivePolicy::ALLOW_CANCEL : KeepAlivePolicy::NOT_ALLOW_CANCEL) :
         KeepAlivePolicy::UNSPECIFIED;
     result = AbilityKeepAliveService::GetInstance().SetAppServiceExtensionKeepAlive(info, updateEnable);
     CHECK_RET_RETURN_RET(result, "set keep-alive failed");

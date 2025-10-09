@@ -56,6 +56,10 @@ struct CallbackInfo {
     std::shared_ptr<WantAgent> wantAgent;
     napi_env env = nullptr;
     std::unique_ptr<NativeReference> nativeRef = nullptr;
+    ~CallbackInfo()
+    {
+        AbilityRuntime::ReleaseNativeReference(env, nativeRef.release());
+    }
 };
 
 struct TriggerReceiveDataWorker {
@@ -72,6 +76,7 @@ struct WantAgentWantsParas {
     std::vector<std::shared_ptr<AAFwk::Want>> wants = {};
     int32_t operationType = -1;
     int32_t requestCode = -1;
+    int32_t userId = -1;
     std::vector<WantAgentConstant::Flags> wantAgentFlags = {};
     AAFwk::WantParams extraInfo = {};
 };

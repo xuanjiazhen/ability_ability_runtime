@@ -22,6 +22,10 @@
 #include "int_wrapper.h"
 #include "modal_system_ui_extension.h"
 #include "query_erms_manager.h"
+#ifdef SUPPORT_SCREEN
+#include "scene_board_judgement.h"
+#include "session_manager_lite.h"
+#endif
 #include "start_ability_utils.h"
 #include "string_wrapper.h"
 #include "want.h"
@@ -232,6 +236,7 @@ void DialogSessionManager::GenerateDialogCallerInfo(AbilityRequest &abilityReque
     dialogCallerInfo->targetWant = abilityRequest.want;
     dialogCallerInfo->userId = userId;
     dialogCallerInfo->needGrantUriPermission = needGrantUriPermission;
+    dialogCallerInfo->callerAccessTokenId = abilityRequest.callerAccessTokenId;
 }
 
 void DialogSessionManager::NotifyAbilityRequestFailure(const std::string &dialogSessionId, const Want &want)
@@ -301,7 +306,8 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
     CHECK_POINTER_AND_RETURN(abilityMgr, INNER_ERR);
     int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
-        dialogCallerInfo->requestCode, false);
+        dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
+        dialogCallerInfo->callerAccessTokenId);
     if (ret == ERR_OK) {
         ClearDialogContext(dialogSessionId);
         abilityMgr->RemoveSelectorIdentity(dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
@@ -454,23 +460,33 @@ int DialogSessionManager::CreateModalDialogCommon(const Want &replaceWant, sptr<
     }
 
     sptr<IRemoteObject> token;
-    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
-    if (!abilityMgr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityMgr null");
-        return INNER_ERR;
+    bool isParent = false;
+    int32_t ret = ERR_INVALID_VALUE;
+#ifdef SUPPORT_SCREEN
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        if (sceneSessionManager == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneSessionManager null");
+            return ERR_INVALID_VALUE;
+        }
+        ret = static_cast<int32_t>(sceneSessionManager->IsFocusWindowParent(callerToken, isParent));
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isParent = %{pubilc}d, ret = %{pubilc}d", isParent, ret);
+    } else {
+        auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
+        if (!abilityMgr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityMgr null");
+            return INNER_ERR;
+        }
+        ret = IN_PROCESS_CALL(abilityMgr->GetTopAbility(token));
     }
-    int ret = IN_PROCESS_CALL(abilityMgr->GetTopAbility(token));
-    if (ret != ERR_OK || token == nullptr) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "create modal ui extension for system");
-        (const_cast<Want &>(replaceWant)).SetParam(UIEXTENSION_MODAL_TYPE, 1);
-        (const_cast<Want &>(replaceWant)).SetParam(SUPPORT_CLOSE_ON_BLUR, true);
-        return IN_PROCESS_CALL(connection->CreateModalUIExtension(replaceWant)) ? ERR_OK : INNER_ERR;
-    }
+#endif
 
-    if (callerRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE && token == callerToken) {
+    if (ret == ERR_OK && callerRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE &&
+        (isParent || token == callerToken)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "create modal ui extension for application");
         return callerRecord->CreateModalUIExtension(replaceWant);
     }
+
     TAG_LOGD(AAFwkTag::ABILITYMGR, "create modal ui extension for system");
     (const_cast<Want &>(replaceWant)).SetParam(UIEXTENSION_MODAL_TYPE, 1);
     (const_cast<Want &>(replaceWant)).SetParam(SUPPORT_CLOSE_ON_BLUR, true);

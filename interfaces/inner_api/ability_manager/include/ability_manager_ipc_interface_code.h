@@ -375,7 +375,7 @@ enum class AbilityManagerInterfaceCode {
     SEND_DIALOG_RESULT = 1055,
 
     // request modal UIExtension by want
-    REQUESET_MODAL_UIEXTENSION = 1056,
+    REQUEST_MODAL_UIEXTENSION = 1056,
 
     // get root host info of uiextension
     GET_UI_EXTENSION_ROOT_HOST_INFO = 1057,
@@ -424,6 +424,8 @@ enum class AbilityManagerInterfaceCode {
 
     // ipc id for start UI abilities
     START_UI_ABILITIES = 1073,
+
+    START_UI_ABILITIES_IN_SPLIT_WINDOW_MODE = 1074,
 
     // ipc id for continue ability(1101)
     START_CONTINUATION = 1101,
@@ -481,6 +483,8 @@ enum class AbilityManagerInterfaceCode {
     SUSPEND_EXTENSION_ABILITY = 1141,
     // ipc for resume extionsion ability
     RESUME_EXTENSION_ABILITY = 1142,
+    //ipc for prelaunch
+    START_PRELAUNCH_ABILITY = 1143,
 
     // ipc id 2001-3000 for tools
     // ipc id for dumping state (2001)
@@ -551,8 +555,10 @@ enum class AbilityManagerInterfaceCode {
     SET_APPLICATION_AUTO_STARTUP = 6103,
     // ipc id for cancel application auto startup
     CANCEL_APPLICATION_AUTO_STARTUP = 6104,
-    // ipc id for auery all auto startup application
+    // ipc id for query all auto startup application
     QUERY_ALL_AUTO_STARTUP_APPLICATION = 6105,
+    // ipc id for retrieves the auto startup status of the current application.
+    GET_AUTO_STARTUP_STATUS_FOR_SELF = 6106,
 
     // ipc id for on auto starup on
     ON_AUTO_STARTUP_ON = 6111,
@@ -670,6 +676,9 @@ enum class AbilityManagerInterfaceCode {
 
     // preload application
     PRELOAD_APPLICATION = 6151,
+
+    // start self uiability with startOptions and receives the pid
+    START_SELF_UI_ABILITY_WITH_PID_RESULT = 6152,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

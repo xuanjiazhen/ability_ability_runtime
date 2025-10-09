@@ -44,6 +44,7 @@ constexpr const char* TASK_KILL_PROCESSES_BY_USERID = "KillProcessesByUserIdTask
 constexpr const char* TASK_ATTACH_PID_TO_PARENT = "AttachPidToParent";
 constexpr const char* TASK_KILL_APPLICATION = "KillApplicationTask";
 constexpr const char* TASK_CLEAR_PROCESS_BY_ABILITY_TOKEN = "ClearProcessByAbilityTokenTask";
+constexpr const char* TASK_NOTIFY_LOAD_ABILITY_FINISHED = "NotifyLoadAbilityFinished";
 constexpr const char* FOUNDATION_NAME = "foundation";
 constexpr const char* SCENE_BOARD_BUNDLE_NAME = "com.ohos.sceneboard";
 constexpr const char* SCENEBOARD_ABILITY_NAME = "com.ohos.sceneboard.MainAbility";
@@ -67,8 +68,8 @@ AmsMgrScheduler::~AmsMgrScheduler()
 }
 
 void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
-    const std::shared_ptr<ApplicationInfo> &appInfo,
-    const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam)
+    const std::shared_ptr<ApplicationInfo> &appInfo, const std::shared_ptr<AAFwk::Want> &want,
+    std::shared_ptr<AbilityRuntime::LoadParam> loadParam)
 {
     if (!abilityInfo || !appInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "param error");
@@ -123,6 +124,26 @@ void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInf
     }
 
     amsHandler_->SubmitTask(loadAbilityFunc, taskAttr);
+}
+
+void AmsMgrScheduler::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
+{
+    if (!IsReady()) {
+        return;
+    }
+
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_NAME)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
+        return;
+    }
+    std::function<void()> notifyFunc = [amsMgrServiceInner = amsMgrServiceInner_, callingPid, targetPid,
+        callbackId] () {
+        amsMgrServiceInner->NotifyLoadAbilityFinished(callingPid, targetPid, callbackId);
+    };
+    amsHandler_->SubmitTask(notifyFunc, AAFwk::TaskAttribute{
+        .taskName_ = TASK_NOTIFY_LOAD_ABILITY_FINISHED,
+        .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
+    });
 }
 
 void AmsMgrScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
@@ -536,14 +557,6 @@ int32_t AmsMgrScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reaso
     return amsMgrServiceInner_->NotifyAppMgrRecordExitReason(pid, reason, exitMsg);
 }
 
-void AmsMgrScheduler::SetCurrentUserId(const int32_t userId)
-{
-    if (!IsReady()) {
-        return;
-    }
-    amsMgrServiceInner_->SetCurrentUserId(userId);
-}
-
 void AmsMgrScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
 {
     if (!IsReady()) {
@@ -876,6 +889,15 @@ int32_t AmsMgrScheduler::CheckPreloadAppRecordExist(const std::string &bundleNam
     }
     isExist = amsMgrServiceInner_->CheckPreloadAppRecordExist(bundleName, userId, appIndex);
     return ERR_OK;
+}
+
+int32_t AmsMgrScheduler::VerifyKillProcessPermission(const std::string &bundleName)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    return static_cast<int32_t>(amsMgrServiceInner_->VerifyKillProcessPermission(bundleName));
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

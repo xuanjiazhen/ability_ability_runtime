@@ -82,6 +82,12 @@ public:
         return E_OK;
     }
 
+    virtual int32_t SetDirEncryptionPolicy(uint32_t userId,
+        const std::string &dirPath, uint32_t level) override
+    {
+        return E_OK;
+    }
+
     virtual int32_t GetBundleStats(const std::string &pkgName, BundleStats &bundleStats,
         int32_t index, uint32_t statFlag) override
     {
@@ -123,15 +129,12 @@ public:
         return E_OK;
     }
 
-    virtual int32_t NotifyVolumeMounted(const std::string &volumeId, const std::string &fsTypeStr,
-        const std::string &fsUuid, const std::string &path, const std::string &description) override
+    virtual int32_t NotifyVolumeMounted(const VolumeInfoStr &volumeInfoStr) override
     {
         return E_OK;
     }
 
-    virtual int32_t NotifyVolumeDamaged(const std::string &volumeId,
-        const std::string &fsTypeStr, const std::string &fsUuid,
-        const std::string &path, const std::string &description) override
+    virtual int32_t NotifyVolumeDamaged(const VolumeInfoStr &volumeInfoStr) override
     {
         return E_OK;
     }
@@ -207,11 +210,6 @@ public:
     }
 
     virtual int32_t QueryUsbIsInUse(const std::string &diskPath, bool &isInUse)
-    {
-        return E_OK;
-    }
-
-    virtual int32_t GenerateUserKeys(uint32_t userId, uint32_t flags) override
     {
         return E_OK;
     }
@@ -408,6 +406,21 @@ public:
     }
 
     virtual int32_t UnregisterUeceActivationCallback() override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t UpdateUserPublicDirPolicy(uint32_t userId) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t CreateUserDir(const std::string &path, mode_t mode, uid_t uid, gid_t gid) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t DeleteUserDir(const std::string &path) override
     {
         return E_OK;
     }

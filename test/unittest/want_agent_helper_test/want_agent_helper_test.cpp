@@ -1031,8 +1031,8 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5000, Function | MediumTest | Leve
     std::shared_ptr<WantAgent> wantAgent(nullptr);
     TriggerInfo paramsInfo;
     sptr<CompletedDispatcher> completedData;
-    WantAgentHelper::TriggerWantAgent(wantAgent, nullptr, paramsInfo, completedData, nullptr);
-
+    auto result = WantAgentHelper::TriggerWantAgent(wantAgent, nullptr, paramsInfo, completedData, nullptr);
+    EXPECT_EQ(result, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     GTEST_LOG_(INFO) << "WantAgentHelper::TriggerWantAgent end";
 }
 
@@ -1154,6 +1154,10 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5500, Function | MediumTest | Leve
     EXPECT_EQ(type, WantAgentConstant::OperationType::UNKNOWN_TYPE);
 
     WantAgentHelper::Cancel(wantAgent, FLAG_ONE_SHOT);
+    type = WantAgentHelper::GetType(wantAgent);
+    EXPECT_EQ(type, WantAgentConstant::OperationType::UNKNOWN_TYPE);
+
+    WantAgentHelper::Cancel(wantAgent);
     type = WantAgentHelper::GetType(wantAgent);
     EXPECT_EQ(type, WantAgentConstant::OperationType::UNKNOWN_TYPE);
 }

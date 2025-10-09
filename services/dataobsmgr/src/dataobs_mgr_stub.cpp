@@ -38,12 +38,27 @@ const DataObsManagerStub::RequestFuncType DataObsManagerStub::HANDLES[TRANS_BUTT
     &DataObsManagerStub::UnregisterObserverExtInner,
     &DataObsManagerStub::UnregisterObserverExtALLInner,
     &DataObsManagerStub::NotifyChangeExtInner,
-    &DataObsManagerStub::NotifyProcessObserverInner
+    &DataObsManagerStub::NotifyProcessObserverInner,
+    &DataObsManagerStub::RegisterObserverFromExtensionInner,
+    &DataObsManagerStub::NotifyChangeFromExtensionInner
 };
 
 DataObsManagerStub::DataObsManagerStub() {}
 
 DataObsManagerStub::~DataObsManagerStub() {}
+
+DataObsOption ReadObsOpt(MessageParcel &data)
+{
+    bool isSystem = data.ReadBool();
+    uint32_t token = data.ReadUint32();
+    int32_t pid = data.ReadInt32();
+    bool isDataShare = data.ReadBool();
+    DataObsOption opt(isSystem);
+    opt.SetFirstCallerTokenID(token);
+    opt.SetFirstCallerPid(pid);
+    opt.SetDataShare(isDataShare);
+    return opt;
+}
 
 int DataObsManagerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -77,8 +92,25 @@ int DataObsManagerStub::RegisterObserverInner(MessageParcel &data, MessageParcel
     auto remote = data.ReadRemoteObject();
     auto observer = remote == nullptr ? nullptr : iface_cast<IDataAbilityObserver>(remote);
     int32_t userId = data.ReadInt32();
-    DataObsOption opt = DataObsOption(data.ReadBool());
+    DataObsOption opt = ReadObsOpt(data);
     int32_t result = RegisterObserver(uri, observer, userId, opt);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int DataObsManagerStub::RegisterObserverFromExtensionInner(MessageParcel &data, MessageParcel &reply)
+{
+    Uri uri(data.ReadString());
+    if (uri.ToString().empty()) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "invalid uri");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    auto remote = data.ReadRemoteObject();
+    auto observer = remote == nullptr ? nullptr : iface_cast<IDataAbilityObserver>(remote);
+    int32_t userId = data.ReadInt32();
+    DataObsOption opt = ReadObsOpt(data);
+    int32_t result = RegisterObserverFromExtension(uri, observer, userId, opt);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -114,6 +146,20 @@ int DataObsManagerStub::NotifyChangeInner(MessageParcel &data, MessageParcel &re
     return NO_ERROR;
 }
 
+int DataObsManagerStub::NotifyChangeFromExtensionInner(MessageParcel &data, MessageParcel &reply)
+{
+    Uri uri(data.ReadString());
+    if (uri.ToString().empty()) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "invalid uri");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    int32_t userId = data.ReadInt32();
+    DataObsOption opt = ReadObsOpt(data);
+    int32_t result = NotifyChangeFromExtension(uri, userId, opt);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
 int32_t DataObsManagerStub::RegisterObserverExtInner(MessageParcel &data, MessageParcel &reply)
 {
     Uri uri(data.ReadString());
@@ -124,7 +170,7 @@ int32_t DataObsManagerStub::RegisterObserverExtInner(MessageParcel &data, Messag
     auto remote = data.ReadRemoteObject();
     auto observer = remote == nullptr ? nullptr : iface_cast<IDataAbilityObserver>(remote);
     bool isDescendants = data.ReadBool();
-    DataObsOption opt = DataObsOption(data.ReadBool());
+    DataObsOption opt = ReadObsOpt(data);
     reply.WriteInt32(RegisterObserverExt(uri, observer, isDescendants, opt));
     return SUCCESS;
 }
@@ -138,7 +184,7 @@ int32_t DataObsManagerStub::UnregisterObserverExtInner(MessageParcel &data, Mess
     }
     auto remote = data.ReadRemoteObject();
     auto observer = remote == nullptr ? nullptr : iface_cast<IDataAbilityObserver>(remote);
-    DataObsOption opt = DataObsOption(data.ReadBool());
+    DataObsOption opt = ReadObsOpt(data);
     reply.WriteInt32(UnregisterObserverExt(uri, observer, opt));
     return SUCCESS;
 }
@@ -147,7 +193,7 @@ int32_t DataObsManagerStub::UnregisterObserverExtALLInner(MessageParcel &data, M
 {
     auto remote = data.ReadRemoteObject();
     auto observer = remote == nullptr ? nullptr : iface_cast<IDataAbilityObserver>(remote);
-    DataObsOption opt = DataObsOption(data.ReadBool());
+    DataObsOption opt = ReadObsOpt(data);
     reply.WriteInt32(UnregisterObserverExt(observer, opt));
     return SUCCESS;
 }
@@ -159,7 +205,7 @@ int32_t DataObsManagerStub::NotifyChangeExtInner(MessageParcel &data, MessagePar
         LOG_ERROR("Failed to unmarshall changeInfo.");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    DataObsOption opt = DataObsOption(data.ReadBool());
+    DataObsOption opt = ReadObsOpt(data);
     reply.WriteInt32(NotifyChangeExt(changeInfo, opt));
     return SUCCESS;
 }

@@ -65,6 +65,7 @@
 #include "file_path_utils.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
+#include "load_ability_callback_manager.h"
 #include "resource_config_helper.h"
 #ifdef SUPPORT_SCREEN
 #include "locale_config_ext.h"
@@ -167,6 +168,7 @@ constexpr char EVENT_KEY_JSVM[] = "JSVM";
 constexpr char EVENT_KEY_CANGJIE[] = "CANGJIE";
 constexpr char EVENT_KEY_SUMMARY[] = "SUMMARY";
 constexpr char EVENT_KEY_PNAME[] = "PNAME";
+constexpr char EVENT_KEY_THREAD_NAME[] = "THREAD_NAME";
 constexpr char EVENT_KEY_APP_RUNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
 constexpr char EVENT_KEY_PROCESS_RSS_MEMINFO[] = "PROCESS_RSS_MEMINFO";
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
@@ -193,12 +195,7 @@ const char* PC_FUNC_INFO = "DetermineResourceType";
 const char* PRELOAD_APP_STARTUP = "PreloadAppStartup";
 const int32_t TYPE_RESERVE = 1;
 const int32_t TYPE_OTHERS = 2;
-
-#if defined(NWEB)
-constexpr int32_t PRELOAD_DELAY_TIME = 2000;  //millisecond
-constexpr int32_t CACHE_EFFECTIVE_RANGE = 60 * 60 * 24 * 3; // second
-const std::string WEB_CACHE_DIR = "/web";
-#endif
+constexpr int32_t FOUNDATION_UID = 5523;
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
 const std::string NWEB_SURFACE_NODE_NAME = "nwebPreloadSurface";
@@ -243,7 +240,7 @@ void MainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &h
         TAG_LOGD(AAFwkTag::APPKIT, "lib path = %{private}s", libPath.c_str());
         appLibPaths["default"].emplace_back(libPath);
     } else {
-        TAG_LOGI(AAFwkTag::APPKIT, "nativeLibraryPath is empty");
+        TAG_LOGI(AAFwkTag::APPKIT, "NativeLibPath empty");
     }
 
     for (auto &hapInfo : bundleInfo.hapModuleInfos) {
@@ -418,7 +415,7 @@ bool MainThread::ConnectToAppMgr()
         TAG_LOGE(AAFwkTag::APPKIT, "null appMgr_");
         return false;
     }
-    TAG_LOGI(AAFwkTag::APPKIT, "attach to appMGR");
+    TAG_LOGI(AAFwkTag::APPKIT, "attach");
     appMgr_->AttachApplication(this);
     TAG_LOGD(AAFwkTag::APPKIT, "end");
     return true;
@@ -1247,6 +1244,7 @@ void MainThread::SubscribeOverlayChange(const std::string &bundleName, const std
     matchingSkills.AddEvent(OVERLAY_STATE_CHANGED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
+    subscribeInfo.SetPublisherUid(FOUNDATION_UID);
     wptr<MainThread> weak = this;
     auto callback = [weak, resourceManager, bundleName, moduleName = entryHapModuleInfo.moduleName,
         loadPath](const EventFwk::CommonEventData &data) {
@@ -1371,8 +1369,9 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
 {
     CJUncaughtExceptionInfo uncaughtExceptionInfo;
     wptr<MainThread> weak_this = this;
+    std::string processName = processInfo_ != nullptr ? processInfo_->GetProcessName() : "unknown";
     uncaughtExceptionInfo.hapPath = hapPath.c_str();
-    uncaughtExceptionInfo.uncaughtTask = [weak_this, bundleName, versionCode]
+    uncaughtExceptionInfo.uncaughtTask = [weak_this, bundleName, versionCode, processName]
         (std::string summary, const CJErrorObject errorObj) {
             auto appThread = weak_this.promote();
             if (appThread == nullptr) {
@@ -1387,13 +1386,10 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
             std::string errSummary = summary + "\nException info: " + errMsg + "\n" + "Stacktrace:\n" + errStack;
             HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::CJ_RUNTIME, "CJ_ERROR",
                 OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
-                EVENT_KEY_PACKAGE_NAME, bundleName,
-                EVENT_KEY_VERSION, std::to_string(versionCode),
-                EVENT_KEY_TYPE, CJERROR_TYPE,
-                EVENT_KEY_HAPPEN_TIME, timet,
-                EVENT_KEY_REASON, errName,
-                EVENT_KEY_JSVM, JSVM_TYPE,
-                EVENT_KEY_SUMMARY, errSummary,
+                EVENT_KEY_PACKAGE_NAME, bundleName, EVENT_KEY_VERSION, std::to_string(versionCode),
+                EVENT_KEY_TYPE, CJERROR_TYPE, EVENT_KEY_HAPPEN_TIME, timet,
+                EVENT_KEY_REASON, errName, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, errSummary,
+                EVENT_KEY_PNAME, processName, EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName(),
                 EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()));
             ErrorObject appExecErrorObj = {
                 .name = errName,
@@ -1436,10 +1432,12 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
         time_t timet;
         time(&timet);
         HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, "JS_ERROR",
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_KEY_PACKAGE_NAME, bundleName, EVENT_KEY_VERSION,
-            std::to_string(versionCode), EVENT_KEY_TYPE, JSCRASH_TYPE, EVENT_KEY_HAPPEN_TIME, timet, EVENT_KEY_REASON,
-            errorObj.name, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, summary, EVENT_KEY_PNAME, processName,
-            EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId);
+            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_KEY_PACKAGE_NAME, bundleName,
+            EVENT_KEY_VERSION, std::to_string(versionCode), EVENT_KEY_TYPE, JSCRASH_TYPE, EVENT_KEY_HAPPEN_TIME, timet,
+            EVENT_KEY_REASON, errorObj.name, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, summary,
+            EVENT_KEY_PNAME, processName, EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId,
+            EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()),
+            EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
         ErrorObject appExecErrorObj = { .name = errorObj.name, .message = errorObj.message, .stack = errorObj.stack };
         FaultData faultData;
         faultData.faultType = FaultDataType::JS_ERROR;
@@ -1449,10 +1447,8 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
             ApplicationDataManager::GetInstance().NotifyETSExceptionObject(appExecErrorObj)) {
             return;
         }
-        TAG_LOGE(AAFwkTag::APPKIT,
-            "\n%{public}s is about to exit due to RuntimeError\nError "
-            "type:%{public}s\n%{public}s",
-            bundleName.c_str(), errorObj.name.c_str(), summary.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "\n%{public}s is about to exit due to RuntimeError\nError "
+            "type:%{public}s\n%{public}s", bundleName.c_str(), errorObj.name.c_str(), summary.c_str());
         bool foreground = false;
         if (appThread->applicationImpl_ &&
             appThread->applicationImpl_->GetState() == ApplicationImpl::APP_STATE_FOREGROUND) {
@@ -1461,8 +1457,7 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
         int result = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
             HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName, "MSG", KILL_REASON,
             "FOREGROUND", foreground);
-        TAG_LOGW(AAFwkTag::APPKIT,
-            "hisysevent write result=%{public}d, send event "
+        TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event "
             "[FRAMEWORK,PROCESS_KILL],"
             " pid=%{public}d, processName=%{public}s, msg=%{public}s, "
             "foreground=%{public}d",
@@ -1508,17 +1503,17 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
         return;
     }
-
-    auto bundleName = appInfo.bundleName;
-    auto tmpWatchdog = watchdog_;
-    if (tmpWatchdog != nullptr) {
-        tmpWatchdog->SetBundleInfo(bundleName, appInfo.versionName);
-        tmpWatchdog = nullptr;
-    }
     BundleInfo bundleInfo;
+    auto bundleName = appInfo.bundleName;
     if (!GetBundleForLaunchApplication(bundleMgrHelper, bundleName, appLaunchData.GetAppIndex(), bundleInfo)) {
         TAG_LOGE(AAFwkTag::APPKIT, "get bundleInfo failed");
         return;
+    }
+    auto tmpWatchdog = watchdog_;
+    bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
+    if (tmpWatchdog != nullptr) {
+        tmpWatchdog->SetBundleInfo(bundleName, appInfo.versionName, isSystemApp);
+        tmpWatchdog = nullptr;
     }
 
     bool moduelJson = false;
@@ -1641,10 +1636,12 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 
     for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
         pkgContextInfoJsonStringMap[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
+        if (hapModuleInfo.deduplicateHar) {
+            application_->SetDeduplicateHar(hapModuleInfo.deduplicateHar);
+        }
     }
 
     GetNativeLibPath(bundleInfo, hspList, appLibPaths);
-    bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
     TAG_LOGD(AAFwkTag::APPKIT, "the application isSystemApp: %{public}d", isSystemApp);
 #ifdef CJ_FRONTEND
     AbilityRuntime::CJRuntime::SetAppVersion(bundleInfo.applicationInfo.compileSdkVersion);
@@ -1686,6 +1683,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         options.uid = bundleInfo.applicationInfo.uid;
         options.apiTargetVersion = appInfo.apiTargetVersion;
         options.pkgContextInfoJsonStringMap = pkgContextInfoJsonStringMap;
+        options.isStartWithDebug = appLaunchData.GetDebugApp();
         options.allowArkTsLargeHeap = appInfo.allowArkTsLargeHeap;
         options.versionCode = appInfo.versionCode;
 #ifdef CJ_FRONTEND
@@ -1725,9 +1723,17 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
                 options.hapModulePath[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
                 options.packageNameList[hapModuleInfo.moduleName] = hapModuleInfo.packageName;
+                if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::SHARED &&
+                    hapModuleInfo.moduleArkTSMode != AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+                    TAG_LOGD(AAFwkTag::APPKIT, "appInnerHspPathList: %{public}s", hapModuleInfo.hapPath.c_str());
+                    options.appInnerHspPathList.push_back(hapModuleInfo.hapPath);
+                }
                 options.aotCompileStatusMap[hapModuleInfo.moduleName] =
                     static_cast<int32_t>(hapModuleInfo.aotCompileStatus);
             }
+        }
+        for (const auto &hsp : hspList) {
+            options.commonHspBundleInfos.push_back({hsp.bundleName, hsp.moduleName, hsp.hapPath, hsp.moduleArkTSMode});
         }
         options.enableWarmStartupSmartGC =
             (appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRE_MAKE ||
@@ -1767,6 +1773,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 ResHelper::ReportLoadAbcCompletedInfoToRss(uid, currentPid, bundleName);
             });
         AbilityRuntime::Runtime::DebugOption debugOption;
+        debugOption.arkTSMode = appInfo.arkTSMode;
         debugOption.isStartWithDebug = appLaunchData.GetDebugApp();
         debugOption.processName = processName;
         debugOption.isDebugApp = appInfo.debug;
@@ -1775,6 +1782,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         debugOption.isDebugFromLocal = appLaunchData.GetDebugFromLocal();
         debugOption.perfCmd = perfCmd;
         debugOption.isDeveloperMode = isDeveloperMode_;
+        debugOption.bundleName = appInfo.bundleName;
         runtime->SetDebugOption(debugOption);
         if (perfCmd.find(PERFCMD_PROFILE) != std::string::npos ||
             perfCmd.find(PERFCMD_DUMPHEAP) != std::string::npos) {
@@ -1881,6 +1889,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         entryHapModuleInfo.hapPath.empty() ? entryHapModuleInfo.resourcePath : entryHapModuleInfo.hapPath;
     std::regex inner_pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleInfo.name);
     loadPath = std::regex_replace(loadPath, inner_pattern, LOCAL_CODE_PATH);
+    application_->SetEntryLoadPath(loadPath);
     auto res = GetOverlayModuleInfos(bundleInfo.name, moduleName, overlayModuleInfos_);
     std::vector<std::string> overlayPaths;
     if (res == ERR_OK) {
@@ -1950,11 +1959,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         TAG_LOGE(AAFwkTag::APPKIT, "null pAppEvnIml");
     }
 
-#if defined(NWEB)
-    if (!isSystemApp) {
-        PreLoadWebLib();
-    }
-#endif
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     if (appLaunchData.IsAllowedNWebPreload()) {
         HandleNWebPreload();
@@ -2001,7 +2005,8 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
             EVENT_KEY_VERSION, std::to_string(versionCode), EVENT_KEY_TYPE, JSCRASH_TYPE, EVENT_KEY_HAPPEN_TIME, timet,
             EVENT_KEY_REASON, errorObject.name, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, summary,
             EVENT_KEY_PNAME, processName, EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId,
-            EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()));
+            EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()),
+            EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
 
         ErrorObject appExecErrorObj = { errorObject.name, errorObject.message, errorObject.stack};
         auto napiEnv = (static_cast<AbilityRuntime::JsRuntime&>(*appThread->application_->GetRuntime())).GetNapiEnv();
@@ -2034,45 +2039,6 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
         _exit(JS_ERROR_EXIT);
     };
 }
-
-#if defined(NWEB)
-void MainThread::PreLoadWebLib()
-{
-    auto task = [this]() {
-        std::weak_ptr<OHOSApplication> weakApp = application_;
-        std::thread([weakApp] {
-            auto app = weakApp.lock();
-            if (app == nullptr) {
-                TAG_LOGW(AAFwkTag::APPKIT, "null app");
-                return;
-            }
-
-            if (prctl(PR_SET_NAME, "preStartNWeb") < 0) {
-                TAG_LOGW(AAFwkTag::APPKIT, "Set thread name failed with %{public}d", errno);
-            }
-
-            std::string nwebPath = app->GetAppContext()->GetCacheDir() + WEB_CACHE_DIR;
-            struct stat file_stat;
-            if (stat(nwebPath.c_str(), &file_stat) == -1) {
-                TAG_LOGW(AAFwkTag::APPKIT, "can not get file_stat");
-                return;
-            }
-
-            time_t current_time = time(nullptr);
-            double time_difference = difftime(current_time, file_stat.st_mtime);
-            if (time_difference > CACHE_EFFECTIVE_RANGE) {
-                TAG_LOGW(AAFwkTag::APPKIT, "web page started more than %{public}d seconds", CACHE_EFFECTIVE_RANGE);
-                return;
-            }
-
-            bool isFirstStartUpWeb = (access(nwebPath.c_str(), F_OK) != 0);
-            TAG_LOGD(AAFwkTag::APPKIT, "TryPreReadLib pre dlopen web so");
-            OHOS::NWeb::NWebHelper::TryPreReadLib(isFirstStartUpWeb, app->GetAppContext()->GetBundleCodeDir());
-        }).detach();
-    };
-    mainHandler_->PostTask(task, "MainThread::NWEB_PRELOAD_SO", PRELOAD_DELAY_TIME);
-}
-#endif
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
 void MainThread::HandleNWebPreload()
@@ -2195,7 +2161,7 @@ void MainThread::CalcNativeLiabraryEntries(const BundleInfo &bundleInfo, std::st
 
     if (loadSoFromDir) {
         if (nativeLibraryPath.empty()) {
-            TAG_LOGW(AAFwkTag::APPKIT, "nativeLibraryPath empty");
+            TAG_LOGW(AAFwkTag::APPKIT, "nativeLibPath empty");
             return;
         }
 
@@ -2338,7 +2304,7 @@ void MainThread::HandleUpdatePluginInfoInstalled(const ApplicationInfo &pluginAp
     }
 }
 
-void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo& appInfo, const std::string& moduleName)
+void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleNames)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     if (!application_) {
@@ -2360,19 +2326,23 @@ void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo& app
             return;
         }
 
-        AbilityInfo abilityInfo;
-        abilityInfo.bundleName = appInfo.bundleName;
-        abilityInfo.package = moduleName;
-        HapModuleInfo hapModuleInfo;
-        if (bundleMgrHelper->GetHapModuleInfo(abilityInfo, hapModuleInfo) == false) {
-            TAG_LOGE(AAFwkTag::APPKIT, "GetHapModuleInfo failed");
-            return;
+        std::vector<std::string> moduleNameList;
+        AbilityBase::SplitString(moduleNames, moduleNameList, 0, ",");
+        for (const auto &moduleName : moduleNameList) {
+            AbilityInfo abilityInfo;
+            abilityInfo.bundleName = appInfo.bundleName;
+            abilityInfo.package = moduleName;
+            HapModuleInfo hapModuleInfo;
+            if (bundleMgrHelper->GetHapModuleInfo(abilityInfo, hapModuleInfo) == false) {
+                TAG_LOGE(AAFwkTag::APPKIT, "GetHapModuleInfo failed");
+                return;
+            }
+            static_cast<AbilityRuntime::JsRuntime&>(*runtime).UpdatePkgContextInfoJson(hapModuleInfo.moduleName,
+                hapModuleInfo.hapPath, hapModuleInfo.packageName);
+            TAG_LOGI(AAFwkTag::APPKIT,
+                "UpdatePkgContextInfoJson moduleName: %{public}s, hapPath: %{public}s, packageName: %{public}s",
+                hapModuleInfo.moduleName.c_str(), hapModuleInfo.hapPath.c_str(), hapModuleInfo.packageName.c_str());
         }
-        static_cast<AbilityRuntime::JsRuntime&>(*runtime).UpdatePkgContextInfoJson(hapModuleInfo.moduleName,
-            hapModuleInfo.hapPath, hapModuleInfo.packageName);
-        TAG_LOGI(AAFwkTag::APPKIT,
-            "UpdatePkgContextInfoJson moduleName: %{public}s, hapPath: %{public}s, packageName: %{public}s",
-            hapModuleInfo.moduleName.c_str(), hapModuleInfo.hapPath.c_str(), hapModuleInfo.packageName.c_str());
     }
 }
 
@@ -2870,7 +2840,7 @@ void MainThread::Init(const std::shared_ptr<EventRunner> &runner)
     TAG_LOGD(AAFwkTag::APPKIT, "Start");
     mainHandler_ = std::make_shared<MainHandler>(runner, this);
     watchdog_ = std::make_shared<Watchdog>();
-    extensionConfigMgr_ = std::make_unique<AbilityRuntime::ExtensionConfigMgr>();
+    extensionConfigMgr_ = std::make_shared<AbilityRuntime::ExtensionConfigMgr>();
     wptr<MainThread> weak = this;
     auto task = [weak]() {
         auto appThread = weak.promote();
@@ -3057,7 +3027,7 @@ void MainThread::ForceFullGC()
 
 void MainThread::Start()
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "App main thread create, pid:%{public}d", getprocpid());
+    TAG_LOGI(AAFwkTag::APPKIT, "mainthread start, pid:%{public}d", getprocpid());
 
     std::shared_ptr<EventRunner> runner = EventRunner::GetMainEventRunner();
     if (runner == nullptr) {
@@ -3363,6 +3333,7 @@ void MainThread::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &
     if (mainHandler_ == nullptr || !mainHandler_->PostTask(task, "MainThread:AcceptWant")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleAcceptWant end");
 }
 
 void MainThread::SchedulePrepareTerminate(const std::string &moduleName)
@@ -3456,6 +3427,7 @@ void MainThread::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::s
     if (!mainHandler_->PostTask(task, "MainThread:ScheduleNewProcessRequest")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleNewProcessRequest end");
 }
 
 void MainThread::CheckMainThreadIsAlive()
@@ -3614,7 +3586,10 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
 
 #ifdef SUPPORT_HIPERF
     if (faultData.faultType == FaultDataType::CPU_LOAD) {
-        return AppExecFwk::AppCapturePerf::GetInstance().CapturePerf(faultData);
+        ffrt::submit([faultData] {
+            AppExecFwk::AppCapturePerf::GetInstance().CapturePerf(faultData);
+        });
+        return NO_ERROR;
     }
 #endif
 
@@ -4024,7 +3999,13 @@ void MainThread::ParseAppConfigurationParams(const std::string configuration, Co
         TAG_LOGE(AAFwkTag::ABILITYMGR, "app config not exist");
         return;
     }
-    nlohmann::json jsonObject = configurationJson.at(JSON_KEY_APP_CONFIGURATION).get<nlohmann::json>();
+    nlohmann::json jsonObject;
+    auto& configValue = configurationJson.at(JSON_KEY_APP_CONFIGURATION);
+    if (!configValue.is_object()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "config not object");
+        return;
+    }
+    jsonObject = configValue.get<nlohmann::json>();
     if (jsonObject.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null app config");
         return;
@@ -4190,6 +4171,11 @@ bool MainThread::GetTestRunnerTypeAndPath(const std::string bundleName, const st
         return false;
     }
     return true;
+}
+
+void MainThread::OnLoadAbilityFinished(uint64_t callbackId, int32_t pid)
+{
+    LoadAbilityCallbackManager::GetInstance().OnLoadAbilityFinished(callbackId, pid);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

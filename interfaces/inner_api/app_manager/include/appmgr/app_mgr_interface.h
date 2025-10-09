@@ -24,6 +24,7 @@
 #include "app_mgr_ipc_interface_code.h"
 #include "app_record_id.h"
 #include "application_info.h"
+#include "application_state_filter.h"
 #include "background_app_info.h"
 #include "bundle_info.h"
 #include "child_process_info.h"
@@ -332,6 +333,18 @@ public:
         const std::vector<std::string> &bundleNameList = {}) = 0;
 
     /**
+     * Register application/process/ability state observer.
+     * @param observer, bundleNameList, AppStateFilter.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterApplicationStateObserverWithFilter(sptr<IApplicationStateObserver> observer,
+        const std::vector<std::string> &bundleNameList = {}, const AppStateFilter &appStateFilter = AppStateFilter(),
+        bool isUsingFilter = false)
+    {
+        return 0;
+    }
+
+    /**
      * Unregister application or process state observer.
      * @param observer, ability token.
      * @return Returns ERR_OK on success, others on failure.
@@ -389,6 +402,13 @@ public:
      */
     virtual void ScheduleAcceptWantDone(const int32_t recordId, const AAFwk::Want &want, const std::string &flag) = 0;
 
+    /**
+     * @brief called when the module's onNewProcessRequest returns a flag
+     * 
+     * @param recordId app record id
+     * @param want want parameter
+     * @param flag process flag
+     */
     virtual void ScheduleNewProcessRequestDone(const int32_t recordId, const AAFwk::Want &want,
         const std::string &flag) = 0;
 
@@ -447,6 +467,8 @@ public:
      */
     virtual int32_t GetConfiguration(Configuration& config) = 0;
 
+    virtual int32_t GetConfiguration(Configuration& config, int32_t userid) = 0;
+
     /**
      * UpdateConfiguration, ANotify application update system environment changes.
      *
@@ -455,6 +477,9 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) = 0;
+
+    virtual int32_t UpdateConfigurationByUserIds(
+        const Configuration &config, const std::vector<int32_t> userIds) = 0;
 
     /**
      * UpdateConfigurationForBackgroundApp
@@ -484,10 +509,11 @@ public:
      * Register configuration observer.
      *
      * @param observer Configuration observer. When configuration changed, observer will be called.
+     * @param userId The userId provided by caller.
      * @return Returns RESULT_OK on success, others on failure.
      */
-    virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer) = 0;
-
+    virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer,
+        const int32_t userId = -1) = 0;
     /**
      * Unregister configuration observer.
      *
@@ -901,12 +927,12 @@ public:
     /**
      * Start native child process, callde by ChildProcessManager.
      * @param libName lib file name to be load in child process
-     * @param childProcessCount current started child process count
      * @param callback callback for notify start result
+     * @param request, the request of child process.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t CreateNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-        const sptr<IRemoteObject> &callback, const std::string &customProcessName) = 0;
+    virtual int32_t CreateNativeChildProcess(const std::string &libName,
+        const sptr<IRemoteObject> &callback, const ChildProcessRequest &request) = 0;
 #endif // SUPPORT_CHILD_PROCESS
 
      /**
@@ -969,6 +995,14 @@ public:
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) {}
 
+    /**
+     * Get if the specified module has been loaded.
+     * @param want info to query module.
+     * @param abilityInfo ability info.
+     * @param result out parameter, true for loaded, else false.
+     * @param isDebug out parameter, true for debug mode, else false.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int32_t IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result,
         bool &isDebug)
     {
@@ -1007,6 +1041,11 @@ public:
     {
         return 0;
     }
+
+    virtual int32_t ExitMasterProcessRole()
+    {
+        return 0;
+    }
     
     /**
      * Query running shared bundle infos.
@@ -1019,6 +1058,8 @@ public:
     {
         return 0;
     }
+
+    virtual void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

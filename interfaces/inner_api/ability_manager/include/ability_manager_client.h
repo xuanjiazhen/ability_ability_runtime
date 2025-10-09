@@ -64,6 +64,16 @@ public:
     ErrCode StartSelfUIAbilityWithStartOptions(const Want &want, const StartOptions &options);
 
     /**
+     * Starts self UIAbility with start options and receives the process ID. Supported only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @param options, the startOptions of the ability to start.
+     * @param callbackId, the id of the callback to get target process id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options, uint64_t callbackId);
+
+    /**
      * AttachAbilityThread, ability call this interface after loaded.
      *
      * @param scheduler,.the interface handler of kit ability.
@@ -285,6 +295,19 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
+     * Start ui session ability with windowId and want, send windowId and want to ability manager service.
+     *
+     * @param primaryWindowId the id of window.
+     * @param secondaryWant the want of the ability to start.
+     * @param callerToken current caller ability token.
+     * @return Returns ERR_OK if success.
+     */
+    ErrCode StartUIAbilitiesInSplitWindowMode(
+        int32_t primaryWindowId,
+        const AAFwk::Want &secondaryWant,
+        sptr<IRemoteObject> callerToken);
+
+    /**
      * Start UI abilities simultaneously.
      *
      * @param wantList a list of want to start UI abilities.
@@ -376,8 +399,22 @@ public:
     ErrCode PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
         int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE);
 
+    /**
+     * Change the visibility state of an UIAbility.
+     *
+     * @param token The destination UIAbility.
+     * @param isShow The wanted state, show or hide.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     ErrCode ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow);
 
+    /**
+     * Change the visibility state of an UIAbility by SCB.
+     *
+     * @param sessionInfo The destination UIAbility.
+     * @param isShow The wanted state, show or hide.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     ErrCode ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessionInfo, bool isShow);
 
     /**
@@ -934,6 +971,7 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
      * @param isSilent, whether show window when start fail.
      * @return Returns ERR_OK on success, others on failure.
@@ -941,9 +979,27 @@ public:
     ErrCode StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false);
 
+    /**
+     * Start Ability, connect session with common ability.
+     *
+     * @param want, Special want for service type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken Indicates the caller's identity
+     * @param accountId Indicates the account to start.
+     * @param errMsg Out parameter, indicates the failed reason.
+     * @param isSilent, whether show window when start fail.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     int32_t StartAbilityByCallWithErrMsg(const Want &want, sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent = false);
 
+    /**
+     * Start Ability for prelaunch
+     *
+     * @param want, Special want for service type's ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartAbilityForPrelaunch(const Want &want);
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
      *
@@ -1012,11 +1068,12 @@ public:
     /**
      * @brief start user.
      * @param accountId accountId.
+     * @param displayId logical screen id.
      * @param accountId is appRecovery or not.
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUser(int accountId, sptr<IUserCallback> callback, bool isAppRecovery = false);
+    ErrCode StartUser(int accountId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery = false);
 
     /**
      * @brief stop user.
@@ -1098,6 +1155,13 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode QueryAllAutoStartupApplications(std::vector<AutoStartupInfo> &infoList);
+
+    /**
+     * @brief Retrieves the auto startup status of the current application.
+     * @param isAutoStartEnabled Indicates whether auto startup is enabled for the current application.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetAutoStartupStatusForSelf(bool &isAutoStartEnabled);
 
     /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
@@ -1678,7 +1742,8 @@ public:
      * @param requestCode Ability request code.
      * @return Returns ERR_OK on success, others on failure.
     */
-    int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode);
+    int32_t OpenLink(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode,
+        bool hideFailureTipDialog = false);
 
     /**
      * Terminate process by bundleName.
