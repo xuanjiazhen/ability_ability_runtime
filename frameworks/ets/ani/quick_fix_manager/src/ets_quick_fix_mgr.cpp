@@ -150,7 +150,7 @@ bool SetBasicConfiguration(ani_env *env, ani_object object, const AAFwk::Applica
         return false;
     }
     
-    status = env->Object_SetPropertyByName_Double(object, "bundleVersionCode",
+    status = env->Object_SetPropertyByName_Int(object, "bundleVersionCode",
         appQuickFixInfo.bundleVersionCode);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::QUICKFIX, "bundleVersionCodeLong SetField status: %{public}d", status);
@@ -164,8 +164,8 @@ bool SetBasicConfiguration(ani_env *env, ani_object object, const AAFwk::Applica
         return false;
     }
     
-    status = env->Object_SetPropertyByName_Double(object, "quickFixVersionCode",
-        appQuickFixInfo.bundleVersionCode);
+    status = env->Object_SetPropertyByName_Int(object, "quickFixVersionCode",
+        appQuickFixInfo.appqfInfo.versionCode);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::QUICKFIX, "quickFixVersionCode SetField status: %{public}d", status);
         return false;
