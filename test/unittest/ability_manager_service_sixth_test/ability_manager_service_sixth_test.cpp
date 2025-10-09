@@ -2049,5 +2049,19 @@ HWTEST_F(AbilityManagerServiceSixthTest, SendIntentReport_001, TestSize.Level1)
     EXPECT_EQ(eventInfo.intentName, intentName);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest SendIntentReport_001 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: UnSubscribeScreenUnlockedEventSync
+ * FunctionPoints: AbilityManagerService UnSubscribeScreenUnlockedEventSync
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, UnSubscribeScreenUnlockedEventSync_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest UnSubscribeScreenUnlockedEventSync_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->UnSubscribeScreenUnlockedEventSync();
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest UnSubscribeScreenUnlockedEventSync_001 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS
