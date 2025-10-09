@@ -446,12 +446,13 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
 
     ani_boolean isUndefined = true;
     ani_ref actionTypeRef = nullptr;
-    if (!GetPropertyRef(env, info, "actionType", actionTypeRef, isUndefined)) {
-        TAG_LOGW(AAFwkTag::WANTAGENT, "actionType GetPropertyRef failed");
-    }
-    if (isUndefined) {
+    if (IsExistsField(env, info, "operationType")) {
         if (!GetPropertyRef(env, info, "operationType", actionTypeRef, isUndefined)) {
-            TAG_LOGW(AAFwkTag::WANTAGENT, "operationType GetPropertyRef failed");
+            TAG_LOGE(AAFwkTag::WANTAGENT, "operationType GetPropertyRef failed");
+        }
+    } else {
+        if (!GetPropertyRef(env, info, "actionType", actionTypeRef, isUndefined)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "actionType GetPropertyRef failed");
         }
     }
     if (!isUndefined) {
