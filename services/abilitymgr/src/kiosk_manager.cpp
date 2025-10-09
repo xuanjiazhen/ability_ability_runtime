@@ -83,7 +83,7 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
             }
         }
     }
-    whitelist_ = appList;
+    whitelist_.clear();
     for (const auto &app : appList) {
         whitelist_.insert(app);
     }
