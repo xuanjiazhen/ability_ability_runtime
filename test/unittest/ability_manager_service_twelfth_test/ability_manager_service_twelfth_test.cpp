@@ -1440,5 +1440,20 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, ExitKioskMode_003, TestSize.Level1) {
     auto result = abilityManagerService->ExitKioskMode(callerToken);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: UnSubscribeScreenUnlockedEventSync
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UnSubscribeScreenUnlockedEventSync
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, UnSubscribeScreenUnlockedEventSync_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest UnSubscribeScreenUnlockedEventSync_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    EXPECT_NE(abilityMs->UnSubscribeScreenUnlockedEventSync(), ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest UnSubscribeScreenUnlockedEventSync_001 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
