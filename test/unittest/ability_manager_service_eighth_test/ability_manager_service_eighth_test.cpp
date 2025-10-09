@@ -18,6 +18,7 @@
 
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
+#include "app_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "process_options.h"
 #include "ipc_skeleton.h"
@@ -420,7 +421,39 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartUIAbilityBySCB_001_002, TestSize.
     abilityMs_->freeInstallManager_->freeInstallList_.push_back(freeInstallInfo);
     ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, false);
     EXPECT_NE(ret, ERR_OK);
+
+    ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, true);
+    AppUtils::GetInstance().isSupportRestartAppWithWindow_.isLoaded = true;
+    AppUtils::GetInstance().isSupportRestartAppWithWindow_.value = false;
+    EXPECT_NE(ret, ERR_OK);
+
+    ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, true);
+    AppUtils::GetInstance().isSupportRestartAppWithWindow_.value = true;
+    EXPECT_NE(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest StartUIAbilityBySCB_001_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: SignRestartAppFlag
+ * FunctionPoints: SignRestartAppFlag
+ */
+HWTEST_F(AbilityManagerServiceEighthTest, SignRestartAppFlag_002, TestSize.Level1)
+{
+    int32_t uid = 100;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    auto taskHandler = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
+    abilityMs->subManagersHelper_->uiAbilityManagers_.emplace(uid, std::make_shared<UIAbilityLifecycleManager>());
+    abilityMs->subManagersHelper_->connectManagers_.emplace(uid, std::make_shared<AbilityConnectManager>(uid));
+
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled)
+        .WillRepeatedly(Return(true));
+    AbilityManagerService::SignRestartAppFlagParam param =
+        { uid, uid, "", AppExecFwk::MultiAppModeType::UNSPECIFIED, true, false, true, "testBundleName" };
+    auto ret = abilityMs->SignRestartAppFlag(param);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /*

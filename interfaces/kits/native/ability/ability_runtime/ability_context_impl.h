@@ -27,6 +27,9 @@
 #include "local_call_container.h"
 
 namespace OHOS {
+namespace Rosen {
+enum class WSError;
+}
 namespace AbilityRuntime {
 class AbilityContextImpl : public AbilityContext {
 public:
@@ -331,6 +334,8 @@ public:
     {
         isHook_ = isHook;
     }
+
+    static int32_t TransferRestartWSError(Rosen::WSError srcError);
 #endif
 
     /**

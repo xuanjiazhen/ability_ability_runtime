@@ -1518,6 +1518,22 @@ ErrCode AbilityContextImpl::SetOnNewWantSkipScenarios(int32_t scenarios)
     return AAFwk::AbilityManagerClient::GetInstance()->SetOnNewWantSkipScenarios(token_, scenarios);
 }
 
+#ifdef SUPPORT_SCREEN
+int32_t AbilityContextImpl::TransferRestartWSError(Rosen::WSError srcError)
+{
+    std::map<Rosen::WSError, int32_t> codeMap {
+        {Rosen::WSError::WS_OK, ERR_OK},
+        {Rosen::WSError::WS_ERROR_INVALID_OPERATION, AAFwk::ERR_RESTART_APP_INCORRECT_ABILITY},
+        {Rosen::WSError::WS_ERROR_INVALID_PERMISSION, AAFwk::ERR_ABILITY_NOT_FOREGROUND}
+    };
+    auto it = codeMap.find(srcError);
+    if (it != codeMap.end()) {
+        return it->second;
+    }
+    return ERR_INVALID_VALUE;
+}
+#endif
+
 ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1531,7 +1547,7 @@ ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
     if (element.GetBundleName().empty() || element.GetBundleName() != abilityInfo_->bundleName ||
         element.GetAbilityName().empty()) {
         TAG_LOGE(AAFwkTag::CONTEXT, "invalid bundleName or abilityName");
-        return AAFwk::INVALID_PARAMETERS_ERR;
+        return AAFwk::ERR_RESTART_APP_INCORRECT_ABILITY;
     }
 #ifdef SUPPORT_SCREEN
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() ||
@@ -1544,11 +1560,11 @@ ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
         return ERR_INVALID_VALUE;
     }
     TAG_LOGI(AAFwkTag::CONTEXT, "scb call, restartApp");
-    ErrCode ret = static_cast<int32_t>(ifaceSessionToken->RestartApp(std::make_shared<Want>(want)));
-    if (ret != ERR_OK) {
+    auto ret = ifaceSessionToken->RestartApp(std::make_shared<Want>(want));
+    if (ret != Rosen::WSError::WS_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "scb call, RestartApp err: %{public}d", ret);
     }
-    return ret;
+    return TransferRestartWSError(ret);
 #else
     return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
 #endif
