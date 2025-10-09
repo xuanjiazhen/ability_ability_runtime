@@ -368,14 +368,17 @@ bool ConnectionStateItem::AddConnection(std::shared_ptr<ConnectionRecord> record
     }
 
     std::shared_ptr<ConnectedExtension> connectedExtension = nullptr;
-    auto it = connectionMap_.find(token);
-    if (it == connectionMap_.end()) {
-        connectedExtension = ConnectedExtension::CreateConnectedExtension(record);
-        if (connectedExtension) {
-            connectionMap_[token] = connectedExtension;
+    {
+        std::lock_guard<std::mutex> guard(connectionMapMutex_);
+        auto it = connectionMap_.find(token);
+        if (it == connectionMap_.end()) {
+            connectedExtension = ConnectedExtension::CreateConnectedExtension(record);
+            if (connectedExtension) {
+                connectionMap_[token] = connectedExtension;
+            }
+        } else {
+            connectedExtension = it->second;
         }
-    } else {
-        connectedExtension = it->second;
     }
 
     if (!connectedExtension) {
@@ -410,7 +413,7 @@ bool ConnectionStateItem::RemoveConnection(std::shared_ptr<ConnectionRecord> rec
         TAG_LOGE(AAFwkTag::CONNECTION, "no connection callback");
         return false;
     }
-
+    std::lock_guard<std::mutex> guard(connectionMapMutex_);
     auto it = connectionMap_.find(token);
     if (it == connectionMap_.end()) {
         TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
@@ -452,13 +455,16 @@ bool ConnectionStateItem::SuspendConnection(std::shared_ptr<ConnectionRecord> re
         return false;
     }
 
-    auto it = connectionMap_.find(token);
-    if (it == connectionMap_.end()) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
-        return false;
+    std::shared_ptr<ConnectedExtension> connectedExtension = nullptr;
+    {
+        std::lock_guard<std::mutex> guard(connectionMapMutex_);
+        auto it = connectionMap_.find(token);
+        if (it == connectionMap_.end()) {
+            TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
+            return false;
+        }
+        connectedExtension = it->second;
     }
-
-    auto connectedExtension = it->second;
     if (!connectedExtension) {
         TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
         return false;
@@ -492,13 +498,16 @@ bool ConnectionStateItem::ResumeConnection(std::shared_ptr<ConnectionRecord> rec
         return false;
     }
 
-    auto it = connectionMap_.find(token);
-    if (it == connectionMap_.end()) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
-        return false;
+    std::shared_ptr<ConnectedExtension> connectedExtension = nullptr;
+    {
+        std::lock_guard<std::mutex> guard(connectionMapMutex_);
+        auto it = connectionMap_.find(token);
+        if (it == connectionMap_.end()) {
+            TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
+            return false;
+        }
+        connectedExtension = it->second;
     }
-
-    auto connectedExtension = it->second;
     if (!connectedExtension) {
         TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
         return false;
@@ -527,14 +536,17 @@ bool ConnectionStateItem::AddDataAbilityConnection(const DataAbilityCaller &call
     }
 
     std::shared_ptr<ConnectedDataAbility> connectedAbility = nullptr;
-    auto it = dataAbilityMap_.find(token);
-    if (it == dataAbilityMap_.end()) {
-        connectedAbility = ConnectedDataAbility::CreateConnectedDataAbility(dataAbility);
-        if (connectedAbility) {
-            dataAbilityMap_[token] = connectedAbility;
+    {
+        std::lock_guard<std::mutex> guard(dataAbilityMapMutex_);
+        auto it = dataAbilityMap_.find(token);
+        if (it == dataAbilityMap_.end()) {
+            connectedAbility = ConnectedDataAbility::CreateConnectedDataAbility(dataAbility);
+            if (connectedAbility) {
+                dataAbilityMap_[token] = connectedAbility;
+            }
+        } else {
+            connectedAbility = it->second;
         }
-    } else {
-        connectedAbility = it->second;
     }
 
     if (!connectedAbility) {
@@ -564,6 +576,7 @@ bool ConnectionStateItem::RemoveDataAbilityConnection(const DataAbilityCaller &c
         return false;
     }
 
+    std::lock_guard<std::mutex> guard(dataAbilityMapMutex_);
     auto it = dataAbilityMap_.find(token);
     if (it == dataAbilityMap_.end()) {
         TAG_LOGE(AAFwkTag::CONNECTION, "no such connected data ability");
@@ -592,6 +605,7 @@ bool ConnectionStateItem::HandleDataAbilityDied(const sptr<IRemoteObject> &token
         return false;
     }
 
+    std::lock_guard<std::mutex> guard(dataAbilityMapMutex_);
     auto it = dataAbilityMap_.find(token);
     if (it == dataAbilityMap_.end()) {
         TAG_LOGE(AAFwkTag::CONNECTION, "no such data ability");
@@ -611,20 +625,29 @@ bool ConnectionStateItem::HandleDataAbilityDied(const sptr<IRemoteObject> &token
 
 bool ConnectionStateItem::IsEmpty() const
 {
+    std::lock(connectionMapMutex_, dataAbilityMapMutex_);
+    std::lock_guard<std::mutex> guardConnectionMap(connectionMapMutex_, std::adopt_lock);
+    std::lock_guard<std::mutex> guardDataAbilityMap(dataAbilityMapMutex_, std::adopt_lock);
     return connectionMap_.empty() && dataAbilityMap_.empty();
 }
 
 void ConnectionStateItem::GenerateAllConnectionData(std::vector<AbilityRuntime::ConnectionData> &datas)
 {
     AbilityRuntime::ConnectionData data;
-    for (auto it = connectionMap_.begin(); it != connectionMap_.end(); ++it) {
-        GenerateConnectionData(it->second, data);
-        datas.emplace_back(data);
+    {
+        std::lock_guard<std::mutex> guardConnectionMap(connectionMapMutex)
+        for (auto it = connectionMap_.begin(); it != connectionMap_.end(); ++it) {
+            GenerateConnectionData(it->second, data);
+            datas.emplace_back(data);
+        }
     }
 
-    for (auto it = dataAbilityMap_.begin(); it != dataAbilityMap_.end(); ++it) {
-        GenerateConnectionData(it->second, data);
-        datas.emplace_back(data);
+    {
+        std::lock_guard<std::mutex> guardDataAbilityMap(dataAbilityMapMutex);
+        for (auto it = dataAbilityMap_.begin(); it != dataAbilityMap_.end(); ++it) {
+            GenerateConnectionData(it->second, data);
+            datas.emplace_back(data);
+        }
     }
 }
 

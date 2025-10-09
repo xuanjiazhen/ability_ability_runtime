@@ -119,7 +119,20 @@ Media::PhotoPermissionType MediaPermissionManager::FlagToFileOpenMode(uint32_t f
 Media::HideSensitiveType MediaPermissionManager::ConvertHideSensitiveType(int32_t hideSensitiveType)
 {
     auto mediahideSensitiveType = static_cast<Media::HideSensitiveType>(hideSensitiveType);
-    return mediahideSensitiveType;
+    switch (hideSensitiveType)
+    {
+        case static_cast<int32_t>(Media::HideSensitiveType::ALL_DESENSITIZE):
+            return Media::HideSensitiveType::ALL_DESENSITIZE;
+        case static_cast<int32_t>(Media::HideSensitiveType::GEOGRAPHIC_LOCATION_DESENSITIZE):
+            return Media::HideSensitiveType::GEOGRAPHIC_LOCATION_DESENSITIZE;
+        case static_cast<int32_t>(Media::HideSensitiveType::SHOOTING_PARAM_DESENSITIZE):
+            return Media::HideSensitiveType::SHOOTING_PARAM_DESENSITIZE;
+        case static_cast<int32_t>(Media::HideSensitiveType::NO_DESENSITIZE):
+            return Media::HideSensitiveType::NO_DESENSITIZE;
+        default:
+            TAG_LOGE(AAFwkTag::URIPERMMGR, "invalid hideSensitiveType.");
+            return mediahideSensitiveType;
+    }
 }
 
 int32_t MediaPermissionManager::RevokeUriPermission(uint32_t callerTokenId, uint32_t targetTokenId,
