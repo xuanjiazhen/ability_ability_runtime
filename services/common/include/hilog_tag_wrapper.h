@@ -19,6 +19,7 @@
 #include <cinttypes>
 #include <map>
 #include <string>
+#include <unordered_map>
 
 #include "hilog/log.h"
 
@@ -187,57 +188,31 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
-static bool ConvertFileName(const std::string& fileBaseName, std::string& abbrFileName)
-{
-    if (fileBaseName == "ability_connect_callback_stub") {
-        abbrFileName = "ACCS";
-    } else if (fileBaseName == "ability_connect_manager") {
-        abbrFileName = "ABCM";
-    } else if (fileBaseName == "ability_manager_client") {
-        abbrFileName = "AMC";
-    } else if (fileBaseName == "ability_manager_service") {
-        abbrFileName = "ABMS";
-    } else if (fileBaseName == "ability_record") {
-        abbrFileName = "ABR";
-    } else if (fileBaseName == "app_mgr_service_inner") {
-        abbrFileName = "AMSI";
-    } else if (fileBaseName == "app_running_manager") {
-        abbrFileName = "ARM";
-    } else if (fileBaseName == "app_running_record") {
-        abbrFileName = "ARR";
-    } else if (fileBaseName == "app_spawn_client") {
-        abbrFileName = "ASC";
-    } else if (fileBaseName == "app_state_observer_manager") {
-        abbrFileName = "ASOM";
-    } else if (fileBaseName == "cache_process_manager") {
-        abbrFileName = "CPM";
-    } else if (fileBaseName == "connect_server_manager") {
-        abbrFileName = "CSM";
-    } else if (fileBaseName == "connection_record") {
-        abbrFileName = "CONN";
-    } else if (fileBaseName == "dump_runtime_helper") {
-        abbrFileName = "DRH";
-    } else if (fileBaseName == "js_service_extension_context") {
-        abbrFileName = "JSEC";
-    } else if (fileBaseName == "js_ui_ability") {
-        abbrFileName = "JUA";
-    } else if (fileBaseName == "js_service_extension") {
-        abbrFileName = "JSE";
-    } else if (fileBaseName == "main_thread") {
-        abbrFileName = "MAINTHD";
-    } else if (fileBaseName == "prload_uiext_state_observer") {
-        abbrFileName = "PUSO";
-    } else if (fileBaseName == "service_extension_context") {
-        abbrFileName = "SEC";
-    } else if (fileBaseName == "ui_ability_lifecycle_manager") {
-        abbrFileName = "UALM";
-    } else {
-        return false;
-    }
-    return true;
-}
+static std::unordered_map<std::string, std::string> abbrFileNameMap {
+    { "ability_connect_callback_stub", "ACCS" },
+    { "ability_connect_manager", "ABCM" },
+    { "ability_manager_client", "AMC" },
+    { "ability_manager_service", "ABMS" },
+    { "ability_record", "ABR" },
+    { "app_mgr_service_inner", "AMSI" },
+    { "app_running_manager", "ARM" },
+    { "app_running_record", "ARR" },
+    { "app_spawn_client", "ASC" },
+    { "app_state_observer_manager", "ASOM" },
+    { "cache_process_manager", "CPM" },
+    { "connect_server_manager", "CSM" },
+    { "connection_record", "CONN" },
+    { "dump_runtime_helper", "DRH" },
+    { "js_service_extension_context", "JSEC" },
+    { "js_ui_ability", "JUA" },
+    { "js_service_extension", "JSE" },
+    { "main_thread", "MAINTHD" },
+    { "prload_uiext_state_observer", "PUSO" },
+    { "service_extension_context", "SEC" },
+    { "ui_ability_lifecycle_manager", "UALM" }
+};
 
-[[maybe_unused]] static std::string CovertFileName(const std::string& fileName)
+[[maybe_unused]] static std::string ConvertFileName(const std::string& fileName)
 {
     std::string fileBaseName = fileName;
     auto pos = fileName.find_last_of(".");
@@ -245,9 +220,8 @@ static bool ConvertFileName(const std::string& fileBaseName, std::string& abbrFi
         return fileBaseName;
     }
     fileBaseName = fileName.substr(0, pos);
-    std::string abbrFileName;
-    if (ConvertFileName(fileBaseName, abbrFileName)) {
-        return abbrFileName;
+    if (abbrFileNameMap.find(fileBaseName) != abbrFileNameMap.end()) {
+        return abbrFileNameMap[fileBaseName];
     }
     return fileBaseName;
 }
@@ -282,7 +256,7 @@ using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
 #define AAFWK_PRINT_LOG(level, tag, fmt, ...)                                                           \
     do {                                                                                                \
         AAFwkTag logTag = tag;                                                                          \
-        std::string abbrFileName = OHOS::AAFwk::CovertFileName(std::string(AAFWK_FILE_NAME));   \
+        std::string abbrFileName = OHOS::AAFwk::ConvertFileName(std::string(AAFWK_FILE_NAME));          \
         ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                               \
         OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, \
         abbrFileName.c_str(), __LINE__, ##__VA_ARGS__));  \
