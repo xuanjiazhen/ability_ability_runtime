@@ -37,16 +37,16 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-    constexpr const char *CONTEXT_CLASS_NAME = "Lapplication/AppServiceExtensionContext/AppServiceExtensionContext;";
-    constexpr const char *APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
-    "Lapplication/AppServiceExtensionContext/AppServiceExtensionContext;";
-    static std::mutex g_connectsMutex;
-    static std::recursive_mutex g_connectsLock;
-    static std::map<EtsConnectionKey, sptr<ETSAppServiceExtensionConnection>, EtsKeyCompare> g_connects;
-    static int64_t g_serialNumber = 0;
-    constexpr const int FAILED_CODE = -1;
-    constexpr const char *CLEANER_CLASS_NAME = "Lapplication/AppServiceExtensionContext/Cleaner;";
-    constexpr const int ANI_ALREADY_BINDED = 8;
+constexpr const char *CONTEXT_CLASS_NAME = "Lapplication/AppServiceExtensionContext/AppServiceExtensionContext;";
+constexpr const char *APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
+"Lapplication/AppServiceExtensionContext/AppServiceExtensionContext;";
+static std::mutex g_connectsMutex;
+static std::recursive_mutex g_connectsLock;
+static std::map<EtsConnectionKey, sptr<ETSAppServiceExtensionConnection>, EtsKeyCompare> g_connects;
+static int64_t g_serialNumber = 0;
+constexpr const int FAILED_CODE = -1;
+constexpr const char *CLEANER_CLASS_NAME = "Lapplication/AppServiceExtensionContext/Cleaner;";
+constexpr const int ANI_ALREADY_BINDED = 8;
 }
 
 bool BindNativeMethods(ani_env *env, ani_class &cls)
@@ -282,7 +282,8 @@ ani_object CreateEtsAppServiceExtensionContext(ani_env *env, std::shared_ptr<App
         TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to create etsAppServiceExtensionContext");
         return nullptr;
     }
-    auto serviceContextPtr = new std::weak_ptr<AppServiceExtensionContext> (workContext->GetAbilityContext());
+    auto serviceContextPtr = new (std::nothrow)
+        std::weak_ptr<AppServiceExtensionContext> (workContext->GetAbilityContext());
     if ((status = env->Object_New(cls, method, &contextObj, (ani_long)workContext.release())) != ANI_OK ||
         contextObj == nullptr) {
         TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "Failed to create object, status : %{public}d", status);
