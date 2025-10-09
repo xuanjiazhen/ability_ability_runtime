@@ -72,6 +72,7 @@ public:
     static void ReportDrawnCompleted(ani_env *env,  ani_object aniObj, ani_object callback);
     static void StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
         ani_object callback);
+    static bool UnwrapWantList(ani_env *env, ani_object wantListObj, std::vector<AAFwk::Want> &wantList);
 
     static bool BindNativePtrCleaner(ani_env *env);
     static void Clean(ani_env *env, ani_object object);
