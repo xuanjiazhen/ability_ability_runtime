@@ -26,6 +26,8 @@
 #include "ets_native_reference.h"
 #include "hilog_tag_wrapper.h"
 #include "permission_verification.h"
+#include "application_env.h"
+#include "ani_enum_convert.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -33,6 +35,7 @@ namespace {
 constexpr const char* PERMISSION_GET_BUNDLE_INFO = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
 constexpr const char* CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
 constexpr const char* APPLICATION_SPACE_NAME = "L@ohos/app/ability/application/application;";
+constexpr const char* APP_PRELOAD_TYPE_NAME = "L@ohos/app/ability/application/application/AppPreloadType;";
 }
 
 ani_object CreateEmptyContextObject(ani_env *env)
@@ -331,6 +334,20 @@ ani_object EtsApplication::GetApplicationContext(ani_env *env)
     return reinterpret_cast<ani_object>(etsReference->aniRef);
 }
 
+ani_enum_item EtsApplication::GetAppPreloadType(ani_env *env)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetAppPreloadType Call");
+    ani_enum_item appPreloadTypeItem = nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return appPreloadTypeItem;
+    }
+    auto appPreload = GetAppPreload();
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
+        env, APP_PRELOAD_TYPE_NAME, appPreload, appPreloadTypeItem);
+    return appPreloadTypeItem;
+}
+
 void ApplicationInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ApplicationInit Call");
@@ -370,9 +387,14 @@ void ApplicationInit(ani_env *env)
             reinterpret_cast<void *>(EtsApplication::DemoteCurrentFromCandidateMasterProcess)
         },
         ani_native_function {
-        "nativePromoteCurrentToCandidateMasterProcess",
-        nullptr,
-        reinterpret_cast<void *>(EtsApplication::PromoteCurrentToCandidateMasterProcess)
+            "nativePromoteCurrentToCandidateMasterProcess",
+            nullptr,
+            reinterpret_cast<void *>(EtsApplication::PromoteCurrentToCandidateMasterProcess)
+        },
+        ani_native_function {
+            "nativeGetAppPreloadType",
+            ":L@ohos/app/ability/application/application/AppPreloadType;",
+            reinterpret_cast<void *>(EtsApplication::GetAppPreloadType)
         },
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
