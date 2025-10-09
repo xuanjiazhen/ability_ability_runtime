@@ -19,12 +19,14 @@
 #include "ani_common_start_options.h"
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
-#include "ani_remote_object.h"
+#include "remote_object_taihe_ani.h"
 #include "common_fun_ani.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_extension_context.h"
 #include "ui_extension_context.h"
+#include "js_start_abilities_observer.h"
+
 
 
 namespace OHOS {
@@ -355,7 +357,7 @@ void EtsUIExtensionContext::OnStartUIAbilities(ani_env *env, ani_object aniObj, 
         return;
     }
     std::vector<AAFwk::Want> wantList;
-    if (!AppExecFwk::UnwrapWantList(env, wantListObj, wantList)) {
+    if (!EtsUIExtensionContext::UnwrapWantList(env, wantListObj, wantList)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Unwrap wantList param failed.");
         AppExecFwk::AsyncCallback(env, callback,
             EtsErrorUtil::CreateInvalidParamError(env, "Parse param wantList failed, must be an array of Want."),
@@ -370,7 +372,7 @@ void EtsUIExtensionContext::OnStartUIAbilities(ani_env *env, ani_object aniObj, 
     }
     std::string requestKey = std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count());
-    JsStartAbilitiesObserver::GetInstance().AddEtsObserver(env, requestKey, callback);
+    OHOS::AbilityRuntime::JsStartAbilitiesObserver::GetInstance().AddEtsObserver(env, requestKey, callback);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::UI_EXT, "null context");
@@ -382,16 +384,15 @@ void EtsUIExtensionContext::OnStartUIAbilities(ani_env *env, ani_object aniObj, 
     auto execute = [context, wantList, requestKey, innerErrCode]() {
         *innerErrCode = context->StartUIAbilities(wantList, requestKey);
     };
-    
     auto complete = [innerErrCode, requestKey]() {
         TAG_LOGI(AAFwkTag::UI_EXT, "startUIAbilities complete innerErrCode: %{public}d", *innerErrCode);
         if (*innerErrCode == AAFwk::START_UI_ABILITIES_WAITING_SPECIFIED_CODE) {
             TAG_LOGI(AAFwkTag::UI_EXT, "startUIAbilities waiting specified.");
             return;
         }
-        JsStartAbilitiesObserver::GetInstance().HandleFinished(requestKey, *innerErrCode);
+        OHOS::AbilityRuntime::JsStartAbilitiesObserver::GetInstance().HandleFinished(requestKey, *innerErrCode);
     };
-    AppExecFwk::AsyncTask(env, execute, complete);
+       AppExecFwk::AsyncCallback(env, nullptr, nullptr, nullptr); 
 }
 
 ani_long EtsUIExtensionContext::OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
@@ -548,6 +549,40 @@ bool EtsUIExtensionContext::CheckConnectionParam(ani_env *env, ani_object connec
     TAG_LOGD(AAFwkTag::UI_EXT, "Failed to find connection, make new one");
     return true;
 }
+
+bool EtsUIExtensionContext::UnwrapWantList(ani_env *env, ani_object wantListObj,
+    std::vector<AAFwk::Want> &wantList)
+{
+    ani_array_ref wantListArray = reinterpret_cast<ani_array_ref>(wantListObj);
+    ani_size arrayLength = 0;
+    if (env->Array_GetLength(wantListArray, &arrayLength) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to get array length.");
+        return false;
+    }
+    if (arrayLength < 1 || arrayLength > 4) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "wantList size not support");
+        return false;
+    }
+    for (ani_size i = 0; i < arrayLength; i++) {
+        ani_ref wantRef  = nullptr;
+        if (env->Array_Get_Ref(wantListArray, i, &wantRef ) != ANI_OK || wantRef  == nullptr) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to get want object at index %{public}d", i);
+            return false;
+        }
+        ani_object wantObj = reinterpret_cast<ani_object>(wantRef);
+        //wantObj = reinterpret_cast<ani_object>(wantRef);
+        AAFwk::Want curWant;
+        if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, curWant)) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "startUIAbilities parse want failed");
+            return false;
+        }
+        TAG_LOGD(AAFwkTag::SERVICE_EXT, "startUIAbilities ability:%{public}s",
+            curWant.GetElement().GetAbilityName().c_str());
+        wantList.emplace_back(curWant);
+    }
+    return true;
+}
+
 
 void EtsUIExtensionContext::Clean(ani_env *env, ani_object object)
 {
