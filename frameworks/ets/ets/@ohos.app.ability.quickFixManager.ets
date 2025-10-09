@@ -32,17 +32,17 @@ export class HapModuleQuickFixInfoImpl implements HapModuleQuickFixInfo {
 
 export interface ApplicationQuickFixInfo {
     readonly bundleName: string;
-    readonly bundleVersionCode: int;
+    readonly bundleVersionCode: long;
     readonly bundleVersionName: string;
-    readonly quickFixVersionCode: int;
+    readonly quickFixVersionCode: long;
     readonly quickFixVersionName: string;
     readonly hapModuleQuickFixInfo: Array<HapModuleQuickFixInfo>;
 }
 export class ApplicationQuickFixInfoImpl implements ApplicationQuickFixInfo {
     readonly bundleName: string = '';
-    readonly bundleVersionCode: int;
+    readonly bundleVersionCode: long;
     readonly bundleVersionName: string = '';
-    readonly quickFixVersionCode: int;
+    readonly quickFixVersionCode: long;
     readonly quickFixVersionName: string = '';
     readonly hapModuleQuickFixInfo: Array<HapModuleQuickFixInfo> = new Array<HapModuleQuickFixInfo>();
 }
