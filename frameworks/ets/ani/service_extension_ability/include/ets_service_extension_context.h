@@ -66,6 +66,8 @@ public:
     static void StartServiceExtensionAbility(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj);
     static void StopServiceExtensionAbility(
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callbackobj);
+    static void StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
+        ani_object callback);
 
     std::weak_ptr<ServiceExtensionContext> GetAbilityContext()
     {

@@ -201,7 +201,7 @@ void EtsServiceExtensionContext::OnStartUIAbilities(ani_env *env, ani_object ani
     }
     std::string requestKey = std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count());
-    JsStartAbilitiesObserver::GetInstance().AddEtsObserver(env, requestKey, callback);
+    OHOS::AbilityRuntime::JsStartAbilitiesObserver::GetInstance().AddEtsObserver(env, requestKey, callback);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::SERVICE_EXT, "null context");
@@ -220,9 +220,9 @@ void EtsServiceExtensionContext::OnStartUIAbilities(ani_env *env, ani_object ani
             TAG_LOGI(AAFwkTag::SERVICE_EXT, "startUIAbilities waiting specified.");
             return;
         }
-        JsStartAbilitiesObserver::GetInstance().HandleFinished(requestKey, *innerErrCode);
+        OHOS::AbilityRuntime::JsStartAbilitiesObserver::GetInstance().HandleFinished(requestKey, *innerErrCode);
     };
-    AppExecFwk::AsyncTask(env, execute, complete);
+    AppExecFwk::AsyncTask(env, nullptr, std::move(execute), std::move(complete), nullptr);
 }
 
 void EtsServiceExtensionContext::StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call)
@@ -553,6 +553,32 @@ void EtsServiceExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *en
     }
     context->DisconnectAbility(want, connection, accountId);
     AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+}
+bool EtsUIExtensionContext::UnwrapWantList(ani_env *env, ani_object wantListObj, std::vector<AAFwk::Want> &wantList)
+{
+    AppExecFwk::ComplexArrayData wantArrayData;
+    if (!AppExecFwk::UnwrapArrayComplexFromJS(env, wantListObj, wantArrayData)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "wantList not array.");
+        return false;
+    }
+
+    size_t wantSize = wantArrayData.objectList.size();
+    if (wantSize < 1 || wantSize > 4) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "wantList size not support");
+        return false;
+    }
+
+    for (size_t index = 0; index < wantSize; index++) {
+        AAFwk::Want curWant;
+        if (!OHOS::AppExecFwk::UnwrapWant(env, wantArrayData.objectList[index], curWant)) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "startUIAbilities parse want failed");
+            return false;
+        }
+        TAG_LOGD(AAFwkTag::UI_EXT, "startUIAbilities ability:%{public}s",
+            curWant.GetElement().GetAbilityName().c_str());
+        wantList.emplace_back(curWant);
+    }
+    return true;
 }
 
 void EtsServiceExtensionContext::AddFreeInstallObserver(

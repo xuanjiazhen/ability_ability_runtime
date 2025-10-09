@@ -25,8 +25,7 @@ JsStartAbilitiesObserver &JsStartAbilitiesObserver::GetInstance()
     return instance;
 }
 
-~JsStartAbilitiesObserver()
-{
+JsStartAbilitiesObserver::~JsStartAbilitiesObserver(){
     ani_env *env = nullptr;
     ani_status status = ANI_ERROR;
     ani_option interopEnabled { "--interop=disable", nullptr };
@@ -62,7 +61,7 @@ void JsStartAbilitiesObserver::AddEtsObserver(ani_env *env, const std::string &r
     }
     if (etsVm_ == nullptr) {
         ani_status status = ANI_ERROR;
-        if ((status = env->GetVM(&etsVm_)) != ANI_OK || etsVm == nullptr) {
+        if ((status = env->GetVM(&etsVm_)) != ANI_OK || etsVm_ == nullptr) {
             TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
         }
     }
