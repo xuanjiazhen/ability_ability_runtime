@@ -13620,6 +13620,10 @@ int32_t AbilityManagerService::SignRestartAppFlag(const SignRestartAppFlagParam 
         missionListManager->SignRestartAppFlag(param.uid, param.instanceKey);
     }
 
+    if (param.isRestartUIAbility) {
+        return IN_PROCESS_CALL(DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->KillApplicationByUid(
+            param.bundleName, param.uid, "RestartUIAbility"));
+    }
     if (param.type == AppExecFwk::MultiAppModeType::MULTI_INSTANCE) {
         return appMgr->KillAppSelfWithInstanceKey(param.instanceKey, false, "RestartInstance");
     }

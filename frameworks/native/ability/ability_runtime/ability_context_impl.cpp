@@ -1526,8 +1526,10 @@ ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
         return ERR_INVALID_VALUE;
     }
 
-    if (!want.GetBundle().empty() || want.GetBundle() != abilityInfo_->bundleName) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "empty bundleName or abilityName");
+    auto element = want.GetElement();
+    if (element.GetBundleName().empty() || element.GetBundleName() != abilityInfo_->bundleName ||
+        element.GetAbilityName().empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid bundleName or abilityName");
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
 #ifdef SUPPORT_SCREEN
