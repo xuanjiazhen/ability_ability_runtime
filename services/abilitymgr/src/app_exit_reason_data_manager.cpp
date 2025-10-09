@@ -996,7 +996,15 @@ void AppExitReasonDataManager::PutAsync(const DistributedKv::Key &key, const Dis
         auto pThis = DelayedSingleton<AppExitReasonDataManager>::GetInstance();
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, PUT_TASK_NAME);
         AAFwk::RecordCostTimeUtil timeRecord(PUT_TASK_NAME);
+        if (!pThis) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null pThis");
+            return;
+        }
         std::lock_guard lock(pThis->kvStorePtrMutex_);
+        if (!pThis->kvStorePtr_) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+            return;
+        }
         auto status = pThis->kvStorePtr_->Put(key, value);
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "insert error: %{public}d", status);
