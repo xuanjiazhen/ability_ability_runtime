@@ -157,7 +157,7 @@ bool EtsExtensionContextModule::LoadTargetModule(ani_env *aniEnv, const std::str
         return false;
     }
 
-    TAG_LOGD(AAFwkTag::CONTEXT, "gotContext %{public}s", contextType.c_str());
+    TAG_LOGD(AAFwkTag::CONTEXT, "contextType %{public}s", contextType.c_str());
     return true;
 }
 
