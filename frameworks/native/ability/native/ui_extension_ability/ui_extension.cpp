@@ -228,28 +228,34 @@ void UIExtension::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &ses
         params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT_CODE, AAFwk::Integer::Box(result.innerErr));
         WantParams resultParams;
         resultParams.SetParam("code", AAFwk::Integer::Box(result.code));
-        if (result.result != nullptr) {
-            sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*result.result);
-            if (pWantParams != nullptr) {
-                resultParams.SetParam("result", pWantParams);
+        Roseb::WMError ret;
+        if (result.isDecorator && result.result) {
+            params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, WantParamWrapper::Box(*result.result));
+            ret = res->second->TransferExtensionData(params);
+        } else {
+            if (result.result != nullptr) {
+                sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*result.result);
+                if (pWantParams != nullptr) {
+                    resultParams.SetParam("result", pWantParams);
+                }
             }
+            auto size = result.uris.size();
+            sptr<IArray> uriArray = new (std::nothrow) Array(size, g_IID_IString);
+            if (uriArray == nullptr) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "new uriArray failed");
+                return;
+            }
+            for (std::size_t i = 0; i < size; i++) {
+                uriArray->Set(i, String::Box(result.uris[i]));
+            }
+            resultParams.SetParam("uris", uriArray);
+            resultParams.SetParam("flags", AAFwk::Integer::Box(result.flags));
+            sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(resultParams);
+            if (pWantParams != nullptr) {
+                params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
+            }
+            Rosen::WMError ret = res->second->TransferExtensionData(params);
         }
-        auto size = result.uris.size();
-        sptr<IArray> uriArray = new (std::nothrow) Array(size, g_IID_IString);
-        if (uriArray == nullptr) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "new uriArray failed");
-            return;
-        }
-        for (std::size_t i = 0; i < size; i++) {
-            uriArray->Set(i, String::Box(result.uris[i]));
-        }
-        resultParams.SetParam("uris", uriArray);
-        resultParams.SetParam("flags", AAFwk::Integer::Box(result.flags));
-        sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(resultParams);
-        if (pWantParams != nullptr) {
-            params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
-        }
-        Rosen::WMError ret = res->second->TransferExtensionData(params);
         if (ret == Rosen::WMError::WM_OK) {
             TAG_LOGD(AAFwkTag::UI_EXT, "TransferExtensionData success");
         } else {
