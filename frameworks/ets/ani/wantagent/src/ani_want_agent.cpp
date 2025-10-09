@@ -465,7 +465,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         return PARAMETER_ERROR;
     }
     params.requestCode = requestCode;
-    if (IsExistsField(env, info, "operationType")) {
+    if (!IsExistsField(env, info, "operationType")) {
         return BUSINESS_ERROR_CODE_OK;
     }
     ani_ref actionFlagsRef = nullptr;
