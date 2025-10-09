@@ -464,7 +464,8 @@ int DialogSessionManager::CreateModalDialogCommon(const Want &replaceWant, sptr<
     int32_t ret = ERR_INVALID_VALUE;
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        auto userId = callerRecord->GetOwnerMissionUserId();
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy(userId);
         if (sceneSessionManager == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneSessionManager null");
             return ERR_INVALID_VALUE;

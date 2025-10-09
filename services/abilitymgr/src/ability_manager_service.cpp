@@ -11754,7 +11754,7 @@ int AbilityManagerService::IsCallFromBackground(const AbilityRequest &abilityReq
         if (AppUtils::GetInstance().IsStartOptionsWithAnimation() &&
             callerAbility->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE &&
             AbilityPermissionUtil::GetInstance().CheckStartCallHasFloatingWindow(
-            abilityRequest.callerToken) == ERR_OK) {
+            abilityRequest.callerToken, callerAbility->GetOwnerMissionUserId()) == ERR_OK) {
             isBackgroundCall = false;
             return ERR_OK;
         }
@@ -14459,7 +14459,7 @@ int AbilityManagerService::StartUIAbilityByPreInstallInner(sptr<SessionInfo> ses
     }
     abilityRequest.want.RemoveParam(PARAM_SPECIFIED_PROCESS_FLAG);
 
-    auto uiAbilityManager = GetUIAbilityManagerByUserId(validUserId);
+    auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
 
     return uiAbilityManager->StartUIAbility(abilityRequest, sessionInfo, sceneFlag, isColdStart);

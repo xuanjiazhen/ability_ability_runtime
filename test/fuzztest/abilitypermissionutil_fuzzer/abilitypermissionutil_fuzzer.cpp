@@ -75,7 +75,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
     util.CheckMultiInstanceKeyForExtension(abilityRequest);
     util.CheckStartRecentAbility(want, abilityRequest);
     util.CheckStartRecentAbility(want, abilityRequest);
-    util.CheckStartCallHasFloatingWindow(callerToken);
+    util.CheckStartCallHasFloatingWindow(callerToken, int32Param);
     util.AddStartSelfUIAbilityRecord(pid, maxCount);
     util.RemoveStartSelfUIAbilityRecord(pid);
     util.GetTokenIdByPid(pid);

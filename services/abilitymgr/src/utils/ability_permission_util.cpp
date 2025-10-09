@@ -282,10 +282,10 @@ int32_t AbilityPermissionUtil::CheckStartRecentAbility(const Want &want, Ability
 }
 
 #ifdef SUPPORT_SCREEN
-int32_t AbilityPermissionUtil::CheckStartCallHasFloatingWindow(const sptr<IRemoteObject> &callerToken)
+int32_t AbilityPermissionUtil::CheckStartCallHasFloatingWindow(const sptr<IRemoteObject> &callerToken, int32_t userId)
 {
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy(userId);
         CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, CHECK_PERMISSION_FAILED, "sceneSessionManager is nullptr");
         bool hasFloatingWindow = false;
         auto err = sceneSessionManager->HasFloatingWindowForeground(callerToken, hasFloatingWindow);

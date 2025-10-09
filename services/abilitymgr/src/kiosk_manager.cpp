@@ -30,6 +30,7 @@
 #include "permission_constants.h"
 #include "session_manager_lite.h"
 #include "singleton.h"
+#include "user_controller/user_controller.h"
 #include "utils/want_utils.h"
 
 namespace OHOS {
@@ -86,7 +87,8 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
     for (const auto &app : appList) {
         whitelist_.insert(app);
     }
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy(userId);
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
     sceneSessionManager->UpdateKioskAppList(appList);
     return ERR_OK;
@@ -123,7 +125,8 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
     kioskStatus_.kioskToken_ = callerToken;
     GetEnterKioskModeCallback()();
     NotifyKioskModeChanged(true);
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    int32_t userId = record->GetOwnerMissionUserId();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy(userId);
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
     sceneSessionManager->EnterKioskMode(callerToken);
     return ERR_OK;
@@ -163,7 +166,13 @@ int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRe
     GetExitKioskModeCallback()();
     NotifyKioskModeChanged(false);
     kioskStatus_.Clear();
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    auto record = Token::GetAbilityRecordByToken(callerToken);
+    if (!record) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "record null");
+        return INVALID_PARAMETERS_ERR;
+    }
+    int32_t userId = record->GetOwnerMissionUserId();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy(userId);
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
     sceneSessionManager->ExitKioskMode(callerToken);
     return ERR_OK;

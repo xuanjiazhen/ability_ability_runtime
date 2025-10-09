@@ -22,6 +22,7 @@
 #undef protected
 #include "ability_manager_service.h"
 #include "ability_resident_process_rdb.h"
+#include "user_controller/user_controller.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -324,6 +325,9 @@ HWTEST_F(ResidentProcessManagerTest, UpdateResidentProcessesStatus_002, TestSize
 {
     auto manager = std::make_shared<ResidentProcessManager>();
     ASSERT_NE(manager, nullptr);
+    int32_t userId = 100;
+    uint64_t displayId = 0;
+    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(userId, displayId);
     std::string bundleName = "com.ohos.demo";
     bool localEnable = false;
     bool updateEnable = false;

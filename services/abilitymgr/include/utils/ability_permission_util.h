@@ -106,9 +106,10 @@ public:
     /**
      * Check HasFloatingWindow.
      * @param callerToken The caller token.
+     * @param userId The userId of caller token.
      * @return Whether the caller has floatingWindow.
      */
-    int32_t CheckStartCallHasFloatingWindow(const sptr<IRemoteObject> &callerToken);
+    int32_t CheckStartCallHasFloatingWindow(const sptr<IRemoteObject> &callerToken, int32_t userId);
 
     bool IsStartSelfUIAbility();
 
