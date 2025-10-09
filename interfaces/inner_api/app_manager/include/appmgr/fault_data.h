@@ -94,6 +94,8 @@ struct FaultData : public Parcelable {
     std::string procStatm;
     bool isInForeground;
     bool isEnableMainThreadSample;
+    std::string applicationHeapInfo;
+    std::string processLifeTime;
 };
 
 /**
@@ -127,6 +129,8 @@ struct AppFaultDataBySA : public Parcelable {
     std::string procStatm;
     bool isInForeground;
     bool isEnableMainThreadSample;
+    std::string applicationHeapInfo;
+    std::string processLifeTime;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

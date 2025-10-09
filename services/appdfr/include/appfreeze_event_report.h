@@ -42,6 +42,8 @@ struct AppfreezeEventInfo {
     std::string hitraceInfo;
     bool foregroundState;
     bool enableFreeze;
+    std::string applicationHeapInfo;
+    std::string processLifeTime;
 };
 
 class AppfreezeEventReport {

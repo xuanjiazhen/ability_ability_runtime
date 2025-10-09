@@ -51,6 +51,7 @@ public:
     void SetAppDebug(bool isAppDebug);
     void SetAppInForeground(bool isInForeground);
     void SetMainThreadSample(bool isEnableMainThreadSample);
+    void SetAppfreezeApplication(const std::shared_ptr<OHOSApplication> &application);
 
 private:
     static std::weak_ptr<EventHandler> appMainHandler_;
@@ -64,6 +65,10 @@ private:
     bool GetMainThreadSample();
     void EnableFreezeSample(FaultData& newFaultData);
     void ReportAppfreezeTask(const FaultData& faultData, bool onlyMainThread);
+    std::string LogFormat(size_t totalSize, size_t objectSize);
+    void GetApplicationInfo(FaultData& faultData);
+    std::string GetProcessLifeCycle();
+    bool GetProcessStartTime(pid_t tid, unsigned long long &startTime);
 
     static std::mutex singletonMutex_;
     static std::shared_ptr<AppfreezeInner> instance_;
@@ -73,6 +78,7 @@ private:
     std::mutex handlingMutex_;
     std::list<FaultData> handlinglist_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> appfreezeInnerTaskHandler_;
+    std::shared_ptr<OHOSApplication> application_ = nullptr;
 };
 
 class MainHandlerDumper : public Dumper {
