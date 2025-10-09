@@ -20,6 +20,14 @@ import ApplicationContext from 'application.ApplicationContext';
 
 export default namespace application {
   loadLibraryWithPermissionCheck("application_ani.z", "@ohos.app.ability.application")
+
+  export enum AppPreloadType {
+    UNSPECIFIED = 0,
+    TYPE_CREATE_PROCESS = 1,
+    TYPE_CREATE_ABILITY_STAGE = 2,
+    TYPE_CREATE_WINDOW_STAGE = 3,
+  };
+
   export native function nativeCreateModuleContext(context: Context, bundleName: string, moduleName: string,
     callback: AsyncCallbackWrapper<Context>): void;
 
@@ -29,6 +37,10 @@ export default namespace application {
   export native function nativeGetApplicationContext(): ApplicationContext;
 
   export native function nativeDemoteCurrentFromCandidateMasterProcess(callback: AsyncCallbackWrapper<void>): void;
+
+  export native function nativeGetAppPreloadType(): AppPreloadType;
+
+>>>>>>> master
   export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
     let p =
       new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
@@ -106,5 +118,9 @@ export default namespace application {
 
   export function getApplicationContext(): ApplicationContext {
     return nativeGetApplicationContext();
+  }
+
+  export function getAppPreloadType(): AppPreloadType {
+    return nativeGetAppPreloadType();
   }
 }
