@@ -138,6 +138,7 @@ int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::str
                 uriStr, msg);
             continue;
         }
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "HandleNotifyChange %{public}s", uriStr);
         obs.observer_->OnChange();
         obsStr += "pid:" + std::to_string(obs.pid_) + "nodeId:" + std::to_string(obs.nodeId_) + ",";
         logFlag = true;

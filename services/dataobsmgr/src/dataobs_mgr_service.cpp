@@ -378,12 +378,15 @@ int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbili
         LOG_ERROR("register failed:%{public}d,uri:%{public}s", status, CommonUtils::Anonymous(uri.ToString()).c_str());
         return status;
     }
+    LOG_ERROR("register success,uri:%{public}s pid %{public}d nodeId %{public}d", uri.ToString().c_str(), pid, observerNode.nodeId_);
+    TAG_LOGE(AAFwkTag::DBOBSMGR, "register success,uri:%{public}s pid %{public}d nodeId %{public}d", uri.ToString().c_str(), pid, observerNode.nodeId_);
     return NO_ERROR;
 }
 
 int DataObsMgrService::UnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, int32_t userId,
     DataObsOption opt)
 {
+    TAG_LOGE(AAFwkTag::DBOBSMGR, "UnregisterObserver start %{public}s", uri.ToString().c_str());
     if (dataObserver == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "null dataObserver, uri:%{public}s",
             CommonUtils::Anonymous(uri.ToString()).c_str());
@@ -485,6 +488,7 @@ void DataObsMgrService::SubmitNotifyChangeTask(Uri &uri, int32_t userId, std::st
 
 int32_t DataObsMgrService::NotifyChangeInner(Uri &uri, int32_t userId, DataObsOption opt, bool isExtension)
 {
+    TAG_LOGE(AAFwkTag::DBOBSMGR, "NotifyChangeInner start %{public}s", uri.ToString().c_str());
     int32_t uid  = IPCSkeleton::GetCallingUid();
     uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
     uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
