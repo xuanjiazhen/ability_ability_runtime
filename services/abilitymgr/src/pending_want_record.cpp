@@ -27,7 +27,8 @@ namespace AAFwk {
 std::string APP_MULTI_INSTANCE{ "ohos.extra.param.key.appInstance" };
 constexpr int32_t INVALID_UID = -1;
 
-void SendTriggerFailedEvent(const Want &want, int32_t appIndex, int32_t userId, int32_t errCode, const std::string errMsg)
+void SendTriggerFailedEvent(const Want &want, int32_t appIndex, int32_t userId, 
+    int32_t errCode, const std::string errMsg)
 {
     EventInfo eventInfo;
     eventInfo.bundleName = want.GetElement().GetBundleName();
