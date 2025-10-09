@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,7 +53,7 @@ public:
         int32_t width = want.GetIntParam(RequestConstants::WINDOW_RECTANGLE_WIDTH_KEY, 0);
         int32_t height = want.GetIntParam(RequestConstants::WINDOW_RECTANGLE_HEIGHT_KEY, 0);
 
-        auto requestInfo = new RequestInfo(callerToken, left, top, width, height);
+        auto requestInfo = new (std::nothrow) RequestInfo(callerToken, left, top, width, height);
         ani_object etsRequestInfo = RequestInfo::WrapRequestInfo(env, requestInfo);
         if (etsRequestInfo == nullptr) {
             TAG_LOGE(AAFwkTag::DIALOG, "WrapRequestInfo failed");
@@ -131,6 +131,10 @@ public:
 void EtsDialogRequestInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::DIALOG, "EtsDialogRequestInit call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::DIALOG, "null env");
+        return;
+    }
     ani_status status = ANI_ERROR;
     if (env->ResetError() != ANI_OK) {
         TAG_LOGE(AAFwkTag::DIALOG, "EtsDialogRequestInit ResetError failed");
