@@ -9297,10 +9297,15 @@ int AbilityManagerService::LogoutUser(int32_t userId, sptr<IUserCallback> callba
     }
 
     // Lister screen unlock for auto startup apps.
+    int32_t unSubscribeResult = ERR_OK;
     if (system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
-        UnSubscribeScreenUnlockedEvent();
+        unSubscribeResult = EventFwk::CommonEventManager::NewUnSubscribeCommonEventSync(screenSubscriber_);
         InitInterceptorForScreenUnlock();
         SubscribeScreenUnlockedEvent();
+    }
+    if (unSubscribeResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Screen unlocked event subscriber unsubscribe result is %{public}d.",
+            unSubscribeResult);
     }
 
     RemoveLauncherDeathRecipient(userId);
