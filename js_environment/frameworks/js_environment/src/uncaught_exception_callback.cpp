@@ -83,7 +83,7 @@ void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
     }
 }
 
-void NapiUncaughtExceptionCallback::operator()(const panda::UncatchableErrorInfo& errorInfo)
+void NapiUncaughtExceptionCallback::operator()(const panda::OOMErrorInfo& errorInfo)
 {
     CallbackTaskOOM(errorInfo);
 }
@@ -131,7 +131,7 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
     }
 }
 
-void NapiUncaughtExceptionCallback::CallbackTaskOOM(const panda::UncatchableErrorInfo& errorInfo)
+void NapiUncaughtExceptionCallback::CallbackTaskOOM(const panda::OOMErrorInfo& errorInfo)
 {
     std::string summary = "Error name:" + errorInfo.errorName + "\n";
     summary += "Error message:" + errorInfo.errorMsg + "\n";
@@ -140,7 +140,7 @@ void NapiUncaughtExceptionCallback::CallbackTaskOOM(const panda::UncatchableErro
         .message = errorInfo.errorMsg,
         .stack = errorInfo.errorStack
     };
-    if (errorInfo.hasProperty) {
+    if (errorInfo.errorCode != "") {
         summary += "Error code:" + errorInfo.errorCode + "\n";
     }
     if (!errorInfo.errorStack.empty()) {
