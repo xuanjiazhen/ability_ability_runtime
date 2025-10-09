@@ -29,8 +29,8 @@ export default namespace kioskManager {
     export native function nativeExitKioskMode(context: UIAbilityContext ,callback: AsyncCallbackWrapper<void>): void;
     export native function nativeGetKioskStatus(callback: AsyncCallbackWrapper<KioskStatus>): void;
 
-    private native function nativeEnterKioskModeCheck(context: UIAbilityContext): void;
-    private native function nativeExitKioskModeCheck(context: UIAbilityContext): void;
+    export native function nativeEnterKioskModeCheck(context: UIAbilityContext): void;
+    export native function nativeExitKioskModeCheck(context: UIAbilityContext): void;
     function enterKioskMode(context: UIAbilityContext): Promise<void> {
       kioskManager.nativeEnterKioskModeCheck(context);
       let p: Promise<void> =
