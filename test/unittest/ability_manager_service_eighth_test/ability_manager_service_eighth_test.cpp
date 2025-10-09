@@ -18,6 +18,7 @@
 
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
+#include "app_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "process_options.h"
 #include "ipc_skeleton.h"
@@ -420,7 +421,32 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartUIAbilityBySCB_001_002, TestSize.
     abilityMs_->freeInstallManager_->freeInstallList_.push_back(freeInstallInfo);
     ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, false);
     EXPECT_NE(ret, ERR_OK);
+
+    ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, true);
+    AAFwk::AppUtils::GetInstance().isSupportRestartAppWithWindow_.isLoaded = true;
+    AAFwk::AppUtils::GetInstance().isSupportRestartAppWithWindow_.value = false;
+    EXPECT_NE(ret, ERR_OK);
+
+    ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, true);
+    AAFwk::AppUtils::GetInstance().isSupportRestartAppWithWindow_.value = true;
+    EXPECT_NE(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest StartUIAbilityBySCB_001_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: SignRestartAppFlag
+ * FunctionPoints: SignRestartAppFlag
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, SignRestartAppFlag_002, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+
+    int32_t uid = 100;
+    AbilityManagerService::SignRestartAppFlagParam param =
+        { uid, uid, "", AppExecFwk::MultiAppModeType::UNSPECIFIED, true, false, true, "testBundleName" };
+    auto ret = abilityMs_->SignRestartAppFlag(param);
+    EXPECT_NE(ret, ERR_OK);
 }
 
 /*
