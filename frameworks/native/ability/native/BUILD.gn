@@ -361,7 +361,6 @@ ohos_shared_library("abilitykit_native") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:event_report",
   ]
 
   external_deps = [
@@ -392,6 +391,7 @@ ohos_shared_library("abilitykit_native") {
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
     "window_manager:windowstage_kit",
+    "runtime_core:ani",
   ]
   if (!(host_os == "linux" && host_cpu == "arm64")) {
     external_deps += [ "relational_store:native_rdb" ]
@@ -723,7 +723,7 @@ ohos_shared_library("insight_intent_executor") {
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
-    "${ability_runtime_services_path}/common:event_report",
+    "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = []
@@ -776,7 +776,7 @@ ohos_shared_library("insight_intent_executor_ani") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
-    "${ability_runtime_services_path}/common:event_report",
+    "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = []
@@ -834,7 +834,7 @@ ohos_shared_library("cj_insight_intent_executor") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
-    "${ability_runtime_services_path}/common:event_report",
+    "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = [
@@ -938,7 +938,6 @@ ohos_shared_library("ui_ability_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:event_report",
   ]
 
   external_deps = [
@@ -956,7 +955,7 @@ ohos_shared_library("ui_ability_ani") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_ani",
+    "ipc:rpc_taihe",
     "resource_management:global_resmgr",
     "runtime_core:ani",
     "runtime_core:ani_helpers",
@@ -1039,7 +1038,7 @@ ohos_shared_library("uiabilitykit_native") {
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
-    "${ability_runtime_services_path}/common:event_report",
+    "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = [
@@ -1467,7 +1466,7 @@ ohos_shared_library("service_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_ani",
+    "ipc:rpc_taihe",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -1541,7 +1540,7 @@ ohos_shared_library("service_extension_ani") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_ani",
+    "ipc:rpc_taihe",
     "runtime_core:ani",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -2198,7 +2197,7 @@ ohos_shared_library("ui_extension_ani") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_ani",
+    "ipc:rpc_taihe",
     "window_manager:embeddablewindowstage_kit",
     "window_manager:embeddablewindowstageani_kit",
     "window_manager:extensionwindow_napi",
