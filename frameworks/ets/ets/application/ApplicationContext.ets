@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import AbilityLifecycleCallback from '../@ohos.app.ability.AbilityLifecycleCallback';
 import Context from 'application.Context'
 import { BusinessError, AsyncCallback } from '@ohos.base'
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
@@ -63,6 +64,9 @@ export default class ApplicationContext extends Context {
     destroyRegister.unregister(unregisterToken);
   }
 
+  public native nativeOnLifecycleCallbackSync(type: string, callback: AbilityLifecycleCallback): int;
+  public native nativeOffLifecycleCallbackSync(type: string, callbackId: int,
+    callback: AsyncCallbackWrapper<void>): void;
   public native nativekillAllProcessesSync(clearPageStack: boolean, callback: AsyncCallbackWrapper<void>): void;
   public native nativepreloadUIExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   public native setSupportedProcessCacheSync(isSupported : boolean):void;
@@ -71,7 +75,7 @@ export default class ApplicationContext extends Context {
   public native nativesetLanguage(language: string): void;
   public native nativesetFontSizeScale(fontSizeScale: double): void;
   public native nativesetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
-  public native nativesetFont(font: string): void; 
+  public native nativesetFont(font: string): void;
   public native nativerestartApp(want: Want): void;
   public native nativeGetAllRunningInstanceKeys(callback: AsyncCallbackWrapper<Array<string>>): void;
   public native nativeOnEnvironmentSync(callback: EnvironmentCallback): int;
@@ -243,6 +247,13 @@ export default class ApplicationContext extends Context {
     });
   }
 
+  offAbilityLifecycle(callbackId: int, callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
+    });
+  }
+
   offEnvironment(callbackId: int): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
@@ -255,6 +266,23 @@ export default class ApplicationContext extends Context {
         });
         taskpool.execute((): void => {
           this.nativeOffEnvironmentSync(callbackId, myCall);
+        });
+      });
+    return p;
+  }
+
+  offAbilityLifecycle(callbackId: int): Promise<void> {
+    let p =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
         });
       });
     return p;
@@ -289,5 +317,9 @@ export default class ApplicationContext extends Context {
 
   static transferDynamic(input: Object): Any {
     return ApplicationContext.nativeTransferDynamic(input).unwrap();
+  }
+
+  onAbilityLifecycle(callback: AbilityLifecycleCallback): int {
+    return this.nativeOnLifecycleCallbackSync('abilityLifecycle', callback);
   }
 }
