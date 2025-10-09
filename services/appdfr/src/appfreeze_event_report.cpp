@@ -52,7 +52,7 @@ int AppfreezeEventReport::SendAppfreezeEvent(const std::string &eventName, HiSys
     if (eventName == AppFreezeType::THREAD_BLOCK_6S) {
         return LogThreadBlockEvent(eventName, type, eventInfo);
     }
-    if (eventName == AppFreezeType::LIFECYCLE_TIMEOUT_WARNING) {
+    if (eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
         return LogLifeCycleTimeoutEvent(eventName, type, eventInfo);
     }
     return LogGeneralEvent(eventName, type, eventInfo);
