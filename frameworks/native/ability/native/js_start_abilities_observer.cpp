@@ -25,8 +25,7 @@ JsStartAbilitiesObserver &JsStartAbilitiesObserver::GetInstance()
     return instance;
 }
 
-~JsStartAbilitiesObserver()
-{
+JsStartAbilitiesObserver::~JsStartAbilitiesObserver(){
     ani_env *env = nullptr;
     ani_status status = ANI_ERROR;
     ani_option interopEnabled { "--interop=disable", nullptr };
@@ -40,7 +39,7 @@ JsStartAbilitiesObserver &JsStartAbilitiesObserver::GetInstance()
         return;
     }
     for (auto it = etsObserverObjectList_.begin(); it != etsObserverObjectList_.end();) {
-        env->GlobalReference_Delete(it->callback);
+        env->GlobalReference_Delete(it->second);
         it++;
     }
     if ((status = etsVm_->DetachCurrentThread()) != ANI_OK) {
@@ -58,11 +57,11 @@ void JsStartAbilitiesObserver::AddEtsObserver(ani_env *env, const std::string &r
 {
     std::lock_guard lock(jsObserverObjectListLock_);
     if (env == nullptr) {
-
+        return;
     }
     if (etsVm_ == nullptr) {
         ani_status status = ANI_ERROR;
-        if ((status = env->GetVM(&etsVm_)) != ANI_OK || etsVm == nullptr) {
+        if ((status = env->GetVM(&etsVm_)) != ANI_OK || etsVm_ == nullptr) {
             TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
         }
     }

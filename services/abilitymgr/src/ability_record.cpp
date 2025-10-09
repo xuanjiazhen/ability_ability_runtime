@@ -142,8 +142,7 @@ std::shared_ptr<AbilityRecord> Token::GetAbilityRecordByToken(const sptr<IRemote
 
     std::string descriptor = Str16ToStr8(token->GetObjectDescriptor());
     if (descriptor != "ohos.aafwk.AbilityToken") {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "descriptor:%{public}s",
-            descriptor.c_str());
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "descriptor:%{public}s", descriptor.c_str());
         return nullptr;
     }
 
@@ -377,6 +376,8 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     loadParam.isStartupHide = isStartupHide;
     loadParam.callingPid = callingPid;
     loadParam.loadAbilityCallbackId = loadAbilityCallbackId;
+    loadParam.isPrelaunch = isPrelaunch_;
+    loadParam.isPreloadStart = isPreloadStart_;
     auto userId = abilityInfo_.uid / BASE_USER_RANGE;
     bool isMainUIAbility =
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);
@@ -429,7 +430,7 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     isWindowStarted_ = true;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundLifecycle: name:%{public}s", abilityInfo_.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundLifecycle %{public}s", abilityInfo_.name.c_str());
     CHECK_POINTER(lifecycleDeal_);
 
     // schedule active after updating AbilityState and sending timeout message to avoid ability async callback
@@ -494,8 +495,8 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::string element = GetElementName().GetURI();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability record: %{public}s", element.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability record: %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
+        GetElementName().GetAbilityName().c_str());
 #ifdef SUPPORT_UPMS
     {
         std::lock_guard guard(wantLock_);
@@ -514,7 +515,8 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
 
     PostForegroundTimeoutTask();
     if (IsAbilityState(AbilityState::FOREGROUND)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s", element.c_str());
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
+            GetElementName().GetAbilityName().c_str());
         if (IsFrozenByPreload()) {
             SetFrozenByPreload(false);
             auto ret =
@@ -525,7 +527,8 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         return;
     }
     // background to active state
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s", element.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
+        GetElementName().GetAbilityName().c_str());
     lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
     ResSchedUtil::GetInstance().ReportEventToRSS(GetUid(), GetAbilityInfo().bundleName,
         "THAW_BY_FOREGROUND_ABILITY", GetPid(), GetCallerRecord() ? GetCallerRecord()->GetPid() : -1);
@@ -565,7 +568,7 @@ void AbilityRecord::RemoveLoadTimeoutTask()
 {
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
     CHECK_POINTER(handler);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoveLoadTimeoutTask recordId:%{public}" PRId64, GetAbilityRecordId());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoveLoadTimeoutTask:%{public}" PRId64, GetAbilityRecordId());
     handler->RemoveEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, GetAbilityRecordId());
     handler->RemoveEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, GetAbilityRecordId());
 }
@@ -637,8 +640,8 @@ void AbilityRecord::ProcessForegroundAbility(const std::shared_ptr<AbilityRecord
     uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::string element = GetElementName().GetURI();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s", element.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s/%{public}s",
+        GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
 
     StartingWindowHot();
     auto flag = !IsForeground();
@@ -647,11 +650,13 @@ void AbilityRecord::ProcessForegroundAbility(const std::shared_ptr<AbilityRecord
 
     PostForegroundTimeoutTask();
     if (IsAbilityState(AbilityState::FOREGROUND)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s", element.c_str());
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s/%{public}s",
+            GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
         ForegroundAbility(sceneFlag);
     } else {
         // background to active state
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s", element.c_str());
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s/%{public}s",
+            GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
         lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
         DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_);
     }
@@ -771,8 +776,8 @@ void AbilityRecord::ProcessForegroundAbility(bool isRecent, const AbilityRequest
     uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::string element = GetElementName().GetURI();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s", element.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s/%{public}s",
+        GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
 #ifdef SUPPORT_UPMS
     {
         std::lock_guard guard(wantLock_);
@@ -798,11 +803,13 @@ void AbilityRecord::ProcessForegroundAbility(bool isRecent, const AbilityRequest
         }
         PostForegroundTimeoutTask();
         if (IsAbilityState(AbilityState::FOREGROUND)) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s", element.c_str());
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s/%{public}s",
+                GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
             ForegroundAbility(sceneFlag);
         } else {
             // background to active state
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s", element.c_str());
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s/%{public}s",
+                GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
             lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_);
         }
@@ -1294,12 +1301,22 @@ void AbilityRecord::SetColdStartFlag(bool isColdStart)
 {
     coldStart_ = isColdStart;
 }
+
+bool AbilityRecord::GetPrelaunchFlag()
+{
+    return isPrelaunch_;
+}
+
+void AbilityRecord::SetPrelaunchFlag(bool isPrelaunch)
+{
+    isPrelaunch_ = isPrelaunch;
+}
 #endif
 
 void AbilityRecord::BackgroundAbility(const Closure &task)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "BackgroundLifecycle: ability:%{public}s", GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "BackgroundLifecycle %{public}s", GetURI().c_str());
     if (lifecycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null lifecycleDeal_");
         return;
@@ -3488,7 +3505,6 @@ void AbilityRecord::GrantUriPermission(const std::vector<std::string> &uriVec, i
 void AbilityRecord::GrantUriPermission()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::string element = GetElementName().GetURI();
     {
         std::lock_guard guard(wantLock_);
         GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0);
