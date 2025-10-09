@@ -1526,8 +1526,11 @@ ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
         return ERR_INVALID_VALUE;
     }
 
-    if (!want.GetBundle().empty() || want.GetBundle() != abilityInfo_->bundleName) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "empty bundleName or abilityName");
+    auto element = want.GetElement();
+    TAG_LOGI(AAFwkTag::CONTEXT, "RestartAppWithWindow: %{public}s", abilityInfo_->bundleName.c_str());
+    if (element.GetBundleName().empty() || element.GetBundleName() != abilityInfo_->bundleName ||
+        element.GetAbilityName().empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid bundleName or abilityName");
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
 #ifdef SUPPORT_SCREEN
@@ -1541,13 +1544,13 @@ ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
         return ERR_INVALID_VALUE;
     }
     TAG_LOGI(AAFwkTag::CONTEXT, "scb call, restartApp");
-    ErrCode ret = static_cast<int32_t>(ifaceSessionToken->RestartApp(std::make_shard<Want>(want)));
+    ErrCode ret = static_cast<int32_t>(ifaceSessionToken->RestartApp(std::make_shared<Want>(want)));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "scb call, RestartApp err: %{public}d", ret);
     }
     return ret;
 #else
-    return ERR_CAPABILITY_NOT_SUPPORT;
+    return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
 #endif
 }
 

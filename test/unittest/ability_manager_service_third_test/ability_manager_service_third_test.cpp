@@ -1785,7 +1785,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartUIAbilityBySCB_002, TestSize.Level
     auto abilityMs = std::make_shared<AbilityManagerService>();
     sptr<SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
     bool isColdStart = true;
-    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart 0, false);
+    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart, 0, false);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 

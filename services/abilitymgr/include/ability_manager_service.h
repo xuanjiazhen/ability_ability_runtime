@@ -2788,6 +2788,8 @@ public:
         AppExecFwk::MultiAppModeType type;
         bool isAppRecovery = false;
         bool isAtomicService = false;
+        bool isRestartUIAbility = false;
+        std::string bundleName;
     };
     int32_t SignRestartAppFlag(const SignRestartAppFlagParam &param);
 private:

@@ -1218,6 +1218,7 @@ private:
      * @param abilityRequest The ability request
      */
     void RemoveInstanceKey(const AbilityRequest &abilityRequest) const;
+    bool HandleRestartUIAbility(sptr<SessionInfo> sessionInfo);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
