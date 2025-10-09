@@ -36,7 +36,8 @@
 
 namespace OHOS {
 namespace AAFwk {
-constexpr int32_t WANTAGENT_NUMBER_THRESHOLD = 360;
+constexpr int32_t WANTAGENT_NUMBER_THRESHOLD = 288; // DFX Max Number
+constexpr int32_t WANTAGENT_FLOAT_THRESHOLD = 40; // DFX Max Number
 enum class OperationType {
     /**
      * Unknown operation.
@@ -137,8 +138,9 @@ enum class Flags {
 };
 
 struct AgentCount {
-    int32_t countNumber = 1;
-    int32_t maxNumber   = 1;
+    int32_t currentNumber = 1;
+    int32_t latestMinNumber = 1; // use to slove number float problem
+    bool DFXFlag = false; // to record first DFX
 };
 
 class PendingWantManager : public std::enable_shared_from_this<PendingWantManager>, public NoCopyable {
