@@ -518,6 +518,7 @@ group("fuzztest") {
     "updateextensionstate_fuzzer:fuzztest",
     "uriutils_fuzzer:fuzztest",
     "usercallbackstub_fuzzer:fuzztest",
+    "usercontrollerfirst_fuzzer:fuzztest",
     "wantagenthelperstring_fuzzer:fuzztest",
     "wantagenthelpertrigger_fuzzer:fuzztest",
     "wantsenderstub_fuzzer:fuzztest",
