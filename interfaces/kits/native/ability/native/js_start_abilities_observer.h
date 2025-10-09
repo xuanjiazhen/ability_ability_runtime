@@ -29,7 +29,7 @@ public:
     static JsStartAbilitiesObserver &GetInstance();
     virtual ~JsStartAbilitiesObserver();
     void AddObserver(const std::string &requestKey, std::function<void(int32_t)> &&callback);
-    void AddEtsObserver(const std::string &requestKey, ani_object callbackObj);
+    void AddEtsObserver(ani_env *env, const std::string &requestKey, ani_object callback);
     void HandleFinished(const std::string &requestKey, int32_t resultCode);
     void SetEtsVm(ani_vm *etsVm)
     {
@@ -43,7 +43,7 @@ private:
     std::mutex jsObserverObjectListLock_;
     std::map<std::string, std::function<void(int32_t)>> jsObserverObjectList_;
     ani_vm *etsVm_ = nullptr;
-    std::map<std::string, ani_ref>> etsObserverObjectList_;
+    std::map<std::string, ani_ref> etsObserverObjectList_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
