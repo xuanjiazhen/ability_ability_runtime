@@ -50,15 +50,15 @@ public:
 
     void operator()(panda::TryCatch& trycatch);
     
-    void operator()(const panda::UncatchableErrorInfo& errorInfo);
+    void operator()(const panda::OOMErrorInfo& errorInfo);
 
     void CallbackTask(napi_value& obj);
 
     /*
-    * @brief Callback only for uncatchable error, triggers js crash.
+    * @brief Callback only for OOM error, triggers js crash.
     * @param errorInfo The error information defined in jsnapi_expo.h.
     */
-    void CallbackTaskOOM(const panda::UncatchableErrorInfo& errorInfo);
+    void CallbackTaskOOM(const panda::OOMErrorInfo& errorInfo);
     
     std::string GetNativeStrFromJsTaggedObj(napi_value obj, const char* key);
 
