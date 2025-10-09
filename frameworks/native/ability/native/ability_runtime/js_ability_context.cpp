@@ -3292,7 +3292,7 @@ napi_value JsAbilityContext::OnRestartAppWithWindow(napi_env env, NapiCallbackIn
             auto context = weak.lock();
             if (!context) {
                 TAG_LOGW(AAFwkTag::CONTEXT, "released context");
-                *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                *innerErrCode = static_cast<int32_t>(AAFwk::ERR_INVALID_CONTEXT);
                 return;
             }
             *innerErrCode = context->RestartAppWithWindow(want);
@@ -3300,14 +3300,14 @@ napi_value JsAbilityContext::OnRestartAppWithWindow(napi_env env, NapiCallbackIn
     NapiAsyncTask::CompleteCallback complete =
         [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
             if (*innerErrCode == ERR_OK) {
-                task.Resolve(env, CreateJsUndefined(env));
+                task.ResolveWithNoError(env, CreateJsUndefined(env));
             } else {
                 task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
             }
         };
 
     napi_value result = nullptr;
-    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnSetOnNewWantSkipScenarios",
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnRestartAppWithWindow",
         env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
     return result;
 }
