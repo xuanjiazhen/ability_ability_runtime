@@ -77,14 +77,10 @@ void EnterKioskModeSync([[maybe_unused]]ani_env *env, ani_object contextObj, ani
     *innerErrCode = AbilityManagerClient::GetInstance()->EnterKioskMode(token);
     if (*innerErrCode != ERR_OK) {
         AppExecFwk::AsyncCallback(
-            env, callback, 
-            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)),
-            nullptr);
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
     }
     AppExecFwk::AsyncCallback(
-            env, callback,
-            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)),
-            nullptr);
+        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
 }
 
 void ExitKioskModeSyncCheck([[maybe_unused]]ani_env *env, ani_object contextObj)
@@ -120,10 +116,10 @@ void ExitKioskModeSync([[maybe_unused]]ani_env *env, ani_object contextObj, ani_
     *innerErrCode = AbilityManagerClient::GetInstance()->ExitKioskMode(token);
     if (*innerErrCode != ERR_OK) {
         AppExecFwk::AsyncCallback(
-            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)), nullptr);
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
     }
     AppExecFwk::AsyncCallback(
-        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, AbilityErrorCode::ERROR_OK), nullptr);
+        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
 }
 
 ani_object CreateKioskStatusRet(ani_env *env, std::shared_ptr<AAFwk::KioskStatus> kioskStatus)
@@ -180,12 +176,12 @@ void GetKioskStatusSync([[maybe_unused]]ani_env *env, ani_object callback)
     if (*innerErrCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
         AppExecFwk::AsyncCallback(
-            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)), nullptr);
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
         return;
     }
     auto ret = CreateKioskStatusRet(env, kioskStatus);
     AppExecFwk::AsyncCallback(
-        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)), ret);
+        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), ret);
 }
 
 void EtsKioskManagerInit(ani_env *env)
