@@ -114,7 +114,7 @@ void ServiceExtensionContext::ClearFailedCallConnection(const std::shared_ptr<Ca
 ErrCode ServiceExtensionContext::ConnectAbility(
     const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "ConnectAbility called, caller:%{public}s, target:%{public}s",
+    TAG_LOGI(AAFwkTag::APPKIT, "Connect c:%{public}s, t:%{public}s",
         GetAbilityInfo() == nullptr ? "" : GetAbilityInfo()->name.c_str(), want.GetElement().GetAbilityName().c_str());
     ErrCode ret =
         ConnectionManager::GetInstance().ConnectAbility(token_, want, connectCallback);
@@ -128,8 +128,9 @@ ErrCode ServiceExtensionContext::StartAbilityWithAccount(const AAFwk::Want &want
     if (GetAbilityInfo() != nullptr) {
         callerName = GetAbilityInfo()->name;
     }
-    TAG_LOGI(AAFwkTag::APPKIT, "accountId: %{public}d, ability: %{public}s, caller: %{public}s",
-        accountId, want.GetElement().GetURI().c_str(), callerName.c_str());
+    TAG_LOGI(AAFwkTag::APPKIT, "accountId: %{public}d, ability: %{public}s/%{public}s, caller: %{public}s",
+        accountId, want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(),
+        callerName.c_str());
     (const_cast<Want &>(want)).SetParam(START_ABILITY_TYPE, true);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(
         want, token_, ILLEGAL_REQUEST_CODE, accountId);
@@ -208,7 +209,7 @@ ErrCode ServiceExtensionContext::ConnectAbilityWithAccount(
 ErrCode ServiceExtensionContext::DisconnectAbility(const AAFwk::Want &want,
     const sptr<AbilityConnectCallback> &connectCallback, int32_t accountId) const
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "DisconnectAbility called, caller:%{public}s, target:%{public}s",
+    TAG_LOGI(AAFwkTag::APPKIT, "Disconnect c:%{public}s, t:%{public}s",
         GetAbilityInfo() == nullptr ? "" : GetAbilityInfo()->name.c_str(), want.GetElement().GetAbilityName().c_str());
     ErrCode ret =
         ConnectionManager::GetInstance().DisconnectAbility(token_, want, connectCallback, accountId);
@@ -269,10 +270,10 @@ ErrCode ServiceExtensionContext::PreStartMission(const std::string& bundleName, 
     return err;
 }
 
-ErrCode ServiceExtensionContext::OpenLink(const AAFwk::Want& want, int requestCode)
+ErrCode ServiceExtensionContext::OpenLink(const AAFwk::Want &want, int requestCode, bool hideFailureTipDialog)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
-    return AAFwk::AbilityManagerClient::GetInstance()->OpenLink(want, token_, -1, requestCode);
+    return AAFwk::AbilityManagerClient::GetInstance()->OpenLink(want, token_, -1, requestCode, hideFailureTipDialog);
 }
 
 ErrCode ServiceExtensionContext::OpenAtomicService(const AAFwk::Want &want, const AAFwk::StartOptions &options)
@@ -305,6 +306,74 @@ ErrCode ServiceExtensionContext::AddCompletionHandlerForAtomicService(const std:
     return ERR_OK;
 }
 
+ErrCode ServiceExtensionContext::AddCompletionHandlerForOpenLink(const std::string &requestId,
+    AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail)
+{
+    if (onRequestSucc == nullptr || onRequestFail == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "either func is null");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard lock(onOpenLinkRequestResultMutex_);
+    for (auto iter = onOpenLinkRequestResults_.begin(); iter != onOpenLinkRequestResults_.end(); iter++) {
+        if ((*iter)->requestId_ == requestId) {
+            TAG_LOGW(AAFwkTag::APPKIT, "requestId=%{public}s already exists", requestId.c_str());
+            return ERR_OK;
+        }
+    }
+    onOpenLinkRequestResults_.emplace_back(std::make_shared<AAFwk::OnOpenLinkRequestResult>(
+        requestId, onRequestSucc, onRequestFail));
+    return ERR_OK;
+}
+
+void ServiceExtensionContext::OnOpenLinkRequestSuccess(const std::string &requestId,
+    const AppExecFwk::ElementName &element, const std::string &message)
+{
+    std::shared_ptr<AAFwk::OnOpenLinkRequestResult> openLinkResult = nullptr;
+    {
+        std::lock_guard lock(onOpenLinkRequestResultMutex_);
+        for (auto iter = onOpenLinkRequestResults_.begin(); iter != onOpenLinkRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                openLinkResult = *iter;
+                onOpenLinkRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (openLinkResult != nullptr) {
+        TAG_LOGI(AAFwkTag::APPKIT, "requestId=%{public}s, call onRequestSuccess", requestId.c_str());
+        openLinkResult->onRequestSuccess_(element, message);
+        return;
+    }
+
+    TAG_LOGE(AAFwkTag::APPKIT, "requestId=%{public}s not exist", requestId.c_str());
+}
+
+void ServiceExtensionContext::OnOpenLinkRequestFailure(const std::string &requestId,
+    const AppExecFwk::ElementName &element, const std::string &message)
+{
+    if (requestId.empty()) {
+        return;
+    }
+    std::shared_ptr<AAFwk::OnOpenLinkRequestResult> openLinkResult = nullptr;
+    {
+        std::lock_guard lock(onOpenLinkRequestResultMutex_);
+        for (auto iter = onOpenLinkRequestResults_.begin(); iter != onOpenLinkRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                openLinkResult = *iter;
+                onOpenLinkRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (openLinkResult != nullptr) {
+        TAG_LOGI(AAFwkTag::APPKIT, "requestId=%{public}s, call onRequestFailure", requestId.c_str());
+        openLinkResult->onRequestFailure_(element, message);
+        return;
+    }
+
+    TAG_LOGE(AAFwkTag::APPKIT, "requestId=%{public}s not exist", requestId.c_str());
+}
+
 void ServiceExtensionContext::OnRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
     const std::string &message)
 {
@@ -325,7 +394,7 @@ void ServiceExtensionContext::OnRequestSuccess(const std::string &requestId, con
         atomicResult->onRequestSuccess_(atomicResult->appId_);
         return;
     }
-    TAG_LOGE(AAFwkTag::APPKIT, "requestId=%{public}s not exist", requestId.c_str());
+    OnOpenLinkRequestSuccess(requestId, element, message);
 }
 
 void ServiceExtensionContext::OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
@@ -352,7 +421,7 @@ void ServiceExtensionContext::OnRequestFailure(const std::string &requestId, con
         return;
     }
 
-    TAG_LOGE(AAFwkTag::APPKIT, "requestId=%{public}s not exist", requestId.c_str());
+    OnOpenLinkRequestFailure(requestId, element, message);
 }
 
 void ServiceExtensionContext::GetFailureInfoByMessage(

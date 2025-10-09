@@ -138,6 +138,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data
             return HandleUnregisterApplicationStateObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::PRELOAD_MODULE_FINISHED):
             return HandlePreloadModuleFinished(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_APPLICATION_STATE_OBSERVER_WITH_FILTER):
+            return HandleRegisterApplicationStateObserverWithFilter(data, reply);
     }
     return INVALID_FD;
 }
@@ -214,6 +216,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerThird(uint32_t code, MessageParcel &data
             return HandleGetAllRunningInstanceKeysByBundleName(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_All_RUNNING_INSTANCE_KEYS_BY_SELF):
             return HandleGetAllRunningInstanceKeysBySelf(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION_MULTI_USER):
+            return HandleUpdateConfigurationMultiUser(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_CONFIGURATION_BY_USERID):
+            return HandleGetConfigurationByUserId(data, reply);
     }
     return INVALID_FD;
 }
@@ -404,8 +410,12 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandlePromoteCurrentToCandidateMasterProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::DEMOTE_CURRENT_FROM_CANDIDATE_MASTER_PROCESS):
             return HandleDemoteCurrentFromCandidateMasterProcess(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::EXIT_MASTER_PROCESS_ROLE):
+            return HandleExitMasterProcessRole(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::QUERY_RUNNING_SHARED_BUNDLES):
             return HandleQueryRunningSharedBundles(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::SET_SPECIFIED_PROCESS_REQUEST_ID):
+            return HandleSetSpecifiedProcessRequestId(data, reply);
     }
     return INVALID_FD;
 }
@@ -1046,6 +1056,30 @@ int32_t AppMgrStub::HandleGetConfiguration(MessageParcel &data, MessageParcel &r
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleGetConfigurationByUserId(MessageParcel& data, MessageParcel& reply)
+{
+    int32_t userId = -1;
+    if (!data.ReadInt32(userId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to read userId from parcel");
+        return ERR_INVALID_DATA;
+    }
+
+    Configuration config;
+    int32_t ret = GetConfiguration(config, userId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub GetConfiguration error");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteParcelable(&config)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub GetConfiguration error");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleUpdateConfiguration(MessageParcel &data, MessageParcel &reply)
 {
     std::unique_ptr<Configuration> config(data.ReadParcelable<Configuration>());
@@ -1055,6 +1089,26 @@ int32_t AppMgrStub::HandleUpdateConfiguration(MessageParcel &data, MessageParcel
     }
     int32_t userId = data.ReadInt32();
     int32_t ret = UpdateConfiguration(*config, userId);
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleUpdateConfigurationMultiUser(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<Configuration> config(data.ReadParcelable<Configuration>());
+    if (!config) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read configuration error");
+        return ERR_INVALID_VALUE;
+    }
+
+    std::vector<int32_t> userIds;
+    if (!data.ReadInt32Vector(&userIds)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read userIds error");
+        return ERR_INVALID_DATA;
+    }
+    int32_t ret = UpdateConfigurationByUserIds(*config, userIds);
     if (!reply.WriteInt32(ret)) {
         return ERR_INVALID_VALUE;
     }
@@ -1120,7 +1174,8 @@ int32_t AppMgrStub::HandleRegisterConfigurationObserver(MessageParcel &data, Mes
         TAG_LOGE(AAFwkTag::APPMGR, "Observer is null.");
         return ERR_INVALID_VALUE;
     }
-    int32_t result = RegisterConfigurationObserver(observer);
+    int32_t userId = data.ReadInt32();
+    int32_t result = RegisterConfigurationObserver(observer, userId);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -1842,15 +1897,17 @@ int32_t AppMgrStub::HandleCreateNativeChildProcess(MessageParcel &data, MessageP
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::string libName = data.ReadString();
-    int32_t childCount = data.ReadInt32();
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
-    std::string customProcessName = data.ReadString();
-    int32_t result = CreateNativeChildProcess(libName, childCount, callback, customProcessName);
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
+    std::unique_ptr<ChildProcessRequest> request(data.ReadParcelable<ChildProcessRequest>());
+    if (!request) {
         return IPC_STUB_ERR;
     }
 
+    auto result = CreateNativeChildProcess(libName, callback, *request);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result failed.");
+        return IPC_STUB_ERR;
+    }
     return NO_ERROR;
 }
 #endif // SUPPORT_CHILD_PROCESS
@@ -2041,6 +2098,26 @@ int32_t AppMgrStub::HandleDemoteCurrentFromCandidateMasterProcess(MessageParcel 
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleExitMasterProcessRole(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    int32_t ret = ExitMasterProcessRole();
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
+        return IPC_STUB_ERR;
+    }
+
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleSetSpecifiedProcessRequestId(MessageParcel &data, MessageParcel &reply)
+{
+    auto recordId = data.ReadInt32();
+    auto requestId = data.ReadInt32();
+    SetSpecifiedProcessRequestId(recordId, requestId);
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleQueryRunningSharedBundles(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "HandleQueryRunningSharedBundles call");
@@ -2066,6 +2143,27 @@ int32_t AppMgrStub::HandleQueryRunningSharedBundles(MessageParcel &data, Message
             return IPC_STUB_ERR;
         }
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleRegisterApplicationStateObserverWithFilter(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> bundleNameList;
+    auto callback = iface_cast<IApplicationStateObserver>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Callback is null.");
+        return ERR_INVALID_VALUE;
+    }
+    data.ReadStringVector(&bundleNameList);
+    std::unique_ptr<AppStateFilter> appStateFilter(data.ReadParcelable<AppStateFilter>());
+    if (appStateFilter == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appStateFilter is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    bool isUsingFilter = data.ReadBool();
+    int32_t result = RegisterApplicationStateObserverWithFilter(callback,
+        bundleNameList, *appStateFilter, isUsingFilter);
+    reply.WriteInt32(result);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

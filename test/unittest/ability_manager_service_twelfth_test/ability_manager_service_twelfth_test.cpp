@@ -54,6 +54,9 @@ constexpr int32_t UPDATE_CONFIG_FLAG_APPEND = 2;
 
 namespace OHOS {
 namespace AAFwk {
+namespace {
+constexpr int32_t ACCOUNT_MGR_SERVICE_UID = 3058;
+} // namespace
 class AbilityManagerServiceTwelfthTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -434,7 +437,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, DisconnectLocalAbility_001, TestSize.
     std::shared_ptr<AbilityConnectManager> connectManager2 = std::make_shared<AbilityConnectManager>(TWO);
     connectManager2->sceneBoardTokenId_ = TWO;
     abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(0, connectManager2));
-    EXPECT_EQ(abilityMs_->DisconnectLocalAbility(connect), ERR_NO_INIT);
+    EXPECT_EQ(abilityMs_->DisconnectLocalAbility(connect), CONNECT_MAMAGER_NOT_FIND_BY_USERID);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest DisconnectLocalAbility_001 end");
 }
@@ -542,11 +545,29 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartUser_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartUser_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    int userId = 0;
-    sptr<IUserCallback> callback = new MockIUserCallback();
+    int32_t userId = 0;
+    uint64_t displayId = 0;
+    sptr<IUserCallback> callback = nullptr;
+    auto retCode = abilityMs_->StartUser(userId, displayId, callback);
+    EXPECT_EQ(retCode, INVALID_PARAMETERS_ERR);
+
+    callback = new MockIUserCallback();
     bool isAppRecovery = false;
-    auto retCode = abilityMs_->StartUser(userId, callback, isAppRecovery);
+    retCode = abilityMs_->StartUser(userId, displayId, callback, isAppRecovery);
+    EXPECT_EQ(retCode, INVALID_USERID_VALUE);
+
+    userId = 100;
+    retCode = abilityMs_->StartUser(userId, displayId, callback, isAppRecovery);
     EXPECT_EQ(retCode, CHECK_PERMISSION_FAILED);
+
+    IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
+    userId =  10000;
+    retCode = abilityMs_->StartUser(userId, displayId, callback, isAppRecovery);
+    EXPECT_EQ(retCode, INVALID_USERID_VALUE);
+
+    userId =  100;
+    retCode = abilityMs_->StartUser(userId, displayId, callback, isAppRecovery);
+    EXPECT_EQ(retCode, ERR_INVALID_CALLER);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartUser_001 end");
 }
 
@@ -566,6 +587,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityByCallWithErrMsg_001, Tes
     auto retCode = abilityMs_->StartAbilityByCallWithErrMsg(want, nullptr, nullptr, accountId, errMsg);
     EXPECT_EQ(retCode, ERR_INVALID_VALUE);
     sptr<IAbilityConnection> connect = new MockIAbilityConnection();
+    accountId = 0;
     retCode = abilityMs_->StartAbilityByCallWithErrMsg(want, connect, nullptr, accountId, errMsg);
     EXPECT_EQ(retCode, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_001 end");
@@ -622,8 +644,6 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, IsSceneBoardReady_001, TestSize.Level
     int32_t userId = -1;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
-    abilityMs->userController_ = std::make_shared<UserController>();
-    EXPECT_NE(abilityMs->userController_, nullptr);
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
     bool result = abilityMs->IsSceneBoardReady(userId);
@@ -644,7 +664,6 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, IsSceneBoardReady_002, TestSize.Level
     int32_t userId = 100;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
-    abilityMs->userController_ = nullptr;
     abilityMs->subManagersHelper_ = nullptr;
     bool result = abilityMs->IsSceneBoardReady(userId);
     EXPECT_FALSE(result);
@@ -701,12 +720,13 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, OnStartSpecifiedAbilityTimeoutRespons
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnStartSpecifiedAbilityTimeoutResponse_001 start");
     auto abilityMs = std::make_shared<AbilityManagerService>();
     int32_t requestId = 101;
-    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    std::shared_ptr<TaskHandlerWrap> taskHandler =
+        TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    std::shared_ptr<AbilityEventHandler> eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
     EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
-    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
-        .Times(AnyNumber())
-        .WillRepeatedly(Return(true));
-    abilityMs->OnStartSpecifiedAbilityTimeoutResponse(requestId);
+    int32_t userId = 100;
+    abilityMs->OnStartSpecifiedAbilityTimeoutResponse(requestId, userId);
     auto manager = abilityMs->GetCurrentUIAbilityManager();
     EXPECT_EQ(manager, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnStartSpecifiedAbilityTimeoutResponse_001 end");
@@ -723,7 +743,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, OnStartSpecifiedAbilityTimeoutRespons
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnStartSpecifiedAbilityTimeoutResponse_002 start");
     auto abilityMs = std::make_shared<AbilityManagerService>();
     int32_t requestId = 101;
-    abilityMs->OnStartSpecifiedAbilityTimeoutResponse(requestId);
+    int32_t userId = 100;
+    abilityMs->OnStartSpecifiedAbilityTimeoutResponse(requestId, userId);
     auto manager = abilityMs->GetCurrentUIAbilityManager();
     EXPECT_EQ(manager, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnStartSpecifiedAbilityTimeoutResponse_002 end");
@@ -1166,7 +1187,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_EnterKioskMode_Fail_01, 
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_ExitKioskMode_Fail_01, TestSize.Level1) {
     auto callerToken = MockToken(AbilityType::PAGE);
-    auto result = KioskManager::GetInstance().ExitKioskMode(callerToken);
+    auto result = KioskManager::GetInstance().ExitKioskMode(callerToken, false);
     if (!system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         ASSERT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
     } else {
@@ -1297,7 +1318,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, SuspendExtensionAbility_001, TestSize
     EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), ERR_INVALID_VALUE);
 
     connect = new AbilityConnectCallback();
-    EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), ERR_NO_INIT);
+    EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), CONNECT_MAMAGER_NOT_FIND_BY_USERID);
 
     MyFlag::flag_ = false;
     EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), CHECK_PERMISSION_FAILED);
@@ -1323,7 +1344,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, ResumeExtensionAbility_001, TestSize.
     EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), ERR_INVALID_VALUE);
 
     connect = new AbilityConnectCallback();
-    EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), ERR_NO_INIT);
+    EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), CONNECT_MAMAGER_NOT_FIND_BY_USERID);
 
     MyFlag::flag_ = false;
     EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), CHECK_PERMISSION_FAILED);
@@ -1355,7 +1376,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, OnAbilityDied_001, TestSize.Level1)
     if (system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.kioskBundleName_, "");
     }
-    EXPECT_FALSE(abilityMs->VerificationToken(token));
+    EXPECT_FALSE(abilityMs->VerificationAllToken(token));
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnAbilityDied_001 end");
 }
 
@@ -1378,7 +1399,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_001, TestSize.
     connect = new AbilityConnectCallback();
     EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
         [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
-            return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_NO_INIT);
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), CONNECT_MAMAGER_NOT_FIND_BY_USERID);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_001 end");
 }
 

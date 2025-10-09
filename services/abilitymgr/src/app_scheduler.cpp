@@ -75,17 +75,25 @@ int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const 
         return INNER_ERR;
     }
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     /* because the errcode type of AppMgr Client API will be changed to int,
      * so must to covert the return result  */
     int ret = static_cast<int>(IN_PROCESS_CALL(
         appMgrClient_->LoadAbility(abilityInfo, applicationInfo, want, loadParam)));
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "AppScheduler fail to LoadAbility. ret %{public}d", ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AppScheduler fail to LoadAbility. ret %{public}d", ret);
         return INNER_ERR;
     }
     return ERR_OK;
+}
+
+void AppScheduler::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "NotifyLoadAbilityFinished called");
+    CHECK_POINTER(appMgrClient_);
+    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->NotifyLoadAbilityFinished(callingPid, targetPid, callbackId));
 }
 
 int AppScheduler::TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag)
@@ -367,6 +375,7 @@ void AppScheduler::OnAppStateChanged(const AppExecFwk::AppProcessData &appData)
     info.appIndex = appData.appIndex;
     info.instanceKey = appData.instanceKey;
     info.bundleName = appData.bundleName;
+    info.userId = appData.uid / BASE_USER_RANGE;
     callback->OnAppStateChanged(info);
 }
 
@@ -410,9 +419,9 @@ void AppScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecF
 }
 
 void StartSpecifiedAbilityResponse::OnAcceptWantResponse(
-    const AAFwk::Want &want, const std::string &flag, int32_t requestId)
+    const AAFwk::Want &want, const std::string &flag, int32_t requestId, int32_t userId)
 {
-    DelayedSingleton<AbilityManagerService>::GetInstance()->OnAcceptWantResponse(want, flag, requestId);
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnAcceptWantResponse(want, flag, requestId, userId);
 }
 
 void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
@@ -421,9 +430,9 @@ void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &modul
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->PrepareTerminateApp(pid, moduleName));
 }
 
-void StartSpecifiedAbilityResponse::OnTimeoutResponse(int32_t requestId)
+void StartSpecifiedAbilityResponse::OnTimeoutResponse(int32_t requestId, int32_t userId)
 {
-    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedAbilityTimeoutResponse(requestId);
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedAbilityTimeoutResponse(requestId, userId);
 }
 
 void AppScheduler::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
@@ -433,21 +442,21 @@ void AppScheduler::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecF
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->StartSpecifiedProcess(want, abilityInfo, requestId, customProcess));
 }
 
-void StartSpecifiedAbilityResponse::OnNewProcessRequestResponse(const std::string &flag, int32_t requestId,
-    const std::string &callerProcessName)
+void StartSpecifiedAbilityResponse::OnNewProcessRequestResponse(const std::string &flag, int32_t userId,
+    int32_t requestId, const std::string &callerProcessName, int32_t recordId)
 {
-    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessResponse(flag, requestId,
-        callerProcessName);
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessResponse(flag, userId, requestId,
+        callerProcessName, recordId);
 }
 
-void StartSpecifiedAbilityResponse::OnNewProcessRequestTimeoutResponse(int32_t requestId)
+void StartSpecifiedAbilityResponse::OnNewProcessRequestTimeoutResponse(int32_t requestId, int32_t userId)
 {
-    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessTimeoutResponse(requestId);
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessTimeoutResponse(requestId, userId);
 }
 
-void StartSpecifiedAbilityResponse::OnStartSpecifiedFailed(int32_t requestId)
+void StartSpecifiedAbilityResponse::OnStartSpecifiedFailed(int32_t requestId, int32_t userId)
 {
-    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedFailed(requestId);
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedFailed(requestId, userId);
 }
 
 int AppScheduler::GetProcessRunningInfos(std::vector<AppExecFwk::RunningProcessInfo> &info)
@@ -562,12 +571,6 @@ int32_t AppScheduler::GetBundleNameByPid(const int pid, std::string &bundleName,
         return INNER_ERR;
     }
     return ERR_OK;
-}
-
-void AppScheduler::SetCurrentUserId(const int32_t userId)
-{
-    CHECK_POINTER(appMgrClient_);
-    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->SetCurrentUserId(userId));
 }
 
 void AppScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
@@ -778,6 +781,21 @@ int32_t AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, 
         return INNER_ERR;
     }
     return IN_PROCESS_CALL(appMgrClient_->CheckPreloadAppRecordExist(bundleName, userId, appIndex, isExist));
+}
+
+int32_t AppScheduler::VerifyKillProcessPermission(const std::string &bundleName) const
+{
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
+        return INNER_ERR;
+    }
+    return appMgrClient_->VerifyKillProcessPermission(bundleName);
+}
+
+void AppScheduler::SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId)
+{
+    CHECK_POINTER(appMgrClient_);
+    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->SetSpecifiedProcessRequestId(recordId, requestId));
 }
 } // namespace AAFwk
 }  // namespace OHOS

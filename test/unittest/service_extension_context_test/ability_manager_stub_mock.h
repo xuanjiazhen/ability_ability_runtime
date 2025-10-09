@@ -194,7 +194,7 @@ public:
         return;
     }
 
-    int StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery) override
+    int StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery) override
     {
         return 0;
     }
@@ -331,7 +331,10 @@ public:
     {
         return 0;
     }
-
+    int StartAbilityForPrelaunch(const Want &want) override
+    {
+        return 0;
+    }
     void CallRequestDone(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callStub) override
     {
         return;

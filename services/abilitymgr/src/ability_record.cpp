@@ -142,8 +142,7 @@ std::shared_ptr<AbilityRecord> Token::GetAbilityRecordByToken(const sptr<IRemote
 
     std::string descriptor = Str16ToStr8(token->GetObjectDescriptor());
     if (descriptor != "ohos.aafwk.AbilityToken") {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "descriptor:%{public}s",
-            descriptor.c_str());
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "descriptor:%{public}s", descriptor.c_str());
         return nullptr;
     }
 
@@ -246,16 +245,15 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     abilityRecord->SetAppIndex(appIndex);
     abilityRecord->SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
     abilityRecord->SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
-    if (abilityRequest.processOptions != nullptr && abilityRequest.processOptions->isPreloadStart) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "start by preload");
-        abilityRecord->SetPreloadStart(true);
+    if (abilityRequest.processOptions != nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isPreloadStart:%{public}d", abilityRequest.processOptions->isPreloadStart);
+        abilityRecord->SetPreloadStart(abilityRequest.processOptions->isPreloadStart);
     }
     abilityRecord->sessionInfo_ = abilityRequest.sessionInfo;
     if (AppUtils::GetInstance().IsMultiProcessModel() && abilityRequest.abilityInfo.isStageBasedModel &&
-        abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE &&
-        !abilityRequest.customProcess.empty()) {
-            abilityRecord->SetCustomProcessFlag(abilityRequest.customProcess);
-        }
+        abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE && !abilityRequest.customProcess.empty()) {
+        abilityRecord->SetCustomProcessFlag(abilityRequest.customProcess);
+    }
     if (abilityRequest.sessionInfo != nullptr) {
         abilityRecord->instanceKey_ = abilityRequest.sessionInfo->instanceKey;
     }
@@ -278,8 +276,7 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     abilityRecord->missionAffinity_ = abilityRequest.want.GetStringParam(PARAM_MISSION_AFFINITY_KEY);
 
     auto userId = abilityRequest.appInfo.uid / BASE_USER_RANGE;
-    if ((userId == 0 ||
-        AppUtils::GetInstance().InResidentWhiteList(abilityRequest.abilityInfo.bundleName)) &&
+    if ((userId == 0 || AppUtils::GetInstance().InResidentWhiteList(abilityRequest.abilityInfo.bundleName)) &&
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         abilityRecord->keepAliveBundle_ = true;
@@ -340,7 +337,8 @@ void AbilityRecord::LoadUIAbility()
     g_addLifecycleEventTask(token_, methodName);
 }
 
-int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide)
+int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t callingPid,
+    uint64_t loadAbilityCallbackId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadLifecycle: abilityName:%{public}s", abilityInfo_.name.c_str());
@@ -376,6 +374,9 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide)
     loadParam.isCallerSetProcess = IsCallerSetProcess();
     loadParam.customProcessFlag = customProcessFlag_;
     loadParam.isStartupHide = isStartupHide;
+    loadParam.callingPid = callingPid;
+    loadParam.loadAbilityCallbackId = loadAbilityCallbackId;
+    loadParam.isPrelaunch = isPrelaunch_;
     auto userId = abilityInfo_.uid / BASE_USER_RANGE;
     bool isMainUIAbility =
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);
@@ -428,7 +429,7 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     isWindowStarted_ = true;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundLifecycle: name:%{public}s", abilityInfo_.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundLifecycle %{public}s", abilityInfo_.name.c_str());
     CHECK_POINTER(lifecycleDeal_);
 
     // schedule active after updating AbilityState and sending timeout message to avoid ability async callback
@@ -490,54 +491,49 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
     }
 }
 
-void AbilityRecord::ProcessForegroundAbility(
-    uint32_t tokenId, uint32_t sceneFlag, bool isShellCall, bool isStartupHide)
+void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::string element = GetElementName().GetURI();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability record: %{public}s", element.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability record: %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
+        GetElementName().GetAbilityName().c_str());
 #ifdef SUPPORT_UPMS
     {
         std::lock_guard guard(wantLock_);
         GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, tokenId);
     }
 #endif // SUPPORT_UPMS
-
-    if (isReady_) {
-        PostForegroundTimeoutTask();
-        if (IsAbilityState(AbilityState::FOREGROUND)) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s", element.c_str());
-            if (IsFrozenByPreload()) {
-                SetFrozenByPreload(false);
-                auto ret =
-                    DelayedSingleton<AppScheduler>::GetInstance()->NotifyPreloadAbilityStateChanged(token_, false);
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyPreloadAbilityStateChanged by start, ret: %{public}d", ret);
-            }
-            ForegroundAbility(sceneFlag);
-        } else {
-            // background to active state
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s", element.c_str());
-            lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
-            std::string bundleName = GetAbilityInfo().bundleName;
-            int32_t uid = GetUid();
-            auto pid = GetPid();
-            if (pid > 0) {
-                auto callerPid = GetCallerRecord() ? GetCallerRecord()->GetPid() : -1;
-                TAG_LOGD(AAFwkTag::ABILITYMGR,
-                    "ReportEventToRSS---%{public}d_%{public}s_%{public}d callerPid=%{public}d",
-                    uid, bundleName.c_str(), pid, callerPid);
-                ResSchedUtil::GetInstance().ReportEventToRSS(uid, bundleName, "THAW_BY_FOREGROUND_ABILITY", pid,
-                    callerPid);
-            }
-            SendAppStartupTypeEvent(AppExecFwk::AppStartType::HOT);
-            SetAbilityStateInner(AbilityState::FOREGROUNDING);
-            DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_);
-        }
-    } else {
+    if (!isReady_) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "To load ability.");
-        lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
-        LoadAbility(isShellCall, isStartupHide);
+        lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
+        LoadAbility(options.isShellCall, options.isStartupHide, options.callingPid, options.loadAbilityCallbackId);
+        return;
     }
+
+    DelayedSingleton<AppScheduler>::GetInstance()->NotifyLoadAbilityFinished(options.callingPid,
+        GetPid(), options.loadAbilityCallbackId);
+
+    PostForegroundTimeoutTask();
+    if (IsAbilityState(AbilityState::FOREGROUND)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
+            GetElementName().GetAbilityName().c_str());
+        if (IsFrozenByPreload()) {
+            SetFrozenByPreload(false);
+            auto ret =
+                DelayedSingleton<AppScheduler>::GetInstance()->NotifyPreloadAbilityStateChanged(token_, false);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyPreloadAbilityStateChanged by start, ret: %{public}d", ret);
+        }
+        ForegroundAbility(options.sceneFlag);
+        return;
+    }
+    // background to active state
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
+        GetElementName().GetAbilityName().c_str());
+    lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
+    ResSchedUtil::GetInstance().ReportEventToRSS(GetUid(), GetAbilityInfo().bundleName,
+        "THAW_BY_FOREGROUND_ABILITY", GetPid(), GetCallerRecord() ? GetCallerRecord()->GetPid() : -1);
+    SendAppStartupTypeEvent(AppExecFwk::AppStartType::HOT);
+    SetAbilityStateInner(AbilityState::FOREGROUNDING);
+    DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_);
 }
 
 void AbilityRecord::PostForegroundTimeoutTask()
@@ -571,7 +567,7 @@ void AbilityRecord::RemoveLoadTimeoutTask()
 {
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
     CHECK_POINTER(handler);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoveLoadTimeoutTask recordId:%{public}" PRId64, GetAbilityRecordId());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoveLoadTimeoutTask:%{public}" PRId64, GetAbilityRecordId());
     handler->RemoveEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, GetAbilityRecordId());
     handler->RemoveEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, GetAbilityRecordId());
 }
@@ -623,6 +619,7 @@ std::string AbilityRecord::GetLabel()
 #ifdef SUPPORT_SCREEN
     auto resourceMgr = CreateResourceManager();
     if (!resourceMgr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "CreateResourceManager empty");
         return strLabel;
     }
 
@@ -642,8 +639,8 @@ void AbilityRecord::ProcessForegroundAbility(const std::shared_ptr<AbilityRecord
     uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::string element = GetElementName().GetURI();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s", element.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s/%{public}s",
+        GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
 
     StartingWindowHot();
     auto flag = !IsForeground();
@@ -652,11 +649,13 @@ void AbilityRecord::ProcessForegroundAbility(const std::shared_ptr<AbilityRecord
 
     PostForegroundTimeoutTask();
     if (IsAbilityState(AbilityState::FOREGROUND)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s", element.c_str());
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s/%{public}s",
+            GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
         ForegroundAbility(sceneFlag);
     } else {
         // background to active state
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s", element.c_str());
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s/%{public}s",
+            GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
         lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
         DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_);
     }
@@ -776,8 +775,8 @@ void AbilityRecord::ProcessForegroundAbility(bool isRecent, const AbilityRequest
     uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::string element = GetElementName().GetURI();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s", element.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s/%{public}s",
+        GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
 #ifdef SUPPORT_UPMS
     {
         std::lock_guard guard(wantLock_);
@@ -803,11 +802,13 @@ void AbilityRecord::ProcessForegroundAbility(bool isRecent, const AbilityRequest
         }
         PostForegroundTimeoutTask();
         if (IsAbilityState(AbilityState::FOREGROUND)) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s", element.c_str());
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s/%{public}s",
+                GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
             ForegroundAbility(sceneFlag);
         } else {
             // background to active state
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s", element.c_str());
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s/%{public}s",
+                GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
             lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_);
         }
@@ -1299,12 +1300,22 @@ void AbilityRecord::SetColdStartFlag(bool isColdStart)
 {
     coldStart_ = isColdStart;
 }
+
+bool AbilityRecord::GetPrelaunchFlag()
+{
+    return isPrelaunch_;
+}
+
+void AbilityRecord::SetPrelaunchFlag(bool isPrelaunch)
+{
+    isPrelaunch_ = isPrelaunch;
+}
 #endif
 
 void AbilityRecord::BackgroundAbility(const Closure &task)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "BackgroundLifecycle: ability:%{public}s", GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "BackgroundLifecycle %{public}s", GetURI().c_str());
     if (lifecycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null lifecycleDeal_");
         return;
@@ -1537,11 +1548,11 @@ void AbilityRecord::SetAbilityStateInner(AbilityState state)
             int32_t persistentId = sessionInfo->persistentId;
             switch (state) {
                 case AbilityState::BACKGROUNDING: {
-                    ret = collaborator->NotifyMoveMissionToBackground(persistentId);
+                    ret = collaborator->NotifyMoveMissionToBackground(persistentId, GetOwnerMissionUserId());
                     break;
                 }
                 case AbilityState::TERMINATING: {
-                    ret = collaborator->NotifyTerminateMission(persistentId);
+                    ret = collaborator->NotifyTerminateMission(persistentId, GetOwnerMissionUserId());
                     break;
                 }
                 default:
@@ -1554,15 +1565,15 @@ void AbilityRecord::SetAbilityStateInner(AbilityState state)
         }
         switch (state) {
             case AbilityState::FOREGROUNDING: {
-                ret = collaborator->NotifyMoveMissionToForeground(missionId_);
+                ret = collaborator->NotifyMoveMissionToForeground(missionId_, GetOwnerMissionUserId());
                 break;
             }
             case AbilityState::BACKGROUNDING: {
-                ret = collaborator->NotifyMoveMissionToBackground(missionId_);
+                ret = collaborator->NotifyMoveMissionToBackground(missionId_, GetOwnerMissionUserId());
                 break;
             }
             case AbilityState::TERMINATING: {
-                ret = collaborator->NotifyTerminateMission(missionId_);
+                ret = collaborator->NotifyTerminateMission(missionId_, GetOwnerMissionUserId());
                 break;
             }
             default:
@@ -2249,7 +2260,11 @@ void AbilityRecord::AddCallerRecord(const sptr<IRemoteObject> &callerToken, int 
         AddSystemAbilityCallerRecord(callerToken, requestCode, srcAbilityId);
         return;
     }
-    CHECK_POINTER(abilityRecord);
+
+    if (!abilityRecord) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "nullptr");
+        return;
+    }
 
     auto isExist = [&abilityRecord](const std::shared_ptr<CallerRecord> &callerRecord) {
         return (callerRecord->GetCaller() == abilityRecord);
@@ -3489,7 +3504,6 @@ void AbilityRecord::GrantUriPermission(const std::vector<std::string> &uriVec, i
 void AbilityRecord::GrantUriPermission()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::string element = GetElementName().GetURI();
     {
         std::lock_guard guard(wantLock_);
         GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0);
@@ -3545,7 +3559,7 @@ void AbilityRecord::NotifyMissionBindPid()
     }
     auto sessionInfo = GetSessionInfo();
     if (sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null sessionInfo");
         return;
     }
     int32_t persistentId = sessionInfo->persistentId;
@@ -3556,7 +3570,7 @@ void AbilityRecord::NotifyMissionBindPid()
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null collaborator");
             return;
         }
-        collaborator->NotifyMissionBindPid(persistentId, pid_);
+        collaborator->NotifyMissionBindPid(persistentId, pid_, GetOwnerMissionUserId());
     }
 }
 
@@ -3664,7 +3678,7 @@ bool AbilityRecord::IsAbilityWindowReady()
 void AbilityRecord::SetAbilityWindowState(const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd, bool isFinished)
 {
     if (sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null sessionInfo");
         return;
     }
     if (isFinished) {

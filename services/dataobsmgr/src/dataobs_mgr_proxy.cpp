@@ -57,6 +57,18 @@ bool DataObsManagerProxy::WriteObsOpt(MessageParcel &data, DataObsOption opt)
         TAG_LOGE(AAFwkTag::DBOBSMGR, "write opt error");
         return false;
     }
+    if (!data.WriteUint32(opt.FirstCallerTokenID())) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "write opt error");
+        return false;
+    }
+    if (!data.WriteInt32(opt.FirstCallerPid())) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "write opt error");
+        return false;
+    }
+    if (!data.WriteBool(opt.IsDataShare())) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "write opt error");
+        return false;
+    }
     return true;
 }
 
@@ -80,8 +92,41 @@ int32_t DataObsManagerProxy::RegisterObserver(const Uri &uri,
     if (!WriteObsOpt(data, opt)) {
         return INVALID_PARAM;
     }
-
+    
     auto error = SendTransactCmd(IDataObsMgr::REGISTER_OBSERVER, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "sendRequest error:%{public}d, uri:%{public}s", error,
+            CommonUtils::Anonymous(uri.ToString()).c_str());
+        return error;
+    }
+
+    int32_t res = IPC_ERROR;
+    return reply.ReadInt32(res) ? res : IPC_ERROR;
+}
+
+int32_t DataObsManagerProxy::RegisterObserverFromExtension(const Uri &uri,
+    sptr<IDataAbilityObserver> dataObserver, int32_t userId,
+    DataObsOption opt)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        return IPC_PARCEL_ERROR;
+    }
+
+    if (!WriteParam(data, uri, dataObserver)) {
+        return INVALID_PARAM;
+    }
+    if (!data.WriteInt32(userId)) {
+        return INVALID_PARAM;
+    }
+    if (!WriteObsOpt(data, opt)) {
+        return INVALID_PARAM;
+    }
+
+    auto error = SendTransactCmd(IDataObsMgr::REGISTER_OBSERVER_FROM_EXTENSION, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "sendRequest error:%{public}d, uri:%{public}s", error,
             CommonUtils::Anonymous(uri.ToString()).c_str());
@@ -144,6 +189,37 @@ int32_t DataObsManagerProxy::NotifyChange(const Uri &uri, int32_t userId, DataOb
         return INVALID_PARAM;
     }
     auto error = SendTransactCmd(IDataObsMgr::NOTIFY_CHANGE, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "sendRequest error:%{public}d, uri:%{public}s", error,
+            CommonUtils::Anonymous(uri.ToString()).c_str());
+        return IPC_ERROR;
+    }
+
+    int32_t res = IPC_ERROR;
+    return reply.ReadInt32(res) ? res : IPC_ERROR;
+}
+
+int32_t DataObsManagerProxy::NotifyChangeFromExtension(const Uri &uri, int32_t userId, DataObsOption opt)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        return IPC_PARCEL_ERROR;
+    }
+    if (!data.WriteString(uri.ToString())) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "write uri error, uri:%{public}s",
+            CommonUtils::Anonymous(uri.ToString()).c_str());
+        return INVALID_PARAM;
+    }
+    if (!data.WriteInt32(userId)) {
+        return INVALID_PARAM;
+    }
+    if (!WriteObsOpt(data, opt)) {
+        return INVALID_PARAM;
+    }
+    auto error = SendTransactCmd(IDataObsMgr::NOTIFY_CHANGE_FROM_EXTENSION, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "sendRequest error:%{public}d, uri:%{public}s", error,
             CommonUtils::Anonymous(uri.ToString()).c_str());

@@ -22,7 +22,9 @@
 #include <unordered_map>
 #include "cpp/mutex.h"
 
+#include "data_share_permission.h"
 #include "dataobs_mgr_inner.h"
+#include "dataobs_mgr_inner_common.h"
 #include "dataobs_mgr_inner_ext.h"
 #include "dataobs_mgr_inner_pref.h"
 #include "dataobs_mgr_stub.h"
@@ -50,14 +52,19 @@ public:
     DataObsServiceRunningState QueryServiceState() const;
 
     std::pair<bool, struct ObserverNode> ConstructObserverNode(sptr<IDataAbilityObserver> dataObserver,
-        int32_t userId, uint32_t tokenId);
+        int32_t userId, uint32_t tokenId, int32_t pid);
     virtual int RegisterObserver(const Uri &uri,
+        sptr<IDataAbilityObserver> dataObserver, int32_t userId = DATAOBS_DEFAULT_CURRENT_USER,
+        DataObsOption opt = DataObsOption()) override;
+    virtual int RegisterObserverFromExtension(const Uri &uri,
         sptr<IDataAbilityObserver> dataObserver, int32_t userId = DATAOBS_DEFAULT_CURRENT_USER,
         DataObsOption opt = DataObsOption()) override;
     virtual int UnregisterObserver(const Uri &uri,
         sptr<IDataAbilityObserver> dataObserver, int32_t userId = DATAOBS_DEFAULT_CURRENT_USER,
         DataObsOption opt = DataObsOption()) override;
     virtual int NotifyChange(const Uri &uri, int32_t userId = DATAOBS_DEFAULT_CURRENT_USER,
+        DataObsOption opt = DataObsOption()) override;
+    virtual int NotifyChangeFromExtension(const Uri &uri, int32_t userId = DATAOBS_DEFAULT_CURRENT_USER,
         DataObsOption opt = DataObsOption()) override;
     virtual Status RegisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
         bool isDescendants, DataObsOption opt = DataObsOption()) override;
@@ -88,13 +95,27 @@ private:
     static bool IsSystemApp(uint32_t tokenId, uint64_t fullTokenId);
     static bool IsCallingPermissionValid(DataObsOption &opt, int32_t userId, int32_t callingUserId);
     static bool IsCallingPermissionValid(DataObsOption &opt);
-    static int32_t GetDataMgrServiceUid();
     static bool IsDataMgrService(uint32_t tokenId, int32_t uid);
+    int32_t RegisterObserverInner(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, int32_t userId,
+        DataObsOption opt, bool isExtension);
+    std::pair<Status, std::string> GetUriPermission(Uri &uri, bool isRead, ObserverInfo &info);
+    int32_t VerifyDataShareExtension(Uri &uri, ObserverInfo &info);
+    int32_t VerifyDataSharePermission(Uri &uri, bool isRead, ObserverInfo &info);
+    Status VerifyDataSharePermissionInner(Uri &uri, bool isRead, ObserverInfo &info);
+    int32_t NotifyChangeInner(Uri &uri, int32_t userId,
+        DataObsOption opt, bool isExtension);
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+    bool IsTaskOverLimit();
+    std::pair<Status, std::vector<NotifyInfo>> MakeNotifyInfos(ChangeInfo &changes, DataObsOption opt,
+        uint32_t tokenId, int32_t userId);
+    void SubmitNotifyChangeTask(Uri &uri, int32_t userId, std::string readPermission,
+        ObserverInfo &info);
 private:
     static constexpr std::uint32_t TASK_COUNT_MAX = 50;
     ffrt::mutex taskCountMutex_;
     std::uint32_t taskCount_ = 0;
     std::shared_ptr<TaskHandlerWrap> handler_;
+    std::shared_ptr<DataShare::DataSharePermission> permission_;
 
     DataObsServiceRunningState state_;
 

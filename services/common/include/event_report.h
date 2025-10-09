@@ -88,6 +88,7 @@ enum class EventName {
     EXECUTE_INSIGHT_INTENT_ERROR,
     STARTUP_TASK_ERROR,
     START_ABILITY_SYSTEM_ERROR,
+    APP_STARTUP_ERROR,
 
     // ability behavior event
     START_ABILITY,
@@ -160,10 +161,12 @@ public:
     static void SendLaunchFrameworkEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo);
     static void SendReportDataPartitionUsageEvent(const EventName &eventName, HiSysEventType type,
         const EventInfo &eventInfo);
+    static void SendAppStartupErrorEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo);
 
 private:
     static std::string ConvertEventName(const EventName &eventName);
     static void LogErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogStartErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogStartAbilityEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogTerminateAbilityEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogAbilityOnForegroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);

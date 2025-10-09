@@ -12,14 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cstdint>
 #include <memory>
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 #include "access_token.h"
+#include "accesstoken_kit.h"
 #include "dataobs_mgr_interface.h"
+#include "datashare_errno.h"
 #include "mock_data_ability_observer_stub.h"
+#include "system_ability_definition.h"
 #include "token_setproc.h"
 #define private public
 #include "dataobs_mgr_service.h"
@@ -28,6 +32,7 @@
 namespace OHOS {
 namespace AAFwk {
 using namespace testing::ext;
+static int USER_100 = 100;
 class DataObsMgrServiceTest : public testing::Test {
 public:
     DataObsMgrServiceTest() = default;
@@ -714,39 +719,9 @@ HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_CheckSystemCallingPe
 
 /*
  * Feature: DataObsMgrService
- * Function: GetDataMgrServiceUid
+ * Function: IsSystemApp
  * SubFunction: NA
- * FunctionPoints: DataObsMgrService GetDataMgrServiceUid
- * EnvConditions: NA
- * CaseDescription: Verify that the DataObsMgrService GetDataMgrServiceUid is normal.
- */
-HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_GetDataMgrServiceUid_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_GetDataMgrServiceUid_0100 start");
-    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
-
-    auto uid1 = dataObsMgrServer->GetDataMgrServiceUid();
-    EXPECT_NE(uid1, 0);
-    auto uid2 = dataObsMgrServer->GetDataMgrServiceUid();
-    EXPECT_EQ(uid1, uid2);
-
-    uint32_t tokenID = Security::AccessToken::DEFAULT_TOKEN_VERSION;
-    Security::AccessToken::AccessTokenIDInner *idInner =
-        reinterpret_cast<Security::AccessToken::AccessTokenIDInner *>(&tokenID);
-    idInner->type = Security::AccessToken::TOKEN_NATIVE;
-    bool ret = dataObsMgrServer->IsDataMgrService(tokenID, uid1);
-    EXPECT_EQ(ret, true);
-    idInner->type = Security::AccessToken::TOKEN_HAP;
-    ret = dataObsMgrServer->IsDataMgrService(tokenID, uid1);
-    EXPECT_EQ(ret, false);
-    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_GetDataMgrServiceUid_0100 end");
-}
-
-/*
- * Feature: DataObsMgrService
- * Function: GetDataMgrServiceUid
- * SubFunction: NA
- * FunctionPoints: DataObsMgrService GetDataMgrServiceUid
+ * FunctionPoints: DataObsMgrService IsSystemApp
  * EnvConditions: NA
  * CaseDescription: Verify that the DataObsMgrService IsSystemApp is normal.
  */
@@ -772,5 +747,90 @@ HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_IsSystemApp_0100, Te
     TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_IsSystemApp_0100 end");
 }
 
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_VerifyDataSharePermission_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_VerifyDataSharePermission_0100 start");
+    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
+    std::string proxyUriOk = "datashareproxy://com.acts.datasharetest/test";
+    Uri uri(proxyUriOk);
+    ObserverInfo info(0, 0, 0, 0, true);
+    int32_t ret = dataObsMgrServer->VerifyDataSharePermission(uri, true, info);
+    EXPECT_EQ(ret, DataShare::E_NOT_HAP);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_VerifyDataSharePermission_0100 end");
+}
+
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_Init_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_Init_0100 start");
+    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
+    EXPECT_NE(dataObsMgrServer->permission_, nullptr);
+    EXPECT_EQ(dataObsMgrServer->permission_->subscriber_, nullptr);
+    dataObsMgrServer->OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, "");
+    EXPECT_NE(dataObsMgrServer->permission_->subscriber_, nullptr);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_Init_0100 end");
+}
+
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_Init_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_Init_0200 start");
+    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
+    dataObsMgrServer->permission_ = nullptr;
+    dataObsMgrServer->OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, "");
+
+    dataObsMgrServer = std::make_shared<DataObsMgrService>();
+    dataObsMgrServer->OnAddSystemAbility(0, "");
+    EXPECT_EQ(dataObsMgrServer->permission_->subscriber_, nullptr);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_Init_0200 end");
+}
+
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_VerifyDataSharePermissionInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_VerifyDataSharePermissionInner_0100 start");
+    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
+    dataObsMgrServer->permission_ = nullptr;
+    Uri uri("");
+    ObserverInfo info;
+    int32_t ret = dataObsMgrServer->VerifyDataSharePermissionInner(uri, true, info);
+    EXPECT_EQ(ret, COMMON_ERROR);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_VerifyDataSharePermissionInner_0100 end");
+}
+
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_VerifyDataSharePermissionInner_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_VerifyDataSharePermissionInner_0200 start");
+    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
+
+    Uri uri("");
+    ObserverInfo info;
+    int32_t ret = dataObsMgrServer->VerifyDataSharePermissionInner(uri, true, info);
+    EXPECT_EQ(ret, DATAOBS_INVALID_URI);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_VerifyDataSharePermissionInner_0200 end");
+}
+
+/*
+ * Feature: DataObsMgrService
+ * Function: test DATA_MANAGER_SERVICE_UID
+ * SubFunction: NA
+ * FunctionPoints: DataObsMgrService DATA_MANAGER_SERVICE_UID
+ * EnvConditions: NA
+ * CaseDescription: Verify that the DATA_MANAGER_SERVICE_UID is normal.
+ */
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_DataMgrServiceUid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_GetDataMgrServiceUid_0100 start");
+    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
+    // DATA_MANAGER_SERVICE_UID is 3012
+    int32_t uid = 3012;
+    uint32_t tokenID = Security::AccessToken::DEFAULT_TOKEN_VERSION;
+    Security::AccessToken::AccessTokenIDInner *idInner =
+        reinterpret_cast<Security::AccessToken::AccessTokenIDInner *>(&tokenID);
+    idInner->type = Security::AccessToken::TOKEN_NATIVE;
+    bool ret = dataObsMgrServer->IsDataMgrService(tokenID, uid);
+    EXPECT_EQ(ret, true);
+    idInner->type = Security::AccessToken::TOKEN_HAP;
+    ret = dataObsMgrServer->IsDataMgrService(tokenID, uid);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_GetDataMgrServiceUid_0100 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

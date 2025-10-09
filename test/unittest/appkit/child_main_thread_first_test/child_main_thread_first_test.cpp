@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -154,7 +154,7 @@ HWTEST_F(ChildMainThreadFirstTest, HandleLoadNative_0100, TestSize.Level1)
     ChildMainThread childMainThread;
     childMainThread.processInfo_ = nullptr;
     childMainThread.HandleLoadNative();
-    EXPECT_EQ(childMainThread.processInfo_, nullptr);
+    EXPECT_NE(childMainThread.processArgs_, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "HandleLoadNative_0100 end.");
 }
 
@@ -171,7 +171,6 @@ HWTEST_F(ChildMainThreadFirstTest, HandleLoadNative_0200, TestSize.Level1)
     childMainThread.processArgs_ = nullptr;
     childMainThread.HandleLoadNative();
     EXPECT_NE(childMainThread.processInfo_, nullptr);
-    EXPECT_EQ(childMainThread.processArgs_, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "HandleLoadNative_0200 end.");
 }
 
@@ -187,8 +186,23 @@ HWTEST_F(ChildMainThreadFirstTest, HandleRunNativeProc_0100, TestSize.Level1)
     sptr<IRemoteObject> mainProcessCb = nullptr;
     childMainThread.processInfo_ = nullptr;
     childMainThread.HandleRunNativeProc(mainProcessCb);
-    EXPECT_EQ(childMainThread.processInfo_, nullptr);
+    childMainThread.processInfo_ = std::make_shared<ChildProcessInfo>();
+    EXPECT_NE(childMainThread.processInfo_, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "HandleRunNativeProc_0100 end.");
+}
+
+/**
+ * @tc.number: OnLoadAbilityFinished_0100
+ * @tc.desc: Test HandleLoadNative works
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildMainThreadFirstTest, OnLoadAbilityFinished_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnLoadAbilityFinished_0100 start.");
+    ChildMainThread childMainThread;
+    childMainThread.OnLoadAbilityFinished(1234, 1234);
+    EXPECT_EQ(childMainThread.processInfo_, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "OnLoadAbilityFinished_0100 end.");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -103,7 +103,9 @@ private:
     int32_t HandleAttachRenderProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRenderProcessTerminationStatus(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetConfiguration(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetConfigurationByUserId(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUpdateConfiguration(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUpdateConfigurationMultiUser(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUpdateConfigurationForBackgroundApp(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUpdateConfigurationByBundleName(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRegisterConfigurationObserver(MessageParcel &data, MessageParcel &reply);
@@ -200,6 +202,9 @@ private:
     int32_t HandleLaunchAbility(MessageParcel &data, MessageParcel &reply);
     int32_t HandlePromoteCurrentToCandidateMasterProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDemoteCurrentFromCandidateMasterProcess(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetSpecifiedProcessRequestId(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleExitMasterProcessRole(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleRegisterApplicationStateObserverWithFilter(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

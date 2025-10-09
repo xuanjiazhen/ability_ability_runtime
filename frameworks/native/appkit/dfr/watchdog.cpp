@@ -52,6 +52,10 @@ std::shared_ptr<EventHandler> Watchdog::appMainHandler_ = nullptr;
 OHOS::HiviewDFX::HiTraceId* Watchdog::hitraceId_ = nullptr;
 #endif
 
+static constexpr const char* const CHECK_BACKGROUND_THREAD[] = {
+    "com.ohos.sceneboard"
+};
+
 Watchdog::Watchdog()
 {}
 
@@ -62,7 +66,6 @@ Watchdog::~Watchdog()
         OHOS::HiviewDFX::Watchdog::GetInstance().StopWatchdog();
     }
 }
-
 void Watchdog::Init(const std::shared_ptr<EventHandler> mainHandler)
 {
     std::unique_lock<std::mutex> lock(cvMutex_);
@@ -83,6 +86,17 @@ void Watchdog::Init(const std::shared_ptr<EventHandler> mainHandler)
     OHOS::HiviewDFX::Watchdog::GetInstance().RunPeriodicalTask("AppkitWatchdog", watchdogTask,
         CHECK_INTERVAL_TIME, INI_TIMER_FIRST_SECOND);
 #endif
+    SetMainThreadSample();
+}
+
+void Watchdog::SetMainThreadSample()
+{
+    char* env = getenv("DFX_APPFREEZE_LOG_OPTIONS");
+    if (env == nullptr) {
+        return;
+    }
+    AppExecFwk::AppfreezeInner::GetInstance()->SetMainThreadSample(
+        strstr(env, "mainthread_sampling:enable") != nullptr);
 }
 
 void Watchdog::Stop()
@@ -149,14 +163,18 @@ void Watchdog::ChangeTimeOut(const std::string& bundleName)
 }
 #endif
 
-void Watchdog::SetBundleInfo(const std::string& bundleName, const std::string& bundleVersion)
+void Watchdog::SetBundleInfo(const std::string& bundleName, const std::string& bundleVersion, bool isSystemApp)
 {
-    OHOS::HiviewDFX::Watchdog::GetInstance().SetBundleInfo(bundleName, bundleVersion);
+    OHOS::HiviewDFX::Watchdog::GetInstance().SetBundleInfo(bundleName, bundleVersion, isSystemApp);
 #ifdef APP_NO_RESPONSE_DIALOG
     if (isDeviceType2in1()) {
         ChangeTimeOut(bundleName);
     }
 #endif
+    {
+        std::unique_lock<std::mutex> lock(cvMutex_);
+        bundleName_ = bundleName;
+    }
 }
 
 void Watchdog::SetBackgroundStatus(const bool isInBackground)
@@ -164,6 +182,7 @@ void Watchdog::SetBackgroundStatus(const bool isInBackground)
     std::unique_lock<std::mutex> lock(cvMutex_);
     isInBackground_.store(isInBackground);
     OHOS::HiviewDFX::Watchdog::GetInstance().SetForeground(!isInBackground);
+    AppExecFwk::AppfreezeInner::GetInstance()->SetAppInForeground(!isInBackground);
 }
 
 void Watchdog::AllowReportEvent()
@@ -171,6 +190,7 @@ void Watchdog::AllowReportEvent()
     std::unique_lock<std::mutex> lock(cvMutex_);
     needReport_.store(true);
     isSixSecondEvent_.store(false);
+    backgroundReportCount_.store(0);
     watchdogReportCount_.store(0);
 }
 
@@ -266,10 +286,15 @@ void Watchdog::ReportEvent()
         return;
     }
 
-    if (isInBackground_) {
+    if (isInBackground_ && backgroundReportCount_.load() < BACKGROUND_REPORT_COUNT_MAX) {
+        bool enableCheck = std::find(std::begin(CHECK_BACKGROUND_THREAD), std::end(CHECK_BACKGROUND_THREAD),
+            bundleName_) != std::end(CHECK_BACKGROUND_THREAD);
+        if (enableCheck) {
+            backgroundReportCount_++;
+        }
         TAG_LOGI(AAFwkTag::APPDFR, "In Background, thread may be blocked in, not report time"
-            "currTime: %{public}" PRIu64 ", lastTime: %{public}" PRIu64 "",
-            static_cast<uint64_t>(now), static_cast<uint64_t>(lastWatchTime_));
+            "currTime: %{public}" PRIu64 ", lastTime: %{public}" PRIu64 ", enableCheck: %{public}d",
+            static_cast<uint64_t>(now), static_cast<uint64_t>(lastWatchTime_), enableCheck);
         return;
     }
 
@@ -288,7 +313,7 @@ void Watchdog::ReportEvent()
         SetHiTraceChainId();
     }
 #endif
-    AppExecFwk::AppfreezeInner::GetInstance()->ThreadBlock(isSixSecondEvent_);
+    AppExecFwk::AppfreezeInner::GetInstance()->ThreadBlock(isSixSecondEvent_, 0, now, isInBackground_);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

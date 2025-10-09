@@ -55,11 +55,13 @@ public:
     void CallbackTask(napi_value& obj);
 
     /*
-    * @brief Callback only for uncatchable error, triggers js crash.
+    * @brief Callback only for OOM error, triggers js crash.
     * @param errorInfo The error information defined in jsnapi_expo.h.
     */
     void CallbackTaskOOM(const panda::OOMErrorInfo& errorInfo);
-    
+
+    void HandleAndLogIfNotJsError(napi_value obj);
+
     std::string GetNativeStrFromJsTaggedObj(napi_value obj, const char* key);
 
     static std::string GetFuncNameAndBuildId(std::string nativeStack);

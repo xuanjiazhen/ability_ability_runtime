@@ -27,6 +27,7 @@
 #include "mock_ability_controller.h"
 #include "mock_ability_manager_collaborator.h"
 #include "mock_ability_token.h"
+#include "mock_app_mgr_service.h"
 #include "mock_mission_list_manager_interface.h"
 #include "mock_my_flag.h"
 #include "mock_permission_verification.h"
@@ -69,6 +70,10 @@ public:
 
 class MockPendingWantRecord : public PendingWantRecord {
 public:
+    MockPendingWantRecord() : PendingWantRecord() {};
+    MockPendingWantRecord(const std::shared_ptr<PendingWantManager> &pendingWantManager, int32_t uid,
+        int32_t callerTokenId, const sptr<IRemoteObject> &callerToken, std::shared_ptr<PendingWantKey> key)
+        : PendingWantRecord(pendingWantManager, uid, callerTokenId, callerToken, key) {};
     virtual ~MockPendingWantRecord() {};
     bool IsProxyObject() const override
     {
@@ -80,8 +85,19 @@ public:
         proxyObject_ = proxyObject;
     }
 
+    std::shared_ptr<PendingWantKey> GetKey()
+    {
+        return key_;
+    }
+
+    void SetKey(std::shared_ptr<PendingWantKey> key)
+    {
+        key_ = key;
+    }
+
 private:
     bool proxyObject_ = false;
+    std::shared_ptr<PendingWantKey> key_;
 };
 
 class MockIWantSender : public IWantSender {
@@ -254,13 +270,205 @@ HWTEST_F(AbilityManagerServiceElevenTest, GetWantSender_0002, TestSize.Level1)
     EXPECT_EQ(result, nullptr);
 
     MyFlag::flag_ = 1;
-    wantSenderInfo.userId = 1;
-    uid = 1;
+    wantSenderInfo.userId = 100;
+    bundleName = "com.ohos.settings";
+    operation.SetBundleName(bundleName);
+    want.SetOperation(operation);
+    wantsInfo.want = want;
+    wantSenderInfo.allWants.clear();
+    wantSenderInfo.allWants.emplace_back(wantsInfo);
+    abilityMs->subManagersHelper_->pendingWantManagers_.emplace(
+        wantSenderInfo.userId, std::make_shared<PendingWantManager>(nullptr));
     EXPECT_EQ(wantSenderInfo.allWants.size(), 1);
     result = abilityMs->GetWantSender(wantSenderInfo, nullptr, uid);
     EXPECT_NE(result, nullptr);
 
     GTEST_LOG_(INFO) << "GetWantSender_0002 end";
+}
+
+/*
+ * Feature: GetWantSender_0003
+ * Function: GetWantSender
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetWantSender
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetWantSender_0003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetWantSender_0003 start";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    MyFlag::flag_ = 1;
+    WantSenderInfo wantSenderInfo;
+    wantSenderInfo.userId = 100;
+    AAFwk::Want want;
+    AAFwk::Operation operation;
+    std::string bundleName = "com.ohos.settings";
+    operation.SetBundleName(bundleName);
+    want.SetOperation(operation);
+    WantsInfo wantsInfo;
+    wantsInfo.want = want;
+    wantsInfo.resolvedTypes = want.GetType();
+    wantSenderInfo.allWants.clear();
+    wantSenderInfo.allWants.emplace_back(wantsInfo);
+    abilityMs->subManagersHelper_->pendingWantManagers_.emplace(
+        wantSenderInfo.userId, std::make_shared<PendingWantManager>(nullptr));
+    EXPECT_EQ(wantSenderInfo.allWants.size(), 1);
+    auto result = abilityMs->GetWantSender(wantSenderInfo, nullptr, -1);
+    EXPECT_NE(result, nullptr);
+    GTEST_LOG_(INFO) << "GetWantSender_0003 end";
+}
+
+/*
+ * Feature: GetWantSenderByUserId_0001
+ * Function: GetWantSenderByUserId
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetWantSenderByUserId
+ * EnvConditions: NA
+ * CaseDescription: Test GetWantSenderByUserId when isSACall is true and userId is specified
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetWantSenderByUserId_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetWantSenderByUserId_0001 start";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+    // Mock SACall permission
+    MyFlag::flag_ = 1;
+    WantSenderInfo wantSenderInfo;
+    wantSenderInfo.userId = 100;
+    AAFwk::Want want;
+    AAFwk::Operation operation;
+    std::string bundleName = "com.ohos.settings";
+    operation.SetBundleName(bundleName);
+    want.SetOperation(operation);
+    WantsInfo wantsInfo;
+    wantsInfo.want = want;
+    wantsInfo.resolvedTypes = want.GetType();
+    wantSenderInfo.allWants.emplace_back(wantsInfo);
+
+    int32_t callerUid = 20010080;
+    int32_t callerUserId = 0;
+    abilityMs->GetWantSenderByUserId(wantSenderInfo, nullptr, -1, callerUid, callerUserId);
+    // Mock pending want manager
+    abilityMs->subManagersHelper_->pendingWantManagers_.emplace(
+        wantSenderInfo.userId, std::make_shared<PendingWantManager>(nullptr));
+    auto result = abilityMs->GetWantSenderByUserId(wantSenderInfo, nullptr, callerUid, callerUid, callerUserId);
+    EXPECT_NE(result, nullptr);
+    GTEST_LOG_(INFO) << "GetWantSenderByUserId_0001 end";
+}
+
+/*
+ * Feature: GetWantSenderByUserId_0002
+ * Function: GetWantSenderByUserId
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetWantSenderByUserId
+ * EnvConditions: NA
+ * CaseDescription: Test GetWantSenderByUserId when isSACall is true and userId is not specified
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetWantSenderByUserId_0002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetWantSenderByUserId_0002 start";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+    MyFlag::flag_ = 1;
+
+    WantSenderInfo wantSenderInfo;
+    wantSenderInfo.userId = -1;
+    AAFwk::Want want;
+    AAFwk::Operation operation;
+    std::string bundleName = "com.ohos.settings";
+    operation.SetBundleName(bundleName);
+    want.SetOperation(operation);
+    WantsInfo wantsInfo;
+    wantsInfo.want = want;
+    wantsInfo.resolvedTypes = want.GetType();
+    wantSenderInfo.allWants.emplace_back(wantsInfo);
+    int32_t callerUid = 20010080;
+    int32_t callerUserId = 0;
+    abilityMs->subManagersHelper_->pendingWantManagers_.clear();
+    auto result = abilityMs->GetWantSenderByUserId(wantSenderInfo, nullptr, callerUid, callerUid, callerUserId);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "GetWantSenderByUserId_0002 end";
+}
+
+/*
+ * Feature: GetWantSenderByUserId_0003
+ * Function: GetWantSenderByUserId
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetWantSenderByUserId
+ * EnvConditions: NA
+ * CaseDescription: Test GetWantSenderByUserId when isSACall is true and userId is not specified
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetWantSenderByUserId_0003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetWantSenderByUserId_0003 start";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    MyFlag::flag_ = 1;
+    WantSenderInfo wantSenderInfo;
+    wantSenderInfo.userId = -1;
+    AAFwk::Want want;
+    AAFwk::Operation operation;
+    std::string bundleName = "com.ohos.settings";
+    operation.SetBundleName(bundleName);
+    want.SetOperation(operation);
+    WantsInfo wantsInfo;
+    wantsInfo.want = want;
+    wantsInfo.resolvedTypes = want.GetType();
+    wantSenderInfo.allWants.emplace_back(wantsInfo);
+    int32_t uid = -1;
+    int32_t callerUid = 20010080;
+    int32_t callerUserId = 0;
+    abilityMs->subManagersHelper_->pendingWantManagers_.clear();
+    auto result = abilityMs->GetWantSenderByUserId(wantSenderInfo, nullptr, uid, callerUid, callerUserId);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "GetWantSenderByUserId_0003 end";
+}
+
+/*
+ * Feature: GetWantSenderByUserId_0003
+ * Function: GetWantSenderByUserId
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetWantSenderByUserId
+ * EnvConditions: NA
+ * CaseDescription: Test GetWantSenderByUserId when isSystemApp is true and userId is specified
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetWantSenderByUserId_0004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetWantSenderByUserId_0004 start";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+    MyFlag::flag_ = 0;
+    WantSenderInfo wantSenderInfo;
+    wantSenderInfo.userId = 100;
+    AAFwk::Want want;
+    AAFwk::Operation operation;
+    std::string bundleName = "com.ohos.testexample";
+    operation.SetBundleName(bundleName);
+    want.SetOperation(operation);
+    WantsInfo wantsInfo;
+    wantsInfo.want = want;
+    wantsInfo.resolvedTypes = want.GetType();
+    wantSenderInfo.allWants.emplace_back(wantsInfo);
+    int32_t uid = -1;
+    int32_t callerUid = 20010080;
+    int32_t callerUserId = 100;
+    AppExecFwk::MockAppMgrService::retCode_ = 400;
+    abilityMs->subManagersHelper_->pendingWantManagers_.clear();
+    auto result = abilityMs->GetWantSenderByUserId(wantSenderInfo, nullptr, uid, callerUid, callerUserId);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "GetWantSenderByUserId_0004 end";
 }
 
 /*
@@ -302,6 +510,52 @@ HWTEST_F(AbilityManagerServiceElevenTest, CancelWantSender_0003, TestSize.Level1
     EXPECT_EQ(sender->GetasObjectfunctionFrequency(), asObjectfunctionFrequency);
 
     GTEST_LOG_(INFO) << "CancelWantSender_0003 end";
+}
+
+/*
+ * Feature: CancelWantSender_0004
+ * Function: CancelWantSender
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CancelWantSender
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, CancelWantSender_0004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CancelWantSender_0004 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+    abilityMs->subManagersHelper_->currentPendingWantManager_ = std::make_shared<PendingWantManager>(nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_->currentPendingWantManager_, nullptr);
+
+    sptr<MockIWantSender> sender = new (std::nothrow) MockIWantSender();
+    ASSERT_NE(sender, nullptr);
+    abilityMs->CancelWantSender(sender);
+
+    sptr<MockPendingWantRecord> record = new (std::nothrow) MockPendingWantRecord();
+    ASSERT_NE(record, nullptr);
+    record->SetProxyObject(true);
+    sender->SetIRemoteObjectFlags(record);
+    abilityMs->CancelWantSender(sender);
+
+    record->SetProxyObject(false);
+    abilityMs->CancelWantSender(sender);
+    int32_t asObjectfunctionFrequency = 4;
+    EXPECT_EQ(sender->GetasObjectfunctionFrequency(), asObjectfunctionFrequency);
+
+    int32_t userId = 100;
+    std::shared_ptr<PendingWantKey> pendingKey = std::make_shared<PendingWantKey>();
+    ASSERT_NE(pendingKey, nullptr);
+    pendingKey->SetUserId(userId);
+    sptr<MockPendingWantRecord> recordWithKey =
+        new (std::nothrow) MockPendingWantRecord(nullptr, 0, 0, nullptr, pendingKey);
+    sender->SetIRemoteObjectFlags(recordWithKey);
+    abilityMs->CancelWantSender(sender);
+    asObjectfunctionFrequency = 5;
+    EXPECT_EQ(sender->GetasObjectfunctionFrequency(), asObjectfunctionFrequency);
+
+    GTEST_LOG_(INFO) << "CancelWantSender_0004 end";
 }
 
 /*
@@ -375,6 +629,228 @@ HWTEST_F(AbilityManagerServiceElevenTest, GetPendingWantUid_0005, TestSize.Level
     EXPECT_EQ(sender->GetasObjectfunctionFrequency(), asObjectfunctionFrequency);
 
     GTEST_LOG_(INFO) << "GetPendingWantUid_0005 end";
+}
+
+/*
+ * Feature: GetPendingWantUid_0006
+ * Function: GetPendingWantUid
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetPendingWantUid
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetPendingWantUid_0006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPendingWantUid_0006 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    int32_t asObjectfunctionFrequency = 0;
+    auto result = abilityMs->GetPendingWantUid(nullptr);
+    EXPECT_EQ(result, -1);
+
+    sptr<MockIWantSender> sender = new (std::nothrow) MockIWantSender();
+    ASSERT_NE(sender, nullptr);
+    asObjectfunctionFrequency = 1;
+    result = abilityMs->GetPendingWantUid(sender);
+    EXPECT_EQ(result, -1);
+    EXPECT_EQ(sender->GetasObjectfunctionFrequency(), asObjectfunctionFrequency);
+
+    sptr<MockPendingWantRecord> record = new (std::nothrow) MockPendingWantRecord();
+    ASSERT_NE(record, nullptr);
+    record->SetProxyObject(false);
+    sender->SetIRemoteObjectFlags(record);
+    abilityMs->GetPendingWantUid(sender);
+
+    int32_t userId = 100;
+    std::shared_ptr<PendingWantKey> pendingKey = std::make_shared<PendingWantKey>();
+    ASSERT_NE(pendingKey, nullptr);
+    pendingKey->SetUserId(userId);
+    sptr<MockPendingWantRecord> recordWithKey =
+        new (std::nothrow) MockPendingWantRecord(nullptr, 0, 0, nullptr, pendingKey);
+    sender->SetIRemoteObjectFlags(recordWithKey);
+    result = abilityMs->GetPendingWantUid(sender);
+    EXPECT_EQ(result, -1);
+
+    GTEST_LOG_(INFO) << "GetPendingWantUid_0006 end";
+}
+
+/*
+ * Feature: GetPendingWantBundleName_0001
+ * Function: GetPendingWantBundleName
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetPendingWantBundleName
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetPendingWantBundleName_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPendingWantBundleName_0001 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    int32_t asObjectfunctionFrequency = 0;
+    auto bundleName = abilityMs->GetPendingWantBundleName(nullptr);
+    EXPECT_TRUE(bundleName.empty());
+
+    sptr<MockIWantSender> sender = new (std::nothrow) MockIWantSender();
+    EXPECT_NE(sender, nullptr);
+    asObjectfunctionFrequency = 1;
+    bundleName = abilityMs->GetPendingWantBundleName(sender);
+    EXPECT_TRUE(bundleName.empty());
+
+    sptr<MockPendingWantRecord> record = new (std::nothrow) MockPendingWantRecord();
+    ASSERT_NE(record, nullptr);
+    record->SetProxyObject(false);
+    sender->SetIRemoteObjectFlags(record);
+    bundleName = abilityMs->GetPendingWantBundleName(sender);
+    EXPECT_TRUE(bundleName.empty());
+
+    int32_t userId = 100;
+    std::shared_ptr<PendingWantKey> pendingKey = std::make_shared<PendingWantKey>();
+    ASSERT_NE(pendingKey, nullptr);
+    pendingKey->SetUserId(userId);
+    sptr<MockPendingWantRecord> recordWithKey =
+        new (std::nothrow) MockPendingWantRecord(nullptr, 0, 0, nullptr, pendingKey);
+    sender->SetIRemoteObjectFlags(recordWithKey);
+    bundleName = abilityMs->GetPendingWantBundleName(sender);
+    EXPECT_TRUE(bundleName.empty());
+
+    GTEST_LOG_(INFO) << "GetPendingWantBundleName_0001 end";
+}
+
+/*
+ * Feature: GetPendingWantCode_0001
+ * Function: GetPendingWantCode
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetPendingWantCode
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetPendingWantCode_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPendingWantCode_0001 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    int32_t asObjectfunctionFrequency = 0;
+    auto result = abilityMs->GetPendingWantCode(nullptr);
+    EXPECT_EQ(result, -1);
+
+    sptr<MockIWantSender> sender = new (std::nothrow) MockIWantSender();
+    ASSERT_NE(sender, nullptr);
+    asObjectfunctionFrequency = 1;
+    result = abilityMs->GetPendingWantCode(sender);
+    EXPECT_EQ(result, -1);
+    EXPECT_EQ(sender->GetasObjectfunctionFrequency(), asObjectfunctionFrequency);
+
+    sptr<MockPendingWantRecord> record = new (std::nothrow) MockPendingWantRecord();
+    ASSERT_NE(record, nullptr);
+    record->SetProxyObject(false);
+    sender->SetIRemoteObjectFlags(record);
+    abilityMs->GetPendingWantCode(sender);
+
+    std::shared_ptr<PendingWantKey> pendingKey = std::make_shared<PendingWantKey>();
+    ASSERT_NE(pendingKey, nullptr);
+    int32_t userId = 100;
+    pendingKey->SetUserId(userId);
+    sptr<MockPendingWantRecord> recordWithKey =
+        new (std::nothrow) MockPendingWantRecord(nullptr, 0, 0, nullptr, pendingKey);
+    sender->SetIRemoteObjectFlags(recordWithKey);
+    result = abilityMs->GetPendingWantCode(sender);
+    EXPECT_EQ(result, -1);
+
+    GTEST_LOG_(INFO) << "GetPendingWantCode_0001 end";
+}
+
+/*
+ * Feature: GetPendingWantType_0001
+ * Function: GetPendingWantType
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetPendingWantType
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetPendingWantType_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPendingWantType_0001 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    int32_t asObjectfunctionFrequency = 0;
+    auto result = abilityMs->GetPendingWantType(nullptr);
+    EXPECT_EQ(result, -1);
+
+    sptr<MockIWantSender> sender = new (std::nothrow) MockIWantSender();
+    ASSERT_NE(sender, nullptr);
+    asObjectfunctionFrequency = 1;
+    result = abilityMs->GetPendingWantType(sender);
+    EXPECT_EQ(result, -1);
+    EXPECT_EQ(sender->GetasObjectfunctionFrequency(), asObjectfunctionFrequency);
+
+    sptr<MockPendingWantRecord> record = new (std::nothrow) MockPendingWantRecord();
+    ASSERT_NE(record, nullptr);
+    record->SetProxyObject(false);
+    sender->SetIRemoteObjectFlags(record);
+    abilityMs->GetPendingWantType(sender);
+
+    std::shared_ptr<PendingWantKey> pendingKey = std::make_shared<PendingWantKey>();
+    ASSERT_NE(pendingKey, nullptr);
+    int32_t userId = 100;
+    pendingKey->SetUserId(userId);
+    sptr<MockPendingWantRecord> recordWithKey =
+        new (std::nothrow) MockPendingWantRecord(nullptr, 0, 0, nullptr, pendingKey);
+    sender->SetIRemoteObjectFlags(recordWithKey);
+    result = abilityMs->GetPendingWantType(sender);
+    EXPECT_EQ(result, -1);
+
+    GTEST_LOG_(INFO) << "GetPendingWantType_0001 end";
+}
+
+/*
+ * Feature: GetPendingRequestWant_0001
+ * Function: GetPendingRequestWant
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetPendingRequestWant
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetPendingRequestWant_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPendingRequestWant_0001 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    int32_t asObjectfunctionFrequency = 0;
+    std::shared_ptr<Want> want;
+    sptr<MockIWantSender> sender = new (std::nothrow) MockIWantSender();
+    ASSERT_NE(sender, nullptr);
+    auto result = abilityMs->GetPendingRequestWant(sender, want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    sptr<MockPendingWantRecord> record = new (std::nothrow) MockPendingWantRecord();
+    ASSERT_NE(record, nullptr);
+    record->SetProxyObject(false);
+    sender->SetIRemoteObjectFlags(record);
+    abilityMs->GetPendingRequestWant(sender, want);
+
+    std::shared_ptr<PendingWantKey> pendingKey = std::make_shared<PendingWantKey>();
+    ASSERT_NE(pendingKey, nullptr);
+    int32_t userId = 100;
+    pendingKey->SetUserId(userId);
+    sptr<MockPendingWantRecord> recordWithKey =
+        new (std::nothrow) MockPendingWantRecord(nullptr, 0, 0, nullptr, pendingKey);
+    sender->SetIRemoteObjectFlags(recordWithKey);
+    abilityMs->GetPendingRequestWant(sender, want);
+    result = abilityMs->GetPendingRequestWant(nullptr, want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "GetPendingRequestWant_0001 end";
 }
 
 /*
@@ -738,8 +1214,6 @@ HWTEST_F(AbilityManagerServiceElevenTest, ReleaseCall_002, TestSize.Level1)
 
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     abilityMs->subManagersHelper_->missionListManagers_.clear();
-    std::shared_ptr<UIAbilityLifecycleManager> uiAbilityManager = std::make_shared<UIAbilityLifecycleManager>(0);
-    abilityMs->subManagersHelper_->uiAbilityManagers_.emplace(0, uiAbilityManager);
 
     sptr<IAbilityConnection> connect = new AbilityConnectCallback();
     AppExecFwk::ElementName emptyElement;
@@ -766,9 +1240,6 @@ HWTEST_F(AbilityManagerServiceElevenTest, ReleaseCall_003, TestSize.Level1)
 
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     abilityMs->subManagersHelper_->missionListManagers_.clear();
-    std::shared_ptr<MockMissionListManagerInterface> missionListManager =
-        std::make_shared<MockMissionListManagerInterface>();
-    abilityMs->subManagersHelper_->missionListManagers_.emplace(0, missionListManager);
 
     sptr<IAbilityConnection> connect = new AbilityConnectCallback();
     AppExecFwk::ElementName emptyElement;
@@ -932,59 +1403,32 @@ HWTEST_F(AbilityManagerServiceElevenTest, SetResidentProcessEnabled_001, TestSiz
 
 /*
  * Feature: AbilityManagerService
- * Name: VerificationToken_001
- * Function: VerificationToken
+ * Name: GetUidByCloneBundleInfo_001
+ * Function: GetUidByCloneBundleInfo
  * SubFunction: NA
- * FunctionPoints: AbilityManagerService VerificationToken
+ * FunctionPoints: AbilityManagerService GetUidByCloneBundleInfo
  */
-HWTEST_F(AbilityManagerServiceElevenTest, VerificationToken_001, TestSize.Level1)
+HWTEST_F(AbilityManagerServiceElevenTest, GetUidByCloneBundleInfo_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_001 start");
+    GTEST_LOG_(INFO) << "GetUidByCloneBundleInfo_001 start";
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
+    EXPECT_NE(abilityMs, nullptr);
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
-    abilityMs->subManagersHelper_->currentDataAbilityManager_ = nullptr;
-    EXPECT_FALSE(abilityMs->VerificationToken(token));
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_001 end");
-}
 
-/*
- * Feature: AbilityManagerService
- * Name: VerificationToken_002
- * Function: VerificationToken
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService VerificationToken
- */
-HWTEST_F(AbilityManagerServiceElevenTest, VerificationToken_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_002 start");
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
-    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
-    abilityMs->subManagersHelper_->currentConnectManager_ = nullptr;
-    EXPECT_FALSE(abilityMs->VerificationToken(token));
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_002 end");
-}
+    std::string bundleName = "com.ohos.settings";
+    int uid = -1;
+    int userId = 100;
+    AppExecFwk::MockAppMgrService::retCode_ = uid;
+    int appIndex = 0;
+    abilityMs->GetUidByCloneBundleInfo(bundleName, uid, userId, appIndex);
 
-/*
- * Feature: AbilityManagerService
- * Name: VerificationToken_003
- * Function: VerificationToken
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService VerificationToken
- */
-HWTEST_F(AbilityManagerServiceElevenTest, VerificationToken_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_003 start");
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
-    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
-    abilityMs->subManagersHelper_->currentMissionListManager_ = nullptr;
-    EXPECT_FALSE(abilityMs->VerificationToken(token));
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_003 end");
+    bundleName = "com.applicaion.test";
+    userId = 101;
+    auto result = abilityMs->GetUidByCloneBundleInfo(bundleName, uid, userId, appIndex);
+    EXPECT_EQ(result, uid);
+
+    GTEST_LOG_(INFO) << "GetUidByCloneBundleInfo_001 end";
 }
 } // namespace AAFwk
 } // namespace OHOS

@@ -1680,8 +1680,9 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartUser_001, TestSize.Le
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
-    int userId = 1;
-    auto res = proxy_->StartUser(userId, nullptr);
+    int userId = 200;
+    uint64_t displayId = 0;
+    auto res = proxy_->StartUser(userId, displayId, nullptr);
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_USER), mock_->code_);
     EXPECT_EQ(res, NO_ERROR);
 }
@@ -2799,6 +2800,18 @@ HWTEST_F(AbilityManagerProxyTest, QueryAllAutoStartupApplications_0100, TestSize
 }
 
 /**
+ * @tc.name: AbilityManagerProxyTest_GetAutoStartupStatusForSelf_0100
+ * @tc.desc: Test the state of GetAutoStartupStatusForSelf
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxyTest, GetAutoStartupStatusForSelf_0100, TestSize.Level1)
+{
+    bool isAutoStartEnabled = false;
+    auto res = proxy_->GetAutoStartupStatusForSelf(isAutoStartEnabled);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/**
  * @tc.name: AbilityManagerProxy_SetResidentProcessEnable_0100
  * @tc.desc: RestartApp
  * @tc.type: FUNC
@@ -2851,6 +2864,44 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RestartApp_0100, TestSize.
     AAFwk::Want want;
     proxy_->RestartApp(want);
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::RESTART_APP), mock_->code_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilitiesInSplitWindowMode
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartUIAbilitiesInSplitWindowMode
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of StartUIAbilitiesInSplitWindowMode callerToken nullptr
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartUIAbilitiesInSplitWindowMode_001, TestSize.Level1)
+{
+    sptr<IRemoteObject> callerToken = nullptr;
+    int32_t primaryWindowId = 1;
+    AAFwk::Want want;
+    auto res = proxy_->StartUIAbilitiesInSplitWindowMode(primaryWindowId, want, callerToken);
+    EXPECT_EQ(res, INVALID_CALLER_TOKEN);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilitiesInSplitWindowMode
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartUIAbilitiesInSplitWindowMode
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of StartUIAbilities
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartUIAbilitiesInSplitWindowMode_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    
+    OHOS::sptr<IRemoteObject> callerToken = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    int32_t primaryWindowId = 1;
+    AAFwk::Want want;
+    auto res = proxy_->StartUIAbilitiesInSplitWindowMode(primaryWindowId, want, callerToken);
+    EXPECT_EQ(res, NO_ERROR);
 }
 
 /*

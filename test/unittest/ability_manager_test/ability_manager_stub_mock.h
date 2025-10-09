@@ -223,7 +223,7 @@ public:
         return 0;
     }
 
-    int StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery) override
+    int StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery) override
     {
         return 0;
     }
@@ -357,6 +357,11 @@ public:
 
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
         const sptr<IRemoteObject>& callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false) override
+    {
+        return 0;
+    }
+    
+    int StartAbilityForPrelaunch(const Want &want) override
     {
         return 0;
     }

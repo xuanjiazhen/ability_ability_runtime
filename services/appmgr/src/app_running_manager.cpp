@@ -255,6 +255,18 @@ bool AppRunningManager::IsSameAbilityType(const std::shared_ptr<AppRunningRecord
     return false;
 }
 
+bool AppRunningManager::IsAppRunningRecordValid(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (appRecord && !(appRecord->IsTerminating()) &&
+        !(appRecord->IsKilling()) && !(appRecord->GetRestartAppFlag()) &&
+        !(appRecord->IsUserRequestCleaning()) &&
+        !(appRecord->IsCaching() && appRecord->GetProcessCacheBlocked()) &&
+        !(appRecord->IsKillPrecedeStart())) {
+        return true;
+    }
+    return false;
+}
+
 std::shared_ptr<AppRunningRecord> AppRunningManager::FindMasterProcessAppRunningRecord(
     const std::string &appName, const AppExecFwk::AbilityInfo &abilityInfo, const int uid)
 {
@@ -265,6 +277,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::FindMasterProcessAppRunning
     int64_t minAppRecordId = INT32_MAX;
     std::shared_ptr<AppRunningRecord> maxAppRecord;
     std::shared_ptr<AppRunningRecord> minAppRecord;
+    std::shared_ptr<AppRunningRecord> resMasterRecord;
     bool isUIAbility = (abilityInfo.type == AppExecFwk::AbilityType::PAGE);
     bool isUIExtension = (abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI);
     for (const auto &item : appRunningMap) {
@@ -272,36 +285,32 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::FindMasterProcessAppRunning
         if (!(appRecord && appRecord->GetUid() == uid)) {
             continue;
         }
-        
-        if (appRecord->GetIsMasterProcess() && IsSameAbilityType(appRecord, abilityInfo)) {
-            return appRecord;
+        if (!IsAppRunningRecordValid(appRecord)) {
+            continue;
         }
-
+        if (appRecord->IsMasterProcess() && IsSameAbilityType(appRecord, abilityInfo)) {
+            resMasterRecord = appRecord;
+            break;
+        }
         if (appRecord->GetTimeStamp() != 0 && maxTimeStamp < appRecord->GetTimeStamp() &&
             IsSameAbilityType(appRecord, abilityInfo)) {
             maxTimeStamp = appRecord->GetTimeStamp();
             maxAppRecord = appRecord;
         }
-
         if ((appRecord->GetExtensionType() == AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI && isUIExtension) &&
             appRecord->GetRecordId() < minAppRecordId) {
             minAppRecordId = appRecord->GetRecordId();
             minAppRecord = appRecord;
         }
     }
-
-    if (maxAppRecord != nullptr) {
-        maxAppRecord->SetMasterProcess(true);
-        maxAppRecord->SetTimeStamp(0);
-        return maxAppRecord;
+    resMasterRecord = (resMasterRecord == nullptr && maxAppRecord != nullptr) ? maxAppRecord : resMasterRecord;
+    resMasterRecord = (resMasterRecord == nullptr) ? minAppRecord : resMasterRecord;
+    if (resMasterRecord) {
+        resMasterRecord->SetMasterProcess(true);
+        resMasterRecord->SetTimeStamp(0);
+        DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(resMasterRecord);
     }
-
-    if (minAppRecord != nullptr) {
-        minAppRecord->SetMasterProcess(true);
-        return minAppRecord;
-    }
-
-    return nullptr;
+    return resMasterRecord;
 }
 
 bool AppRunningManager::CheckMasterProcessAppRunningRecordIsExist(
@@ -314,7 +323,7 @@ bool AppRunningManager::CheckMasterProcessAppRunningRecordIsExist(
     bool isUIExtension = (abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI);
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
-        if (appRecord && appRecord->GetUid() == uid && appRecord->GetIsMasterProcess() &&
+        if (appRecord && appRecord->GetUid() == uid && appRecord->IsMasterProcess() &&
             IsSameAbilityType(appRecord, abilityInfo)) {
             return true;
         }
@@ -704,12 +713,15 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::OnRemoteDied(const wptr<IRe
         }
         appRecord->RemoveAppDeathRecipient();
         appRecord->SetApplicationClient(nullptr);
-        TAG_LOGI(AAFwkTag::APPMGR, "pname: %{public}s", appRecord->GetProcessName().c_str());
         auto priorityObject = appRecord->GetPriorityObject();
         if (priorityObject != nullptr) {
-            TAG_LOGI(AAFwkTag::APPMGR, "pid: %{public}d", priorityObject->GetPid());
+            TAG_LOGI(AAFwkTag::APPMGR, "pname: %{public}s, pid: %{public}d", appRecord->GetProcessName().c_str(),
+                priorityObject->GetPid());
             if (appMgrServiceInner != nullptr) {
                 appMgrServiceInner->KillProcessByPid(priorityObject->GetPid(), "OnRemoteDied");
+            }
+            if (appMgrServiceInner != nullptr && !appRecord->GetKillReason().empty()) {
+                appMgrServiceInner->SendProcessKillEvent(appRecord, "OnRemoteDied");
             }
             AbilityRuntime::FreezeUtil::GetInstance().DeleteAppLifecycleEvent(priorityObject->GetPid());
         }
@@ -765,7 +777,7 @@ void AppRunningManager::HandleTerminateTimeOut(int64_t eventId)
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     auto abilityRecord = GetAbilityRunningRecord(eventId);
     if (!abilityRecord) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null abilityRecord");
+        TAG_LOGW(AAFwkTag::APPMGR, "null abilityRecord");
         return;
     }
     auto abilityToken = abilityRecord->GetToken();
@@ -926,11 +938,6 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
         };
 
-    if (clearMissionFlag && appRecord->IsDebug()) {
-        killProcess();
-        return;
-    }
-
     auto isLastAbility =
         clearMissionFlag ? appRecord->IsLastPageAbilityRecord(token) : appRecord->IsLastAbilityRecord(token);
 #ifdef SUPPORT_SCREEN
@@ -942,8 +949,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
 #endif //SUPPORT_SCREEN
     auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
-    TAG_LOGI(AAFwkTag::APPMGR, "TerminateAbility:isLast:%{public}d,keepAlive:%{public}d",
-        isLastAbility, isKeepAliveApp);
+    TAG_LOGI(AAFwkTag::APPMGR, "terminate isLast:%{public}d,keepAlive:%{public}d", isLastAbility, isKeepAliveApp);
     if (isLastAbility && (!isKeepAliveApp ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !isLauncherApp) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
@@ -1026,7 +1032,7 @@ int32_t AppRunningManager::AssignRunningProcessInfoByAppRecord(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!appRecord) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null");
+        TAG_LOGW(AAFwkTag::APPMGR, "null");
         return ERR_INVALID_OPERATION;
     }
 
@@ -1113,10 +1119,14 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
     TAG_LOGD(AAFwkTag::APPMGR, "current app size %{public}zu", appRunningMap.size());
     int32_t result = ERR_OK;
 
-    for (auto &info : appInfos_) {
-        AAFwk::TaskHandlerWrap::GetFfrtHandler()->CancelTask(info.bandleName.c_str() + std::to_string(info.appIndex));
+    {
+        std::lock_guard guard(appInfosLock_);
+        for (auto &info : appInfos_) {
+            AAFwk::TaskHandlerWrap::GetFfrtHandler()->CancelTask(
+                info.bandleName.c_str() + std::to_string(info.appIndex));
+        }
+        appInfos_.clear();
     }
-    appInfos_.clear();
 
     for (const auto& item : appRunningMap) {
         const auto& appRecord = item.second;
@@ -1226,13 +1236,15 @@ int32_t AppRunningManager::UpdateConfigurationForBackgroundApp(const std::vector
         return ERR_INVALID_VALUE;
     }
 
-
-    for (auto &info : appInfos_) {
-        AAFwk::TaskHandlerWrap::GetFfrtHandler()->CancelTask(info.bandleName.c_str() + std::to_string(info.appIndex));
+    {
+        std::lock_guard guard(appInfosLock_);
+        for (auto &info : appInfos_) {
+            AAFwk::TaskHandlerWrap::GetFfrtHandler()->CancelTask(
+                info.bandleName.c_str() + std::to_string(info.appIndex));
+        }
+        appInfos_ = appInfos;
     }
-    appInfos_.clear();
 
-    appInfos_ = appInfos;
     int32_t taskCount = 0;
     int32_t batchCount = 0;
     for (auto &info : appInfos) {
@@ -1307,9 +1319,9 @@ int32_t AppRunningManager::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLev
         auto pid = priorityObject->GetPid();
         auto it = procLevelMap.find(pid);
         if (it == procLevelMap.end()) {
-            TAG_LOGW(AAFwkTag::APPMGR, "proc[pid=%{public}d] is not found", pid);
+            TAG_LOGW(AAFwkTag::APPMGR, "pid%{public}d not found", pid);
         } else {
-            TAG_LOGD(AAFwkTag::APPMGR, "proc[pid=%{public}d] memory level = %{public}d", pid, it->second);
+            TAG_LOGD(AAFwkTag::APPMGR, "pid%{public}d memory level = %{public}d", pid, it->second);
             appRecord->ScheduleMemoryLevel(it->second);
         }
     }
@@ -1796,7 +1808,7 @@ void AppRunningManager::HandleChildRelation(
 
 std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    TAG_LOGE(AAFwkTag::APPMGR, "On child process remote died");
+    TAG_LOGD(AAFwkTag::APPMGR, "On child process remote died");
     if (remote == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return nullptr;

@@ -145,6 +145,22 @@ void EventReport::LogErrorEvent(const std::string &name, HiSysEventType type, co
         EVENT_KEY_ERROR_MESSAGE, eventInfo.errMsg);
 }
 
+void EventReport::LogStartErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_ERROR_MESSAGE, eventInfo.errMsg,
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+}
+
 void EventReport::LogSystemErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
 {
     HiSysEventWrite(
@@ -331,6 +347,8 @@ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType ty
     }
     switch (eventName) {
         case EventName::START_ABILITY_ERROR:
+            LogStartErrorEvent(name, type, eventInfo);
+            break;
         case EventName::TERMINATE_ABILITY_ERROR:
             LogErrorEvent(name, type, eventInfo);
             break;
@@ -848,6 +866,25 @@ void EventReport::SendReportDataPartitionUsageEvent(const EventName &eventName, 
         EVENT_FILE_OR_FOLDER_SIZE, eventInfo.fileOfFolderSize);
 }
 
+void EventReport::SendAppStartupErrorEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
+{
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "invalid eventName");
+        return;
+    }
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_ERROR_MESSAGE, eventInfo.errMsg);
+}
+
 std::string EventReport::ConvertEventName(const EventName &eventName)
 {
     const char* eventNames[] = {
@@ -855,7 +892,7 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         "START_ABILITY_ERROR", "TERMINATE_ABILITY_ERROR", "START_EXTENSION_ERROR",
         "STOP_EXTENSION_ERROR", "CONNECT_SERVICE_ERROR", "DISCONNECT_SERVICE_ERROR",
         "UI_EXTENSION_ERROR", "UI_SERVICE_EXTENSION_ERROR", "EXECUTE_INSIGHT_INTENT_ERROR",
-        "STARTUP_TASK_ERROR", "START_ABILITY_SYSTEM_ERROR",
+        "STARTUP_TASK_ERROR", "START_ABILITY_SYSTEM_ERROR", "APP_STARTUP_ERROR",
 
         // ability behavior event
         "START_ABILITY", "TERMINATE_ABILITY", "CLOSE_ABILITY",

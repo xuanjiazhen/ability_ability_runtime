@@ -45,6 +45,7 @@ public:
     bool ScheduleLoadChild() override;
     bool ScheduleExitProcessSafely() override;
     bool ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb) override;
+    void OnLoadAbilityFinished(uint64_t callbackId, int32_t pid) override;
 
 private:
     static int32_t GetChildProcessInfo(ChildProcessInfo &info);
@@ -53,7 +54,7 @@ private:
     void HandleLoadJs();
     void HandleLoadArkTs();
     void HandleLoadNative();
-    void InitNativeLib(const BundleInfo &bundleInfo);
+    void InitNativeLib(const BundleInfo &bundleInfo, const HspList hspList);
     void HandleExitProcessSafely();
     void ExitProcessSafely();
     void GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &hspList, AppLibPathMap &appLibPaths);

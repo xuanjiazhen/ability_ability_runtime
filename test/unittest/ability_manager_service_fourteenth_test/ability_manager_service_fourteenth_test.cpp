@@ -20,6 +20,7 @@
 #include "rate_limiter.h"
 #include "sub_managers_helper.h"
 #include "mission_list_manager.h"
+#include "scene_board_judgement.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -40,6 +41,11 @@ public:
     std::shared_ptr<AbilityRecord> MockAbilityRecord(AbilityType);
     sptr<Token> MockToken(AbilityType);
     sptr<SessionInfo> MockSessionInfo(int32_t persistentId);
+    AbilityRequest GenerateAbilityRequest(const std::string& deviceName, const std::string& abilityName,
+        const std::string& appName, const std::string& bundleName, const std::string& moduleName);
+
+    AbilityRequest abilityRequest_{};
+    Want want_{};
 };
 
 void AbilityManagerServiceFourteenthTest::SetUpTestCase() {}
@@ -77,6 +83,33 @@ sptr<SessionInfo> AbilityManagerServiceFourteenthTest::MockSessionInfo(int32_t p
     }
     sessionInfo->persistentId = persistentId;
     return sessionInfo;
+}
+
+AbilityRequest AbilityManagerServiceFourteenthTest::GenerateAbilityRequest(const std::string& deviceName,
+    const std::string& abilityName, const std::string& appName, const std::string& bundleName,
+    const std::string& moduleName)
+{
+    ElementName element(deviceName, bundleName, abilityName, moduleName);
+    want_.SetElement(element);
+
+    AbilityInfo abilityInfo;
+    abilityInfo.visible = true;
+    abilityInfo.applicationName = appName;
+    abilityInfo.type = AbilityType::EXTENSION;
+    abilityInfo.name = abilityName;
+    abilityInfo.bundleName = bundleName;
+    abilityInfo.moduleName = moduleName;
+    abilityInfo.deviceId = deviceName;
+    ApplicationInfo appinfo;
+    appinfo.name = appName;
+    appinfo.bundleName = bundleName;
+    abilityInfo.applicationInfo = appinfo;
+    AbilityRequest abilityRequest;
+    abilityRequest.want = want_;
+    abilityRequest.abilityInfo = abilityInfo;
+    abilityRequest.appInfo = appinfo;
+
+    return abilityRequest;
 }
 
 /*
@@ -1006,7 +1039,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, TerminateUIExtensionAbility_002, T
     abilityMs_->subManagersHelper_->currentConnectManager_ = mockCurrentConnectManager;
 
     int retCode = abilityMs_->TerminateUIExtensionAbility(MockSessionInfo(0), 0, nullptr);
-    EXPECT_EQ(retCode, CHECK_PERMISSION_FAILED);
+    EXPECT_EQ(retCode, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest TerminateUIExtensionAbility_002 end");
 }
 
@@ -1396,6 +1429,183 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyStartupExceptionBySCB_002, T
     int32_t result = abilityMs->NotifyStartupExceptionBySCB(requestId);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyStartupExceptionBySCB_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ProcessUdmfKey
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ProcessUdmfKey
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ProcessUdmfKey_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_001 start");
+    Want want;
+    want.SetParam("ability.want.params.udKey", std::string("udkey"));
+    uint32_t targetTokenId = 1000001;
+    AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::SYSPICKER_FILEPICKER;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    int32_t result = abilityMs->ProcessUdmfKey(want, targetTokenId, extensionType);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ProcessUdmfKey
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ProcessUdmfKey
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ProcessUdmfKey_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_002 start");
+    Want want;
+    want.SetParam("ability.want.params.udKey", std::string("udkey"));
+    uint32_t targetTokenId = 1000001;
+    AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    int32_t result = abilityMs->ProcessUdmfKey(want, targetTokenId, extensionType);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ProcessUdmfKey
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ProcessUdmfKey
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ProcessUdmfKey_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_003 start");
+    Want want;
+    uint32_t targetTokenId = 1000001;
+    AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::SYSPICKER_FILEPICKER;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    int32_t result = abilityMs->ProcessUdmfKey(want, targetTokenId, extensionType);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ProcessUdmfKey
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ProcessUdmfKey
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ProcessUdmfKey_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_004 start");
+    Want want;
+    uint32_t targetTokenId = 1000001;
+    AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    int32_t result = abilityMs->ProcessUdmfKey(want, targetTokenId, extensionType);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: JudgeSystemParamsForPicker
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService JudgeSystemParamsForPicker
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, JudgeSystemParamsForPicker_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest JudgeSystemParamsForPicker_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    // 创建空的WantParams参数
+    WantParams parameters;
+
+    // 测试场景：参数中不包含SCREENCONFIG_SCREENMODE时，应返回true
+    EXPECT_TRUE(abilityMs->JudgeSystemParamsForPicker(parameters));
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest JudgeSystemParamsForPicker_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: JudgeSystemParamsForPicker
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService JudgeSystemParamsForPicker
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, JudgeSystemParamsForPicker_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest JudgeSystemParamsForPicker_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+
+    WantParams parameters;
+
+    // 模拟参数中包含SCREENCONFIG_SCREENMODE
+    parameters.SetParam("ohos.verticalpanel.screenconfig.screenmode", nullptr);
+
+    // Mock场景：模拟JudgeCallerIsAllowedToUseSystemAPI返回true
+    // 测试场景：当调用者有权限使用系统API时，应返回true
+    MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    EXPECT_TRUE(abilityMs->JudgeSystemParamsForPicker(parameters));
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest JudgeSystemParamsForPicker_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: JudgeSystemParamsForPicker
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService JudgeSystemParamsForPicker
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, JudgeSystemParamsForPicker_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest JudgeSystemParamsForPicker_003 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+
+    WantParams parameters;
+
+    // 模拟参数中包含SCREENCONFIG_SCREENMODE
+    parameters.SetParam("ohos.verticalpanel.screenconfig.screenmode", nullptr);
+
+    // Mock场景：模拟JudgeCallerIsAllowedToUseSystemAPI返回false
+    // 测试场景：当调用者没有权限使用系统API时，应返回false
+    MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = false;
+    EXPECT_FALSE(abilityMs->JudgeSystemParamsForPicker(parameters));
+    MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest JudgeSystemParamsForPicker_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: CheckUIExtensionCallerPidByHostWindowId
+ * FunctionPoints: AbilityManagerService CheckUIExtensionCallerPidByHostWindowId
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, CheckUIExtensionCallerPidByHostWindowId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionCallerPidByHostWindowId_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    AbilityRequest callerRequest = GenerateAbilityRequest("0", "abilityName", "appName", "bundleName", "moduleName");
+    callerRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    auto callerRecord = AbilityRecord::CreateAbilityRecord(callerRequest);
+    ASSERT_NE(callerRecord, nullptr);
+    AppInfo info;
+    info.userId = 0;
+    abilityMs->OnAppStateChanged(info);
+    info.userId = 1;
+    abilityMs->OnAppStateChanged(info);
+    AbilityRequest abilityRequest = GenerateAbilityRequest("0", "abilityName", "appName", "bundleName", "moduleName");
+    abilityRequest.callerToken = callerRecord->GetToken();
+    auto sessionInfo = sptr<SessionInfo>::MakeSptr();
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->hostWindowId = 1;
+    abilityRequest.sessionInfo = sessionInfo;
+    auto result = abilityMs->CheckUIExtensionCallerPidByHostWindowId(abilityRequest, ERR_INVALID_VALUE);
+    sleep(1);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_TRUE(result);
+    } else {
+        EXPECT_FALSE(result);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionCallerPidByHostWindowId_001 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

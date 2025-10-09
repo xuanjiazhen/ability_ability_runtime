@@ -91,6 +91,7 @@ const int32_t ERR_ABILITY_RUNTIME_EXTERNAL_NOT_SYSTEM_HSP = 16400001;
 const int AREA2 = 2;
 const int AREA3 = 3;
 const int AREA4 = 4;
+constexpr int32_t FOUNDATION_UID = 5523;
 
 ContextImpl::ContextImpl()
 {
@@ -360,11 +361,11 @@ void ContextImpl::GetAllTempDir(std::vector<std::string> &tempPaths)
     } else {
         baseDir = CONTEXT_DATA_STORAGE + currArea_ + CONTEXT_FILE_SEPARATOR + CONTEXT_BASE;
     }
-    for (const auto &moudleItem: applicationInfo_->moduleInfos) {
-        auto moudleTemp = baseDir + CONTEXT_HAPS + CONTEXT_FILE_SEPARATOR + moudleItem.moduleName + CONTEXT_TEMP;
+    for (const auto &moduleItem: applicationInfo_->moduleInfos) {
+        auto moudleTemp = baseDir + CONTEXT_HAPS + CONTEXT_FILE_SEPARATOR + moduleItem.moduleName + CONTEXT_TEMP;
         if (!OHOS::FileExists(moudleTemp)) {
             TAG_LOGW(AAFwkTag::APPKIT, "module [%{public}s] temp path not exist,path: %{public}s",
-                moudleItem.moduleName.c_str(), moudleTemp.c_str());
+                moduleItem.moduleName.c_str(), moudleTemp.c_str());
             continue;
         }
         tempPaths.push_back(moudleTemp);
@@ -582,7 +583,7 @@ std::shared_ptr<Context> ContextImpl::CreateModuleContext(const std::string &bun
                 return hapModuleInfo.moduleName == moduleName;
             });
         if (info == bundleInfo.hapModuleInfos.end()) {
-            TAG_LOGE(AAFwkTag::APPKIT, "moduleName error");
+            TAG_LOGE(AAFwkTag::APPKIT, "moduleName %{public}s error", moduleName.c_str());
             return nullptr;
         }
         appContext->InitHapModuleInfo(*info);
@@ -962,11 +963,32 @@ void ContextImpl::InitResourceManager(const AppExecFwk::BundleInfo &bundleInfo,
         return;
     }
 
+    bool hasDeduplicateHar = false;
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = InitResourceManagerInner(
-        bundleInfo, currentBundle, moduleName, inputContext);
+        bundleInfo, currentBundle, moduleName, inputContext, &hasDeduplicateHar);
     if (resourceManager == nullptr) {
         return;
     }
+    if (hasDeduplicateHar) {
+        TAG_LOGD(AAFwkTag::APPKIT, "has deduplicateHar");
+        std::string loadPath = "";
+        for (const auto& info : bundleInfo.hapModuleInfos) {
+            if (info.moduleType == AppExecFwk::ModuleType::ENTRY) {
+                loadPath = info.hapPath.empty() ? info.resourcePath : info.hapPath;
+                if (loadPath.empty()) {
+                    TAG_LOGE(AAFwkTag::APPKIT, "empty loadPath");
+                    break;
+                }
+                std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleInfo.name);
+                loadPath = std::regex_replace(loadPath, pattern, std::string(LOCAL_CODE_PATH));
+                if (!resourceManager->AddResource(loadPath.c_str())) {
+                    TAG_LOGE(AAFwkTag::APPKIT, "AddResource failed");
+                }
+                break;
+            }
+        }
+    }
+
     std::shared_ptr<Global::Resource::ResourceManager> src = nullptr;
     if (inputContext) {
         src = inputContext->GetResourceManager();
@@ -1001,7 +1023,7 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitOthersResour
 
 std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceManagerInner(
     const AppExecFwk::BundleInfo &bundleInfo, bool currentBundle, const std::string& moduleName,
-    std::shared_ptr<Context> inputContext)
+    std::shared_ptr<Context> inputContext, bool* deduplicate)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = InitOthersResourceManagerInner(
@@ -1030,6 +1052,9 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
                 if (loadPath.empty()) {
                     TAG_LOGD(AAFwkTag::APPKIT, "loadPath is empty");
                     continue;
+                }
+                if (deduplicate != nullptr) {
+                    *deduplicate |= hapModuleInfo.deduplicateHar;
                 }
                 if (currentBundle) {
                     loadPath = std::regex_replace(loadPath, inner_pattern, LOCAL_CODE_PATH);
@@ -1126,6 +1151,7 @@ void ContextImpl::SubscribeToOverlayEvents(std::shared_ptr<Global::Resource::Res
     matchingSkills.AddEvent(OVERLAY_STATE_CHANGED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
+    subscribeInfo.SetPublisherUid(FOUNDATION_UID);
     auto callback = [this, resourceManager, bundleName = name, moduleName =
     hapModuleName, loadPath](const EventFwk::CommonEventData &data) {
         TAG_LOGI(AAFwkTag::APPKIT, "on overlay changed");
@@ -1492,6 +1518,7 @@ int ContextImpl::GetOverlayModuleInfos(const std::string &bundleName, const std:
     }
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "overlayMgrProxy_->GetTargetOverlayModuleInfo");
+        std::lock_guard<std::mutex> lock(overlayMgrProxyMutex_);
         auto ret = overlayMgrProxy_->GetTargetOverlayModuleInfo(moduleName, overlayModuleInfos);
         if (ret != ERR_OK) {
             TAG_LOGD(AAFwkTag::APPKIT, "GetOverlayModuleInfo form bms failed");
@@ -1718,6 +1745,7 @@ int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleNam
     UpdateResConfig(GetResourceManager(), resourceManager);
     return ERR_OK;
 }
+
 bool ContextImpl::UpdateDisplayConfiguration(std::shared_ptr<ContextImpl> &contextImpl, uint64_t displayId,
     float density, std::string direction)
 {
@@ -1761,6 +1789,45 @@ bool ContextImpl::UpdateDisplayConfiguration(std::shared_ptr<ContextImpl> &conte
     }
     contextImpl->resourceManager_->UpdateResConfig(*resConfig);
     return true;
+}
+
+void ContextImpl::SetLaunchParameter(const AAFwk::Want& want)
+{
+    // only cold-start need save parameter
+    std::lock_guard<std::mutex> lock(launchParameterMutex_);
+    if (!launchParameter_) {
+        launchParameter_ = std::make_shared<AAFwk::WantParams>(want.GetParams());
+    }
+}
+
+std::string ContextImpl::GetLaunchParameter()
+{
+    std::lock_guard<std::mutex> lock(launchParameterMutex_);
+    if (launchParameter_ != nullptr) {
+        return launchParameter_->ToString();
+    }
+    TAG_LOGW(AAFwkTag::APPKIT, "launchParameter_ is null");
+    return "";
+}
+
+void ContextImpl::SetLatestParameter(const AAFwk::Want& want)
+{
+    std::lock_guard<std::mutex> lock(latestParameterMutex_);
+    if (!latestParameter_) {
+        latestParameter_ = std::make_shared<AAFwk::WantParams>(want.GetParams());
+    } else {
+        *latestParameter_ = want.GetParams();
+    }
+}
+
+std::string ContextImpl::GetLatestParameter()
+{
+    std::lock_guard<std::mutex> lock(latestParameterMutex_);
+    if (latestParameter_ != nullptr) {
+        return latestParameter_->ToString();
+    }
+    TAG_LOGW(AAFwkTag::APPKIT, "latestParameter_ is null");
+    return "";
 }
 
 #ifdef SUPPORT_GRAPHICS

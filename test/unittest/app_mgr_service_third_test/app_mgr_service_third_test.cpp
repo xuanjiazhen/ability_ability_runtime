@@ -403,5 +403,77 @@ HWTEST_F(AppMgrServiceThirdTest, OnAddSystemAbility_0100, TestSize.Level2)
     appMgrService->OnAddSystemAbility(serviceId, deviceId);
     EXPECT_FALSE(AAFwk::UriPermissionManagerClient::GetInstance().IsUriPermServiceStarted());
 }
+
+/*
+ * Feature: AppMgrService
+ * Function: PromoteCurrentToCandidateMasterProcess
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService PromoteCurrentToCandidateMasterProcess
+ * EnvConditions: NA
+ * CaseDescription: Verify PromoteCurrentToCandidateMasterProcess
+ */
+HWTEST_F(AppMgrServiceThirdTest, PromoteCurrentToCandidateMasterProcess_001, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    appMgrService->SetInnerService(nullptr);
+    int32_t res = appMgrService->PromoteCurrentToCandidateMasterProcess(true);
+    EXPECT_EQ(res, AAFwk::ERR_APP_MGR_SERVICE_NOT_READY);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: DemoteCurrentFromCandidateMasterProcess
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService DemoteCurrentFromCandidateMasterProcess
+ * EnvConditions: NA
+ * CaseDescription: Verify DemoteCurrentFromCandidateMasterProcess
+ */
+HWTEST_F(AppMgrServiceThirdTest, DemoteCurrentFromCandidateMasterProcess_001, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    appMgrService->SetInnerService(nullptr);
+    int32_t res = appMgrService->DemoteCurrentFromCandidateMasterProcess();
+    EXPECT_EQ(res, AAFwk::ERR_APP_MGR_SERVICE_NOT_READY);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: ExitMasterProcessRole
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService ExitMasterProcessRole
+ * EnvConditions: NA
+ * CaseDescription: Verify ExitMasterProcessRole
+ */
+HWTEST_F(AppMgrServiceThirdTest, ExitMasterProcessRole_001, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    appMgrService->SetInnerService(nullptr);
+    int32_t res = appMgrService->ExitMasterProcessRole();
+    EXPECT_EQ(res, AAFwk::ERR_APP_MGR_SERVICE_NOT_READY);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: ShowHelp
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService ShowHelp
+ * EnvConditions: NA
+ * CaseDescription: test ShowHelp information
+ */
+HWTEST_F(AppMgrServiceThirdTest, ShowHelp_001, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    std::vector<std::u16string> dummyArgs;
+    std::string resultBuffer;
+    const std::string expectedOutput =
+        "Usage:\n"
+        "-h                          help text for the tool\n"
+        "--ffrt pid1[,pid2,pid3]     dump ffrt info\n"
+        "--ipc pid ARG               ipc load statistic; pid must be specified or set to -a dump all processes. "
+        "ARG must be one of --start-stat | --stop-stat | --stat\n";
+    int res = appMgrService->ShowHelp(dummyArgs, resultBuffer);
+    EXPECT_EQ(resultBuffer, expectedOutput);
+    EXPECT_EQ(res, ERR_OK);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

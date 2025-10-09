@@ -22,7 +22,8 @@
 namespace OHOS {
 namespace AAFwk {
 int32_t AbilityManagerCollaboratorProxy::NotifyStartAbility(
-    const AppExecFwk::AbilityInfo &abilityInfo, int32_t userId, Want &want, uint64_t accessTokenIDEx)
+    const AppExecFwk::AbilityInfo &abilityInfo, int32_t userId, Want &want,
+    uint64_t accessTokenIDEx, int32_t windowMode)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -47,6 +48,10 @@ int32_t AbilityManagerCollaboratorProxy::NotifyStartAbility(
     }
     if (!data.WriteUint64(accessTokenIDEx)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "accessTokenIDEx write fail");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!data.WriteInt32(windowMode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "windowMode write fail");
         return ERR_INVALID_OPERATION;
     }
     int32_t ret = SendTransactCmd(IAbilityManagerCollaborator::NOTIFY_START_ABILITY, data, reply, option);
@@ -192,7 +197,7 @@ int32_t AbilityManagerCollaboratorProxy::NotifyLoadAbility(
     return NO_ERROR;
 }
 
-int32_t AbilityManagerCollaboratorProxy::NotifyMoveMissionToBackground(int32_t missionId)
+int32_t AbilityManagerCollaboratorProxy::NotifyMoveMissionToBackground(int32_t missionId, int32_t userId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -204,6 +209,10 @@ int32_t AbilityManagerCollaboratorProxy::NotifyMoveMissionToBackground(int32_t m
     }
     if (!data.WriteInt32(missionId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionId write fail");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
         return ERR_INVALID_OPERATION;
     }
     int32_t ret = SendTransactCmd(
@@ -243,7 +252,7 @@ int32_t AbilityManagerCollaboratorProxy::NotifyPreloadAbility(const std::string 
     return NO_ERROR;
 }
 
-int32_t AbilityManagerCollaboratorProxy::NotifyMoveMissionToForeground(int32_t missionId)
+int32_t AbilityManagerCollaboratorProxy::NotifyMoveMissionToForeground(int32_t missionId, int32_t userId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -255,6 +264,10 @@ int32_t AbilityManagerCollaboratorProxy::NotifyMoveMissionToForeground(int32_t m
     }
     if (!data.WriteInt32(missionId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionId write fail");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
         return ERR_INVALID_OPERATION;
     }
     int32_t ret = SendTransactCmd(
@@ -266,7 +279,7 @@ int32_t AbilityManagerCollaboratorProxy::NotifyMoveMissionToForeground(int32_t m
     return NO_ERROR;
 }
 
-int32_t AbilityManagerCollaboratorProxy::NotifyTerminateMission(int32_t missionId)
+int32_t AbilityManagerCollaboratorProxy::NotifyTerminateMission(int32_t missionId, int32_t userId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -280,6 +293,10 @@ int32_t AbilityManagerCollaboratorProxy::NotifyTerminateMission(int32_t missionI
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionId write fail");
         return ERR_INVALID_OPERATION;
     }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
+        return ERR_INVALID_OPERATION;
+    }
     int32_t ret = SendTransactCmd(
         IAbilityManagerCollaborator::NOTIFY_TERMINATE_MISSION, data, reply, option);
     if (ret != NO_ERROR) {
@@ -289,7 +306,7 @@ int32_t AbilityManagerCollaboratorProxy::NotifyTerminateMission(int32_t missionI
     return NO_ERROR;
 }
 
-int32_t AbilityManagerCollaboratorProxy::NotifyClearMission(int32_t missionId)
+int32_t AbilityManagerCollaboratorProxy::NotifyClearMission(int32_t missionId, int32_t userId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -301,6 +318,10 @@ int32_t AbilityManagerCollaboratorProxy::NotifyClearMission(int32_t missionId)
     }
     if (!data.WriteInt32(missionId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionId write fail");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
         return ERR_INVALID_OPERATION;
     }
     int32_t ret = SendTransactCmd(
@@ -514,7 +535,7 @@ int32_t AbilityManagerCollaboratorProxy::RevokeUriPermission(uint32_t tokenId)
     return reply.ReadInt32();
 }
 
-void AbilityManagerCollaboratorProxy::NotifyMissionBindPid(int32_t missionId, int32_t pid)
+void AbilityManagerCollaboratorProxy::NotifyMissionBindPid(int32_t missionId, int32_t pid, int32_t userId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -529,6 +550,10 @@ void AbilityManagerCollaboratorProxy::NotifyMissionBindPid(int32_t missionId, in
     }
     if (!data.WriteInt32(pid)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write pid fail");
+        return;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
         return;
     }
     auto error = SendTransactCmd(IAbilityManagerCollaborator::NOTIFY_MISSION_BIND_PID, data, reply, option);

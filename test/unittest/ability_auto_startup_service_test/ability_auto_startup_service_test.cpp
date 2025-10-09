@@ -36,6 +36,7 @@ const std::string AUTO_STARTUP_SERVICE_ABILITYNAME = "abilityName";
 const bool AUTO_STARTUP_SERVICE_TRUE = true;
 const bool AUTO_STARTUP_SERVICE_FALSE = false;
 const int32_t MAX_APP_CLONE_INDEX_NUM = 10000;
+constexpr char PRODUCT_APPBOOT_SETTING_ENABLED[] = "const.product.appboot.setting.enabled";
 } // namespace
 
 using namespace testing;
@@ -88,7 +89,12 @@ HWTEST_F(AbilityAutoStartupServiceTest, RegisterAutoStartupSystemCallback_001, T
     EXPECT_NE(abilityAutoStartupService, nullptr);
     sptr<IRemoteObject> callback;
     auto result = abilityAutoStartupService->RegisterAutoStartupSystemCallback(callback);
-    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        GTEST_LOG_(INFO) << "Disabled config";
+        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    } else {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest RegisterAutoStartupSystemCallback_001 end";
 }
 
@@ -105,7 +111,12 @@ HWTEST_F(AbilityAutoStartupServiceTest, UnregisterAutoStartupSystemCallback_001,
     EXPECT_NE(abilityAutoStartupService, nullptr);
     sptr<IRemoteObject> callback;
     auto result = abilityAutoStartupService->UnregisterAutoStartupSystemCallback(callback);
-    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        GTEST_LOG_(INFO) << "Disabled config";
+        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    } else {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest UnregisterAutoStartupSystemCallback_001 end";
 }
 
@@ -122,7 +133,12 @@ HWTEST_F(AbilityAutoStartupServiceTest, SetApplicationAutoStartup_001, TestSize.
     EXPECT_NE(abilityAutoStartupService, nullptr);
     AutoStartupInfo info;
     auto result = abilityAutoStartupService->SetApplicationAutoStartup(info);
-    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        GTEST_LOG_(INFO) << "Disabled config";
+        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    } else {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest SetApplicationAutoStartup_001 end";
 }
 
@@ -180,7 +196,12 @@ HWTEST_F(AbilityAutoStartupServiceTest, CancelApplicationAutoStartup_001, TestSi
     EXPECT_NE(abilityAutoStartupService, nullptr);
     AutoStartupInfo info;
     auto result = abilityAutoStartupService->CancelApplicationAutoStartup(info);
-    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        GTEST_LOG_(INFO) << "Disabled config";
+        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    } else {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest CancelApplicationAutoStartup end";
 }
 
@@ -239,7 +260,12 @@ HWTEST_F(AbilityAutoStartupServiceTest, QueryAllAutoStartupApplications_001, Tes
     std::vector<AutoStartupInfo> infoList;
     int32_t userId = 100;
     auto result = abilityAutoStartupService->QueryAllAutoStartupApplications(infoList, userId);
-    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        GTEST_LOG_(INFO) << "Disabled config";
+        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    } else {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest QueryAllAutoStartupApplications_001 end";
 }
 
@@ -277,7 +303,12 @@ HWTEST_F(AbilityAutoStartupServiceTest, QueryAllAutoStartupApplicationsWithoutPe
     std::vector<AutoStartupInfo> infoList;
     int32_t userId = 100;
     auto result = abilityAutoStartupService->QueryAllAutoStartupApplicationsWithoutPermission(infoList, userId);
-    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        GTEST_LOG_(INFO) << "Disabled config";
+        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    } else {
+        EXPECT_EQ(result, ERR_OK);
+    }
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest QueryAllAutoStartupApplicationsWithoutPermission_001 end";
 }
 
@@ -709,7 +740,12 @@ HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForSystem_001, TestSize.L
     auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
     EXPECT_NE(abilityAutoStartupService, nullptr);
     auto result = abilityAutoStartupService->CheckPermissionForSystem();
-    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        GTEST_LOG_(INFO) << "Disabled config";
+        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    } else {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest CheckPermissionForSystem_001 end";
 }
 
@@ -726,7 +762,12 @@ HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForSelf_001, TestSize.Lev
     EXPECT_NE(abilityAutoStartupService, nullptr);
     std::string bundleName = AUTO_STARTUP_SERVICE_EMPTY;
     auto result = abilityAutoStartupService->CheckPermissionForSelf(bundleName);
-    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        GTEST_LOG_(INFO) << "Disabled config";
+        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    } else {
+        EXPECT_EQ(result, ERR_OK);
+    }
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest CheckPermissionForSelf_001 end";
 }
 
@@ -1092,6 +1133,28 @@ HWTEST_F(AbilityAutoStartupServiceTest, GetValidUserId_004, TestSize.Level1)
     int32_t userId = 1;
     abilityAutoStartupService->GetValidUserId(userId);
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest GetValidUserId_004 end";
+}
+
+/*
+ * Feature: AbilityAutoStartupService
+ * Function: GetAutoStartupStatusForSelf
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupService GetAutoStartupStatusForSelf
+ */
+HWTEST_F(AbilityAutoStartupServiceTest, GetAutoStartupStatusForSelf_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest GetAutoStartupStatusForSelf_001 start";
+    auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
+    EXPECT_NE(abilityAutoStartupService, nullptr);
+    uint32_t callerTokenId = 1;
+    bool isAutoStartEnabled = false;
+    auto result = abilityAutoStartupService->GetAutoStartupStatusForSelf(callerTokenId, isAutoStartEnabled);
+    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+        EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+    } else {
+        EXPECT_EQ(result, ERR_OK);
+    }
+    GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest GetAutoStartupStatusForSelf_001 end";
 }
 } // namespace AAFwk
 } // namespace OHOS

@@ -56,6 +56,7 @@ public:
     virtual ErrCode StartAbility(const AAFwk::Want &want) const;
     virtual ErrCode StartAbility(const AAFwk::Want &want, const AAFwk::StartOptions &startOptions) const;
     virtual ErrCode StartAbility(const AAFwk::Want &want, int requestCode) const;
+    virtual ErrCode StartUIAbilitiesInSplitWindowMode(int32_t primaryWindowId, const AAFwk::Want &secondaryWant) const;
     virtual ErrCode StartUIServiceExtension(const AAFwk::Want& want, int32_t accountId = -1) const;
     /**
      * @brief Destroys the current ui extension ability.
@@ -176,7 +177,7 @@ public:
     Ace::UIContent* GetUIContent() override;
 #endif // SUPPORT_SCREEN
 
-    ErrCode OpenLink(const AAFwk::Want& want, int reuqestCode);
+    ErrCode OpenLink(const AAFwk::Want &want, int reuqestCode, bool hideFailureTipDialog = false);
 
     ErrCode OpenAtomicService(AAFwk::Want& want, const AAFwk::StartOptions &options, int requestCode,
         RuntimeTask &&task);
@@ -190,11 +191,19 @@ public:
     ErrCode AddCompletionHandlerForAtomicService(const std::string &requestId, OnAtomicRequestSuccess onRequestSucc,
         OnAtomicRequestFailure onRequestFail, const std::string &appId) override;
 
+    ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
+        AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail) override;
+
     void OnRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message) override;
 
     void OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message, int32_t resultCode = 0) override;
+
+    void OnOpenLinkRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
+    void OnOpenLinkRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message) override;
 
     /**
      * @brief Start a new ability using type;
@@ -243,7 +252,9 @@ private:
         std::string &failureMessage, int32_t resultCode);
     
     std::mutex onRequestResultMutex_;
+    std::mutex onOpenLinkRequestResultMutex_;
     std::vector<std::shared_ptr<OnAtomicRequestResult>> onAtomicRequestResults_;
+    std::vector<std::shared_ptr<AAFwk::OnOpenLinkRequestResult>> onOpenLinkRequestResults_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
