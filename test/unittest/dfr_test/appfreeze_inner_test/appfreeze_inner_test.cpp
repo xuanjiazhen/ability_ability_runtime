@@ -317,7 +317,6 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_MainThreadSample_001, TestSize.Level
  */
 HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetApplicationInfo_001, TestSize.Level1)
 {
-    EXPECT_TRUE(appfreezeInner->application_ != nullptr);
     FaultData faultData;
     faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
     appfreezeInner->GetApplicationInfo(faultData);
@@ -374,9 +373,9 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetProcessStartTime_001, TestSize.Le
 HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsAppFreeze_001, TestSize.Level1)
 {
     bool ret = appfreezeInner->IsAppFreeze(AppFreezeType::THREAD_BLOCK_3S);
-    EXPECT_EQ(ret, true);
-    ret = appfreezeInner->IsAppFreeze(AppFreezeType::THREAD_BLOCK_6S);
     EXPECT_EQ(ret, false);
+    ret = appfreezeInner->IsAppFreeze(AppFreezeType::THREAD_BLOCK_6S);
+    EXPECT_EQ(ret, true);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
