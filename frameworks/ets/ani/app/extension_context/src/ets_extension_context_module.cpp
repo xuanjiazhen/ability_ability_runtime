@@ -151,13 +151,13 @@ bool EtsExtensionContextModule::LoadTargetModule(ani_env *aniEnv, const std::str
         return false;
     }
 
-    std::string gotContextType;
-    if (!AppExecFwk::GetStaticFieldString(aniEnv, contextCls, "contextType", gotContextType)) {
+    std::string contextType;
+    if (!AppExecFwk::GetStaticFieldString(aniEnv, contextCls, "contextType", contextType)) {
         TAG_LOGE(AAFwkTag::CONTEXT, "get context type failed");
         return false;
     }
 
-    TAG_LOGD(AAFwkTag::CONTEXT, "gotContext %{public}s", gotContextType.c_str());
+    TAG_LOGD(AAFwkTag::CONTEXT, "gotContext %{public}s", contextType.c_str());
     return true;
 }
 
