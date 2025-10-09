@@ -28,9 +28,9 @@ namespace AbilityRuntime {
 EtsDialogRequestCallback *EtsDialogRequestCallback::GetEtsDialogReqCallback(ani_env *env, ani_object aniObj)
 {
     if (env == nullptr || aniObj == nullptr) {
-    TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
-    EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
-    return nullptr;
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return nullptr;
     }
     ani_long dialogReqCallbackPtr = 0;
     ani_status status = env->Object_GetFieldByName_Long(aniObj, "nativeRequestCallback", &dialogReqCallbackPtr);
@@ -53,6 +53,10 @@ void EtsDialogRequestCallback::SetRequestResult(ani_env *env, ani_object param, 
         return;
     }
     auto dialogReqCallback = GetEtsDialogReqCallback(env, param);
+    if (dialogReqCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::DIALOG, "dialogReqCallback null");
+        return;
+    }
     dialogReqCallback->OnSetRequestResult(env, param, result);
 }
 void EtsDialogRequestCallback::OnSetRequestResult(ani_env *env, ani_object param, ani_object result)
