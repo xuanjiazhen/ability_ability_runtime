@@ -242,16 +242,15 @@ int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName
 void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const std::vector<std::string> &abilityList,
     const AAFwk::ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg)
 {
-    if (kvStorePtr_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
-        return;
-    }
-
     DistributedKv::Key key(std::to_string(accessTokenId));
     DistributedKv::Status status;
     DistributedKv::Value value = ConvertAppExitReasonInfoToValue(abilityList, exitReason, processInfo, withKillMsg);
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (kvStorePtr_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+            return;
+        }
         status = kvStorePtr_->Put(key, value);
     }
     if (status != DistributedKv::Status::SUCCESS) {
@@ -401,15 +400,14 @@ void AppExitReasonDataManager::ConvertReasonFromValue(const nlohmann::json &json
 
 void AppExitReasonDataManager::InnerDeleteAppExitReason(const std::string &keyName)
 {
-    if (kvStorePtr_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
-        return;
-    }
-
     DistributedKv::Key key(keyName);
     DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (kvStorePtr_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+            return;
+        }
         status = kvStorePtr_->Delete(key);
     }
 
@@ -655,15 +653,15 @@ int32_t AppExitReasonDataManager::GetAbilityRecoverInfo(
 uint32_t AppExitReasonDataManager::GetTokenIdBySessionID(const int32_t sessionId)
 {
     AAFwk::RecordCostTimeUtil timeRecord("GetTokenIdBySessionID");
-    if (kvStorePtr_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
-        return ERR_NO_INIT;
-    }
     DistributedKv::Key key = GetAbilityRecoverInfoKey(sessionId);
     DistributedKv::Value value;
     DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (kvStorePtr_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+            return ERR_NO_INIT;
+        }
         status = kvStorePtr_->Get(key, value);
     }
     if (status != DistributedKv::Status::SUCCESS) {
@@ -745,15 +743,14 @@ void AppExitReasonDataManager::UpdateAbilityRecoverInfo(uint32_t accessTokenId,
     const std::vector<std::string> &recoverInfoList, const std::vector<int> &sessionIdList)
 {
     AAFwk::RecordCostTimeUtil timeRecord("UpdateAbilityRecoverInfo");
-    if (kvStorePtr_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
-        return;
-    }
-
     DistributedKv::Key key = GetAbilityRecoverInfoKey(accessTokenId);
     DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (kvStorePtr_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+            return;
+        }
         status = kvStorePtr_->Delete(key);
     }
     if (status != DistributedKv::Status::SUCCESS) {
@@ -764,6 +761,10 @@ void AppExitReasonDataManager::UpdateAbilityRecoverInfo(uint32_t accessTokenId,
     DistributedKv::Value value = ConvertAbilityRecoverInfoToValue(recoverInfoList, sessionIdList);
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (kvStorePtr_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+            return;
+        }
         status = kvStorePtr_->Put(key, value);
     }
     if (status != DistributedKv::Status::SUCCESS) {
@@ -829,15 +830,14 @@ void AppExitReasonDataManager::ConvertAccessTokenIdFromValue(const DistributedKv
 void AppExitReasonDataManager::InnerDeleteAbilityRecoverInfo(uint32_t accessTokenId)
 {
     AAFwk::RecordCostTimeUtil timeRecord("InnerDeleteAbilityRecoverInfo");
-    if (kvStorePtr_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
-        return;
-    }
-
     DistributedKv::Key key = GetAbilityRecoverInfoKey(accessTokenId);
     DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (kvStorePtr_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+            return;
+        }
         status = kvStorePtr_->Delete(key);
     }
 
@@ -850,16 +850,15 @@ void AppExitReasonDataManager::InnerAddSessionId(const int sessionId, uint32_t a
 {
     AAFwk::RecordCostTimeUtil timeRecord("InnerAddSessionId");
     TAG_LOGI(AAFwkTag::ABILITYMGR, "InnerAddSessionId begin");
-    if (kvStorePtr_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
-        return;
-    }
- 
     DistributedKv::Key key = GetSessionIdKey(sessionId);
     DistributedKv::Value value = ConvertAccessTokenIdToValue(accessTokenId);
     DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (kvStorePtr_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+            return;
+        }
         status = kvStorePtr_->Put(key, value);
     }
     if (status != DistributedKv::Status::SUCCESS) {
@@ -871,15 +870,14 @@ void AppExitReasonDataManager::InnerAddSessionId(const int sessionId, uint32_t a
 void AppExitReasonDataManager::InnerDeleteSessionId(const int sessionId)
 {
     AAFwk::RecordCostTimeUtil timeRecord("InnerDeleteSessionId");
-    if (kvStorePtr_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
-        return;
-    }
- 
     DistributedKv::Key key = GetSessionIdKey(sessionId);
     DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (kvStorePtr_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+            return;
+        }
         status = kvStorePtr_->Delete(key);
     }
  

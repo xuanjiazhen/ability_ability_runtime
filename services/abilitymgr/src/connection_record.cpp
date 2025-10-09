@@ -171,10 +171,10 @@ void ConnectionRecord::CompleteConnect()
     }
 
     if (callback && handler) {
-        handler->SubmitTask([callback, element, remoteObject, weakConnectionRecord = weak_from_this(),
-            weakConnectManager = abilityConnectManager_] {
+        handler->SubmitTask([weakcallback = wptr<IAbilityConnection>(callback), element, remoteObject,
+            weakConnectionRecord = weak_from_this(), weakConnectManager = abilityConnectManager_] {
             TAG_LOGD(AAFwkTag::CONNECTION, "OnAbilityConnectDone");
-            auto ret = ConnectionRecord::CallOnAbilityConnectDone(callback, element, remoteObject, ERR_OK);
+            auto ret = ConnectionRecord::CallOnAbilityConnectDone(weakcallback.lock(), element, remoteObject, ERR_OK);
             if (ret != ERR_OK) {
                 TAG_LOGE(AAFwkTag::CONNECTION, "OnAbilityConnectDone failed");
                 auto connectionRecord = weakConnectionRecord.lock();
