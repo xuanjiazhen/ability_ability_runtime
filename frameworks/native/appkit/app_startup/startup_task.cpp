@@ -132,7 +132,7 @@ int32_t StartupTask::AddExtraCallback(std::unique_ptr<StartupTaskResultCallback>
 void StartupTask::CallExtraCallback(const std::shared_ptr<StartupTaskResult> &result)
 {
     for (auto &callback : extraCallbacks_) {
-        if (callback != nullptr) {
+        if (callback) {
             callback->Call(result);
         }
     }
