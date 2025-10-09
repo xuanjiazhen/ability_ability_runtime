@@ -251,6 +251,13 @@ export default class ApplicationContext extends Context {
     });
   }
 
+  offAbilityLifecycle(callbackId: int, callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
+    });
+  }
+
   off(type: string, callbackId: int): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
@@ -267,6 +274,23 @@ export default class ApplicationContext extends Context {
           } else if (type == 'abilityLifecycle') {
             this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
           }
+        });
+      });
+    return p;
+  }
+
+  offAbilityLifecycle(callbackId: int): Promise<void> {
+    let p =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeOffLifecycleCallbackSync('abilityLifecycle', callbackId, myCall);
         });
       });
     return p;
@@ -303,7 +327,7 @@ export default class ApplicationContext extends Context {
     return ApplicationContext.nativeTransferDynamic(input).unwrap();
   }
 
-  on(type: 'abilityLifecycle', callback: AbilityLifecycleCallback): int {
-    return this.nativeOnLifecycleCallbackSync(type, callback);
+  onAbilityLifecycle(callback: AbilityLifecycleCallback): int {
+    return this.nativeOnLifecycleCallbackSync('abilityLifecycle', callback);
   }
 }
