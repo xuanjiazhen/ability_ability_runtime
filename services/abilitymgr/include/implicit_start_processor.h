@@ -96,7 +96,7 @@ private:
     int QueryBmsAppInfos(AbilityRequest &request, int32_t userId, std::vector<DialogAppInfo> &dialogAppInfos);
 
     using StartAbilityClosure = std::function<int32_t()>;
-    int CallStartAbilityInner(int32_t userId, const Want &want, const StartAbilityClosure &callBack,
+    int CallStartAbilityInner(int32_t userId, const Want &want, const AbilityRequest &request,
         const AbilityCallType &callType);
 
     int32_t ImplicitStartAbilityInner(const Want &targetWant, const AbilityRequest &request, int32_t userId);
