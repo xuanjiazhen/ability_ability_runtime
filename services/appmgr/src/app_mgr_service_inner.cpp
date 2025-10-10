@@ -6806,10 +6806,10 @@ void AppMgrServiceInner::SetRenderStartMsg(AppSpawnStartMsg &startMsg, std::shar
     startMsg.renderParam = renderRecord->GetRenderParam();
     startMsg.uid = renderUid;
     startMsg.gid = renderUid;
+    startMsg.hostProcessUid = renderRecord->GetHostUid();
     if (isGPU) {
         startMsg.procName += GPU_PROCESS_NAME;
         startMsg.processType = GPU_PROCESS_TYPE;
-        startMsg.hostProcessUid = renderRecord->GetHostUid();
         if (std::find(startMsg.gids.begin(), startMsg.gids.end(), SHADER_CACHE_GROUPID) == startMsg.gids.end()) {
             startMsg.gids.push_back(SHADER_CACHE_GROUPID);
         }
@@ -8785,14 +8785,12 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
     const ChildProcessOptions &options)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (!appRecord) {
-        TAG_LOGE(AAFwkTag::APPMGR, "no appRecord, childPid:%{public}d", childPid);
+    if (!appRecord || !childProcessRecord) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord invalid=%d, childProcessRecord invalid=%d, childPid:%{public}d",
+            !appRecord ? true : false, !childProcessRecord ? true : false, childPid);
         return ERR_NAME_NOT_FOUND;
     }
-    if (!childProcessRecord) {
-        TAG_LOGE(AAFwkTag::APPMGR, "no child process record, childPid:%{public}d", childPid);
-        return ERR_NAME_NOT_FOUND;
-    }
+
     bool isNativeFromJs = childProcessRecord->GetChildProcessType() == CHILD_PROCESS_TYPE_NATIVE_ARGS;
     auto spawnClient =  isNativeFromJs ? remoteClientManager_->GetNativeSpawnClient() :
         remoteClientManager_->GetSpawnClient();
@@ -8813,6 +8811,7 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
     startMsg.childProcessType = childProcessRecord->GetChildProcessType();
     startMsg.fds = args.fds;
     startMsg.isolationMode = options.isolationMode;
+    startMsg.hostProcessUid = appRecord->GetUid();
     pid_t pid = 0;
     if (options.isolationMode && options.isolationUid) {
         int32_t renderUid = Constants::INVALID_UID;
