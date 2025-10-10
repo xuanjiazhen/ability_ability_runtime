@@ -40,13 +40,13 @@ private:
 void UIExtensionConnectTestConnection::OnAbilityConnectDone(const AppExecFwk::ElementName& element,
     const sptr<IRemoteObject>& remoteObject, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::TEST, "element: %{public}s", element.GetURI().c_str());
+    TAG_LOGI(AAFwkTag::TEST, "element: %{public}s", element.PrintURI().c_str());
 }
 
 void UIExtensionConnectTestConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName& element,
     int resultCode)
 {
-    TAG_LOGI(AAFwkTag::TEST, "element: %{public}s", element.GetURI().c_str());
+    TAG_LOGI(AAFwkTag::TEST, "element: %{public}s", element.PrintURI().c_str());
 }
 
 class UIExtensionConnectTest : public testing::Test {

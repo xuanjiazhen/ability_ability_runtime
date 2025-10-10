@@ -473,7 +473,7 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
 void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundUIExtensionAbility:%{public}s", GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundUIExtensionAbility:%{public}s", PrintURI().c_str());
     CHECK_POINTER(lifecycleDeal_);
 
     if (IsAbilityState(AbilityState::BACKGROUND)) {
@@ -1319,7 +1319,7 @@ void AbilityRecord::SetPrelaunchFlag(bool isPrelaunch)
 void AbilityRecord::BackgroundAbility(const Closure &task)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "BackgroundLifecycle %{public}s", GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "BackgroundLifecycle %{public}s", PrintURI().c_str());
     if (lifecycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null lifecycleDeal_");
         return;
@@ -3791,6 +3791,23 @@ std::string AbilityRecord::GetURI() const
         }
         return AppExecFwk::ElementName(abilityInfo_.deviceId, bundleName,
             abilityInfo_.name, abilityInfo_.moduleName).GetURI();
+    }
+    return uri_;
+}
+
+std::string AbilityRecord::PrintURI() const
+{
+    if (uri_.empty()) {
+        auto bundleName = abilityInfo_.bundleName;
+        if (MultiInstanceUtils::IsMultiInstanceApp(abilityInfo_.applicationInfo)) {
+            bundleName = bundleName + '-' + GetInstanceKey();
+        } else if (AbilityRuntime::StartupUtil::IsSupportAppClone(abilityInfo_.extensionAbilityType)) {
+            if (appIndex_ > 0) {
+                bundleName = std::to_string(appIndex_) + bundleName;
+            }
+        }
+        return AppExecFwk::ElementName("", bundleName,
+            abilityInfo_.name, abilityInfo_.moduleName).PrintURI();
     }
     return uri_;
 }
