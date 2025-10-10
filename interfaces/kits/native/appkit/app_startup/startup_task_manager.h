@@ -52,6 +52,8 @@ public:
 
     void UpdateStartupTaskContextRef(std::shared_ptr<NativeReference> &contextJsRef, bool updateAll = false);
 
+    void UpdateStartupTaskContextRef(ani_ref contextEtsRef, bool updateAll) = false);
+
     void SetTimeoutCallback(const std::function<void()>& callback);
 
 private:
