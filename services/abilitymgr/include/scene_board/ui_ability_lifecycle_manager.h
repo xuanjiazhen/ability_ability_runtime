@@ -396,6 +396,9 @@ public:
 
     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
 
+    ErrCode IsUIAbilityAlreadyExist(const std::string &bundleName, const std::string &abilityName,
+        const std::string &specifiedFlag, int32_t appIndex);
+
 private:
     void AddStartingPid(pid_t pid);
     void RemoveStartingPid(pid_t pid);
@@ -460,7 +463,8 @@ private:
         sptr<SessionInfo> sessionInfo);
     int SendSessionInfoToSCB(std::shared_ptr<AbilityRecord> &callerAbility, sptr<SessionInfo> &sessionInfo);
     int32_t StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
-        std::shared_ptr<AbilityRecord> callerAbility);
+        std::shared_ptr<AbilityRecord> callerAbility);   
+    int32_t StartAbilityBySpecified(const AbilityRequest &abilityRequest, int32_t requestId);
 
     void SetLastExitReason(std::shared_ptr<AbilityRecord> &abilityRecord) const;
     void SetReceiverInfo(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord) const;
