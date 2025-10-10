@@ -1,0 +1,1310 @@
+diff --git a/frameworks/ets/ani/ui_ability/include/ets_ability_context.h b/frameworks/ets/ani/ui_ability/include/ets_ability_context.h
+index cdaef01ad7..d400496c68 100644
+--- a/frameworks/ets/ani/ui_ability/include/ets_ability_context.h
++++ b/frameworks/ets/ani/ui_ability/include/ets_ability_context.h
+@@ -84,6 +84,10 @@ public:
+         ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
+     static void OpenAtomicService(
+         ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj);
++    static void StartSelfUIAbilityInCurrentProcess(
++        ani_env *env, ani_object aniObj, ani_object wantObj, ani_string aniSpecifiedFlag, ani_object call);
++    static void StartSelfUIAbilityInCurrentProcessWithOptions(ani_env *env, ani_object aniObj,
++        ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
+ 
+     static void Clean(ani_env *env, ani_object object);
+     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
+@@ -123,6 +127,8 @@ private:
+         ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
+     void OnOpenAtomicService(
+         ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj);
++    void OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_object aniObj,
++        ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
+ 
+     void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
+         AAFwk::Want &want);
+diff --git a/frameworks/ets/ani/ui_ability/src/ets_ability_context.cpp b/frameworks/ets/ani/ui_ability/src/ets_ability_context.cpp
+index f3bcd9289f..01f2810e07 100644
+--- a/frameworks/ets/ani/ui_ability/src/ets_ability_context.cpp
++++ b/frameworks/ets/ani/ui_ability/src/ets_ability_context.cpp
+@@ -1124,6 +1124,47 @@ void EtsAbilityContext::OnOpenAtomicService(
+     OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackObj);
+ }
+ 
++void EtsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_object aniObj,
++    ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    AAFwk::Want want;
++    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to parse want");
++        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
++        return;
++    }
++    std::string specifiedFlag;
++    if (!AppExecFwk::GetStdString(env, aniSpecifiedFlag, specifiedFlag)) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to parse specifiedFlag");
++        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to parse specifiedFlag.");
++        return;
++    }
++    ErrCode innerErrCode = ERR_OK;
++    auto context = context_.lock();
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
++        innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
++        ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
++        AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
++        return;
++    }
++    AAFwk::StartOptions startOptions;
++    if (opt != nullptr) {
++        if (!AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions)) {
++            EtsErrorUtil::ThrowInvalidParamError(env,
++                "Parse param startOptions failed, startOptions must be StartOptions.");
++            TAG_LOGE(AAFwkTag::CONTEXT, "invalid options");
++            return;
++        }
++        innerErrCode = context->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, true);
++    } else {
++        innerErrCode = context->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false);
++    }
++    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
++    AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
++}
++
+ void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
+     const std::shared_ptr<AbilityContext> &context, bool isAbilityResult, bool isOpenLink)
+ {
+@@ -1283,6 +1324,32 @@ void EtsAbilityContext::OpenAtomicServiceInner(ani_env *env, ani_object aniObj,
+     }
+ }
+ 
++void EtsAbilityContext::StartSelfUIAbilityInCurrentProcess(
++    ani_env *env, ani_object aniObj, ani_object wantObj, ani_string aniSpecifiedFlag, ani_object call)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    TAG_LOGD(AAFwkTag::CONTEXT, "StartSelfUIAbilityInCurrentProcess called");
++    auto etsContext = GetEtsAbilityContext(env, aniObj);
++    if (etsContext == nullptr) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
++        return;
++    }
++    etsContext->OnStartSelfUIAbilityInCurrentProcess(env, aniObj, wantObj, aniSpecifiedFlag, nullptr, call);
++}
++
++void EtsAbilityContext::StartSelfUIAbilityInCurrentProcessWithOptions(
++    ani_env *env, ani_object aniObj, ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    TAG_LOGD(AAFwkTag::CONTEXT, "StartSelfUIAbilityInCurrentProcessWithOptions called");
++    auto etsContext = GetEtsAbilityContext(env, aniObj);
++    if (etsContext == nullptr) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
++        return;
++    }
++    etsContext->OnStartSelfUIAbilityInCurrentProcess(env, aniObj, wantObj, aniSpecifiedFlag, opt, call);
++}
++
+ namespace {
+ bool BindNativeMethods(ani_env *env, ani_class &cls)
+ {
+@@ -1346,6 +1413,13 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
+                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
+             ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
+                 reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicService) },
++            ani_native_function { "nativeStartSelfUIAbilityInCurrentProcessSync",
++                "L@ohos/app/ability/Want/Want;Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++                reinterpret_cast<void *>(EtsAbilityContext::StartSelfUIAbilityInCurrentProcess) },
++            ani_native_function { "nativeStartSelfUIAbilityInCurrentProcessSync",
++                "L@ohos/app/ability/Want/Want;Lstd/core/String;L@ohos/app/ability/StartOptions/StartOptions;Lutils/"
++                "AbilityUtils/AsyncCallbackWrapper;:V",
++                reinterpret_cast<void *>(EtsAbilityContext::StartSelfUIAbilityInCurrentProcessWithOptions) },
+         };
+         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
+             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
+diff --git a/frameworks/ets/ets/application/UIAbilityContext.ets b/frameworks/ets/ets/application/UIAbilityContext.ets
+index e25f550099..5e609a9422 100644
+--- a/frameworks/ets/ets/application/UIAbilityContext.ets
++++ b/frameworks/ets/ets/application/UIAbilityContext.ets
+@@ -134,6 +134,10 @@ export default class UIAbilityContext extends Context {
+     startCallback: AbilityStartCallback): BusinessError;
+ 
+   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
++
++  private native nativeStartSelfUIAbilityInCurrentProcessSync(want: Want, specifiedFlag: string, callback: AsyncCallbackWrapper<void>): void;
++
++  private native nativeStartSelfUIAbilityInCurrentProcessSync(want: Want, specifiedFlag: string, options: StartOptions, callback: AsyncCallbackWrapper<void>): void;
+   startAbility(want: Want, callback: AsyncCallback<void>): void {
+     let myCall = new AsyncCallbackWrapper<void>(callback);
+     taskpool.execute((): void => {
+@@ -463,4 +467,25 @@ export default class UIAbilityContext extends Context {
+       });
+     });
+   }
++
++  startSelfUIAbilityInCurrentProcess(want: Want, specifiedFlag: string, options?: StartOptions): Promise<void> {
++    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
++      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        if (options == null) {
++          this.nativeStartSelfUIAbilityInCurrentProcessSync(want, specifiedFlag, myCall);
++        } else {
++          this.nativeStartSelfUIAbilityInCurrentProcessSync(want, specifiedFlag, options, myCall);
++        }
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++  }
+ }
+diff --git a/frameworks/js/napi/ability_context/ability_context.js b/frameworks/js/napi/ability_context/ability_context.js
+index 17c442c768..bf5320ecca 100644
+--- a/frameworks/js/napi/ability_context/ability_context.js
++++ b/frameworks/js/napi/ability_context/ability_context.js
+@@ -264,6 +264,10 @@ class AbilityContext extends Context {
+   setOnNewWantSkipScenarios(scenarios) {
+     return this.__context_impl__.setOnNewWantSkipScenarios(scenarios);
+   }
++
++  startSelfUIAbilityInCurrentProcess(want, specifiedFlag, options) {
++    return this.__context_impl__.startSelfUIAbilityInCurrentProcess(want, specifiedFlag, options);
++  }
+ }
+ 
+ export default AbilityContext;
+diff --git a/frameworks/native/ability/ability_runtime/ability_context_impl.cpp b/frameworks/native/ability/ability_runtime/ability_context_impl.cpp
+index 359bb6bb93..13bb1c02d8 100644
+--- a/frameworks/native/ability/ability_runtime/ability_context_impl.cpp
++++ b/frameworks/native/ability/ability_runtime/ability_context_impl.cpp
+@@ -1569,5 +1569,17 @@ void AbilityContextImpl::GetFailureInfoByMessage(
+         failureMessage = "A system error occurred";
+     }
+ }
++
++ErrCode AbilityContextImpl::StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want,
++    const std::string &specifiedFlag, const AAFwk::StartOptions &startOptions, bool hasOptions)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartSelfUIAbilityInCurrentProcess(
++        want, specifiedFlag, startOptions, hasOptions, token_);
++    if (err != ERR_OK) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
++    }
++    return err;
++}
+ } // namespace AbilityRuntime
+ } // namespace OHOS
+diff --git a/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp b/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp
+index 617eafff4a..3e004168ca 100644
+--- a/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp
++++ b/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp
+@@ -151,6 +151,10 @@ constexpr const char* ERROR_MSG_NOT_MASTER_PROCESS =
+     "Not a master process.";
+ constexpr const char* ERROR_MSG_NOT_ON_NEW_PROCESS_REQUEST_DONE =
+     "Cannot exit because there is an unfinished request.";
++constexpr const char* ERROR_MSG_UIABILITY_NOT_BELONG_TO_CALLER =
++    "The UIAbility does not belong to the caller.";
++constexpr const char* ERROR_MSG_UIABILITY_IS_ALREADY_EXIST =
++    "The UIAbility already exists.";
+ 
+ // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
+ constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
+@@ -255,6 +259,8 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
+     { AbilityErrorCode::ERROR_CODE_MAIN_WINDOW_NOT_EXIST, ERROR_MSG_MAIN_WINDOW_NOT_EXIST },
+     { AbilityErrorCode::ERROR_CODE_NOT_MASTER_PROCESS, ERROR_MSG_NOT_MASTER_PROCESS },
+     { AbilityErrorCode::ERROR_CODE_NOT_ON_NEW_PROCESS_REQUEST_DONE, ERROR_MSG_NOT_ON_NEW_PROCESS_REQUEST_DONE },
++    { AbilityErrorCode::ERROR_CODE_UIABILITY_NOT_BELONG_TO_CALLER, ERROR_MSG_UIABILITY_NOT_BELONG_TO_CALLER },
++    { AbilityErrorCode::ERROR_CODE_UIABILITY_IS_ALREADY_EXIST, ERROR_MSG_UIABILITY_IS_ALREADY_EXIST },
+ };
+ 
+ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP {
+@@ -365,6 +371,8 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP
+     {ERR_NOT_MASTER_PROCESS, AbilityErrorCode::ERROR_CODE_NOT_MASTER_PROCESS },
+     {ERR_NOT_ON_NEW_PROCESS_REQUEST_DONE, AbilityErrorCode::ERROR_CODE_NOT_ON_NEW_PROCESS_REQUEST_DONE },
+     {ERROR_SA_INTERCEPTOR_START_FAILED, AbilityErrorCode::ERROR_CODE_CONTROLLED},
++    {ERROR_UIABILITY_NOT_BELONG_TO_CALLER, AbilityErrorCode::ERROR_CODE_UIABILITY_NOT_BELONG_TO_CALLER},
++    {ERROR_UIABILITY_IS_ALREADY_EXIST, AbilityErrorCode::ERROR_CODE_UIABILITY_IS_ALREADY_EXIST},
+ };
+ }
+ 
+diff --git a/frameworks/native/ability/native/ability_runtime/js_ability_context.cpp b/frameworks/native/ability/native/ability_runtime/js_ability_context.cpp
+index bfc72da19f..f997cb2d00 100644
+--- a/frameworks/native/ability/native/ability_runtime/js_ability_context.cpp
++++ b/frameworks/native/ability/native/ability_runtime/js_ability_context.cpp
+@@ -464,6 +464,11 @@ napi_value JsAbilityContext::SetOnNewWantSkipScenarios(napi_env env, napi_callba
+     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetOnNewWantSkipScenarios);
+ }
+ 
++napi_value JsAbilityContext::StartSelfUIAbilityInCurrentProcess(napi_env env, napi_callback_info info)
++{
++    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnStartSelfUIAbilityInCurrentProcess);
++}
++
+ void JsAbilityContext::ClearFailedCallConnection(
+     const std::weak_ptr<AbilityContext>& abilityContext, const std::shared_ptr<CallerCallBack> &callback)
+ {
+@@ -2162,6 +2167,60 @@ napi_value JsAbilityContext::OnReportDrawnCompleted(napi_env env, NapiCallbackIn
+     return result;
+ }
+ 
++napi_value JsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(napi_env env, NapiCallbackInfo &info)
++{
++    if (info.argc < ARGC_TWO) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
++        ThrowTooFewParametersError(env);
++        return CreateJsUndefined(env);
++    }
++    AAFwk::Want want;
++    AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
++
++    std::string specifiedFlag;
++    if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], specifiedFlag)) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "parse specifiedFlag failed");
++        ThrowInvalidParamError(env, "Parse param specifiedFlag failed, specifiedFlag must be string.");
++        return CreateJsUndefined(env);
++    }
++
++    size_t unwrapArgc = ARGC_TWO;
++    AAFwk::StartOptions startOptions;
++    if (info.argc > ARGC_TWO && CheckTypeForNapiValue(env, info.argv[INDEX_TWO], napi_object)) {
++        if (!AppExecFwk::UnwrapStartOptions(env, info.argv[INDEX_TWO], startOptions)) {
++            TAG_LOGE(AAFwkTag::CONTEXT, "invalid startOptions");
++            ThrowInvalidParamError(env, "Parse param startOptions failed, startOptions must be StartOption.");
++            return CreateJsUndefined(env);
++        }
++        unwrapArgc++;
++    }
++
++    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
++    NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, specifiedFlag, unwrapArgc,
++        startOptions, innerErrCode]() {
++        TAG_LOGI(AAFwkTag::CONTEXT, "async execute");
++        auto context = weak.lock();
++        if (!context) {
++            TAG_LOGW(AAFwkTag::CONTEXT, "null context");
++            *innerErrCode = static_cast<int32_t>(AAFwk::ERR_INVALID_CONTEXT);
++            return;
++        }
++
++        *innerErrCode = (unwrapArgc == ARGC_TWO) ? context->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag,
++            startOptions, false) : context->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, true);
++    };
++
++    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
++        (*innerErrCode == ERR_OK) ? task.ResolveWithNoError(env, CreateJsUndefined(env)) :
++            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
++    };
++
++    napi_value result = nullptr;
++    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartSelfUIAbilityInCurrentProcess",
++        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
++    return result;
++}
++
+ napi_value JsAbilityContext::WrapRequestDialogResult(napi_env env,
+     int32_t resultCode, const AAFwk::Want &want)
+ {
+@@ -2351,6 +2410,8 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext>
+         JsAbilityContext::DisconnectAppServiceExtensionAbility);
+     BindNativeFunction(env, object, "setOnNewWantSkipScenarios", moduleName,
+         JsAbilityContext::SetOnNewWantSkipScenarios);
++    BindNativeFunction(env, object, "startSelfUIAbilityInCurrentProcess", moduleName,
++        JsAbilityContext::StartSelfUIAbilityInCurrentProcess);
+     return object;
+ }
+ 
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_client.h b/interfaces/inner_api/ability_manager/include/ability_manager_client.h
+index 47e9ebaf8d..dba02f852f 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_client.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_client.h
+@@ -1949,6 +1949,17 @@ public:
+      */
+     ErrCode PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex);
+ 
++    /**
++     * Start self UIAbility in current process.
++     * @param want Ability want.
++     * @param specifiedFlag specified flag.
++     * @param startOptions Indicates the options used to start.
++     * @param hasOptions Is have start options.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
++        const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken);
++
+ private:
+     AbilityManagerClient();
+     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_errors.h b/interfaces/inner_api/ability_manager/include/ability_manager_errors.h
+index a23643b5ef..45281a4136 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_errors.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_errors.h
+@@ -1327,6 +1327,16 @@ enum NativeFreeInstallError {
+      */
+     ERROR_SA_INTERCEPTOR_START_FAILED = 29360223,
+ 
++    /*
++     * Result(29360224) The UIAbility not belong to caller.
++     */
++    ERROR_UIABILITY_NOT_BELONG_TO_CALLER = 29360224,
++
++    /*
++     * Result(29360225) The UIAbility is already exist, can not start again.
++     */
++    ERROR_UIABILITY_IS_ALREADY_EXIST = 29360225,
++
+     /**
+      * Undefine error code.
+      */
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_interface.h b/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
+index 8e12b186ea..6483338dda 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
+@@ -2417,6 +2417,21 @@ public:
+     {
+         return 0;
+     }
++
++    /**
++     * Start self UIAbility in current process.
++     * @param want Ability want.
++     * @param specifiedFlag specified flag.
++     * @param startOptions Indicates the options used to start.
++     * @param hasOptions Is have start options.
++     * @param callerToken The caller ability token.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
++        const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken)
++    {
++        return ERR_OK;
++    }
+ };
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h b/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
+index 9f9f437072..093fb30e25 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
+@@ -679,6 +679,9 @@ enum class AbilityManagerInterfaceCode {
+ 
+     // start self uiability with startOptions and receives the pid
+     START_SELF_UI_ABILITY_WITH_PID_RESULT = 6152,
++
++    // start self uiability in current process
++    START_SELF_UI_ABILITY_IN_CURRENT_PROCESS = 6153,
+ };
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/interfaces/inner_api/ability_manager/include/start_options.h b/interfaces/inner_api/ability_manager/include/start_options.h
+index 2941add21d..3b091af315 100644
+--- a/interfaces/inner_api/ability_manager/include/start_options.h
++++ b/interfaces/inner_api/ability_manager/include/start_options.h
+@@ -130,6 +130,9 @@ public:
+ 
+     void SetMaxWindowHeight(int32_t maxWindowHeight);
+     int32_t GetMaxWindowHeight() const;
++
++    void SetCurrentProcessName(const std::string &processName);
++    std::string GetCurrentProcessName() const;
+ private:
+     bool withAnimation_ = true;
+     bool windowFocused_ = true;
+@@ -144,6 +147,7 @@ private:
+     int32_t minWindowHeight_ = 0;
+     int32_t maxWindowWidth_ = 0;
+     int32_t maxWindowHeight_ = 0;
++    std::string currentProcessName_;
+ };
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/interfaces/kits/native/ability/ability_runtime/ability_context.h b/interfaces/kits/native/ability/ability_runtime/ability_context.h
+index b1ad27d0c5..11c6f90515 100644
+--- a/interfaces/kits/native/ability/ability_runtime/ability_context.h
++++ b/interfaces/kits/native/ability/ability_runtime/ability_context.h
+@@ -510,6 +510,9 @@ public:
+     virtual ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
+         AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail) = 0;
+ 
++    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
++        const AAFwk::StartOptions &startOptions, bool hasOptions) = 0;
++
+ protected:
+     bool IsContext(size_t contextTypeId) override
+     {
+diff --git a/interfaces/kits/native/ability/ability_runtime/ability_context_impl.h b/interfaces/kits/native/ability/ability_runtime/ability_context_impl.h
+index 071a077e02..4c61936dc9 100644
+--- a/interfaces/kits/native/ability/ability_runtime/ability_context_impl.h
++++ b/interfaces/kits/native/ability/ability_runtime/ability_context_impl.h
+@@ -383,6 +383,9 @@ public:
+     ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
+         AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail) override;
+ 
++    ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
++        const AAFwk::StartOptions &startOptions, bool hasOptions) override;
++
+ private:
+     sptr<IRemoteObject> token_ = nullptr;
+     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
+diff --git a/interfaces/kits/native/ability/native/ability_business_error/ability_business_error.h b/interfaces/kits/native/ability/native/ability_business_error/ability_business_error.h
+index 1b274b5eb6..8b213639c7 100644
+--- a/interfaces/kits/native/ability/native/ability_business_error/ability_business_error.h
++++ b/interfaces/kits/native/ability/native/ability_business_error/ability_business_error.h
+@@ -289,6 +289,10 @@ enum class AbilityErrorCode {
+ 
+     ERROR_CODE_NOT_SUPPORT_START_DLP_FILES = 16000126,
+ 
++    ERROR_CODE_UIABILITY_NOT_BELONG_TO_CALLER = 16000130,
++
++    ERROR_CODE_UIABILITY_IS_ALREADY_EXIST = 16000131,
++
+     ERROR_CODE_MAIN_WINDOW_NOT_EXIST = 16000135,
+ 
+     // target bundle is not in u1
+diff --git a/interfaces/kits/native/ability/native/ability_runtime/js_ability_context.h b/interfaces/kits/native/ability/native/ability_runtime/js_ability_context.h
+index c21215754a..f296b72b74 100644
+--- a/interfaces/kits/native/ability/native/ability_runtime/js_ability_context.h
++++ b/interfaces/kits/native/ability/native/ability_runtime/js_ability_context.h
+@@ -80,6 +80,7 @@ public:
+     static napi_value StopAppServiceExtensionAbility(napi_env env, napi_callback_info info);
+     static napi_value ConnectAppServiceExtensionAbility(napi_env env, napi_callback_info info);
+     static napi_value DisconnectAppServiceExtensionAbility(napi_env env, napi_callback_info info);
++    static napi_value StartSelfUIAbilityInCurrentProcess(napi_env env, napi_callback_info info);
+ 
+     static void ConfigurationUpdated(napi_env env, std::shared_ptr<NativeReference> &jsContext,
+         const std::shared_ptr<AppExecFwk::Configuration> &config);
+@@ -163,6 +164,7 @@ private:
+         AppExecFwk::ExtensionAbilityType extensionType);
+     napi_value ConnectExtensionAbilityCommon(napi_env env, NapiCallbackInfo& info,
+         AppExecFwk::ExtensionAbilityType extensionType);
++    napi_value OnStartSelfUIAbilityInCurrentProcess(napi_env env, NapiCallbackInfo &info);
+ 
+     static bool UnWrapWant(napi_env env, napi_value argv, AAFwk::Want& want);
+     static napi_value WrapWant(napi_env env, const AAFwk::Want& want);
+diff --git a/services/abilitymgr/include/ability_manager_proxy.h b/services/abilitymgr/include/ability_manager_proxy.h
+index 7194dfb599..2ab5099c43 100644
+--- a/services/abilitymgr/include/ability_manager_proxy.h
++++ b/services/abilitymgr/include/ability_manager_proxy.h
+@@ -1884,6 +1884,17 @@ public:
+      */
+     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex) override;
+ 
++    /**
++     * Start Self UIAbility In Current Process.
++     * @param want Ability want.
++     * @param specifiedFlag specified flag.
++     * @param startOptions Indicates the options used to start.
++     * @param hasOptions Is have start options.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
++        const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken) override;
++
+ private:
+     template <typename T>
+     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);
+diff --git a/services/abilitymgr/include/ability_manager_service.h b/services/abilitymgr/include/ability_manager_service.h
+index c7a7eb24ea..734154aad7 100644
+--- a/services/abilitymgr/include/ability_manager_service.h
++++ b/services/abilitymgr/include/ability_manager_service.h
+@@ -177,6 +177,17 @@ public:
+         int32_t userId = DEFAULT_INVAL_VALUE,
+         int requestCode = DEFAULT_INVAL_VALUE) override;
+ 
++    /**
++     * Start Self UIAbility In Current Process.
++     * @param want Ability want.
++     * @param specifiedFlag specified flag.
++     * @param startOptions Indicates the options used to start.
++     * @param hasOptions Is have start options.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
++        const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken) override;
++
+     /**
+      * StartAbilityWithSpecifyTokenIdInner with want and specialId, send want to ability manager service.
+      *
+@@ -2694,6 +2705,12 @@ private:
+     AAFwk::EventInfo BuildEventInfo(const Want &want, int32_t userId);
+     AAFwk::EventInfo BuildEventInfoByAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
+ 
++    ErrCode IsUIAbilityAlreadyExist(const std::string &abilityName,const std::string &specifiedFlag,
++        int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
++    
++    bool IsAppCloneOrMultiInstance(Want &want, const std::shared_ptr<AbilityRecord> callerRecord,
++        int32_t &appIndex, const std::string &callerInstanceKey);
++
+ #ifdef WITH_DLP
+     int CheckDlpForExtension(
+         const Want &want, const sptr<IRemoteObject> &callerToken,
+diff --git a/services/abilitymgr/include/ability_manager_stub.h b/services/abilitymgr/include/ability_manager_stub.h
+index 0ebd0b98ba..8c87412e98 100644
+--- a/services/abilitymgr/include/ability_manager_stub.h
++++ b/services/abilitymgr/include/ability_manager_stub.h
+@@ -406,6 +406,7 @@ private:
+     int32_t EnterKioskModeInner(MessageParcel &data, MessageParcel &reply);
+     int32_t ExitKioskModeInner(MessageParcel &data, MessageParcel &reply);
+     int32_t GetKioskStatusInner(MessageParcel &data, MessageParcel &reply);
++    int32_t StartSelfUIAbilityInCurrentProcessInner(MessageParcel &data, MessageParcel &reply);
+ };
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/services/abilitymgr/include/scene_board/ui_ability_lifecycle_manager.h b/services/abilitymgr/include/scene_board/ui_ability_lifecycle_manager.h
+index 75c566b72a..37c4a75fb4 100644
+--- a/services/abilitymgr/include/scene_board/ui_ability_lifecycle_manager.h
++++ b/services/abilitymgr/include/scene_board/ui_ability_lifecycle_manager.h
+@@ -535,6 +535,9 @@ public:
+      */
+     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
+ 
++    ErrCode IsUIAbilityAlreadyExist(const std::string &abilityName,const std::string &specifiedFlag,
++        int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
++
+ private:
+     /**
+      * @brief Add starting process ID to tracking list
+@@ -894,6 +897,8 @@ private:
+      */
+     int32_t StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
+         std::shared_ptr<AbilityRecord> callerAbility);
++    
++    int32_t StartAbilityBySpecified(const AbilityRequest &abilityRequest, int32_t requestId);
+ 
+     /**
+      * @brief Set last exit reason for ability
+diff --git a/services/abilitymgr/src/ability_manager_client.cpp b/services/abilitymgr/src/ability_manager_client.cpp
+index b034889509..98f6802e60 100644
+--- a/services/abilitymgr/src/ability_manager_client.cpp
++++ b/services/abilitymgr/src/ability_manager_client.cpp
+@@ -2418,5 +2418,14 @@ ErrCode AbilityManagerClient::PreloadApplication(const std::string &bundleName,
+     TAG_LOGI(AAFwkTag::SERVICE_EXT, "PreloadApplication call");
+     return abms->PreloadApplication(bundleName, userId, appIndex);
+ }
++
++ErrCode AbilityManagerClient::StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
++    const StartOptions &options, bool hasOptions, sptr<IRemoteObject> callerToken)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    auto abms = GetAbilityManager();
++    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
++    return abms->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, options, hasOptions, callerToken);
++}
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/services/abilitymgr/src/ability_manager_proxy.cpp b/services/abilitymgr/src/ability_manager_proxy.cpp
+index 6ece4e54c9..d2902bedca 100644
+--- a/services/abilitymgr/src/ability_manager_proxy.cpp
++++ b/services/abilitymgr/src/ability_manager_proxy.cpp
+@@ -7288,5 +7288,49 @@ int32_t AbilityManagerProxy::PreloadApplication(const std::string &bundleName, i
+ 
+     return reply.ReadInt32();
+ }
++
++int32_t AbilityManagerProxy::StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
++    const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken)
++{
++    MessageParcel data;
++    MessageParcel reply;
++    MessageOption option;
++    if (!WriteInterfaceToken(data)) {
++        return INNER_ERR;
++    }
++    if (!data.WriteParcelable(&want)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
++        return INNER_ERR;
++    }
++    if (!data.WriteString(specifiedFlag)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag write fail");
++        return ERR_INVALID_VALUE;
++    }
++    if (!data.WriteParcelable(&startOptions)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions fail");
++        return INNER_ERR;
++    }
++    if (!data.WriteBool(hasOptions)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "hasOptions write fail");
++        return ERR_INVALID_VALUE;
++    }
++    if (callerToken) {
++        if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
++            TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken and flag write fail");
++            return INNER_ERR;
++        }
++    } else {
++        if (!data.WriteBool(false)) {
++            TAG_LOGE(AAFwkTag::ABILITYMGR, "flag write fail");
++            return INNER_ERR;
++        }
++    }
++    auto ret = SendRequest(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CURRENT_PROCESS, data, reply, option);
++    if (ret != NO_ERROR) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error: %{public}d", ret);
++        return ret;
++    }
++    return reply.ReadInt32();
++}
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp
+index 66594f8b3f..4516757081 100644
+--- a/services/abilitymgr/src/ability_manager_service.cpp
++++ b/services/abilitymgr/src/ability_manager_service.cpp
+@@ -338,6 +338,7 @@ constexpr const char* LIFE_CYCLE_PRELOAD = "preload";
+ constexpr uint32_t TARGET_TYPE_INIT = 100;
+ constexpr int64_t USER_SWITCH_TIMEOUT = 3 * 1000; // 3s
+ constexpr const char* SUPPORT_LINKAGE_SCENE = "const.window.supportLinkageScene";
++constexpr const char* KEY_SPECIFIED_FLAG = "com.ohos.param.specifiedFlag";
+ 
+ const bool REGISTER_RESULT =
+     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<AbilityManagerService>::GetInstance().get());
+@@ -2170,6 +2171,13 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
+         eventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
+         return result;
+     }
++    std::string currentProcessName = startOptions.GetCurrentProcessName();
++    if (!currentProcessName.empty()) {
++        abilityRequest.specifiedFlag = want.GetStringParam(KEY_SPECIFIED_FLAG);
++        abilityRequest.want.RemoveParam(KEY_SPECIFIED_FLAG);
++        abilityRequest.abilityInfo.isolationProcess = false;
++        abilityRequest.abilityInfo.process = currentProcessName;
++    }
+ 
+     abilityRequest.userId = validUserId;
+     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
+@@ -15654,5 +15662,93 @@ int32_t AbilityManagerService::ProcessUdmfKey(
+     }
+     return ERR_OK;
+ }
++
++ErrCode AbilityManagerService::IsUIAbilityAlreadyExist(const std::string &abilityName,const std::string &specifiedFlag,
++    int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode)
++{
++    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
++    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
++    return uiAbilityManager->IsUIAbilityAlreadyExist(abilityName, specifiedFlag, appIndex, instanceKey, launchMode);
++}
++
++bool AbilityManagerService::IsAppCloneOrMultiInstance(Want &want, const std::shared_ptr<AbilityRecord> callerRecord,
++    int32_t &targetAppIndex, const std::string &callerInstanceKey)
++{
++    if (callerRecord == nullptr) {
++        return false;
++    }
++    int32_t callerIndex = callerRecord->GetAppIndex();
++    if (targetAppIndex == -1) {
++        targetAppIndex = callerIndex;
++    }
++    if (callerIndex != targetAppIndex) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "not support APP_CLONE");
++        return true;
++    }
++    auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
++    auto isCreating = want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
++    if ((!instanceKey.empty() && instanceKey != callerInstanceKey) || isCreating) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "not support multi instance");
++        return true;
++    }
++    return false;
++}
++
++ErrCode AbilityManagerService::StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
++    const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken)
++{
++    if (!AppUtils::GetInstance().IsStartUIAbilityInCurrentProcess()) {
++        return ERR_CAPABILITY_NOT_SUPPORT;
++    }
++    auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
++    if (callerRecord == nullptr || !JudgeSelfCalled(callerRecord)) {
++        return ERR_INVALID_VALUE;
++    }
++
++    std::string targetBundleName = want.GetBundle();
++    std::string targetAbilityName = want.GetElement().GetAbilityName();
++    if (targetBundleName.empty() || targetAbilityName.empty()) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "implicit start not allowed");
++        return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
++    }
++    auto callingPid = IPCSkeleton::GetCallingPid();
++    AppExecFwk::RunningProcessInfo processInfo;
++    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByChildProcessPid(callingPid, processInfo);
++    CHECK_TRUE_RETURN_RET(processInfo.bundleNames.empty(), INNER_ERR, "failed to get by child process pid");
++    auto iter = std::find(processInfo.bundleNames.begin(), processInfo.bundleNames.end(), targetBundleName);
++    CHECK_TRUE_RETURN_RET(iter == processInfo.bundleNames.end(), ERROR_UIABILITY_NOT_BELONG_TO_CALLER,
++        "The UIAbility not belog to caller");
++    int32_t appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, -1);
++    if (IsAppCloneOrMultiInstance(useWant, callerRecord, appIndex, processInfo.instanceKey)) {
++        return ERROR_UIABILITY_NOT_BELONG_TO_CALLER;
++    }
++    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
++    CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
++    AppExecFwk::AbilityInfo abilityInfo;
++    auto callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
++    CHECK_TRUE_RETURN_RET(!IN_PROCESS_CALL(bundleMgrHelper->QueryCloneAbilityInfo(want.GetElement(),
++        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, appIndex, abilityInfo, callerUserId)),
++        TARGET_BUNDLE_NOT_EXIST, "The specified ability not exist");
++
++    CHECK_TRUE_RETURN_RET(abilityInfo.type != AppExecFwk::AbilityType::PAGE,
++        TARGET_BUNDLE_NOT_EXIST, "not UIAbility");
++    auto ret = IsUIAbilityAlreadyExist(targetBundleName, targetAbilityName,
++        specifiedFlag, appIndex, processInfo.instanceKey);
++    if (ret != ERR_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility already exist");
++        return ret;
++    }
++
++    CHECK_TRUE_RETURN_RET(processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND,
++        NOT_TOP_ABILITY, "caller not foreground");
++
++    auto useStartOptions = startOptions;
++    useStartOptions.SetCurrentProcessName(processInfo.processName_);
++    auto useWant = want;
++    if (abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
++        useWant.SetParam(KEY_SPECIFIED_FLAG, specifiedFlag);
++    }
++    return StartAbility(useWant, useStartOptions, callerToken);
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/services/abilitymgr/src/ability_manager_stub.cpp b/services/abilitymgr/src/ability_manager_stub.cpp
+index 14c99cccab..1d7727af20 100644
+--- a/services/abilitymgr/src/ability_manager_stub.cpp
++++ b/services/abilitymgr/src/ability_manager_stub.cpp
+@@ -334,6 +334,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel
+     if (interfaceCode == AbilityManagerInterfaceCode::SEND_LOCAL_PENDING_WANT_SENDER) {
+         return SendLocalWantSenderInner(data, reply);
+     }
++    if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CURRENT_PROCESS) {
++        return StartSelfUIAbilityInCurrentProcessInner(data, reply);
++    }
+     return ERR_CODE_NOT_EXIST;
+ }
+ 
+@@ -5028,5 +5031,30 @@ int AbilityManagerStub::PreloadApplicationInner(MessageParcel &data, MessageParc
+     }
+     return result;
+ }
++
++int AbilityManagerStub::StartSelfUIAbilityInCurrentProcessInner(MessageParcel &data, MessageParcel &reply)
++{
++    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
++    if (want == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
++        return ERR_INVALID_VALUE;
++    }
++    std::string specifiedFlag = data.ReadString();
++    StartOptions *startOptions = data.ReadParcelable<StartOptions>();
++    bool hasOptions = data.ReadBool();
++    if (hasOptions && startOptions == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
++        return ERR_INVALID_VALUE;
++    }
++    sptr<IRemoteObject> callerToken = nullptr;
++    if (data.ReadBool()) {
++        callerToken = data.ReadRemoteObject();
++    }
++    int32_t result = StartSelfUIAbilityInCurrentProcess(
++        *want, specifiedFlag, *startOptions, hasOptions, callerToken);
++    reply.WriteInt32(result);
++    delete startOptions;
++    return NO_ERROR;
++}
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/services/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp b/services/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp
+index 3cb9b82949..eb07d3bc4d 100644
+--- a/services/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp
++++ b/services/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp
+@@ -331,6 +331,10 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
+         }
+         MoreAbilityNumbersSendEventInfo(
+             abilityRequest.userId, abilityInfo.bundleName, abilityInfo.name, abilityInfo.moduleName);
++        if (!abilityRequest.startOptions.GetCurrentProcessName().empty()) {
++            uiAbilityRecord->SetProcessName(abilityRequest.abilityInfo.process);
++            uiAbilityRecord->SetCallerSetProcess(true);
++        }
+         if (isLowMemKill) {
+             TAG_LOGI(AAFwkTag::ABILITYMGR, "killed by low-mem, created a new record, "
+                 "replacing old record id=%{public}s, new record id=%{public}s",
+@@ -638,10 +642,13 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
+     auto isPlugin = StartupUtil::IsStartPlugin(abilityRequest.want);
+     auto isSpecified = (abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED);
+     if (isSpecified && !isPlugin) {
+-        auto specifiedRequest = std::make_shared<SpecifiedRequest>(requestId, abilityRequest);
+-        specifiedRequest->preCreateProcessName = true;
+-        AddSpecifiedRequest(specifiedRequest);
+-        return ERR_OK;
++        if (abilityRequest.startOptions.GetCurrentProcessName().empty()) {
++            auto specifiedRequest = std::make_shared<SpecifiedRequest>(requestId, abilityRequest);
++            specifiedRequest->preCreateProcessName = true;
++            AddSpecifiedRequest(specifiedRequest);
++            return ERR_OK;
++        }
++        return StartAbilityBySpecified(abilityRequest, requestId);
+     }
+ 
+     if (IsHookModule(abilityRequest)) {
+@@ -2724,7 +2731,6 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCBInSplitMode(int primaryWindow
+ int32_t UIAbilityLifecycleManager::StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
+     std::shared_ptr<AbilityRecord> callerAbility)
+ {
+-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+     const auto &abilityRequest = specifiedRequest.abilityRequest;
+     auto sessionInfo = CreateSessionInfo(abilityRequest, specifiedRequest.requestId);
+     sessionInfo->requestCode = abilityRequest.requestCode;
+@@ -2744,6 +2750,17 @@ int32_t UIAbilityLifecycleManager::StartAbilityBySpecifed(const SpecifiedRequest
+     return ERR_OK;
+ }
+ 
++int32_t UIAbilityLifecycleManager::StartAbilityBySpecified(const AbilityRequest &abilityRequest, int32_t requestId)
++{
++    TAG_LOGD(AAFwkTag::ABILITYMGR, "start ability by specified");
++    auto sessionInfo = CreateSessionInfo(abilityRequest, requestId);
++    sessionInfo->requestCode = abilityRequest.requestCode;
++    sessionInfo->isFromIcon = abilityRequest.isFromIcon;
++    sessionInfo->specifiedFlag = abilityRequest.specifiedFlag;
++    auto callerAbility = GetAbilityRecordByToken(abilityRequest.callerToken);
++    return SendSessionInfoToSCB(callerAbility, sessionInfo);
++}
++
+ void UIAbilityLifecycleManager::CallRequestDone(const std::shared_ptr<AbilityRecord> &abilityRecord,
+     const sptr<IRemoteObject> &callStub)
+ {
+@@ -4202,6 +4219,35 @@ int32_t UIAbilityLifecycleManager::NotifyStartupExceptionBySCB(int32_t requestId
+     return ERR_OK;
+ }
+ 
++ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const std::string &abilityName,
++    const std::string &specifiedFlag, int32_t appIndex,
++    const std::string &instanceKey, AppExecFwk::LaunchMode launchMode)
++{
++    std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> tempSessionAbilityMap;
++    {
++        std::lock_guard<ffrt::mutex> guard(sessionLock_);
++        tempSessionAbilityMap = sessionAbilityMap_;
++    }
++
++    for (auto it = tempSessionAbilityMap.begin(); it != tempSessionAbilityMap.end(); it++) {
++        if (it->second == nullptr) {
++            continue;
++        }
++        if (launchMode == AppExecFwk::LaunchMode::SPECIFIED && it->second->GetSpecifiedFlag() == specifiedFlag &&
++            it->second->GetAbilityInfo().name == abilityName && it->second->GetAppIndex() == appIndex &&
++            it->second->GetInstanceKey() == instanceKey) {
++            TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag is already exist");
++            return ERROR_UIABILITY_IS_ALREADY_EXIST;
++        }
++        if (it->second->GetAbilityInfo().name == abilityName &&
++            it->second->GetInstanceKey() == instanceKey && it->second->GetAppIndex() == appIndex) {
++            TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility is already exist");
++            return ERROR_UIABILITY_IS_ALREADY_EXIST;
++        }
++    }
++    return ERR_OK;
++}
++
+ void UIAbilityLifecycleManager::SendAbilityEvent(const AppExecFwk::AbilityInfo &abilityInfo,
+     const std::string &reason) const
+ {
+diff --git a/services/abilitymgr/src/start_options.cpp b/services/abilitymgr/src/start_options.cpp
+index 33e384b97e..742b1687cf 100644
+--- a/services/abilitymgr/src/start_options.cpp
++++ b/services/abilitymgr/src/start_options.cpp
+@@ -52,6 +52,7 @@ StartOptions::StartOptions(const StartOptions &other)
+     supportWindowModes_ = other.supportWindowModes_;
+     requestId_ = other.requestId_;
+     windowCreateParams_ = other.windowCreateParams_;
++    currentProcessName_ = other.currentProcessName_;
+ }
+ 
+ StartOptions &StartOptions::operator=(const StartOptions &other)
+@@ -83,6 +84,7 @@ StartOptions &StartOptions::operator=(const StartOptions &other)
+         supportWindowModes_ = other.supportWindowModes_;
+         requestId_ = other.requestId_;
+         windowCreateParams_ = other.windowCreateParams_;
++        currentProcessName_ = other.currentProcessName_;
+     }
+     return *this;
+ }
+@@ -324,5 +326,14 @@ bool StartOptions::GetHideStartWindow() const
+     return hideStartWindow_;
+ }
+ 
++void StartOptions::SetCurrentProcessName(const std::string &processName)
++{
++    currentProcessName_ = processName;
++}
++
++std::string StartOptions::GetCurrentProcessName() const
++{
++    return currentProcessName_;
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/services/common/include/app_utils.h b/services/common/include/app_utils.h
+index 8d322618bc..ec354ccb8b 100644
+--- a/services/common/include/app_utils.h
++++ b/services/common/include/app_utils.h
+@@ -358,6 +358,8 @@ public:
+     bool IsSupportRestartAppWithWindow();
+ 
+     bool IsSupportAllowDebugPermission();
++
++    bool IsStartUIAbilityInCurrentProcess();
+ private:
+     /**
+      * LoadResidentProcessInExtremeMemory, load resident process in extreme low memory.
+@@ -445,6 +447,7 @@ private:
+     volatile DeviceConfiguration<bool> isForbidStart_ = {true, false};
+     volatile DeviceConfiguration<bool> isSupportRestartAppWithWindow_ = {false, false};
+     volatile DeviceConfiguration<bool> isSupportAllowDebugPermission_ = {false, false};
++    volatile DeviceConfiguration<bool> isStartUIAbilityInCurrentProcess_ = {false, false};
+     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
+         residentProcessInExtremeMemory_ = {false, {}};
+     std::mutex residentProcessInExtremeMemoryMutex_;
+diff --git a/services/common/src/app_utils.cpp b/services/common/src/app_utils.cpp
+index 0123c4b05e..6a78b82997 100644
+--- a/services/common/src/app_utils.cpp
++++ b/services/common/src/app_utils.cpp
+@@ -85,6 +85,7 @@ constexpr const char* PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED = "const.produ
+ constexpr const char* FORBID_START = "persist.sys.abilityms.forbid_start";
+ constexpr const char* RESTART_APP_WITH_WINDOW = "persist.sys.abilityms.restart_app_with_window";
+ constexpr const char* ALLOW_DEBUG_PERMISSION = "persist.sys.abilityms.allow_debug_permission";
++constexpr const char* START_ABILITY_IN_CURRENT_PROCESS = "persist.sys.abilityms.start_ability_in_current_process";
+ // Support prepare terminate
+ constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
+ constexpr const char* PREPARE_TERMINATE_ENABLE_PARAMETER = "persist.sys.prepare_terminate";
+@@ -868,5 +869,15 @@ bool AppUtils::IsSupportAllowDebugPermission()
+     TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportAllowDebugPermission_.value);
+     return isSupportAllowDebugPermission_.value;
+ }
++
++bool AppUtils::IsStartUIAbilityInCurrentProcess()
++{
++    if (!isStartUIAbilityInCurrentProcess_.isLoaded) {
++        isStartUIAbilityInCurrentProcess_.value = system::GetBoolParameter(START_ABILITY_IN_CURRENT_PROCESS, false);
++        isStartUIAbilityInCurrentProcess_.isLoaded = true;
++    }
++    TAG_LOGD(AAFwkTag::DEFAULT, "startAbilityInCurrentProcess: %{public}d", isStartUIAbilityInCurrentProcess_.value);
++    return isStartUIAbilityInCurrentProcess_.value;
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/test/unittest/ability_manager_client_branch_test/ability_manager_client_branch_test.cpp b/test/unittest/ability_manager_client_branch_test/ability_manager_client_branch_test.cpp
+index 8f0798840f..571c8144a6 100644
+--- a/test/unittest/ability_manager_client_branch_test/ability_manager_client_branch_test.cpp
++++ b/test/unittest/ability_manager_client_branch_test/ability_manager_client_branch_test.cpp
+@@ -2746,5 +2746,18 @@ HWTEST_F(AbilityManagerClientBranchTest, RegisterSAInterceptor_0100, TestSize.Le
+ {
+     EXPECT_EQ(client_->RegisterSAInterceptor(nullptr), ERR_OK);
+ }
++
++/**
++ * @tc.name: StartSelfUIAbilityInCurrentProcess_0100
++ * @tc.desc: StartSelfUIAbilityInCurrentProcess
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInCurrentProcess_0100, TestSize.Level1)
++{
++    Want want;
++    std::string specifiedFlag;
++    StartOptions startOptions;
++    EXPECT_EQ(client_->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false, nullptr), ERR_OK);
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/test/unittest/ability_manager_proxy_test/ability_manager_proxy_test.cpp b/test/unittest/ability_manager_proxy_test/ability_manager_proxy_test.cpp
+index e537c762ff..0af238a355 100644
+--- a/test/unittest/ability_manager_proxy_test/ability_manager_proxy_test.cpp
++++ b/test/unittest/ability_manager_proxy_test/ability_manager_proxy_test.cpp
+@@ -3209,5 +3209,28 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RegisterSAInterceptor_001,
+     res = proxy_->RegisterSAInterceptor(interceptor);
+     EXPECT_EQ(res, NO_ERROR);
+ }
++
++/*
++ * Feature: AbilityManagerService
++ * Function: StartSelfUIAbilityInCurrentProcess
++ * SubFunction: NA
++ * FunctionPoints: AbilityManagerService StartSelfUIAbilityInCurrentProcess
++ * EnvConditions: NA
++ * CaseDescription: Verify the normal process of StartSelfUIAbilityInCurrentProcess
++ */
++HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSelfUIAbilityInCurrentProcess_001, TestSize.Level1)
++{
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
++    Want want;
++    std::string specifiedFlag = "testFlag";
++    AAFwk::StartOptions startOptions;
++    OHOS::sptr<IRemoteObject> callerToken = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
++    auto res = proxy_->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, true, callerToken);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CURRENT_PROCESS),
++        mock_->code_);
++    EXPECT_EQ(res, NO_ERROR);
++}
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/test/unittest/ability_manager_service_fourteenth_test/mock/include/mock_ui_ability_lifecycle_manager.h b/test/unittest/ability_manager_service_fourteenth_test/mock/include/mock_ui_ability_lifecycle_manager.h
+index 3a7d85ceef..5ebca284dc 100644
+--- a/test/unittest/ability_manager_service_fourteenth_test/mock/include/mock_ui_ability_lifecycle_manager.h
++++ b/test/unittest/ability_manager_service_fourteenth_test/mock/include/mock_ui_ability_lifecycle_manager.h
+@@ -399,6 +399,9 @@ public:
+ 
+     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
+ 
++    ErrCode IsUIAbilityAlreadyExist(const std::string &abilityName, const std::string &specifiedFlag,
++        int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
++
+ private:
+     void AddStartingPid(pid_t pid);
+     void RemoveStartingPid(pid_t pid);
+diff --git a/test/unittest/ability_manager_service_fourteenth_test/mock/src/mock_ui_ability_lifecycle_manager.cpp b/test/unittest/ability_manager_service_fourteenth_test/mock/src/mock_ui_ability_lifecycle_manager.cpp
+index a77fca424a..9724f96532 100644
+--- a/test/unittest/ability_manager_service_fourteenth_test/mock/src/mock_ui_ability_lifecycle_manager.cpp
++++ b/test/unittest/ability_manager_service_fourteenth_test/mock/src/mock_ui_ability_lifecycle_manager.cpp
+@@ -757,5 +757,12 @@ int32_t UIAbilityLifecycleManager::NotifyStartupExceptionBySCB(int32_t requestId
+ {
+     return ERR_OK;
+ }
++
++ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const std::string &abilityName,
++    const std::string &specifiedFlag, int32_t appIndex,
++    const std::string &instanceKey, AppExecFwk::LaunchMode launchMode)
++{
++    return ERR_OK;
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
+\ No newline at end of file
+diff --git a/test/unittest/ability_manager_service_sixth_test/ability_manager_service_sixth_test.cpp b/test/unittest/ability_manager_service_sixth_test/ability_manager_service_sixth_test.cpp
+index e12be873b2..3204a6ff6e 100644
+--- a/test/unittest/ability_manager_service_sixth_test/ability_manager_service_sixth_test.cpp
++++ b/test/unittest/ability_manager_service_sixth_test/ability_manager_service_sixth_test.cpp
+@@ -19,6 +19,7 @@
+ #define protected public
+ #include "ability_manager_service.h"
+ #include "ability_record.h"
++#include "app_utils.h"
+ #include "bundle_mgr_helper.h"
+ #include "mission_list_manager.h"
+ #include "ui_ability_lifecycle_manager.h"
+@@ -2049,5 +2050,68 @@ HWTEST_F(AbilityManagerServiceSixthTest, SendIntentReport_001, TestSize.Level1)
+     EXPECT_EQ(eventInfo.intentName, intentName);
+     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest SendIntentReport_001 end");
+ }
++
++/*
++ * Feature: AbilityManagerService
++ * Function: IsUIAbilityAlreadyExist
++ * FunctionPoints: AbilityManagerService IsUIAbilityAlreadyExist
++ */
++HWTEST_F(AbilityManagerServiceSixthTest, IsUIAbilityAlreadyExist_001, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest IsUIAbilityAlreadyExist_001 start");
++    auto abilityMs = std::make_shared<AbilityManagerService>();
++    ASSERT_NE(abilityMs, nullptr);
++    std::string abilityName;
++    std::string specifiedFlag;
++    int32_t appIndex = 0;
++    std::string instanceKey;
++    auto ret = abilityMs->IsUIAbilityAlreadyExist(abilityName, specifiedFlag, appIndex,
++        instanceKey, AppExecFwk::LaunchMode::SPECIFIED);
++    EXPECT_EQ(ret, ERR_INVALID_VALUE);
++    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest IsUIAbilityAlreadyExist_001 end");
++}
++
++/*
++ * Feature: AbilityManagerService
++ * Function: StartSelfUIAbilityInCurrentProcess
++ * FunctionPoints: AbilityManagerService StartSelfUIAbilityInCurrentProcess
++ */
++HWTEST_F(AbilityManagerServiceSixthTest, StartSelfUIAbilityInCurrentProcess_001, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartSelfUIAbilityInCurrentProcess_001 start");
++    auto abilityMs = std::make_shared<AbilityManagerService>();
++    ASSERT_NE(abilityMs, nullptr);
++    Want want;
++    std::string specifiedFlag;
++    StartOptions startOptions;
++    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.isLoaded = true;
++    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.value = false;
++    auto ret = abilityMs->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false, nullptr);
++    EXPECT_EQ(ret, ERR_CAPABILITY_NOT_SUPPORT);
++    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest SendIntentReport_001 end");
++}
++
++/*
++ * Feature: AbilityManagerService
++ * Function: StartSelfUIAbilityInCurrentProcess
++ * FunctionPoints: AbilityManagerService StartSelfUIAbilityInCurrentProcess
++ */
++HWTEST_F(AbilityManagerServiceSixthTest, StartSelfUIAbilityInCurrentProcess_002, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartSelfUIAbilityInCurrentProcess_001 start");
++    auto abilityMs = std::make_shared<AbilityManagerService>();
++    ASSERT_NE(abilityMs, nullptr);
++    Want want;
++    std::string bundleName = "test";
++    std::string abilityName = "testAbility";
++    want.SetElementName(bundleName, abilityName);
++    std::string specifiedFlag;
++    StartOptions startOptions;
++    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.isLoaded = true;
++    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.value = true;
++    auto ret = abilityMs->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false, nullptr);
++    EXPECT_EQ(ret, ERR_INVALID_VALUE);
++    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest SendIntentReport_001 end");
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
+\ No newline at end of file
+diff --git a/test/unittest/ability_manager_service_thirteenth_test/mock/include/mock_ui_ability_lifecycle_manager.h b/test/unittest/ability_manager_service_thirteenth_test/mock/include/mock_ui_ability_lifecycle_manager.h
+index 78643a5242..ed878bb0ea 100644
+--- a/test/unittest/ability_manager_service_thirteenth_test/mock/include/mock_ui_ability_lifecycle_manager.h
++++ b/test/unittest/ability_manager_service_thirteenth_test/mock/include/mock_ui_ability_lifecycle_manager.h
+@@ -401,6 +401,9 @@ public:
+ 
+     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
+ 
++    ErrCode IsUIAbilityAlreadyExist(const std::string &abilityName, const std::string &specifiedFlag,
++        int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
++
+ private:
+     void AddStartingPid(pid_t pid);
+     void RemoveStartingPid(pid_t pid);
+diff --git a/test/unittest/ability_manager_service_thirteenth_test/mock/src/mock_ui_ability_lifecycle_manager.cpp b/test/unittest/ability_manager_service_thirteenth_test/mock/src/mock_ui_ability_lifecycle_manager.cpp
+index ff03c05c5b..4dca1ffe77 100644
+--- a/test/unittest/ability_manager_service_thirteenth_test/mock/src/mock_ui_ability_lifecycle_manager.cpp
++++ b/test/unittest/ability_manager_service_thirteenth_test/mock/src/mock_ui_ability_lifecycle_manager.cpp
+@@ -765,5 +765,12 @@ int32_t UIAbilityLifecycleManager::NotifyStartupExceptionBySCB(int32_t requestId
+ {
+     return ERR_OK;
+ }
++
++ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const std::string &abilityName,
++    const std::string &specifiedFlag, int32_t appIndex,
++    const std::string &instanceKey, AppExecFwk::LaunchMode launchMode)
++{
++    return ERR_OK;
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
+\ No newline at end of file
+diff --git a/test/unittest/ability_manager_stub_test/ability_manager_stub_test.cpp b/test/unittest/ability_manager_stub_test/ability_manager_stub_test.cpp
+index afa242f545..82626cedd2 100644
+--- a/test/unittest/ability_manager_stub_test/ability_manager_stub_test.cpp
++++ b/test/unittest/ability_manager_stub_test/ability_manager_stub_test.cpp
+@@ -4191,5 +4191,31 @@ HWTEST_F(AbilityManagerStubTest, QueryKeepAliveAppServiceExtensions_0100, TestSi
+ 
+     TAG_LOGI(AAFwkTag::TEST, "end");
+ }
++
++/*
++ * Feature: AbilityManagerService
++ * Function: OnRemoteRequest
++ * SubFunction: NA
++ * FunctionPoints: AbilityManagerStub StartSelfUIAbilityInCurrentProcessInner
++ * EnvConditions: NA
++ * CaseDescription: Verify the normal and invalid behavior of StartSelfUIAbilityInCurrentProcessInner
++ */
++HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSelfUIAbilityInCurrentProcessInner_0100, TestSize.Level1)
++{
++    MessageParcel data;
++    MessageParcel reply;
++    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
++    Want want;
++    ASSERT_TRUE(data.WriteParcelable(&want));
++    std::string specifiedFlag = "testFlag";
++    ASSERT_TRUE(data.WriteString(specifiedFlag));
++    auto startOptions = new (std::nothrow) StartOptions();
++    ASSERT_NE(startOptions, nullptr);
++    ASSERT_TRUE(data.WriteParcelable(startOptions));
++    ASSERT_TRUE(data.WriteBool(true));
++    ASSERT_TRUE(data.WriteBool(false));
++    auto result = stub_->StartSelfUIAbilityInCurrentProcessInner(data, reply);
++    EXPECT_EQ(result, NO_ERROR);
++}
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/test/unittest/app_mgr_client_test/app_mgr_client_test.cpp b/test/unittest/app_mgr_client_test/app_mgr_client_test.cpp
+index 9cf9a532a6..59475fb9fd 100644
+--- a/test/unittest/app_mgr_client_test/app_mgr_client_test.cpp
++++ b/test/unittest/app_mgr_client_test/app_mgr_client_test.cpp
+@@ -1597,10 +1597,27 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_SetProcessCacheEnable_001, TestSize.Leve
+ }
+ 
+ /**
+- * @tc.name: AppMgrClient_GetConfiguration_001
++ * @tc.name: AppMgrClient_SetProcessCacheEnable_002
+  * @tc.desc: SetProcessCacheEnable.
+  * @tc.type: FUNC
+  */
++HWTEST_F(AppMgrClientTest, AppMgrClient_SetProcessCacheEnable_002, TestSize.Level2)
++{
++    auto appMgrClient = std::make_unique<AppMgrClient>();
++    ASSERT_NE(appMgrClient, nullptr);
++    auto ret = appMgrClient->ConnectAppMgrService();
++    EXPECT_EQ(ret, AppMgrResultCode::RESULT_OK);
++    int32_t pid = 1;
++    bool enable = false;
++    auto result = appMgrClient->SetProcessCacheEnable(pid, enable);
++    EXPECT_NE(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
++}
++
++/**
++ * @tc.name: AppMgrClient_GetConfiguration_001
++ * @tc.desc: GetConfiguration.
++ * @tc.type: FUNC
++ */
+ HWTEST_F(AppMgrClientTest, AppMgrClient_GetConfiguration_001, TestSize.Level2)
+ {
+     auto appMgrClient = std::make_unique<AppMgrClient>();
+diff --git a/test/unittest/frameworks_kits_ability_ability_runtime_test/ability_context_impl_test.cpp b/test/unittest/frameworks_kits_ability_ability_runtime_test/ability_context_impl_test.cpp
+index 7160b0c601..62bb2d19c8 100644
+--- a/test/unittest/frameworks_kits_ability_ability_runtime_test/ability_context_impl_test.cpp
++++ b/test/unittest/frameworks_kits_ability_ability_runtime_test/ability_context_impl_test.cpp
+@@ -2766,5 +2766,19 @@ HWTEST_F(AbilityContextImplTest, GetFailureInfoByMessage_0100, Function | Medium
+     EXPECT_EQ(faileCode, 0);
+     EXPECT_EQ(failReason, "A system error occurred");
+ }
++
++/**
++ * @tc.number: StartSelfUIAbilityInCurrentProcess_0100
++ * @tc.name: StartSelfUIAbilityInCurrentProcess
++ * @tc.desc: Verify that function StartSelfUIAbilityInCurrentProcess.
++ */
++HWTEST_F(AbilityContextImplTest, StartSelfUIAbilityInCurrentProcess_0100, Function | MediumTest | Level1)
++{
++    AAFwk::Want want;
++    std::string specifiedFlag;
++    AAFwk::StartOptions startOptions;
++    auto ret = context_->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false);
++    EXPECT_EQ(ret, ERR_OK);
++}
+ } // namespace AppExecFwk
+ } // namespace OHOS
+\ No newline at end of file
+diff --git a/test/unittest/frameworks_kits_ability_ability_runtime_test/ability_context_test.cpp b/test/unittest/frameworks_kits_ability_ability_runtime_test/ability_context_test.cpp
+index 60680690c7..ea7ec30875 100644
+--- a/test/unittest/frameworks_kits_ability_ability_runtime_test/ability_context_test.cpp
++++ b/test/unittest/frameworks_kits_ability_ability_runtime_test/ability_context_test.cpp
+@@ -578,6 +578,12 @@ public:
+     {
+         return 0;
+     }
++
++    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
++        const AAFwk::StartOptions &startOptions, bool isHaveOptions)
++    {
++        return ERR_OK;
++    }
+ private:
+     std::unique_ptr<NativeReference> mockContentStorage_ = nullptr;
+ };
