@@ -68,6 +68,12 @@ public:
         Uri uri;
         return uri;
     }
+    
+    Uri PrintUri() const
+    {
+        Uri uri;
+        return uri;
+    }
 
     std::string GetUriString() const
     {

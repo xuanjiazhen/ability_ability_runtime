@@ -28,6 +28,11 @@ public:
         return "";
     }
 
+    std::string PrintURI() const
+    {
+        return "";
+    }
+
     bool ParseURI(const std::string &uri)
     {
         return false;
