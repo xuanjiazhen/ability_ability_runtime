@@ -89,7 +89,6 @@ class EventHub {
     if (this.eventMap[event].indexOf(callback) === -1) {
       this.eventMap[event].push(callback);
     }
-
     if (this.emitMultiThreadingEnabled === true && this.emitter !== undefined) {
       if (this.emitter.getListenerCount(this.getEmitterEventName(event)) === 0) {
         this.emitter.on(this.getEmitterEventName(event), (eventData) => this.onEmitterFunction(eventData));
