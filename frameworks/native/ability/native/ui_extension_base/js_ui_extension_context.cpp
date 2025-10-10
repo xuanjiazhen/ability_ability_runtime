@@ -1568,6 +1568,9 @@ napi_value JsUIExtensionContext::CreateJsUIExtensionContext(napi_env env,
     BindNativeFunction(env, objValue, "setColorMode", moduleName, SetColorMode);
     BindNativeFunction(env, objValue, "setHostPageOverlayForbidden", moduleName, SetHostPageOverlayForbidden);
 
+    std::string type = "UIExtensionContext";
+    napi_set_named_property(env, objValue, "contextType", CreateJsValue(env, type));
+
     return objValue;
 }
 
