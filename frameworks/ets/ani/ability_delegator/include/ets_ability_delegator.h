@@ -86,6 +86,8 @@ public:
 
     static ani_ref GetCurrentTopAbility(ani_env *env, [[maybe_unused]]ani_class aniClass, ani_object callback);
 
+    static void SetMockList(ani_env *env,  [[maybe_unused]]ani_class aniClass, ani_object aniMockList);
+
 private:
     static ani_object WrapShellCmdResult(ani_env *env, std::unique_ptr<AppExecFwk::ShellCmdResult> result);
 
