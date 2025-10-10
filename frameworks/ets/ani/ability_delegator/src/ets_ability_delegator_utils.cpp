@@ -98,7 +98,9 @@ bool BindFunctions(ani_env *aniEnv, ani_class abilityDelegator)
         ani_native_function {"getAbilityState", STRING_UIABILITY_NUMBER,
             reinterpret_cast<void *>(EtsAbilityDelegator::GetAbilityState)},
         ani_native_function {"nativeGetCurrentTopAbility", STRING_CALLBACK_UIABILITY,
-            reinterpret_cast<void *>(EtsAbilityDelegator::GetCurrentTopAbility)}
+            reinterpret_cast<void *>(EtsAbilityDelegator::GetCurrentTopAbility)},
+        ani_native_function {"setMockList", nullptr,
+            reinterpret_cast<void *>(EtsAbilityDelegator::SetMockList)}
     };
     ani_status status = aniEnv->Class_BindNativeMethods(abilityDelegator, functions.data(), functions.size());
     if (status != ANI_OK) {
