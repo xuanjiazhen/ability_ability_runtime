@@ -170,6 +170,7 @@ constexpr char EVENT_KEY_SUMMARY[] = "SUMMARY";
 constexpr char EVENT_KEY_PNAME[] = "PNAME";
 constexpr char EVENT_KEY_THREAD_NAME[] = "THREAD_NAME";
 constexpr char EVENT_KEY_APP_RUNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
+constexpr char EVENT_KEY_PROCESS_LIFETIME[] = "PROCESS_LIFETIME";
 constexpr char EVENT_KEY_PROCESS_RSS_MEMINFO[] = "PROCESS_RSS_MEMINFO";
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
@@ -203,6 +204,15 @@ const std::string BLANK_URL = "about:blank";
 constexpr uint32_t NWEB_SURFACE_SIZE = 1;
 constexpr int32_t PRELOAD_TASK_DELAY_TIME = 2000;  //millisecond
 #endif
+
+#define OHOS_TEMP_FAILURE_RETRY(exp)               \
+    ({                                             \
+        long int _rc;                              \
+        do {                                       \
+            _rc = (long int)(exp);                 \
+        } while ((_rc == -1) && (errno == EINTR)); \
+        _rc;                                       \
+    })
 
 extern "C" int DFX_SetAppRunningUniqueId(const char* appRunningId, size_t len) __attribute__((weak));
 
@@ -1954,7 +1964,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     ApplicationEnvImpl *pAppEvnIml = ApplicationEnvImpl::GetInstance();
 
     if (pAppEvnIml) {
-        pAppEvnIml->SetAppInfo(*applicationInfo_.get(), appLaunchData.GetAppPreloadMode());
+        pAppEvnIml->SetAppInfo(*applicationInfo_.get());
     } else {
         TAG_LOGE(AAFwkTag::APPKIT, "null pAppEvnIml");
     }
@@ -1975,6 +1985,78 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         appMgr_->PreloadModuleFinished(applicationImpl_->GetRecordId());
         TAG_LOGI(AAFwkTag::APPKIT, "preoload module finished");
     }
+}
+
+bool ReadFdToString(int fd, std::string& content)
+{
+    content.clear();
+    struct stat sb;
+    if (fstat(fd, &sb) != -1 && sb.st_size > 0) {
+        content.reserve(sb.st_size);
+    }
+
+    char buf[BUFSIZ] = {0};
+    ssize_t n;
+    while ((n = OHOS_TEMP_FAILURE_RETRY(read(fd, buf, sizeof(buf)))) > 0) {
+        content.append(buf, n);
+    }
+    return (n == 0);
+}
+
+bool GetProcessStartTime(pid_t pid, unsigned long long &startTime)
+{
+    std::string path = "/proc/" +std::to_string(pid);
+    UniqueFd dirFd(open(path.c_str(), O_DIRECTORY | O_RDONLY));
+    if (dirFd == -1) {
+        return false;
+    }
+
+    UniqueFd statFd(openat(dirFd.Get(), "stat", O_RDONLY | O_CLOEXEC));
+    if (statFd == -1) {
+        return false;
+    }
+
+    std::string statStr;
+    if (!ReadFdToString(statFd.Get(), statStr)) {
+        return false;
+    }
+
+    std::string eoc = statStr.substr(statStr.find_last_of(")"));
+    std::istringstream is(eoc);
+    constexpr int startTimePos = 21;
+    constexpr int base = 10;
+    int pos = 0;
+    std::string tmp;
+    while (is >> tmp && pos <= startTimePos) {
+        pos++;
+        if (pos == startTimePos) {
+            startTime = strtoull(tmp.c_str(), nullptr, base);
+            return true;
+        }
+    }
+    return false;
+}
+
+std::string GetProcessLifeCycle(pid_t pid)
+{
+    struct timespec ts;
+    (void)clock_gettime(CLOCK_BOOTTIME, &ts);
+    uint64_t sysUpTime = static_cast<uint64_t>(ts.tv_sec + static_cast<time_t>(ts.tv_nsec != 0 ? 1L : 0L));
+
+    unsigned long long startTime = 0;
+    if (GetProcessStartTime(pid, startTime)) {
+        auto clkTck = sysconf(_SC_CLK_TCK);
+        if (clkTck == -1) {
+            return "";
+        }
+        uint64_t procUpTime = sysUpTime - startTime / static_cast<uint32_t>(clkTck);
+        constexpr uint64_t invalidTimeLimit = 10 * 365 * 24 * 3600; // 10 year
+        if (procUpTime > invalidTimeLimit) {
+            return "";
+        }
+        return std::to_string(procUpTime) + "s";
+    }
+    return "";
 }
 
 /**
@@ -2000,13 +2082,14 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
         }
         time_t timet;
         time(&timet);
+        auto lifeTime = GetProcessLifeCycle(pid);
         HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, "JS_ERROR",
             OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_KEY_PACKAGE_NAME, bundleName,
             EVENT_KEY_VERSION, std::to_string(versionCode), EVENT_KEY_TYPE, JSCRASH_TYPE, EVENT_KEY_HAPPEN_TIME, timet,
             EVENT_KEY_REASON, errorObject.name, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, summary,
             EVENT_KEY_PNAME, processName, EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId,
             EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()),
-            EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
+            EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName(), EVENT_KEY_PROCESS_LIFETIME, lifeTime);
 
         ErrorObject appExecErrorObj = { errorObject.name, errorObject.message, errorObject.stack};
         auto napiEnv = (static_cast<AbilityRuntime::JsRuntime&>(*appThread->application_->GetRuntime())).GetNapiEnv();
