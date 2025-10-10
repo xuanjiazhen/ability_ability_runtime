@@ -32,6 +32,8 @@ namespace AbilityRuntime {
 using namespace OHOS::AAFwk;
 namespace {
 constexpr char PRODUCT_APPBOOT_SETTING_ENABLED[] = "const.product.appboot.setting.enabled";
+const std::string UIAbility = "UIAbility";
+const std::string ServiceExtension = "ServiceExtension";
 } // namespace
 
 AbilityAutoStartupService::AbilityAutoStartupService() {}
@@ -529,7 +531,7 @@ bool AbilityAutoStartupService::IsTargetExtension(const AutoStartupInfo &info,
 std::string AbilityAutoStartupService::GetAbilityTypeName(const AppExecFwk::AbilityInfo &abilityInfo)
 {
     if (abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
-        return "UIAbility";
+        return UIAbility;
     }
     return "";
 }
@@ -541,7 +543,7 @@ std::string AbilityAutoStartupService::GetExtensionTypeName(
         case AppExecFwk::ExtensionAbilityType::APP_SERVICE:
             return EXTENSION_TYPE_APP_SERVICE;
         case AppExecFwk::ExtensionAbilityType::SERVICE:
-            return "ServiceExtension";
+            return ServiceExtension;
         default:
             return "";
     }

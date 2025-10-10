@@ -75,6 +75,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+constexpr const char* EXTENSION_TYPE_APP_SERVICE = "AppServiceExtension";
 class IStatusBarDelegate;
 struct ExtractInsightIntentGenericInfo;
 struct LinkIntentParamMapping;
