@@ -84,7 +84,9 @@ public:
 
     static void StartAbility(ani_env *env, [[maybe_unused]]ani_object object, ani_object wantObj, ani_object callback);
 
-    static ani_ref GetCurrentTopAbility(ani_env *env, [[maybe_unused]]ani_class aniClass, ani_object callback);
+    static ani_ref GetCurrentTopAbility(ani_env* env, [[maybe_unused]]ani_class aniClass, ani_object callback);
+
+    static void SetMockList(ani_env *env, [[maybe_unused]]ani_class aniClass, ani_object aniMockList);
 
 private:
     static ani_object WrapShellCmdResult(ani_env *env, std::unique_ptr<AppExecFwk::ShellCmdResult> result);
@@ -120,6 +122,14 @@ private:
     static void CleanAndFindMonitorRecord(ani_env *env, ani_object monitorObj);
 
     static bool CheckMonitorPara(ani_env *env, ani_object monitorObj);
+
+    static bool ParseMockListPara(ani_env *env, ani_object aniMockList, std::map<std::string, std::string> &mockList);
+
+    static bool ParseMockListParaInner(ani_env *env, ani_ref next, ani_object aniMockList,
+        ani_ref &aniKey, ani_ref &aniValue);
+
+    static void GetMockList(ani_env *env, ani_string aniKey, ani_string aniValue,
+        std::map<std::string, std::string> &mockList);
 };
 } // namespace AbilityDelegatorEts
 } // namespace OHOS
