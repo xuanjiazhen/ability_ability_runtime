@@ -696,7 +696,7 @@ ani_enum_item GetArea(ani_env *env, ani_object obj)
     return areaModeItem;
 }
 
-std::string GetLogFileDir(ani_env *env, ani_object obj)
+ani_string GetLogFileDir(ani_env *env, ani_object obj)
 {
     auto context = GetBaseContext(env, obj);
     if (env == nullptr || context == nullptr) {
