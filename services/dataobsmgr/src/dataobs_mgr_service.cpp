@@ -378,8 +378,8 @@ int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbili
         LOG_ERROR("register failed:%{public}d,uri:%{public}s", status, CommonUtils::Anonymous(uri.ToString()).c_str());
         return status;
     }
-    LOG_ERROR("register success,uri:%{public}s pid %{public}d nodeId %{public}d", uri.ToString().c_str(), pid, observerNode.nodeId_);
-    TAG_LOGE(AAFwkTag::DBOBSMGR, "register success,uri:%{public}s pid %{public}d nodeId %{public}d", uri.ToString().c_str(), pid, observerNode.nodeId_);
+    //TAG_LOGE(AAFwkTag::DBOBSMGR, "register success,uri:%{public}s pid %{public}d nodeId %{public}d", uri.ToString().c_str(), pid, observerNode.nodeId_);
+    TAG_LOGE(AAFwkTag::DBOBSMGR, "register success,uri:%{public}s pid %{public}d", uri.ToString().c_str(), pid);
     return NO_ERROR;
 }
 
