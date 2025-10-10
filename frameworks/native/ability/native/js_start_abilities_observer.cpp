@@ -16,6 +16,10 @@
 #include "js_start_abilities_observer.h"
 
 #include "hilog_tag_wrapper.h"
+#include "appexecfwk_async_callback.h"
+#include "ets_error_util.h"
+#include "ability_error_code.h"
+#include "errors.h"  
  
 namespace OHOS {
 namespace AbilityRuntime {
@@ -66,6 +70,7 @@ void JsStartAbilitiesObserver::AddEtsObserver(ani_env *env, const std::string &r
         }
     }
     ani_ref global = nullptr;
+    ani_status status = ANI_ERROR;
     if ((status = env->GlobalReference_Create(callback, &global)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "status: %{public}d", status);
         return;

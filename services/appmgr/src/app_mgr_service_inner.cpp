@@ -1763,6 +1763,9 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
         TAG_LOGD(AAFwkTag::APPMGR, "callerRecord null");
     }
     AAFwk::EventReport::SendAppForegroundEvent(AAFwk::EventName::APP_FOREGROUND, eventInfo);
+    if (appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
+        appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
+    }
 }
 
 void AppMgrServiceInner::ApplicationBackgrounded(const int32_t recordId)
@@ -7694,6 +7697,8 @@ FaultData AppMgrServiceInner::ConvertDataTypes(const AppFaultDataBySA &faultData
     newfaultData.procStatm = faultData.procStatm;
     newfaultData.isInForeground = faultData.isInForeground;
     newfaultData.isEnableMainThreadSample = faultData.isEnableMainThreadSample;
+    newfaultData.applicationHeapInfo = faultData.applicationHeapInfo;
+    newfaultData.processLifeTime = faultData.processLifeTime;
     if (appRunningManager_) {
         std::string appRunningUniqueId;
         int32_t ret = appRunningManager_->GetAppRunningUniqueIdByPid(faultData.pid, appRunningUniqueId);

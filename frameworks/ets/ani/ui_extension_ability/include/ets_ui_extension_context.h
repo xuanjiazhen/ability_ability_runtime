@@ -38,15 +38,20 @@ public:
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    virtual void HandleOnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode);
+    virtual void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
     void CallEtsFailed(int32_t errorCode);
-    void SetConnectionId(int32_t id);
-    int32_t GetConnectionId() { return connectionId_; }
+    void SetConnectionId(int64_t id);
+    int64_t GetConnectionId() { return connectionId_; }
     void SetConnectionRef(ani_object connectOptionsObj);
-
+    void RemoveConnectionObject();
+    ani_ref GetEtsConnectionObject() { return etsConnectionRef_; }
 protected:
+    void ReleaseObjectReference(ani_ref etsObjRef);
     ani_vm *etsVm_ = nullptr;
-    int32_t connectionId_ = -1;
-    ani_ref stsConnectionRef_ = nullptr;
+    int64_t connectionId_ = -1;
+    ani_ref etsConnectionRef_ = nullptr;
 };
 
 class EtsUIExtensionContext final {
@@ -73,6 +78,14 @@ public:
     static void StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
         ani_object callback);
     static bool UnwrapWantList(ani_env *env, ani_object wantListObj, std::vector<AAFwk::Want> &wantList);
+    static void ConnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object uiServiceExtConCallbackObj, ani_object callback);
+    static void StartUIServiceExtension(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_object callback);
+    static void DisconnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object proxyObj,
+        ani_object callback);
+    static void WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj);
+    static void DisconnectUIServiceExtensionCheck(ani_env *env, ani_object aniObj, ani_object proxyObj);
 
     static bool BindNativePtrCleaner(ani_env *env);
     static void Clean(ani_env *env, ani_object object);
@@ -95,6 +108,11 @@ private:
     void OnReportDrawnCompleted(ani_env *env,  ani_object aniCls, ani_object callback);
     void OnStartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
         ani_object callback);
+    void OnConnectUIServiceExtension(ani_env *env, ani_object wantObj, ani_object uiServiceExtConCallbackObj,
+        ani_object callback);
+    void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
+    void OnDisconnectUIServiceExtension(ani_env *env, ani_object proxyObj, ani_object callback);
+    bool CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want& want, ani_object callback, ani_object myCallback);
 
 protected:
     std::weak_ptr<OHOS::AbilityRuntime::UIExtensionContext> context_;
