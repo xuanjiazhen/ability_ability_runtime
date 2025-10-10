@@ -200,7 +200,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
         GetOrCreateServiceRecord(abilityRequest, false, targetService, isLoadedAbility);
     }
     CHECK_POINTER_AND_RETURN(targetService, ERR_INVALID_VALUE);
-    TAG_LOGI(AAFwkTag::EXT, "%{public}s", targetService->GetURI().c_str());
+    TAG_LOGI(AAFwkTag::EXT, "%{public}s", targetService->PrintURI().c_str());
 
     std::string value = abilityRequest.want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE);
     if (UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType) && !value.empty()) {
@@ -298,7 +298,7 @@ void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<AbilityRecor
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "foreground ability: %{public}s, persistentId: %{public}d, abilityState: %{public}s",
-        abilityRecord->GetURI().c_str(), abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str());
+        abilityRecord->PrintURI().c_str(), abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str());
     if (abilityRecord->IsReady() && !abilityRecord->IsAbilityState(AbilityState::INACTIVATING) &&
         !abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING) &&
         !abilityRecord->IsAbilityState(AbilityState::BACKGROUNDING) &&
@@ -2193,7 +2193,7 @@ void AbilityConnectManager::DoBackgroundAbilityWindow(const std::shared_ptr<Abil
     CHECK_POINTER(sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s, persistentId:%{public}d, abilityState:%{public}s",
-        abilityRecord->GetURI().c_str(), sessionInfo->persistentId, abilitystateStr.c_str());
+        abilityRecord->PrintURI().c_str(), sessionInfo->persistentId, abilitystateStr.c_str());
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
     } else if (abilityRecord->IsAbilityState(AbilityState::INITIAL) ||
@@ -2214,7 +2214,7 @@ void AbilityConnectManager::TerminateAbilityWindowLocked(const std::shared_ptr<A
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "ability:%{public}s, persistentId:%{public}d, abilityState:%{public}s",
-        abilityRecord->GetURI().c_str(), sessionInfo->persistentId, abilitystateStr.c_str());
+        abilityRecord->PrintURI().c_str(), sessionInfo->persistentId, abilitystateStr.c_str());
     EventInfo eventInfo = BuildEventInfo(abilityRecord);
     EventReport::SendAbilityEvent(EventName::TERMINATE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     std::lock_guard guard(serialMutex_);
@@ -2391,7 +2391,7 @@ void AbilityConnectManager::OnLoadAbilityFailed(std::shared_ptr<AbilityRecord> a
 void AbilityConnectManager::OnAbilityDied(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
-    TAG_LOGI(AAFwkTag::EXT, "%{public}s", abilityRecord->GetURI().c_str());
+    TAG_LOGI(AAFwkTag::EXT, "%{public}s", abilityRecord->PrintURI().c_str());
     if (abilityRecord->GetAbilityInfo().type != AbilityType::SERVICE &&
         abilityRecord->GetAbilityInfo().type != AbilityType::EXTENSION) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "type not service");
@@ -2601,7 +2601,7 @@ void AbilityConnectManager::DisconnectBeforeCleanup()
     for (auto it = serviceMap.begin(); it != serviceMap.end(); ++it) {
         auto abilityRecord = it->second;
         CHECK_POINTER(abilityRecord);
-        TAG_LOGI(AAFwkTag::EXT, "ability will died: %{public}s", abilityRecord->GetURI().c_str());
+        TAG_LOGI(AAFwkTag::EXT, "ability will died: %{public}s", abilityRecord->PrintURI().c_str());
         if (abilityRecord->GetAbilityInfo().type != AbilityType::SERVICE &&
             abilityRecord->GetAbilityInfo().type != AbilityType::EXTENSION) {
             TAG_LOGW(AAFwkTag::EXT, "type not service");
@@ -2782,7 +2782,7 @@ void AbilityConnectManager::HandleUIExtensionDied(const std::shared_ptr<AbilityR
 
 void AbilityConnectManager::RestartAbility(const std::shared_ptr<AbilityRecord> &abilityRecord, int32_t currentUserId)
 {
-    TAG_LOGI(AAFwkTag::EXT, "restart ability: %{public}s", abilityRecord->GetURI().c_str());
+    TAG_LOGI(AAFwkTag::EXT, "restart ability: %{public}s", abilityRecord->PrintURI().c_str());
     AbilityRequest requestInfo;
     requestInfo.want = abilityRecord->GetWant();
     requestInfo.abilityInfo = abilityRecord->GetAbilityInfo();
@@ -3284,7 +3284,7 @@ void AbilityConnectManager::MoveToTerminatingMap(const std::shared_ptr<AbilityRe
     TAG_LOGD(AAFwkTag::EXT, "ServiceMap remove, size:%{public}zu", serviceMap_.size());
     AbilityCacheManager::GetInstance().Remove(abilityRecord);
     if (IsSpecialAbility(abilityRecord->GetAbilityInfo())) {
-        TAG_LOGI(AAFwkTag::EXT, "moving ability: %{public}s", abilityRecord->GetURI().c_str());
+        TAG_LOGI(AAFwkTag::EXT, "moving ability: %{public}s", abilityRecord->PrintURI().c_str());
     }
 }
 

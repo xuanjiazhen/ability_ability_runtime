@@ -6734,7 +6734,7 @@ int AbilityManagerService::AttachAbilityThread(
     auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE;
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     auto type = abilityInfo.type;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", abilityRecord->GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", abilityRecord->PrintURI().c_str());
     // force timeout ability for test
     if (IsNeedTimeoutForTest(abilityInfo.name, AbilityRecord::ConvertAbilityState(AbilityState::INITIAL))) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
@@ -7328,7 +7328,7 @@ int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &toke
     CHECK_POINTER_AND_RETURN_LOG(abilityRecord, ERR_INVALID_VALUE, "Ability record is nullptr.");
     auto callerPid = IPCSkeleton::GetCallingPid();
     TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityTransitionDone, ability:%{public}s, state:%{public}d, callerPid:%{public}d",
-        abilityRecord->GetURI().c_str(), state, callerPid);
+        abilityRecord->PrintURI().c_str(), state, callerPid);
     if (!JudgeSelfCalled(abilityRecord)) {
         return CHECK_PERMISSION_FAILED;
     }
@@ -7400,7 +7400,7 @@ int AbilityManagerService::AbilityWindowConfigTransitionDone(
         return CHECK_PERMISSION_FAILED;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", abilityRecord->GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", abilityRecord->PrintURI().c_str());
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     auto type = abilityInfo.extensionAbilityType;
     if (type != AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
@@ -7932,7 +7932,7 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
 {
     CHECK_POINTER(abilityRecord);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "On ability died: %{public}s, %{public}d, %{public}" PRId64,
-        abilityRecord->GetURI().c_str(), abilityRecord->GetRecordId(),
+        abilityRecord->PrintURI().c_str(), abilityRecord->GetRecordId(),
         abilityRecord->GetAbilityRecordId());
     if (abilityRecord->GetToken()) {
         FreezeUtil::GetInstance().DeleteLifecycleEvent(abilityRecord->GetToken()->AsObject());

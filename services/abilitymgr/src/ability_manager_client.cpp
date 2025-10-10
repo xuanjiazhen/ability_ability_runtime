@@ -1163,7 +1163,7 @@ ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s", want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s", want.GetElement().PrintURI().c_str());
     return abms->StartAbilityForPrelaunch(want);
 }
 
