@@ -4175,7 +4175,7 @@ int32_t UIAbilityLifecycleManager::NotifyStartupExceptionBySCB(int32_t requestId
         if (requestId == it->first) {
             auto abilityRecord = it->second;
             if (abilityRecord != nullptr) {
-                TAG_LOGW(AAFwkTag::ABILITYMGR, "startup exception: %{public}s", abilityRecord->GetURI().c_str());
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "startup exception: %{public}s", abilityRecord->PrintURI().c_str());
                 SendAbilityEvent(abilityRecord->GetAbilityInfo(), reason);
             }
             tmpAbilityMap_.erase(it);
