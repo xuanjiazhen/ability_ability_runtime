@@ -16,6 +16,7 @@
 #ifndef OHOS_AAFWK_HILOG_TAG_WRAPPER_H
 #define OHOS_AAFWK_HILOG_TAG_WRAPPER_H
 
+#include <algorithm>
 #include <cinttypes>
 #include <map>
 #include <string>
@@ -212,16 +213,19 @@ static std::unordered_map<std::string, std::string> abbrFileNameMap {
     { "ui_ability_lifecycle_manager", "UALM" }
 };
 
-[[maybe_unused]] static std::string ConvertFileName(const std::string& fileName)
+[[maybe_unused]] static std::string ConvertFileName(const std::string &fileName)
 {
-    std::string fileBaseName = fileName;
     auto pos = fileName.find_last_of(".");
     if (pos == std::string::npos) {
-        return fileBaseName;
+        return fileName;
     }
-    fileBaseName = fileName.substr(0, pos);
-    if (abbrFileNameMap.find(fileBaseName) != abbrFileNameMap.end()) {
-        return abbrFileNameMap[fileBaseName];
+    std::string fileBaseName = fileName.substr(0, pos);
+    auto iter = std::find_if(abbrFileNameMap.begin(), abbrFileNameMap.end(), 
+        [&fileBaseName](const std::pair<std::string, std::string>& pair) {
+            return pair.first == fileBaseName;
+    });
+    if (iter != abbrFileNameMap.end()) {
+        return iter->second;
     }
     return fileBaseName;
 }
