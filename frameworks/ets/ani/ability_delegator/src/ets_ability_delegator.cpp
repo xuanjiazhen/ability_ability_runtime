@@ -26,6 +26,7 @@
 #include "ets_error_utils.h"
 #include "ets_native_reference.h"
 #include "hilog_tag_wrapper.h"
+#include "mocklist_ani.h"
 #include "shell_cmd_result.h"
 
 namespace OHOS {
@@ -44,6 +45,14 @@ namespace {
 constexpr const char* CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
 constexpr const char* SHELL_CMD_RESULT_CLASS_NAME = "Lapplication/shellCmdResult/ShellCmdResultImpl;";
 constexpr const char* ABILITY_STAGE_CLASS_NAME = "L@ohos/app/ability/AbilityStage/AbilityStage;";
+constexpr const char* DELEGATOR_RECORD_KEY = "keys";
+constexpr const char* DELEGATOR_RECORD_NEXT = "next";
+constexpr const char* DELEGATOR_RECORD_DONE = "done";
+constexpr const char* DELEGATOR_RECORD_VALUE = "value";
+constexpr const char* DELEGATOR_RECORD_CLASS_NAME = "escompat.Record";
+constexpr const char* DELEGATOR_RECORD_GET = "$_get";
+constexpr const char* DELEGATOR_RECORD_GET_NAME =
+    "X{C{std.core.BaseEnum}C{std.core.Numeric}C{std.core.String}}:C{std.core.Object}";
 constexpr int COMMON_FAILED = 16000100;
 constexpr ani_double INVALID_LIFECYCLE_STATE = -1;
 }
@@ -1205,6 +1214,109 @@ void EtsAbilityDelegator::CleanAndFindMonitorRecord(ani_env *env, ani_object mon
         }
         ++iter;
     }
+}
+
+void EtsAbilityDelegator::SetMockList(ani_env *env, [[maybe_unused]]ani_class aniClass, ani_object aniMockList)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "env is nullptr");
+        return;
+    }
+    std::map<std::string, std::string> mockList;
+    if (!ParseMockListPara(env, aniMockList, mockList)) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "ParseMockListPara failed");
+        AbilityRuntime::EtsErrorUtil::ThrowError(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM),
+            "Parse mockList failed, mockList must be MockList.");
+        return;
+    }
+    if (!mocklist_set_from_ani(env, static_cast<void*>(&mockList))) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "mocklist_set_from_ani failed");
+        return;
+    }
+}
+
+bool EtsAbilityDelegator::ParseMockListPara(ani_env *env, ani_object aniMockList,
+    std::map<std::string, std::string> &mockList)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "env is nullptr");
+        return false;
+    }
+    ani_ref iter = nullptr;
+    ani_status status = ANI_ERROR;
+    status = env->Object_CallMethodByName_Ref(aniMockList, DELEGATOR_RECORD_KEY, nullptr, &iter);
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "Failed to get keys iterator status: %{public}d", status);
+        return false;
+    }
+    ani_ref next = nullptr;
+    ani_boolean done = false;
+    while (ANI_OK == env->Object_CallMethodByName_Ref(
+        static_cast<ani_object>(iter), DELEGATOR_RECORD_NEXT, nullptr, &next)) {
+        status = env->Object_GetFieldByName_Boolean(static_cast<ani_object>(next), DELEGATOR_RECORD_DONE, &done);
+        if (ANI_OK != status) {
+            TAG_LOGE(AAFwkTag::DELEGATOR, "Failed to check iterator done status: %{public}d", status);
+            return false;
+        }
+        if (done) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "[forEachMapEntry] done break");
+            return true;
+        }
+        ani_ref aniKey = nullptr;
+        ani_ref aniValue = nullptr;
+        if (!ParseMockListParaInner(env, next, aniMockList, aniKey, aniValue)) {
+            TAG_LOGE(AAFwkTag::DELEGATOR, "ParseMockListParaInner failed");
+            return false;
+        }
+        GetMockList(env, static_cast<ani_string>(aniKey), static_cast<ani_string>(aniValue), mockList);
+    }
+    return true;
+}
+
+bool EtsAbilityDelegator::ParseMockListParaInner(ani_env *env, ani_ref next,
+    ani_object aniMockList, ani_ref &aniKey, ani_ref &aniValue)
+{
+    ani_status status = ANI_ERROR;
+    status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(next), DELEGATOR_RECORD_VALUE, &aniKey);
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "Failed to get value status: %{public}d", status);
+        return false;
+    }
+    ani_class recordCls = nullptr;
+    status = env->FindClass(DELEGATOR_RECORD_CLASS_NAME, &recordCls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "FindClass failed status: %{public}d", status);
+        return false;
+    }
+    ani_method recordGetMethod = nullptr;
+    status = env->Class_FindMethod(recordCls, DELEGATOR_RECORD_GET, DELEGATOR_RECORD_GET_NAME, &recordGetMethod);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status: %{public}d", status);
+        return false;
+    }
+    status = env->Object_CallMethod_Ref(aniMockList, recordGetMethod, &aniValue, static_cast<ani_string>(aniKey));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethod_Void failed status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+void EtsAbilityDelegator::GetMockList(ani_env *env, ani_string aniKey, ani_string aniValue,
+    std::map<std::string, std::string> &mockList)
+{
+    std::string mapKey = "";
+    if (!GetStdString(env, aniKey, mapKey)) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "GetStdString failed");
+        return;
+    }
+    std::string mapValue = "";
+    if (!GetStdString(env, aniValue, mapValue)) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "GetStdString failed");
+        return;
+    }
+    mockList.emplace(mapKey, mapValue);
 }
 } // namespace AbilityDelegatorEts
 } // namespace OHOS
