@@ -14,9 +14,6 @@
  */
 
 namespace AbilityConstant {
-
-  const REASON_MESSAGE_DESKTOP_SHORTCUT = 'ReasonMessage_DesktopShortcut';
-
   export interface LaunchParam {
     launchReason: LaunchReason;
     launchReasonMessage?: string;
