@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,18 +29,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace { // nameless
-static std::map<NativeValueType, std::string> logcast = {
-    { NATIVE_UNDEFINED, std::string("NATIVE_UNDEFINED") },
-    { NATIVE_NULL, std::string("NATIVE_NULL") },
-    { NATIVE_BOOLEAN, std::string("NATIVE_BOOLEAN") },
-    { NATIVE_NUMBER, std::string("NATIVE_NUMBER") },
-    { NATIVE_STRING, std::string("NATIVE_STRING") },
-    { NATIVE_SYMBOL, std::string("NATIVE_SYMBOL") },
-    { NATIVE_OBJECT, std::string("NATIVE_OBJECT") },
-    { NATIVE_FUNCTION, std::string("NATIVE_FUNCTION") },
-    { NATIVE_EXTERNAL, std::string("NATIVE_EXTERNAL") },
-    { NATIVE_BIGINT, std::string("NATIVE_BIGINT") },
-};
 
 class JsCallerComplex {
 public:
@@ -212,6 +200,9 @@ public:
 
         auto ret = ptr->ChangeCurrentState(state);
         TAG_LOGD(AAFwkTag::DEFAULT, "ChangeCurrentState ret:%{public}s", ret ? "true" : "false");
+        if (finalizeCallback_) {
+            finalizeCallback_(reinterpret_cast<uintptr_t>(ptr));
+        }
 
         return ret;
     }
@@ -267,7 +258,11 @@ public:
             return;
         }
         napi_ref ref = nullptr;
-        napi_create_reference(env, value, 1, &ref);
+        napi_status createStatus = napi_create_reference(env, value, 1, &ref);
+        if (createStatus != napi_ok || ref == nullptr) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "napi_create_reference failed, %{public}d", createStatus);
+            return;
+        }
         jsRemoteObj_.reset(reinterpret_cast<NativeReference*>(ref));
         jsRemoteObjEnv_ = env;
     }
@@ -362,11 +357,13 @@ private:
         if (callerCallBackObj_ == nullptr) {
             TAG_LOGE(AAFwkTag::DEFAULT, "null CallBacker");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            return CreateJsUndefined(env);
         }
 
         if (!releaseCallFunc_) {
             TAG_LOGE(AAFwkTag::DEFAULT, "null releaseFunc");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            return CreateJsUndefined(env);
         }
         callee_ = nullptr;
         callerCallBackObj_->SetCallBack(nullptr);
@@ -375,6 +372,7 @@ private:
         if (innerErrorCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::DEFAULT, "ReleaseAbility failed %{public}d", static_cast<int>(innerErrorCode));
             ThrowError(env, innerErrorCode);
+            return CreateJsUndefined(env);
         }
 
         return CreateJsUndefined(env);
@@ -387,6 +385,7 @@ private:
         if (info.argc < argcOne) {
             TAG_LOGE(AAFwkTag::DEFAULT, "Invalid argc");
             ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
         }
         bool isCallable = false;
         napi_is_callable(env, info.argv[0], &isCallable);
@@ -461,7 +460,8 @@ private:
         TAG_LOGD(AAFwkTag::DEFAULT, "end");
         return CreateJsUndefined(env);
     }
-
+public:
+    static std::function<void(uintptr_t)> finalizeCallback_;
 private:
     ReleaseCallFunc releaseCallFunc_;
     sptr<IRemoteObject> callee_;
@@ -482,6 +482,7 @@ private:
 
 std::set<JsCallerComplex*> JsCallerComplex::jsCallerComplexManagerList;
 std::mutex JsCallerComplex::jsCallerComplexMutex;
+std::function<void(uintptr_t)> JsCallerComplex::finalizeCallback_;
 } // nameless
 
 napi_value CreateJsCallerComplex(
@@ -529,6 +530,20 @@ napi_value CreateJsCalleeRemoteObject(napi_env env, sptr<IRemoteObject> callee)
         TAG_LOGE(AAFwkTag::DEFAULT, "null remoteObj");
     }
     return napiRemoteObject;
+}
+
+sptr<IRemoteObject> GetJsCallerRemoteObj(uintptr_t jsCallerComplex)
+{
+    auto callerPtr = reinterpret_cast<JsCallerComplex*>(jsCallerComplex);
+    if (callerPtr == nullptr) {
+        return nullptr;
+    }
+    return callerPtr->GetRemoteObject();
+}
+
+void SetFinalizeCallback(std::function<void(uintptr_t)> finalizeCallback)
+{
+    JsCallerComplex::finalizeCallback_ = finalizeCallback;
 }
 } // AbilityRuntime
 } // OHOS

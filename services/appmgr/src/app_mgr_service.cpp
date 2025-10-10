@@ -310,7 +310,7 @@ void AppMgrService::AbilityCleaned(const sptr<IRemoteObject> &token)
     auto callerUid = IPCSkeleton::GetCallingUid();
     auto appRecord = appMgrServiceInner_->GetTerminatingAppRunningRecord(token);
     if (!appRecord || appRecord->GetUid() != callerUid) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "verification failed");
         return;
     }
 
@@ -1122,6 +1122,16 @@ int32_t AppMgrService::GetConfiguration(Configuration& config)
     return ERR_OK;
 }
 
+int32_t AppMgrService::GetConfiguration(Configuration& config, int32_t userId)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    config = *(appMgrServiceInner_->GetConfiguration(userId));
+    return ERR_OK;
+}
+
 int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1130,6 +1140,18 @@ int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const in
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->UpdateConfiguration(config, userId);
+}
+
+int32_t AppMgrService::UpdateConfigurationByUserIds(
+    const Configuration& config, const std::vector<int32_t> userIds)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+
+    return appMgrServiceInner_->UpdateConfigurationByUserIds(config, userIds);
 }
 
 int32_t AppMgrService::UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo>& appInfos,

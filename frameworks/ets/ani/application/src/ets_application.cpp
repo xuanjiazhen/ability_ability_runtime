@@ -22,8 +22,11 @@
 #include "ets_application_context_utils.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
+#include "ets_native_reference.h"
 #include "hilog_tag_wrapper.h"
 #include "permission_verification.h"
+#include "application_env.h"
+#include "ani_enum_convert.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -31,6 +34,7 @@ namespace {
 constexpr const char* PERMISSION_GET_BUNDLE_INFO = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
 constexpr const char* CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
 constexpr const char* APPLICATION_SPACE_NAME = "L@ohos/app/ability/application/application;";
+constexpr const char* APP_PRELOAD_TYPE_NAME = "L@ohos/app/ability/application/application/AppPreloadType;";
 }
 
 ani_object CreateEmptyContextObject(ani_env *env)
@@ -243,6 +247,45 @@ void EtsApplication::CreateBundleContext(ani_env *env,
     SetCreateCompleteCallback(env, bundleContext, callback);
 }
 
+ani_object EtsApplication::GetApplicationContext(ani_env *env)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetApplicationContext Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+    auto etsReference =
+        AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
+    if (etsReference == nullptr || etsReference->aniRef == nullptr) {
+        auto applicationContext = ApplicationContext::GetInstance();
+        ani_object applicationContextObject =
+            EtsApplicationContextUtils::CreateEtsApplicationContext(env, applicationContext);
+        if (applicationContextObject == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null applicationContextObject");
+            AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            ani_ref result = nullptr;
+            env->GetNull(&result);
+            return static_cast<ani_object>(result);
+        }
+        return applicationContextObject;
+    }
+    return reinterpret_cast<ani_object>(etsReference->aniRef);
+}
+
+ani_enum_item EtsApplication::GetAppPreloadType(ani_env *env)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetAppPreloadType Call");
+    ani_enum_item appPreloadTypeItem = nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return appPreloadTypeItem;
+    }
+    auto appPreload = GetAppPreload();
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
+        env, APP_PRELOAD_TYPE_NAME, appPreload, appPreloadTypeItem);
+    return appPreloadTypeItem;
+}
+
 void ApplicationInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ApplicationInit Call");
@@ -269,6 +312,16 @@ void ApplicationInit(ani_env *env)
             "Lapplication/Context/Context;Lstd/core/String;"
             "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(EtsApplication::CreateBundleContext)
+        },
+        ani_native_function {
+            "nativeGetApplicationContext",
+            ":Lapplication/ApplicationContext/ApplicationContext;",
+            reinterpret_cast<void *>(EtsApplication::GetApplicationContext)
+        },
+        ani_native_function {
+            "nativeGetAppPreloadType",
+            ":L@ohos/app/ability/application/application/AppPreloadType;",
+            reinterpret_cast<void *>(EtsApplication::GetAppPreloadType)
         },
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());

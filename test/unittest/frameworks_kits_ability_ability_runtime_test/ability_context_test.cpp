@@ -372,6 +372,10 @@ public:
     {
         return ERR_OK;
     }
+    virtual ErrCode StartAbilityForPrelaunch(const Want &want)
+    {
+        return ERR_OK;
+    }
     virtual ErrCode ReleaseCall(const std::shared_ptr<CallerCallBack> &callback)
     {
         return ERR_OK;
@@ -476,7 +480,7 @@ public:
         return nullptr;
     }
     virtual ErrCode StartAbilityByType(const std::string &type, AAFwk::WantParams &wantParam,
-        const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks)
+        std::shared_ptr<UIExtensionCallback> uiExtensionCallback)
     {
         return ERR_OK;
     }

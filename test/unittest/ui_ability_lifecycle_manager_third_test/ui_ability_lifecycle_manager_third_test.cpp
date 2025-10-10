@@ -428,12 +428,12 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartSpecifiedRequest_005, TestSize
     SpecifiedRequest specifiedRequest(0, AbilityRequest());
     auto originAppMgr = AppMgrUtil::appMgr_;
     auto appmgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
-    AppMgrUtil::appMgr_ = appmgr;
     EXPECT_CALL(*appmgr, IsSpecifiedModuleLoaded)
         .WillOnce([](const Want &, const AppExecFwk::AbilityInfo &, bool &result, bool &) {
             result = true;
             return 0;
         });
+    AppMgrUtil::appMgr_ = appmgr;
     mgr->StartSpecifiedRequest(specifiedRequest);
     EXPECT_FALSE(specifiedRequest.isCold);
     AppMgrUtil::appMgr_ = originAppMgr;

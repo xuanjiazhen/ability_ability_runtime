@@ -43,6 +43,10 @@ ErrCode EcologicalRuleInterceptor::DoProcess(AbilityInterceptorParam param)
         TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "same bundle");
         return ERR_OK;
     }
+    if (param.isTargetPlugin) {
+        TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "start plugin ability");
+        return ERR_OK;
+    }
     ErmsCallerInfo callerInfo;
     ExperienceRule rule;
     AAFwk::Want newWant = param.want;
@@ -226,7 +230,7 @@ void EcologicalRuleInterceptor::GetEcologicalCallerInfo(const Want &want, ErmsCa
         std::string callerBundleName;
         ErrCode err = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerInfo.uid, callerBundleName));
         if (err != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "failed,uid: %{public}d", callerInfo.uid);
+            TAG_LOGW(AAFwkTag::ECOLOGICAL_RULE, "failed,uid: %{public}d", callerInfo.uid);
             return;
         }
         bool getCallerResult = IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(callerBundleName,

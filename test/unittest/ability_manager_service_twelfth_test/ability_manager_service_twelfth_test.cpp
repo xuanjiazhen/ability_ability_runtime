@@ -437,7 +437,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, DisconnectLocalAbility_001, TestSize.
     std::shared_ptr<AbilityConnectManager> connectManager2 = std::make_shared<AbilityConnectManager>(TWO);
     connectManager2->sceneBoardTokenId_ = TWO;
     abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(0, connectManager2));
-    EXPECT_EQ(abilityMs_->DisconnectLocalAbility(connect), ERR_NO_INIT);
+    EXPECT_EQ(abilityMs_->DisconnectLocalAbility(connect), CONNECT_MAMAGER_NOT_FIND_BY_USERID);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest DisconnectLocalAbility_001 end");
 }
@@ -725,7 +725,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, OnStartSpecifiedAbilityTimeoutRespons
     std::shared_ptr<AbilityEventHandler> eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs);
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
     EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
-    abilityMs->OnStartSpecifiedAbilityTimeoutResponse(requestId);
+    int32_t userId = 100;
+    abilityMs->OnStartSpecifiedAbilityTimeoutResponse(requestId, userId);
     auto manager = abilityMs->GetCurrentUIAbilityManager();
     EXPECT_EQ(manager, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnStartSpecifiedAbilityTimeoutResponse_001 end");
@@ -742,7 +743,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, OnStartSpecifiedAbilityTimeoutRespons
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnStartSpecifiedAbilityTimeoutResponse_002 start");
     auto abilityMs = std::make_shared<AbilityManagerService>();
     int32_t requestId = 101;
-    abilityMs->OnStartSpecifiedAbilityTimeoutResponse(requestId);
+    int32_t userId = 100;
+    abilityMs->OnStartSpecifiedAbilityTimeoutResponse(requestId, userId);
     auto manager = abilityMs->GetCurrentUIAbilityManager();
     EXPECT_EQ(manager, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnStartSpecifiedAbilityTimeoutResponse_002 end");
@@ -1316,7 +1318,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, SuspendExtensionAbility_001, TestSize
     EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), ERR_INVALID_VALUE);
 
     connect = new AbilityConnectCallback();
-    EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), ERR_NO_INIT);
+    EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), CONNECT_MAMAGER_NOT_FIND_BY_USERID);
 
     MyFlag::flag_ = false;
     EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), CHECK_PERMISSION_FAILED);
@@ -1342,7 +1344,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, ResumeExtensionAbility_001, TestSize.
     EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), ERR_INVALID_VALUE);
 
     connect = new AbilityConnectCallback();
-    EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), ERR_NO_INIT);
+    EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), CONNECT_MAMAGER_NOT_FIND_BY_USERID);
 
     MyFlag::flag_ = false;
     EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), CHECK_PERMISSION_FAILED);
@@ -1374,7 +1376,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, OnAbilityDied_001, TestSize.Level1)
     if (system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.kioskBundleName_, "");
     }
-    EXPECT_FALSE(abilityMs->VerificationToken(token));
+    EXPECT_FALSE(abilityMs->VerificationAllToken(token));
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnAbilityDied_001 end");
 }
 
@@ -1397,7 +1399,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_001, TestSize.
     connect = new AbilityConnectCallback();
     EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
         [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
-            return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_NO_INIT);
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), CONNECT_MAMAGER_NOT_FIND_BY_USERID);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_001 end");
 }
 

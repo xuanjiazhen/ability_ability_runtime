@@ -240,7 +240,7 @@ void MainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &h
         TAG_LOGD(AAFwkTag::APPKIT, "lib path = %{private}s", libPath.c_str());
         appLibPaths["default"].emplace_back(libPath);
     } else {
-        TAG_LOGI(AAFwkTag::APPKIT, "nativeLibraryPath is empty");
+        TAG_LOGI(AAFwkTag::APPKIT, "NativeLibPath empty");
     }
 
     for (auto &hapInfo : bundleInfo.hapModuleInfos) {
@@ -415,7 +415,7 @@ bool MainThread::ConnectToAppMgr()
         TAG_LOGE(AAFwkTag::APPKIT, "null appMgr_");
         return false;
     }
-    TAG_LOGI(AAFwkTag::APPKIT, "attach to appMGR");
+    TAG_LOGI(AAFwkTag::APPKIT, "attach");
     appMgr_->AttachApplication(this);
     TAG_LOGD(AAFwkTag::APPKIT, "end");
     return true;
@@ -1503,17 +1503,17 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
         return;
     }
-
-    auto bundleName = appInfo.bundleName;
-    auto tmpWatchdog = watchdog_;
-    if (tmpWatchdog != nullptr) {
-        tmpWatchdog->SetBundleInfo(bundleName, appInfo.versionName);
-        tmpWatchdog = nullptr;
-    }
     BundleInfo bundleInfo;
+    auto bundleName = appInfo.bundleName;
     if (!GetBundleForLaunchApplication(bundleMgrHelper, bundleName, appLaunchData.GetAppIndex(), bundleInfo)) {
         TAG_LOGE(AAFwkTag::APPKIT, "get bundleInfo failed");
         return;
+    }
+    auto tmpWatchdog = watchdog_;
+    bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
+    if (tmpWatchdog != nullptr) {
+        tmpWatchdog->SetBundleInfo(bundleName, appInfo.versionName, isSystemApp);
+        tmpWatchdog = nullptr;
     }
 
     bool moduelJson = false;
@@ -1642,7 +1642,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     }
 
     GetNativeLibPath(bundleInfo, hspList, appLibPaths);
-    bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
     TAG_LOGD(AAFwkTag::APPKIT, "the application isSystemApp: %{public}d", isSystemApp);
 #ifdef CJ_FRONTEND
     AbilityRuntime::CJRuntime::SetAppVersion(bundleInfo.applicationInfo.compileSdkVersion);
@@ -1955,7 +1954,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     ApplicationEnvImpl *pAppEvnIml = ApplicationEnvImpl::GetInstance();
 
     if (pAppEvnIml) {
-        pAppEvnIml->SetAppInfo(*applicationInfo_.get());
+        pAppEvnIml->SetAppInfo(*applicationInfo_.get(), appLaunchData.GetAppPreloadMode());
     } else {
         TAG_LOGE(AAFwkTag::APPKIT, "null pAppEvnIml");
     }
@@ -2162,7 +2161,7 @@ void MainThread::CalcNativeLiabraryEntries(const BundleInfo &bundleInfo, std::st
 
     if (loadSoFromDir) {
         if (nativeLibraryPath.empty()) {
-            TAG_LOGW(AAFwkTag::APPKIT, "nativeLibraryPath empty");
+            TAG_LOGW(AAFwkTag::APPKIT, "nativeLibPath empty");
             return;
         }
 
@@ -3028,7 +3027,7 @@ void MainThread::ForceFullGC()
 
 void MainThread::Start()
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "App main thread create, pid:%{public}d", getprocpid());
+    TAG_LOGI(AAFwkTag::APPKIT, "mainthread start, pid:%{public}d", getprocpid());
 
     std::shared_ptr<EventRunner> runner = EventRunner::GetMainEventRunner();
     if (runner == nullptr) {
@@ -3334,6 +3333,7 @@ void MainThread::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &
     if (mainHandler_ == nullptr || !mainHandler_->PostTask(task, "MainThread:AcceptWant")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleAcceptWant end");
 }
 
 void MainThread::SchedulePrepareTerminate(const std::string &moduleName)
@@ -3427,6 +3427,7 @@ void MainThread::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::s
     if (!mainHandler_->PostTask(task, "MainThread:ScheduleNewProcessRequest")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleNewProcessRequest end");
 }
 
 void MainThread::CheckMainThreadIsAlive()
@@ -3998,7 +3999,13 @@ void MainThread::ParseAppConfigurationParams(const std::string configuration, Co
         TAG_LOGE(AAFwkTag::ABILITYMGR, "app config not exist");
         return;
     }
-    nlohmann::json jsonObject = configurationJson.at(JSON_KEY_APP_CONFIGURATION).get<nlohmann::json>();
+    nlohmann::json jsonObject;
+    auto& configValue = configurationJson.at(JSON_KEY_APP_CONFIGURATION);
+    if (!configValue.is_object()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "config not object");
+        return;
+    }
+    jsonObject = configValue.get<nlohmann::json>();
     if (jsonObject.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null app config");
         return;

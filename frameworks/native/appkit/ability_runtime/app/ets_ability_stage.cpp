@@ -31,6 +31,7 @@
 #include "hitrace_meter.h"
 #include "ohos_application.h"
 #include "startup_manager.h"
+#include "application_env.h"
 
 #ifdef WINDOWS_PLATFORM
 #define ETS_EXPORT __declspec(dllexport)
@@ -112,6 +113,7 @@ void ETSAbilityStage::OnCreate(const AAFwk::Want &want) const
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnCreate begin");
     CallObjectMethod(false, "onCreate", ":V");
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnCreate end");
+    ClearAppPreload();
 
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
     if (delegator) {
@@ -124,6 +126,16 @@ void ETSAbilityStage::OnDestroy() const
     TAG_LOGD(AAFwkTag::APPKIT, "OnDestroy called");
     AbilityStage::OnDestroy();
     CallObjectMethod(false, "onDestroy", ":V");
+}
+
+std::string ETSAbilityStage::OnAcceptWant(const AAFwk::Want &want)
+{
+    return std::string();
+}
+
+std::string ETSAbilityStage::OnNewProcessRequest(const AAFwk::Want &want)
+{
+    return std::string();
 }
 
 void ETSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)
@@ -152,6 +164,10 @@ void ETSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration &co
         return;
     }
     CallObjectMethod(false, "onConfigurationUpdate", "L@ohos/app/ability/Configuration/Configuration;:V", configObj);
+}
+
+void ETSAbilityStage::OnMemoryLevel(int32_t level)
+{
 }
 
 bool ETSAbilityStage::CallObjectMethod(bool withResult, const char *name, const char *signature, ...) const
@@ -232,6 +248,13 @@ void ETSAbilityStage::SetEtsAbilityStage(const std::shared_ptr<Context> &context
         TAG_LOGE(AAFwkTag::ABILITY, "context nullptr");
         return;
     }
+
+    if (!etsAbilityStageObj_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        ClearAppPreload();
+        return;
+    }
+
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");

@@ -34,6 +34,7 @@
 #include "js_error_utils.h"
 #include "js_runtime_utils.h"
 #include "js_uiservice_ability_connection.h"
+#include "js_ui_extension_callback.h"
 #include "js_ui_service_proxy.h"
 #include "json_utils.h"
 #include "mission_info.h"
@@ -244,7 +245,7 @@ void StartAbilityByCallComplete(napi_env env, NapiAsyncTask& task, std::weak_ptr
         TAG_LOGD(AAFwkTag::CONTEXT, "callComplete end");
         return;
     }
-    auto releaseCallAbilityFunc = [abilityContext] (const std::shared_ptr<CallerCallBack> &callback) -> ErrCode {
+    auto releaseCallAbilityFunc = [abilityContext] (std::shared_ptr<CallerCallBack> callback) -> ErrCode {
         auto contextForRelease = abilityContext.lock();
         if (contextForRelease == nullptr) {
             TAG_LOGE(AAFwkTag::CONTEXT, "null releaseCallAbilityFunction");

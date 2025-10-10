@@ -170,20 +170,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, HandleInactiveTimeOut_001, TestSize.Lev
 
 /*
  * Feature: AbilityManagerService
- * Function: VerificationToken
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService VerificationToken
- */
-HWTEST_F(AbilityManagerServiceThirdTest, VerificationToken_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest VerificationToken_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_FALSE(abilityMs_->VerificationToken(nullptr));
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest VerificationToken_001 end");
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: VerificationAllToken
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService VerificationAllToken
@@ -441,11 +427,12 @@ HWTEST_F(AbilityManagerServiceThirdTest, OnAcceptWantResponse_001, TestSize.Leve
     abilityMs_->subManagersHelper_->currentUIAbilityManager_ = std::make_shared<UIAbilityLifecycleManager>();
     AAFwk::Want want;
     ASSERT_NE(abilityMs_, nullptr);
-    abilityMs_->OnAcceptWantResponse(want, "test", 0);
+    int32_t userId = 100;
+    abilityMs_->OnAcceptWantResponse(want, "test", 0, userId);
 
     auto temp = abilityMs_->subManagersHelper_->currentMissionListManager_;
     abilityMs_->subManagersHelper_->currentMissionListManager_.reset();
-    abilityMs_->OnAcceptWantResponse(want, "test", 0);
+    abilityMs_->OnAcceptWantResponse(want, "test", 0, userId);
     abilityMs_->subManagersHelper_->currentMissionListManager_ = temp;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest OnAcceptWantResponse_001 end");
 }
@@ -462,11 +449,12 @@ HWTEST_F(AbilityManagerServiceThirdTest, OnStartSpecifiedAbilityTimeoutResponse_
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     ASSERT_NE(abilityMs_, nullptr);
-    abilityMs_->OnStartSpecifiedAbilityTimeoutResponse(0);
+    int32_t userId = 100;
+    abilityMs_->OnStartSpecifiedAbilityTimeoutResponse(0, userId);
 
     auto temp = abilityMs_->subManagersHelper_->currentMissionListManager_;
     abilityMs_->subManagersHelper_->currentMissionListManager_.reset();
-    abilityMs_->OnStartSpecifiedAbilityTimeoutResponse(0);
+    abilityMs_->OnStartSpecifiedAbilityTimeoutResponse(0, userId);
     abilityMs_->subManagersHelper_->currentMissionListManager_ = temp;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest OnStartSpecifiedAbilityTimeoutResponse_001 end");
 }
@@ -483,7 +471,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, OnStartSpecifiedFailed_001, TestSize.Le
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     ASSERT_NE(abilityMs_, nullptr);
-    abilityMs_->OnStartSpecifiedFailed(1);
+    int32_t userId = 100;
+    abilityMs_->OnStartSpecifiedFailed(1, userId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest OnStartSpecifiedFailed_001 end");
 }
 
@@ -2515,7 +2504,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, NotifySCBToHandleAtomicServiceException
 
     int32_t  errCode = 0;
     std::string  reason;
-    abilityMs_->NotifySCBToHandleAtomicServiceException(SESSIONID, errCode, reason);
+    int32_t userId = 100;
+    abilityMs_->NotifySCBToHandleAtomicServiceException(SESSIONID, errCode, reason, userId);
 }
 
 /*
@@ -2926,7 +2916,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckUIExtensionCallerPidByHostWindowId
     ASSERT_NE(sessionInfo, nullptr);
     sessionInfo->hostWindowId = 1;
     abilityRequest.sessionInfo = sessionInfo;
-    abilityMs->CheckUIExtensionCallerPidByHostWindowId(abilityRequest);
+    abilityMs->CheckUIExtensionCallerPidByHostWindowId(abilityRequest, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest CheckUIExtensionCallerPidByHostWindowId_001 end");
 }
 
@@ -2951,7 +2941,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckUIExtensionCallerPidByHostWindowId
     ASSERT_NE(sessionInfo, nullptr);
     sessionInfo->hostWindowId = 1;
     abilityRequest.sessionInfo = sessionInfo;
-    abilityMs->CheckUIExtensionCallerPidByHostWindowId(abilityRequest);
+    abilityMs->CheckUIExtensionCallerPidByHostWindowId(abilityRequest, ERR_INVALID_VALUE);
     sleep(1);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest CheckUIExtensionCallerPidByHostWindowId_002 end");
 }

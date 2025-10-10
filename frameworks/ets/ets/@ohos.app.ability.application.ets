@@ -16,14 +16,27 @@
 import Context from 'application.Context';
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
+import ApplicationContext from 'application.ApplicationContext';
 
 export default namespace application {
   loadLibraryWithPermissionCheck("application_ani.z", "@ohos.app.ability.application")
+
+  export enum AppPreloadType {
+    UNSPECIFIED = 0,
+    TYPE_CREATE_PROCESS = 1,
+    TYPE_CREATE_ABILITY_STAGE = 2,
+    TYPE_CREATE_WINDOW_STAGE = 3,
+  };
+
   export native function nativeCreateModuleContext(context: Context, bundleName: string, moduleName: string,
     callback: AsyncCallbackWrapper<Context>): void;
 
   export native function nativeCreateBundleContext(context: Context, bundleName: string,
     callback: AsyncCallbackWrapper<Context>): void;
+
+  export native function nativeGetApplicationContext(): ApplicationContext;
+
+  export native function nativeGetAppPreloadType(): AppPreloadType;
 
   export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
     let p =
@@ -74,5 +87,13 @@ export default namespace application {
         });
       });
     return p;
+  }
+
+  export function getApplicationContext(): ApplicationContext {
+    return nativeGetApplicationContext();
+  }
+
+  export function getAppPreloadType(): AppPreloadType {
+    return nativeGetAppPreloadType();
   }
 }

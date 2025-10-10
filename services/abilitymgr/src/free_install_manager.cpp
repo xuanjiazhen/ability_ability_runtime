@@ -211,6 +211,11 @@ FreeInstallInfo FreeInstallManager::BuildFreeInstallInfo(const Want &want, int32
         .startOptions = param->startOptions,
         .want = want
     };
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (abilityRecord &&
+        abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        info.isFreeInstallFromService = true;
+    }
     if (param->startOptions != nullptr && !param->startOptions->requestId_.empty()) {
         TAG_LOGD(AAFwkTag::FREE_INSTALL, "set requestId:%{public}s", param->startOptions->requestId_.c_str());
         info.want.SetParam(KEY_REQUEST_ID, param->startOptions->requestId_);
@@ -353,7 +358,7 @@ void FreeInstallManager::HandleOnFreeInstallFail(int32_t recordId, FreeInstallIn
             freeInstallInfo.isStartUIAbilityBySCBCalled) {
             DelayedSingleton<AbilityManagerService>::GetInstance()->NotifySCBToHandleAtomicServiceException(
                 freeInstallInfo.want.GetStringParam(KEY_SESSION_ID),
-                resultCode, "free install failed");
+                resultCode, "free install failed", freeInstallInfo.userId);
         }
         std::string startTime = freeInstallInfo.want.GetStringParam(Want::PARAM_RESV_START_TIME);
         if (freeInstallInfo.isOpenAtomicServiceShortUrl &&
@@ -395,7 +400,7 @@ void FreeInstallManager::StartAbilityByFreeInstall(FreeInstallInfo &info, std::s
     if (result == ERR_OK) {
         if (info.startOptions == nullptr) {
             result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityByFreeInstall(info.want,
-                info.callerToken, info.userId, info.requestCode);
+                info.callerToken, info.userId, info.requestCode, false, info.isFreeInstallFromService);
         } else {
             result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartUIAbilityForOptionWrap(info.want,
                 *info.startOptions, info.callerToken, false, info.userId, info.requestCode);
@@ -426,7 +431,7 @@ void FreeInstallManager::StartAbilityByPreInstall(int32_t recordId, FreeInstallI
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "StartUIAbilityByPreInstall failed: %{public}d", result);
         DelayedSingleton<AbilityManagerService>::GetInstance()->NotifySCBToHandleAtomicServiceException(
             info.want.GetStringParam(KEY_SESSION_ID),
-            result, "start ability failed");
+            result, "start ability failed", info.userId);
     }
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "identity: %{public}s", identity.c_str());
     IPCSkeleton::SetCallingIdentity(identity);
@@ -452,8 +457,8 @@ void FreeInstallManager::StartAbilityByConvertedWant(FreeInstallInfo &info, cons
         result = UpdateElementName(info.want, info.userId);
     }
     if (result == ERR_OK) {
-        result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(info.want,
-            info.callerToken, info.userId, info.requestCode);
+        result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithRemoveIntentFlag(info.want,
+            info.callerToken, info.userId, info.requestCode, true, false, info.isFreeInstallFromService);
     }
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "identity: %{public}s", identity.c_str());
     IPCSkeleton::SetCallingIdentity(identity);

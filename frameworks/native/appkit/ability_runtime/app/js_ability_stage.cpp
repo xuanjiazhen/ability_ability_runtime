@@ -16,6 +16,7 @@
 #include "js_ability_stage.h"
 
 #include "ability_delegator_registry.h"
+#include "event_report.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "js_ability_stage_context.h"
@@ -29,6 +30,7 @@
 #include "ohos_application.h"
 #include "startup_manager.h"
 #include "hitrace_meter.h"
+#include "application_env.h"
 #include <algorithm>
 #include <cstring>
 #include <exception>
@@ -186,7 +188,7 @@ void JsAbilityStage::Init(const std::shared_ptr<Context> &context,
 void JsAbilityStage::LoadModule(const AppExecFwk::HapModuleInfo &hapModuleInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPKIT, "AbilityStage::LoadModule");
+    TAG_LOGI(AAFwkTag::APPKIT, "LoadModule");
     std::string srcPath(hapModuleInfo.name);
     std::string moduleName(hapModuleInfo.moduleName);
     moduleName.append("::").append("AbilityStage");
@@ -230,6 +232,7 @@ void JsAbilityStage::OnCreate(const AAFwk::Want &want) const
 
     if (!jsAbilityStageObj_) {
         TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        ClearAppPreload();
         return;
     }
 
@@ -252,6 +255,7 @@ void JsAbilityStage::OnCreate(const AAFwk::Want &want) const
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     napi_call_function(env, obj, methodOnCreate, 0, nullptr, nullptr);
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "JsAbilityStage::OnCreate end");
+    ClearAppPreload();
 
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
     if (delegator) {
@@ -720,6 +724,23 @@ int32_t JsAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &cal
             TAG_LOGI(AAFwkTag::APPKIT, "OnCompletedCallback");
             callback();
         });
+    const auto timeoutCallback = [moduleName]() {
+        auto startupManager = DelayedSingleton<StartupManager>::GetInstance();
+        if (startupManager == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+            return;
+        }
+        AAFwk::EventInfo eventInfo;
+        eventInfo.errCode = ERR_STARTUP_TIMEOUT;
+        eventInfo.errMsg = "Auto task timeout.";
+        eventInfo.bundleName = startupManager->GetBundleName();
+        eventInfo.appIndex = startupManager->GetAppIndex();
+        eventInfo.moduleName = moduleName;
+        eventInfo.userId = startupManager->GetUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        AAFwk::EventReport::SendAppStartupErrorEvent(
+            AAFwk::EventName::APP_STARTUP_ERROR, HiSysEventType::FAULT, eventInfo);
+    };
+    startupTaskManager->SetTimeoutCallback(timeoutCallback);
     result = startupTaskManager->Run(runAutoStartupCallback);
     if (result != ERR_OK) {
         isAsyncCallback = runAutoStartupCallback->IsCalled();
