@@ -214,12 +214,11 @@ static std::unordered_map<std::string, std::string> abbrFileNameMap {
 
 [[maybe_unused]] static std::string ConvertFileName(const std::string& fileName)
 {
-    std::string fileBaseName = fileName;
     auto pos = fileName.find_last_of(".");
     if (pos == std::string::npos) {
-        return fileBaseName;
+        return fileName;
     }
-    fileBaseName = fileName.substr(0, pos);
+    std::string fileBaseName = fileName.substr(0, pos);
     if (abbrFileNameMap.find(fileBaseName) != abbrFileNameMap.end()) {
         return abbrFileNameMap[fileBaseName];
     }
