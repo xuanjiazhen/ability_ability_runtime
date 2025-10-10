@@ -154,6 +154,7 @@ namespace {
 
 constexpr const char* ARGS_USER_ID = "-u";
 constexpr const char* ARGS_CLIENT = "-c";
+constexpr const char* EXTENSION_TYPE_APP_SERVICE = "AppServiceExtension";
 constexpr const char* ILLEGAL_INFOMATION = "The arguments are illegal and you can enter '-h' for help.";
 
 constexpr int32_t NEW_RULE_VALUE_SIZE = 6;
