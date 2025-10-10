@@ -1836,7 +1836,7 @@ void JsApplicationContextUtils::BindNativeApplicationContextOne(napi_env env, na
     BindNativeProperty(env, object, "preferencesDir", JsApplicationContextUtils::GetPreferencesDir);
     BindNativeProperty(env, object, "bundleCodeDir", JsApplicationContextUtils::GetBundleCodeDir);
     BindNativeProperty(env, object, "cloudFileDir", JsApplicationContextUtils::GetCloudFileDir);
-    BindNativeProperty(env, object, "bundleCodePath", JsApplicationContextUtils::GetLogFileDir);
+    BindNativeProperty(env, object, "logFileDir", JsApplicationContextUtils::GetLogFileDir);
     BindNativeProperty(env, object, "processName", JsApplicationContextUtils::GetProcessName);
     BindNativeFunction(env, object, "registerAbilityLifecycleCallback", MD_NAME,
         JsApplicationContextUtils::RegisterAbilityLifecycleCallback);

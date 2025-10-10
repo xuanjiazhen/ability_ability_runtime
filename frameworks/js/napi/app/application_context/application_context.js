@@ -349,6 +349,10 @@ class ApplicationContext {
     return this.__context_impl__.cloudFileDir;
   }
 
+  get logFileDir() {
+    return this.__context_impl__.logFileDir;
+  }
+
   get eventHub() {
     return this.__context_impl__.eventHub;
   }
