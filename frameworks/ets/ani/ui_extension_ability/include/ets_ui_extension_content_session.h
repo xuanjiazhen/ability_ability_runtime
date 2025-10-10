@@ -99,6 +99,7 @@ public:
         ani_vm *vm, ani_ref callbackRef, const AAFwk::WantParams &wantParams, AAFwk::WantParams &retWantParams);
     std::shared_ptr<AbilityRuntime::Context> GetContext();
     sptr<Rosen::Window> GetUIWindow();
+    sptr<AAFwk::SessionInfo> GetSessionInfo();
     static bool BindNativePtrCleaner(ani_env *env);
     static void Clean(ani_env *env, ani_object object);
 private:

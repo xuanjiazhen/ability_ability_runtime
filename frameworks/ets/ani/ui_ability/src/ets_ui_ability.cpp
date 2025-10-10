@@ -25,6 +25,7 @@
 #include "remote_object_taihe_ani.h"
 #ifdef SUPPORT_SCREEN
 #include "ani_window_stage.h"
+#include "js_window_stage.h"
 #endif
 #include "app_recovery.h"
 #include "connection_manager.h"
@@ -36,8 +37,12 @@
 #include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
 #include "insight_intent_execute_param.h"
+#include "napi_common_want.h"
+#include "napi/native_api.h" 
 #include "ohos_application.h"
 #include "string_wrapper.h"
+#include "js_runtime.h"
+#include "js_runtime_utils.h"
 
 #ifdef WINDOWS_PLATFORM
 #define ETS_EXPORT __declspec(dllexport)
@@ -812,6 +817,19 @@ void EtsUIAbility::UpdateEtsWindowStage(ani_ref windowStage)
     }
 }
 
+std::unique_ptr<NativeReference> EtsUIAbility::CreateJsAppWindowStage()
+{
+    auto& jsRuntime = etsRuntime_.GetJsRuntime();
+    auto &jsRuntimePoint = (static_cast<AbilityRuntime::JsRuntime &>(*jsRuntime));
+    auto env = jsRuntimePoint.GetNapiEnv();
+    napi_value jsWindowStage = Rosen::CreateJsWindowStage(env, GetScene());
+    if (jsWindowStage == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null jsWindowStage");
+        return nullptr;
+    }
+    return JsRuntime::LoadSystemModuleByEngine(env, "application.WindowStage", &jsWindowStage, 1);
+}
+
 void EtsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
@@ -834,21 +852,51 @@ void EtsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
         ability->RequestFocus(want);
     };
     callback->Push(asyncCallback);
-
+    const WantParams &wantParams = want.GetParams();
+    std::string arkTSMode = wantParams.GetStringParam(AppExecFwk::INSIGHT_INTENT_ARKTS_MODE);
     InsightIntentExecutorInfo executeInfo;
-    auto ret = GetInsightIntentExecutorInfo(want, executeParam, executeInfo);
-    if (!ret) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "get intentExecutor failed");
-        InsightIntentExecutorMgr::TriggerCallbackInner(
-            std::move(callback), static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
-        return;
-    }
+    if (arkTSMode == "static") {
+        isJsInsightIntent_ = false;
+        auto ret = GetInsightIntentExecutorInfo(want, executeParam, executeInfo);
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "get intentExecutor failed");
+            InsightIntentExecutorMgr::TriggerCallbackInner(
+                std::move(callback), static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+            return;
+        }
 
-    ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
-        etsRuntime_, executeInfo, std::move(callback));
-    if (!ret) {
-        // callback has removed, release in insight intent executor.
-        TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
+        ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
+            etsRuntime_, executeInfo, std::move(callback));
+        if (!ret) {
+            // callback has removed, release in insight intent executor.
+            TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
+        }
+    } else {
+        isJsInsightIntent_ = true;
+        auto jsAppWindowStage = CreateJsAppWindowStage();
+        if (jsAppWindowStage == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null jsAppWindowStage");
+            return;
+        }
+        jsWindowStageObj_ = std::shared_ptr<NativeReference>(jsAppWindowStage.release());
+        auto& jsRuntime = etsRuntime_.GetJsRuntime();
+        if (abilityInfo_) {
+            auto &jsRuntimePoint = (static_cast<AbilityRuntime::JsRuntime &>(*jsRuntime));
+            jsRuntimePoint.UpdateModuleNameAndAssetPath(abilityInfo_->moduleName);
+        }
+        auto ret = GetInsightIntentExecutorInfo(want, executeParam, executeInfo);
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "get intentExecutor failed");
+            InsightIntentExecutorMgr::TriggerCallbackInner(
+                std::move(callback), static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+            return;
+        }
+        ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
+            *jsRuntime, executeInfo, std::move(callback));
+        if (!ret) {
+            // callback has removed, release in insight intent executor.
+            TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
+        }
     }
 }
 
@@ -878,21 +926,52 @@ void EtsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
         ability->CallOnForegroundFunc(want);
     };
     callback->Push(asyncCallback);
-
+    const WantParams &wantParams = want.GetParams();
+    std::string arkTSMode = wantParams.GetStringParam(AppExecFwk::INSIGHT_INTENT_ARKTS_MODE);
     InsightIntentExecutorInfo executeInfo;
-    auto ret = GetInsightIntentExecutorInfo(want, executeParam, executeInfo);
-    if (!ret) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "get intentExecutor failed");
-        InsightIntentExecutorMgr::TriggerCallbackInner(
-            std::move(callback), static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
-        return;
-    }
+    if (arkTSMode == "static") {
+        isJsInsightIntent_ = false;
+        auto ret = GetInsightIntentExecutorInfo(want, executeParam, executeInfo);
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "get intentExecutor failed");
+            InsightIntentExecutorMgr::TriggerCallbackInner(
+                std::move(callback), static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+            return;
+        }
 
-    ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
-        etsRuntime_, executeInfo, std::move(callback));
-    if (!ret) {
-        // callback has removed, release in insight intent executor.
-        TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
+        ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
+            etsRuntime_, executeInfo, std::move(callback));
+        if (!ret) {
+            // callback has removed, release in insight intent executor.
+            TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
+        }
+    } else {
+        isJsInsightIntent_ = true;
+        auto jsAppWindowStage = CreateJsAppWindowStage();
+        if (jsAppWindowStage == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null jsAppWindowStage");
+            return;
+        }
+        jsWindowStageObj_ = std::shared_ptr<NativeReference>(jsAppWindowStage.release());
+        auto& jsRuntime = etsRuntime_.GetJsRuntime();
+        if (abilityInfo_) {
+            auto &jsRuntimePoint = (static_cast<AbilityRuntime::JsRuntime &>(*jsRuntime));
+            jsRuntimePoint.UpdateModuleNameAndAssetPath(abilityInfo_->moduleName);
+        }
+        auto ret = GetInsightIntentExecutorInfo(want, executeParam, executeInfo);
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "get intentExecutor failed");
+            InsightIntentExecutorMgr::TriggerCallbackInner(
+                std::move(callback), static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+            return;
+        }
+
+        ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
+            *jsRuntime, executeInfo, std::move(callback));
+        if (!ret) {
+            // callback has removed, release in insight intent executor.
+            TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
+        }
     }
 }
 
@@ -938,9 +1017,17 @@ bool EtsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
         return false;
     }
 
-    if (executeParam->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND &&etsWindowStageObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "param invalid");
-        return false;
+    if (!isJsInsightIntent_) {
+        if (executeParam->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND &&etsWindowStageObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "param invalid");
+            return false;
+        }
+    } else {
+        if (executeParam->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND
+            && jsWindowStageObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "param invalid");
+            return false;
+        }
     }
 
     const WantParams &wantParams = want.GetParams();
@@ -949,8 +1036,14 @@ bool EtsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
     executeInfo.esmodule = abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     executeInfo.windowMode = windowMode_;
     executeInfo.token = context->GetToken();
-    if (etsWindowStageObj_ != nullptr) {
-        executeInfo.etsPageLoader = reinterpret_cast<void *>(etsWindowStageObj_->aniRef);
+    if (!isJsInsightIntent_) {
+        if (etsWindowStageObj_ != nullptr) {
+            executeInfo.etsPageLoader = reinterpret_cast<void *>(etsWindowStageObj_->aniRef);
+        } 
+    } else {
+        if (jsWindowStageObj_ != nullptr) {
+            executeInfo.pageLoader = jsWindowStageObj_;
+        }
     }
     executeInfo.executeParam = executeParam;
     return true;
