@@ -635,6 +635,25 @@ napi_value JsApplication::OnGetAppPreloadType(napi_env env, NapiCallbackInfo& in
     return CreateJsValue(env, appPreloadType);
 }
 
+napi_value JsApplication::SetIsAllowedScbAccessBackground(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsApplication, OnSetIsAllowedScbAccessBackground);
+}
+
+napi_value JsApplication::OnSetIsAllowedScbAccessBackground(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "SetIsAllowedScbAccessBackground called");
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    auto errCode = std::make_shared<int32_t>(ERR_OK);
+    if (appMgrClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Null appMgrClient");
+        *errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    appMgrClient->SetIsAllowedScbAccessBackground();
+    return CreateJsValue(env, *errCode);
+}
+
 napi_value ApplicationInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Called");
@@ -674,6 +693,9 @@ napi_value ApplicationInit(napi_env env, napi_value exportObj)
 
     BindNativeFunction(env, exportObj, "getAppPreloadType", moduleName,
         JsApplication::GetAppPreloadType);
+
+    BindNativeFunction(env, exportObj, "setIsAllowedScbAccessBackground", moduleName,
+        JsApplication::SetIsAllowedScbAccessBackground);
 
     return CreateJsUndefined(env);
 }
