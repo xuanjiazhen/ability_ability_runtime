@@ -213,7 +213,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     }
     auto isCallBySCB = sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true);
     sessionInfo->want.RemoveParam(ServerConstant::IS_CALL_BY_SCB);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartUIAbility session:%{public}d. bundle:%{public}s, ability:%{public}s, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartUIAbility session:%{public}d. %{public}s/%{public}s, "
         "instanceKey:%{public}s, requestId: %{public}d, isCallBySCB: %{public}d, reuseDelegator: %{public}d, "
         "scenarios:%{public}d", sessionInfo->persistentId, abilityRequest.abilityInfo.bundleName.c_str(),
         abilityRequest.abilityInfo.name.c_str(), sessionInfo->instanceKey.c_str(),
@@ -484,7 +484,7 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
     int32_t processAttachResult = DoProcessAttachment(abilityRecord);
 
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "lifecycle name: %{public}s", abilityRecord->GetAbilityInfo().name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "lifecycle: %{public}s", abilityRecord->GetAbilityInfo().name.c_str());
     SetLastExitReason(abilityRecord);
 
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();

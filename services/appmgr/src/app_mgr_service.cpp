@@ -224,7 +224,7 @@ int32_t AppMgrService::PreloadApplication(const std::string &bundleName, int32_t
     AppExecFwk::PreloadMode preloadMode, int32_t appIndex)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "PreloadApplication called");
+    TAG_LOGD(AAFwkTag::APPMGR, "PreloadApplication");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "PreloadApplication failed");
         return ERR_INVALID_OPERATION;
@@ -234,7 +234,7 @@ int32_t AppMgrService::PreloadApplication(const std::string &bundleName, int32_t
 
 void AppMgrService::PreloadModuleFinished(const int32_t recordId)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "PreloadModuleFinished called");
+    TAG_LOGD(AAFwkTag::APPMGR, "PreloadModuleFinished");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "PreloadModuleFinished failed");
         return;
