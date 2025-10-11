@@ -428,20 +428,22 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
 
     ani_boolean isUndefined = true;
     ani_ref actionTypeRef = nullptr;
-    ani_boolean isOperationTypeExist = false;
-    if (!GetPropertyRef(env, info, "actionType", actionTypeRef, isUndefined)) {
-        TAG_LOGW(AAFwkTag::WANTAGENT, "actionType GetPropertyRef failed");
-    }
-    if (isUndefined) {
-        if (!GetPropertyRef(env, info, "operationType", actionTypeRef, isUndefined)) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "operationType GetPropertyRef failed");
-            return PARAMETER_ERROR;
-        }
-        isOperationTypeExist = true;
-    }
-    if (!isUndefined) {
-        AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
-            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType);
+    GetPropertyRef(env, info, "actionType", actionTypeRef, isUndefined);
+	if (!isUndefined) {
+		if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
+            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType))
+		{
+		    return PARAMETER_ERROR;
+		}
+	}
+	ani_boolean isOperationTypeUndefined = true;
+    GetPropertyRef(env, info, "operationType", actionTypeRef, isOperationTypeUndefined);
+    if (isUndefined && !isOperationTypeUndefined) {
+       	if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
+            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType))
+		{
+		    return PARAMETER_ERROR;
+		}
     }
 
     ani_double dRequestCode = 0.0;
@@ -450,7 +452,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         return PARAMETER_ERROR;
     }
     params.requestCode = dRequestCode;
-    if (isOperationTypeExist) {
+    if (!isOperationTypeUndefined) {
         return BUSINESS_ERROR_CODE_OK;
     }
     ani_ref actionFlagsRef = nullptr;
