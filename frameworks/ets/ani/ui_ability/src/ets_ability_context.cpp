@@ -828,6 +828,17 @@ void EtsAbilityContext::InheritWindowMode(AAFwk::Want &want)
 #endif
 }
 
+void EtsAbilityContext::StartAbilitySyncCheck(ani_env *env, ani_object aniObj, ani_object opt)
+{
+    AAFwk::StartOptions startOptions;
+    if (!AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions)) {
+        EtsErrorUtil::ThrowInvalidParamError(env,
+            "Parse param startOptions failed, startOptions must be StartOptions.");
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid options");
+        return;
+    }
+}
+
 void EtsAbilityContext::OnStartAbility(
     ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call, bool isStartRecent)
 {
