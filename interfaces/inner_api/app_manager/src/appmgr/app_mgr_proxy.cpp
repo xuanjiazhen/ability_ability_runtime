@@ -2616,5 +2616,19 @@ int32_t AppMgrProxy::RegisterApplicationStateObserverWithFilter(sptr<IApplicatio
     }
     return reply.ReadInt32();
 }
+
+void AppMgrProxy::SetIsAllowedScbAccessBackground()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_INVALID_DATA;
+    }
+
+    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::SET_IS_ALLOWED_SCB_ACCESSS_BACKGROUND, data, reply, option);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
