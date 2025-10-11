@@ -86,6 +86,9 @@ private:
     void OnNativeOffEnvironmentSync(ani_env *env, ani_object aniObj, ani_int callbackId, ani_object callback);
     ani_int OnNativeOnEnvironmentSync(ani_env *env, ani_object aniObj, ani_object envCallback);
     static void SetEventHubContextIsApplicationContext(ani_env *aniEnv, ani_ref eventHubRef);
+    bool SetProcessInformation(ani_env *env, ani_object object, const AppExecFwk::RunningProcessInfo &processInfo);
+    ani_object WrapProcessInformation(ani_env *env, const AppExecFwk::RunningProcessInfo &processInfo);
+    ani_object CreateRunningProcessInfoArray(ani_env *env, std::vector<AppExecFwk::RunningProcessInfo> infos);
     std::shared_ptr<EtsEnviromentCallback> etsEnviromentCallback_;
     std::shared_ptr<EtsApplicationStateChangeCallback> applicationStateCallback_;
     static std::mutex abilityLifecycleCallbackLock_;
