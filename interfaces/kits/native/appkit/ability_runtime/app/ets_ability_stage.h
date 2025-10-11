@@ -34,11 +34,13 @@ public:
     static AbilityStage *Create(
         const std::unique_ptr<Runtime>& runtime, const AppExecFwk::HapModuleInfo& hapModuleInfo);
 
-    ETSAbilityStage(ETSRuntime &etsRuntime, std::unique_ptr<AppExecFwk::ETSNativeReference> &&etsAbilityStageObj);
+    ETSAbilityStage(ETSRuntime &etsRuntime);
     ~ETSAbilityStage() override;
 
     void Init(const std::shared_ptr<Context> &context,
         const std::weak_ptr<AppExecFwk::OHOSApplication> application) override;
+
+    void LoadModule(const AppExecFwk::HapModuleInfo &hapModuleInfo) override;
 
     void OnCreate(const AAFwk::Want &want) const override;
 
@@ -51,6 +53,10 @@ public:
     void OnConfigurationUpdated(const AppExecFwk::Configuration &configuration) override;
 
     void OnMemoryLevel(int32_t level) override;
+
+    int32_t RunAutoStartupTask(const std::function<void()> &callback, std::shared_ptr<AAFwk::Want> want,
+        bool &isAsyncCallback, const std::shared_ptr<Context> &stageContext, bool preAbilityStageLoad) override;
+
 private:
     bool CallObjectMethod(bool withResult, const char *name, const char *signature, ...) const;
 
@@ -58,10 +64,30 @@ private:
 
     std::string GetHapModuleProp(const std::string &propName) const;
 
-    void SetEtsAbilityStage(const std::shared_ptr<Context> &context);
+    void SetShellContextRef(std::shared_ptr<Context> context);
 
+    void SetEtsAbilityStage();
+
+    int32_t RegisterAppStartupTask(std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo,
+        std::shared_ptr<AAFwk::Want> want);
+    
+    bool LoadEtsStartupConfig(const std::string &srcEntry, std::shared_ptr<AAFwk::Want> want,
+        const std::string &moduleName, AppExecFwk::ModuleType moduleType);
+
+    std::unique_ptr<AppExecFwk::ETSNativeReference> LoadStartupConfigSrcEntry(const std::string &srcEntry);
+
+    int32_t RegisterEtsStartupTask(std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo);
+
+    std::unique_ptr<AppExecFwk::ETSNativeReference> LoadEtsOhmUrl(const std::string &srcEntry,
+        const std::string &ohmUrl, const std::string &moduleName, const std::string &hapPath, bool esmodule);
+
+    int32_t RunAutoStartupTaskInner(const std::function<void()> &callback, std::shared_ptr<AAFwk::Want> want,
+        bool &isAsyncCallback, const std::string &moduleName, bool preAbilityStageLoad);
+
+    bool isStartupTaskRegistered_ = false;
     ETSRuntime& etsRuntime_;
-    std::unique_ptr<AppExecFwk::ETSNativeReference> etsAbilityStageObj_;
+    std::unique_ptr<AppExecFwk::ETSNativeReference> etsAbilityStageObj_ = nullptr;
+    std::shared_ptr<AppExecFwk::ETSNativeReference> shellContextRef_ = nullptr;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

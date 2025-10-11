@@ -62,6 +62,7 @@ constexpr const char* PRE_ABILITY_STAGE_LOAD = "preAbilityStageLoad";
 constexpr const char* PRELOAD_SYSTEM_SO_STARTUP_TASKS = "systemPreloadHintStartupTasks";
 constexpr const char* PRELOAD_SYSTEM_SO_ALLOWLIST_FILE_PATH = "/etc/ability_runtime_app_startup.json";
 constexpr const char* SYSTEM_PRELOAD_SO_ALLOW_LIST = "systemPreloadSoAllowList";
+constexpr const char* ARK_TS_MODE = "arkTsMode";
 
 struct StartupTaskResultCallbackInfo {
     std::unique_ptr<StartupTaskResultCallback> callback_;
@@ -430,7 +431,7 @@ const std::vector<StartupTaskInfo> StartupManager::GetStartupTaskInfos(const std
     return pendingStartupTaskInfos;
 }
 
-const std::string &StartupManager::GetPendingConfigEntry() const
+const std::pair<std::string, std::string> &StartupManager::GetPendingConfigEntry() const
 {
     return pendingConfigEntry_;
 }
@@ -669,7 +670,7 @@ int32_t StartupManager::RunLoadModuleStartupConfigTask(
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSystemSoStartupTasks;
     std::vector<StartupTaskInfo> pendingStartupTaskInfos;
-    std::string pendingConfigEntry;
+    std::pair<std::string, std::string> pendingConfigEntry;
     bool success = AnalyzeStartupConfig(configInfo, configStr, preloadSoStartupTasks,
         preloadSystemSoStartupTasks, pendingStartupTaskInfos, pendingConfigEntry);
     if (!success) {
@@ -683,7 +684,7 @@ int32_t StartupManager::RunLoadModuleStartupConfigTask(
         pendingStartupTaskInfos.end());
     pendingConfigEntry_ = pendingConfigEntry;
     isModuleStartupConfigInited_.emplace(hapModuleInfo->name);
-    if (!needRunAutoStartupTask && pendingConfigEntry.size() > 0) {
+    if (!needRunAutoStartupTask && pendingConfigEntry.fisrt.size() > 0) {
         needRunAutoStartupTask = true;
     }
     return ERR_OK;
@@ -707,7 +708,7 @@ int32_t StartupManager::RunLoadAppStartupConfigTask()
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSystemSoStartupTasks;
     std::vector<StartupTaskInfo> pendingStartupTaskInfos;
-    std::string pendingConfigEntry;
+    std::pair<std::string, std::string> pendingConfigEntry;
     for (const auto& item : moduleStartupConfigInfos_) {
         if (item.startupConfig_.empty()) {
             continue;
@@ -976,7 +977,7 @@ int32_t StartupManager::GetStartupConfigString(const ModuleStartupConfigInfo &in
 bool StartupManager::AnalyzeStartupConfig(const ModuleStartupConfigInfo& info, const std::string& startupConfig,
     std::map<std::string, std::shared_ptr<AppStartupTask>>& preloadSoStartupTasks,
     std::map<std::string, std::shared_ptr<AppStartupTask>>& preloadSystemSoStartupTasks,
-    std::vector<StartupTaskInfo>& pendingStartupTaskInfos, std::string& pendingConfigEntry)
+    std::vector<StartupTaskInfo>& pendingStartupTaskInfos, std::pair<std::string, std::string> &pendingConfigEntry)
 {
     if (startupConfig.empty()) {
         TAG_LOGE(AAFwkTag::STARTUP, "startupConfig invalid");
@@ -994,11 +995,18 @@ bool StartupManager::AnalyzeStartupConfig(const ModuleStartupConfigInfo& info, c
             TAG_LOGE(AAFwkTag::STARTUP, "no config entry.");
             return false;
         }
-        pendingConfigEntry = startupConfigJson.at(CONFIG_ENTRY).get<std::string>();
-        if (pendingConfigEntry.empty()) {
+        pendingConfigEntrySrc = startupConfigJson.at(CONFIG_ENTRY).get<std::string>();
+        if (pendingConfigEntrySrc.empty()) {
             TAG_LOGE(AAFwkTag::STARTUP, "startup config empty.");
             return false;
         }
+        pendingConfigEntry.first = pendingConfigEntrySrc;
+        if (!startupConfigJson.contains(ARK_TS_MODE) || !startupConfigJson[ARK_TS_MODE].is_string()) {
+            TAG_LOGD(AAFwkTag::STARTUP, "no arkTsMode.");
+            return false;
+        }
+        std::string arkTsMode = startupConfigJson.at(ARK_TS_MODE).get<std::string>();
+        pendingConfigEntry.second = arkTsMode;
     }
 
     if (!AnalyzeAppStartupTask(info, startupConfigJson, pendingStartupTaskInfos)) {
