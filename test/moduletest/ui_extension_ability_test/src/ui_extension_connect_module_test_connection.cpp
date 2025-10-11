@@ -30,7 +30,7 @@ void UIExtensionConnectModuleTestConnection::OnAbilityConnectDone(const AppExecF
 void UIExtensionConnectModuleTestConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName& element,
     int resultCode)
 {
-    TAG_LOGI(AAFwkTag::TEST, "element: %{public}s", element.GetURI().c_str());
+    TAG_LOGI(AAFwkTag::TEST, "element: %{public}s", element.PrintURI().c_str());
     std::unique_lock<std::mutex> lock(connectMutex_);
     disConnectFinished_ = true;
     connectCondation_.notify_one();

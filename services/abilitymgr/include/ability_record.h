@@ -1146,6 +1146,7 @@ public:
 
     void SetURI(const std::string &uri);
     std::string GetURI() const;
+    std::string PrintURI() const;
 
     void DoBackgroundAbilityWindowDelayed(bool needBackground);
     bool BackgroundAbilityWindowDelayed();
