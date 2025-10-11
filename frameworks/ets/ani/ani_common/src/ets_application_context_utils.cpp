@@ -28,6 +28,9 @@ static std::once_flag g_bindNativeMethodsFlag;
 constexpr const char* ETS_APPLICATION_CONTEXT_CLASS_NAME = "Lapplication/ApplicationContext/ApplicationContext;";
 constexpr const char* CLEANER_CLASS = "Lapplication/ApplicationContext/Cleaner;";
 constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "Lapplication/EventHub/EventHub;";
+constexpr const char* ENUMNAME_PROCESS = "L@ohos/app/ability/appManager/appManager/ProcessState;";
+constexpr const char* CLASSNAME_ARRAY = "Lescompat/Array;";
+constexpr const char* CLASSNAME_INNER = "Lapplication/ProcessInformation/ProcessInformationInner;";
 constexpr double FOUNT_SIZE = 0.0;
 constexpr int32_t ERROR_ID = -1;
 constexpr double ERROR_CODE_NULL_ENV = -1;
@@ -408,7 +411,7 @@ void EtsApplicationContextUtils::OnGetRunningProcessInformation(ani_env *env, an
     ErrCode innerErrCode = applicationContext->GetProcessRunningInformation(processInfo);
     if (innerErrCode == ERR_OK) {
         infos.emplace_back(processInfo);
-        ani_object aniInfosRef = AppExecFwk::CreateRunningProcessInfoArray(env, infos);
+        ani_object aniInfosRef = CreateRunningProcessInfoArray(env, infos);
         if (aniInfosRef == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null array");
             AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
@@ -1032,6 +1035,132 @@ void EtsApplicationContextUtils::SetEventHubContextIsApplicationContext(ani_env 
         TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Boolean failed status: %{public}d", status);
         return;
     }
+}
+bool EtsApplicationContextUtils::SetProcessInformation(ani_env *env, ani_object object, const AppExecFwk::RunningProcessInfo &processInfo)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return false;
+    }
+    ani_status status = ANI_OK;
+    if ((status = env->Object_SetPropertyByName_Int(object, "pid", processInfo.pid_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "pid failed status:%{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetPropertyByName_Int(object, "uid", processInfo.uid_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "uid failed status:%{public}d", status);
+        return false;
+    }
+    status = env->Object_SetPropertyByName_Ref(object, "processName",
+        AppExecFwk::GetAniString(env, processInfo.processName_));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "processName failed status:%{public}d", status);
+        return false;
+    }
+    ani_object arrayObj = nullptr;
+    AppExecFwk::WrapArrayString(env, arrayObj, processInfo.bundleNames);
+    status = env->Object_SetPropertyByName_Ref(object, "bundleNames", arrayObj);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "bundleNames failed status:%{public}d", status);
+        return false;
+    }
+    ani_enum_item stateItem {};
+    AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env,
+        ENUMNAME_PROCESS, processInfo.state_, stateItem);
+    if ((status = env->Object_SetPropertyByName_Ref(object, "state", stateItem)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "state failed status:%{public}d", status);
+        return false;
+    }
+    if (processInfo.appCloneIndex != -1 &&
+        (status = env->Object_SetPropertyByName_Ref(
+            object, "appCloneIndex", AppExecFwk::CreateInt(env, processInfo.appCloneIndex))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "appCloneIndex failed status:%{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+ani_object EtsApplicationContextUtils::WrapProcessInformation(ani_env *env, const AppExecFwk::RunningProcessInfo &processInfo)
+{
+    ani_class cls = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_method method {};
+    ani_object object = nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
+    }
+    if ((status = env->FindClass(CLASSNAME_INNER, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "FindClass failed status: %{public}d", status);
+        return nullptr;
+    }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null cls");
+        return nullptr;
+    }
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "find ctor failed status: %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "Object_New ProcessInformationInner failed status: %{public}d", status);
+        return nullptr;
+    }
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null object");
+        return nullptr;
+    }
+    if (!SetProcessInformation(env, object, processInfo)) {
+        TAG_LOGE(AAFwkTag::ANI, "SetProcessInformation failed");
+        return nullptr;
+    }
+    return object;
+}
+
+ani_object EtsApplicationContextUtils::CreateRunningProcessInfoArray(ani_env *env, std::vector<AppExecFwk::RunningProcessInfo> infos)
+{
+    ani_class arrayCls = nullptr;
+    ani_status status = ANI_OK;
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
+    }
+
+    status = env->FindClass(CLASSNAME_ARRAY, &arrayCls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "FindClass failed status: %{public}d", status);
+        return nullptr;
+    }
+
+    ani_method arrayCtor;
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "find ctor failed status: %{public}d", status);
+        return nullptr;
+    }
+
+    ani_object arrayObj;
+    status = env->Object_New(arrayCls, arrayCtor, &arrayObj, infos.size());
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "Object_New array status: %{public}d", status);
+        return arrayObj;
+    }
+    ani_size index = 0;
+    for (auto &processInfo : infos) {
+        ani_object aniInfo = WrapProcessInformation(env, processInfo);
+        if (aniInfo == nullptr) {
+            TAG_LOGW(AAFwkTag::ANI, "null aniInfo");
+            break;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniInfo);
+        if (status != ANI_OK) {
+            TAG_LOGW(AAFwkTag::ANI, "Object_CallMethodByName_Void failed status: %{public}d", status);
+            break;
+        }
+        index++;
+    }
+    return arrayObj;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
