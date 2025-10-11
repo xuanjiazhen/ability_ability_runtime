@@ -649,7 +649,7 @@ int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk:
     }
     jsRuntime_.UpdateModuleNameAndAssetPath(hapModuleInfo->moduleName);
 
-    const std::string &configEntry = startupManager->GetPendingConfigEntry();
+    const std::string &configEntry = startupManager->GetPendingConfigEntry().first; // todo 互通 判断configEntry是ets还是js
     if (!LoadJsStartupConfig(configEntry, want, hapModuleInfo->moduleName, hapModuleInfo->moduleType)) {
         TAG_LOGE(AAFwkTag::APPKIT, "load js appStartup config failed.");
         return ERR_INVALID_VALUE;

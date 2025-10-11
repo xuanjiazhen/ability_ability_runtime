@@ -45,6 +45,7 @@ struct StartupTaskInfo {
     bool preAbilityStageLoad = false;
     AppExecFwk::ModuleType moduleType = AppExecFwk::ModuleType::UNKNOWN;
     StartupTaskMatchRules matchRules;
+    // todo arkTsMode
 };
 
 class AppStartupTask : public StartupTask {
