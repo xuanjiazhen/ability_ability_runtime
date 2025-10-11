@@ -1862,6 +1862,8 @@ private:
     int32_t GetChildProcessInfoEx(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
         const std::shared_ptr<AppRunningRecord> appRecord, ChildProcessInfo &info);
 
+    void WrappedChildProcessDiedWithIsolation(std::shared_ptr<ChildProcessRecord> childProcessRecord);
+
     void OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
 
     /**
