@@ -9075,6 +9075,10 @@ void AppMgrServiceInner::KillChildProcess(const std::shared_ptr<AppRunningRecord
             TAG_LOGI(AAFwkTag::APPMGR, "kill child process, childPid:%{public}d, childUid:%{public}d",
                 childPid, childRecord->GetUid());
             KillProcessByPid(childPid, "KillChildProcess");
+            {
+                std::lock_guard<ffrt::mutex> lock(childProcessIsolationIdSetLock_);
+                childProcessIsolationIdSet_.erase(childRecord->GetUid() % BASE_USER_RANGE);
+            }
             DelayedSingleton<AppStateObserverManager>::GetInstance()->OnChildProcessDied(childRecord);
         }
     }
