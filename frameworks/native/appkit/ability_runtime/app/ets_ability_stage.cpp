@@ -250,7 +250,7 @@ void ETSAbilityStage::SetEtsAbilityStage(const std::shared_ptr<Context> &context
     }
 
     if (!etsAbilityStageObj_) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        TAG_LOGE(AAFwkTag::APPKIT, "no AbilityStage.js");
         ClearAppPreload();
         return;
     }
