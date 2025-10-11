@@ -15268,7 +15268,7 @@ bool AbilityManagerService::HandleExecuteSAInterceptor(const Want &want, sptr<IR
     Rule rule;
     auto dialogSessionId = DialogSessionManager::GetInstance().GenerateDialogSessionId();
     auto params = SAInterceptorManager::GetInstance().GenerateSAInterceptorParams(want, callerToken,
-        abilityRequest.abilityInfo, dialogSessionId);
+        abilityRequest.abilityInfo, dialogSessionId, Getuserid());
     auto ret = SAInterceptorManager::GetInstance().ExecuteSAInterceptor(params, rule);
 
     if (ret != ERR_OK || rule.type == RuleType::NOT_ALLOW) {

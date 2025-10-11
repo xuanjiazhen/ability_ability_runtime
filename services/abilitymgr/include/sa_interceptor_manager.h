@@ -38,7 +38,7 @@ public:
     void OnObserverDied(const wptr<IRemoteObject> &remote);
     bool SAInterceptorListIsEmpty();
     std::string GenerateSAInterceptorParams(const AAFwk::Want &want, sptr<IRemoteObject> callerToken,
-        const AppExecFwk::AbilityInfo &abilityInfo, const std::string &dialogSessionId);
+        const AppExecFwk::AbilityInfo &abilityInfo, const std::string &dialogSessionId, const int32_t userid);
 
 private:
     SAInterceptorManager();
