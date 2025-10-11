@@ -435,6 +435,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     if (isUndefined) {
         if (!GetPropertyRef(env, info, "operationType", actionTypeRef, isUndefined)) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "operationType GetPropertyRef failed");
+            return PARAMETER_ERROR;
         }
         isOperationTypeExist = true;
     }
