@@ -428,13 +428,15 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
 
     ani_boolean isUndefined = true;
     ani_ref actionTypeRef = nullptr;
+    ani_boolean isOperationTypeExist = false;
     if (!GetPropertyRef(env, info, "actionType", actionTypeRef, isUndefined)) {
         TAG_LOGW(AAFwkTag::WANTAGENT, "actionType GetPropertyRef failed");
     }
     if (isUndefined) {
         if (!GetPropertyRef(env, info, "operationType", actionTypeRef, isUndefined)) {
-            TAG_LOGW(AAFwkTag::WANTAGENT, "operationType GetPropertyRef failed");
+            TAG_LOGE(AAFwkTag::WANTAGENT, "operationType GetPropertyRef failed");
         }
+        isOperationTypeExist = true;
     }
     if (!isUndefined) {
         AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
@@ -447,7 +449,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         return PARAMETER_ERROR;
     }
     params.requestCode = dRequestCode;
-    if (!IsExistsField(env, info, "operationType")) {
+    if (isOperationTypeExist) {
         return BUSINESS_ERROR_CODE_OK;
     }
     ani_ref actionFlagsRef = nullptr;
@@ -689,7 +691,7 @@ ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
     }
     std::shared_ptr<WantAgentParams> parasobj = std::make_shared<WantAgentParams>();
     int32_t ret = GetWantAgentParam(env, info, *parasobj);
-    if (ret != 0) {
+    if (ret != BUSINESS_ERROR_CODE_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to get wantAgent param");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error! Info must be a WantAgentInfo.");
         return nullptr;
@@ -706,7 +708,6 @@ ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
     }
     WantAgent *pWantAgent = new (std::nothrow) WantAgent(wantAgent->GetLocalPendingWant());
     if (pWantAgent == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null pWantAgent");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error! New wantAgent failed.");
         return nullptr;
     } else {
