@@ -431,7 +431,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     GetPropertyRef(env, info, "actionType", actionTypeRef, isUndefined);
     if (!isUndefined) {
         if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
-            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType)){
+            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType)) {
                 return PARAMETER_ERROR;
         }
     }
@@ -439,7 +439,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     GetPropertyRef(env, info, "operationType", actionTypeRef, isOperationTypeUndefined);
     if (isUndefined && !isOperationTypeUndefined) {
         if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
-            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType)){
+            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType)) {
                 return PARAMETER_ERROR;
         }
     }
