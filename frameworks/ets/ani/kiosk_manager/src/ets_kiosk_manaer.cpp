@@ -28,7 +28,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 using AbilityManagerClient = AAFwk::AbilityManagerClient;
 
-constexpr const char* KIOSK_STATUS_CLASS_NAME = "Lapplication/KioskStatus/KioskStatus";
+constexpr const char* KIOSK_STATUS_CLASS_NAME = "Lapplication/KioskStatus/KioskStatusInner";
 
 bool IsNull(ani_env *env, ani_ref ref)
 {
