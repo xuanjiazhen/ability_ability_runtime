@@ -35,6 +35,8 @@ bool UnwrapExecuteParam(ani_env *env, ani_object param, AppExecFwk::InsightInten
         return false;
     }
 
+    
+
     std::string bundleName {""};
     if (!GetStringProperty(env, param, "bundleName", bundleName)) {
         TAG_LOGE(AAFwkTag::INTENT, "Wrong argument type bundleName");
