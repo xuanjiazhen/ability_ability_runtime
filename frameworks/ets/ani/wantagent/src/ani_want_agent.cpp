@@ -426,10 +426,10 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         params.wants.emplace_back(want);
     }
 
-    ani_boolean isUndefined = true;
+    ani_boolean isActionTypeUndefined = true;
     ani_ref actionTypeRef = nullptr;
-    GetPropertyRef(env, info, "actionType", actionTypeRef, isUndefined);
-    if (!isUndefined) {
+    GetPropertyRef(env, info, "actionType", actionTypeRef, isActionTypeUndefined);
+    if (!isActionTypeUndefined) {
         if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
             env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType)) {
                 return PARAMETER_ERROR;
@@ -437,7 +437,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     }
     ani_boolean isOperationTypeUndefined = true;
     GetPropertyRef(env, info, "operationType", actionTypeRef, isOperationTypeUndefined);
-    if (isUndefined && !isOperationTypeUndefined) {
+    if (isActionTypeUndefined && !isOperationTypeUndefined) {
         if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
             env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType)) {
                 return PARAMETER_ERROR;
@@ -454,11 +454,11 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         return BUSINESS_ERROR_CODE_OK;
     }
     ani_ref actionFlagsRef = nullptr;
-    if (!GetPropertyRef(env, info, "actionFlags", actionFlagsRef, isUndefined)) {
+    if (!GetPropertyRef(env, info, "actionFlags", actionFlagsRef, isActionTypeUndefined)) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "actionFlags GetPropertyRef failed");
         return PARAMETER_ERROR;
     }
-    if (!isUndefined) {
+    if (!isActionTypeUndefined) {
         ani_array_ref actionFlagsArr = reinterpret_cast<ani_array_ref>(actionFlagsRef);
         ani_size actionFlagsLen = 0;
         if ((status = env->Array_GetLength(actionFlagsArr, &actionFlagsLen)) != ANI_OK) {
@@ -480,17 +480,17 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     }
 
     ani_ref extraInfoRef = nullptr;
-    if (!GetPropertyRef(env, info, "extraInfos", extraInfoRef, isUndefined)) {
+    if (!GetPropertyRef(env, info, "extraInfos", extraInfoRef, isActionTypeUndefined)) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfos GetPropertyRef failed");
         return PARAMETER_ERROR;
     }
-    if (isUndefined) {
-        if (!GetPropertyRef(env, info, "extraInfo", extraInfoRef, isUndefined)) {
+    if (isActionTypeUndefined) {
+        if (!GetPropertyRef(env, info, "extraInfo", extraInfoRef, isActionTypeUndefined)) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfo GetPropertyRef failed");
             return PARAMETER_ERROR;
         }
     }
-    if (!isUndefined) {
+    if (!isActionTypeUndefined) {
         if (!UnwrapWantParams(env, extraInfoRef, params.extraInfo)) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "Convert extraInfo failed");
             return PARAMETER_ERROR;
