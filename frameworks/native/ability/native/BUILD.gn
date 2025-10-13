@@ -2682,6 +2682,7 @@ config("embedded_ui_extension_config") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+    "${ability_runtime_path}/frameworks/ets/ani/embedded_ui_extension_ability/include",
   ]
 }
 
@@ -2756,6 +2757,7 @@ ohos_shared_library("embedded_ui_extension") {
   sources = [
     "${ability_runtime_native_path}/ability/native/embedded_ui_extension_ability/embedded_ui_extension.cpp",
     "${ability_runtime_native_path}/ability/native/embedded_ui_extension_ability/js_embedded_ui_extension.cpp",
+    "${ability_runtime_path}/frameworks/ets/ani/embedded_ui_extension_ability/src/ets_embedded_ui_extension_instance.cpp",
   ]
 
   deps = [
