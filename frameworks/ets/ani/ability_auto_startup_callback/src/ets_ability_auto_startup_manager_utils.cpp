@@ -130,12 +130,12 @@ ani_object ConvertAutoStartupInfos(ani_env *env, const std::vector<AutoStartupIn
         ani_object ani_info = CreateAniAutoStartupInfo(env, info);
         if (ani_info == nullptr) {
             TAG_LOGW(AAFwkTag::AUTO_STARTUP, "null ani_info");
-            break;
+            return nullptr;
         }
         status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, ani_info);
         if (status != ANI_OK) {
             TAG_LOGW(AAFwkTag::AUTO_STARTUP, "Object_CallMethodByName_Void failed status : %{public}d", status);
-            break;
+            return nullptr;
         }
         index++;
     }
