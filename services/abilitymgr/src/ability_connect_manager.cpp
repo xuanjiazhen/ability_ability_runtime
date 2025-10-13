@@ -1040,6 +1040,7 @@ void AbilityConnectManager::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
         std::string element = abilityRecord->GetURI();
         TAG_LOGD(AAFwkTag::EXT, "Ability is %{public}s, start to foreground.", element.c_str());
         abilityRecord->ForegroundUIExtensionAbility();
+        abilityRecord->RemoveUIExtensionLaunchTimestamp();
     }
 }
 
@@ -1125,7 +1126,6 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
         case AbilityState::FOREGROUND: {
             abilityRecord->RemoveSignatureInfo();
             if (IsUIExtensionAbility(abilityRecord)) {
-                abilityRecord->RemoveUIExtensionLaunchTimestamp();
                 DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
                     token, AppExecFwk::ExtensionState::EXTENSION_STATE_FOREGROUND);
             }

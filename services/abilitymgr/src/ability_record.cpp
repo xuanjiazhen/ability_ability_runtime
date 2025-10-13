@@ -4068,7 +4068,7 @@ void AbilityRecord::AddUIExtensionLaunchTimestamp()
     struct timespec ts;
     int64_t launchTimestamp = -1;
 
-    if (clock_gettime(CLOCK_BOOTTIME, &ts) == 0) {
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
         launchTimestamp = (ts.tv_sec * 1000LL) + (ts.tv_nsec / 1000000LL);
     } else {
         TAG_LOGE(AAFwkTag::UI_EXT, "clock_gettime failed: %{public}s", strerror(errno));
