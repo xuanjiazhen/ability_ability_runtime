@@ -46,7 +46,7 @@ ChildMainThread::~ChildMainThread()
 
 void ChildMainThread::Start(const std::map<std::string, int32_t> &fds)
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "ChildMainThread start");
+    TAG_LOGI(AAFwkTag::APPKIT, "ChildMainThread");
     ChildProcessInfo processInfo;
     auto ret = GetChildProcessInfo(processInfo);
     if (ret != ERR_OK) {
@@ -157,7 +157,7 @@ bool ChildMainThread::Attach()
 
 bool ChildMainThread::ScheduleLoadChild()
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleLoadChild called");
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleLoadChild");
     if (mainHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler_");
         return false;

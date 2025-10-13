@@ -318,7 +318,7 @@ ErrCode AbilityContextImpl::StartUIServiceExtensionAbility(const AAFwk::Want& wa
 
 ErrCode AbilityContextImpl::StartServiceExtensionAbility(const AAFwk::Want& want, int32_t accountId)
 {
-    TAG_LOGI(AAFwkTag::CONTEXT, "name:%{public}s %{public}s, accountId=%{public}d",
+    TAG_LOGI(AAFwkTag::CONTEXT, "%{public}s/%{public}s accountId=%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), accountId);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
         want, token_, accountId, AppExecFwk::ExtensionAbilityType::SERVICE);
@@ -330,7 +330,7 @@ ErrCode AbilityContextImpl::StartServiceExtensionAbility(const AAFwk::Want& want
 
 ErrCode AbilityContextImpl::StopServiceExtensionAbility(const AAFwk::Want& want, int32_t accountId)
 {
-    TAG_LOGD(AAFwkTag::CONTEXT, "name:%{public}s %{public}s, accountId=%{public}d",
+    TAG_LOGD(AAFwkTag::CONTEXT, "%{public}s/%{public}s accountId=%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), accountId);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
         want, token_, accountId, AppExecFwk::ExtensionAbilityType::SERVICE);
@@ -435,7 +435,7 @@ void AbilityContextImpl::OnAbilityResultInner(int requestCode, int resultCode, c
 ErrCode AbilityContextImpl::ConnectAbility(const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::CONTEXT, "caller:%{public}s, target:%{public}s",
+    TAG_LOGI(AAFwkTag::CONTEXT, "c:%{public}s t:%{public}s",
         abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str(), want.GetElement().GetAbilityName().c_str());
     ErrCode ret = ConnectionManager::GetInstance().ConnectAbility(token_, want, connectCallback);
     if (ret != ERR_OK) {
@@ -473,7 +473,7 @@ void AbilityContextImpl::DisconnectAbility(const AAFwk::Want& want,
     const sptr<AbilityConnectCallback>& connectCallback, int32_t accountId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::CONTEXT, "DisconnectAbility, caller:%{public}s, target:%{public}s",
+    TAG_LOGI(AAFwkTag::CONTEXT, "Disconnect c:%{public}s t:%{public}s",
         abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str(), want.GetElement().GetAbilityName().c_str());
     ErrCode ret =
         ConnectionManager::GetInstance().DisconnectAbility(token_, want, connectCallback, accountId);
@@ -544,7 +544,7 @@ void AbilityContextImpl::SetAbilityConfiguration(const AppExecFwk::Configuration
 
 void AbilityContextImpl::SetAbilityColorMode(int32_t colorMode)
 {
-    TAG_LOGI(AAFwkTag::CONTEXT, "SetAbilityColorMode colorMode: %{public}d", colorMode);
+    TAG_LOGI(AAFwkTag::CONTEXT, "SetAbilityColorMode:%{public}d", colorMode);
     if (colorMode < -1 || colorMode > 1) {
         TAG_LOGE(AAFwkTag::CONTEXT, "colorMode error");
         return;
@@ -906,7 +906,7 @@ ErrCode AbilityContextImpl::GetMissionId(int32_t &missionId)
 
 ErrCode AbilityContextImpl::SetMissionContinueState(const AAFwk::ContinueState &state)
 {
-    TAG_LOGI(AAFwkTag::CONTEXT, "called, state: %{public}d", state);
+    TAG_LOGI(AAFwkTag::CONTEXT, "state:%{public}d", state);
     if (isHook_) {
         TAG_LOGD(AAFwkTag::CONTEXT, "SetMissionContinueState is hook module");
         return ERR_NOT_SUPPORTED;
@@ -1473,7 +1473,7 @@ void AbilityContextImpl::OnOpenLinkRequestFailure(const std::string &requestId,
 ErrCode AbilityContextImpl::StartExtensionAbilityWithExtensionType(const AAFwk::Want &want,
     AppExecFwk::ExtensionAbilityType extensionType)
 {
-    TAG_LOGI(AAFwkTag::CONTEXT, "StartExtensionAbilityWithExtensionType, name:%{public}s %{public}s",
+    TAG_LOGI(AAFwkTag::CONTEXT, "StartExtensionAbilityWithExtensionType %{public}s/%{public}s",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
         want, token_, DEFAULT_INVAL_VALUE, extensionType);
@@ -1487,7 +1487,7 @@ ErrCode AbilityContextImpl::StartExtensionAbilityWithExtensionType(const AAFwk::
 ErrCode AbilityContextImpl::StopExtensionAbilityWithExtensionType(const AAFwk::Want& want,
     AppExecFwk::ExtensionAbilityType extensionType)
 {
-    TAG_LOGD(AAFwkTag::CONTEXT, "StopExtensionAbilityWithExtensionType, name:%{public}s %{public}s",
+    TAG_LOGD(AAFwkTag::CONTEXT, "StopExtensionAbilityWithExtensionType %{public}s/%{public}s",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
         want, token_, DEFAULT_INVAL_VALUE, extensionType);
@@ -1501,7 +1501,7 @@ ErrCode AbilityContextImpl::ConnectExtensionAbilityWithExtensionType(const AAFwk
     const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::CONTEXT, "ConnectExtensionAbilityWithExtensionType, caller:%{public}s, target:%{public}s",
+    TAG_LOGI(AAFwkTag::CONTEXT, "ConnectExtensionAbilityWithExtensionType c:%{public}s t:%{public}s",
         abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str(), want.GetElement().GetAbilityName().c_str());
     ErrCode ret = ConnectionManager::GetInstance()
         .ConnectExtensionAbilityWithExtensionType(token_, want, connectCallback, extensionType);
