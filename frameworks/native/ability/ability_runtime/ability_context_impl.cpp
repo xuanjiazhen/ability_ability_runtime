@@ -1549,6 +1549,10 @@ ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
         TAG_LOGE(AAFwkTag::CONTEXT, "invalid bundleName or abilityName");
         return AAFwk::ERR_RESTART_APP_INCORRECT_ABILITY;
     }
+    if (AAFwk::AbilityManagerClient::GetInstance()->IsRestartAppLimit()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "reach restarting limit");
+        return AAFwk::ERR_RESTART_APP_FREQUENT;
+    }
 #ifdef SUPPORT_SCREEN
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() ||
         !AAFwk::AppUtils::GetInstance().IsSupportRestartAppWithWindow()) {
