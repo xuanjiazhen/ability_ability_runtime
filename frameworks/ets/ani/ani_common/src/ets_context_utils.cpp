@@ -701,10 +701,10 @@ ani_string GetLogFileDir(ani_env *env, ani_object obj)
     auto context = GetBaseContext(env, obj);
     if (env == nullptr || context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "env or context is null");
-        return "";
+        return AppExecFwk::GetAniString(env, "");
     }
     auto logFileDir = context->GetLogFileDir();
-    return logFileDir;
+    return AppExecFwk::GetAniString(env, logFileDir);
 }
 }
 } // namespace AbilityRuntime
