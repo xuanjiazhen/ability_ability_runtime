@@ -694,7 +694,7 @@ sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtens
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
         option->SetConstrainedModal(isNotAllow);
     }
-    option->SetStartModelExtensionTimeStamp(
+    option->SetStartModalExtensionTimeStamp(
         static_cast<int64_t>(want.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP, -1)));
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
     return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
