@@ -126,7 +126,7 @@ export class Context extends BaseContext {
     });
   }
 
-  createDisplayContext(displayId: long): Context {
+  createDisplayContext(displayId: long): Context | undefined {
     return this.nativeCreateDisplayContext(displayId);
   }
 
