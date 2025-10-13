@@ -1572,6 +1572,24 @@ int32_t AppMgrStub::HandleIsAppRunning(MessageParcel &data, MessageParcel &reply
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleIsAppRunningUserId(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    std::string bundleName = data.ReadString();
+    bool isRunning = false;
+    int32_t appCloneIndex = data.ReadInt32();
+    int32_t userId = data.ReadInt32();
+    int32_t result = IsAppRunning(bundleName, appCloneIndex, isRunning, userId);
+    if (!reply.WriteBool(isRunning)) {
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleIsAppRunningByBundleNameAndUserId(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
