@@ -65,6 +65,33 @@ void TriggerCompleteCallBack::SetWantAgentInstance(std::shared_ptr<WantAgent> wa
     triggerCompleteInfo_.wantAgent = wantAgent;
 }
 
+void triggerAsyncCheck(
+    ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj, ani_object call)
+{
+    auto context = GetContextByStageMode(env, contextObj);
+    auto inputContextPtr = ConvertToContext(context);
+    if (inputContextPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Convert to context failed");
+        EtsErrorUtil::ThrowInvalidParamError(env,
+            "Parse param context failed, must be a context.");
+        return;
+    }
+    WantAgent* pWantAgent = nullptr;
+    UnwrapWantAgent(env, agent, reinterpret_cast<void **>(&pWantAgent));
+    if (pWantAgent == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Parse pWantAgent failed");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Parse pWantAgent failed. Agent must be a WantAgent.");
+        return;
+    }
+    TriggerInfo triggerInfo;
+    int32_t ret = GetTriggerInfo(env, triggerInfoObj, triggerInfo);
+    if (ret != BUSINESS_ERROR_CODE_OK) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Get trigger info error");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Get trigger info error. TriggerInfo must be a TriggerInfo.");
+        return;
+    }
+}
 bool OnSendFinishedCallback(TriggerReceiveDataWorker *dataWorker)
 {
     if (dataWorker == nullptr) {
@@ -668,7 +695,8 @@ void EtsWantAgent::OnGetWantAgent(ani_env *env, ani_object info, ani_object call
         AsyncCallback(env, call, error, retObj);
     }
 }
-std::shared_ptr<AbilityRuntime::Context> EtsWantAgent::ConvertToContext(std::shared_ptr<AbilityRuntime::Context> context)
+std::shared_ptr<AbilityRuntime::Context> EtsWantAgent::ConvertToContext(
+    std::shared_ptr<AbilityRuntime::Context> context)
 {
     auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
     auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::ExtensionContext>(context);
@@ -679,8 +707,7 @@ std::shared_ptr<AbilityRuntime::Context> EtsWantAgent::ConvertToContext(std::sha
     return OHOS::AbilityRuntime::Context::ConvertTo<AbilityRuntime::Context>(context);
 }
 
-std::shared_ptr<OHOS::AbilityRuntime::Context> GetContextByStageMode(ani_env *env, ani_object &contextObj,
-    ani_object callback)
+std::shared_ptr<OHOS::AbilityRuntime::Context> GetContextByStageMode(ani_env *env, ani_object &contextObj)
 {
     ani_boolean stageMode = false;
     ani_status status = IsStageContext(env, contextObj, stageMode);
@@ -737,31 +764,26 @@ ani_object EtsWantAgent::CreateEtsCompletedData(ani_env *env, const CompletedDis
 void EtsWantAgent::OnTriggerAsync(
     ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj, ani_object call)
 {
-    auto context = GetContextByStageMode(env, contextObj, call);
+    auto context = GetContextByStageMode(env, contextObj);
     auto inputContextPtr = ConvertToContext(context);
     if (inputContextPtr == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "Convert to context failed");
-        EtsErrorUtil::ThrowInvalidParamError(env,
-            "Parse param context failed, must be a context.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must be a context.");
         return;
     }
     WantAgent* pWantAgent = nullptr;
     UnwrapWantAgent(env, agent, reinterpret_cast<void **>(&pWantAgent));
     if (pWantAgent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Parse pWantAgent failed");
-        EtsErrorUtil::ThrowInvalidParamError(
-            env, "Parse pWantAgent failed. Agent must be a WantAgent.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse pWantAgent failed. Agent must be a WantAgent.");
         return;
     }
     TriggerInfo triggerInfo;
-    int32_t ret = GetTriggerInfo(env, triggerInfoObj, triggerInfo);
-    if (ret != BUSINESS_ERROR_CODE_OK) {
+    if (GetTriggerInfo(env, triggerInfoObj, triggerInfo) != BUSINESS_ERROR_CODE_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Get trigger info error");
         EtsErrorUtil::ThrowInvalidParamError(env, "Get trigger info error. TriggerInfo must be a TriggerInfo.");
         return;
     }
-    std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(*pWantAgent);
-    auto triggerObj = std::make_shared<TriggerCompleteCallBack>();
     ani_ref callbackRef = nullptr;
     ani_status status = ANI_OK;
     if ((status = env->GlobalReference_Create(call, &callbackRef)) != ANI_OK) {
@@ -770,8 +792,6 @@ void EtsWantAgent::OnTriggerAsync(
     }
     ani_vm *etsVm = nullptr;
     status = env->GetVM(&etsVm);
-    triggerObj->SetCallbackInfo(etsVm, callbackRef);
-    triggerObj->SetWantAgentInstance(std::make_shared<WantAgent>(pWantAgent->GetPendingWant()));
     if (status != ANI_OK || etsVm == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "GetVM failed status: %{public}d, or null etsVm", status);
         return;
@@ -782,15 +802,16 @@ void EtsWantAgent::OnTriggerAsync(
             AbilityRuntimeErrorUtil::GetErrMessage(ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP));
         return;
     }
+    auto triggerObj = std::make_shared<TriggerCompleteCallBack>();
+    triggerObj->SetCallbackInfo(etsVm, callbackRef);
+    triggerObj->SetWantAgentInstance(std::make_shared<WantAgent>(pWantAgent->GetPendingWant()));
     sptr<CompletedDispatcher> completedData = new CompletedDispatcher();
     auto retCode = WantAgentHelper::TriggerWantAgent(
-        wantAgent, triggerObj, triggerInfo, completedData, inputContextPtr->GetToken());
+        std::make_shared<WantAgent>(*pWantAgent), triggerObj, triggerInfo, completedData, inputContextPtr->GetToken());
     if (retCode == ERR_OK) {
-        ani_object resultObj = CreateEtsCompletedData(env, *completedData);
-        AsyncCallback(env, call, nullptr, resultObj);
-    }else{
-        ani_object errorObj = EtsErrorUtil::CreateError(
-            env, retCode, AbilityRuntimeErrorUtil::GetErrMessage(retCode));
+        AsyncCallback(env, call, nullptr, CreateEtsCompletedData(env, *completedData));
+    } else {
+        ani_object errorObj = EtsErrorUtil::CreateError(env, retCode, AbilityRuntimeErrorUtil::GetErrMessage(retCode));
         AsyncCallback(env, call, errorObj, nullptr);
     }
 }
@@ -804,6 +825,7 @@ ani_status BindNativeFunctions(ani_env *env)
         return status;
     }
     std::array functions = {
+        ani_native_function { "nativetriggerAsyncCheck", nullptr, reinterpret_cast<void *>(EtsWantAgent::triggerAsyncCheck) },
         ani_native_function { "nativeGetBundleName", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetBundleName) },
         ani_native_function { "nativeGetUid", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetUid) },
         ani_native_function {

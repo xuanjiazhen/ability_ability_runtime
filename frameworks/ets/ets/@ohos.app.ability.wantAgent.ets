@@ -80,8 +80,9 @@ namespace wantAgent {
       }
     });
   }
-  
+  export native function nativetriggerAsyncCheck(agent: WantAgent, triggerInfo: TriggerInfo, context: Context): void;
   export function triggerAsync(agent: WantAgent, triggerInfo: TriggerInfo, context: Context): Promise<CompleteData> {
+    kioskManager.nativetriggerAsyncCheck(context);
     return new Promise<CompleteData>((resolve: (data: CompleteData) => void,
       reject: (err: BusinessError) => void): void => {
       let call = new AsyncCallbackWrapper<CompleteData>((err: BusinessError | null, data: CompleteData | undefined) => {
