@@ -129,7 +129,7 @@ bool SAInterceptorManager::ObserverExist(sptr<IRemoteBroker> observer)
 }
 
 std::string SAInterceptorManager::GenerateSAInterceptorParams(const AAFwk::Want &want, sptr<IRemoteObject> callerToken,
-    const AppExecFwk::AbilityInfo &abilityInfo, const std::string &dialogSessionId)
+    const AppExecFwk::AbilityInfo &abilityInfo, const std::string &dialogSessionId, const int32_t userId)
 {
     nlohmann::json jsonObj;
     auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(callerToken);
@@ -156,6 +156,7 @@ std::string SAInterceptorManager::GenerateSAInterceptorParams(const AAFwk::Want 
     jsonObj["targetExtensionAbilityType"] = abilityInfo.extensionAbilityType;
     jsonObj["linking"] = want.GetUriString();
     jsonObj["dialogSessionId"] = dialogSessionId;
+    jsonObj["userId"] = userId;
     return jsonObj.dump();
 }
 

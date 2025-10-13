@@ -144,7 +144,7 @@ HWTEST_F(SAInterceptorManagerTest, GenerateSAInterceptorParams_0100, TestSize.Le
     AppExecFwk::AbilityInfo abilityInfo;
     Want want;
     auto result = SAInterceptorManager::GetInstance().GenerateSAInterceptorParams(want, nullptr,
-        abilityInfo, dialogSessionId);
+        abilityInfo, dialogSessionId, 0);
     EXPECT_NE(result, "");
 }
 
