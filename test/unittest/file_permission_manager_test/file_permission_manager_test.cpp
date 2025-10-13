@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "file_permission_manager.h"
+#include "mock_my_flag.h
 using namespace testing::ext;
 namespace OHOS {
 namespace AAFwk {
@@ -33,7 +34,9 @@ void FilePermissionManagerTest::TearDownTestCase()
 {}
 
 void FilePermissionManagerTest::SetUp()
-{}
+{
+    MyFlag::Init();
+}
 
 void FilePermissionManagerTest::TearDown()
 {}
@@ -55,6 +58,48 @@ HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_001, TestSize.L
         res = true;
     }
     EXPECT_EQ(res, true);
+}
+
+/*
+ * Feature: CheckUriPersistentPermission
+ * Function: CheckUriPersistentPermission
+ * SubFunction: NA
+ * FunctionPoints: UPMSUtils CheckUriPersistentPermission
+ */
+HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_002, TestSize.Level1)
+{
+    std::vector<Uri> uriVec;
+    Uri uri = Uri("file://docs/storage/Users/currentUser/appdata/el2/base/demo");
+    Uri uri1 = Uri("file://docs/storage/Users/currentUser/Download");
+    Uri uri2 = Uri("file://docs/storage/Users/currentUser");
+    Uri uri3 = Uri("file://docs/storage/Users");
+    Uri uri4 = Uri("file://docs/storage");
+    uriVec.emplace_back(uri);
+    uriVec.emplace_back(uri1);
+    uriVec.emplace_back(uri2);
+    uriVec.emplace_back(uri3);
+    uriVec.emplace_back(uri4);
+    uint32_t callerTokenId = 0;
+    uint32_t flag = 0;
+    std::vector<PolicyInfo> pathPolicies;
+    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, pathPolicies, "");
+    bool res = false;
+    if (!ret.empty()) {
+        res = true;
+    }
+    EXPECT_EQ(res, true);
+    MyFlag::fileaccessManager_ = true;
+    MyFlag::permissionSandboxAccessManager_ = true;
+    if (!ret.empty()) {
+       for (size_t i = 0; i < ret.size(); i++) {
+           if (ret[i] == false) {
+               res = false;
+           }
+       } 
+    }
+    EXPECT_EQ(res, true);
+    MyFlag::fileaccessManager_ = false;
+    MyFlag::permissionSandboxAccessManager_ = false;
 }
 
 /*
