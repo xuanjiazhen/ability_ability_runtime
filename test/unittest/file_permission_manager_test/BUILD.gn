@@ -32,9 +32,16 @@ ohos_unittest("file_permission_manager_test") {
     blocklist = "../../cfi_blocklist.txt"
   }
   branch_protector_ret = "pac_ret"
-  include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper" ]
+  include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper"
+    "${ability_runtime_test_path}/unittest/uri_permission_impl_test/mock/include",
+  ]
 
-  sources = [ "file_permission_manager_test.cpp" ]
+  sources = [
+    "${ability_runtime_test_path}/unittest/uri_permission_impl_test/mock/src/mock_my_flag.cpp",
+    "${ability_runtime_test_path}/unittest/uri_permission_impl_test/mock/src/mock_permission_verification.cpp",
+    "file_permission_manager_test.cpp",
+    ]
 
   configs = [
     ":coverage_flags",
@@ -54,10 +61,14 @@ ohos_unittest("file_permission_manager_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "googletest:gmock_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
