@@ -32,7 +32,7 @@ std::vector<std::string> StartupTask::GetDependencies() const
 {
     return dependencies_;
 }
-
+ 
 void StartupTask::SetDependencies(const std::vector<std::string> &dependencies)
 {
     dependencies_ = dependencies;

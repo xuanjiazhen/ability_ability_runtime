@@ -26,6 +26,7 @@
 #include "ani_common_configuration.h"
 #include "configuration_convertor.h"
 #include "ets_ability_stage_context.h"
+#include "event_report.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -52,7 +53,41 @@ AbilityStage *ETSAbilityStage::Create(
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::Create");
 
     auto& etsRuntime = static_cast<ETSRuntime&>(*runtime);
+    // RegisterStopPreloadSoCallback(etsRuntime); // todo RegisterStopPreloadSoCallback实现
+    return new (std::nothrow) ETSAbilityStage(etsRuntime);
+}
 
+ETSAbilityStage::ETSAbilityStage(ETSRuntime &etsRuntime) : etsRuntime_(etsRuntime)
+{}
+
+ETSAbilityStage::~ETSAbilityStage()
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "destructor");
+    auto context = GetContext();
+    if (context != nullptr) {
+        context->Unbind();
+    }
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    if (shellContextRef_ && shellContextRef_->aniRef) {
+        env->GlobalReference_Delete(shellContextRef_->aniRef);
+    }
+}
+
+void ETSAbilityStage::Init(const std::shared_ptr<Context> &context,
+    const std::weak_ptr<AppExecFwk::OHOSApplication> application)
+{
+    AbilityStage::Init(context, application);
+    SetShellContextRef(context);
+}
+
+void ETSAbilityStage::LoadModule(const AppExecFwk::HapModuleInfo &hapModuleInfo)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::APPKIT, "AbilityStage::LoadModule");
     std::string srcPath(hapModuleInfo.name);
     std::string moduleName(hapModuleInfo.moduleName);
     moduleName.append("::").append("AbilityStage");
@@ -66,47 +101,19 @@ AbilityStage *ETSAbilityStage::Create(
             srcPath.append(".abc");
         }
     }
-    std::unique_ptr<AppExecFwk::ETSNativeReference> moduleObj = nullptr;
-    if (!hapModuleInfo.srcEntrance.empty()) {
-        TAG_LOGD(AAFwkTag::APPKIT, "entry path: %{public}s", hapModuleInfo.srcEntrance.c_str());
-        moduleObj = etsRuntime.LoadModule(moduleName, srcPath,
-            hapModuleInfo.hapPath, false, false, hapModuleInfo.srcEntrance);
-    }
-    return new (std::nothrow) ETSAbilityStage(etsRuntime, std::move(moduleObj));
-}
-
-ETSAbilityStage::ETSAbilityStage(
-    ETSRuntime &etsRuntime, std::unique_ptr<AppExecFwk::ETSNativeReference> &&etsAbilityStageObj)
-    : etsRuntime_(etsRuntime), etsAbilityStageObj_(std::move(etsAbilityStageObj))
-{}
-
-ETSAbilityStage::~ETSAbilityStage()
-{
-    TAG_LOGI(AAFwkTag::APPKIT, "destructor");
-    auto context = GetContext();
-    if (context != nullptr) {
-        context->Unbind();
-    }
-}
-
-void ETSAbilityStage::Init(const std::shared_ptr<Context> &context,
-    const std::weak_ptr<AppExecFwk::OHOSApplication> application)
-{
-    AbilityStage::Init(context, application);
-
-    if (!context) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+    if (hapModuleInfo.srcEntrance.empty()) {
         return;
     }
-    if (!etsAbilityStageObj_) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null stage");
-        return;
-    }
-    SetEtsAbilityStage(context);
+    TAG_LOGD(AAFwkTag::APPKIT, "entry path: %{public}s", hapModuleInfo.srcEntrance.c_str());
+    bool esModule = hapModuleInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    etsAbilityStageObj_ = etsRuntime_.LoadModule(moduleName, srcPath,
+        hapModuleInfo.hapPath, esModule, false, hapModuleInfo.srcEntrance);
+    SetEtsAbilityStage();
 }
 
 void ETSAbilityStage::OnCreate(const AAFwk::Want &want) const
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPKIT, "OnCreate called");
     AbilityStage::OnCreate(want);
 
@@ -242,46 +249,280 @@ std::string ETSAbilityStage::GetHapModuleProp(const std::string &propName) const
     return std::string();
 }
 
-void ETSAbilityStage::SetEtsAbilityStage(const std::shared_ptr<Context> &context)
+void ETSAbilityStage::SetShellContextRef(std::shared_ptr<Context> context)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "context nullptr");
         return;
     }
-
-    if (!etsAbilityStageObj_) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Not found AbilityStage.js");
-        ClearAppPreload();
-        return;
-    }
-
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");
         return;
     }
 
-    ani_object stageCtxObj = ETSAbilityStageContext::CreateEtsAbilityStageContext(env, context);
-    if (stageCtxObj == nullptr) {
+    ani_object contextObj = ETSAbilityStageContext::CreateEtsAbilityStageContext(env, context);
+    if (contextObj == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "CreateEtsAbilityStageContext failed");
+        return;
+    }
+    ani_ref contextGlobalRef = nullptr;
+    ani_status status = ANI_OK;
+    if ((status = env->GlobalReference_Create(contextObj, &contextGlobalRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "GlobalReference_Create failed status: %{public}d", status);
+        return;
+    }
+    ani_ref* heapRef = new ani_ref(contextGlobalRef);
+    context->Bind(heapRef);
+    shellContextRef_ = std::make_shared<AppExecFwk::ETSNativeReference>();
+    shellContextRef_->aniObj = reinterpret_cast<ani_object>(contextGlobalRef);
+    shellContextRef_->aniRef = contextGlobalRef;
+}
+
+void ETSAbilityStage::SetEtsAbilityStage()
+{
+    if (!etsAbilityStageObj_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "etsAbilityStageObj_ null");
+        ClearAppPreload();
+        return;
+    }
+    if (shellContextRef_ == nullptr || shellContextRef_->aniRef == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "shellContextRef_ or shellContextRef_->aniRef null");
+        return;
+    }
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");
         return;
     }
 
     ani_status status = ANI_OK;
-    ani_field contextField;
-    status = env->Class_FindField(etsAbilityStageObj_->aniCls, "context", &contextField);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Class_GetField context failed");
-        return;
+    if (env->Object_SetFieldByName_Ref(etsAbilityStageObj_->aniObj, "context", shellContextRef_->aniRef) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Object_SetFieldByName_Ref context failed");
     }
-    ani_ref stageCtxObjRef = nullptr;
-    if (env->GlobalReference_Create(stageCtxObj, &stageCtxObjRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "GlobalReference_Create stageCtxObj failed");
-        return;
+}
+
+int32_t EtsAbilityStage::RunAutoStartupTask(const std::function<void()> &callback, std::shared_ptr<AAFwk::Want> want,
+    bool &isAsyncCallback, const std::shared_ptr<Context> &stageContext, bool preAbilityStageLoad)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPKIT, "RunAutoStartupTask, pre:%{public}d", preAbilityStageLoad);
+    isAsyncCallback = false;
+    auto context = GetContext();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        return ERR_INVALID_VALUE;
     }
-    if (env->Object_SetField_Ref(etsAbilityStageObj_->aniObj, contextField, stageCtxObjRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Object_SetField_Ref stageCtxObj failed");
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    if (!hapModuleInfo) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
+        return ERR_INVALID_VALUE;
     }
+    if (hapModuleInfo->moduleType != AppExecFwk::ModuleType::ENTRY &&
+        hapModuleInfo->moduleType != AppExecFwk::ModuleType::FEATURE) {
+        TAG_LOGD(AAFwkTag::APPKIT, "not entry module or feature module");
+        return ERR_INVALID_VALUE;
+    }
+    if (hapModuleInfo->appStartup.empty()) {
+        TAG_LOGD(AAFwkTag::APPKIT, "module no app startup config");
+        return ERR_INVALID_VALUE;
+    }
+    if (!shellContextRef_) {
+        SetShellContextRef(stageContext);
+    }
+    int32_t result = RegisterAppStartupTask(hapModuleInfo, want);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return RunAutoStartupTaskInner(callback, want, isAsyncCallback, hapModuleInfo->name, preAbilityStageLoad);
+}
+
+int32_t EtsAbilityStage::RegisterAppStartupTask(std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo,
+    std::shared_ptr<AAFwk::Want> want)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (isStartupTaskRegistered_) {
+        TAG_LOGD(AAFwkTag::APPKIT, "app startup task already registered");
+        return ERR_OK;
+    }
+    isStartupTaskRegistered_ = true;
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    if (startupManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+        return ERR_INVALID_VALUE;
+    }
+    bool needRunAutoStartupTask = false;
+    int32_t result = startupManager->LoadAppStartupTaskConfig(needRunAutoStartupTask);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = startupManager->RunLoadModuleStartupConfigTask(needRunAutoStartupTask, hapModuleInfo);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!needRunAutoStartupTask) {
+        return ERR_OK;
+    }
+
+    const std::string &configEntry = startupManager->GetPendingConfigEntry(); // todo 互通 如何判断configEntry是ets还是js
+    if (!LoadEtsStartupConfig(configEntry, want, hapModuleInfo->moduleName, hapModuleInfo->moduleType)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "load ets appStartup config failed.");
+        return ERR_INVALID_VALUE;
+    }
+    return RegisterEtsStartupTask(hapModuleInfo);
+}
+
+bool EtsAbilityStage::LoadEtsStartupConfig(const std::string &srcEntry, std::shared_ptr<AAFwk::Want> want,
+    const std::string &moduleName, AppExecFwk::ModuleType moduleType)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    // todo StartupConfig
+    std::unique_ptr<AppExecFwk::ETSNativeReference> startupConfigEntry = LoadStartupConfigSrcEntry(srcEntry);
+    if (startupConfigEntry == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupConfigEntry");
+        return false;
+    }
+    // auto env = etsRuntime_.GetAniEnv();
+    // std::shared_ptr<EtsStartupConfig> startupConfig = std::make_shared<EtsStartupConfig>(env);
+    // if (startupConfig == nullptr) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "null startupConfig");
+    //     return false;
+    // }
+    // if (startupConfig->Init(startupConfigEntry->aniRef, want) != ERR_OK) {
+    //     return false;
+    // }
+    // std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    // if (startupManager == nullptr) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+    //     return false;
+    // }
+    // startupManager->SetModuleConfig(startupConfig, moduleName, moduleType == AppExecFwk::ModuleType::ENTRY);
+    return true;
+}
+
+std::unique_ptr<AppExecFwk::ETSNativeReference> EtsAbilityStage::LoadStartupConfigSrcEntry(const std::string &srcEntry)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPKIT, "LoadStartupConfigSrcEntry call");
+    if (srcEntry.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "srcEntry invalid");
+        return nullptr;
+    }
+    auto context = GetContext();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        return nullptr;
+    }
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    if (!hapModuleInfo) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
+        return nullptr;
+    }
+
+    std::string moduleName(hapModuleInfo->moduleName);
+    std::string srcPath(moduleName + "/" + srcEntry);
+    auto pos = srcPath.rfind('.');
+    if (pos == std::string::npos) {
+        return nullptr;
+    }
+    srcPath.erase(pos);
+    srcPath.append(".abc");
+    bool esModule = hapModuleInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    std::unique_ptr<AppExecFwk::ETSNativeReference> etsCode =
+        etsRuntime_.LoadModule(moduleName, srcPath, hapModuleInfo->hapPath, esModule, false, srcEntry);
+    return etsCode;
+}
+
+int32_t EtsAbilityStage::RegisterEtsStartupTask(std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    if (startupManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+        return ERR_INVALID_VALUE;
+    }
+    if (hapModuleInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
+        return ERR_INVALID_VALUE;
+    }
+    if (shellContextRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "shellContextRef_ null");
+        return ERR_INVALID_VALUE;
+    }
+    const std::vector<StartupTaskInfo> startupTaskInfos = startupManager->GetStartupTaskInfos(hapModuleInfo->name);
+    for (const auto& item : startupTaskInfos) {
+        // todo 互通 js and ets
+        std::shared_ptr<EtsStartupTask> etsStartupTask = std::make_shared<EtsStartupTask>(
+            item.name, etsRuntime_, item, shellContextRef_->aniRef, startupManager->EnableLazyLoadingAppStartupTasks());
+        etsStartupTask->SetDependencies(item.dependencies);
+        etsStartupTask->SetIsExcludeFromAutoStart(item.excludeFromAutoStart);
+        etsStartupTask->SetCallCreateOnMainThread(item.callCreateOnMainThread);
+        etsStartupTask->SetWaitOnMainThread(item.waitOnMainThread);
+        etsStartupTask->SetModuleName(item.moduleName);
+        etsStartupTask->SetModuleType(item.moduleType);
+        etsStartupTask->SetMatchRules(std::move(item.matchRules));
+        etsStartupTask->SetPreAbilityStageLoad(item.preAbilityStageLoad);
+        startupManager->RegisterAppStartupTask(item.name, etsStartupTask);
+    }
+    return ERR_OK;
+}
+
+int32_t EtsAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &callback,
+    std::shared_ptr<AAFwk::Want> want, bool &isAsyncCallback, const std::string &moduleName, bool preAbilityStageLoad)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    if (startupManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<StartupTaskManager> startupTaskManager = nullptr;
+    int32_t result = startupManager->BuildAutoAppStartupTaskManager(want, startupTaskManager, moduleName,
+        preAbilityStageLoad);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (startupTaskManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupTaskManager");
+        return ERR_INVALID_VALUE;
+    }
+    if (shellContextRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null shellContextRef_");
+        return ERR_INVALID_VALUE;
+    }
+    startupTaskManager->UpdateStartupTaskContextRef(shellContextRef_->aniRef); // todo
+    result = startupTaskManager->Prepare();
+    if (result != ERR_OK) {
+        return result;
+    }
+    auto runAutoStartupCallback = std::make_shared<OnCompletedCallback>(
+        [callback](const std::shared_ptr<StartupTaskResult> &) {
+            TAG_LOGI(AAFwkTag::APPKIT, "OnCompletedCallback");
+            callback();
+        });
+    const auto timeoutCallback = [moduleName]() {
+        auto startupManager = DelayedSingleton<StartupManager>::GetInstance();
+        if (startupManager == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+            return;
+        }
+        AAFwk::EventInfo eventInfo;
+        eventInfo.errCode = ERR_STARTUP_TIMEOUT;
+        eventInfo.errMsg = "Auto task timeout.";
+        eventInfo.bundleName = startupManager->GetBundleName();
+        eventInfo.appIndex = startupManager->GetAppIndex();
+        eventInfo.moduleName = moduleName;
+        eventInfo.userId = startupManager->GetUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        AAFwk::EventReport::SendAppStartupErrorEvent(
+            AAFwk::EventName::APP_STARTUP_ERROR, HiSysEventType::FAULT, eventInfo);
+    };
+    startupTaskManager->SetTimeoutCallback(timeoutCallback);
+    result = startupTaskManager->Run(runAutoStartupCallback);
+    if (result != ERR_OK) {
+        isAsyncCallback = runAutoStartupCallback->IsCalled();
+        return result;
+    }
+    isAsyncCallback = true;
+    return ERR_OK;
 }
 
 }  // namespace AbilityRuntime
