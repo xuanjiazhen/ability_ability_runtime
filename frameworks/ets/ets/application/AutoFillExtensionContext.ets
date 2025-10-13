@@ -30,6 +30,7 @@ class Cleaner {
 export function callback(cleaner: Cleaner): void {
   cleaner.clean();
 }
+
 let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
