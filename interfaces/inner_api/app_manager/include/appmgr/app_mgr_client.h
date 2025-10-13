@@ -1013,6 +1013,9 @@ public:
     virtual AppMgrResultCode IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
         bool &isRunning);
 
+    virtual int32_t IsAppRunning(const std::string &bundleName, int32_t appCloneIndex,
+        int32_t userId, bool &isRunning);
+
     /**
      * Elevate the current process to be a candidate master process.
      *
