@@ -729,7 +729,7 @@ FormState ETSFormExtension::OnAcquireFormState(const Want &want)
         return AppExecFwk::FormState::DEFAULT;
     }
     int32_t state = static_cast<int32_t>(FormState::DEFAULT);
-    AAFwk::AniEnumConvertUtil::EnumConvertEtsToNative(env, static_cast<ani_enum_item>(result), state);
+    AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, static_cast<ani_enum_item>(result), state);
     TAG_LOGI(AAFwkTag::FORM_EXT, "state: %{public}d", state);
     if (state <= static_cast<int32_t>(AppExecFwk::FormState::UNKNOWN) ||
         state > static_cast<int32_t>(AppExecFwk::FormState::READY)) {
