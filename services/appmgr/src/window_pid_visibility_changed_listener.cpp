@@ -31,11 +31,11 @@ void WindowPidVisibilityChangedListener::NotifyWindowPidVisibilityChanged(
     const sptr<WindowPidVisibilityInfo>& windowPidVisibilityInfo)
 {
     if (!windowPidVisibilityInfo) {
-        TAG_LOGW(AAFwkTag::APPMGR, "Window pid visibility info is empty.");
+        TAG_LOGW(AAFwkTag::APPMGR, "wnd pid visibility info is empty.");
         return;
     }
 
-    TAG_LOGI(AAFwkTag::APPMGR, "NotifyWindowPidVisibilityChanged called, pid:%{public}d, visibilityState:%{public}d.",
+    TAG_LOGI(AAFwkTag::APPMGR, "pid:%{public}d Wnd Visibility Change state:%{public}d.",
         windowPidVisibilityInfo->pid_, static_cast<uint32_t>(windowPidVisibilityInfo->visibilityState_));
 
     if (taskHandler_ == nullptr) {
