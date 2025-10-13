@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <vector>
 
+#include "check_result.h"
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 #include "policy_info.h"
 #else
@@ -53,9 +54,7 @@ public:
 
     void GetNeedCheckProxyPermissionURI(std::vector<PolicyInfo> &proxyUrisByPolicy);
 
-    void SetCheckProxyByMapResult(std::vector<bool> &proxyResultByMap);
-
-    void SetCheckProxyByPolicyResult(std::vector<bool> &proxyResultByPolicy);
+    bool SetCheckProxyByPolicyResult(const std::vector<bool> &proxyResultByPolicy);
 
     int32_t GetUriToGrantByMap(std::vector<std::string> &uriVec);
 
@@ -70,6 +69,8 @@ public:
 
     // media
     int32_t GetMediaUriToGrant(std::vector<std::string> &uriVec);
+
+    bool SetCheckUriAuthorizationResult(std::vector<bool> &funcResult);
 
     bool IsAllUriValid();
 
@@ -95,7 +96,7 @@ public:
     std::vector<int32_t> proxyIndexesByPolicy;
 
     // result of CheckUriPermission
-    std::vector<bool> checkResult;
+    std::vector<CheckResult> checkResult;
     std::vector<bool> isDocsUriVec;
 
     // target's uri

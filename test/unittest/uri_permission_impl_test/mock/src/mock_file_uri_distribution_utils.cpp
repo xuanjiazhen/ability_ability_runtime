@@ -28,7 +28,7 @@ bool FUDUtils::SendShareUnPrivilegeUriEvent(uint32_t callerTokenId, uint32_t tar
 }
 
 bool FUDUtils::SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
-    const std::vector<std::string> &uriVec, const std::vector<bool> &resVec)
+    const std::vector<std::string> &uriVec, const std::vector<CheckResult> &resVec)
 {
     return true;
 }

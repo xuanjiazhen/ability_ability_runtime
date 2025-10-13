@@ -23,6 +23,14 @@ namespace AAFwk {
 struct PolicyInfo final {
     std::string path;
     uint64_t mode;
+    int32_t type = 0;
+};
+
+struct SetInfo final {
+public:
+    std::string bundleName;
+    uint64_t timestamp;
+    SetInfo() : bundleName(""), timestamp(0) {}
 };
 } // AAFwk
 } // OHOS
