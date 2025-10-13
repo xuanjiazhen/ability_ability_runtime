@@ -4066,7 +4066,7 @@ void AbilityRecord::AddUIExtensionLaunchTimestamp()
     }
     std::lock_guard guard(wantLock_);
     struct timespec ts;
-    int64_t launchTimestamp = 0;
+    int64_t launchTimestamp = -1;
 
     if (clock_gettime(CLOCK_BOOTTIME, &ts) == 0) {
         launchTimestamp = (ts.tv_sec * 1000LL) + (ts.tv_nsec / 1000000LL);
