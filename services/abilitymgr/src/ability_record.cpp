@@ -4071,7 +4071,7 @@ void AbilityRecord::AddUIExtensionLaunchTimestamp()
     if (clock_gettime(CLOCK_BOOTTIME, &ts) == 0) {
         launchTimestamp = (ts.tv_sec * 1000LL) + (ts.tv_nsec / 1000000LL);
     } else {
-        TAG_LOGE(AAFwkTag::UI_EXT, "clock_gettime failed: %{public}s(%{public}d)", strerror(errno));
+        TAG_LOGE(AAFwkTag::UI_EXT, "clock_gettime failed: %{public}s", strerror(errno));
     }
 
     want_.SetParam(UIEXTENSION_LAUNCH_TIMESTAMP, launchTimestamp);
