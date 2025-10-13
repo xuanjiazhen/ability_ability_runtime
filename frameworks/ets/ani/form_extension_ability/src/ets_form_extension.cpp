@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "ability_info.h"
-#include "ani_common_want.h"
 #include "ani_common_configuration.h"
+#include "ani_common_want.h"
 #include "ani_enum_convert.h"
 #include "ets_runtime.h"
 #include "form_provider_data.h"
@@ -663,11 +663,11 @@ void ETSFormExtension::OnStop()
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnStop End");
 }
 
-void STSFormExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)
+void ETSFormExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)
 {
     FormExtension::OnConfigurationUpdated(configuration);
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnConfigurationUpdated Call");
-    auto env = stsRuntime_.GetAniEnv();
+    auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "env nullptr");
         return;
@@ -685,13 +685,13 @@ void STSFormExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &c
 
     ani_object aniConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, *fullConfig);
     ani_method method = nullptr;
-    ani_status status = env->Class_FindMethod(stsAbilityObj_->aniCls,
+    ani_status status = env->Class_FindMethod(etsAbilityObj_->aniCls,
         "onConfigurationUpdate", "L@ohos/app/ability/Configuration/Configuration;:V", &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod failed, status: %{public}d", status);
         return;
     }
-    status = env->Object_CallMethod_Void(stsAbilityObj_->aniObj, method, aniConfiguration);
+    status = env->Object_CallMethod_Void(etsAbilityObj_->aniObj, method, aniConfiguration);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "CALL Object_CallMethod failed, status: %{public}d", status);
         return;
@@ -699,10 +699,10 @@ void STSFormExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &c
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnConfigurationUpdated End");
 }
 
-FormState STSFormExtension::OnAcquireFormState(const Want &want)
+FormState ETSFormExtension::OnAcquireFormState(const Want &want)
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnAcquireFormState Call");
-    auto env = stsRuntime_.GetAniEnv();
+    auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "env nullptr");
         return AppExecFwk::FormState::DEFAULT;
@@ -715,10 +715,10 @@ FormState STSFormExtension::OnAcquireFormState(const Want &want)
 
     ani_ref nameRef;
     ani_status status = env->Object_GetFieldByName_Ref(
-        static_cast<ani_object>(stsAbilityObj_->aniRef), "onAcquireFormState", &nameRef);
+        static_cast<ani_object>(etsAbilityObj_->aniRef), "onAcquireFormState", &nameRef);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetFieldByName status: %{public}d, %{public}p, %{public}p",
-            status, stsAbilityObj_->aniRef, stsAbilityObj_->aniObj);
+            status, etsAbilityObj_->aniRef, etsAbilityObj_->aniObj);
         return AppExecFwk::FormState::DEFAULT;
     }
     ani_ref argv[] = { wantRef };
@@ -729,7 +729,7 @@ FormState STSFormExtension::OnAcquireFormState(const Want &want)
         return AppExecFwk::FormState::DEFAULT;
     }
     int32_t state = static_cast<int32_t>(FormState::DEFAULT);
-    AAFwk::AniEnumConvertUtil::EnumConvertStsToNative(env, static_cast<ani_enum_item>(result), state);
+    AAFwk::AniEnumConvertUtil::EnumConvertEtsToNative(env, static_cast<ani_enum_item>(result), state);
     TAG_LOGI(AAFwkTag::FORM_EXT, "state: %{public}d", state);
     if (state <= static_cast<int32_t>(AppExecFwk::FormState::UNKNOWN) ||
         state > static_cast<int32_t>(AppExecFwk::FormState::READY)) {
