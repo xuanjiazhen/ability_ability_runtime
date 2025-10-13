@@ -1530,6 +1530,15 @@ int32_t AppMgrService::IsAppRunningByBundleNameAndUserId(const std::string &bund
     return appMgrServiceInner_->IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning);
 }
 
+int32_t AppMgrService::IsAppRunning(const std::string &bundleName, int32_t appCloneIndex,
+    int32_t userId, bool &isRunning)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->IsAppRunning(bundleName, appCloneIndex, userId, isRunning);
+}
+
 #ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrService::StartChildProcess(pid_t &childPid, const ChildProcessRequest &request)
 {
