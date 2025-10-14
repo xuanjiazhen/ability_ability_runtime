@@ -247,6 +247,31 @@ void EtsApplication::CreateBundleContext(ani_env *env,
     SetCreateCompleteCallback(env, bundleContext, callback);
 }
 
+ani_object GetApplicationContextInstance(ani_env *env)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetApplicationContextInstance Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+    auto etsReference =
+        AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
+    if (etsReference == nullptr || etsReference->aniRef == nullptr) {
+        auto applicationContext = ApplicationContext::GetInstance();
+        ani_object applicationContextObject =
+            EtsApplicationContextUtils::CreateEtsApplicationContext(env, applicationContext);
+        if (applicationContextObject == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null applicationContextObject");
+            AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            ani_ref result = nullptr;
+            env->GetNull(&result);
+            return static_cast<ani_object>(result);
+        }
+        return applicationContextObject;
+    }
+    return reinterpret_cast<ani_object>(etsReference->aniRef);
+}
+
 ani_object EtsApplication::GetApplicationContext(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "GetApplicationContext Call");
