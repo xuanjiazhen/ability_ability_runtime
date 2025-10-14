@@ -81,17 +81,13 @@ std::map<std::string, std::weak_ptr<JsStartupTask>> AsyncTaskCallBack::jsStartup
 const std::string JsStartupTask::TASK_TYPE = "Js";
 
 JsStartupTask::JsStartupTask(const std::string &name, JsRuntime &jsRuntime, const StartupTaskInfo &info,
-    const std::shared_ptr<NativeReference> &contextJsRef)
+    const std::shared_ptr<NativeReference> &contextJsRef, bool lazyLoad)
     : AppStartupTask(name), jsRuntime_(jsRuntime), startupJsRef_(nullptr), contextJsRef_(contextJsRef),
       srcEntry_(info.srcEntry), ohmUrl_(info.ohmUrl), hapPath_(info.hapPath), esModule_(info.esModule)
 {
-    SetModuleName(info.moduleName);
-}
-
-JsStartupTask::JsStartupTask(const std::string& name, JsRuntime& jsRuntime,
-    std::unique_ptr<NativeReference>& startupJsRef, std::shared_ptr<NativeReference>& contextJsRef)
-    : AppStartupTask(name), jsRuntime_(jsRuntime), startupJsRef_(std::move(startupJsRef)), contextJsRef_(contextJsRef)
-{
+    if (!lazyLoad) {
+        LoadJsOhmUrl();
+    }
 }
 
 JsStartupTask::~JsStartupTask() = default;

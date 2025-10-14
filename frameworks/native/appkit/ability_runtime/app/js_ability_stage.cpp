@@ -619,7 +619,7 @@ int32_t JsAbilityStage::RunAutoStartupTask(const std::function<void()> &callback
     if (result != ERR_OK) {
         return result;
     }
-    return RunAutoStartupTaskInner(callback, want, isAsyncCallback, hapModuleInfo->name, preAbilityStageLoad);
+    return RunAutoStartupTaskInner(callback, want, isAsyncCallback, hapModuleInfo->name, preAbilityStageLoad); // todo 传入Context更新Task的ContextRef
 }
 
 int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo,
@@ -649,7 +649,7 @@ int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk:
     }
     jsRuntime_.UpdateModuleNameAndAssetPath(hapModuleInfo->moduleName);
 
-    const std::string &configEntry = startupManager->GetPendingConfigEntry();
+    const std::string &configEntry = startupManager->GetPendingConfigEntry().first; // todo StartupConfig互通
     if (!LoadJsStartupConfig(configEntry, want, hapModuleInfo->moduleName, hapModuleInfo->moduleType)) {
         TAG_LOGE(AAFwkTag::APPKIT, "load js appStartup config failed.");
         return ERR_INVALID_VALUE;
@@ -670,19 +670,9 @@ int32_t JsAbilityStage::RegisterJsStartupTask(std::shared_ptr<AppExecFwk::HapMod
     }
     const std::vector<StartupTaskInfo> startupTaskInfos = startupManager->GetStartupTaskInfos(hapModuleInfo->name);
     for (const auto& item : startupTaskInfos) {
-        std::shared_ptr<JsStartupTask> jsStartupTask;
-        if (startupManager->EnableLazyLoadingAppStartupTasks()) {
-            jsStartupTask = std::make_shared<JsStartupTask>(item.name, jsRuntime_, item, shellContextRef_);
-        } else {
-            std::unique_ptr<NativeReference> startupJsRef = LoadJsOhmUrl(
-                item.srcEntry, item.ohmUrl, item.moduleName, item.hapPath, item.esModule);
-            if (startupJsRef == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "load js appStartup tasks failed.");
-                continue;
-            }
-            jsStartupTask = std::make_shared<JsStartupTask>(item.name, jsRuntime_, startupJsRef, shellContextRef_);
-        }
-
+        // todo StartupTask互通
+        std::shared_ptr<JsStartupTask> jsStartupTask = std::make_shared<JsStartupTask>(
+            item.name, jsRuntime_, item, shellContextRef_, startupManager->EnableLazyLoadingAppStartupTasks());
         jsStartupTask->SetDependencies(item.dependencies);
         jsStartupTask->SetIsExcludeFromAutoStart(item.excludeFromAutoStart);
         jsStartupTask->SetCallCreateOnMainThread(item.callCreateOnMainThread);
@@ -748,28 +738,6 @@ int32_t JsAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &cal
     }
     isAsyncCallback = true;
     return ERR_OK;
-}
-
-std::unique_ptr<NativeReference> JsAbilityStage::LoadJsOhmUrl(const std::string &srcEntry, const std::string &ohmUrl,
-    const std::string &moduleName, const std::string &hapPath, bool esmodule)
-{
-    TAG_LOGD(AAFwkTag::APPKIT, "call");
-    if (srcEntry.empty() && ohmUrl.empty()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "srcEntry and ohmUrl empty");
-        return nullptr;
-    }
-
-    std::string moduleNameWithStartupTask = moduleName + "::startupTask";
-    std::string srcPath(moduleName + "/" + srcEntry);
-    auto pos = srcPath.rfind('.');
-    if (pos == std::string::npos) {
-        return nullptr;
-    }
-    srcPath.erase(pos);
-    srcPath.append(".abc");
-    std::unique_ptr<NativeReference> jsCode(
-        jsRuntime_.LoadModule(moduleNameWithStartupTask, srcPath, hapPath, esmodule, false, ohmUrl));
-    return jsCode;
 }
 
 std::unique_ptr<NativeReference> JsAbilityStage::LoadJsSrcEntry(const std::string &srcEntry)

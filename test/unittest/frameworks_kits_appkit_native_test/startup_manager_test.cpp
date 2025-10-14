@@ -685,7 +685,7 @@ HWTEST_F(StartupManagerTest, AnalyzeStartupConfig_0100, Function | MediumTest | 
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSystemSoStartupTasks;
     std::vector<StartupTaskInfo> pendingStartupTaskInfos;
-    std::string pendingConfigEntry;
+    std::pair<std::string, std::string> pendingConfigEntry;
     bool ret = false;
     ret = startupManager->AnalyzeStartupConfig(info, startupConfig, preloadSoStartupTasks,
         preloadSystemSoStartupTasks, pendingStartupTaskInfos, pendingConfigEntry);

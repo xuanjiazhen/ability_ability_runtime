@@ -28,10 +28,7 @@ public:
     static const std::string TASK_TYPE;
 
     JsStartupTask(const std::string &name, JsRuntime &jsRuntime, const StartupTaskInfo &info,
-        const std::shared_ptr<NativeReference> &contextJsRef);
-
-    JsStartupTask(const std::string &name, JsRuntime &jsRuntime,
-        std::unique_ptr<NativeReference> &startupJsRef, std::shared_ptr<NativeReference> &contextJsRef);
+        const std::shared_ptr<NativeReference> &contextJsRef, bool lazyLoad);
 
     ~JsStartupTask() override;
 
