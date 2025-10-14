@@ -766,7 +766,7 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
         option->SetConstrainedModal(isNotAllow);
     }
     option->SetStartModalExtensionTimeStamp(
-        static_cast<int64_t>(want.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP, -1)));
+        static_cast<int64_t>(want.GetLongParam(UIEXTENSION_LAUNCH_TIMESTAMP, -1)));
     return option;
 }
 
