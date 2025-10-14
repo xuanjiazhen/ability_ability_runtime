@@ -69,6 +69,7 @@ ani_object CreateEmptyArray(ani_env *env);
 bool IsExistsProperty(ani_env *env, ani_object param, const char *name);
 bool GetStringProperty(ani_env *env, ani_object param, const char *name, std::string &value);
 bool GetStringArrayProperty(ani_env *env, ani_object param, const char *name, std::vector<std::string> &value);
+bool GetStringOrUndefined(ani_env *env, ani_object param, const char *name, std::string &res);
 bool GetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double &value);
 bool GetIntPropertyObject(ani_env *env, ani_object param, const char *name, ani_int &value);
 bool GetLongPropertyObject(ani_env *env, ani_object param, const char *name, ani_long &value);

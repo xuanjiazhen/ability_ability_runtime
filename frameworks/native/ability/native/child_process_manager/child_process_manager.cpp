@@ -39,6 +39,7 @@
 #include "errors.h"
 #include "hap_module_info.h"
 #include "hilog_tag_wrapper.h"
+#include "ohos_application.h"
 #include "parameters.h"
 #include "runtime.h"
 #include "sys_mgr_client.h"
@@ -289,24 +290,35 @@ void ChildProcessManager::HandleChildProcessBySelfFork(const std::string &srcEnt
         return;
     }
 
-    auto runtime = CreateRuntime(bundleInfo, hapModuleInfo, false, g_jitEnabled);
-    if (!runtime) {
-        TAG_LOGE(AAFwkTag::PROCESSMGR, "Create runtime failed");
+    auto &appRuntime = GetAppRuntime();
+    if (appRuntime == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "null appRuntime");
         return;
     }
-    TAG_LOGD(AAFwkTag::PROCESSMGR, "StartDebugMode, isStartWithDebug: %{public}d, processName: %{public}s, "
-        "isDebugApp: %{public}d, isStartWithNative: %{public}d", g_debugOption.isStartWithDebug,
-        g_debugOption.processName.c_str(), g_debugOption.isDebugApp, g_debugOption.isStartWithNative);
-    runtime->StartDebugMode(g_debugOption);
-    std::string srcPath;
-    srcPath.append(hapModuleInfo.moduleName).append("/").append(srcEntry);
-    LoadJsFile(srcPath, hapModuleInfo, runtime);
+    if (appRuntime->GetLanguage() == Runtime::Language::ETS) {
+        std::string srcPath;
+        srcPath.append(hapModuleInfo.moduleName).append("/").append(srcEntry);
+        LoadJsFile(srcPath, hapModuleInfo, appRuntime);
+    } else {
+        auto runtime = CreateRuntime(bundleInfo, hapModuleInfo, false, g_jitEnabled);
+        if (!runtime) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "Create runtime failed");
+            return;
+        }
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "StartDebugMode, isStartWithDebug: %{public}d, processName: %{public}s, "
+            "isDebugApp: %{public}d, isStartWithNative: %{public}d", g_debugOption.isStartWithDebug,
+            g_debugOption.processName.c_str(), g_debugOption.isDebugApp, g_debugOption.isStartWithNative);
+        runtime->StartDebugMode(g_debugOption);
+        std::string srcPath;
+        srcPath.append(hapModuleInfo.moduleName).append("/").append(srcEntry);
+        LoadJsFile(srcPath, hapModuleInfo, runtime);
+    }
     TAG_LOGD(AAFwkTag::PROCESSMGR, "end");
     exit(0);
 }
 
 bool ChildProcessManager::LoadJsFile(const std::string &srcEntry, const AppExecFwk::HapModuleInfo &hapModuleInfo,
-    std::unique_ptr<AbilityRuntime::Runtime> &runtime, std::shared_ptr<AppExecFwk::ChildProcessArgs> args)
+    const std::unique_ptr<AbilityRuntime::Runtime> &runtime, std::shared_ptr<AppExecFwk::ChildProcessArgs> args)
 {
     std::shared_ptr<ChildProcessStartInfo> processStartInfo = std::make_shared<ChildProcessStartInfo>();
     std::string filename = std::filesystem::path(srcEntry).stem();
@@ -409,6 +421,11 @@ std::unique_ptr<AbilityRuntime::Runtime> ChildProcessManager::CreateRuntime(cons
     std::shared_ptr<AppExecFwk::EventRunner> eventRunner =
         fromAppSpawn ? AppExecFwk::EventRunner::GetMainEventRunner() : AppExecFwk::EventRunner::Create();
     options.eventRunner = eventRunner;
+
+    if (hapModuleInfo.moduleArkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID ||
+        hapModuleInfo.moduleArkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2) {
+        options.lang = Runtime::Language::ETS;
+    }
 
     return AbilityRuntime::Runtime::Create(options);
 }
@@ -557,6 +574,22 @@ std::string ChildProcessManager::GetModuleNameFromSrcEntry(const std::string &sr
         return "";
     }
     return moduleName;
+}
+
+void ChildProcessManager::SetApplication(std::shared_ptr<AppExecFwk::OHOSApplication> application)
+{
+    application_ = application;
+}
+
+const std::unique_ptr<AbilityRuntime::Runtime> &ChildProcessManager::GetAppRuntime()
+{
+    auto application = application_.lock();
+    if (application == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "null application");
+        static const std::unique_ptr<AbilityRuntime::Runtime> nullRuntime = nullptr;
+        return nullRuntime;
+    }
+    return application->GetRuntime();
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
