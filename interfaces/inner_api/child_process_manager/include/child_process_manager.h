@@ -32,6 +32,9 @@
 #include "iremote_object.h"
 
 namespace OHOS {
+namespace AppExecFwk {
+class OHOSApplication;
+}
 namespace AbilityRuntime {
 class ChildProcessManager {
 public:
@@ -56,7 +59,7 @@ public:
     std::unique_ptr<AbilityRuntime::Runtime> CreateRuntime(const AppExecFwk::BundleInfo &bundleInfo,
         const AppExecFwk::HapModuleInfo &hapModuleInfo, const bool fromAppSpawn, const bool jitEnabled);
     bool LoadJsFile(const std::string &srcEntry, const AppExecFwk::HapModuleInfo &hapModuleInfo,
-        std::unique_ptr<AbilityRuntime::Runtime> &runtime,
+        const std::unique_ptr<AbilityRuntime::Runtime> &runtime,
         std::shared_ptr<AppExecFwk::ChildProcessArgs> args = nullptr);
     bool LoadNativeLib(const std::string &moduleName, const std::string &libPath,
         const sptr<IRemoteObject> &mainProcessCb);
@@ -68,6 +71,8 @@ public:
     void SetAppSpawnForkDebugOption(Runtime::DebugOption &debugOption,
         std::shared_ptr<AppExecFwk::ChildProcessInfo> processInfo);
     std::string GetModuleNameFromSrcEntry(const std::string &srcEntry);
+    void SetApplication(std::shared_ptr<AppExecFwk::OHOSApplication> application);
+    const std::unique_ptr<AbilityRuntime::Runtime> &GetAppRuntime();
 
 private:
     ChildProcessManager();
@@ -86,6 +91,7 @@ private:
     static bool signalRegistered_;
     bool isChildProcessBySelfFork_ = false;
     std::atomic<int32_t> childProcessCount_ = 0;
+    std::weak_ptr<AppExecFwk::OHOSApplication> application_;
 
     DISALLOW_COPY_AND_MOVE(ChildProcessManager);
 };
