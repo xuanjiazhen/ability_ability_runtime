@@ -450,6 +450,7 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         return PARAMETER_ERROR;
     }
     params.requestCode = dRequestCode;
+    
     if (!isOperationTypeUndefined) {
         return BUSINESS_ERROR_CODE_OK;
     }
