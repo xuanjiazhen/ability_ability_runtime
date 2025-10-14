@@ -29,8 +29,7 @@ constexpr int32_t DIED = -1;
 void AbilityConnection::OnAbilityConnectDone(
     const AppExecFwk::ElementName& element, const sptr<IRemoteObject>& remoteObject, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::CONNECTION,
-        "OnAbilityConnectDone, bundleName:%{public}s, abilityName:%{public}s, resultCode:%{public}d",
+    TAG_LOGI(AAFwkTag::CONNECTION, "OnAbilityConnectDone %{public}s/%{public}s resCode:%{public}d",
         element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
     mutex_.lock();
     if (abilityConnectCallbackList_.empty()) {
@@ -60,8 +59,7 @@ void AbilityConnection::OnAbilityConnectDone(
 
 void AbilityConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName& element, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::CONNECTION,
-        "OnAbilityDisconnectDone, bundleName:%{public}s, abilityName:%{public}s, resultCode:%{public}d",
+    TAG_LOGI(AAFwkTag::CONNECTION, "OnAbilityDisconnectDone %{public}s/%{public}s resCode:%{public}d",
         element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
     mutex_.lock();
     SetConnectionState(CONNECTION_STATE_DISCONNECTED);

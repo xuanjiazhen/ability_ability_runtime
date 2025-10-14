@@ -189,9 +189,8 @@ void ModuleRunningRecord::OnAbilityStateChanged(
     }
     AbilityState oldState = ability->GetState();
     ability->SetState(state);
-    TAG_LOGI(AAFwkTag::APPMGR,
-        "change from %{public}d to %{public}d. bundle: %{public}s, ability: %{public}s.", oldState, state,
-        ability->GetAbilityInfo()->bundleName.c_str(), ability->GetName().c_str());
+    TAG_LOGI(AAFwkTag::APPMGR, "%{public}s/%{public}s state %{public}d->%{public}d.",
+        ability->GetAbilityInfo()->bundleName.c_str(), ability->GetName().c_str(), oldState, state);
     auto serviceInner = appMgrServiceInner_.lock();
     if (serviceInner) {
         serviceInner->OnAbilityStateChanged(ability, state);

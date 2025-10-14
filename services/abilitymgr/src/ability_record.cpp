@@ -344,7 +344,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     uint64_t loadAbilityCallbackId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadLifecycle: abilityName:%{public}s", abilityInfo_.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadLifecycle:%{public}s", abilityInfo_.name.c_str());
     startTime_ = AbilityUtil::SystemTimeMillis();
     CHECK_POINTER_AND_RETURN(token_, ERR_INVALID_VALUE);
     // only for UIAbility
@@ -1426,8 +1426,7 @@ void AbilityRecord::PrepareTerminateAbilityDone(bool isTerminate)
 
 void AbilityRecord::CancelPrepareTerminate()
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "canceling prepare terminate,bundle=%{public}s,module=%{public}s,ability=%{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CancelPrepareTerminate %{public}s/%{public}s/%{public}s",
         abilityInfo_.bundleName.c_str(), abilityInfo_.moduleName.c_str(), abilityInfo_.name.c_str());
     std::unique_lock<std::mutex> lock(isPrepareTerminateAbilityMutex_);
     if (!isPrepareTerminateAbilityCalled_.load()) {
