@@ -23,6 +23,7 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 constexpr const char* CLASSNAME_DOUBLE = "std.core.Double";
+constexpr const char* CLASSNAME_INT = "std.core.Int";
 constexpr const char* CLASSNAME_BOOL = "std.core.Boolean";
 constexpr const char* CLASSNAME_STRING = "std.core.String";
 constexpr const char* CLASSNAME_ARRAY = "escompat.Array";
@@ -63,6 +64,15 @@ void SetPacMapObject(AppExecFwk::PacMap &pacMap, ani_env* env, std::string keySt
             return;
         }
         pacMap.PutDoubleValue(keyStr, static_cast<double>(value));
+        return;
+    }
+    if (IsInstanceOf(env, CLASSNAME_INT, aniValue)) {
+        ani_int value = 0;
+        if ((status = env->Object_CallMethodByName_Int(aniValue, "unboxed", nullptr, &value)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::FA, "Object_CallMethodByName_Int status: %{public}d", status);
+            return;
+        }
+        pacMap.PutIntValue(keyStr, value);
         return;
     }
     if (IsInstanceOf(env, CLASSNAME_BOOL, aniValue)) {
