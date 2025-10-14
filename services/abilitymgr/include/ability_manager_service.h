@@ -2926,6 +2926,7 @@ private:
 #endif // SUPPORT_GRAPHICS
 
     std::shared_ptr<AbilityRuntime::AbilityManagerEventSubscriber> screenSubscriber_;
+    std::atomic<bool> isSubscribed_ = false;
 
     std::shared_ptr<AbilityAutoStartupService> abilityAutoStartupService_;
 
