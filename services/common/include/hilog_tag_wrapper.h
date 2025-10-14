@@ -226,7 +226,7 @@ inline std::string ConvertFileName(const std::string &fileName)
         return fileName;
     }
     std::string fileBaseName = fileName.substr(0, pos);
-    auto iter = abbrFileNameMap.find(fileBaseName) 
+    auto iter = abbrFileNameMap.find(fileBaseName);
     if (iter!= abbrFileNameMap.end()) {
         return abbrFileNameMap[fileBaseName];
     }
