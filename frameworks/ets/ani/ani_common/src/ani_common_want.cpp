@@ -1199,11 +1199,6 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
             want.AddEntity(valueStringList[i]);
         }
     }
-    TAG_LOGD(AAFwkTag::ANI,
-        "DeviceID %{public}s, BundleName %{public}s, AbilityName %{public}s, ModuleName %{public}s",
-        natElementName.GetDeviceID().c_str(), natElementName.GetBundleName().c_str(),
-        natElementName.GetAbilityName().c_str(), natElementName.GetModuleName().c_str());
-
     AAFwk::WantParams wantParams;
     if (InnerUnwrapWantParams(env, param, wantParams)) {
         want.SetParams(wantParams);
@@ -1376,12 +1371,53 @@ ani_object WrapElementNameInner(ani_env *env, ani_class elementNameObj, ani_obje
     if (!SetFieldStringByName(env, elementNameObj, object, "moduleName", elementNameParam.GetModuleName())) {
         TAG_LOGE(AAFwkTag::ANI, "set moduleName failed");
     }
-    if (!SetFieldStringByName(env, elementNameObj, object, "uri", elementNameParam.GetURI())) {
-        TAG_LOGE(AAFwkTag::ANI, "set uri failed");
+    return object;
+}
+
+ani_object CreateAniWant(ani_env *env, const AAFwk::Want &want)
+{
+    TAG_LOGD(AAFwkTag::ANI, "CreateAniWant called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
     }
-    if (!SetFieldStringByName(env, elementNameObj, object, "shortName", elementNameParam.GetURI())) {
-        TAG_LOGE(AAFwkTag::ANI, "set shortName failed");
+    ani_class cls = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_method method = nullptr;
+    ani_object object = nullptr;
+    if ((status = env->FindClass(ABILITY_WANT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return nullptr;
     }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null wantCls");
+        return nullptr;
+    }
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return nullptr;
+    }
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null object");
+        return nullptr;
+    }
+
+    auto elementName = want.GetElement();
+    SetFieldStringByName(env, cls, object, "deviceId", elementName.GetDeviceID());
+    SetFieldStringByName(env, cls, object, "bundleName", elementName.GetBundleName());
+    SetFieldStringByName(env, cls, object, "abilityName", elementName.GetAbilityName());
+    SetFieldStringByName(env, cls, object, "moduleName", elementName.GetModuleName());
+    SetFieldStringByName(env, cls, object, "uri", want.GetUriString());
+    SetFieldStringByName(env, cls, object, "type", want.GetType());
+    SetFieldIntByName(env, cls, object, "flags", want.GetFlags());
+    SetFieldStringByName(env, cls, object, "action", want.GetAction());
+    InnerWrapWantParams(env, cls, object, want.GetParams());
+    SetFieldArrayStringByName(env, cls, object, "entities", want.GetEntities());
+
     return object;
 }
 

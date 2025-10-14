@@ -215,6 +215,10 @@ public:
     {
         return "MockAbilityContext for tdd";
     }
+    virtual std::string GetLogFileDir()
+    {
+        return "MockAbilityContext for tdd";
+    }
     virtual sptr<IRemoteObject> GetToken()
     {
         return nullptr;
@@ -577,6 +581,12 @@ public:
     virtual ErrCode SetOnNewWantSkipScenarios(int32_t scenarios)
     {
         return 0;
+    }
+
+    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool isHaveOptions)
+    {
+        return ERR_OK;
     }
 private:
     std::unique_ptr<NativeReference> mockContentStorage_ = nullptr;

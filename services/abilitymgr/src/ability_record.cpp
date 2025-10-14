@@ -21,6 +21,7 @@
 #include "ability_resident_process_rdb.h"
 #include "ability_scheduler_stub.h"
 #include "app_exit_reason_data_manager.h"
+#include "appfreeze_manager.h"
 #include "app_utils.h"
 #include "array_wrapper.h"
 #include "accesstoken_kit.h"
@@ -120,6 +121,8 @@ const int RESTART_SCENEBOARD_DELAY = 500;
 constexpr int32_t DMS_UID = 5522;
 constexpr int32_t SCHEDULER_DIED_TIMEOUT = 60000;
 const std::string JSON_KEY_ERR_MSG = "errMsg";
+const int32_t BY_CALL_HALF_TIMEOUT_MS = 2500;
+const int32_t BY_CALL_TIMEOUT_MS = 5000;
 
 auto g_addLifecycleEventTask = [](sptr<Token> token, std::string &methodName) {
     CHECK_POINTER_LOG(token, "token is nullptr");
@@ -470,7 +473,8 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
 void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundUIExtensionAbility:%{public}s", GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundUIExtensionAbility:%{public}s/%{public}s",
+        GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
     CHECK_POINTER(lifecycleDeal_);
 
     if (IsAbilityState(AbilityState::BACKGROUND)) {
@@ -500,7 +504,9 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
 #ifdef SUPPORT_UPMS
     {
         std::lock_guard guard(wantLock_);
-        GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, tokenId);
+        std::string targetBundleName = abilityInfo_.applicationInfo.bundleName;
+        bool isNotifyCollaborator = (targetBundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName());
+        GrantUriPermission(want_, targetBundleName, false, tokenId, isNotifyCollaborator);
     }
 #endif // SUPPORT_UPMS
     if (!isReady_) {
@@ -781,7 +787,7 @@ void AbilityRecord::ProcessForegroundAbility(bool isRecent, const AbilityRequest
 #ifdef SUPPORT_UPMS
     {
         std::lock_guard guard(wantLock_);
-        GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0);
+        GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0, false);
     }
 #endif // SUPPORT_UPMS
 
@@ -1316,7 +1322,8 @@ void AbilityRecord::SetPrelaunchFlag(bool isPrelaunch)
 void AbilityRecord::BackgroundAbility(const Closure &task)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "BackgroundLifecycle %{public}s", GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "BackgroundLifecycle %{public}s/%{public}s",
+        GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
     if (lifecycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null lifecycleDeal_");
         return;
@@ -1957,7 +1964,7 @@ void AbilityRecord::SendResult(bool isSandboxApp, uint32_t tokeId)
     auto result = GetResult();
     CHECK_POINTER(result);
 #ifdef SUPPORT_UPMS
-    GrantUriPermission(result->resultWant_, abilityInfo_.applicationInfo.bundleName, isSandboxApp, tokeId);
+    GrantUriPermission(result->resultWant_, abilityInfo_.applicationInfo.bundleName, isSandboxApp, tokeId, false);
 #endif // SUPPORT_UPMS
     scheduler_->SendResult(result->requestCode_, result->resultCode_, result->resultWant_);
     // reset result to avoid send result next time
@@ -3301,16 +3308,78 @@ void AbilityRecord::SetCallerSetProcess(const bool flag)
     isCallerSetProcess_.store(flag);
 }
 
+void AbilityRecord::PostStartAbilityByCallTimeoutTask(bool isHalf)
+{
+    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+    CHECK_POINTER(handler);
+
+    auto timeoutTask = [isHalf, ability = shared_from_this()]() {
+        AppExecFwk::RunningProcessInfo processInfo;
+        std::string abilityName = ability->GetAbilityInfo().name;
+        std::string bundleName = ability->GetAbilityInfo().bundleName;
+        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByToken(ability->GetToken(), processInfo);
+        if (processInfo.pid_ == 0) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "ability:%{public}s, app fork fail/not run", abilityName.c_str());
+            return;
+        }
+        int typeId = AppExecFwk::AppfreezeManager::TypeAttribute::CRITICAL_TIMEOUT;
+        std::string msgContent = "ability:" + abilityName + " ";
+        std::string eventName;
+        FreezeUtil::TimeoutState state = FreezeUtil::TimeoutState::BY_CALL;
+        msgContent = isHalf ? msgContent + "call request half timeout." : msgContent + "call request timeout.";
+        eventName = isHalf ? AppExecFwk::AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING
+            : AppExecFwk::AppFreezeType::LIFECYCLE_TIMEOUT_WARNING;
+
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s: uid: %{public}d, pid: %{public}d, bundleName: %{public}s, "
+            "abilityName: %{public}s, msg: %{public}s", eventName.c_str(), processInfo.uid_, processInfo.pid_,
+            bundleName.c_str(), abilityName.c_str(), msgContent.c_str());
+
+        AppExecFwk::AppfreezeManager::ParamInfo info = { false, typeId, processInfo.pid_, eventName, bundleName };
+        FreezeUtil::LifecycleFlow flow;
+        if (ability->GetToken() != nullptr) {
+            flow.token = ability->GetToken()->AsObject();
+            flow.state = state;
+        }
+        info.msg = msgContent + "\nserver actions for ability:\n" +
+            FreezeUtil::GetInstance().GetLifecycleEvent(flow.token)
+            + "\nserver actions for app:\n" + FreezeUtil::GetInstance().GetAppLifecycleEvent(processInfo.pid_);
+        if (!isHalf) {
+            FreezeUtil::GetInstance().DeleteLifecycleEvent(flow.token);
+            FreezeUtil::GetInstance().DeleteAppLifecycleEvent(processInfo.pid_);
+        }
+        AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info, flow);
+    };
+    auto timeoutMs = isHalf ? BY_CALL_HALF_TIMEOUT_MS : BY_CALL_TIMEOUT_MS;
+    std::string taskPrefix = isHalf ? "by_call_half_timeout_" : "by_call_timeout_";
+    handler->SubmitTask(timeoutTask, taskPrefix + std::to_string(recordId_), timeoutMs);
+}
+
 void AbilityRecord::CallRequest()
 {
     CHECK_POINTER(scheduler_);
     // Async call request
+    std::string entry = "AbilityRecord::CallRequest Begin";
+    FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
     scheduler_->CallRequest();
+    PostStartAbilityByCallTimeoutTask(true);
+    PostStartAbilityByCallTimeoutTask(false);
+}
+
+void AbilityRecord::CancelStartAbilityByCallTimeoutTask() const
+{
+    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+    if (!handler) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail get AbilityEventHandler");
+        return;
+    }
+    handler->CancelTask("by_call_timeout_" + std::to_string(recordId_));
+    handler->CancelTask("by_call_half_timeout_" + std::to_string(recordId_));
 }
 
 bool AbilityRecord::CallRequestDone(const sptr<IRemoteObject> &callStub) const
 {
     CHECK_POINTER_RETURN_BOOL(callContainer_);
+    CancelStartAbilityByCallTimeoutTask();
     if (!callContainer_->CallRequestDone(callStub)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "call failed");
         return false;
@@ -3471,7 +3540,8 @@ void AbilityRecord::DumpAbilityInfoDone(std::vector<std::string> &infos)
 }
 
 #ifdef SUPPORT_UPMS
-void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName, bool isSandboxApp, uint32_t tokenId)
+void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName, bool isSandboxApp,
+    uint32_t tokenId, bool isNotifyCollaborator)
 {
     // only for UIAbility and send result
     if (specifyTokenId_ > 0) {
@@ -3488,9 +3558,16 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     auto callerTokenId = tokenId > 0 ? tokenId :
         static_cast<uint32_t>(want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
     TAG_LOGD(AAFwkTag::ABILITYMGR, "callerTokenId:%{public}u, tokenId:%{public}u", callerTokenId, tokenId);
-
-    UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex_, isSandboxApp,
-        callerTokenId, collaboratorType_);
+    GrantUriPermissionInfo grantInfo;
+    grantInfo.callerTokenId = callerTokenId;
+    grantInfo.collaboratorType = collaboratorType_;
+    grantInfo.isSandboxApp = isSandboxApp;
+    grantInfo.targetBundleName = targetBundleName;
+    grantInfo.appIndex = appIndex_;
+    grantInfo.userId = GetOwnerMissionUserId();
+    grantInfo.flag = want.GetFlags();
+    grantInfo.isNotifyCollaborator = isNotifyCollaborator;
+    UriUtils::GetInstance().GrantUriPermission(want, grantInfo);
 }
 
 void AbilityRecord::GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
@@ -3507,7 +3584,7 @@ void AbilityRecord::GrantUriPermission()
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     {
         std::lock_guard guard(wantLock_);
-        GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0);
+        GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0, false);
     }
 }
 #endif // SUPPORT_UPMS

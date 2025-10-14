@@ -1163,7 +1163,9 @@ ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s", want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s/%{public}s",
+        want.GetElement().GetBundleName().c_str(),
+        want.GetElement().GetAbilityName().c_str());
     return abms->StartAbilityForPrelaunch(want);
 }
 
@@ -2417,6 +2419,15 @@ ErrCode AbilityManagerClient::PreloadApplication(const std::string &bundleName, 
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "PreloadApplication call");
     return abms->PreloadApplication(bundleName, userId, appIndex);
+}
+
+ErrCode AbilityManagerClient::StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
+    const StartOptions &options, bool hasOptions, sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, options, hasOptions, callerToken);
 }
 } // namespace AAFwk
 } // namespace OHOS
