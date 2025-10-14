@@ -680,7 +680,6 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
         return false;
     }
 
-    info.decoratorFile = insightIntent.decoratorFile;
     info.decoratorClass = insightIntent.decoratorClass;
     info.displayDescription = insightIntent.displayDescription;
     info.domain = insightIntent.domain;
@@ -694,12 +693,11 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
     info.entities = insightIntent.entities;
     TAG_LOGD(AAFwkTag::INTENT, "entities size: %{public}zu", info.entities.size());
     for (auto iter = info.entities.begin(); iter != info.entities.end(); iter++) {
-        TAG_LOGD(AAFwkTag::INTENT, "entity decoratorFile: %{public}s, className: %{public}s, "
-            "decoratorType: %{public}s, entityId: %{public}s, entityCategory: %{public}s, "
+        TAG_LOGD(AAFwkTag::INTENT, "className: %{public}s, decoratorType: %{public}s, "
+            "entityId: %{public}s, entityCategory: %{public}s, "
             "parentClassName: %{public}s, parameters: %{public}s",
-            (*iter).decoratorFile.c_str(), (*iter).className.c_str(), (*iter).decoratorType.c_str(),
-            (*iter).entityId.c_str(), (*iter).entityCategory.c_str(), (*iter).parentClassName.c_str(),
-            (*iter).parameters.c_str());
+            (*iter).className.c_str(), (*iter).decoratorType.c_str(), (*iter).entityId.c_str(),
+            (*iter).entityCategory.c_str(), (*iter).parentClassName.c_str(), (*iter).parameters.c_str());
     }
 
     info.genericInfo.bundleName = insightIntent.bundleName;
@@ -712,6 +710,9 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
     TAG_LOGD(AAFwkTag::INTENT, "displayName: %{public}s", info.genericInfo.displayName.c_str());
     info.genericInfo.decoratorType = insightIntent.decoratorType;
     TAG_LOGD(AAFwkTag::INTENT, "decoratorType: %{public}s", info.genericInfo.decoratorType.c_str());
+    info.genericInfo.decoratorFile = insightIntent.decoratorFile;
+    TAG_LOGD(AAFwkTag::INTENT, "decoratorFile: %{public}s", info.genericInfo.decoratorFile.c_str());
+
 
     switch (StringToEnum(insightIntent.decoratorType)) {
         case DecoratorType::DECORATOR_LINK:

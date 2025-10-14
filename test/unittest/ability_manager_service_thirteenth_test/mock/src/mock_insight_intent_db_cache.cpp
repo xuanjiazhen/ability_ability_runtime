@@ -147,7 +147,7 @@ void InsightIntentDbCache::GetAllInsightIntentInfo(const int32_t userId, std::ve
 {
     ExtractInsightIntentInfo info;
     info.decoratorClass = "decoratorClass";
-    info.decoratorFile = "decoratorFile";
+    info.genericInfo.decoratorFile = "decoratorFile";
     infos.emplace_back(info);
 }
 
@@ -156,7 +156,7 @@ void InsightIntentDbCache::GetInsightIntentInfoByName(const std::string &bundleN
 {
     ExtractInsightIntentInfo info;
     info.decoratorClass = "decoratorClass";
-    info.decoratorFile = "decoratorFile";
+    info.genericInfo.decoratorFile = "decoratorFile";
     infos.emplace_back(info);
 }
 

@@ -120,6 +120,7 @@ ExtractInsightIntentGenericInfo TEST_INSIGHT_INTENT_GENERIC_INFO = [] {
     tmp.intentName = "InsightIntentLink";
     tmp.displayName = "displayName_test";
     tmp.decoratorType = "decoratorType_test";
+    tmp.decoratorFile = "decoratorFile_test";
     tmp.set<InsightIntentLinkInfo>();
     tmp.data = TEST_INSIGHT_INTENT_LINK_INFO;
     return tmp;
@@ -135,7 +136,6 @@ ExtractInsightIntentInfo TEST_INSIGHT_INTENT_INFO = [] {
     entities.parameters = "parameters_test";
     entities.parentClassName = "parentClassName_test";
 
-    tmp.decoratorFile = "decoratorFile_test";
     tmp.decoratorClass = "decoratorClass_test";
     tmp.displayDescription = "displayDescription_test";
     tmp.domain = "domain_test";
