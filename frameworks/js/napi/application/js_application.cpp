@@ -50,9 +50,61 @@ napi_value JsApplication::GetApplicationContext(napi_env env, napi_callback_info
     GET_NAPI_INFO_AND_CALL(env, info, JsApplication, OnGetApplicationContext);
 }
 
+napi_value JsApplication::GetAppContext(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsApplication, OnGetAppContext);
+}
+
 napi_value JsApplication::OnGetApplicationContext(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Called.");
+    napi_value value = JsApplicationContextUtils::CreateJsApplicationContext(env);
+    auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.ApplicationContext", &value, 1);
+    if (systemModule == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid systemModule");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR);
+        return CreateJsUndefined(env);
+    }
+    napi_value object = systemModule->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, object, napi_object)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get context native object");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR);
+        return CreateJsUndefined(env);
+    }
+
+    auto applicationContext = ApplicationContext::GetInstance();
+    auto workContext = new (std::nothrow) std::weak_ptr<ApplicationContext>(applicationContext);
+    napi_coerce_to_native_binding_object(
+        env, object, DetachCallbackFunc, AttachApplicationContext, workContext, nullptr);
+    if (workContext != nullptr) {
+        auto res = napi_wrap(env, object, workContext,
+            [](napi_env, void *data, void *) {
+              TAG_LOGD(AAFwkTag::APPKIT, "Finalizer for weak_ptr application context is called");
+              delete static_cast<std::weak_ptr<ApplicationContext> *>(data);
+              data = nullptr;
+            },
+            nullptr, nullptr);
+        if (res != napi_ok && workContext != nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "napi_wrap failed:%{public}d", res);
+            delete workContext;
+            return CreateJsUndefined(env);
+        }
+    }
+    return object;
+}
+
+napi_value JsApplication::OnGetAppContext(napi_env env, NapiCallbackInfo &info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "Called.");
+    std::shared_ptr<ApplicationContext> applicationContext = ApplicationContext::GetInstance();
+    if (!applicationContext->GetApplicationInfoUpdateFlag()) {
+        std::shared_ptr<NativeReference> applicationContextObj =
+            ApplicationContextManager::GetApplicationContextManager().GetGlobalObject(env);
+        if (applicationContextObj != nullptr) {
+            napi_value objValue = applicationContextObj->GetNapiValue();
+            return objValue;
+        }
+    }
     napi_value value = JsApplicationContextUtils::CreateJsApplicationContext(env);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.ApplicationContext", &value, 1);
     if (systemModule == nullptr) {
@@ -650,6 +702,9 @@ napi_value ApplicationInit(napi_env env, napi_value exportObj)
     const char *moduleName = "application";
     BindNativeFunction(env, exportObj, "getApplicationContext", moduleName,
         JsApplication::GetApplicationContext);
+
+    BindNativeFunction(env, exportObj, "getAppContext", moduleName,
+        JsApplication::GetAppContext);
 
     BindNativeFunction(env, exportObj, "createModuleContext", moduleName,
         JsApplication::CreateModuleContext);
