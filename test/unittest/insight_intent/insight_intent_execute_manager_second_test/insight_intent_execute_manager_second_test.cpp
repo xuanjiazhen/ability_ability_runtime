@@ -932,7 +932,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, UpdateFuncDecoratorParams_0700, 
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
     AbilityRuntime::ExtractInsightIntentInfo info;
     info.decoratorClass = "";
-    info.decoratorFile = "decorator.js";
+    info.genericInfo.decoratorFile = "decorator.js";
     info.genericInfo.set<AbilityRuntime::InsightIntentFunctionInfo>();
     info.genericInfo.get<AbilityRuntime::InsightIntentFunctionInfo>().functionName = "testFunction";
     info.genericInfo.get<AbilityRuntime::InsightIntentFunctionInfo>().functionParams = {"param1", "param2"};
@@ -961,7 +961,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, UpdateFuncDecoratorParams_0800, 
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
     AbilityRuntime::ExtractInsightIntentInfo info;
     info.decoratorClass = "com.example.Decorator";
-    info.decoratorFile = "decorator.js";
+    info.genericInfo.decoratorFile = "decorator.js";
     info.genericInfo.set<AbilityRuntime::InsightIntentFunctionInfo>();
     info.genericInfo.get<AbilityRuntime::InsightIntentFunctionInfo>().functionName = "";
     auto ret = InsightIntentExecuteManager::UpdateFuncDecoratorParams(paramPtr, info, want);
@@ -989,7 +989,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, UpdateFuncDecoratorParams_0900, 
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
     AbilityRuntime::ExtractInsightIntentInfo info;
     info.decoratorClass = "com.example.Decorator";
-    info.decoratorFile = "decorator.js";
+    info.genericInfo.decoratorFile = "decorator.js";
     info.genericInfo.set<AbilityRuntime::InsightIntentFunctionInfo>();
     info.genericInfo.get<AbilityRuntime::InsightIntentFunctionInfo>().functionName = "testFunction";
     info.genericInfo.get<AbilityRuntime::InsightIntentFunctionInfo>().functionParams = {"param1", "param2"};
@@ -1034,7 +1034,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, UpdatePageDecoratorParams_0600, 
     param.abilityName_ = "test.abilityName";
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
     AbilityRuntime::ExtractInsightIntentInfo info;
-    info.decoratorFile = "decorator.js";
+    info.genericInfo.decoratorFile = "decorator.js";
     info.decoratorClass = "com.example.Decorator";
     info.genericInfo.set<AbilityRuntime::InsightIntentPageInfo>();
     info.genericInfo.get<AbilityRuntime::InsightIntentPageInfo>().pagePath = "testPagePath";
@@ -1061,7 +1061,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, UpdatePageDecoratorParams_0700, 
     param.abilityName_ = "test.abilityName";
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
     AbilityRuntime::ExtractInsightIntentInfo info;
-    info.decoratorFile = "decorator.js";
+    info.genericInfo.decoratorFile = "decorator.js";
     info.decoratorClass = "com.example.Decorator";
     info.genericInfo.set<AbilityRuntime::InsightIntentPageInfo>();
     info.genericInfo.get<AbilityRuntime::InsightIntentPageInfo>().pagePath = "";
@@ -1088,7 +1088,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, UpdatePageDecoratorParams_0800, 
     param.abilityName_ = "test.abilityName";
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
     AbilityRuntime::ExtractInsightIntentInfo info;
-    info.decoratorFile = "decorator.js";
+    info.genericInfo.decoratorFile = "decorator.js";
     info.decoratorClass = "com.example.Decorator";
     info.genericInfo.set<AbilityRuntime::InsightIntentPageInfo>();
     info.genericInfo.get<AbilityRuntime::InsightIntentPageInfo>().pagePath = "";

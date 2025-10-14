@@ -134,26 +134,26 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
 int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, ExecuteMode executeMode)
 {
     std::string intentName = want.GetStringParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME);
-    ExtractInsightIntentInfo info;
+    AbilityRuntime::ExtractInsightIntentGenericInfo info;
     const int32_t userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
-    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        want.GetBundle(), want.GetModuleName(), intentName, userId, info);
-    if (info.genericInfo.decoratorType != AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY) {
-        TAG_LOGW(AAFwkTag::INTENT, "decorator %{public}s misMatch", info.genericInfo.decoratorType.c_str());
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfo(
+        want.GetBundle(), want.GetModuleName(), intentName, info);
+    if (info.decoratorType != AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY) {
+        TAG_LOGW(AAFwkTag::INTENT, "decorator %{public}s misMatch", info.decoratorType.c_str());
         return ERR_INVALID_VALUE;
     }
     InsightIntentType type = InsightIntentType::DECOR_ENTRY;
     want.SetParam(INSIGHT_INTENT_DECORATOR_TYPE, static_cast<int>(type));
     std::string srcEntrance = info.decoratorFile;
     want.SetParam(INSIGHT_INTENT_SRC_ENTRANCE, srcEntrance);
-    std::vector<ExecuteMode> supportModes = info.genericInfo.get<InsightIntentEntryInfo>().executeMode;
+    std::vector<ExecuteMode> supportModes = info.get<InsightIntentEntryInfo>().executeMode;
     TAG_LOGD(AAFwkTag::INTENT, "support mode size %{public}zu", supportModes.size());
     bool found = std::find(supportModes.begin(), supportModes.end(), executeMode) != supportModes.end();
     if (!found) {
         TAG_LOGE(AAFwkTag::INTENT, "execute mode mismatch");
         return ERR_INVALID_VALUE;
     }
-    if (want.GetElement().GetAbilityName() != info.genericInfo.get<InsightIntentEntryInfo>().abilityName) {
+    if (want.GetElement().GetAbilityName() != info.get<InsightIntentEntryInfo>().abilityName) {
         TAG_LOGE(AAFwkTag::INTENT, "ability name mismatch");
         return ERR_INVALID_VALUE;
     }
@@ -329,7 +329,7 @@ int32_t InsightIntentExecuteManager::UpdateFuncDecoratorParams(
     }
     want.SetElementName("", param->bundleName_, param->abilityName_, param->moduleName_);
 
-    std::string srcEntrance = info.decoratorFile;
+    std::string srcEntrance = info.genericInfo.decoratorFile;
     want.SetParam(INSIGHT_INTENT_SRC_ENTRANCE, srcEntrance);
 
     std::string className = info.decoratorClass;
@@ -381,7 +381,7 @@ int32_t InsightIntentExecuteManager::UpdatePageDecoratorParams(
         return ERR_INVALID_VALUE;
     }
 
-    std::string srcEntrance = info.decoratorFile;
+    std::string srcEntrance = info.genericInfo.decoratorFile;
     want.SetParam(INSIGHT_INTENT_SRC_ENTRANCE, srcEntrance);
 
     std::string pagePath = info.genericInfo.get<InsightIntentPageInfo>().pagePath;
@@ -413,7 +413,7 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(
     ExtractInsightIntentInfo &info, Want &want)
 {
     TAG_LOGD(AAFwkTag::INTENT, "update entry params");
-    std::string srcEntrance = info.decoratorFile;
+    std::string srcEntrance = info.genericInfo.decoratorFile;
     want.SetParam(INSIGHT_INTENT_SRC_ENTRANCE, srcEntrance);
     auto executeMode = param->executeMode_;
     std::vector<ExecuteMode> supportModes = info.genericInfo.get<InsightIntentEntryInfo>().executeMode;

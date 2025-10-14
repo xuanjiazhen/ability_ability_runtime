@@ -104,6 +104,7 @@ struct ExtractInsightIntentGenericInfo {
     std::string intentName;
     std::string displayName;
     std::string decoratorType;
+    std::string decoratorFile;
 
     std::variant<
         InsightIntentLinkInfo,
@@ -162,7 +163,6 @@ struct InsightIntentEntityInfo {
 
 // 全量信息
 struct ExtractInsightIntentInfo {
-    std::string decoratorFile;
     std::string decoratorClass;
     std::string displayDescription;
     std::string domain;
