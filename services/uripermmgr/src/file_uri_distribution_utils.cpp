@@ -59,7 +59,7 @@ bool FUDUtils::SendShareUnPrivilegeUriEvent(uint32_t callerTokenId, uint32_t tar
 }
 
 bool FUDUtils::SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
-    const std::vector<std::string> &uriVec, const std::vector<bool> &resVec)
+    const std::vector<std::string> &uriVec, const std::vector<CheckResult> &resVec)
 {
     TAG_LOGD(AAFwkTag::URIPERMMGR, "send grant uri permission event start.");
     EventInfo eventInfo;
@@ -67,7 +67,7 @@ bool FUDUtils::SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint
         return false;
     }
     for (size_t i = 0; i < resVec.size(); i++) {
-        if (resVec[i]) {
+        if (resVec[i].result) {
             Uri uri(uriVec[i]);
             eventInfo.uri = uri.GetScheme() + ":" + uri.GetAuthority();
             EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);

@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_FILE_URI_DISTRIBUTION_UTILS_H
 #define OHOS_ABILITY_RUNTIME_FILE_URI_DISTRIBUTION_UTILS_H
 
+#include "check_result.h"
 #include "event_report.h"
 #include "uri.h"
 
@@ -31,7 +32,7 @@ class FUDUtils {
 public:
     static bool SendShareUnPrivilegeUriEvent(uint32_t callTokenId, uint32_t targetTokenId);
     static bool SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
-        const std::vector<std::string> &uriVec, const std::vector<bool> &resVec);
+        const std::vector<std::string> &uriVec, const std::vector<CheckResult> &resVec);
     static int32_t GetCurrentAccountId();
     static bool IsFoundationCall();
     static bool IsSAOrSystemAppCall();
