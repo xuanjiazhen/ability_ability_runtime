@@ -99,7 +99,7 @@ void GetRandomInsightIntentInfoForQuery(FuzzedDataProvider& fdp, InsightIntentIn
 
 void GetRandomExtractInsightIntentInfo(FuzzedDataProvider& fdp, ExtractInsightIntentInfo& info)
 {
-    info.decoratorFile = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.genericInfo.decoratorFile = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.decoratorClass = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.displayDescription = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.domain = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
@@ -135,7 +135,7 @@ void GetRandomInsightIntentExecuteParam(FuzzedDataProvider& fdp, InsightIntentEx
 
 void GetRandomExtractInsightIntentProfileInfo(FuzzedDataProvider& fdp, ExtractInsightIntentProfileInfo& info)
 {
-    info.decoratorFile = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.genericInfo.decoratorFile = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.decoratorClass = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.decoratorType = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);

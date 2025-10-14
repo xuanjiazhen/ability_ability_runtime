@@ -680,7 +680,6 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
         return false;
     }
 
-    info.decoratorFile = insightIntent.decoratorFile;
     info.decoratorClass = insightIntent.decoratorClass;
     info.displayDescription = insightIntent.displayDescription;
     info.domain = insightIntent.domain;
@@ -712,6 +711,9 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
     TAG_LOGD(AAFwkTag::INTENT, "displayName: %{public}s", info.genericInfo.displayName.c_str());
     info.genericInfo.decoratorType = insightIntent.decoratorType;
     TAG_LOGD(AAFwkTag::INTENT, "decoratorType: %{public}s", info.genericInfo.decoratorType.c_str());
+    info.genericInfo.decoratorFile = insightIntent.decoratorFile;
+    TAG_LOGD(AAFwkTag::INTENT, "decoratorFile: %{public}s", info.genericInfo.decoratorFile.c_str());
+
 
     switch (StringToEnum(insightIntent.decoratorType)) {
         case DecoratorType::DECORATOR_LINK:
