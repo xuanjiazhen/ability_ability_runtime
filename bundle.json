@@ -125,6 +125,7 @@
           "//foundation/ability/ability_runtime/services/sa_profile:ams_sa_profile",
           "//foundation/ability/ability_runtime/services/quickfixmgr:quick_fix.cfg",
           "//foundation/ability/ability_runtime/tools:tools_target",
+          "//foundation/ability/ability_runtime/interfaces/inner_api/child_process_manager:child_process_manager_ani",
           "//foundation/ability/ability_runtime/interfaces/inner_api:innerkits_target",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:ability_thread",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:app_service_extension_ani",
@@ -364,6 +365,7 @@
               "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common/include",
               "header_files": [
                 "ani_common_ability_state_data.h",
+                "ani_common_child_process_param.h",
                 "ani_common_start_options.h",
                 "ani_common_want.h",
                 "ets_native_reference.h"
