@@ -918,6 +918,12 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY) {
         return StartAbilityForPrelaunchInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_FOREGROUND_APP_CONNECTION_OBSERVER) {
+        return RegisterForegroundAppObserverInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_FOREGROUND_APP_CONNECTION_OBSERVER) {
+        return UnregisterForegroundAppObserverInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -2950,6 +2956,38 @@ int AbilityManagerStub::RegisterObserver(const sptr<AbilityRuntime::IConnectionO
 int AbilityManagerStub::UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer)
 {
     // should implement in child
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RegisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<AbilityRuntime::IForegroundAppConnection> observer =
+        iface_cast<AbilityRuntime::IForegroundAppConnection>(data.ReadRemoteObject());
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = RegisterForegroundAppObserver(observer);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::UnregisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<AbilityRuntime::IForegroundAppConnection> observer =
+        iface_cast<AbilityRuntime::IForegroundAppConnection>(data.ReadRemoteObject());
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = UnregisterForegroundAppObserver(observer);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_INVALID_VALUE;
+    }
     return NO_ERROR;
 }
 
