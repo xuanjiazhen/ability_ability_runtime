@@ -247,6 +247,68 @@ void EtsApplication::CreateBundleContext(ani_env *env,
     SetCreateCompleteCallback(env, bundleContext, callback);
 }
 
+void EtsApplication::DemoteCurrentFromCandidateMasterProcess(ani_env *env, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "DemoteCurrentFromCandidateMasterProcess Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    ani_object emptyObject = CreateEmptyContextObject(env);
+    if (emptyObject == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create empty context object");
+        return;
+    }
+    auto errCode = std::make_shared<int32_t>(ERR_OK);
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Null appMgrClient");
+        *errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    } else {
+        *errCode = appMgrClient->DemoteCurrentFromCandidateMasterProcess();
+    }
+    if (*errCode == ERR_OK) {
+        TAG_LOGD(AAFwkTag::APPKIT, "demote to standby master process success");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK),
+        emptyObject);
+    } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "demote to standby master process failed, errCode: %{public}d", *errCode);
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, *errCode), 
+            emptyObject);
+    }
+}
+void EtsApplication::PromoteCurrentToCandidateMasterProcess(ani_env *env, 
+    ani_boolean isInsertToHead, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "PromoteCurrentToCandidateMasterProcess Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    ani_object emptyObject = CreateEmptyContextObject(env);
+    if (emptyObject == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create empty context object");
+        return;
+    }
+    bool insertToHead = static_cast<bool>(isInsertToHead);
+    auto errCode = std::make_shared<int32_t>(ERR_OK);
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Null appMgrClient");
+        *errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    } else {
+        *errCode = appMgrClient->PromoteCurrentToCandidateMasterProcess(insertToHead);
+    }
+    if (*errCode == ERR_OK) {
+        TAG_LOGD(AAFwkTag::APPKIT, "promote to candidate master process success");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK),
+        emptyObject);
+    } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "promote to candidate master process failed, errCode: %{public}d", *errCode);
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, *errCode), emptyObject);
+    }
+}
+
 ani_object EtsApplication::GetApplicationContext(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "GetApplicationContext Call");
@@ -322,6 +384,17 @@ void ApplicationInit(ani_env *env)
             "nativeGetAppPreloadType",
             ":L@ohos/app/ability/application/application/AppPreloadType;",
             reinterpret_cast<void *>(EtsApplication::GetAppPreloadType)
+        },
+        ani_native_function {
+            "nativeDemoteCurrentFromCandidateMasterProcess",
+            "Lapplication/Context/Context;"
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsApplication::DemoteCurrentFromCandidateMasterProcess)
+        },
+        ani_native_function {
+            "nativePromoteCurrentToCandidateMasterProcess",
+            nullptr,
+        reinterpret_cast<void *>(EtsApplication::PromoteCurrentToCandidateMasterProcess)
         },
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());

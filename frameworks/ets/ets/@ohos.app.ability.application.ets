@@ -38,6 +38,10 @@ export default namespace application {
 
   export native function nativeGetAppPreloadType(): AppPreloadType;
 
+  export native function nativeDemoteCurrentFromCandidateMasterProcess(callback: AsyncCallbackWrapper<void>): void;
+
+  export native function nativePromoteCurrentToCandidateMasterProcess(isInsertToHead: boolean,
+    callback:AsyncCallbackWrapper<void>): void;
   export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
     let p =
       new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
@@ -87,6 +91,39 @@ export default namespace application {
         });
       });
     return p;
+  }
+
+
+  export function DemoteCurrentFromCandidateMasterProcess(): Promise<void> {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          application.nativeDemoteCurrentFromCandidateMasterProcess(myCall);
+        });
+      });
+    return p;
+  }
+
+  export function PromoteCurrentToCandidateMasterProcess(isInsertToHead: boolean): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        application.nativePromoteCurrentToCandidateMasterProcess(isInsertToHead, asyncCall);
+      });
+    });
   }
 
   export function getApplicationContext(): ApplicationContext {
