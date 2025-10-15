@@ -54,7 +54,8 @@ using namespace OHOS::AppExecFwk;
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
-constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP = "ohos.ability.params.uiExtensionLaunchTimestamp";
+constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_HIGH = "ohos.ability.params.uiExtensionLaunchTimestampHigh";
+constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_LOW = "ohos.ability.params.uiExtensionLaunchTimestampLow";
 
 bool IsEmbeddableStart(int32_t screenMode)
 {
@@ -694,8 +695,16 @@ sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtens
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
         option->SetConstrainedModal(isNotAllow);
     }
-    option->SetStartModalExtensionTimeStamp(
-        static_cast<int64_t>(want.GetLongParam(UIEXTENSION_LAUNCH_TIMESTAMP, -1)));
+    int64_t launchTimestamp = -1
+    bool hasHigh = want_.HasParameter(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
+    bool hasLow = want_.HasParameter(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
+    if(hasHigh && hasLow){
+        int32_t high = want_.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1);
+        int32_t low = want_.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW, -1);
+        uint64_t temp = (static_cast<uint64_t>(high) << 32) | (static_cast<uint64_t>(low) & 0xFFFFFFFFLL);
+        launchTimestamp = static_cast<int64_t>(temp);
+    }
+    option->SetStartModalExtensionTimeStamp(launchTimestamp);
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
     return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
 }
