@@ -4392,7 +4392,7 @@ int AbilityManagerProxy::AddFreeInstallObserver(const sptr<IRemoteObject> &calle
     MessageOption option;
     if (observer == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
-        return INNER_ERR;
+        return ERR_NULL_OBJECT;
     }
 
     if (!WriteInterfaceToken(data)) {
@@ -4418,6 +4418,64 @@ int AbilityManagerProxy::AddFreeInstallObserver(const sptr<IRemoteObject> &calle
     }
 
     auto error = SendRequest(AbilityManagerInterfaceCode::ADD_FREE_INSTALL_OBSERVER, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::RegisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+        return INNER_ERR;
+    }
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+
+    if (!data.WriteRemoteObject(observer->AsObject())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer write fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::REGISTER_FOREGROUND_APP_CONNECTION_OBSERVER,
+        data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::UnregisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+        return INNER_ERR;
+    }
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+
+    if (!data.WriteRemoteObject(observer->AsObject())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer write fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::UNREGISTER_FOREGROUND_APP_CONNECTION_OBSERVER,
+        data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
         return error;
