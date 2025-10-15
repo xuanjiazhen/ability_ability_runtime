@@ -57,7 +57,7 @@ public:
      */
     virtual int DoAbilityBackground(const sptr<IRemoteObject> &token, uint32_t flag) override;
 
-    virtual int RegisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
+    virtual int RegisterObserver(const sptr<AbilityRuntime::IConnectionObserver> observer);
 
     virtual int UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
 
@@ -231,6 +231,9 @@ private:
 
     int FreeInstallAbilityFromRemoteInner(MessageParcel &data, MessageParcel &reply);
     int AddFreeInstallObserverInner(MessageParcel &data, MessageParcel &reply);
+
+    int32_t RegisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnregisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
 
     int EnableRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
     int SubmitSaveRecoveryInfoInner(MessageParcel &data, MessageParcel &reply);
