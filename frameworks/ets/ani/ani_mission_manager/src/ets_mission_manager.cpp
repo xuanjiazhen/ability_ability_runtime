@@ -263,13 +263,11 @@ private:
             return;
         }
 
-        auto emptyObject = GetEmptyMissionSnapShot(env);
-
         std::string stdDeviceId = "";
         if (!GetStdString(env, deviceId, stdDeviceId)) {
             TAG_LOGE(AAFwkTag::MISSION, "GetStdString failed");
             AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
-                "Parse param deviceId failed, must be a string."), emptyObject);
+                "Parse param deviceId failed, must be a string."), nullptr);
             return;
         }
         AAFwk::MissionSnapshot missionSnapShot;
@@ -278,7 +276,7 @@ private:
         if (ret != 0) {
             TAG_LOGE(AAFwkTag::MISSION, "OnGetMissionSnapShot is failed. ret = %{public}d.", ret);
             AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
-                ret, PermissionConstants::PERMISSION_MANAGE_MISSION), emptyObject);
+                ret, PermissionConstants::PERMISSION_MANAGE_MISSION), nullptr);
             return;
         }
         auto aniMissionSnapShot = CreateEtsMissionSnapShot(env, missionSnapShot);
@@ -324,33 +322,6 @@ private:
         }
 #endif
         return object;
-    }
-
-    ani_object GetEmptyMissionSnapShot(ani_env *env)
-    {
-        if (env == nullptr) {
-            TAG_LOGE(AAFwkTag::MISSION, "null env");
-            return nullptr;
-        }
-        ani_class cls = nullptr;
-        ani_status status = env->FindClass("Lapplication/MissionSnapshot/MissionSnapshotImpl;", &cls);
-        if (status != ANI_OK || cls == nullptr) {
-            TAG_LOGE(AAFwkTag::MISSION, "find class failed status: %{public}d", status);
-            return nullptr;
-        }
-        ani_method method = nullptr;
-        status = env->Class_FindMethod(cls, "<ctor>", ":V", &method);
-        if (status != ANI_OK || method == nullptr) {
-            TAG_LOGE(AAFwkTag::MISSION, "Class_FindMethod ctor failed status: %{public}d", status);
-            return nullptr;
-        }
-        ani_object objValue = nullptr;
-        status = env->Object_New(cls, method, &objValue);
-        if (status != ANI_OK || objValue == nullptr) {
-            TAG_LOGE(AAFwkTag::MISSION, "Object_New failed status: %{public}d", status);
-            return nullptr;
-        }
-        return objValue;
     }
 
     void OnMoveMissionsToBackground(ani_env *env, ani_object missionIds, ani_object callback)
