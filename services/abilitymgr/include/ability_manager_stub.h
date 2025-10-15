@@ -232,6 +232,9 @@ private:
     int FreeInstallAbilityFromRemoteInner(MessageParcel &data, MessageParcel &reply);
     int AddFreeInstallObserverInner(MessageParcel &data, MessageParcel &reply);
 
+    int32_t RegisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnregisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
+
     int EnableRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
     int SubmitSaveRecoveryInfoInner(MessageParcel &data, MessageParcel &reply);
     int ScheduleRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);

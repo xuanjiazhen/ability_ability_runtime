@@ -52,6 +52,7 @@
 #include "extension_ability_info.h"
 #include "ffrt.h"
 #include "freeze_util.h"
+#include "foreground_app_connection_manager.h"
 #include "global_constant.h"
 #include "hap_token_info.h"
 #include "hilog_tag_wrapper.h"
@@ -4877,6 +4878,7 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
         TAG_LOGI(AAFwkTag::APPMGR, "null appRecord");
         return;
     }
+    ForegroundAppConnectionManager::GetInstance()->ProcessRemovePidConnection(appRecord->GetPid());
     AppExecFwk::AppfreezeManager::GetInstance()->ReportAppFreezeSysEvents(appRecord->GetPid(),
         appRecord->GetBundleName());
     AppExecFwk::AppfreezeManager::GetInstance()->RemoveDeathProcess(appRecord->GetBundleName());

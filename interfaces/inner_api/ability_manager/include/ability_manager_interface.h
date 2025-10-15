@@ -1484,6 +1484,9 @@ public:
         return 0;
     }
 
+    virtual int32_t RegisterForegroundAppObserver(const sptr<AbilityRuntime::IForegroundAppConnection> &observer) = 0;
+    virtual int32_t UnregisterForegroundAppObserver(const sptr<AbilityRuntime::IForegroundAppConnection> &observer) = 0;
+
     virtual void EnableRecoverAbility(const sptr<IRemoteObject>& token) {};
     virtual void SubmitSaveRecoveryInfo(const sptr<IRemoteObject>& token) {};
     virtual void ScheduleRecoverAbility(const sptr<IRemoteObject> &token, int32_t reason,
