@@ -1014,6 +1014,12 @@ public:
 
     virtual int UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer) override;
 
+    virtual int32_t RegisterForegroundAppObserver(
+        const sptr<AbilityRuntime::IForegroundAppConnection> &observer) override;
+
+    virtual int32_t UnregisterForegroundAppObserver(
+        const sptr<AbilityRuntime::IForegroundAppConnection> &observer) override;
+
 #ifdef WITH_DLP
     virtual int GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos) override;
 #endif // WITH_DLP
@@ -1523,6 +1529,11 @@ public:
      */
     virtual int AddFreeInstallObserver(const sptr<IRemoteObject> &callerToken,
         const sptr<AbilityRuntime::IFreeInstallObserver> &observer) override;
+
+    virtual int32_t RegisterForegroundAppObserver(
+        const sptr<AbilityRuntime::IForegroundAppConnection> &observer) override;
+    virtual int32_t UnregisterForegroundAppObserver(
+        const sptr<AbilityRuntime::IForegroundAppConnection> &observer) override;
 
     /**
      * Check the uid is background task uid.

@@ -1672,6 +1672,24 @@ ErrCode AbilityManagerClient::AddFreeInstallObserver(const sptr<IRemoteObject> c
     return abms->AddFreeInstallObserver(callerToken, observer);
 }
 
+int32_t AbilityManagerClient::RegisterForegroundAppObserver(
+    const sptr<AbilityRuntime::IForegroundAppConnection> &observer)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call RegisterForegroundAppObserver");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RegisterForegroundAppObserver(observer);
+}
+
+int32_t AbilityManagerClient::UnregisterForegroundAppObserver(
+    const sptr<AbilityRuntime::IForegroundAppConnection> &observer)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call UnregisterForegroundAppObserver");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->UnregisterForegroundAppObserver(observer);
+}
+
 int32_t AbilityManagerClient::IsValidMissionIds(
     const std::vector<int32_t> &missionIds, std::vector<MissionValidResult> &results)
 {

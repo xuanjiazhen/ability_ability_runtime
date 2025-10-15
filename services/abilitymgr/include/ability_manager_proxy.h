@@ -1142,6 +1142,11 @@ public:
     virtual int AddFreeInstallObserver(const sptr<IRemoteObject> &callerToken,
         const sptr<AbilityRuntime::IFreeInstallObserver> &observer) override;
 
+    virtual int32_t RegisterForegroundAppObserver(
+        const sptr<AbilityRuntime::IForegroundAppConnection> &observer) override;
+    virtual int32_t UnregisterForegroundAppObserver(
+        const sptr<AbilityRuntime::IForegroundAppConnection> &observer) override;
+
     /**
      * Called when client complete dump.
      *
