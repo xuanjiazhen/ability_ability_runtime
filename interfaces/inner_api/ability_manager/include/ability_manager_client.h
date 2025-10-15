@@ -1370,6 +1370,9 @@ public:
     ErrCode AddFreeInstallObserver(const sptr<IRemoteObject> callToken,
         const sptr<AbilityRuntime::IFreeInstallObserver> observer);
 
+    int32_t RegisterForegroundAppObserver(const sptr<AbilityRuntime::IForegroundAppConnection> &observer);
+    int32_t UnregisterForegroundAppObserver(const sptr<AbilityRuntime::IForegroundAppConnection> &observer);
+
     /**
      * Called to verify that the MissionId is valid.
      * @param missionIds Query mission list.
