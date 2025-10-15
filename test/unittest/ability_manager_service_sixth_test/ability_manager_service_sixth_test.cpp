@@ -2114,5 +2114,47 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartSelfUIAbilityInCurrentProcess_002,
     EXPECT_EQ(ret, INNER_ERR);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest SendIntentReport_001 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelfUIAbilityInCurrentProcess
+ * FunctionPoints: AbilityManagerService StartSelfUIAbilityInCurrentProcess
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, StartSelfUIAbilityInCurrentProcess_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartSelfUIAbilityInCurrentProcess_003 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    std::string bundleName;
+    std::string abilityName;
+    want.SetElementName(bundleName, abilityName);
+    std::string specifiedFlag;
+    StartOptions startOptions;
+    EventInfo eventInfo;
+    auto callerToken = sptr<MockAbilityToken>::MakeSptr();
+    auto ret = abilityMs->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false, callerToken);
+    EXPECT_EQ(ret, START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartSelfUIAbilityInCurrentProcess_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: IsAppCloneOrMultiInstance
+ * FunctionPoints: AbilityManagerService IsAppCloneOrMultiInstance
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, IsAppCloneOrMultiInstance_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest IsAppCloneOrMultiInstance_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    auto callerToken = sptr<MockAbilityToken>::MakeSptr();
+    int32_t targetAppIndex = 1;
+    std::string callerInstanceKey = "key";
+    auto ret = abilityMs->IsAppCloneOrMultiInstance(want, callerToken, targetAppIndex, callerInstanceKey);
+    EXPECT_TRUE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest IsAppCloneOrMultiInstance_001 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS
