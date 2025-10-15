@@ -206,6 +206,56 @@ void StartupTaskManager::UpdateStartupTaskContextRef(std::shared_ptr<NativeRefer
     }
 }
 
+// void StartupTaskManager::UpdateStartupTaskContextRef(std::shared_ptr<NativeReference> &contextJsRef, bool updateAll)
+// {
+//     for (auto& iter : tasks_) {
+//         if (iter.second == nullptr) {
+//             continue;
+//         }
+//         if (iter.second->GetType() != JsStartupTask::TASK_TYPE &&
+//             iter.second->GetType() != EtsStartupTask::TASK_TYPE) {
+//             continue;
+//         }
+//         std::shared_ptr<AppStartupTask> appStartupTask = std::static_pointer_cast<AppStartupTask>(iter.second);
+//         if (!updateAll && appStartupTask->GetModuleType() != AppExecFwk::ModuleType::SHARED) {
+//             continue;
+//         }
+//         if (iter.second->GetType() == JsStartupTask::TASK_TYPE) {
+//             std::shared_ptr<JsStartupTask> jsStartupTask = std::static_pointer_cast<JsStartupTask>(appStartupTask);
+//             jsStartupTask->UpdateContextRef(contextJsRef);
+//         } else if (iter.second->GetType() == EtsStartupTask::TASK_TYPE) {
+//             std::shared_ptr<EtsStartupTask> etsStartupTask = std::static_pointer_cast<EtsStartupTask>(appStartupTask);
+//             ani_ref contextEtsRef = contextJsRef.ToEtsRef(); // todo 互通 context转换
+//             etsStartupTask->UpdateContextRef(contextEtsRef);
+//         }
+//     }
+// }
+
+// void StartupTaskManager::UpdateStartupTaskContextRef(ani_ref contextEtsRef, bool updateAll)
+// {
+//     for (auto& iter : tasks_) {
+//         if (iter.second == nullptr) {
+//             continue;
+//         }
+//         if (iter.second->GetType() != JsStartupTask::TASK_TYPE &&
+//             iter.second->GetType() != EtsStartupTask::TASK_TYPE) {
+//             continue;
+//         }
+//         std::shared_ptr<AppStartupTask> appStartupTask = std::static_pointer_cast<AppStartupTask>(iter.second);
+//         if (!updateAll && appStartupTask->GetModuleType() != AppExecFwk::ModuleType::SHARED) {
+//             continue;
+//         }
+//         if (iter.second->GetType() == JsStartupTask::TASK_TYPE) {
+//             std::shared_ptr<JsStartupTask> jsStartupTask = std::static_pointer_cast<JsStartupTask>(appStartupTask);
+//             std::shared_ptr<NativeReference> contextJsRef = contextEtsRef.ToJsRef(); // todo 互通 context转换
+//             jsStartupTask->UpdateContextRef(contextJsRef);
+//         } else if (iter.second->GetType() == EtsStartupTask::TASK_TYPE) {
+//             std::shared_ptr<EtsStartupTask> etsStartupTask = std::static_pointer_cast<EtsStartupTask>(appStartupTask);
+//             etsStartupTask->UpdateContextRef(contextEtsRef);
+//         }
+//     }
+// }
+
 void StartupTaskManager::SetTimeoutCallback(const std::function<void()>& callback)
 {
     timeoutCallback_ = callback;

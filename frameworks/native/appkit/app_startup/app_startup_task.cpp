@@ -87,5 +87,8 @@ void AppStartupTask::SetPreAbilityStageLoad(bool preAbilityStageLoad)
 {
     preAbilityStageLoad_ = preAbilityStageLoad;
 }
+
+void AppStartupTask::UpdateContextRef(std::shared_ptr<NativeReference> contextJsRef)
+{}
 } // namespace AbilityRuntime
 } // namespace OHOS

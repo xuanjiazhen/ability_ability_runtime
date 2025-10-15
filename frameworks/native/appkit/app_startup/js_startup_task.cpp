@@ -80,18 +80,13 @@ std::map<std::string, std::weak_ptr<JsStartupTask>> AsyncTaskCallBack::jsStartup
 
 const std::string JsStartupTask::TASK_TYPE = "Js";
 
-JsStartupTask::JsStartupTask(const std::string &name, JsRuntime &jsRuntime, const StartupTaskInfo &info,
-    const std::shared_ptr<NativeReference> &contextJsRef)
-    : AppStartupTask(name), jsRuntime_(jsRuntime), startupJsRef_(nullptr), contextJsRef_(contextJsRef),
-      srcEntry_(info.srcEntry), ohmUrl_(info.ohmUrl), hapPath_(info.hapPath), esModule_(info.esModule)
+JsStartupTask::JsStartupTask(JsRuntime &jsRuntime, const StartupTaskInfo &info, bool lazyLoad)
+    : AppStartupTask(info.name), jsRuntime_(jsRuntime), srcEntry_(info.srcEntry), ohmUrl_(info.ohmUrl),
+    hapPath_(info.hapPath), esModule_(info.esModule)
 {
-    SetModuleName(info.moduleName);
-}
-
-JsStartupTask::JsStartupTask(const std::string& name, JsRuntime& jsRuntime,
-    std::unique_ptr<NativeReference>& startupJsRef, std::shared_ptr<NativeReference>& contextJsRef)
-    : AppStartupTask(name), jsRuntime_(jsRuntime), startupJsRef_(std::move(startupJsRef)), contextJsRef_(contextJsRef)
-{
+    if (!lazyLoad) {
+        LoadJsOhmUrl();
+    }
 }
 
 JsStartupTask::~JsStartupTask() = default;
@@ -201,7 +196,7 @@ void JsStartupTask::LoadJsAsyncTaskCallback()
         JsRuntime::LoadSystemModuleByEngine(env, "app.appstartup.AsyncTaskCallback", &asyncTaskCallbackClass, 1);
 }
 
-void JsStartupTask::OnAsyncTaskCompleted(const std::shared_ptr<StartupTaskResult>  &result)
+void JsStartupTask::OnAsyncTaskCompleted(const std::shared_ptr<StartupTaskResult> &result)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "called");
     if (startupTaskResultCallback_ == nullptr) {
@@ -211,7 +206,7 @@ void JsStartupTask::OnAsyncTaskCompleted(const std::shared_ptr<StartupTaskResult
     startupTaskResultCallback_->Call(result);
 }
 
-void JsStartupTask::UpdateContextRef(std::shared_ptr<NativeReference> &contextJsRef)
+void JsStartupTask::UpdateContextRef(std::shared_ptr<NativeReference> contextJsRef)
 {
     contextJsRef_ = contextJsRef;
 }
