@@ -766,7 +766,7 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
         option->SetConstrainedModal(isNotAllow);
     }
-    int64_t launchTimestamp = -1
+    int64_t launchTimestamp = -1;
     bool hasHigh = want_.HasParameter(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
     bool hasLow = want_.HasParameter(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
     if (hasHigh && hasLow) {
