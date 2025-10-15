@@ -4077,7 +4077,7 @@ void AbilityRecord::AddUIExtensionLaunchTimestamp()
         want_.SetParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW, low);
     } else {
         TAG_LOGE(AAFwkTag::UI_EXT, "clock_gettime failed: %{public}s", strerror(errno));
-    }    
+    }
 }
 
 void AbilityRecord::RemoveUIExtensionLaunchTimestamp()
