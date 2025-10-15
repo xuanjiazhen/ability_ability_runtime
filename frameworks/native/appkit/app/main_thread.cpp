@@ -2032,6 +2032,7 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
             EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName(), EVENT_KEY_PROCESS_LIFETIME, lifeTime);
 
         ErrorObject appExecErrorObj = { errorObject.name, errorObject.message, errorObject.stack};
+        // This code block is invoked to handle uncaught exceptions from the JS layer.
         auto napiEnv = (static_cast<AbilityRuntime::JsRuntime&>(*appThread->application_->GetRuntime())).GetNapiEnv();
         AAFwk::ExitReason exitReason = { REASON_JS_ERROR, errorObject.name };
         AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
