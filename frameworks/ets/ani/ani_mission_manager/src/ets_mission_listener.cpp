@@ -29,7 +29,7 @@ namespace AbilityRuntime {
 
 EtsMissionListener::~EtsMissionListener()
 {
-    ani_env *env = AttachCurrentThread();
+    ani_env *env = AppExecFwk::AttachAniEnv(vm_, isAttachThread_);
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "GetEnv failed");
         return;
@@ -48,7 +48,7 @@ EtsMissionListener::~EtsMissionListener()
         }
         it++;
     }
-    DetachCurrentThread();
+    AppExecFwk::DetachAniEnv(vm_, isAttachThread_);
 }
 
 void EtsMissionListener::OnMissionCreated(int32_t missionId)
@@ -118,7 +118,7 @@ bool EtsMissionListener::IsEmpty()
 void EtsMissionListener::CallEtsMethod(const std::string &methodName, int32_t missionId)
 {
     TAG_LOGD(AAFwkTag::MISSION, "methodName:%{public}s", methodName.c_str());
-    ani_env *env = AttachCurrentThread();
+    ani_env *env = AppExecFwk::AttachAniEnv(vm_, isAttachThread_);
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null env");
         return;
@@ -146,47 +146,14 @@ void EtsMissionListener::CallEtsMethod(const std::string &methodName, int32_t mi
             TAG_LOGE(AAFwkTag::MISSION, "Object_CallMethodByName_Void failed, status: %{public}d", status);
         }
     }
-    DetachCurrentThread();
-}
-
-ani_env *EtsMissionListener::AttachCurrentThread()
-{
-    if (vm_ == nullptr) {
-        TAG_LOGE(AAFwkTag::MISSION, "vm_ is null");
-        return nullptr;
-    }
-    ani_env *env = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = vm_->GetEnv(ANI_VERSION_1, &env)) == ANI_OK) {
-        return env;
-    }
-    ani_option interopEnabled { "--interop=disable", nullptr };
-    ani_options aniArgs { 1, &interopEnabled };
-    if ((status = vm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::MISSION, "status: %{public}d", status);
-        return nullptr;
-    }
-    isAttachThread_ = true;
-    return env;
-}
-
-void EtsMissionListener::DetachCurrentThread()
-{
-    if (vm_ == nullptr) {
-        TAG_LOGE(AAFwkTag::MISSION, "vm_ is null");
-        return;
-    }
-    if (isAttachThread_) {
-        vm_->DetachCurrentThread();
-        isAttachThread_ = false;
-    }
+    AppExecFwk::DetachAniEnv(vm_, isAttachThread_);
 }
 
 #ifdef SUPPORT_SCREEN
 void EtsMissionListener::OnMissionIconUpdated(int32_t missionId, const std::shared_ptr<Media::PixelMap> &icon)
 {
     TAG_LOGD(AAFwkTag::MISSION, "missionId: %{public}d", missionId);
-    ani_env *env = AttachCurrentThread();
+    ani_env *env = AppExecFwk::AttachAniEnv(vm_, isAttachThread_);
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null env");
         return;
@@ -212,7 +179,7 @@ void EtsMissionListener::OnMissionIconUpdated(int32_t missionId, const std::shar
             TAG_LOGE(AAFwkTag::MISSION, "Object_CallMethodByName_Void failed, status: %{public}d", status);
         }
     }
-    DetachCurrentThread();
+    AppExecFwk::DetachAniEnv(vm_, isAttachThread_);
 }
 #endif
 }  // namespace AbilityRuntime

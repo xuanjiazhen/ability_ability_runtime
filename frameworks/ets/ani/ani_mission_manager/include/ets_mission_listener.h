@@ -47,8 +47,6 @@ public:
 
 private:
     void CallEtsMethod(const std::string &methodName, int32_t missionId);
-    ani_env *AttachCurrentThread();
-    void DetachCurrentThread();
     ani_vm *vm_ = nullptr;
     bool isAttachThread_ = false;
     std::map<int32_t, ani_object> etsListenerObjectMap_;
