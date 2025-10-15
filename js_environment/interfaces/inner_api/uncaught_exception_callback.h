@@ -52,6 +52,12 @@ public:
     
     void operator()(const panda::OOMErrorInfo& errorInfo);
 
+    void ProcessErrorInfo(
+    const std::string& errorName,
+    const std::string& errorMsg,
+    const std::string& errorStack,
+    const std::string& errorCode);
+
     void CallbackTask(napi_value& obj);
 
     /*
