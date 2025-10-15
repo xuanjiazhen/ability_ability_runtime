@@ -19,6 +19,7 @@ import { WantAgentInfo as _WantAgentInfo } from 'wantAgent.wantAgentInfo';
 import { LocalWantAgentInfo as _LocalWantAgentInfo } from 'wantAgent.wantAgentInfo';
 import { TriggerInfo as _TriggerInfo } from 'wantAgent.triggerInfo';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
+import Context from 'application.Context';
 
 namespace wantAgent {
   loadLibraryWithPermissionCheck("aniwantagent.z", "@ohos.app.ability.wantAgent");
@@ -71,7 +72,8 @@ namespace wantAgent {
   native function nativeGetWantAgent(agent: WantAgentInfo, callback: AsyncCallbackWrapper<WantAgent>): void;
   native function nativeIsLocalWantAgent(agent: WantAgent): boolean;
   native function nativeCreateLocalWantAgent(info: LocalWantAgentInfo): WantAgent;
-
+  native function nativeTriggerAsync(agent: WantAgent, triggerInfo: TriggerInfo, context: Context, callback: AsyncCallbackWrapper<CompleteData>): void;
+  
   export function getBundleName(agent: WantAgent, callback: AsyncCallback<string>): void {
     let call = new AsyncCallbackWrapper<string>(callback);
     taskpool.execute((): void => {
@@ -81,6 +83,31 @@ namespace wantAgent {
         callback(err, "");
       }
     });
+  }
+  export native function nativetriggerAsyncCheck(agent: WantAgent, triggerInfo: TriggerInfo, context: Context): void;
+  export function triggerAsync(agent: WantAgent, triggerInfo: TriggerInfo, context: Context): Promise<CompleteData> {
+    nativetriggerAsyncCheck(agent, triggerInfo, context);
+    return new Promise<CompleteData>((resolve: (data: CompleteData) => void,
+      reject: (err: BusinessError) => void): void => {
+      let call = new AsyncCallbackWrapper<CompleteData>((err: BusinessError | null, data: CompleteData | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as CompleteData);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        try {
+          nativeTriggerAsync(agent, triggerInfo, context, call);
+        } catch (err: BusinessError) {
+          reject(err);
+        }
+      });
+    });
+  }
+
+  export function setWantAgentMultithreading(isMultithreadingSupported: boolean): void {
+ 
   }
 
   export function getBundleName(agent: WantAgent): Promise<string> {
