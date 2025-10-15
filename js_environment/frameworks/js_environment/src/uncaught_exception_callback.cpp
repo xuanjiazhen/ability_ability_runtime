@@ -89,9 +89,9 @@ void NapiUncaughtExceptionCallback::operator()(const panda::OOMErrorInfo& errorI
 }
 
 void NapiUncaughtExceptionCallback::ProcessErrorInfo(
-    const std::string& errorName, 
-    const std::string& errorMsg, 
-    const std::string& errorStack, 
+    const std::string& errorName,
+    const std::string& errorMsg,
+    const std::string& errorStack,
     const std::string& errorCode)
 {
     std::string summary = "Error name:" + errorName + "\n";
