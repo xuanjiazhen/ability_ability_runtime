@@ -627,7 +627,8 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
             return false;
         }
-        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP);
+        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
+        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
         uiWindow->UpdateExtensionConfig(sharedWant);
         HandleScope handleScope(jsRuntime_);
         napi_env env = jsRuntime_.GetNapiEnv();

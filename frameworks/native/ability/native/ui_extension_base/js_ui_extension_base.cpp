@@ -813,7 +813,8 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
             return false;
         }
-        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP);
+        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
+        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
         uiWindow->UpdateExtensionConfig(sharedWant);
         if (!CallJsOnSessionCreate(*sharedWant, sessionInfo, uiWindow, componentId)) {
             return false;
