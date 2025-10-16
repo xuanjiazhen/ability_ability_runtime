@@ -1,0 +1,247 @@
+diff --git a/frameworks/ets/ani/ui_ability/include/ets_ui_ability.h b/frameworks/ets/ani/ui_ability/include/ets_ui_ability.h
+index b9a32e904189d80a84c5057762b6f12bccd297c1..d1f86a18647869e56333f7a43c7e7f6c22c2986c 100644
+--- a/frameworks/ets/ani/ui_ability/include/ets_ui_ability.h
++++ b/frameworks/ets/ani/ui_ability/include/ets_ui_ability.h
+@@ -109,6 +109,16 @@ public:
+      */
+     void OnNewWant(const Want &want) override;
+ 
++    /**
++     * @brief Prepare user data of local Ability.
++     * @param reason the reason why framework invoke this function
++     * @param wantParams Indicates the user data to be saved.
++     * @return result code defined in abilityConstants
++     */
++    int32_t OnSaveState(int32_t reason, WantParams &wantParams,
++        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
++        bool &isAsync, AppExecFwk::StateReason stateReason) override;
++
+     /**
+      * @brief Called when startAbilityForResult(ohos.aafwk.content.Want,int) is called to start an ability and the
+      * result is returned. This method is called only on Page abilities. You can start a new ability to perform some
+@@ -276,6 +286,8 @@ private:
+         const std::string &moduleName, const std::string &srcPath);
+     void CreateEtsContext(int32_t screenMode);
+     bool BindNativeMethods();
++    int32_t CallSaveState(ani_value args[], WantParams &wantParams, AppExecFwk::StateReason stateReason,
++        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo);
+ 
+     ETSRuntime &etsRuntime_;
+     std::shared_ptr<AppExecFwk::ETSNativeReference> shellContextRef_;
+diff --git a/frameworks/ets/ani/ui_ability/src/ets_ui_ability.cpp b/frameworks/ets/ani/ui_ability/src/ets_ui_ability.cpp
+index 9d3d9c0b50df1c0c3ee1cc4efdcb9b0988fd54c1..35c0f727adb9f5fd0bf67aa27dc29e708cf6d62a 100644
+--- a/frameworks/ets/ani/ui_ability/src/ets_ui_ability.cpp
++++ b/frameworks/ets/ani/ui_ability/src/ets_ui_ability.cpp
+@@ -59,6 +59,16 @@ constexpr int32_t BASE_DISPLAY_ID_NUM(10);
+ constexpr const char *UI_ABILITY_CLASS_NAME = "L@ohos/app/ability/UIAbility/UIAbility;";
+ constexpr const char *UI_ABILITY_SIGNATURE_VOID = ":V";
+ constexpr const char *MEMORY_LEVEL_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;";
++constexpr const char *ON_SAVE_RESULT_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/OnSaveResult;";
++constexpr const char *CALL_ON_SAVE_STATE =
++    "L@ohos/app/ability/AbilityConstant/AbilityConstant/StateType;Lescompat/Record;I:Z";
++constexpr const char *ON_SAVE_STATE_CALLBACK =
++    "Lescompat/Record;L@ohos/app/ability/AbilityConstant/AbilityConstant/OnSaveResult;I:V";
++constexpr const char *ON_SAVE_STATE =
++    "L@ohos/app/ability/AbilityConstant/AbilityConstant/StateType;Lescompat/Record;"
++    ":L@ohos/app/ability/AbilityConstant/AbilityConstant/OnSaveResult;";
++constexpr const int32_t CALL_BACK_ERROR = -1;
++constexpr size_t INDEX_ONE = 1;
+ 
+ void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
+ {
+@@ -85,6 +95,46 @@ void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
+     callbackInfo->Call();
+     AppExecFwk::AbilityTransactionCallbackInfo<>::Destroy(callbackInfo);
+ }
++
++void OnSaveStateCallback(
++    ani_env *env, ani_object aniObj, ani_object aniWantParam, ani_object aniSaveResult, ani_int aniStateReason)
++{
++    TAG_LOGI(AAFwkTag::UIABILITY, "OnSaveStateCallback begin");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
++        return;
++    }
++    ani_long saveStateCallbackPoint = 0;
++    ani_status status = env->Object_GetFieldByName_Long(aniObj, "saveStateCallbackPoint", &saveStateCallbackPoint);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "saveStateCallbackPoint GetField status: %{public}d", status);
++        return;
++    }
++    auto *callbackInfo = reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *>(
++        saveStateCallbackPoint);
++    if (callbackInfo == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "null callbackInfo");
++        return;
++    }
++    WantParams wantParams;
++    AppExecFwk::UnwrapWantParams(env, aniWantParam, wantParams);
++    int32_t saveResult = 0;
++    if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
++        env, reinterpret_cast<ani_enum_item>(aniSaveResult), saveResult)) {
++        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
++        TAG_LOGE(AAFwkTag::UIABILITY, "no result return from onSaveState");
++        return;
++    }
++    AppExecFwk::OnSaveStateResult saveStateResult = { saveResult, wantParams,
++        static_cast<AppExecFwk::StateReason>(aniStateReason) };
++    callbackInfo->Call(saveStateResult);
++    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
++    if ((status = env->Object_SetFieldByName_Long(aniObj, "saveStateCallbackPoint", 0)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "saveStateCallbackPoint SetField status: %{public}d", status);
++        return;
++    }
++    TAG_LOGI(AAFwkTag::UIABILITY, "OnSaveStateCallback end");
++}
+ } // namespace
+ 
+ UIAbility *EtsUIAbility::Create(const std::unique_ptr<Runtime> &runtime)
+@@ -174,6 +224,8 @@ bool EtsUIAbility::BindNativeMethods()
+     std::call_once(singletonFlag_, [&status, env, cls]() {
+         std::array functions = {
+             ani_native_function { "nativeOnDestroyCallback", ":V", reinterpret_cast<void *>(OnDestroyPromiseCallback) },
++            ani_native_function { "nativeOnSaveStateCallback", ON_SAVE_STATE_CALLBACK,
++                reinterpret_cast<void *>(OnSaveStateCallback) },
+         };
+         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
+     });
+@@ -974,6 +1026,79 @@ bool EtsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
+ }
+ #endif
+ 
++int32_t EtsUIAbility::OnSaveState(int32_t reason, WantParams &wantParams,
++    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo, bool &isAsync,
++    AppExecFwk::StateReason stateReason)
++{
++    TAG_LOGD(AAFwkTag::UIABILITY, "OnSaveState called");
++    auto env = etsRuntime_.GetAniEnv();
++    if (env == nullptr || etsAbilityObj_ == nullptr || callbackInfo == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "null env or etsAbilityObj_ or callbackInfo");
++        return CALL_BACK_ERROR;
++    }
++    ani_long saveStateCallbackPoint = reinterpret_cast<ani_long>(callbackInfo);
++    ani_status status =
++        env->Object_SetFieldByName_Long(etsAbilityObj_->aniObj, "saveStateCallbackPoint", saveStateCallbackPoint);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "SetField saveStateCallbackPoint failed, status: %{public}d", status);
++        return CALL_BACK_ERROR;
++    }
++    ani_enum_item reasonEnum = nullptr;
++    if (!AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env, ON_SAVE_RESULT_ENUM_NAME, reason, reasonEnum) ||
++        reasonEnum == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "EnumConvert_NativeToEts failed, or null reasonEnum");
++        return CALL_BACK_ERROR;
++    }
++    ani_ref wantParamsRef = AppExecFwk::WrapWantParams(env, wantParams);
++    if (wantParamsRef == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "WrapWantParams failed, null wantParamsRef");
++        return CALL_BACK_ERROR;
++    }
++    if (CallObjectMethod(true, "callOnSaveState", CALL_ON_SAVE_STATE, reasonEnum, wantParamsRef,
++        static_cast<ani_int>(stateReason))) {
++        TAG_LOGD(AAFwkTag::UIABILITY, "async call");
++        isAsync = true;
++        return ERR_OK;
++    }
++    ani_value args[] = { { .r = reasonEnum }, { .r = wantParamsRef } };
++    return CallSaveState(args, wantParams, stateReason, callbackInfo);
++}
++
++int32_t EtsUIAbility::CallSaveState(ani_value args[], WantParams &wantParams, AppExecFwk::StateReason stateReason,
++    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo)
++{
++    TAG_LOGD(AAFwkTag::UIABILITY, "CallSaveState called");
++    auto env = etsRuntime_.GetAniEnv();
++    if (env == nullptr || etsAbilityObj_ == nullptr || callbackInfo == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "null env or etsAbilityObj_ or callbackInfo");
++        return CALL_BACK_ERROR;
++    }
++    ani_method method = nullptr;
++    ani_status status = env->Class_FindMethod(etsAbilityObj_->aniCls, "onSaveState", ON_SAVE_STATE, &method);
++    if (status != ANI_OK || method == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "FindMethod onSaveState failed, status: %{public}d", status);
++        return CALL_BACK_ERROR;
++    }
++    ani_ref result = nullptr;
++    status = env->Object_CallMethod_Ref_A(etsAbilityObj_->aniObj, method, &result, args);
++    if (status != ANI_OK || result == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "onSaveState CallMethod failed, status: %{public}d", status);
++        return CALL_BACK_ERROR;
++    }
++    ani_ref wantParamsRef = args[INDEX_ONE].r;
++    AppExecFwk::UnwrapWantParams(env, wantParamsRef, wantParams);
++    int32_t numberResult = 0;
++    if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
++        env, reinterpret_cast<ani_enum_item>(result), numberResult)) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "EnumConvert_EtsToNative failed, no result from onSaveState");
++        return CALL_BACK_ERROR;
++    }
++    AppExecFwk::OnSaveStateResult saveStateResult = { numberResult, wantParams, stateReason };
++    callbackInfo->Call(saveStateResult);
++    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
++    return numberResult;
++}
++
+ void EtsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
+ {
+     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+diff --git a/frameworks/ets/ets/@ohos.app.ability.UIAbility.ets b/frameworks/ets/ets/@ohos.app.ability.UIAbility.ets
+index 34b43e1af1b4a7e6e1d409b8460f5e9b97273f91..75d570845b0deeb5958509df7f54bf67a08b9558 100644
+--- a/frameworks/ets/ets/@ohos.app.ability.UIAbility.ets
++++ b/frameworks/ets/ets/@ohos.app.ability.UIAbility.ets
+@@ -22,9 +22,13 @@ import { AbilityUtils } from './utils/AbilityUtils';
+ 
+ export default class UIAbility extends Ability {
+   private destroyCallbackPoint: long;
++  private saveStateCallbackPoint: long;
+ 
+   private native nativeOnDestroyCallback(): void;
+ 
++  private native nativeOnSaveStateCallback(wantParam: Record<string, Object>, saveResult: AbilityConstant.OnSaveResult,
++    stateReason: int): void;
++
+   private callOnDestroy(): boolean {
+     const derivedClassType = AbilityUtils.getClassType(this);
+     if (derivedClassType === undefined) {
+@@ -44,6 +48,25 @@ export default class UIAbility extends Ability {
+     return false;
+   }
+ 
++  private callOnSaveState(stateType: AbilityConstant.StateType,
++    wantParam: Record<string, Object>, stateReason: int): boolean {
++    const derivedClassType = AbilityUtils.getClassType(this);
++    if (derivedClassType === undefined) {
++      return false;
++    }
++    const uiAbilityClassType = AbilityUtils.getClassType(new UIAbility());
++    if (uiAbilityClassType === undefined) {
++      return false;
++    }
++    if (AbilityUtils.isOverride(derivedClassType, "onSaveStateAsync", uiAbilityClassType)) {
++      this.onSaveStateAsync(stateType, wantParam)
++        .then((saveResult: AbilityConstant.OnSaveResult) => this.nativeOnSaveStateCallback(wantParam, saveResult,
++          stateReason));
++      return true;
++    }
++    return false;
++  }
++
+   context: UIAbilityContext = new UIAbilityContext();
+   launchWant: Want = new Want();
+   lastRequestWant: Want = new Want();
+@@ -92,4 +115,15 @@ export default class UIAbility extends Ability {
+ 
+   onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+   }
++
++  onSaveState(reason: AbilityConstant.StateType, wantParam: Record<string, Object>): AbilityConstant.OnSaveResult {
++    return AbilityConstant.OnSaveResult.RECOVERY_AGREE;
++  }
++
++  onSaveStateAsync(stateType: AbilityConstant.StateType,
++    wantParam: Record<string, Object>): Promise<AbilityConstant.OnSaveResult> {
++    return new Promise<AbilityConstant.OnSaveResult>((resolve: (saveResult: AbilityConstant.OnSaveResult) => void,
++      reject: (err: Error) => void): void => {
++    });
++  }
+ }

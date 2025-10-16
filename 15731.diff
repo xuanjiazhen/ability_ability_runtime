@@ -1,0 +1,80 @@
+diff --git a/frameworks/ets/ani/ui_ability/include/ets_ability_context.h b/frameworks/ets/ani/ui_ability/include/ets_ability_context.h
+index ebb68e7b14be7e20cd1df0ec5ea1a871d04caa69..4534b1428ec7f7cb09c056f5b1ce517c3f5de4ef 100644
+--- a/frameworks/ets/ani/ui_ability/include/ets_ability_context.h
++++ b/frameworks/ets/ani/ui_ability/include/ets_ability_context.h
+@@ -111,6 +111,7 @@ public:
+     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
+     static EtsAbilityContext *GetEtsAbilityContext(ani_env *env, ani_object aniObj);
+     static bool IsInstanceOf(ani_env *env, ani_object aniObj);
++    static void NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled);
+     static void NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj, ani_boolean isShow,
+         ani_object callbackObj);
+ 
+diff --git a/frameworks/ets/ani/ui_ability/src/ets_ability_context.cpp b/frameworks/ets/ani/ui_ability/src/ets_ability_context.cpp
+index e6391fdaa1cdc771330f34257146c6c8983a9d22..116fba9e9b0b6cd70aa221102aad35bee65bffcf 100644
+--- a/frameworks/ets/ani/ui_ability/src/ets_ability_context.cpp
++++ b/frameworks/ets/ani/ui_ability/src/ets_ability_context.cpp
+@@ -1530,6 +1530,30 @@ bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
+     return isInstanceOf;
+ }
+ 
++void EtsAbilityContext::NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled)
++{
++    TAG_LOGD(AAFwkTag::UIABILITY, "NativeOnSetRestoreEnabled");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
++        return;
++    }
++
++    auto abilityContext = GetEtsAbilityContext(env, aniObj);
++    if (abilityContext == nullptr) {
++        TAG_LOGW(AAFwkTag::CONTEXT, "null abilityContext");
++        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
++        return;
++    }
++    bool enabled = static_cast<bool>(aniEnabled);
++    auto context = abilityContext->context_.lock();
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
++        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
++        return;
++    }
++    context->SetRestoreEnabled(enabled);
++}
++
+ void EtsAbilityContext::NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj,
+     ani_boolean isShow, ani_object callbackObj)
+ {
+@@ -1751,6 +1775,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
+                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
+             ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
+                 reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicService) },
++            ani_native_function { "nativeOnSetRestoreEnabled", "Z:V",
++                reinterpret_cast<void*>(EtsAbilityContext::NativeOnSetRestoreEnabled) },
+             ani_native_function { "nativeConnectServiceExtensionAbilityWithAccount",
+                 "L@ohos/app/ability/Want/Want;ILability/connectOptions/ConnectOptions;:J",
+                 reinterpret_cast<void*>(EtsAbilityContext::ConnectServiceExtensionAbilityWithAccount) },
+diff --git a/frameworks/ets/ets/application/UIAbilityContext.ets b/frameworks/ets/ets/application/UIAbilityContext.ets
+index 22f7d0f54a7a7bb2e3e112fd49f6d55ae5c9a59e..d47c1f96cbd42aa4c5087a5dd982503a488f9afe 100644
+--- a/frameworks/ets/ets/application/UIAbilityContext.ets
++++ b/frameworks/ets/ets/application/UIAbilityContext.ets
+@@ -140,6 +140,8 @@ export default class UIAbilityContext extends Context {
+ 
+   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
+ 
++  private native nativeOnSetRestoreEnabled(enabled: boolean): void;
++  
+   private native nativeConnectServiceExtensionAbilityWithAccount(want: Want, accountId: int,
+     options: ConnectOptions): long;
+ 
+@@ -511,6 +513,10 @@ hideAbility(): Promise<void> {
+     return p;
+   }
+ 
++  setRestoreEnabled(enabled: boolean): void {
++    return this.nativeOnSetRestoreEnabled(enabled);
++  }
++
+   openAtomicService(appId: string, options?: AtomicServiceOptions): Promise<AbilityResult> {
+     return new Promise<AbilityResult>((resolve: (data: AbilityResult) => void, reject: (err: BusinessError) => void): void => {
+       let asyncCall = new AsyncCallbackWrapper<AbilityResult>((err: BusinessError | null, data: AbilityResult | undefined) => {
