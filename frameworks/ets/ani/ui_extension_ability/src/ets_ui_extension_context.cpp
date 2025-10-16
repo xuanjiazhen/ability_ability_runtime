@@ -54,9 +54,9 @@ constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK = "Lapplicat
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
 const std::string JSON_KEY_ERR_MSG = "errMsg";
-constexpr const char* SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
     "L@ohos/app/ability/AtomicServiceOptions/AtomicServiceOptions;:V";
-constexpr const char* SIGNATURE_OPEN_LINK = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+constexpr const char *SIGNATURE_OPEN_LINK = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
     "L@ohos/app/ability/OpenLinkOptions/OpenLinkOptions;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";

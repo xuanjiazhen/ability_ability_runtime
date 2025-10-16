@@ -65,7 +65,7 @@ constexpr const char* SIGNATURE_OPEN_LINK = "Lstd/core/String;Lutils/AbilityUtil
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
     "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:J";
 constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "JLutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char* SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
     "L@ohos/app/ability/AtomicServiceOptions/AtomicServiceOptions;:V";
 const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE =
