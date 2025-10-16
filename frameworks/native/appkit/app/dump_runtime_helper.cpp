@@ -45,6 +45,7 @@ static uint64_t g_lastOOMDumpTime = 0;
 static constexpr const char* const EVENT_XATTR_NAME = "user.appevent";
 static constexpr const char* const OOM_QUOTA_XATTR_NAME = "user.oomdump.quota";
 static constexpr const char* const PROPERTY2C = "user.oomdumptelemetry.quota";
+static constexpr const char* const PROPERTY_RUNNING_ID = "user.running_id";
 static constexpr const char* const HIAPPEVENT_PATH = "/data/storage/el2/base/cache/hiappevent";
 static constexpr const char* const OOM_QUOTA_PATH = "/data/storage/el2/base/cache/rawheap";
 static constexpr const char* const JS_HEAP_LOGTYPE = "user.event_config.js_heap_logtype";
@@ -367,6 +368,9 @@ void DumpRuntimeHelper::CreateDirDelay(const std::string &path)
             TAG_LOGE(AAFwkTag::APPKIT, "failed to create %{public}s", path.c_str());
             return;
         }
+        if (!SetDirXattr(path, PROPERTY_RUNNING_ID, DFX_GetAppRunningUniqueId())) {
+            TAG_LOGW(AAFwkTag::APPKIT, "failed to SetDirXattr, path: %{public}s", path.c_str());
+        }
         constexpr mode_t defaultLogDirMode = 0770;
         if (!OHOS::ChangeModeDirectory(path.c_str(), defaultLogDirMode)) {
             TAG_LOGE(AAFwkTag::APPKIT, "failed to changeMode %{public}s", path.c_str());
@@ -399,7 +403,7 @@ bool DumpRuntimeHelper::CreateDir(const std::string &path)
         TAG_LOGI(AAFwkTag::APPKIT, "File existed. dir: %{public}s", path.c_str());
         return true;
     }
-    if (!ForceCreateDirectory(path)) {
+    if (mkdir(path.c_str(), S_IRWXU) != 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "Failed to create dir: %{public}s", path.c_str());
         return false;
     }
@@ -558,25 +562,6 @@ bool DumpRuntimeHelper::CheckAppListenedEvents(const std::string &path)
 bool DumpRuntimeHelper::IsFileExists(const std::string &file)
 {
     return access(file.c_str(), F_OK) == 0;
-}
-
-bool DumpRuntimeHelper::ForceCreateDirectory(const std::string &path)
-{
-    std::string::size_type index = 0;
-    do {
-        std::string subPath;
-        index = path.find('/', index + 1); // (index + 1) means the next char traversed
-        if (index == std::string::npos) {
-            subPath = path;
-        } else {
-            subPath = path.substr(0, index);
-        }
-
-        if (!IsFileExists(subPath) && mkdir(subPath.c_str(), S_IRWXU) != 0) {
-            return false;
-        }
-    } while (index != std::string::npos);
-    return IsFileExists(path);
 }
 
 bool DumpRuntimeHelper::SetDirXattr(const std::string &path, const std::string &name, const std::string &value)
