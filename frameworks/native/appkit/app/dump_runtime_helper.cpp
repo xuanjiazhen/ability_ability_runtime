@@ -399,6 +399,17 @@ bool DumpRuntimeHelper::CreateDir(const std::string &path)
         TAG_LOGE(AAFwkTag::APPKIT, "Failed to create dir: %{public}s", path.c_str());
         return false;
     }
+    constexpr mode_t defaultLogDirMode = 0770;
+    if (!OHOS::ChangeModeDirectory(path, defaultLogDirMode)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to changeMode %{public}s", path.c_str());
+        rmdir(path.c_str());
+        return false;
+    }
+    if (OHOS::StorageDaemon::AclSetAccess(path, "g:1201:rwx") != 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to AclSetAccess, path: %{public}s", path.c_str());
+        rmdir(path.c_str());
+        return false;
+    }
     return true;
 }
 
