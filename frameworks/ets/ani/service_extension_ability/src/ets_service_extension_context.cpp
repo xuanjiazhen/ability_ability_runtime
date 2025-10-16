@@ -39,7 +39,7 @@ constexpr const int FAILED_CODE = -1;
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
     "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:J";
 constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "JLutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char* SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
     "L@ohos/app/ability/AtomicServiceOptions/AtomicServiceOptions;:V";
 const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 constexpr int32_t ARGC_ONE = 1;

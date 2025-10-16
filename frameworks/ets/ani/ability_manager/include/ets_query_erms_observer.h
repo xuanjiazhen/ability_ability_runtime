@@ -45,7 +45,6 @@ private:
     ani_vm *etsVm_;
     std::mutex etsObserverObjectListLock_;
     std::vector<EtsQueryERMSObserverObject> etsObserverObjectList_;
-    bool isAttachThread_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
