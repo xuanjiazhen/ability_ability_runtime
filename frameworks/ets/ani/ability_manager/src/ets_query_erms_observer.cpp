@@ -31,7 +31,8 @@ EtsQueryERMSObserver::EtsQueryERMSObserver(ani_vm *etsVm) : etsVm_(etsVm) {}
 
 EtsQueryERMSObserver::~EtsQueryERMSObserver()
 {
-    ani_env *env = AttachCurrentThread();
+    bool isAttachThread = false;
+    ani_env *env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::QUERY_ERMS, "null env");
         return;
@@ -40,7 +41,7 @@ EtsQueryERMSObserver::~EtsQueryERMSObserver()
         env->GlobalReference_Delete(it->callback);
         it++;
     }
-    DetachCurrentThread();
+    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
 }
 
 void EtsQueryERMSObserver::OnQueryFinished(const std::string &appId, const std::string &startTime,
@@ -79,7 +80,8 @@ void EtsQueryERMSObserver::CallCallback(ani_object callback, const AtomicService
         TAG_LOGE(AAFwkTag::QUERY_ERMS, "null callback");
         return;
     }
-    ani_env *env = AttachCurrentThread();
+    bool isAttachThread = false;
+    ani_env *env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::QUERY_ERMS, "GetEnv failed");
         return;
@@ -89,7 +91,7 @@ void EtsQueryERMSObserver::CallCallback(ani_object callback, const AtomicService
     if (resultCode == ERR_OK && WrapAtomicServiceStartupRule(env, rule, ruleObj)) {
         aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
         AppExecFwk::AsyncCallback(env, callback, aniObject, ruleObj);
-        DetachCurrentThread();
+        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
     if (resultCode == ERR_OK) {
@@ -98,7 +100,7 @@ void EtsQueryERMSObserver::CallCallback(ani_object callback, const AtomicService
         aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, resultCode);
     }
     AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
-    DetachCurrentThread();
+    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
 }
 
 void EtsQueryERMSObserver::AddEtsObserverObject(const std::string &appId, const std::string &startTime,
@@ -154,31 +156,6 @@ bool EtsQueryERMSObserver::WrapAtomicServiceStartupRule(ani_env *env,
         return false;
     }
     return true;
-}
-
-ani_env *EtsQueryERMSObserver::AttachCurrentThread()
-{
-    ani_env *env = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) == ANI_OK) {
-        return env;
-    }
-    ani_option interopEnabled { "--interop=disable", nullptr };
-    ani_options aniArgs { 1, &interopEnabled };
-    if ((status = etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::QUERY_ERMS, "status: %{public}d", status);
-        return nullptr;
-    }
-    isAttachThread_ = true;
-    return env;
-}
-
-void EtsQueryERMSObserver::DetachCurrentThread()
-{
-    if (isAttachThread_) {
-        etsVm_->DetachCurrentThread();
-        isAttachThread_ = false;
-    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

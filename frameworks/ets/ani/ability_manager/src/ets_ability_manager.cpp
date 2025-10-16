@@ -395,7 +395,7 @@ void EtsAbilityManager::NativeOn(ani_env *env, ani_string aniType, ani_object an
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "nativeOn called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
     std::string strType;
@@ -441,7 +441,7 @@ void EtsAbilityManager::NativeOff(ani_env *env, ani_string aniType, ani_object a
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "nativeOff called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
     std::string strType;
@@ -504,7 +504,7 @@ void EtsAbilityManager::NativeNotifyDebugAssertResultCheck(ani_env *env, ani_str
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "NativeNotifyDebugAssertResultCheck called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
     std::string sessionId;
@@ -539,7 +539,7 @@ void EtsAbilityManager::NativeNotifyDebugAssertResult(ani_env *env, ani_string a
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "NativeNotifyDebugAssertResult called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
     std::string sessionId;
@@ -583,7 +583,7 @@ void EtsAbilityManager::NativeSetResidentProcessEnabledCheck(ani_env *env, ani_s
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "NativeSetResidentProcessEnabledCheck called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
 
@@ -600,7 +600,7 @@ void EtsAbilityManager::NativeSetResidentProcessEnabled(ani_env *env, ani_string
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "NativeSetResidentProcessEnabled called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
 
@@ -633,7 +633,7 @@ void EtsAbilityManager::NativeAcquireShareData(ani_env *env, ani_int aniMissionI
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "NativeAcquireShareData called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
     int32_t missionId = aniMissionId;
@@ -669,7 +669,7 @@ void EtsAbilityManager::NativeUpdateConfiguration(ani_env *env, ani_object confi
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "NativeUpdateConfiguration called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "env null ptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
 

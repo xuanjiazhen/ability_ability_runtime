@@ -31,5 +31,4 @@ class Runtime;
 EmbeddedUIExtension *CreateETSEmbeddedUIExtension(const std::unique_ptr<Runtime> &runtime);
 }  // namespace AbilityRuntime
 }  // namespace OHOS
-
 #endif  // OHOS_ABILITY_RUNTIME_ETS_EMBEDDED_UI_EXTENSION_INSTANCE_H

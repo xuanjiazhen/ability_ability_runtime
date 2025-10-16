@@ -41,8 +41,6 @@ private:
         const AtomicServiceStartupRule &rule, int32_t resultCode);
     bool WrapAtomicServiceStartupRule(ani_env *env, const AbilityRuntime::AtomicServiceStartupRule &rule,
         ani_object &ruleObj);
-    ani_env *AttachCurrentThread();
-    void DetachCurrentThread();
 
     ani_vm *etsVm_;
     std::mutex etsObserverObjectListLock_;
