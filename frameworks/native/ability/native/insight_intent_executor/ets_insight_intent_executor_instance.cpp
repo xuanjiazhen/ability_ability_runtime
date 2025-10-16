@@ -43,7 +43,7 @@ InsightIntentExecutor *CreateETSInsightIntentExecutor(Runtime &runtime)
     }
     auto symbol = dlsym(handle, ETS_ANI_CREATE_FUNC);
     if (symbol == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "dlsym failed %{public}s, %{public}s", ETS_ANI_Create_FUNC, dlerror());
+        TAG_LOGE(AAFwkTag::INTENT, "dlsym failed %{public}s, %{public}s", ETS_ANI_CREATE_FUNC, dlerror());
         dlclose(handle);
         return nullptr;
     }
