@@ -369,18 +369,10 @@ void DumpRuntimeHelper::CreateDirDelay(const std::string &path)
             return;
         }
         if (!SetDirXattr(path, PROPERTY_RUNNING_ID, DFX_GetAppRunningUniqueId())) {
-            TAG_LOGW(AAFwkTag::APPKIT, "failed to SetDirXattr, path: %{public}s", path.c_str());
-        }
-        constexpr mode_t defaultLogDirMode = 0770;
-        if (!OHOS::ChangeModeDirectory(path.c_str(), defaultLogDirMode)) {
-            TAG_LOGE(AAFwkTag::APPKIT, "failed to changeMode %{public}s", path.c_str());
+            TAG_LOGE(AAFwkTag::APPKIT, "failed to SetDirXattr, path: %{public}s", path.c_str());
             return;
         }
-        if (OHOS::StorageDaemon::AclSetAccess(path, "g:1201:rwx") != 0) {
-            TAG_LOGE(AAFwkTag::APPKIT, "failed to AclSetAccess, path: %{public}s", path.c_str());
-            return;
-        }
-        TAG_LOGI(AAFwkTag::APPKIT, "success to AclSetAccess, path: %{public}s", path.c_str());
+        TAG_LOGI(AAFwkTag::APPKIT, "success to SetDirXattr running_id, path: %{public}s", path.c_str());
         }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_CreateDir")});
 }
 
