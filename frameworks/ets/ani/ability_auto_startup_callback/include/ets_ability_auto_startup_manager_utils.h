@@ -27,4 +27,4 @@ ani_object CreateAniAutoStartupInfo(ani_env *env, const AutoStartupInfo &info);
 } // namespace AbilityRuntime
 } // namespace OHOS
 
-#endif // OHOS_ABILITY_RUNTIME_ETS_ABILITY_AUTO_STARTUP_MANAGER_UTILS_H
+#endif // OHOS_ABILITY_RUNTIME_JS_ABILITY_AUTO_STARTUP_MANAGER_UTILS_H

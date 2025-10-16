@@ -158,8 +158,7 @@ void EtsAbilityAutoStartupCallback::EtsCallFunctionWorker(const AutoStartupInfo 
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called EtsCallFunctionWorker");
     ani_env *env = nullptr;
     ani_status status = ANI_ERROR;
-    bool isAttachThread = false;
-    env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
+    env = AttachAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null env");
         return;
@@ -183,7 +182,7 @@ void EtsAbilityAutoStartupCallback::EtsCallFunctionWorker(const AutoStartupInfo 
             continue;
         }
     }
-    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+    DetachAniEnv();
 }
 
 ani_env* EtsAbilityAutoStartupCallback::GetAniEnv()
@@ -201,6 +200,36 @@ ani_env* EtsAbilityAutoStartupCallback::GetAniEnv()
         return nullptr;
     }
     return env;
+}
+
+ani_env* EtsAbilityAutoStartupCallback::AttachAniEnv()
+{
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called AttachAniEnv");
+    ani_status status = ANI_ERROR;
+    ani_env *env = nullptr;
+    env = GetAniEnv();
+    if (env != nullptr) {
+        return env;
+    }
+    ani_option interopEnabled { "--interop=disable", nullptr };
+    ani_options aniArgs { 1, &interopEnabled };
+    if ((status = (etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "status: %{public}d", status);
+        return nullptr;
+    }
+    return env;
+}
+
+void EtsAbilityAutoStartupCallback::DetachAniEnv()
+{
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "etsVm nullptr");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    if ((status = etsVm_->DetachCurrentThread()) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "status: %{public}d", status);
+    }
 }
 
 bool EtsAbilityAutoStartupCallback::IsEtsCallbackEquals(ani_ref callback, ani_object value)

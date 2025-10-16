@@ -50,6 +50,8 @@ private:
     void EtsCallFunctionWorker(const AutoStartupInfo &info, const char *methodName);
     void GetCallbackVector(std::vector<ani_ref>& callbacks);
     ani_env* GetAniEnv();
+    ani_env* AttachAniEnv();
+    void DetachAniEnv();
     bool IsEtsCallbackEquals(ani_ref callback, ani_object value);
 
     ani_vm *etsVm_;
