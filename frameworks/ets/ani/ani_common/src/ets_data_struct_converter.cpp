@@ -26,6 +26,7 @@ constexpr const char *CLASSNAME_LAUNCHREASON = "L@ohos/app/ability/AbilityConsta
 constexpr const char *CLASSNAME_LAST_EXITREASION = "L@ohos/app/ability/AbilityConstant/AbilityConstant/LastExitReason;";
 constexpr const char* LAST_EXIT_DETAIL_INFO_IMPL_CLASS_NAME =
     "L@ohos/app/ability/AbilityConstant/LastExitDetailInfoImpl;";
+constexpr const char* ENUMNAME_PROCESS = "L@ohos/app/ability/appManager/appManager/ProcessState;";
 ani_string GetAniString(ani_env *env, const std::string &str)
 {
     if (env == nullptr) {
@@ -80,6 +81,13 @@ ani_object CreateEtsLastExitDetailInfo(ani_env* env, const AAFwk::LastExitDetail
     env->Object_SetPropertyByName_Int(object, "pss", lastExitDetailInfo.pss);
     env->Object_SetPropertyByName_Long(object, "timestamp", lastExitDetailInfo.timestamp);
 
+    ani_enum_item stateItem {};
+    AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env,
+        ENUMNAME_PROCESS, lastExitDetailInfo.processState, stateItem);
+    if ((status = env->Object_SetPropertyByName_Ref(object, "processState", stateItem)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "processState failed status:%{public}d", status);
+        return nullptr;
+    }
     return object;
 }
 
