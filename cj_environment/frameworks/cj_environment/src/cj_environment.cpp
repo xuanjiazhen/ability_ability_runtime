@@ -693,7 +693,7 @@ void* CJEnvironment::LoadCJLibrary(const char* dlName)
         UnLoadCJLibrary(handle);
         return nullptr;
     }
-    CJEnvironment::RegisterCangjieCallback();
+   // CJEnvironment::RegisterCangjieCallback();
     isLoadCJLibrary_ = true;
     return handle;
 }
