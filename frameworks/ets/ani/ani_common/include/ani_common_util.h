@@ -58,6 +58,9 @@ ani_object CreateLong(ani_env *env, ani_long value);
 ani_object CreateInt(ani_env *env, ani_int value);
 
 bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result);
+void AsyncResolve(ani_env *env, ani_object call, ani_object result);
+void AsyncResolveWithNoError(ani_env *env, ani_object call, ani_object result);
+void AsyncReject(ani_env *env, ani_object call, ani_object error);
 bool GetPropertyRef(ani_env *env, ani_object obj, const char *name, ani_ref &ref, ani_boolean &isUndefined);
 bool IsExistsField(ani_env *env, ani_object param, const char *name);
 

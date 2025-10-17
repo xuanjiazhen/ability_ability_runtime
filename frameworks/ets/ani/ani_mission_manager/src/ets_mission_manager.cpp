@@ -65,11 +65,11 @@ private:
         auto ret = AbilityManagerClient::GetInstance()->CleanAllMissions();
         if (ret != 0) {
             TAG_LOGE(AAFwkTag::MISSION, "OnClearAllMissions is failed. ret = %{public}d.", ret);
-            AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
-                ret, PermissionConstants::PERMISSION_MANAGE_MISSION), nullptr);
+            AsyncReject(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
+                ret, PermissionConstants::PERMISSION_MANAGE_MISSION));
             return;
         }
-        AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+        AsyncResolveWithNoError(env, callback, nullptr);
     }
 
     void OnGetMissionInfo(ani_env *env, ani_string deviceId, ani_int missionId, ani_object callback)
@@ -82,8 +82,8 @@ private:
         std::string stdDeviceId = "";
         if (!GetStdString(env, deviceId, stdDeviceId)) {
             TAG_LOGE(AAFwkTag::MISSION, "GetStdString failed");
-            AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
-                "Parse param deviceId failed, must be a string."), nullptr);
+            AsyncReject(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
+                "Parse param deviceId failed, must be a string."));
             return;
         }
         AAFwk::MissionInfo missionInfo;
@@ -91,12 +91,12 @@ private:
             missionId, missionInfo);
         if (ret != 0) {
             TAG_LOGE(AAFwkTag::MISSION, "GetMissionInfo is failed. ret = %{public}d.", ret);
-            AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
-                ret, PermissionConstants::PERMISSION_MANAGE_MISSION), nullptr);
+            AsyncReject(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
+                ret, PermissionConstants::PERMISSION_MANAGE_MISSION));
             return;
         }
         auto aniMissionInfo = CreateEtsMissionInfo(env, missionInfo);
-        AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), aniMissionInfo);
+        AsyncResolveWithNoError(env, callback, aniMissionInfo);
     }
 };
 

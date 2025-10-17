@@ -1,0 +1,193 @@
+diff a/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_context.cpp b/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_context.cpp	(rejected hunks)
+@@ -507,13 +520,17 @@ void EtsUIExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *env, an
+     }
+     if (!connection) {
+         aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
+-        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
++        AppExecFwk::AsyncReject(env, callback, aniObject);
+         TAG_LOGE(AAFwkTag::UI_EXT, "null connection");
+         return;
+     }
+     ErrCode ret = context->DisconnectAbility(want, connection);
+     aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+-    AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
++    if (ret == ERR_OK) {
++        AppExecFwk::AsyncResolve(env, callback, nullptr);
++        return;
++    }
++    AppExecFwk::AsyncReject(env, callback, aniObject);
+ }
+ 
+ void EtsUIExtensionContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
+@@ -547,7 +564,7 @@ void EtsUIExtensionContext::OnOpenAtomicService(
+     if (!AppExecFwk::GetStdString(env, aniAppId, appId)) {
+         TAG_LOGE(AAFwkTag::UI_EXT, "parse appId failed");
+         errorObject = EtsErrorUtil::CreateInvalidParamError(env, "Parse param label failed, lable must be string.");
+-        AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
++        AppExecFwk::AsyncReject(env, callbackobj, errorObject);
+         return;
+     }
+     AAFwk::Want want;
+@@ -556,7 +573,7 @@ void EtsUIExtensionContext::OnOpenAtomicService(
+         if (!AppExecFwk::UnwrapAtomicServiceOptions(env, optionsObj, want, startOptions)) {
+             TAG_LOGE(AAFwkTag::UI_EXT, "UnWrapAtomicServiceOptions failed");
+             errorObject = EtsErrorUtil::CreateInvalidParamError(env, "UnWrapAtomicServiceOptions failed.");
+-            AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
++            AppExecFwk::AsyncReject(env, callbackobj, errorObject);
+             return;
+         }
+     }
+@@ -646,21 +663,25 @@ void EtsUIExtensionContext::OnStartServiceExtensionAbilityWithAccount(ani_env *e
+     AAFwk::Want want;
+     if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to UnwrapWant");
+-        AppExecFwk::AsyncCallback(env, callbackObj,
+-            EtsErrorUtil::CreateInvalidParamError(env, "Failed to UnwrapWant"), nullptr);
++        AppExecFwk::AsyncReject(env, callbackObj,
++            EtsErrorUtil::CreateInvalidParamError(env, "Failed to UnwrapWant"));
+         return;
+     }
+     auto context = context_.lock();
+     if (context == nullptr) {
+         TAG_LOGE(AAFwkTag::UI_EXT, "context is nullptr");
+-        AppExecFwk::AsyncCallback(env, callbackObj,
+-            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
++        AppExecFwk::AsyncReject(env, callbackObj,
++            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+         return;
+     }
+ 
+     auto errCode = context->StartServiceExtensionAbility(want, aniAccountId);
+-    AppExecFwk::AsyncCallback(env, callbackObj,
+-        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
++    if (errCode == ERR_OK) {
++        AppExecFwk::AsyncResolve(env, callbackObj, nullptr);
++        return;
++    }
++    AppExecFwk::AsyncReject(env, callbackObj,
++        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)));
+ }
+ 
+ RuntimeTask EtsUIExtensionContext::CreateRuntimeTask(ani_vm *etsVm, ani_ref callbackRef)
+@@ -675,15 +696,20 @@ RuntimeTask EtsUIExtensionContext::CreateRuntimeTask(ani_vm *etsVm, ani_ref call
+         ani_object abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
+         if (abilityResult == nullptr) {
+             TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
+-            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
+-                EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
++            AppExecFwk::AsyncReject(env, reinterpret_cast<ani_object>(callbackRef),
++                EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER));
+             env->GlobalReference_Delete(callbackRef);
+             return;
+         }
+ 
+         int errCode = isInner ? resultCode : 0;
+-        AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
+-            EtsErrorUtil::CreateErrorByNativeErr(env, errCode), abilityResult);
++        if (isInner) {
++            AppExecFwk::AsyncReject(env, reinterpret_cast<ani_object>(callbackRef),
++                EtsErrorUtil::CreateErrorByNativeErr(env, errCode));
++            env->GlobalReference_Delete(callbackRef);
++            return;
++        }
++        AppExecFwk::AsyncResolve(env, reinterpret_cast<ani_object>(callbackRef), abilityResult);
+         env->GlobalReference_Delete(callbackRef);
+     };
+ }
+@@ -694,8 +720,8 @@ void EtsUIExtensionContext::OnStartAbilityForResultAsCaller(ani_env *env, ani_ob
+     AAFwk::Want want;
+     if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to UnwrapWant");
+-        AppExecFwk::AsyncCallback(env, callbackObj,
+-            EtsErrorUtil::CreateInvalidParamError(env, "Failed to UnwrapWant"), nullptr);
++        AppExecFwk::AsyncReject(env, callbackObj,
++            EtsErrorUtil::CreateInvalidParamError(env, "Failed to UnwrapWant"));
+         return;
+     }
+     if (!want.HasParameter(AAFwk::Want::PARAM_BACK_TO_OTHER_MISSION_STACK)) {
+@@ -711,16 +737,16 @@ void EtsUIExtensionContext::OnStartAbilityForResultAsCaller(ani_env *env, ani_ob
+     if (!isUndefined) {
+         if (!AppExecFwk::UnwrapStartOptions(env, optionsObj, startOptions)) {
+             TAG_LOGE(AAFwkTag::UI_EXT, "UnwrapStartOptions filed");
+-            AppExecFwk::AsyncCallback(env, callbackObj,
+-                EtsErrorUtil::CreateInvalidParamError(env, "startOptions filed"), nullptr);
++            AppExecFwk::AsyncReject(env, callbackObj,
++                EtsErrorUtil::CreateInvalidParamError(env, "startOptions filed"));
+             return;
+         }
+     }
+     auto context = context_.lock();
+     if (context == nullptr) {
+         TAG_LOGE(AAFwkTag::UI_EXT, "context is nullptr");
+-        AppExecFwk::AsyncCallback(env, callbackObj,
+-            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
++        AppExecFwk::AsyncReject(env, callbackObj,
++            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+         return;
+     }
+ #ifdef SUPPORT_SCREEN
+@@ -747,21 +773,25 @@ void EtsUIExtensionContext::OnStartServiceExtensionAbility(ani_env *env, ani_obj
+     AAFwk::Want want;
+     if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to UnwrapWant");
+-        AppExecFwk::AsyncCallback(env, callbackObj,
+-            EtsErrorUtil::CreateInvalidParamError(env, "Failed to UnwrapWant"), nullptr);
++        AppExecFwk::AsyncReject(env, callbackObj,
++            EtsErrorUtil::CreateInvalidParamError(env, "Failed to UnwrapWant"));
+         return;
+     }
+ 
+     auto context = context_.lock();
+     if (context == nullptr) {
+         TAG_LOGE(AAFwkTag::UI_EXT, "context is nullptr");
+-        AppExecFwk::AsyncCallback(env, callbackObj,
+-            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
++        AppExecFwk::AsyncReject(env, callbackObj,
++            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+         return;
+     }
+     auto errCode = context->StartServiceExtensionAbility(want);
+-    AppExecFwk::AsyncCallback(env, callbackObj,
+-        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
++    if (errCode == ERR_OK) {
++        AppExecFwk::AsyncResolve(env, callbackObj, nullptr);
++        return;
++    }
++    AppExecFwk::AsyncReject(env, callbackObj,
++        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)));
+ }
+ 
+ void EtsUIExtensionContext::OnSetHostPageOverlayForbidden(ani_env *env, ani_object aniObj, ani_boolean aniIsForbidden)
+@@ -807,7 +837,7 @@ void EtsUIExtensionContext::OpenLinkInner(ani_env *env, ani_object aniObj, ani_s
+     if (!AppExecFwk::GetStdString(env, aniLink, link) || !CheckUrl(link)) {
+         TAG_LOGE(AAFwkTag::UI_EXT, "parse link failed");
+         aniObject = EtsErrorUtil::CreateInvalidParamError(env, "Parse param link failed, link must be string.");
+-        AppExecFwk::AsyncCallback(env, myCallbackobj, aniObject, nullptr);
++        AppExecFwk::AsyncReject(env, myCallbackobj, aniObject);
+         return;
+     }
+     if (haveOptionsParm) {
+@@ -825,7 +855,7 @@ void EtsUIExtensionContext::OpenLinkInner(ani_env *env, ani_object aniObj, ani_s
+         TAG_LOGE(AAFwkTag::UI_EXT, "GetAbilityContext is nullptr");
+         ErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+         aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ErrCode));
+-        AppExecFwk::AsyncCallback(env, myCallbackobj, aniObject, nullptr);
++        AppExecFwk::AsyncReject(env, myCallbackobj, aniObject);
+         return;
+     }
+     AddFreeInstallObserver(env, want, myCallbackobj, context, false, true);
+@@ -873,8 +903,12 @@ void EtsUIExtensionContext::CreateOpenLinkTask(ani_env *env, const ani_object ca
+             resultCode = ERR_INVALID_VALUE;
+         }
+         auto errCode = isInner ? resultCode : 0;
+-        AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
+-            OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, errCode), abilityResult);
++        if (isInner) {
++            AppExecFwk::AsyncReject(env, reinterpret_cast<ani_object>(callbackRef),
++                OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
++            return;
++        }
++        AppExecFwk::AsyncResolveWithNoError(env, reinterpret_cast<ani_object>(callbackRef), abilityResult);
+     };
+     requestCode = context->GenerateCurRequestCode();
+     context->InsertResultCallbackTask(requestCode, std::move(task));

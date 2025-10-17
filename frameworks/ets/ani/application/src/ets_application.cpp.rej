@@ -1,0 +1,52 @@
+diff a/frameworks/ets/ani/application/src/ets_application.cpp b/frameworks/ets/ani/application/src/ets_application.cpp	(rejected hunks)
+@@ -253,24 +246,22 @@ void EtsApplication::CreatePluginModuleContext(ani_env *env,
+         return;
+     }
+     ani_boolean stageMode = false;
+-    ani_object emptyArray = AppExecFwk::CreateEmptyArray(env);
+     ani_status status = OHOS::AbilityRuntime::IsStageContext(env, contextObj, stageMode);
+     if (status != ANI_OK || !stageMode) {
+-        AppExecFwk::AsyncCallback(env, callback,
+-            EtsErrorUtil::CreateInvalidParamError(env, "Parse param context failed, must be a context of stageMode."),
+-            emptyArray);
++        AppExecFwk::AsyncReject(env, callback,
++            EtsErrorUtil::CreateInvalidParamError(env, "Parse param context failed, must be a context of stageMode."));
+         return;
+     }
+     auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
+     if (context == nullptr) {
+-        AppExecFwk::AsyncCallback(env, callback,
+-            EtsErrorUtil::CreateInvalidParamError(env, "Parse param context failed, must not be nullptr."), emptyArray);
++        AppExecFwk::AsyncReject(env, callback,
++            EtsErrorUtil::CreateInvalidParamError(env, "Parse param context failed, must not be nullptr."));
+         return;
+     }
+     auto inputContextPtr = Context::ConvertTo<Context>(context);
+     if (inputContextPtr == nullptr) {
+-        AppExecFwk::AsyncCallback(env, callback,
+-            EtsErrorUtil::CreateInvalidParamError(env, "Parse param context failed, must be a context."), emptyArray);
++        AppExecFwk::AsyncReject(env, callback,
++            EtsErrorUtil::CreateInvalidParamError(env, "Parse param context failed, must be a context."));
+         return;
+     }
+     std::string stdPluginBundleName = "";
+@@ -281,15 +272,15 @@ void EtsApplication::CreatePluginModuleContext(ani_env *env,
+         stdModuleName.c_str(), stdPluginBundleName.c_str());
+     if (stdPluginBundleName.empty() || stdModuleName.empty()) {
+         TAG_LOGE(AAFwkTag::APPKIT, "Empty pluginBundleName or moduleName");
+-        AppExecFwk::AsyncCallback(env, callback,
+-            EtsErrorUtil::CreateInvalidParamError(env, "Empty pluginBundleName or moduleName"), emptyArray);
++        AppExecFwk::AsyncReject(env, callback,
++            EtsErrorUtil::CreateInvalidParamError(env, "Empty pluginBundleName or moduleName"));
+         return;
+     }
+     auto moduleContext = std::make_shared<std::shared_ptr<Context>>();
+     auto contextImpl = std::make_shared<ContextImpl>();
+     if (contextImpl == nullptr) {
+-        AppExecFwk::AsyncCallback(env, callback,
+-            EtsErrorUtil::CreateInvalidParamError(env, "create context failed."), emptyArray);
++        AppExecFwk::AsyncReject(env, callback,
++            EtsErrorUtil::CreateInvalidParamError(env, "create context failed."));
+         return;
+     }
+     contextImpl->SetProcessName(context->GetProcessName());

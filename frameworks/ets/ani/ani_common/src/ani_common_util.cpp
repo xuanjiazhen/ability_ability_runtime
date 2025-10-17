@@ -584,6 +584,34 @@ bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object r
     return true;
 }
 
+void AsyncResolve(ani_env *env, ani_object call, ani_object result)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "env is nullptr");
+        return;
+    }
+    AsyncCallback(env, call, AbilityRuntime::EtsErrorUtil::CreateError(
+        env, AbilityRuntime::AbilityErrorCode::ERROR_OK), result);
+}
+
+void AsyncResolveWithNoError(ani_env *env, ani_object call, ani_object result)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "env is nullptr");
+        return;
+    }
+    AsyncCallback(env, call, nullptr, result);
+}
+
+void AsyncReject(ani_env *env, ani_object call, ani_object error)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "env is nullptr");
+        return;
+    }
+    AsyncCallback(env, call, error, nullptr);
+}
+
 bool GetDoubleOrUndefined(ani_env *env, ani_object param, const char *name, ani_double &value)
 {
     ani_ref obj = nullptr;

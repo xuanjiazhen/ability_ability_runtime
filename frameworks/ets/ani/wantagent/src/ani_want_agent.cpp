@@ -260,9 +260,11 @@ void EtsWantAgent::OnGetBundleName(ani_env *env, ani_object agent, ani_object ca
     ani_object error = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
     if (resultCode != ERR_OK) {
         error = EtsErrorUtil::CreateError(env, resultCode, AbilityRuntimeErrorUtil::GetErrMessage(resultCode));
+        AsyncReject(env, call, error);
+    } else {
+        ani_string aniBundleName = GetAniString(env, bundleName);
+        AsyncResolveWithNoError(env, call, reinterpret_cast<ani_object>(aniBundleName));
     }
-    ani_string aniBundleName = GetAniString(env, bundleName);
-    AsyncCallback(env, call, error, reinterpret_cast<ani_object>(aniBundleName));
 }
 
 void EtsWantAgent::OnGetUid(ani_env *env, ani_object agent, ani_object call)
@@ -284,8 +286,10 @@ void EtsWantAgent::OnGetUid(ani_env *env, ani_object agent, ani_object call)
     ani_object error = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
     if (resultCode != ERR_OK) {
         error = EtsErrorUtil::CreateError(env, resultCode, AbilityRuntimeErrorUtil::GetErrMessage(resultCode));
+        AsyncReject(env, call, error);
+    } else {
+        AsyncResolveWithNoError(env, call, CreateInt(env, uid));
     }
-    AsyncCallback(env, call, error, CreateInt(env, uid));
 }
 
 void EtsWantAgent::OnCancel(ani_env *env, ani_object agent, ani_object call)
@@ -306,8 +310,10 @@ void EtsWantAgent::OnCancel(ani_env *env, ani_object agent, ani_object call)
     ani_object error = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
     if (resultCode != NO_ERROR) {
         error = EtsErrorUtil::CreateError(env, resultCode, AbilityRuntimeErrorUtil::GetErrMessage(resultCode));
+        AsyncReject(env, call, error);
+    } else {
+        AsyncResolveWithNoError(env, call, nullptr);
     }
-    AsyncCallback(env, call, error, nullptr);
 }
 
 void EtsWantAgent::OnEqual(ani_env *env, ani_object agent, ani_object otherAgent, ani_object call)
@@ -332,12 +338,14 @@ void EtsWantAgent::OnEqual(ani_env *env, ani_object agent, ani_object otherAgent
     bool ret = false;
     if (resultCode == ERR_NOT_OK) {
         ret = false;
+        AsyncResolveWithNoError(env, call, CreateBoolean(env, static_cast<ani_boolean>(ret)));
     } else if (resultCode == ERR_OK) {
         ret = true;
+        AsyncResolveWithNoError(env, call, CreateBoolean(env, static_cast<ani_boolean>(ret)));
     } else {
         error = EtsErrorUtil::CreateError(env, resultCode, AbilityRuntimeErrorUtil::GetErrMessage(resultCode));
+        AsyncReject(env, call, error);
     }
-    AsyncCallback(env, call, error, CreateBoolean(env, static_cast<ani_boolean>(ret)));
 }
 
 void EtsWantAgent::OnGetWant(ani_env *env, ani_object agent, ani_object call)
@@ -367,10 +375,11 @@ void EtsWantAgent::OnGetWant(ani_env *env, ani_object agent, ani_object call)
     if (retCode != NO_ERROR) {
         error = EtsErrorUtil::CreateError(env, retCode, AbilityRuntimeErrorUtil::GetErrMessage(retCode));
         wantAniObj = WrapWant(env, AAFwk::Want());
+        AsyncReject(env, call, error);
     } else {
         wantAniObj = WrapWant(env, *want);
+        AsyncResolve(env, call, wantAniObj);
     }
-    AsyncCallback(env, call, error, wantAniObj);
 }
 
 void EtsWantAgent::OnGetOperationType(ani_env *env, ani_object agent, ani_object call)

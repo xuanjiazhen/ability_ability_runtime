@@ -472,24 +472,27 @@ void NativeGetGroupDir([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object 
     std::string dataGroupId = "";
     if (!AppExecFwk::GetStdString(env, dataGroupIdObj, dataGroupId)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Parse groupId failed");
-        AppExecFwk::AsyncCallback(env, callBackObj, EtsErrorUtil::CreateError(env,
-            AbilityErrorCode::ERROR_CODE_INVALID_PARAM), nullptr);
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param groupId failed, groupId must be string.");
+        AppExecFwk::AsyncReject(env, callBackObj, EtsErrorUtil::CreateError(env,
+            AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
         return;
     }
     auto context = GetBaseContext(env, aniObj);
     if (!context) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
-        AppExecFwk::AsyncCallback(env, callBackObj, EtsErrorUtil::CreateError(env,
-            AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        AppExecFwk::AsyncReject(env, callBackObj, EtsErrorUtil::CreateError(env,
+            AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
         return;
     }
     ErrCode ret = ERR_OK;
     std::string path = context->GetGroupDir(dataGroupId);
     ani_object errorObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
     ani_string aniPath = AppExecFwk::GetAniString(env, path);
-    AppExecFwk::AsyncCallback(env, callBackObj, errorObject, aniPath);
+    if (ret != ERR_OK) {
+        ani_object errorObject = EtsErrorUtil::CreateError(
+            env, static_cast<AbilityErrorCode>(ret), "completeContext if already released.");
+        AppExecFwk::AsyncReject(env, callBackObj, errorObject);
+    }
+    AppExecFwk::AsyncResolveWithNoError(env, callBackObj, aniPath);
 }
 
 ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long displayId)

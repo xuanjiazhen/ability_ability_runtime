@@ -207,8 +207,10 @@ static void grantUriPermissionByKeyAsCallerCallbackSync([[maybe_unused]]ani_env 
     if (errCode != ERR_OK) {
         result = ERR_FAILURE;
         etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
+        AppExecFwk::AsyncReject(env, callback, etsErrCode);
+        return;
     }
-    AppExecFwk::AsyncCallback(env, callback, etsErrCode, CreateDouble(env, result));
+    AppExecFwk::AsyncResolveWithNoError(env, callback, CreateDouble(env, result));
 }
 
 void EtsUriPermissionManagerInit(ani_env *env)

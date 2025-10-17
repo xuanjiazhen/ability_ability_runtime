@@ -1,0 +1,39 @@
+diff a/frameworks/ets/ani/app_manager/src/ets_app_manager.cpp b/frameworks/ets/ani/app_manager/src/ets_app_manager.cpp	(rejected hunks)
+@@ -284,31 +281,30 @@ void EtsAppManager::GetRunningMultiAppInfo(ani_env *env, ani_string aniBundleNam
+         TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+         return;
+     }
+-    ani_object emptyMultiAppInfo = CreateEmptyMultiAppInfo(env);
+ #ifdef SUPPORT_SCREEN
+     if (!AppExecFwk::CheckCallerIsSystemApp()) {
+         TAG_LOGE(AAFwkTag::APPMGR, "Non-system app");
+-        AppExecFwk::AsyncCallback(env, callback,
++        AppExecFwk::AsyncReject(env, callback,
+             AbilityRuntime::EtsErrorUtil::CreateError(
+-                env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP), emptyMultiAppInfo);
++                env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP));
+         return;
+     }
+ #endif
+     std::string bundleName;
+     if (!AppExecFwk::GetStdString(env, aniBundleName, bundleName) || bundleName.empty()) {
+         TAG_LOGE(AAFwkTag::APPMGR, "GetStdString Failed");
+-        AppExecFwk::AsyncCallback(env, callback,
++        AppExecFwk::AsyncReject(env, callback,
+             AbilityRuntime::EtsErrorUtil::CreateError(env,
+             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM),
+-            "Parse param bundleName failed, must be a string."), emptyMultiAppInfo);
++            "Parse param bundleName failed, must be a string."));
+         return;
+     }
+     auto appManager = GetAppManagerInstance();
+     if (appManager == nullptr) {
+         TAG_LOGE(AAFwkTag::APPMGR, "appManager nullptr");
+-        AppExecFwk::AsyncCallback(env, callback,
++        AppExecFwk::AsyncReject(env, callback,
+             AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(
+-                env, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), emptyMultiAppInfo);
++                env, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)));
+         return;
+     }
+     AppExecFwk::RunningMultiAppInfo info;

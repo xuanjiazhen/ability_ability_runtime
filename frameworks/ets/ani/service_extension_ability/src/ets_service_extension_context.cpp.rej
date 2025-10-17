@@ -1,0 +1,48 @@
+diff a/frameworks/ets/ani/service_extension_ability/src/ets_service_extension_context.cpp b/frameworks/ets/ani/service_extension_ability/src/ets_service_extension_context.cpp	(rejected hunks)
+@@ -496,11 +516,16 @@ void EtsServiceExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *en
+     if (!connection) {
+         errorObject = EtsErrorUtil::CreateErrorByNativeErr(env,
+             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+-        AppExecFwk::AsyncCallback(env, callback, errorObject, nullptr);
++        AppExecFwk::AsyncReject(env, callback, errorObject);
++        return;
++    }
++    auto errCode = context->DisconnectAbility(want, connection, accountId);
++    if (errCode == ERR_OK) {
++        AppExecFwk::AsyncResolve(env, callback, nullptr);
+         return;
+     }
+-    context->DisconnectAbility(want, connection, accountId);
+-    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
++    errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode));
++    AppExecFwk::AsyncReject(env, callback, errorObject);
+ }
+ 
+ 
+@@ -519,7 +544,7 @@ void EtsServiceExtensionContext::OnOpenAtomicService(
+     if (!AppExecFwk::GetStdString(env, aniAppId, appId)) {
+         TAG_LOGE(AAFwkTag::SERVICE_EXT, "parse appId failed");
+         errorObject = EtsErrorUtil::CreateInvalidParamError(env, "Parse param appId failed, appId must be string.");
+-        AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
++        AppExecFwk::AsyncReject(env, callbackObj, errorObject);
+         return;
+     }
+     AAFwk::Want want;
+@@ -527,7 +552,7 @@ void EtsServiceExtensionContext::OnOpenAtomicService(
+     if (!isOptionsUndefined && !AppExecFwk::UnwrapAtomicServiceOptions(env, optionsObj, want, startOptions)) {
+         TAG_LOGE(AAFwkTag::SERVICE_EXT, "UnwrapAtomicServiceOptions failed");
+         errorObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapAtomicServiceOptions failed.");
+-        AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
++        AppExecFwk::AsyncReject(env, callbackObj, errorObject);
+         return;
+     }
+     OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackObj);
+@@ -563,7 +588,7 @@ void EtsServiceExtensionContext::OpenAtomicServiceInner(ani_env *env, ani_object
+         freeInstallObserver_->OnInstallFinished(bundleName, abilityName, startTime, ErrCode);
+     } else {
+         TAG_LOGI(AAFwkTag::SERVICE_EXT, "OpenAtomicService success");
+-        AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ErrCode), nullptr);
++        AppExecFwk::AsyncReject(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ErrCode));
+     }
+ }
+ 

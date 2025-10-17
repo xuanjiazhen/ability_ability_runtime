@@ -1,0 +1,54 @@
+diff a/frameworks/ets/ani/uri_permission_manager/src/ets_uri_perm_mgr.cpp b/frameworks/ets/ani/uri_permission_manager/src/ets_uri_perm_mgr.cpp	(rejected hunks)
+@@ -89,7 +89,7 @@ static void grantUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
+     }
+     if (appCloneIndex < 0) {
+         TAG_LOGE(AAFwkTag::URIPERMMGR, "appCloneIndex invalid");
+-        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
++        AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateError(env,
+             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM),
+             "Param appCloneIndex is invalid, the value less than 0."),
+             CreateDouble(env, ERR_FAILURE));
+@@ -101,7 +101,7 @@ static void grantUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
+         TAG_LOGE(AAFwkTag::URIPERMMGR, "app not system-app");
+         etsErrCode = EtsErrorUtil::CreateError(env,
+             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP), NOT_SYSTEM_APP);
+-        AppExecFwk::AsyncCallback(env, callback, etsErrCode, CreateDouble(env, ERR_FAILURE));
++        AppExecFwk::AsyncReject(env, callback, etsErrCode);
+         return;
+     }
+     std::string uriStr = GetStdString(env, uri);
+@@ -116,9 +116,11 @@ static void grantUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
+     if (errCode != ERR_OK) {
+         result = ERR_FAILURE;
+         etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
++        AppExecFwk::AsyncReject(env, callback, etsErrCode);
++        return;
+     }
+     
+-    AppExecFwk::AsyncCallback(env, callback, etsErrCode, CreateDouble(env, result));
++    AppExecFwk::AsyncResolveWithNoError(env, callback, CreateDouble(env, result));
+ }
+ 
+ static void revokeUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
+@@ -131,10 +133,9 @@ static void revokeUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
+     }
+     if (appCloneIndex < 0) {
+         TAG_LOGE(AAFwkTag::URIPERMMGR, "appCloneIndex invalid");
+-        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
++        AppExecFwk::AsyncReject(env, callback, EtsErrorUtil::CreateError(env,
+             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM),
+-            "Param appCloneIndex is invalid, the value less than 0."),
+-            CreateDouble(env, ERR_FAILURE));
++            "Param appCloneIndex is invalid, the value less than 0."));
+         return;
+     }
+     auto selfToken = IPCSkeleton::GetSelfTokenID();
+@@ -143,7 +144,7 @@ static void revokeUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
+         TAG_LOGE(AAFwkTag::URIPERMMGR, "app not system-app");
+         etsErrCode = EtsErrorUtil::CreateError(env,
+             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP), NOT_SYSTEM_APP);
+-        AppExecFwk::AsyncCallback(env, callback, etsErrCode, CreateDouble(env, ERR_FAILURE));
++        AppExecFwk::AsyncReject(env, callback, etsErrCode);
+         return;
+     }
+     std::string uriStr = GetStdString(env, uri);
