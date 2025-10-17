@@ -16,8 +16,10 @@
 #ifndef OHOS_ABILITY_RUNTIME_DATAOBS_MGR_INNER_COMMON_H
 #define OHOS_ABILITY_RUNTIME_DATAOBS_MGR_INNER_COMMON_H
 
-#include "data_ability_observer_interface.h"
+#include <atomic>
 #include <string>
+
+#include "data_ability_observer_interface.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -46,17 +48,14 @@ struct ObserverNode {
     bool isFromExtension_ = false;
     std::string permission_;
     int32_t pid_ = 0;
-    int32_t nodeId_ = -1;
-    static inline int32_t nextNodeId_ = 1;
+    int64_t nodeId_ = -1;
+    static inline std::atomic<int64_t> nextNodeId_ = 1;
 
     ObserverNode(sptr<IDataAbilityObserver> observer, int32_t userId, uint32_t tokenId, int32_t pid)
         : observer_(observer), userId_(userId), tokenId_(tokenId), pid_(pid)
     {
-        nodeId_ = nextNodeId_++;
-        if (nextNodeId_ > MAX_OBSERVER_NODE_CNT) {
-            // reset nextNodeId_
-            nextNodeId_ = 1;
-        }
+        // nextNodeId_ increased by 1
+        nodeId_ = nextNodeId_.fetch_add(1);
     }
 
     bool operator==(struct ObserverNode other) const
