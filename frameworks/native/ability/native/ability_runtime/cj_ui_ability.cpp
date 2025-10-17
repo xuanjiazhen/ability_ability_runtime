@@ -317,7 +317,7 @@ void CJUIAbility::OnSceneCreated()
         TAG_LOGE(AAFwkTag::UIABILITY, "null cjWindowStage");
         return;
     }
-    CallAppCtxWindowFunc(CjAppCtxFuncType::ON_WINDOWSTAGE_WILL_CREATE, cjAbilityObj_->GetId(), cjWindowStage_);
+   // CallAppCtxWindowFunc(CjAppCtxFuncType::ON_WINDOWSTAGE_WILL_CREATE, cjAbilityObj_->GetId(), cjWindowStage_);
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "onWindowStageCreate");
         std::string methodName = "OnSceneCreated";
@@ -331,7 +331,7 @@ void CJUIAbility::OnSceneCreated()
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceCreated");
         delegator->PostPerformScenceCreated(CreateADelegatorAbilityProperty());
     }
-    CallAppCtxWindowFunc(CjAppCtxFuncType::ON_WINDOWSTAGE_CREATE, cjAbilityObj_->GetId(), cjWindowStage_);
+  //  CallAppCtxWindowFunc(CjAppCtxFuncType::ON_WINDOWSTAGE_CREATE, cjAbilityObj_->GetId(), cjWindowStage_);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
