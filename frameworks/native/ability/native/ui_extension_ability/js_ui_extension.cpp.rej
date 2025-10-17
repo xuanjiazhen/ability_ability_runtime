@@ -1,0 +1,10 @@
+diff a/frameworks/native/ability/native/ui_extension_ability/js_ui_extension.cpp b/frameworks/native/ability/native/ui_extension_ability/js_ui_extension.cpp	(rejected hunks)
+@@ -742,7 +742,7 @@ sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtens
+         option->SetConstrainedModal(isNotAllow);
+     }
+     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
+-    return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
++    return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken, Rosen::DefaultCreateErrCode, "", false, sessionInfo->renderSession);
+ }
+ 
+ std::unique_ptr<NativeReference> JsUIExtension::CreateAppWindowStage(sptr<Rosen::Window> uiWindow,

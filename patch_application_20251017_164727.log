@@ -1,0 +1,31 @@
+===== 补丁应用日志 - 开始时间: Fri Oct 17 16:47:27     2025 =====
+补丁目录: patch
+补丁文件总数: 2
+==============================================
+[1/2] 处理补丁: 0001-ability-sync.patch
+  状态: 通过 'git am' 成功应用
+----------------------------------------
+[2/2] 处理补丁: 0002-abilityAdaptUIExtension.patch
+Checking patch frameworks/native/ability/native/ui_extension_ability/js_ui_extension.cpp...
+error: while searching for:
+        option->SetConstrainedModal(isNotAllow);
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
+    return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
+}
+
+std::unique_ptr<NativeReference> JsUIExtension::CreateAppWindowStage(sptr<Rosen::Window> uiWindow,
+
+error: patch failed: frameworks/native/ability/native/ui_extension_ability/js_ui_extension.cpp:742
+Applying patch frameworks/native/ability/native/ui_extension_ability/js_ui_extension.cpp with 1 reject...
+Rejected hunk #1.
+  状态: 通过 'git apply --reject' 应用，存在冲突
+  注意: 虽已应用，但未检测到新生成的 .rej 冲突文件。
+----------------------------------------
+==============================================
+补丁应用最终报告:
+  成功应用 (无冲突): 1
+  应用但有冲突   : 1
+  应用失败       : 0
+  总处理补丁数   : 2
+==============================================
