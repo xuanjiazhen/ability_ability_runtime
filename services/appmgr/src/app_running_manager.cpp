@@ -886,8 +886,7 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
     // set app record terminating when close last page ability
     auto isLastAbility =
         clearMissionFlag ? appRecord->IsLastPageAbilityRecord(token) : appRecord->IsLastAbilityRecord(token);
-    if (isLastAbility && (!appRecord->IsKeepAliveApp() ||
-        !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
+    if (isLastAbility && (!appRecord->IsKeepAliveApp())) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr && cacheProcMgr->IsAppShouldCache(appRecord)) {
             cacheProcMgr->PenddingCacheProcess(appRecord);
@@ -950,8 +949,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
     auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
     TAG_LOGI(AAFwkTag::APPMGR, "terminate isLast:%{public}d,keepAlive:%{public}d", isLastAbility, isKeepAliveApp);
-    if (isLastAbility && (!isKeepAliveApp ||
-        !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !isLauncherApp) {
+    if (isLastAbility && !isKeepAliveApp && !isLauncherApp) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr) {
             cacheProcMgr->CheckAndSetProcessCacheEnable(appRecord);
@@ -1877,7 +1875,7 @@ int32_t AppRunningManager::SignRestartAppFlag(int32_t uid, const std::string &in
         if (appRecord == nullptr || appRecord->GetUid() != uid || appRecord->GetInstanceKey() != instanceKey) {
             continue;
         }
-        TAG_LOGD(AAFwkTag::APPMGR, "sign");
+        TAG_LOGI(AAFwkTag::APPMGR, "SignRestartAppFlag");
         appRecord->SetRestartAppFlag(true);
         return ERR_OK;
     }

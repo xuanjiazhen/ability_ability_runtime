@@ -27,6 +27,9 @@
 #include "local_call_container.h"
 
 namespace OHOS {
+namespace Rosen {
+enum class WSError;
+}
 namespace AbilityRuntime {
 class AbilityContextImpl : public AbilityContext {
 public:
@@ -344,6 +347,8 @@ public:
     {
         isHook_ = isHook;
     }
+
+    static int32_t TransferRestartWSError(Rosen::WSError srcError);
 #endif
 
     /**
@@ -389,6 +394,7 @@ public:
     ErrCode ConnectExtensionAbilityWithExtensionType(const AAFwk::Want& want,
         const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType) override;
     ErrCode SetOnNewWantSkipScenarios(int32_t scenarios) override;
+    ErrCode RestartAppWithWindow(const Want &want) override;
 
     ErrCode AddCompletionHandlerForAtomicService(const std::string &requestId, OnAtomicRequestSuccess onRequestSucc,
         OnAtomicRequestFailure onRequestFail, const std::string &appId) override;

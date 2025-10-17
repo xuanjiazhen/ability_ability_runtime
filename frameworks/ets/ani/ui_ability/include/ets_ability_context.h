@@ -133,6 +133,7 @@ public:
     static void StartAbilityWithAccountAndOptions(
         ani_env *env, ani_object aniObj, ani_object aniWant, ani_int aniAccountId, ani_object aniOpt, ani_object call);
     static void RestoreWindowStage(ani_env *env, ani_object aniObj, ani_object localStorageObj);
+    static void RestartAppWithWindow(ani_env *env, ani_object aniObj, ani_object wantObj);
 
     static void Clean(ani_env *env, ani_object object);
     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);

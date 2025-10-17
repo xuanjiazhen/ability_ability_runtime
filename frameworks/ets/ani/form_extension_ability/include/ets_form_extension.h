@@ -58,6 +58,9 @@ public:
 
     void OnFormLocationChanged(const int64_t formId, const int32_t formLocation) override;
 
+    void OnConfigurationUpdated(const AppExecFwk::Configuration& configuration) override;
+
+    FormState OnAcquireFormState(const Want &want) override;
 private:
     void BindContext(std::shared_ptr<AbilityInfo> &abilityInfo, std::shared_ptr<AAFwk::Want> want,
         const std::string &moduleName, const std::string &srcPath);
