@@ -810,6 +810,7 @@ private:
         AppLibPathMap &appLibPaths);
     void SetRuntimeLang(ApplicationInfo &appInfo, AbilityRuntime::Runtime::Options &options);
     bool IsEtsAPP(const ApplicationInfo &appInfo);
+    void RegisterHybridException(const ApplicationInfo &appInfo, const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
     void SetJsIdleCallback(const std::weak_ptr<OHOSApplication> &wpApplication,
         const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
     void PreloadAppStartup(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData) const;
