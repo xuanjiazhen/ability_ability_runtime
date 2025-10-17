@@ -2665,8 +2665,9 @@ int32_t UIAbilityLifecycleManager::MoveAbilityToFront(const SpecifiedRequest &sp
     const auto &abilityRequest = specifiedRequest.abilityRequest;
     int32_t requestId = specifiedRequest.requestId;
     int32_t requestListId = specifiedRequest.requestListId;
-    sptr<SessionInfo> sessionInfo = abilityRecord->GetSessionInfo();
-    CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
+    auto sessionInfo = sptr<SessionInfo>::MakeSptr();
+    CHECK_POINTER_AND_RETURN(abilityRecord->GetSessionInfo(), ERR_INVALID_VALUE);
+    sessionInfo->persistentId = abilityRecord->GetSessionInfo()->persistentId;
     sessionInfo->want = abilityRequest.want;
     sessionInfo->callerToken = abilityRequest.callerToken;
     sessionInfo->requestCode = abilityRequest.requestCode;
