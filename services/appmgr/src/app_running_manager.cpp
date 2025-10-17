@@ -1906,6 +1906,7 @@ int32_t AppRunningManager::GetAllUIExtensionRootHostPid(pid_t pid, std::vector<p
             hostPids.emplace_back(item.second.first);
         }
     }
+     
     std::string hostPidStr = std::accumulate(hostPids.begin(), hostPids.end(), std::string(),
         [](const std::string& a, pid_t b) {
             return a + std::to_string(b) + " ";
