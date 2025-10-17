@@ -92,9 +92,6 @@ private:
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
         ani_object callbackObj, std::shared_ptr<ServiceExtensionContext> context);
     void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
-    void UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &options);
-    void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
-        OnRequestResult &onRequestCallback, const char *callbackName);
 
     std::weak_ptr<ServiceExtensionContext> context_;
     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;

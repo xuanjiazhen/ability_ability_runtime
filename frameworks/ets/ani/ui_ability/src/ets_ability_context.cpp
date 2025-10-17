@@ -1525,7 +1525,6 @@ void EtsAbilityContext::OnOpenAtomicService(
             AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
             return;
         }
-        UnwrapCompletionHandlerInStartOptions(env, optionsObj, startOptions);
     }
     OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackObj);
 }
@@ -2432,12 +2431,19 @@ void EtsAbilityContext::OnStartAbilityAsCaller(ani_env *env, ani_object aniObj, 
             TAG_LOGE(AAFwkTag::CONTEXT, "invalid options");
             return;
         }
+        UnwrapCompletionHandlerInStartOptions(env, startOptionsObj, startOptions);
         innerErrCode = context->StartAbilityAsCaller(want, startOptions, -1);
     } else {
         innerErrCode = context->StartAbilityAsCaller(want, -1);
     }
     ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
     AppExecFwk::AsyncCallback(env, callbackObj, aniObject, nullptr);
+    if (innerErrCode != ERR_OK && !startOptions.requestId_.empty()) {
+        nlohmann::json jsonObject = nlohmann::json {
+            { JSON_KEY_ERR_MSG, "Failed to call startAbilityAsCaller" }
+        };
+        context->OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
+    }
 }
 
 void EtsAbilityContext::RevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback)

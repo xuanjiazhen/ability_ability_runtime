@@ -54,7 +54,6 @@ constexpr const char *SIGNATURE_WANT_CHK = "L@ohos/app/ability/Want/Want;:V";
 constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK = "Lapplication/UIServiceProxy/UIServiceProxy;:V";
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
-const std::string JSON_KEY_ERR_MSG = "errMsg";
 constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
     "L@ohos/app/ability/AtomicServiceOptions/AtomicServiceOptions;:V";
 constexpr const char *SIGNATURE_OPEN_LINK = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
@@ -618,7 +617,6 @@ void EtsUIExtensionContext::OnOpenAtomicService(
             AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
             return;
         }
-        UnwrapCompletionHandlerInStartOptions(env, optionsObj, startOptions);
     }
     OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackobj);
 }
@@ -951,8 +949,7 @@ void EtsUIExtensionContext::OpenAtomicServiceInner(ani_env *env, ani_object aniO
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return;
     }
-    RuntimeTask task = [etsVm, element = want.GetElement(), startTime,
-        weak = context_, &observer = freeInstallObserver_, options](
+    RuntimeTask task = [etsVm, element = want.GetElement(), startTime, &observer = freeInstallObserver_](
         int resultCode, const AAFwk::Want &want, bool isInner) {
         ani_env *env = nullptr;
         if (etsVm->GetEnv(ANI_VERSION_1, &env) != ANI_OK || env == nullptr) {
@@ -961,11 +958,6 @@ void EtsUIExtensionContext::OpenAtomicServiceInner(ani_env *env, ani_object aniO
         }
         if (observer == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null observer");
-            return;
-        }
-        auto context = weak.lock();
-        if (context == nullptr) {
-            TAG_LOGW(AAFwkTag::UI_EXT, "null context");
             return;
         }
         std::string bundleName = element.GetBundleName();
@@ -978,12 +970,6 @@ void EtsUIExtensionContext::OpenAtomicServiceInner(ani_env *env, ani_object aniO
         }
         isInner ? observer->OnInstallFinished(bundleName, abilityName, startTime, resultCode):
             observer->OnInstallFinished(bundleName, abilityName, startTime, abilityResult);
-        if (!options.requestId_.empty()) {
-            nlohmann::json jsonObject = nlohmann::json {
-                { JSON_KEY_ERR_MSG, "failed to call openAtomicService" }
-            };
-            context->OnRequestFailure(options.requestId_, element, jsonObject.dump());
-        }
     };
     want.SetParam(AAFwk::Want::PARAM_RESV_FOR_RESULT, true);
     auto requestCode = context->GenerateCurRequestCode();
