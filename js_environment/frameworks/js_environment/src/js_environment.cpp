@@ -174,7 +174,7 @@ void JsEnvironment::RegisterUncatchableExceptionHandler(const JsEnv::Uncatchable
 
     std::weak_ptr<JsEnvironment> weakThis = shared_from_this();
     panda::JSNApi::RegisterUncatchableErrorHandler(const_cast<EcmaVM *>(engine_->GetEcmaVm()),
-        [weakThis, uncatchableTask] (const panda::OOMErrorInfo& errorInfo) {
+        [weakThis, uncatchableTask] (const panda::UncatchableErrorInfo& errorInfo) {
             auto sharedThis = weakThis.lock();
             if (sharedThis) {
                 NapiUncaughtExceptionCallback napiUncaughtExceptionCallback(uncatchableTask,
