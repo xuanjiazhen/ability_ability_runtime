@@ -60,11 +60,8 @@ private:
             std::shared_ptr<DeathRecipientRef> deathRef, bool isDes)
             : observer(obs), userId(userId), tokenId(tokenId), deathRecipientRef(deathRef), isDescendants(isDes)
         {
-            entryId = nextEntryId_++;
-            if (nextEntryId_ > MAX_ENTRY_CNT) {
-                // reset nextEntryId_
-                nextEntryId_ = 1;
-            }
+            // nextEntryId_ increased by 1
+            entryId = nextEntryId_.fetch_add(1);
         }
         sptr<IDataAbilityObserver> observer;
         int32_t userId;
@@ -73,8 +70,8 @@ private:
         bool isDescendants;
         std::string permission;
         int32_t pid = 0;
-        int32_t entryId = -1;
-        static inline int32_t nextEntryId_ = 1;
+        int64_t entryId = -1;
+        static inline std::atomic<int64_t> nextEntryId_ = 1;
     };
 
     struct ObsNotifyInfo {
