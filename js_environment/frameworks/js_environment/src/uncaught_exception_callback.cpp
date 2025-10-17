@@ -83,7 +83,7 @@ void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
     }
 }
 
-void NapiUncaughtExceptionCallback::operator()(const panda::OOMErrorInfo& errorInfo)
+void NapiUncaughtExceptionCallback::operator()(const panda::UncatchableErrorInfo& errorInfo)
 {
     CallbackTaskOOM(errorInfo);
 }
