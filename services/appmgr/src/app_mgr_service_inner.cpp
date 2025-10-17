@@ -4509,13 +4509,13 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
     pid_t pid = 0;
     ErrCode errCode = ERR_OK;
     if (isCJApp) {
-        if (!remoteClientManager_->GetCJSpawnClient()) {
+        if (!remoteClientManager_->GetSpawnClient()) {
             TAG_LOGE(AAFwkTag::APPMGR, "appSpawnClient null");
             appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
             return AAFwk::ERR_GET_SPAWN_CLIENT_FAILED;
         }
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
-        errCode = remoteClientManager_->GetCJSpawnClient()->StartProcess(startMsg, pid);
+        errCode = remoteClientManager_->GetSpawnClient()->StartProcess(startMsg, pid);
     } else if (appInfo != nullptr &&
         (appInfo->arkTSMode == CODE_LANGUAGE_ARKTS_1_2 || appInfo->arkTSMode == CODE_LANGUAGE_ARKTS_HYBRID)) {
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
