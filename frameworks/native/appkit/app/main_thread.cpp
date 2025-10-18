@@ -1823,6 +1823,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 auto expectionInfo =
                     CreateEtsExceptionInfo(bundleName, versionCode, hapPath, appRunningId, pid, processName);
                 (static_cast<AbilityRuntime::ETSRuntime&>(*runtime)).RegisterUncaughtExceptionHandler(expectionInfo);
+                UncatchableTaskInfo uncatchableTaskInfo = {bundleName, versionCode, appRunningId, pid, processName};
+                RegisterHybridException(runtime, appInfo, hapPath, uncatchableTaskInfo);
             } else {
                 JsEnv::UncaughtExceptionInfo uncaughtExceptionInfo;
                 uncaughtExceptionInfo.hapPath = hapPath;
@@ -4213,6 +4215,25 @@ bool MainThread::IsPluginNamespaceInherited()
     isPluginNamespaceInherited_ = system::GetBoolParameter(INHERIT_PLUGIN_NAMESPACE, false);
     TAG_LOGD(AAFwkTag::DEFAULT, "inherit_plugin_namespace: %{public}d", isPluginNamespaceInherited_);
     return isPluginNamespaceInherited_;
+}
+
+void MainThread::RegisterHybridException(const std::unique_ptr<AbilityRuntime::Runtime> &runtime,
+    const ApplicationInfo &appInfo, const std::string &hapPath, const UncatchableTaskInfo &uncatchableTaskInfo)
+{
+    if(appInfo.arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID) { 
+        auto &jsRuntime = (static_cast<AbilityRuntime::ETSRuntime&>(*runtime)).GetJsRuntime();
+        if (jsRuntime != nullptr) {
+            JsEnv::UncaughtExceptionInfo uncaughtExceptionInfo;
+            uncaughtExceptionInfo.hapPath = hapPath;
+            InitUncatchableTask(uncaughtExceptionInfo.uncaughtTask, uncatchableTaskInfo);
+            (static_cast<AbilityRuntime::JsRuntime&>(*jsRuntime)).RegisterUncaughtExceptionHandler(
+                uncaughtExceptionInfo);
+            JsEnv::UncatchableTask uncatchableTask;
+            InitUncatchableTask(uncatchableTask, uncatchableTaskInfo, true);
+            (static_cast<AbilityRuntime::JsRuntime&>(*jsRuntime)).RegisterUncatchableExceptionHandler(
+                uncatchableTask);
+        }
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
