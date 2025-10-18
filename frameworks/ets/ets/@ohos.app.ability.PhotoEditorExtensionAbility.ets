@@ -15,15 +15,23 @@
 
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import Want from '@ohos.app.ability.Want';
-import UIExtensionAbility from '@ohos.app.ability.UIExtensionAbility';
+import ExtensionAbility from '@ohos.app.ability.ExtensionAbility';
 import { AbilityUtils } from './utils/AbilityUtils';
 import PhotoEditorExtensionContext from 'application.PhotoEditorExtensionContext';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 
 
-export default class PhotoEditorExtensionAbility extends UIExtensionAbility {
+export default class PhotoEditorExtensionAbility extends ExtensionAbility {
 
-  context: PhotoEditorExtensionContext = {};
+  private PhotoEditContext: PhotoEditorExtensionContext = {};
+	
+	get context(): PhotoEditorExtensionContext {
+		return this.PhotoEditContext;
+	}
+
+	set context(InnerContext : PhotoEditorExtensionContext)  {
+		this.PhotoEditContext = InnerContext;
+	} 
 
   onCreate(): void {}
 
