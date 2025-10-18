@@ -33,7 +33,15 @@ export default class UIExtensionAbility extends ExtensionAbility {
     return false;
   }
 
-  context: UIExtensionContext = {};
+  private UIContext: UIExtensionContext = {};
+
+  get context(): UIExtensionContext {
+		return this.UIContext;
+	}
+
+	set context(InnerContext : UIExtensionContext)  {
+		this.UIContext = InnerContext;
+	} 
 
   onCreate(launchParam: AbilityConstant.LaunchParam): void {}
 
