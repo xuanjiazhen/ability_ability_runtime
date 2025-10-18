@@ -18,6 +18,7 @@ import formInfo from '@ohos.app.form.formInfo';
 import FormExtensionContext from 'application.FormExtensionContext';
 import Want from '@ohos.app.ability.Want';
 import { Configuration } from '@ohos.app.ability.Configuration';
+import ExtensionContext from 'application.ExtensionContext';
 
 type OnStopFn = () => void;
 type OnAcquireFormStateFn = (want: Want) => formInfo.FormState;
@@ -25,7 +26,15 @@ type OnShareFormFn = (formid: string) => Record<string, Object>;
 type OnAcquireFormDataFn = (formId: string) => Record<string, Object>;
 
 export default class FormExtensionAbility {
-  public context: FormExtensionContext = {};
+  private FormContext: FormExtensionContext = new FormExtensionContext();
+
+  get context(): FormExtensionContext | ExtensionContext  {
+    return this.FormContext;
+  }
+
+  set context(InnerContext : FormExtensionContext)  {
+    this.FormContext = InnerContext;
+  }
 
   onAddForm(want: Want): formBindingData.FormBindingData {
     console.log('FormExtensionAbility onAddForm');

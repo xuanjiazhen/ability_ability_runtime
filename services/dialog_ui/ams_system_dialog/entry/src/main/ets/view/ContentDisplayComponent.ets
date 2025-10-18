@@ -42,7 +42,15 @@ export struct ContentDisplayComponent {
     }
 
     aboutToAppear() {
-        const context: Context = getContext(this);
+        const aboutToAppearContext: Context;
+
+        get context(): Context | ExtensionContext {
+            return getContext(this);
+        }
+
+        set context(InnerContext : UIExtensionContext)  {
+            this.aboutToAppearContext = InnerContext;
+        }
         this.titleHeight = 56;
         this.getTargetsToDisplay();
     }

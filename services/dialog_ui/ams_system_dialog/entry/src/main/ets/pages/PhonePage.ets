@@ -29,6 +29,7 @@ import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import { AbilityInfoUtils } from '../utils/AbilityInfoUtils';
 import UIExtensionAbility from '@ohos.app.ability.UIExtensionAbility';
 import { localStorageKeyConstants, TargetsUpperLimitOneLine } from '../utils/Constants';
+import ExtensionContext from 'application.ExtensionContext';
 
 const storage = LocalStorage.GetShared();
 
@@ -69,7 +70,15 @@ struct PhonePage {
             return;
         }
         this.refreshTarget();
-        const context: Context = getContext(this);
+        const aboutToAppearContext: Context;
+
+        get context(): Context | ExtensionContext {
+            return getContext(this);
+        }
+
+        set context(InnerContext : UIExtensionContext)  {
+            this.aboutToAppearContext = InnerContext;
+        }
         this.defaultStatusBarHeight = 137;
         this.rowTopPadding = 16;
         let displayData: display.Display;
@@ -106,7 +115,15 @@ struct PhonePage {
     }
 
     registerBreakpointSystem() {
-        const context: Context = getContext(this);
+        const registerContext: Context;
+
+        get context(): Context | ExtensionContext {
+            return getContext(this);
+        }
+
+        set context(InnerContext : UIExtensionContext)  {
+            this.registerContext = InnerContext;
+        }
         (mediaSyncFacade['BREAK_POINT_SYSTEM'] as BreakpointSystem).register((columnType: ColumnType) => {
             let displayData: display.Display;
             try {

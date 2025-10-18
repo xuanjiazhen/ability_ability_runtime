@@ -19,6 +19,7 @@ import ServiceExtensionContext from 'application.ServiceExtensionContext';
 import { Configuration } from '@ohos.app.ability.Configuration'
 import hilog from '@ohos.hilog';
 import { AbilityUtils } from './utils/AbilityUtils';
+import ExtensionContext from 'application.ExtensionContext';
 
 class MyService extends rpc.RemoteObject {
   constructor(descriptor: string) {
@@ -67,7 +68,15 @@ export default class ServiceExtensionAbility {
 
   launchWant: Want = new Want();
   lastRequestWant: Want = new Want();
-  context: ServiceExtensionContext = {};
+  private ServiceContext: ServiceExtensionContext = new ServiceExtensionContext();
+
+  get context(): ServiceExtensionContext | ExtensionContext {
+    return this.ServiceContext;
+  }
+
+  set context(InnerContext : ServiceExtensionContext)  {
+    this.ServiceContext = InnerContext;
+  }
 
   onCreate(want: Want): void {
   }
