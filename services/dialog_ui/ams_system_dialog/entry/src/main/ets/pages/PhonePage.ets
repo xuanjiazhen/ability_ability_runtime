@@ -69,7 +69,7 @@ struct PhonePage {
             return;
         }
         this.refreshTarget();
-        const context: Context = getContext(this);
+        const context: Context = getContext(this);	
         this.defaultStatusBarHeight = 137;
         this.rowTopPadding = 16;
         let displayData: display.Display;
