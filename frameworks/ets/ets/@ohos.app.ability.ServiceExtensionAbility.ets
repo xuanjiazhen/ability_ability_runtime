@@ -67,7 +67,15 @@ export default class ServiceExtensionAbility {
 
   launchWant: Want = new Want();
   lastRequestWant: Want = new Want();
-  context: ServiceExtensionContext = {};
+  private ServiceContext: ServiceExtensionContext = new ServiceExtensionContext();
+
+  get context(): ServiceExtensionContext | ExtensionContext {
+    return this.ServiceContext;
+  }
+
+  set context(InnerContext : ServiceExtensionContext)  {
+    this.ServiceContext = InnerContext;
+  }
 
   onCreate(want: Want): void {
   }

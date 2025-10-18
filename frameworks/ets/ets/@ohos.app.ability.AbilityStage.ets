@@ -20,7 +20,15 @@ import { AbilityUtils } from './utils/AbilityUtils';
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 
 export default class AbilityStage {
-    context: AbilityStageContext = new AbilityStageContext();
+    private AbilityContext: AbilityStageContext = new AbilityStageContext();
+
+    get context(): AbilityStageContext | ExtensionContext {
+      return this.AbilityContext;
+    }
+
+    set context(InnerContext : AbilityStageContext)  {
+      this.AbilityContext = InnerContext;
+    }
 
     private prepareTerminationCallbackPoint: long;
     private native nativeOnPrepareTerminatePromiseCallback(): void;

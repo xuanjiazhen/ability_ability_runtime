@@ -20,7 +20,15 @@ import type UIExtensionContentSession from '@ohos.app.ability.UIExtensionContent
 import { RecordData } from '@ohos.base';
 
 export default class InsightIntentExecutor {
-  context: InsightIntentContext = {};
+  private InsightContext: InsightIntentContext = new InsightIntentContext();
+
+  get context(): InsightIntentContext | ExtensionContext {
+    return this.InsightContext;
+  }
+
+  set context(InnerContext : InsightIntentContext)  {
+    this.InsightContext = InnerContext;
+  }
   public nativeExecutor: long = 0;
   public isOnExecuteInUIAbilityForegroundModeAsync: boolean = true;
   public isOnExecuteInUIAbilityBackgroundModeAsync: boolean = true;

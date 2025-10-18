@@ -74,7 +74,15 @@ export default class UIAbility extends Ability {
     return false;
   }
 
-  context: UIAbilityContext = new UIAbilityContext();
+  private UIAContext: UIAbilityContext = new UIAbilityContext();
+
+  get context(): InsightIntentContext | UIAbilityContext {
+    return this.UIAContext;
+  }
+
+  set context(InnerContext : UIAbilityContext)  {
+    this.UIAContext = InnerContext;
+  }
   launchWant: Want = new Want();
   lastRequestWant: Want = new Want();
   callee: Callee = new CalleeImpl() as Callee;

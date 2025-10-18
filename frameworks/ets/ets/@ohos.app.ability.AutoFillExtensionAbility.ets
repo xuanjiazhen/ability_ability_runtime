@@ -20,7 +20,15 @@ import { FillRequest, SaveRequest, UpdateRequest, FillRequestCallback, SaveReque
 import { AbilityUtils } from './utils/AbilityUtils';
 
 export default class AutoFillExtensionAbility extends ExtensionAbility {
-  context!: AutoFillExtensionContext;
+  private AutoFillContext!: AutoFillExtensionContext = new AutoFillExtensionContext();
+
+  get context(): AutoFillExtensionContext | ExtensionContext {
+    return this.AutoFillContext;
+  }
+
+  set context(InnerContext : AutoFillExtensionContext)  {
+    this.AutoFillContext = InnerContext;
+  }
 
   onCreate(): void {
 
