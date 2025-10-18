@@ -21,6 +21,7 @@ import window from '@ohos.window';
 import rpc from '@ohos.rpc';
 import { AbilityUtils } from './utils/AbilityUtils';
 import { CalleeImpl } from './application/Callee';
+import ExtensionContext from 'application.ExtensionContext';
 
 export type OnReleaseCallback = (msg: string) => void;
 export type OnRemoteStateChangeCallback = (msg: string) => void;
@@ -74,7 +75,15 @@ export default class UIAbility extends Ability {
     return false;
   }
 
-  context: UIAbilityContext = new UIAbilityContext();
+  private UIAContext: UIAbilityContext = new UIAbilityContext();
+
+  get context(): UIAbilityContext | ExtensionContext  {
+    return this.UIAContext;
+  }
+
+  set context(InnerContext : UIAbilityContext)  {
+    this.UIAContext = InnerContext;
+  }
   launchWant: Want = new Want();
   lastRequestWant: Want = new Want();
   callee: Callee = new CalleeImpl() as Callee;

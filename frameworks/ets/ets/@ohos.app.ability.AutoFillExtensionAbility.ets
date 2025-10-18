@@ -18,9 +18,18 @@ import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSessi
 import AutoFillExtensionContext from 'application.AutoFillExtensionContext';
 import { FillRequest, SaveRequest, UpdateRequest, FillRequestCallback, SaveRequestCallback } from 'application.AutoFillRequest';
 import { AbilityUtils } from './utils/AbilityUtils';
+import ExtensionContext from 'application.ExtensionContext';
 
 export default class AutoFillExtensionAbility extends ExtensionAbility {
-  context!: AutoFillExtensionContext;
+  private AutoFillContext!: AutoFillExtensionContext;
+
+  get context(): AutoFillExtensionContext | ExtensionContext {
+    return this.AutoFillContext;
+  }
+
+  set context(InnerContext : AutoFillExtensionContext)  {
+    this.AutoFillContext = InnerContext;
+  }
 
   onCreate(): void {
 
