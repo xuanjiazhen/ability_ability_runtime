@@ -76,9 +76,6 @@ private:
     std::string GetHapModuleProp(const std::string &propName) const;
 
     static bool UseCommonChunk(const AppExecFwk::HapModuleInfo& hapModuleInfo);
-    
-    std::unique_ptr<NativeReference> LoadJsOhmUrl(const std::string &srcEntry, const std::string &ohmUrl,
-        const std::string &moduleName, const std::string &hapPath, bool esmodule);
 
     std::unique_ptr<NativeReference> LoadJsSrcEntry(const std::string &srcEntry);
 
