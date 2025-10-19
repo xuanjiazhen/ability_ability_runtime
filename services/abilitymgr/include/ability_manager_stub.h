@@ -61,6 +61,10 @@ public:
 
     virtual int UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
 
+    virtual int RegisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer);
+
+    virtual int UnregisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer);
+
 #ifdef WITH_DLP
     virtual int GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos);
 #endif // WITH_DLP
@@ -231,6 +235,9 @@ private:
 
     int FreeInstallAbilityFromRemoteInner(MessageParcel &data, MessageParcel &reply);
     int AddFreeInstallObserverInner(MessageParcel &data, MessageParcel &reply);
+
+    int32_t RegisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnregisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
 
     int EnableRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
     int SubmitSaveRecoveryInfoInner(MessageParcel &data, MessageParcel &reply);
