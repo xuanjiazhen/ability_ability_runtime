@@ -46,6 +46,7 @@
 #include "exit_info_data_manager.h"
 #include "ffrt.h"
 #include "ffrt_inner.h"
+#include "foreground_app_connection_manager/foreground_app_connection_manager.h"
 #include "freeze_util.h"
 #include "global_constant.h"
 #include "hidden_start_observer_manager.h"
@@ -320,6 +321,7 @@ constexpr const char* SCENEBOARD_BUNDLE_NAME = "com.ohos.sceneboard";
 constexpr const char* SPECIFY_TOKEN_ID = "specifyTokenId";
 constexpr const char* PROCESS_SUFFIX = "embeddable";
 constexpr int32_t DEFAULT_DMS_MISSION_ID = -1;
+constexpr int32_t DEFAULT_REQUEST_CODE = -1;
 constexpr const char* PARAM_PREVENT_STARTABILITY = "persist.sys.abilityms.prevent_startability";
 constexpr const char* SUSPEND_SERVICE_CONFIG_FILE = "/etc/efficiency_manager/prevent_startability_whitelist.json";
 constexpr int32_t MAX_BUFFER = 2048;
@@ -1945,6 +1947,8 @@ int AbilityManagerService::StartAbilityForResultAsCaller(
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetElement().GetDeviceID().empty());
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     CHECK_CALLER_IS_SYSTEM_APP;
+    DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
+        IPCSkeleton::GetCallingUid(), want.GetBundle());
 
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
     AAFwk::Want newWant = want;
@@ -1971,6 +1975,8 @@ int AbilityManagerService::StartAbilityForResultAsCaller(const Want &want, const
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetElement().GetDeviceID().empty());
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     CHECK_CALLER_IS_SYSTEM_APP;
+    DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
+        IPCSkeleton::GetCallingUid(), want.GetBundle());
 
     AAFwk::Want newWant = want;
     auto validUserId = GetValidUserId(userId);
@@ -5813,6 +5819,24 @@ int AbilityManagerService::UnregisterObserver(const sptr<AbilityRuntime::IConnec
     return DelayedSingleton<ConnectionStateManager>::GetInstance()->UnregisterObserver(observer);
 }
 
+int32_t AbilityManagerService::RegisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer)
+{
+    if (!PermissionVerification::GetInstance()->CheckObserverCallerPermission()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+    return DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->RegisterObserver(observer);
+}
+
+int32_t AbilityManagerService::UnregisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer)
+{
+    if (!PermissionVerification::GetInstance()->CheckObserverCallerPermission()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+    return DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->UnregisterObserver(observer);
+}
+
 #ifdef WITH_DLP
 int AbilityManagerService::GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos)
 {
@@ -6751,6 +6775,10 @@ int AbilityManagerService::AttachAbilityThread(
     auto type = abilityInfo.type;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s", abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str());
+    if (abilityRecord->GetRequestCode() != DEFAULT_REQUEST_CODE) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(IPCSkeleton::GetCallingPid(),
+            abilityRecord->GetPid(), abilityRecord->GetAbilityRecordId());
+    }
     // force timeout ability for test
     if (IsNeedTimeoutForTest(abilityInfo.name, AbilityRecord::ConvertAbilityState(AbilityState::INITIAL))) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
