@@ -22,11 +22,6 @@ namespace OHOS {
 namespace AbilityRuntime {
 struct ForegroundAppConnectionData : public Parcelable {
 
-    ForegroundAppConnectionData() = default;
-
-    ForegroundAppConnectionData(int32_t callerPid, int32_t targetPid) :
-        callerPid_(callerPid), targetPid_(targetPid) {}
-
     /**
      * @brief read this Sequenceable object from a Parcel.
      *
@@ -55,8 +50,8 @@ struct ForegroundAppConnectionData : public Parcelable {
     int32_t callerUid_ = 0;
     int32_t targetUid_ = 0;
 
-    std::string callerBundleName_;
-    std::string targetBundleName_;
+    std::string callerBundleName_ = "";
+    std::string targetBundleName_ = "";
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

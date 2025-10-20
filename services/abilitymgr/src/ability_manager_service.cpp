@@ -1216,6 +1216,10 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 
     EventInfo eventInfo = BuildEventInfo(want, userId);
     int result = ERR_OK;
+    if (requestCode != DEFAULT_REQUEST_CODE) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
+            IPCSkeleton::GetCallingUid(), want.GetBundle());
+    }
     // prevent the app from dominating the screen
     if (callerToken == nullptr && !IsCallerSceneBoard() && !isSendDialogResult && !isForegroundToRestartApp &&
         AbilityPermissionUtil::GetInstance().IsDominateScreen(want, isPendingWantCaller)) {
@@ -1947,8 +1951,6 @@ int AbilityManagerService::StartAbilityForResultAsCaller(
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetElement().GetDeviceID().empty());
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     CHECK_CALLER_IS_SYSTEM_APP;
-    DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
-        IPCSkeleton::GetCallingUid(), want.GetBundle());
 
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
     AAFwk::Want newWant = want;
@@ -1975,8 +1977,6 @@ int AbilityManagerService::StartAbilityForResultAsCaller(const Want &want, const
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetElement().GetDeviceID().empty());
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     CHECK_CALLER_IS_SYSTEM_APP;
-    DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
-        IPCSkeleton::GetCallingUid(), want.GetBundle());
 
     AAFwk::Want newWant = want;
     auto validUserId = GetValidUserId(userId);
@@ -2019,6 +2019,10 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     EventInfo eventInfo = BuildEventInfo(want, userId);
+    if (requestCode != DEFAULT_REQUEST_CODE) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
+            IPCSkeleton::GetCallingUid(), want.GetBundle());
+    }
     // prevent the app from dominating the screen
     if (callerToken == nullptr && !IsCallerSceneBoard() && !isCallByShortcut &&
         AbilityPermissionUtil::GetInstance().IsDominateScreen(want, isPendingWantCaller)) {
@@ -6776,8 +6780,11 @@ int AbilityManagerService::AttachAbilityThread(
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s", abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str());
     if (abilityRecord->GetRequestCode() != DEFAULT_REQUEST_CODE) {
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(IPCSkeleton::GetCallingPid(),
-            abilityRecord->GetPid(), abilityRecord->GetAbilityRecordId());
+        ForegroundAppConnectionInfo info(abilityRecord->GetCallerInfo()->callerPid, IPCSkeleton::GetCallingPid(),
+            abilityRecord->GetCallerInfo()->callerUid, IPCSkeleton::GetCallingUid(),
+            abilityRecord->GetCallerInfo()->callerBundleName, abilityRecord->GetElementName().GetBundleName());
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(info,
+            abilityRecord->GetAbilityRecordId());
     }
     // force timeout ability for test
     if (IsNeedTimeoutForTest(abilityInfo.name, AbilityRecord::ConvertAbilityState(AbilityState::INITIAL))) {
@@ -13168,15 +13175,19 @@ void AbilityManagerService::NotifyAppPreCache(int32_t pid, int32_t userId)
 void AbilityManagerService::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
 {
     std::shared_ptr<AbilityRecord> abilityRecord;
+    int32_t diedPid;
     for (auto &token : abilityTokens) {
         abilityRecord = Token::GetAbilityRecordByToken(token);
         if (abilityRecord == nullptr) {
             continue;
         }
+        diedPid = abilityRecord->GetPid();
         TAG_LOGI(AAFwkTag::ABILITYMGR, "app onRemoteDied, ability:%{public}s, app:%{public}s",
             abilityRecord->GetAbilityInfo().name.c_str(), abilityRecord->GetAbilityInfo().bundleName.c_str());
         abilityRecord->OnProcessDied();
     }
+    DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->ProcessRemovePidConnection(diedPid);
+
 }
 
 void AbilityManagerService::OnStartProcessFailed(const std::vector<sptr<IRemoteObject>> &abilityTokens)
