@@ -6776,8 +6776,9 @@ int AbilityManagerService::AttachAbilityThread(
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s", abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str());
     if (abilityRecord->GetRequestCode() != DEFAULT_REQUEST_CODE) {
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(IPCSkeleton::GetCallingPid(),
-            abilityRecord->GetPid(), abilityRecord->GetAbilityRecordId());
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(
+            abilityRecord->GetCallerInfo()->callerPid, IPCSkeleton::GetCallingPid(),
+            abilityRecord->GetAbilityRecordId());
     }
     // force timeout ability for test
     if (IsNeedTimeoutForTest(abilityInfo.name, AbilityRecord::ConvertAbilityState(AbilityState::INITIAL))) {
