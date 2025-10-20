@@ -30,10 +30,19 @@ namespace AAFwk {
 struct ForegroundAppConnectionInfo {
     int32_t callerPid_ = -1;
     int32_t targetPid_ = -1;
+
+    int32_t callerUid_ = 0;
+    int32_t targetUid_ = 0;
+
+    std::string callerBundleName_ = "";
+    std::string targetBundleName_ = "";
+
     std::vector<int32_t> abilityRecordIds_;
 
-    ForegroundAppConnectionInfo(int32_t callerPid, int32_t targetPid) :
-        callerPid_(callerPid), targetPid_(targetPid) {};
+    ForegroundAppConnectionInfo(int32_t callerPid, int32_t targetPid, int32_t callerUid, int32_t targetUid,
+        const std::string &callerBundleName, const std::string &targetBundleName) :
+        callerPid_(callerPid), targetPid_(targetPid), callerUid_(callerUid), targetUid_(targetUid),
+        callerBundleName_(callerBundleName), targetBundleName_(targetBundleName) {}
     void AddAbilityRecordId(int32_t abilityRecordId);
     void RemoveAbilityRecordId(int32_t abilityRecordId);
 };
@@ -48,12 +57,14 @@ public:
     void OnDisconnected(AbilityRuntime::ForegroundAppConnectionData &data);
     void OnCallerStarted(int32_t callerPid, int32_t callerUid, const std::string &bundleName);
 
-    void AbilityAddPidConnection(int32_t callerPid, int32_t targetPid, int32_t abilityRecordId);
+    void AbilityAddPidConnection(ForegroundAppConnectionInfo &info, int32_t abilityRecordId);
     void AbilityRemovePidConnection(int32_t callerPid, int32_t targetPid, int32_t abilityRecordId);
     void ProcessRemovePidConnection(int32_t diedPid);
 
 private:
     void HandleRemoteDied(const wptr<IRemoteObject> &remoteObject);
+    void GenerateConnectionData(ForegroundAppConnectionInfo &info,
+        AbilityRuntime::ForegroundAppConnectionData &data);
 
     class ConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
