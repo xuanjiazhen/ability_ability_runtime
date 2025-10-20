@@ -19,6 +19,7 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "ability_record.h"
+#include "app_utils.h"
 #include "bundle_mgr_helper.h"
 #include "mission_list_manager.h"
 #include "ui_ability_lifecycle_manager.h"
@@ -260,7 +261,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityBySCBDefault_001, TestSiz
     uint32_t sceneFlag = 0;
     bool isColdStart = true;
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
-    EXPECT_EQ(abilityMs->StartUIAbilityBySCBDefault(sessionInfo, sceneFlag, isColdStart), RESOLVE_ABILITY_ERR);
+    EXPECT_EQ(abilityMs->StartUIAbilityBySCBDefault(sessionInfo, sceneFlag, false, isColdStart), RESOLVE_ABILITY_ERR);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartUIAbilityBySCBDefault_001 end");
 }
 
@@ -1759,7 +1760,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityByPreInstallInner_001, Te
     EXPECT_NE(abilityMs, nullptr);
     auto sessionInfo = sptr<SessionInfo>::MakeSptr();
     bool isColdStart = true;
-    int32_t ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, isColdStart);
+    int32_t ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, false, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     Want want;
@@ -1769,13 +1770,13 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityByPreInstallInner_001, Te
     abilityRecord->Init();
     sessionInfo->callerToken = abilityRecord->token_;
     MyFlag::flag_ = 0;
-    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, isColdStart);
+    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, false, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_CALLER);
     MyFlag::flag_ = 1;
-    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, isColdStart);
+    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, false, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
-    abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, isColdStart);
+    abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, false, isColdStart);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartUIAbilityByPreInstallInner_001 end");
 }
 
@@ -1807,7 +1808,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityByPreInstallInner_002, Te
     extensionInfos[0].applicationInfo.bundleName = TEST_BUNDLE_NAME;
     EXPECT_CALL(*mockBundleMgr, QueryExtensionAbilityInfos(testing::_, testing::_, testing::_, testing::_))
         .WillRepeatedly(DoAll(SetArgReferee<3>(extensionInfos), Return(true))); // extensionInfos empty
-    auto ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, isColdStart);
+    auto ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, false, isColdStart);
 
     AbilityInfo abilityInfo2;
     abilityInfo2.name = "ability2";
@@ -1817,15 +1818,15 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityByPreInstallInner_002, Te
     abilityInfo2.applicationInfo.bundleName = "testBundleName";
     EXPECT_CALL(*mockBundleMgr, QueryAbilityInfo(testing::_, testing::_, testing::_, testing::_))
         .WillRepeatedly(DoAll(SetArgReferee<3>(abilityInfo2), Return(true)));
-    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, isColdStart);
+    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, false, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
-    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, 1, 0, isColdStart);
+    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, 1, 0, false, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     abilityMs->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
-    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, 1, 0, isColdStart);
+    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, 1, 0, false, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, isColdStart);
+    ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, 0, false, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     Mock::VerifyAndClear(mockBundleMgr);
     bundleMgrHelper_->bundleMgr_ = nullptr;
@@ -2048,6 +2049,69 @@ HWTEST_F(AbilityManagerServiceSixthTest, SendIntentReport_001, TestSize.Level1)
     abilityMs->SendIntentReport(eventInfo, ERR_OK, intentName);
     EXPECT_EQ(eventInfo.intentName, intentName);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest SendIntentReport_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: IsUIAbilityAlreadyExist
+ * FunctionPoints: AbilityManagerService IsUIAbilityAlreadyExist
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, IsUIAbilityAlreadyExist_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest IsUIAbilityAlreadyExist_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    std::string abilityName;
+    std::string specifiedFlag;
+    int32_t appIndex = 0;
+    std::string instanceKey;
+    auto ret = abilityMs->IsUIAbilityAlreadyExist(abilityName, specifiedFlag, appIndex,
+        instanceKey, AppExecFwk::LaunchMode::SPECIFIED);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest IsUIAbilityAlreadyExist_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelfUIAbilityInCurrentProcess
+ * FunctionPoints: AbilityManagerService StartSelfUIAbilityInCurrentProcess
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, StartSelfUIAbilityInCurrentProcess_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartSelfUIAbilityInCurrentProcess_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    std::string specifiedFlag;
+    StartOptions startOptions;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.isLoaded = true;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.value = false;
+    auto ret = abilityMs->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false, nullptr);
+    EXPECT_EQ(ret, ERR_CAPABILITY_NOT_SUPPORT);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest SendIntentReport_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelfUIAbilityInCurrentProcess
+ * FunctionPoints: AbilityManagerService StartSelfUIAbilityInCurrentProcess
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, StartSelfUIAbilityInCurrentProcess_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartSelfUIAbilityInCurrentProcess_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    std::string bundleName = "test";
+    std::string abilityName = "testAbility";
+    want.SetElementName(bundleName, abilityName);
+    std::string specifiedFlag;
+    StartOptions startOptions;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.isLoaded = true;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.value = true;
+    auto ret = abilityMs->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartSelfUIAbilityInCurrentProcess_002 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -464,6 +464,21 @@ napi_value JsAbilityContext::SetOnNewWantSkipScenarios(napi_env env, napi_callba
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetOnNewWantSkipScenarios);
 }
 
+napi_value JsAbilityContext::StartSelfUIAbilityInCurrentProcess(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnStartSelfUIAbilityInCurrentProcess);
+}
+
+napi_value JsAbilityContext::RestartAppWithWindow(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnRestartAppWithWindow);
+}
+
+napi_value JsAbilityContext::SetMissionWindowIcon(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetMissionWindowIcon);
+}
+
 void JsAbilityContext::ClearFailedCallConnection(
     const std::weak_ptr<AbilityContext>& abilityContext, const std::shared_ptr<CallerCallBack> &callback)
 {
@@ -2162,6 +2177,60 @@ napi_value JsAbilityContext::OnReportDrawnCompleted(napi_env env, NapiCallbackIn
     return result;
 }
 
+napi_value JsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(napi_env env, NapiCallbackInfo &info)
+{
+    if (info.argc < ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+    AAFwk::Want want;
+    AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
+
+    std::string specifiedFlag;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], specifiedFlag)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse specifiedFlag failed");
+        ThrowInvalidParamError(env, "Parse param specifiedFlag failed, specifiedFlag must be string.");
+        return CreateJsUndefined(env);
+    }
+
+    size_t unwrapArgc = ARGC_TWO;
+    AAFwk::StartOptions startOptions;
+    if (info.argc > ARGC_TWO && CheckTypeForNapiValue(env, info.argv[INDEX_TWO], napi_object)) {
+        if (!AppExecFwk::UnwrapStartOptionsWithProcessOption(env, info.argv[INDEX_TWO], startOptions)) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "invalid startOptions");
+            ThrowInvalidParamError(env, "Parse param startOptions failed, startOptions must be StartOption.");
+            return CreateJsUndefined(env);
+        }
+        unwrapArgc++;
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, specifiedFlag, unwrapArgc,
+        startOptions, innerErrCode]() {
+        TAG_LOGI(AAFwkTag::CONTEXT, "async execute");
+        auto context = weak.lock();
+        if (!context) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+            *innerErrCode = static_cast<int32_t>(AAFwk::ERR_INVALID_CONTEXT);
+            return;
+        }
+
+        *innerErrCode = (unwrapArgc == ARGC_TWO) ? context->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag,
+            startOptions, false) : context->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, true);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+        (*innerErrCode == ERR_OK) ? task.ResolveWithNoError(env, CreateJsUndefined(env)) :
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartSelfUIAbilityInCurrentProcess",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
 napi_value JsAbilityContext::WrapRequestDialogResult(napi_env env,
     int32_t resultCode, const AAFwk::Want &want)
 {
@@ -2351,6 +2420,11 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
         JsAbilityContext::DisconnectAppServiceExtensionAbility);
     BindNativeFunction(env, object, "setOnNewWantSkipScenarios", moduleName,
         JsAbilityContext::SetOnNewWantSkipScenarios);
+    BindNativeFunction(env, object, "startSelfUIAbilityInCurrentProcess", moduleName,
+        JsAbilityContext::StartSelfUIAbilityInCurrentProcess);
+    BindNativeFunction(env, object, "restartApp", moduleName,
+        JsAbilityContext::RestartAppWithWindow);
+    BindNativeFunction(env, object, "setMissionWindowIcon", moduleName, JsAbilityContext::SetMissionWindowIcon);
     return object;
 }
 
@@ -3263,6 +3337,92 @@ napi_value JsAbilityContext::OnConnectAppServiceExtensionAbility(napi_env env, N
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     return ConnectExtensionAbilityCommon(env, info, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+}
+
+napi_value JsAbilityContext::OnRestartAppWithWindow(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnRestartAppWithWindow called");
+    if (info.argc < ARGC_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse want failed");
+        ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return CreateJsUndefined(env);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [weak = context_, innerErrCode, want] {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "released context");
+                *innerErrCode = static_cast<int32_t>(AAFwk::ERR_INVALID_CONTEXT);
+                return;
+            }
+            *innerErrCode = context->RestartAppWithWindow(want);
+    };
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                task.ResolveWithNoError(env, CreateJsUndefined(env));
+            } else {
+                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            }
+        };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnRestartAppWithWindow",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsAbilityContext::OnSetMissionWindowIcon(napi_env env, NapiCallbackInfo& info)
+{
+#ifdef SUPPORT_SCREEN
+    TAG_LOGD(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(info.argc));
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    auto windowIcon = OHOS::Media::PixelMapNapi::GetPixelMap(env, info.argv[INDEX_ZERO]);
+    if (!windowIcon) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse windowIcon failed");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return CreateJsUndefined(env);
+    }
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [weak = context_, windowIcon, innerErrCode]() {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+                *innerErrCode = AAFwk::ERR_INVALID_CONTEXT;
+                return;
+            }
+            TAG_LOGI(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(windowIcon->GetWidth()));
+            *innerErrCode = context->SetMissionWindowIcon(windowIcon);
+    };
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                task.Resolve(env, CreateJsUndefined(env));
+                return;
+            }
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+        };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::SetMissionWindowIcon",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+#else
+    return CreateJsUndefined(env);
+#endif
 }
 
 int32_t JsAbilityContext::GenerateRequestCode()

@@ -27,6 +27,9 @@
 #include "local_call_container.h"
 
 namespace OHOS {
+namespace Rosen {
+enum class WSError;
+}
 namespace AbilityRuntime {
 class AbilityContextImpl : public AbilityContext {
 public:
@@ -47,6 +50,7 @@ public:
     std::string GetPreferencesDir() override;
     std::string GetDistributedFilesDir() override;
     std::string GetCloudFileDir() override;
+    std::string GetLogFileDir() override;
     int32_t GetSystemDatabaseDir(const std::string &groupId, bool checkExist, std::string &databaseDir) override;
     int32_t GetSystemPreferencesDir(const std::string &groupId, bool checkExist, std::string &preferencesDir) override;
     void SwitchArea(int mode) override;
@@ -274,6 +278,14 @@ public:
      */
     ErrCode SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap> &icon) override;
 
+    /**
+     * @brief Set mission window icon of this ability.
+     *
+     * @param windowIcon the window icon of this ability.
+     * @return Returns ERR_OK if success.
+     */
+    ErrCode SetMissionWindowIcon(std::shared_ptr<OHOS::Media::PixelMap> windowIcon) override;
+
      /**
      * @brief Set ability label and icon of this ability.
      *
@@ -331,6 +343,8 @@ public:
     {
         isHook_ = isHook;
     }
+
+    static int32_t TransferRestartWSError(Rosen::WSError srcError);
 #endif
 
     /**
@@ -376,12 +390,16 @@ public:
     ErrCode ConnectExtensionAbilityWithExtensionType(const AAFwk::Want& want,
         const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType) override;
     ErrCode SetOnNewWantSkipScenarios(int32_t scenarios) override;
+    ErrCode RestartAppWithWindow(const Want &want) override;
 
     ErrCode AddCompletionHandlerForAtomicService(const std::string &requestId, OnAtomicRequestSuccess onRequestSucc,
         OnAtomicRequestFailure onRequestFail, const std::string &appId) override;
-    
+
     ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
         AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail) override;
+
+    ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool hasOptions) override;
 
 private:
     sptr<IRemoteObject> token_ = nullptr;

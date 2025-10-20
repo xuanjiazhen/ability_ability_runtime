@@ -178,6 +178,17 @@ public:
         int requestCode = DEFAULT_INVAL_VALUE) override;
 
     /**
+     * Start Self UIAbility In Current Process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @param startOptions Indicates the options used to start.
+     * @param hasOptions Is have start options.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken) override;
+
+    /**
      * StartAbilityWithSpecifyTokenIdInner with want and specialId, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -516,7 +527,8 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0) override;
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
+        bool isRestart) override;
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -1082,6 +1094,14 @@ public:
         bool isSilent = false) override;
 
     /**
+     * Start Ability for prelauch.
+     *
+     * @param want, Special want for service type's ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartAbilityForPrelaunch(const Want &want) override;
+
+    /**
      * As abilityRequest is prepared, just execute starting ability procedure.
      * By now, this is only used by start_ability_sandbox_savefile.
      * @param abilityRequest, Prepared with all info for starting a ability.
@@ -1290,6 +1310,14 @@ public:
      * @return the missionId of target mission.
      */
     int32_t GetMissionIdByAbilityToken(const sptr<IRemoteObject> &token);
+
+    /**
+     * Get ability token by target mission id.
+     *
+     * @param missionId target missionId.
+     * @return the ability token of target mission.
+     */
+    sptr<IRemoteObject> GetAbilityTokenByMissionId(int32_t missionId);
 
     virtual int StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback,
         bool isAppRecovery = false) override;
@@ -1964,7 +1992,7 @@ public:
     int SetWantForSessionInfo(sptr<SessionInfo> sessionInfo);
 
     int32_t StartUIAbilityBySCBDefaultCommon(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
-        uint32_t sceneFlag, bool &isColdStart);
+        uint32_t sceneFlag, bool isRestart, bool &isColdStart);
 
     int32_t NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest);
 
@@ -2221,6 +2249,12 @@ public:
     virtual int32_t NotifyStartupExceptionBySCB(int32_t requestId) override;
 
     /**
+     * Check if the app is restart-limited.
+     * @return Returns true on being limited.
+     */
+    bool IsRestartAppLimit() override;
+
+    /**
      * Preload application.
      * @param bundleName Name of the application.
      * @param userId user id.
@@ -2373,9 +2407,10 @@ private:
 
     int StartRemoteAbility(const Want &want, int requestCode, int32_t validUserId,
         const sptr<IRemoteObject> &callerToken, uint32_t specifyTokenId = 0);
-    int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool &isColdStart);
+    int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool isRestart,
+        bool &isColdStart);
     int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo, uint32_t specifyTokenId,
-        uint32_t sceneFlag, bool &isColdStart);
+        uint32_t sceneFlag, bool isRestart, bool &isColdStart);
     int32_t PreStartInner(const FreeInstallInfo& taskInfo);
     void RemovePreStartSession(const std::string& sessionId);
 
@@ -2678,6 +2713,12 @@ private:
     AAFwk::EventInfo BuildEventInfo(const Want &want, int32_t userId);
     AAFwk::EventInfo BuildEventInfoByAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
+    ErrCode IsUIAbilityAlreadyExist(const std::string &abilityName, const std::string &specifiedFlag,
+        int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
+    
+    bool IsAppCloneOrMultiInstance(const Want &want, const std::shared_ptr<AbilityRecord> callerRecord,
+        int32_t &appIndex, const std::string &callerInstanceKey);
+
 #ifdef WITH_DLP
     int CheckDlpForExtension(
         const Want &want, const sptr<IRemoteObject> &callerToken,
@@ -2777,7 +2818,7 @@ private:
     bool CheckCallerIsDmsProcess();
 
     void WaitBootAnimationStart();
-
+public:
     struct SignRestartAppFlagParam {
         int32_t userId;
         int32_t uid;
@@ -2785,8 +2826,11 @@ private:
         AppExecFwk::MultiAppModeType type;
         bool isAppRecovery = false;
         bool isAtomicService = false;
+        bool isRestartUIAbility = false;
+        std::string bundleName;
     };
     int32_t SignRestartAppFlag(const SignRestartAppFlagParam &param);
+private:
     int32_t CheckRestartAppWant(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
 
     int32_t CheckDebugAssertPermission();
@@ -2824,7 +2868,7 @@ private:
 
     void CheckExtensionRateLimit();
 
-    int32_t CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken);
+    int32_t CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken, bool &isTargetPlugin);
 
     int StartAbilityByConnectManager(const Want& want, const AbilityRequest& abilityRequest,
         const AppExecFwk::AbilityInfo& abilityInfo, int validUserId, sptr<IRemoteObject> callerToken);
@@ -2910,6 +2954,8 @@ private:
 #endif // SUPPORT_GRAPHICS
 
     std::shared_ptr<AbilityRuntime::AbilityManagerEventSubscriber> screenSubscriber_;
+    bool isSubscribed_ = false;
+    std::mutex subscribedMutex_;
 
     std::shared_ptr<AbilityAutoStartupService> abilityAutoStartupService_;
 

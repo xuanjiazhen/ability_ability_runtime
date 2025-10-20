@@ -366,7 +366,8 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0) override;
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
+        bool isRestart) override;
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -866,6 +867,14 @@ public:
     virtual int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE,
         bool isSilent = false) override;
+
+    /**
+     * Start Ability for prelauch.
+     *
+     * @param want, Special want for service type's ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartAbilityForPrelaunch(const Want &want) override;
 
     /**
      * Start Ability, connect session with common ability.
@@ -1876,6 +1885,22 @@ public:
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex) override;
 
+    /**
+     * Start Self UIAbility In Current Process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @param startOptions Indicates the options used to start.
+     * @param hasOptions Is have start options.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken) override;
+
+    /**
+     * Check if the app is restart-limited.
+     * @return Returns true on being limited.
+     */
+    virtual bool IsRestartAppLimit() override;
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

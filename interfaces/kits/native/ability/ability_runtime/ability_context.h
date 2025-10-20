@@ -397,6 +397,7 @@ public:
     virtual void SetHookOff(bool hookOff) = 0;
     virtual ErrCode RevokeDelegator() = 0;
     virtual ErrCode SetOnNewWantSkipScenarios(int32_t scenarios) = 0;
+    virtual ErrCode RestartAppWithWindow(const AAFwk::Want &want) = 0;
     void SetScreenMode(int32_t screenMode)
     {
         screenMode_ = screenMode;
@@ -426,6 +427,14 @@ public:
      * @return Returns ERR_OK if success.
      */
     virtual ErrCode SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap> &icon) = 0;
+
+    /**
+     * @brief Set mission window icon of this ability.
+     *
+     * @param windowIcon the window icon of this ability.
+     * @return Returns ERR_OK if success.
+     */
+    virtual ErrCode SetMissionWindowIcon(std::shared_ptr<OHOS::Media::PixelMap> windowIcon) = 0;
 
     /**
      * @brief Set ability label and icon of this ability.
@@ -509,6 +518,9 @@ public:
         OnAtomicRequestSuccess onRequestSucc, OnAtomicRequestFailure onRequestFail, const std::string &appId) = 0;
     virtual ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
         AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail) = 0;
+
+    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool hasOptions) = 0;
 
 protected:
     bool IsContext(size_t contextTypeId) override

@@ -28,7 +28,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 using AbilityManagerClient = AAFwk::AbilityManagerClient;
 
-constexpr const char* KIOSK_STATUS_CLASS_NAME = "Lapplication/KioskStatus/KioskStatus";
+constexpr const char* KIOSK_STATUS_CLASS_NAME = "Lapplication/KioskStatus/KioskStatusInner";
+constexpr const char* KIOSK_MANAGER_CLASS_NAME = "L@ohos/app/ability/kioskManager/kioskManager;";
 
 bool IsNull(ani_env *env, ani_ref ref)
 {
@@ -44,41 +45,63 @@ bool IsRefUndefined(ani_env *env, ani_ref ref)
     return isUndefined;
 }
 
-void EnterKioskModeSync([[maybe_unused]]ani_env *env, ani_object contextObj, ani_object callback)
+void EnterKioskModeSyncCheck([[maybe_unused]]ani_env *env, ani_object contextObj)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
-    uintptr_t ability = 0;
-    if (!IsNull(env, contextObj) && !IsRefUndefined(env, contextObj)) {
-        ani_long contextLong{};
-        if (ANI_OK != env->Object_GetFieldByName_Long(contextObj, "nativeContext", &contextLong)) {
-            TAG_LOGE(AAFwkTag::APPKIT, "get nativeContext failed.");
-            return;
-        }
-        ability = static_cast<unsigned long>(contextLong);
-    }
     auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Failed to get context, context must not be nullptr.");
+    }
     auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
     if (uiAbilityContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null UIAbilityContext");
         EtsErrorUtil::ThrowInvalidParamError(
             env, "Failed to get uiAbilityContext, uiAbilityContext must not be nullptr.");
     }
+}
+
+void EnterKioskModeSync([[maybe_unused]]ani_env *env, ani_object contextObj, ani_object callback)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
+    auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
     auto token = uiAbilityContext->GetToken();
     auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
     *innerErrCode = AbilityManagerClient::GetInstance()->EnterKioskMode(token);
     if (*innerErrCode != ERR_OK) {
         AppExecFwk::AsyncCallback(
-            env, callback, 
-            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)),
-            nullptr);
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
     }
     AppExecFwk::AsyncCallback(
-            env, callback,
-            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)),
-            nullptr);
+        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
+}
+
+void ExitKioskModeSyncCheck([[maybe_unused]]ani_env *env, ani_object contextObj)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
+        if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Failed to get context, context must not be nullptr.");
+    }
+    auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
+    if (uiAbilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null UIAbilityContext");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Failed to get uiAbilityContext, uiAbilityContext must not be nullptr.");
+    }
 }
 
 void ExitKioskModeSync([[maybe_unused]]ani_env *env, ani_object contextObj, ani_object callback)
@@ -88,29 +111,19 @@ void ExitKioskModeSync([[maybe_unused]]ani_env *env, ani_object contextObj, ani_
         return;
     }
     auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null context");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to get context. Context must not be nullptr.");
-        return;
-    }
     auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
-    if (uiAbilityContext == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null UIAbilityContext");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to get uIAbilityContext. Context must be uIAbilityContext.");
-        return;
-    }
     auto token = uiAbilityContext->GetToken();
     auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
     *innerErrCode = AbilityManagerClient::GetInstance()->ExitKioskMode(token);
     if (*innerErrCode != ERR_OK) {
         AppExecFwk::AsyncCallback(
-            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)), nullptr);
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
     }
     AppExecFwk::AsyncCallback(
-        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, AbilityErrorCode::ERROR_OK), nullptr);
+        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
 }
 
-ani_object CreateKioskStatusRet(ani_env *env, std::shared_ptr<AAFwk::KioskStatus> kioskStatus)
+ani_object CreateETSKioskStatus(ani_env *env, std::shared_ptr<AAFwk::KioskStatus> kioskStatus)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
@@ -136,16 +149,19 @@ ani_object CreateKioskStatusRet(ani_env *env, std::shared_ptr<AAFwk::KioskStatus
         TAG_LOGE(AAFwkTag::APPKIT, "Object_New status: %{public}d", status);
         return nullptr;
     }
-    if (!AppExecFwk::SetFieldBoolByName(env, cls, contextObj, "isKioskMode", kioskStatus->isKioskMode_)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "set isKioskMode failed");
+    if ((status = env->Object_SetPropertyByName_Ref(contextObj,
+        "kioskBundleName", OHOS::AppExecFwk::GetAniString(env, kioskStatus->kioskBundleName_))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleName failed, status: %{public}d", status);
         return nullptr;
     }
-    if (!AppExecFwk::SetFieldStringByName(env, cls, contextObj, "kioskBundleName", kioskStatus->kioskBundleName_)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleName failed");
+    if ((status = env->Object_SetPropertyByName_Boolean(
+        contextObj, "isKioskMode", kioskStatus->isKioskMode_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "set isKioskMode failed, status: %{public}d", status);
         return nullptr;
     }
-    if (!AppExecFwk::SetFieldIntByName(env, cls, contextObj, "kioskBundleUid", kioskStatus->kioskBundleUid_)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleUid failed");
+    if ((status = env->Object_SetPropertyByName_Int(
+        contextObj, "kioskBundleUid", kioskStatus->kioskBundleUid_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleUid failed, status: %{public}d", status);
         return nullptr;
     }
     return contextObj;
@@ -164,12 +180,12 @@ void GetKioskStatusSync([[maybe_unused]]ani_env *env, ani_object callback)
     if (*innerErrCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
         AppExecFwk::AsyncCallback(
-            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)), nullptr);
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), nullptr);
         return;
     }
-    auto ret = CreateKioskStatusRet(env, kioskStatus);
+    auto status = CreateETSKioskStatus(env, kioskStatus);
     AppExecFwk::AsyncCallback(
-        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<AbilityErrorCode>(*innerErrCode)), ret);
+        env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(*innerErrCode)), status);
 }
 
 void EtsKioskManagerInit(ani_env *env)
@@ -180,8 +196,7 @@ void EtsKioskManagerInit(ani_env *env)
         return;
     }
     ani_namespace ns;
-    const char* targetNamespace = "L@ohos/app/ability/kioskManager/kioskManager;";
-    if (env->FindNamespace(targetNamespace, &ns) != ANI_OK) {
+    if (env->FindNamespace(KIOSK_MANAGER_CLASS_NAME, &ns) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindNamespace failed");
     }
     if (ns == nullptr) {
@@ -191,21 +206,26 @@ void EtsKioskManagerInit(ani_env *env)
     std::array functions = {
         ani_native_function {
             "nativeEnterKioskMode",
-            // "Lapplication/UIAbilityContext/UIAbilityContext;"
-            // "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             nullptr,
             reinterpret_cast<void*>(EnterKioskModeSync)
         },
         ani_native_function {
+            "nativeEnterKioskModeCheck",
+            nullptr,
+            reinterpret_cast<void*>(EnterKioskModeSyncCheck)
+        },
+        ani_native_function {
             "nativeExitKioskMode",
-            // "Lapplication/UIAbilityContext/UIAbilityContext;"
-            // "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             nullptr,
             reinterpret_cast<void*>(ExitKioskModeSync)
         },
         ani_native_function {
+            "nativeExitKioskModeCheck",
+            nullptr,
+            reinterpret_cast<void*>(ExitKioskModeSyncCheck)
+        },
+        ani_native_function {
             "nativeGetKioskStatus",
-            // "nativeGetKioskStatus:V",
             nullptr,
             reinterpret_cast<void*>(GetKioskStatusSync)
         },

@@ -53,7 +53,7 @@ void UIAbilityLifecycleManager::MarkStartingFlag(const AbilityRequest &abilityRe
 }
 
 int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
-    uint32_t sceneFlag, bool &isColdStart)
+    uint32_t sceneFlag, bool isRestart, bool &isColdStart)
 {
     return ERR_OK;
 }
@@ -236,6 +236,11 @@ void UIAbilityLifecycleManager::MoveToBackground(const std::shared_ptr<AbilityRe
 }
 
 int UIAbilityLifecycleManager::ResolveLocked(const AbilityRequest &abilityRequest, std::string &errMsg)
+{
+    return 0;
+}
+
+int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abilityRequest)
 {
     return 0;
 }
@@ -757,6 +762,13 @@ int32_t UIAbilityLifecycleManager::RevokeDelegator(sptr<IRemoteObject> token)
 }
 
 int32_t UIAbilityLifecycleManager::NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason)
+{
+    return ERR_OK;
+}
+
+ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const std::string &abilityName,
+    const std::string &specifiedFlag, int32_t appIndex,
+    const std::string &instanceKey, AppExecFwk::LaunchMode launchMode)
 {
     return ERR_OK;
 }
