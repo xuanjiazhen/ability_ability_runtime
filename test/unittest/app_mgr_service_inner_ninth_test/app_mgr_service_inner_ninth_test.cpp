@@ -2213,5 +2213,31 @@ HWTEST_F(AppMgrServiceInnerNinthTest, StartSpecifiedAbility_0500, TestSize.Level
     EXPECT_EQ(userId, 100);
     TAG_LOGI(AAFwkTag::TEST, "StartSpecifiedAbility_0500 end");
 }
+
+/**
+ * @tc.name: KillProcessByPidForExit_0100
+ * @tc.desc: Test KillProcessByPidForExit
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerNinthTest, KillProcessByPidForExit_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessByPidForExit_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    auto ret = appMgrServiceInner->KillProcessByPidForExit(0, "");
+    EXPECT_EQ(ret, ERR_NO_INIT);
+
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    AAFwk::MyStatus::GetInstance().processExit_ = false;
+    ret = appMgrServiceInner->KillProcessByPidForExit(0, "");
+    EXPECT_EQ(ret, ERR_OK);
+
+    AAFwk::MyStatus::GetInstance().processExit_ = true;
+    ret = appMgrServiceInner->KillProcessByPidForExit(0, "");
+    EXPECT_NE(ret, ERR_OK);
+
+    AAFwk::MyStatus::GetInstance().processExit_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessByPidForExit_0100 end");
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

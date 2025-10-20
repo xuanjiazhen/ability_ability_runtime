@@ -555,5 +555,10 @@ bool AppRunningManager::CheckMasterProcessAppRunningRecordIsExist(
 {
     return false;
 }
+
+bool AppRunningManager::ProcessExitByPid(int32_t, const KillProcessConfig &)
+{
+    return AAFwk::MyStatus::GetInstance().processExit_;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
