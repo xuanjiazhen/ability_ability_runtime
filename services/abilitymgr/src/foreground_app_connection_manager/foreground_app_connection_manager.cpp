@@ -125,9 +125,11 @@ void ForegroundAppConnectionManager::OnCallerStarted(int32_t callerPid, int32_t 
     }
 }
 
-void ForegroundAppConnectionManager::AbilityAddPidConnection(int32_t callerPid, int32_t targetPid,
+void ForegroundAppConnectionManager::AbilityAddPidConnection(ForegroundAppConnectionInfo &info,
     int32_t abilityRecordId)
 {
+    int32_t callerPid = info.callerPid_;
+    int32_t targetPid = info.targetPid_;
     std::string curObserverKey = std::to_string(callerPid) + "_" + std::to_string(targetPid);
     std::lock_guard<std::mutex> guard(pidMapMutex_);
     auto it = pidMap_.find(curObserverKey);
@@ -137,10 +139,10 @@ void ForegroundAppConnectionManager::AbilityAddPidConnection(int32_t callerPid, 
         return;
     }
 
-    ForegroundAppConnectionInfo info(callerPid, targetPid);
     info.AddAbilityRecordId(abilityRecordId);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "add pidConnection %{public}s", curObserverKey.c_str());
-    AbilityRuntime::ForegroundAppConnectionData data(callerPid, targetPid);
+    AbilityRuntime::ForegroundAppConnectionData data;
+    GenerateConnectionData(info, data);
     OnConnected(data);
     pidMap_.emplace(curObserverKey, info);
 }
@@ -158,7 +160,8 @@ void ForegroundAppConnectionManager::AbilityRemovePidConnection(int32_t callerPi
     it->second.RemoveAbilityRecordId(abilityRecordId);
     if (it->second.abilityRecordIds_.empty()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "remove pidConnection %{public}s", curObserverKey.c_str());
-        AbilityRuntime::ForegroundAppConnectionData data(callerPid, targetPid);
+        AbilityRuntime::ForegroundAppConnectionData data;
+        GenerateConnectionData(info, data);
         OnDisconnected(data);
         pidMap_.erase(it);
     }
@@ -168,9 +171,10 @@ void ForegroundAppConnectionManager::ProcessRemovePidConnection(int32_t diedPid)
 {
     std::lock_guard<std::mutex> guard(pidMapMutex_);
     for (auto it = pidMap_.begin(); it != pidMap_.end();) {
-        if (it->second.callerPid_ == diedPid || it->second.targetPid_ == diedPid) {
-            auto &curConnectInfo = it->second;
-            AbilityRuntime::ForegroundAppConnectionData data(curConnectInfo.callerPid_, curConnectInfo.targetPid_);
+        auto &curConnectInfo = it->second;
+        if (curConnectInfo && (curConnectInfo.callerPid_ == diedPid || curConnectInfo.targetPid_ == diedPid)) {
+            AbilityRuntime::ForegroundAppConnectionData data;
+            GenerateConnectionData(curConnectInfo, data);
             std::string curObserverKey =
                 std::to_string(curConnectInfo.callerPid_) + "_" + std::to_string(curConnectInfo.targetPid_);
             TAG_LOGI(AAFwkTag::ABILITYMGR, "remove pidConnection %{public}s", curObserverKey.c_str());
@@ -200,6 +204,18 @@ void ForegroundAppConnectionManager::HandleRemoteDied(const wptr<IRemoteObject> 
     if (iter != observerList_.end()) {
         observerList_.erase(iter);
     }
+}
+
+void ForegroundAppConnectionManager::GenerateConnectionData(
+    ForegroundAppConnectionInfo &info, AbilityRuntime::ForegroundAppConnectionData &data)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "GenerateConnectionData");
+    data.callerPid_ = info.callerPid_;
+    data.targetPid_ = info.targetPid_;
+    data.callerUid_ = info.callerUid_;
+    data.targetUid_ = info.targetUid_;
+    data.callerBundleName_ = info.callerBundleName_;
+    data.targetBundleName_ = info.targetBundleName_;
 }
 
 ForegroundAppConnectionManager::ConnectionDeathRecipient::ConnectionDeathRecipient(
