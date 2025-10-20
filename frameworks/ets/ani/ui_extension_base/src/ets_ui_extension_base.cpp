@@ -30,6 +30,7 @@
 #include "configuration_utils.h"
 #include "connection_manager.h"
 #include "context.h"
+#include "ets_ability_lifecycle_callback.h"
 #include "ets_data_struct_converter.h"
 #include "ets_extension_common.h"
 #include "ets_extension_context.h"
@@ -380,7 +381,8 @@ void EtsUIExtensionBase::OnStopCallBack()
 
     auto applicationContext = Context::GetApplicationContext();
     if (applicationContext != nullptr) {
-        applicationContext->DispatchOnAbilityDestroy(etsObj_);
+        EtsAbilityLifecycleCallbackArgs ability(etsObj_);
+        applicationContext->DispatchOnAbilityDestroy(ability);
     }
 }
 
