@@ -151,7 +151,7 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
     if (errorStack.empty()) {
         TAG_LOGE(AAFwkTag::JSENV, "errorStack is empty");
         return;
-    }  
+    }
     ProcessErrorInfo(errorName, errorMsg, errorStack, errorCode);
 }
 
