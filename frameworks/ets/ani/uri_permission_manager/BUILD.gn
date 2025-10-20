@@ -77,6 +77,8 @@ ohos_shared_library("uri_permission_manager_ani_kit") {
     "runtime_core:ani",
   ]
 
+  public_external_deps = [ "ability_base:configuration" ]
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
