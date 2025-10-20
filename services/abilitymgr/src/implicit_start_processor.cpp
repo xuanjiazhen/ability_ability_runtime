@@ -164,10 +164,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
 
         AAFwk::Want targetWant = request.want;
         targetWant.SetElementName(bundle, abilityName);
-        auto callBack = [imp, targetWant, request, userId]() -> int32_t {
-            return imp->ImplicitStartAbilityInner(targetWant, request, userId);
-        };
-        return imp->CallStartAbilityInner(userId, targetWant, callBack, request.callType);
+        return imp->CallStartAbilityInner(userId, targetWant, request, request.callType);
     };
 
     AAFwk::Want want;
@@ -246,6 +243,9 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         return ret;
     }
 
+    // reset calling indentity
+    IPCSkeleton::SetCallingIdentity(identity);
+
     //There is a default opening method add Only one application supports
     bool defaultPicker = false;
     defaultPicker = request.want.GetBoolParam(SHOW_DEFAULT_PICKER_FLAG, defaultPicker);
@@ -280,10 +280,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
             return DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request,
                 want, userId, dialogAppInfos, needGrantUriPermission);
         }
-        ret = abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr);
-        // reset calling indentity
-        IPCSkeleton::SetCallingIdentity(identity);
-        return ret;
+        return IN_PROCESS_CALL(abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr));
     }
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitQueryInfos success, multiple apps available in pc");
@@ -304,10 +301,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         return DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want, userId,
             dialogAppInfos);
     }
-    ret = abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr);
-    // reset calling indentity
-    IPCSkeleton::SetCallingIdentity(identity);
-    return ret;
+    return IN_PROCESS_CALL(abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr));
 }
 
 std::string ImplicitStartProcessor::MatchTypeAndUri(const AAFwk::Want &want)
@@ -809,7 +803,7 @@ int32_t ImplicitStartProcessor::ImplicitStartAbilityInner(const Want &targetWant
 }
 
 int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
-    const Want &want, const StartAbilityClosure &callBack, const AbilityCallType &callType)
+    const Want &want, const AbilityRequest &request, const AbilityCallType &callType)
 {
     EventInfo eventInfo;
     eventInfo.userId = userId;
@@ -824,7 +818,7 @@ int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s, bundle:%{public}s", eventInfo.abilityName.c_str(),
         eventInfo.bundleName.c_str());
 
-    auto ret = callBack();
+    auto ret = ImplicitStartAbilityInner(want, request, userId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "CallStartAbilityInner failed: %{public}d", ret);
         if (callType == AbilityCallType::INVALID_TYPE) {

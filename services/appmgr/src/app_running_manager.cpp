@@ -851,12 +851,6 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
     if ((isPage || appRecord->IsLastAbilityRecord(token)) && (!appRecord->IsKeepAliveApp() ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
         appRecord->SetTerminating();
-        auto priopityObject = appRecord->GetPriorityObject();
-        if (priopityObject != nullptr && serviceInner != nullptr) {
-            TAG_LOGW(AAFwkTag::APPMGR, "kill process %{public}d", priopityObject->GetPid());
-            serviceInner->KillProcessByPid(priopityObject->GetPid(), "HandleAbilityAttachTimeOut");
-            return;
-        }
     }
 
     std::weak_ptr<AppRunningRecord> appRecordWptr(appRecord);
@@ -892,8 +886,7 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
     // set app record terminating when close last page ability
     auto isLastAbility =
         clearMissionFlag ? appRecord->IsLastPageAbilityRecord(token) : appRecord->IsLastAbilityRecord(token);
-    if (isLastAbility && (!appRecord->IsKeepAliveApp() ||
-        !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
+    if (isLastAbility && (!appRecord->IsKeepAliveApp())) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr && cacheProcMgr->IsAppShouldCache(appRecord)) {
             cacheProcMgr->PenddingCacheProcess(appRecord);
@@ -955,10 +948,8 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
 #endif //SUPPORT_SCREEN
     auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
-    TAG_LOGI(AAFwkTag::APPMGR, "TerminateAbility:isLast:%{public}d,keepAlive:%{public}d",
-        isLastAbility, isKeepAliveApp);
-    if (isLastAbility && (!isKeepAliveApp ||
-        !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !isLauncherApp) {
+    TAG_LOGI(AAFwkTag::APPMGR, "terminate isLast:%{public}d,keepAlive:%{public}d", isLastAbility, isKeepAliveApp);
+    if (isLastAbility && !isKeepAliveApp && !isLauncherApp) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr) {
             cacheProcMgr->CheckAndSetProcessCacheEnable(appRecord);
@@ -1326,9 +1317,9 @@ int32_t AppRunningManager::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLev
         auto pid = priorityObject->GetPid();
         auto it = procLevelMap.find(pid);
         if (it == procLevelMap.end()) {
-            TAG_LOGW(AAFwkTag::APPMGR, "proc[pid=%{public}d] is not found", pid);
+            TAG_LOGW(AAFwkTag::APPMGR, "pid%{public}d not found", pid);
         } else {
-            TAG_LOGD(AAFwkTag::APPMGR, "proc[pid=%{public}d] memory level = %{public}d", pid, it->second);
+            TAG_LOGD(AAFwkTag::APPMGR, "pid%{public}d memory level = %{public}d", pid, it->second);
             appRecord->ScheduleMemoryLevel(it->second);
         }
     }
@@ -1884,7 +1875,7 @@ int32_t AppRunningManager::SignRestartAppFlag(int32_t uid, const std::string &in
         if (appRecord == nullptr || appRecord->GetUid() != uid || appRecord->GetInstanceKey() != instanceKey) {
             continue;
         }
-        TAG_LOGD(AAFwkTag::APPMGR, "sign");
+        TAG_LOGI(AAFwkTag::APPMGR, "SignRestartAppFlag");
         appRecord->SetRestartAppFlag(true);
         return ERR_OK;
     }

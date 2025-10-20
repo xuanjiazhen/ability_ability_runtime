@@ -15,16 +15,16 @@
 
 #include "uri_utils.h"
 
-#include "ability_util.h"
+#include "ability_manager_client.h"
 #include "ability_config.h"
 #include "ability_record.h"
 #include "ability_manager_errors.h"
+#include "ability_util.h"
 #include "accesstoken_kit.h"
 #include "app_utils.h"
 #include "common_event_manager.h"
 #include "event_report.h"
 #include "extension_ability_info.h"
-#include "element_name.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -180,7 +180,8 @@ bool UriUtils::GetCallerNameAndApiVersion(uint32_t tokenId, std::string &callerN
 }
 
 std::vector<Uri> UriUtils::GetPermissionedUriList(const std::vector<std::string> &uriVec,
-    const std::vector<bool> &checkResults, uint32_t callerTokenId, const std::string &targetBundleName, Want &want)
+    const std::vector<CheckResult> &checkResults, uint32_t callerTokenId,
+    const std::string &targetBundleName, Want &want)
 {
     std::vector<Uri> permissionedUris;
     if (uriVec.size() != checkResults.size()) {
@@ -193,7 +194,7 @@ std::vector<Uri> UriUtils::GetPermissionedUriList(const std::vector<std::string>
     GetCallerNameAndApiVersion(callerTokenId, callerBundleName, apiVersion);
     // process uri
     size_t startIndex = want.GetUriString().empty() ? 0 : 1;
-    if (!ProcessWantUri(checkResults[0], apiVersion, want, permissionedUris)) {
+    if (!ProcessWantUri(checkResults[0].result, apiVersion, want, permissionedUris)) {
         SendGrantUriPermissionEvent(callerBundleName, targetBundleName, uriVec[0], apiVersion, ERASE_URI);
     }
     // process param stream
@@ -202,7 +203,7 @@ std::vector<Uri> UriUtils::GetPermissionedUriList(const std::vector<std::string>
     for (size_t index = startIndex; index < checkResults.size(); index++) {
         // only reserve privileged file uri
         auto uri = Uri(uriVec[index]);
-        if (checkResults[index]) {
+        if (checkResults[index].result) {
             permissionedUris.emplace_back(uri);
             paramStreamUris.emplace_back(uriVec[index]);
             continue;
@@ -257,9 +258,9 @@ bool UriUtils::GetUriListFromWant(Want &want, std::vector<std::string> &uriVec)
 }
 
 #ifdef SUPPORT_UPMS
-bool UriUtils::IsGrantUriPermissionFlag(const Want &want)
+bool UriUtils::IsGrantUriPermissionFlag(uint32_t flag)
 {
-    return ((want.GetFlags() & (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION)) != 0);
+    return ((flag & (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION)) != 0);
 }
 #endif // SUPPORT_UPMS
 
@@ -287,7 +288,7 @@ bool UriUtils::IsDmsCall(uint32_t fromTokenId)
 }
 
 #ifdef SUPPORT_UPMS
-void UriUtils::GrantDmsUriPermission(Want &want, uint32_t callerTokenId,
+bool UriUtils::GrantDmsUriPermission(Want &want, uint32_t callerTokenId,
     std::string targetBundleName, int32_t appIndex)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -297,8 +298,9 @@ void UriUtils::GrantDmsUriPermission(Want &want, uint32_t callerTokenId,
         want.GetFlags(), targetBundleName, appIndex, callerTokenId, hideSensitiveType));
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "ret is %{public}d.", ret);
-        return;
+        return false;
     }
+    return true;
 }
 
 bool UriUtils::GrantShellUriPermission(const std::vector<std::string> &strUriVec, uint32_t flag,
@@ -328,7 +330,7 @@ void UriUtils::CheckUriPermission(uint32_t callerTokenId, Want &want)
 {
     // Check and clear no-permission uris in want, not support content uri
     uint32_t flag = want.GetFlags();
-    if (!IsGrantUriPermissionFlag(want)) {
+    if (!IsGrantUriPermissionFlag(flag)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", flag);
         return;
     }
@@ -337,7 +339,7 @@ void UriUtils::CheckUriPermission(uint32_t callerTokenId, Want &want)
         TAG_LOGD(AAFwkTag::ABILITYMGR, "No file uri neet grant.");
         return;
     }
-    auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
+    auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorizationWithType(
         uriVec, flag, callerTokenId));
     auto permissionUris = GetPermissionedUriList(uriVec, checkResults, callerTokenId, "", want);
     if (permissionUris.empty()) {
@@ -383,53 +385,55 @@ bool UriUtils::IsSandboxApp(uint32_t tokenId)
 }
 
 #ifdef SUPPORT_UPMS
-void UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int32_t appIndex,
-    bool isSandboxApp, uint32_t callerTokenId, int32_t collaboratorType)
+bool UriUtils::GrantUriPermission(Want &want, const GrantUriPermissionInfo &grantInfo)
 {
-    uint32_t flag = want.GetFlags();
-    if (!IsGrantUriPermissionFlag(want)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", flag);
-        return;
+    if (!IsGrantUriPermissionFlag(grantInfo.flag)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", grantInfo.flag);
+        return false;
     }
-
-    if (targetBundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName() &&
-        collaboratorType == CollaboratorType::OTHERS_TYPE) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "reject shell application to grant uri permission");
-        return;
+    if (grantInfo.targetBundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "targetBundleName empty");
+        return false;
     }
-    if (callerTokenId == 0) {
+    if (grantInfo.targetBundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName() &&
+        grantInfo.collaboratorType == CollaboratorType::OTHERS_TYPE) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "reject shell application to grant uri permission");
+        return false;
+    }
+    if (grantInfo.callerTokenId == 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "callerTokenId is invalid.");
-        return;
+        return false;
     }
-    if (isSandboxApp || IsSandboxApp(callerTokenId)) {
+    if (grantInfo.isSandboxApp || IsSandboxApp(grantInfo.callerTokenId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
-        return;
+        return false;
     }
     ProcessUDMFKey(want);
 
-    if (IsDmsCall(callerTokenId)) {
-        GrantDmsUriPermission(want, callerTokenId, targetBundleName, appIndex);
-        return;
+    if (IsDmsCall(grantInfo.callerTokenId)) {
+        return GrantDmsUriPermission(want, grantInfo.callerTokenId, grantInfo.targetBundleName, grantInfo.appIndex);
     }
 
     std::vector<std::string> uriVec;
     if (!UriUtils::GetUriListFromWant(want, uriVec)) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "No file uri neet grant.");
-        return;
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "No file uri need grant.");
+        return false;
     }
 
     auto callerPkg = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
     bool isBrokerCall = (IsInAncoAppIdentifier(callerPkg) ||
         IPCSkeleton::GetCallingUid() == AppUtils::GetInstance().GetCollaboratorBrokerUID());
-    if (isBrokerCall && GrantShellUriPermission(uriVec, flag, targetBundleName, appIndex)) {
+    if (isBrokerCall && GrantShellUriPermission(uriVec, grantInfo.flag, grantInfo.targetBundleName,
+        grantInfo.appIndex)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "permission to shell");
-        return;
+        return true;
     }
-    if (!GrantUriPermissionInner(uriVec, callerTokenId, targetBundleName, appIndex, want)) {
-        return;
+    if (!GrantUriPermissionInner(uriVec, grantInfo, want)) {
+        return false;
     }
     // report open file event
     PublishFileOpenEvent(want);
+    return true;
 }
 
 void UriUtils::ProcessUDMFKey(Want &want)
@@ -440,22 +444,34 @@ void UriUtils::ProcessUDMFKey(Want &want)
     }
 }
 
-bool UriUtils::GrantUriPermissionInner(std::vector<std::string> uriVec, uint32_t callerTokenId,
-    const std::string &targetBundleName, int32_t appIndex, Want &want)
+bool UriUtils::GrantUriPermissionInner(const std::vector<std::string> &uriVec,
+    const GrantUriPermissionInfo &grantInfo, Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    uint32_t flag = want.GetFlags();
-    auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
-        uriVec, flag, callerTokenId));
-    auto permissionUris = GetPermissionedUriList(uriVec, checkResults, callerTokenId, targetBundleName, want);
+    NotifyGrantUriPermissionStart(grantInfo.isNotifyCollaborator, uriVec, grantInfo.flag, grantInfo.userId);
+    auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorizationWithType(
+        uriVec, grantInfo.flag, grantInfo.callerTokenId));
+    auto permissionUris = GetPermissionedUriList(uriVec, checkResults, grantInfo.callerTokenId,
+        grantInfo.targetBundleName, want);
+    std::vector<bool> boolResults(checkResults.size(), false);
     if (permissionUris.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uris not permissioned.");
+        NotifyGrantUriPermissionEnd(grantInfo.isNotifyCollaborator, uriVec, grantInfo.flag,
+            grantInfo.userId, boolResults);
         return false;
     }
-
+    std::vector<int32_t> permissionTypes;
+    for (auto i = 0; i < checkResults.size(); i++) {
+        boolResults[i] = checkResults[i].result;
+        if (checkResults[i].result) {
+            permissionTypes.emplace_back(checkResults[i].permissionType);
+        }
+    }
     auto hideSensitiveType = want.GetIntParam(HIDE_SENSITIVE_TYPE, 0);
-    auto ret = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().GrantUriPermissionPrivileged(permissionUris,
-        flag, targetBundleName, appIndex, callerTokenId, hideSensitiveType));
+    auto ret = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().GrantUriPermissionWithType(
+        permissionUris, grantInfo.flag, grantInfo.targetBundleName, grantInfo.appIndex, grantInfo.callerTokenId,
+        hideSensitiveType, permissionTypes));
+    NotifyGrantUriPermissionEnd(grantInfo.isNotifyCollaborator, uriVec, grantInfo.flag, grantInfo.userId, boolResults);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, err:%{public}d", ret);
         return false;
@@ -499,8 +515,16 @@ bool UriUtils::GrantUriPermissionForServiceExtension(const AbilityRequest &abili
         auto &want = const_cast<Want &>(abilityRequest.want);
         auto callerTokenId = abilityRequest.specifyTokenId > 0 ? abilityRequest.specifyTokenId :
             static_cast<uint32_t>(want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
-        GrantUriPermission(want, abilityInfo.bundleName, abilityInfo.applicationInfo.appIndex, false, callerTokenId,
-            abilityRequest.collaboratorType);
+        GrantUriPermissionInfo grantInfo;
+        grantInfo.isNotifyCollaborator = false;
+        grantInfo.targetBundleName = abilityInfo.bundleName;
+        grantInfo.appIndex = abilityInfo.applicationInfo.appIndex;
+        grantInfo.isSandboxApp = false;
+        grantInfo.callerTokenId = callerTokenId;
+        grantInfo.collaboratorType = abilityRequest.collaboratorType;
+        grantInfo.flag = want.GetFlags();
+        grantInfo.userId = -1;
+        GrantUriPermission(want, grantInfo);
         return true;
     }
     return false;
@@ -514,8 +538,16 @@ bool UriUtils::GrantUriPermissionForUIOrServiceExtension(const AbilityRequest &a
         auto &want = const_cast<Want &>(abilityRequest.want);
         auto callerTokenId = abilityRequest.specifyTokenId > 0 ? abilityRequest.specifyTokenId :
             static_cast<uint32_t>(want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
-        GrantUriPermission(want, abilityInfo.bundleName, abilityInfo.applicationInfo.appIndex, false, callerTokenId,
-            abilityRequest.collaboratorType);
+        GrantUriPermissionInfo grantInfo;
+        grantInfo.isNotifyCollaborator = false;
+        grantInfo.targetBundleName = abilityInfo.bundleName;
+        grantInfo.appIndex = abilityInfo.applicationInfo.appIndex;
+        grantInfo.isSandboxApp = false;
+        grantInfo.callerTokenId = callerTokenId;
+        grantInfo.collaboratorType = abilityRequest.collaboratorType;
+        grantInfo.flag = want.GetFlags();
+        grantInfo.userId = -1;
+        GrantUriPermission(want, grantInfo);
         return true;
     }
     return false;
@@ -535,6 +567,54 @@ bool UriUtils::SendGrantUriPermissionEvent(const std::string &callerBundleName, 
         SEPARATOR + std::to_string(apiVersion);
     TAG_LOGI(AAFwkTag::URIPERMMGR, "event: %{public}s", eventInfo.uri.c_str());
     EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);
+    return true;
+}
+
+bool UriUtils::NotifyGrantUriPermissionStart(bool isNotifyCollaborator, const std::vector<std::string> &uris,
+    uint32_t flag, int32_t userId)
+{
+    if (!isNotifyCollaborator) {
+        return true;
+    }
+    auto abilityClient = AbilityManagerClient::GetInstance();
+    if (abilityClient == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "abilityClient null");
+        return false;
+    }
+    auto collaborator = IN_PROCESS_CALL(abilityClient->GetAbilityManagerCollaborator());
+    if (collaborator == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "collaborator null");
+        return false;
+    }
+    auto ret = collaborator->NotifyGrantUriPermissionStart(uris, flag, userId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "NotifyGrantUriPermissionStart failed: %{public}d", ret);
+        return false;
+    }
+    return true;
+}
+
+bool UriUtils::NotifyGrantUriPermissionEnd(bool isNotifyCollaborator, const std::vector<std::string> &uris,
+    uint32_t flag, int32_t userId, const std::vector<bool> &checkResults)
+{
+    if (!isNotifyCollaborator) {
+        return true;
+    }
+    auto abilityClient = AbilityManagerClient::GetInstance();
+    if (abilityClient == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "abilityClient null");
+        return false;
+    }
+    auto collaborator = IN_PROCESS_CALL(abilityClient->GetAbilityManagerCollaborator());
+    if (collaborator == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "collaborator null");
+        return false;
+    }
+    auto ret = collaborator->NotifyGrantUriPermissionEnd(uris, flag, userId, checkResults);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "NotifyGrantUriPermissionEnd failed: %{public}d", ret);
+        return false;
+    }
     return true;
 }
 } // AAFwk

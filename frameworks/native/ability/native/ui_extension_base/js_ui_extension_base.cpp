@@ -29,6 +29,7 @@
 #include "hitrace_meter.h"
 #include "insight_intent_executor_mgr.h"
 #include "int_wrapper.h"
+#include "js_ability_lifecycle_callback.h"
 #include "js_data_struct_converter.h"
 #include "js_extension_common.h"
 #include "js_extension_context.h"
@@ -53,6 +54,8 @@ namespace AbilityRuntime {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_HIGH = "ohos.ability.params.uiExtensionLaunchTimestampHigh";
+constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_LOW = "ohos.ability.params.uiExtensionLaunchTimestampLow";
 } // namespace
 napi_value AttachUIExtensionBaseContext(napi_env env, void *value, void*)
 {
@@ -377,7 +380,8 @@ void JsUIExtensionBase::OnStopCallBack()
 
     auto applicationContext = Context::GetApplicationContext();
     if (applicationContext != nullptr) {
-        applicationContext->DispatchOnAbilityDestroy(jsObj_);
+        JsAbilityLifecycleCallbackArgs ability(jsObj_);
+        applicationContext->DispatchOnAbilityDestroy(ability);
     }
 }
 
@@ -625,31 +629,36 @@ void JsUIExtensionBase::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo
     if (res != uiWindowMap_.end() && res->second != nullptr) {
         WantParams params;
         params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT_CODE, Integer::Box(result.innerErr));
-        WantParams resultParams;
-        resultParams.SetParam("code", Integer::Box(result.code));
-        if (result.result != nullptr) {
+
+        Rosen::WMError ret = Rosen::WMError::WM_OK;
+        if (result.isDecorator && result.result) {
             sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*result.result);
-            if (pWantParams != nullptr) {
+            params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
+            ret = res->second->TransferExtensionData(params);
+        } else {
+            WantParams resultParams;
+            resultParams.SetParam("code", Integer::Box(result.code));
+            if (result.result != nullptr) {
+                sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*result.result);
                 resultParams.SetParam("result", pWantParams);
             }
-        }
-        auto size = result.uris.size();
-        sptr<IArray> uriArray = new (std::nothrow) Array(size, g_IID_IString);
-        if (uriArray == nullptr) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "new uriArray failed");
-            return;
-        }
-        for (std::size_t i = 0; i < size; i++) {
-            uriArray->Set(i, String::Box(result.uris[i]));
-        }
-        resultParams.SetParam("uris", uriArray);
-        resultParams.SetParam("flags", Integer::Box(result.flags));
-        sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(resultParams);
-        if (pWantParams != nullptr) {
+            auto size = result.uris.size();
+            sptr<IArray> uriArray = new (std::nothrow) Array(size, g_IID_IString);
+            if (uriArray == nullptr) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "new uriArray failed");
+                return;
+            }
+            for (std::size_t i = 0; i < size; i++) {
+                uriArray->Set(i, String::Box(result.uris[i]));
+            }
+            resultParams.SetParam("uris", uriArray);
+            resultParams.SetParam("flags", Integer::Box(result.flags));
+            sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(resultParams);
             params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
+
+            ret = res->second->TransferExtensionData(params);
         }
 
-        Rosen::WMError ret = res->second->TransferExtensionData(params);
         if (ret == Rosen::WMError::WM_OK) {
             TAG_LOGD(AAFwkTag::UI_EXT, "TransferExtensionData success");
         } else {
@@ -739,7 +748,8 @@ bool JsUIExtensionBase::CallJsOnSessionCreate(const AAFwk::Want &want, const spt
     return true;
 }
 
-sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo)
+sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo,
+    const AAFwk::Want &want)
 {
     auto option = sptr<Rosen::WindowOption>::MakeSptr();
     if (option == nullptr) {
@@ -761,6 +771,16 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
         option->SetConstrainedModal(isNotAllow);
     }
+    int64_t launchTimestamp = -1;
+    bool hasHigh = want.HasParameter(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
+    bool hasLow = want.HasParameter(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
+    if (hasHigh && hasLow) {
+        int32_t high = want.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1);
+        int32_t low = want.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW, -1);
+        uint64_t temp = (static_cast<uint64_t>(high) << 32) | (static_cast<uint64_t>(low) & 0xFFFFFFFFLL);
+        launchTimestamp = static_cast<int64_t>(temp);
+    }
+    option->SetStartModalExtensionTimeStamp(launchTimestamp);
     return option;
 }
 
@@ -784,7 +804,7 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             TAG_LOGE(AAFwkTag::UI_EXT, "null context");
             return false;
         }
-        auto option = CreateWindowOption(sessionInfo);
+        auto option = CreateWindowOption(sessionInfo, want);
         if (option == nullptr) {
             return false;
         }
@@ -798,6 +818,8 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
             return false;
         }
+        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
+        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
         uiWindow->UpdateExtensionConfig(sharedWant);
         if (!CallJsOnSessionCreate(*sharedWant, sessionInfo, uiWindow, componentId)) {
             return false;

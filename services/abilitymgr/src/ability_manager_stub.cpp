@@ -334,6 +334,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel
     if (interfaceCode == AbilityManagerInterfaceCode::SEND_LOCAL_PENDING_WANT_SENDER) {
         return SendLocalWantSenderInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CURRENT_PROCESS) {
+        return StartSelfUIAbilityInCurrentProcessInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -475,6 +478,9 @@ int AbilityManagerStub::OnRemoteRequestInnerEleventh(uint32_t code, MessageParce
     }
     if (interfaceCode == AbilityManagerInterfaceCode::RECORD_PROCESS_EXIT_REASON_PLUS) {
         return RecordProcessExitReasonPlusInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::IS_RESTART_APP_LIMIT) {
+        return IsRestartAppLimitInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -911,6 +917,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
     }
     if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_WITH_PID_RESULT) {
         return StartSelfUIAbilityWithPidResultInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY) {
+        return StartAbilityForPrelaunchInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -2507,6 +2516,24 @@ int AbilityManagerStub::StartAbilityByCallInner(MessageParcel &data, MessageParc
     return NO_ERROR;
 }
 
+int AbilityManagerStub::StartAbilityForPrelaunchInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerStub::StartAbilityForPrelaunchInner begin.");
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = StartAbilityForPrelaunch(*want);
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "resolve call ability ret = %{public}d", result);
+    reply.WriteInt32(result);
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerStub::StartAbilityForPrelaunchInner end.");
+
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::StartUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> sessionInfo = nullptr;
@@ -2515,7 +2542,7 @@ int AbilityManagerStub::StartUIAbilityBySCBInner(MessageParcel &data, MessagePar
     }
     uint32_t sceneFlag = data.ReadUint32();
     bool isColdStart = false;
-    int32_t result = StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag);
+    int32_t result = StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, data.ReadBool());
     reply.WriteBool(isColdStart);
     reply.WriteInt32(result);
     return NO_ERROR;
@@ -5006,6 +5033,37 @@ int AbilityManagerStub::PreloadApplicationInner(MessageParcel &data, MessageParc
         return ERR_WRITE_RESULT_CODE_FAILED;
     }
     return result;
+}
+
+int AbilityManagerStub::StartSelfUIAbilityInCurrentProcessInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
+        return ERR_INVALID_VALUE;
+    }
+    std::string specifiedFlag = data.ReadString();
+    StartOptions *startOptions = data.ReadParcelable<StartOptions>();
+    bool hasOptions = data.ReadBool();
+    if (hasOptions && startOptions == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<IRemoteObject> callerToken = nullptr;
+    if (data.ReadBool()) {
+        callerToken = data.ReadRemoteObject();
+    }
+    int32_t result = StartSelfUIAbilityInCurrentProcess(
+        *want, specifiedFlag, *startOptions, hasOptions, callerToken);
+    reply.WriteInt32(result);
+    delete startOptions;
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteBool(IsRestartAppLimit());
+    return NO_ERROR;
 }
 } // namespace AAFwk
 } // namespace OHOS

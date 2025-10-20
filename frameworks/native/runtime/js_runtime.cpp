@@ -918,6 +918,32 @@ void JsRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths, const bool& isSy
     }
 }
 
+void JsRuntime::InheritPluginNamespace(const std::vector<std::string> &moduleNames)
+{
+    auto moduleManager = NativeModuleManager::GetInstance();
+    if (moduleManager == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null moduleManager");
+        return;
+    }
+    std::string currentNamespace;
+    if (!moduleManager->GetLdNamespaceName("default", currentNamespace)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "get current namespace failed");
+        return;
+    }
+
+    for (const auto& item : moduleNames) {
+        if (item.empty()) {
+            continue;
+        }
+        std::string pluginNamespace;
+        if (!moduleManager->GetLdNamespaceName(item, pluginNamespace)) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "get %{public}s pluginNamespace failed", item.c_str());
+            continue;
+        }
+        moduleManager->InheritNamespaceEachOther(currentNamespace, pluginNamespace);
+    }
+}
+
 void JsRuntime::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator> operatorObj)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -1315,6 +1341,26 @@ void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary)
     dumpOption.isFullGC = isFullGC;
     dumpOption.isSync = false;
     DFXJSNApi::DumpHeapSnapshot(vm, dumpOption, tid);
+}
+
+size_t JsRuntime::GetHeapTotalSize()
+{
+    auto vm = GetEcmaVm();
+    if (!vm) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null vm");
+        return 0;
+    }
+    return DFXJSNApi::GetHeapTotalSize(vm);
+}
+
+size_t JsRuntime::GetHeapObjectSize()
+{
+    auto vm = GetEcmaVm();
+    if (!vm) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null vm");
+        return 0;
+    }
+    return DFXJSNApi::GetHeapObjectSize(vm);
 }
 
 void JsRuntime::ForceFullGC(uint32_t tid)
