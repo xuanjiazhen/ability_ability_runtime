@@ -148,16 +148,19 @@ ani_object CreateKioskStatusRet(ani_env *env, std::shared_ptr<AAFwk::KioskStatus
         TAG_LOGE(AAFwkTag::APPKIT, "Object_New status: %{public}d", status);
         return nullptr;
     }
-    if (!AppExecFwk::SetFieldBoolByName(env, cls, contextObj, "isKioskMode", kioskStatus->isKioskMode_)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "set isKioskMode failed");
+    if ((status = env->Object_SetPropertyByName_Ref(contextObj,
+        "kioskBundleName", OHOS::AppExecFwk::GetAniString(env, kioskStatus->kioskBundleName_))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleName failed, status: %{public}d", status);
         return nullptr;
     }
-    if (!AppExecFwk::SetFieldStringByName(env, cls, contextObj, "kioskBundleName", kioskStatus->kioskBundleName_)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleName failed");
+    if ((status = env->Object_SetPropertyByName_Boolean(
+        contextObj, "isKioskMode", kioskStatus->isKioskMode_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "set isKioskMode failed, status: %{public}d", status);
         return nullptr;
     }
-    if (!AppExecFwk::SetFieldIntByName(env, cls, contextObj, "kioskBundleUid", kioskStatus->kioskBundleUid_)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleUid failed");
+    if ((status = env->Object_SetPropertyByName_Int(
+        contextObj, "kioskBundleUid", kioskStatus->kioskBundleUid_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleUid failed, status: %{public}d", status);
         return nullptr;
     }
     return contextObj;
