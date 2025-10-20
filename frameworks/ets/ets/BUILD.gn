@@ -1432,6 +1432,7 @@ ohos_prebuilt_etc("ability_runtime_kiosk_status_abc_etc") {
   subsystem_name = "ability"
   part_name = "ability_runtime"
   deps = [ ":ability_runtime_kiosk_status_abc" ]
+}
 
 generate_static_abc("ability_runtime_ui_service_extension_ability_abc") {
   base_url = "./"
@@ -1609,6 +1610,8 @@ group("ets_packages") {
     ":ability_runtime_insight_intent_context_abc_etc",
     ":ability_runtime_insight_intent_driver_abc_etc",
     ":ability_runtime_insight_intent_executor_abc_etc",
+    ":ability_runtime_kiosk_manager_abc_etc",
+    ":ability_runtime_kiosk_status_abc_etc",
     ":ability_runtime_mission_info_abc_etc",
     ":ability_runtime_multi_app_mode_abc_etc",
     ":ability_runtime_openLink_options_abc_etc",
@@ -1645,7 +1648,5 @@ group("ets_packages") {
     ":ui_service_host_proxy_abc_etc",
     ":ui_service_proxy_abc_etc",
     ":uri_permission_manager_abc_etc",
-    ":ability_runtime_kiosk_manager_abc_etc",
-    ":ability_runtime_kiosk_status_abc_etc",
   ]
 }
