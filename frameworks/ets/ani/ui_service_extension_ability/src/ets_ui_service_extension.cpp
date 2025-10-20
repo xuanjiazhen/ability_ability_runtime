@@ -668,6 +668,12 @@ void EtsUIServiceExtension::OnSceneWillCreated(std::shared_ptr<Rosen::ExtensionW
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "env nullptr");
         return;
     }
+    ani_ref aniWindowConfig = Rosen::CreateAniExtensionWindowConfig(env, extensionWindowConfig);
+    if (aniWindowConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null aniWindowConfig");
+        return;
+    }
+    CallObjectMethod(false, "onWindowWillCreate", nullptr, aniWindow);
     TAG_LOGI(AAFwkTag::UISERVC_EXT, "end OnSceneWillCreated");
 }
 
