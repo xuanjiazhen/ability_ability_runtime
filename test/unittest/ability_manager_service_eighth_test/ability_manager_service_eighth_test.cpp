@@ -435,10 +435,10 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartUIAbilityBySCB_001_002, TestSize.
 
 /*
  * Feature: AbilityManagerService
- * Function: SignRestartAppFlag
- * FunctionPoints: SignRestartAppFlag
+ * Function: SignRestartProcess
+ * FunctionPoints: SignRestartProcess
  */
-HWTEST_F(AbilityManagerServiceEighthTest, SignRestartAppFlag_002, TestSize.Level1)
+HWTEST_F(AbilityManagerServiceEighthTest, SignRestartProcess_001, TestSize.Level1)
 {
     int32_t uid = 100;
     auto abilityMs = std::make_shared<AbilityManagerService>();
@@ -448,12 +448,8 @@ HWTEST_F(AbilityManagerServiceEighthTest, SignRestartAppFlag_002, TestSize.Level
     abilityMs->subManagersHelper_->uiAbilityManagers_.emplace(uid, std::make_shared<UIAbilityLifecycleManager>());
     abilityMs->subManagersHelper_->connectManagers_.emplace(uid, std::make_shared<AbilityConnectManager>(uid));
 
-    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled)
-        .WillRepeatedly(Return(true));
-    AbilityManagerService::SignRestartAppFlagParam param =
-        { uid, uid, "", AppExecFwk::MultiAppModeType::UNSPECIFIED, true, false, true, "testBundleName" };
-    auto ret = abilityMs->SignRestartAppFlag(param);
-    EXPECT_EQ(ret, ERR_OK);
+    auto ret = abilityMs->SignRestartProcess(uid, uid);
+    EXPECT_NE(ret, ERR_OK);
 }
 
 /*
