@@ -20,8 +20,65 @@ import AsyncCallbackWrapper from './utils/AbilityUtils';
 
 export default namespace startupManager {
     loadLibraryWithPermissionCheck("startup_manager_ani_kit.z", "@ohos.app.appstartup.startupManager");
-    
-    export native function nativeRun(startupTasks: Array<string>, context: common.AbilityStageContext,
-        config: StartupConfig, callback: AsyncCallbackWrapper<void>): void;
-    export native function nativeRemoveAllStartupTaskResults():
+
+    export native function nativeRun(startupTasks: Array<string>, context?: common.AbilityStageContext,
+        config: StartupConfig, AsyncCallbackWrapper<void>): void;
+
+    export native function nativeRemoveAllStartupTaskResults(): void;
+
+    export native function nativeGetStartupTaskResult(startupTask: string): Any;
+
+    export native function nativeIsStartupTaskInitialized(startupTask: string): boolean;
+
+    export native function nativeRemoveStartupTaskResult(startupTask: string): void;
+
+
+    export function run(startupTasks: Array<string>, config?: StartupConfig): Promise<void> {
+        let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null, data: undefined)=>{
+                if (err === null || err.code === 0) {
+                    resolve(undefined);
+                } else {
+                    reject(err);
+                }
+            });
+            taskpool.execute((): void => {
+                startupManager.nativeRun(startupTasks, undefined, config, myCall);
+            });
+        });
+        return p;
+    }
+
+    export function run(startupTasks: Array<string>, context: common.AbilityStageContext,
+        config: StartupConfig): Promise<void> {
+        let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null, data: undefined)=>{
+                if (err === null || err.code === 0) {
+                    resolve(undefined);
+                } else {
+                    reject(err);
+                }
+            });
+            taskpool.execute((): void => {
+                startupManager.nativeRun(startupTasks, context, config, myCall);
+            });
+        });
+        return p;
+    }
+
+    export function removeAllStartupTaskResults(): void {
+        startupManager.nativeRemoveAllStartupTaskResults();
+    }
+
+    export function getStartupTaskResult(startupTask: string): Any {
+        return startupManager.natviceGetStartupTaskResult(startupTask);
+    }
+
+    export function isStartupTaskInitialized(startupTask: string): boolean {
+        return startupManager.nativeIsStartupTaskInitialized(startupTask);
+    }
+
+    export function removeStartupTaskResult(startupTask: string): void {
+        startupManager.nativeRemoveStartupTaskResult(startupTask);
+    }
 }
