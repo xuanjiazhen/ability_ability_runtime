@@ -41,9 +41,9 @@ ohos_shared_library("foreground_app_obs_manager") {
     "src/foreground_app_connection_client.cpp",
     "src/foreground_app_connection_client_impl.cpp",
     "src/foreground_app_connection_proxy.cpp",
+    "src/foreground_app_connection_proxy_adapter.cpp",
     "src/foreground_app_connection_stub.cpp",
     "src/foreground_app_connection_stub_impl.cpp",
-    "src/foreground_app_connection_proxy_adapter.cpp",
   ]
 
   public_configs = [ ":foreground_app_obs_manager_public_config" ]
@@ -60,7 +60,7 @@ ohos_shared_library("foreground_app_obs_manager") {
 
   cflags_cc = []
 
-  public_external_deps = [ "bundle_framework:appexecfwk_base" ]
+  public_external_deps = []
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
