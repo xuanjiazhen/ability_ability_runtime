@@ -103,7 +103,6 @@ void NapiUncaughtExceptionCallback::ProcessErrorInfo(
     
     if (errorStack.empty()) {
         TAG_LOGE(AAFwkTag::JSENV, "errorStack is empty");
-        return;
     } else {
         if (errorStack.find(BACKTRACE) != std::string::npos) {
             summary += "Stacktrace:\n" + GetFuncNameAndBuildId(errorStack);
@@ -149,7 +148,10 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
     if (hasProperty) {
         errorCode = GetNativeStrFromJsTaggedObj(obj, "code");
     }
-      
+    if (errorStack.empty()) {
+        TAG_LOGE(AAFwkTag::JSENV, "errorStack is empty");
+        return;
+    }  
     ProcessErrorInfo(errorName, errorMsg, errorStack, errorCode);
 }
 
