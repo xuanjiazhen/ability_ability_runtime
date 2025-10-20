@@ -159,6 +159,8 @@ public:
     static void SetMissionIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj, ani_object callbackObj);
     static void SetAbilityInstanceInfoCheck(ani_env *env, ani_object aniObj, ani_object iconObj);
     static void SetMissionIconCheck(ani_env *env, ani_object aniObj, ani_object pixelMapObj);
+    static void SetMissionWindowIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj,
+        ani_object callbackobj);
 
 private:
     void OnSetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
@@ -214,6 +216,8 @@ private:
     void OnStartAbilityForResultWithAccountInner(ani_env *env, const AAFwk::StartOptions &startOptions,
         AAFwk::Want &want, const int accountId, ani_object startOptionsObj, ani_object callback);
     void OnRestoreWindowStage(ani_env *env, ani_object aniObj, ani_object localStorageObj);
+    void OnSetMissionWindowIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj,
+        ani_object callbackObj);
 
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<AbilityContext> context, AAFwk::Want &want, int &requestCode);

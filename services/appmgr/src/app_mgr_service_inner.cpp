@@ -6810,10 +6810,10 @@ void AppMgrServiceInner::SetRenderStartMsg(AppSpawnStartMsg &startMsg, std::shar
     startMsg.renderParam = renderRecord->GetRenderParam();
     startMsg.uid = renderUid;
     startMsg.gid = renderUid;
+    startMsg.hostProcessUid = renderRecord->GetHostUid();
     if (isGPU) {
         startMsg.procName += GPU_PROCESS_NAME;
         startMsg.processType = GPU_PROCESS_TYPE;
-        startMsg.hostProcessUid = renderRecord->GetHostUid();
         if (std::find(startMsg.gids.begin(), startMsg.gids.end(), SHADER_CACHE_GROUPID) == startMsg.gids.end()) {
             startMsg.gids.push_back(SHADER_CACHE_GROUPID);
         }
@@ -7808,6 +7808,28 @@ int32_t AppMgrServiceInner::IsAppRunning(const std::string &bundleName, int32_t 
     }
 
     return appRunningManager_->CheckAppCloneRunningRecordIsExistByBundleName(bundleName, appCloneIndex, isRunning);
+}
+
+int32_t AppMgrServiceInner::IsAppRunning(const std::string &bundleName, int32_t appCloneIndex, int32_t userId, bool &isRunning)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called, bundleName: %{public}s", bundleName.c_str());
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!CheckGetRunningInfoPermission()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (appCloneIndex < 0 || appCloneIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+        TAG_LOGI(AAFwkTag::APPMGR, "appCloneIndex invalid");
+        appCloneIndex = -1;
+    }
+    if (userId < 0) {
+        TAG_LOGI(AAFwkTag::APPMGR, "userId invalid");
+    }
+
+    return appRunningManager_->IsAppRunningByBundleName(bundleName, appCloneIndex, userId, isRunning);
 }
 
 int32_t AppMgrServiceInner::IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
@@ -8819,6 +8841,7 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
     startMsg.childProcessType = childProcessRecord->GetChildProcessType();
     startMsg.fds = args.fds;
     startMsg.isolationMode = options.isolationMode;
+    startMsg.hostProcessUid = appRecord->GetUid();
     pid_t pid = 0;
     if (options.isolationMode && options.isolationUid) {
         int32_t renderUid = Constants::INVALID_UID;
