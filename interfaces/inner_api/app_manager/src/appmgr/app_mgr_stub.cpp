@@ -252,6 +252,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleIsTerminatingByPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_SPECIFIED_MODULE_LOADED):
             return HandleIsSpecifiedModuleLoaded(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::SIGN_RESTART_PROCESS):
+            return HandleSignRestartProcess(data, reply);
     }
     return INVALID_FD;
 }
@@ -418,6 +420,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleQueryRunningSharedBundles(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_SPECIFIED_PROCESS_REQUEST_ID):
             return HandleSetSpecifiedProcessRequestId(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::KILL_PROCESS_BY_PID_FOR_EXIT):
+            return HandleKillProcessByPidForExit(data, reply);
     }
     return INVALID_FD;
 }
@@ -1761,6 +1765,17 @@ int32_t AppMgrStub::HandleSignRestartAppFlag(MessageParcel &data, MessageParcel 
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleSignRestartProcess(MessageParcel &data, MessageParcel &reply)
+{
+    auto uid = data.ReadInt32();
+    auto ret = SignRestartProcess(uid);
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
+        return IPC_STUB_ERR;
+    }
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleGetAppRunningUniqueIdByPid(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -2018,6 +2033,19 @@ int32_t AppMgrStub::HandleKillAppSelfWithInstanceKey(MessageParcel &data, Messag
     auto clearPageStack = data.ReadBool();
     auto reason = data.ReadString();
     auto result = KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleKillProcessByPidForExit(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    auto pid = data.ReadInt32();
+    auto reason = data.ReadString();
+    auto result = KillProcessByPidForExit(pid, reason);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
         return ERR_INVALID_VALUE;
