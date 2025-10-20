@@ -29,7 +29,7 @@
 #include "connection_state_manager.h"
 #include "common_event_manager.h"
 #include "error_msg_util.h"
-#include "foreground_app_connection_manager/foreground_app_connection_manager.h"
+#include "foreground_app_connection_manager.h"
 #include "freeze_util.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
@@ -521,8 +521,10 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
     DelayedSingleton<AppScheduler>::GetInstance()->NotifyLoadAbilityFinished(options.callingPid,
         GetPid(), options.loadAbilityCallbackId);
     if (GetRequestCode() != DEFAULT_REQUEST_CODE) { // 热启动会更新requestCode吗？
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(options.callingPid,
-            GetPid(), GetAbilityRecordId());
+        ForegroundAppConnectionInfo info(options.callingPid, GetPid(), GetCallerInfo()->callerUid, GetUid(),
+            GetCallerInfo()->callerBundleName, GetElementName().GetBundleName());
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(
+            info, GetAbilityRecordId());
     }
 
     PostForegroundTimeoutTask();
@@ -2801,10 +2803,6 @@ void AbilityRecord::OnProcessDied()
     CHECK_POINTER(handler);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "OnProcessDied: '%{public}s'", abilityInfo_.name.c_str());
-    if (GetRequestCode() != DEFAULT_REQUEST_CODE) {
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(
-            GetCallerInfo()->callerPid, GetPid(), GetAbilityRecordId());
-    }
     auto task = [ability = shared_from_this()]() {
         DelayedSingleton<AbilityManagerService>::GetInstance()->OnAbilityDied(ability);
     };

@@ -61,6 +61,7 @@ int32_t ForegroundAppConnectionClientImpl::UnregisterObserver(const std::shared_
 
 void ForegroundAppConnectionClientImpl::HandleOnForegroundAppConnected(const ForegroundAppConnectionData &data)
 {
+    TAG_LOGD(AAFwkTag::CONNECTION, "ForegroundAppConnection OnForegroundAppConnected called");
     auto observers = GetObservers();
     for (auto it = observers.begin(); it != observers.end(); ++it) {
         auto observer = *it;
@@ -72,6 +73,7 @@ void ForegroundAppConnectionClientImpl::HandleOnForegroundAppConnected(const For
 
 void ForegroundAppConnectionClientImpl::HandleOnForegroundAppDisconnected(const ForegroundAppConnectionData &data)
 {
+    TAG_LOGD(AAFwkTag::CONNECTION, "ForegroundAppConnection OnForegroundAppDisconnected called");
     auto observers = GetObservers();
     for (auto it = observers.begin(); it != observers.end(); ++it) {
         auto observer = *it;
@@ -84,6 +86,7 @@ void ForegroundAppConnectionClientImpl::HandleOnForegroundAppDisconnected(const 
 void ForegroundAppConnectionClientImpl::HandleOnForegroundAppCallerStarted(int32_t callerPid, int32_t callerUid,
         const std::string &bundleName)
 {
+    TAG_LOGD(AAFwkTag::CONNECTION, "ForegroundAppConnection OnForegroundAppCallerStarted called");
     auto observers = GetObservers();
     for (auto it = observers.begin(); it != observers.end(); ++it) {
         auto observer = *it;
@@ -107,7 +110,7 @@ bool ForegroundAppConnectionClientImpl::RegisterObserverToServiceLocked(
 
     if (!observer_) {
         observer_ = sptr<IForegroundAppConnection>(
-            new (std::nothrow) ForegroundAppConnectionStubImpl(shared_from_this()));// 为什么调回来的时候是proxy
+            new (std::nothrow) ForegroundAppConnectionStubImpl(shared_from_this()));
     }
 
     if (proxy->RegisterObserver(observer_) != ERR_OK) {
@@ -144,6 +147,8 @@ int32_t ForegroundAppConnectionClientImpl::AddObserversLocked(
         return ERR_OBSERVER_ALREADY_REGISTERED;
     }
     userObservers_.emplace(observer);
+    TAG_LOGD(AAFwkTag::CONNECTION, "ForegroundAppConnection add userObserver size: %{public}zu",
+        userObservers_.size());
     return ERR_OK;
 }
 
@@ -155,6 +160,8 @@ int32_t ForegroundAppConnectionClientImpl::RemoveObserversLocked(
         return ERR_OBSERVER_NOT_REGISTERED;
     }
     userObservers_.erase(observer);
+    TAG_LOGD(AAFwkTag::CONNECTION, "ForegroundAppConnection remove userObserver size: %{public}zu",
+        userObservers_.size());
     return ERR_OK;
 }
 
@@ -250,7 +257,7 @@ std::unordered_set<std::shared_ptr<ForegroundAppConnection>> ForegroundAppConnec
 
 void ForegroundAppConnectionClientImpl::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    TAG_LOGI(AAFwkTag::CONNECTION, "called");
+    TAG_LOGI(AAFwkTag::CONNECTION, "onRemoteDied called");
     auto owner = owner_.lock();
     if (!owner) {
         TAG_LOGE(AAFwkTag::CONNECTION, "OnRemoteDied");
