@@ -107,6 +107,8 @@
 #include "appcapture_perf.h"
 #endif
 
+#include "beforeClean.h"
+
 #if defined(NWEB)
 #include <thread>
 #include "app_mgr_client.h"
@@ -3622,6 +3624,14 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
         return NO_ERROR;
     }
 #endif
+
+    if (faultData.faultType == FaultDataType::NIGHT_CLEAR) {
+        if(AppExecFwk::BeforeClean::GetInstance()::HandleBeforeClean(faultData,application_)){
+            return NO_ERROR;
+        }else{
+            return ERR_INVALID_VALUE;
+        }
+    }
 
     wptr<MainThread> weak = this;
     auto task = [weak, faultData] {
