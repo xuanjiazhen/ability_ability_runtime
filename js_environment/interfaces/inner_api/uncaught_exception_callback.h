@@ -50,7 +50,7 @@ public:
 
     void operator()(panda::TryCatch& trycatch);
     
-    void operator()(const panda::OOMErrorInfo& errorInfo);
+    void operator()(const panda::UncatchableErrorInfo& errorInfo);
 
     void ProcessErrorInfo(
     const std::string& errorName,
@@ -64,7 +64,7 @@ public:
     * @brief Callback only for OOM error, triggers js crash.
     * @param errorInfo The error information defined in jsnapi_expo.h.
     */
-    void CallbackTaskOOM(const panda::OOMErrorInfo& errorInfo);
+    void CallbackTaskOOM(const panda::UncatchableErrorInfo& errorInfo);
 
     void HandleAndLogIfNotJsError(napi_value obj);
 
