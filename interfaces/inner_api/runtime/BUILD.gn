@@ -127,7 +127,6 @@ ohos_shared_library("runtime") {
     "samgr:samgr_proxy",
     "zlib:shared_libz",
     "faultloggerd:libfaultloggerd",
-    "runtime_core:libarkfile_static",
   ]
 
   public_external_deps = [
