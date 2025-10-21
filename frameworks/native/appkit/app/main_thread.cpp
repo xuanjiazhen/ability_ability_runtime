@@ -1420,6 +1420,17 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
 }
 #endif
 
+std::string GetProcessLifeCycleByPid(pid_t pid)
+{
+    uint64_t lifeTimeSeconds = 0;
+    int errCode = OHOS::HiviewDFX::GetProcessLifeCycle(pid, lifeTimeSeconds);
+    if (errCode != 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Get process lifeCycle fail, errCode: %{public}d", errCode);
+    }
+    std::string lifeTime = std::to_string(lifeTimeSeconds) + "s";
+    return lifeTime;
+}
+
 EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::string &bundleName, uint32_t versionCode,
     const std::string &hapPath, std::string &appRunningId, int32_t pid, std::string &processName)
 {
@@ -1434,13 +1445,14 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
         }
         time_t timet;
         time(&timet);
+        std::string lifeTime = GetProcessLifeCycleByPid(pid);
         HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, "JS_ERROR",
             OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_KEY_PACKAGE_NAME, bundleName,
             EVENT_KEY_VERSION, std::to_string(versionCode), EVENT_KEY_TYPE, JSCRASH_TYPE, EVENT_KEY_HAPPEN_TIME, timet,
             EVENT_KEY_REASON, errorObj.name, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, summary,
             EVENT_KEY_PNAME, processName, EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId,
             EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()),
-            EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
+            EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName(), EVENT_KEY_PROCESS_LIFETIME, lifeTime);
         ErrorObject appExecErrorObj = { .name = errorObj.name, .message = errorObj.message, .stack = errorObj.stack };
         FaultData faultData;
         faultData.faultType = FaultDataType::JS_ERROR;
@@ -1987,17 +1999,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         appMgr_->PreloadModuleFinished(applicationImpl_->GetRecordId());
         TAG_LOGI(AAFwkTag::APPKIT, "preoload module finished");
     }
-}
-
-std::string GetProcessLifeCycleByPid(pid_t pid)
-{
-    uint64_t lifeTimeSeconds = 0;
-    int errCode = OHOS::HiviewDFX::GetProcessLifeCycle(pid, lifeTimeSeconds);
-    if (errCode != 0) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Get process lifeCycle fail, errCode: %{public}d", errCode);
-    }
-    std::string lifeTime = std::to_string(lifeTimeSeconds) + "s";
-    return lifeTime;
 }
 
 /**
