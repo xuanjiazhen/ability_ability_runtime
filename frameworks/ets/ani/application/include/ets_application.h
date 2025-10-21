@@ -28,6 +28,7 @@ public:
         ani_object contextObj, ani_string bundleName, ani_object callback);
     static ani_object GetApplicationContext(ani_env *env);
     static ani_enum_item GetAppPreloadType(ani_env *env);
+    static void ExitMasterProcessRole(ani_env *env, ani_object callback);
 };
 void ApplicationInit(ani_env *env);
 } // namespace AbilityRuntime

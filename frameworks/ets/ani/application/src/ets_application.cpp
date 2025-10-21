@@ -27,6 +27,7 @@
 #include "permission_verification.h"
 #include "application_env.h"
 #include "ani_enum_convert.h"
+#include "app_mgr_client.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -284,6 +285,18 @@ ani_enum_item EtsApplication::GetAppPreloadType(ani_env *env)
     return appPreloadTypeItem;
 }
 
+void EtsApplication::ExitMasterProcessRole(ani_env *env, ani_object callback){
+    TAG_LOGD(AAFwkTag::APPKIT, "ExitMasterProcessRole Call");
+    int32_t errCode = ERR_OK;
+    errCode = OHOS::DelayedSingleton<OHOS::AppExecFwk::AppMgrClient>::GetInstance()->ExitMasterProcessRole();
+    if (errCode == ERR_OK) {
+        AppExecFwk::AsyncCallback(
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
+    }
+    AppExecFwk::AsyncCallback(
+        env, callback, nullptr, nullptr);
+}
+
 void ApplicationInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ApplicationInit Call");
@@ -320,6 +333,11 @@ void ApplicationInit(ani_env *env)
             "nativeGetAppPreloadType",
             ":L@ohos/app/ability/application/application/AppPreloadType;",
             reinterpret_cast<void *>(EtsApplication::GetAppPreloadType)
+        },
+        ani_native_function {
+            "nativeExitMasterProcessRole",
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsApplication::ExitMasterProcessRole)
         },
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
