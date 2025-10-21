@@ -22,7 +22,7 @@ export default namespace startupManager {
     loadLibraryWithPermissionCheck("startup_manager_ani_kit.z", "@ohos.app.appstartup.startupManager");
 
     export native function nativeRun(startupTasks: Array<string>, context?: common.AbilityStageContext,
-        config: StartupConfig, AsyncCallbackWrapper<void>): void;
+        config: StartupConfig, callback: AsyncCallbackWrapper<void>): void;
 
     export native function nativeRemoveAllStartupTaskResults(): void;
 
@@ -71,7 +71,7 @@ export default namespace startupManager {
     }
 
     export function getStartupTaskResult(startupTask: string): Any {
-        return startupManager.natviceGetStartupTaskResult(startupTask);
+        return startupManager.nativeGetStartupTaskResult(startupTask);
     }
 
     export function isStartupTaskInitialized(startupTask: string): boolean {
