@@ -3628,9 +3628,8 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
     if (faultData.faultType == FaultDataType::NIGHT_CLEAR) {
         if(AppExecFwk::BeforeClean::GetInstance()::HandleBeforeClean(faultData,application_)){
             return NO_ERROR;
-        }else{
-            return ERR_INVALID_VALUE;
         }
+        return ERR_INVALID_VALUE;
     }
 
     wptr<MainThread> weak = this;
