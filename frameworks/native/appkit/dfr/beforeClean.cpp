@@ -35,20 +35,19 @@ bool BeforeClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &ap
 {
     auto appHeapTotalSize=GetHeapSize(application);
     if (appHeapTotalSize < APP_SAVE_HEAP_SIZE) {
+        TAG_LOGE(AAFwkTag::APPDFR, "appHeapTotalSize is low APP_SAVE_HEAP_SIZE");
         return false;
-    }else {
-        AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
-        return true;
     }
+    AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
+    return true;
 }
 
 bool BeforeClean::HandleBeforeClean(const FaultData &faultData, const std::shared_ptr<OHOSApplication> &application)
 {
     if (faultData.waitSaveState) {
         return HandleAppSaveIfHeap(application);
-    }else {
-        return AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
     }
+    return AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
 }
 
 size_t BeforeClean::GetHeapSize(const std::shared_ptr<OHOSApplication> &application)
