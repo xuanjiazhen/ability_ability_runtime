@@ -27,6 +27,7 @@
 #include "permission_verification.h"
 #include "application_env.h"
 #include "ani_enum_convert.h"
+#include "app_mgr_client.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -284,6 +285,71 @@ ani_enum_item EtsApplication::GetAppPreloadType(ani_env *env)
     return appPreloadTypeItem;
 }
 
+void EtsApplication::ExitMasterProcessRole(ani_env *env, ani_object callback){
+    TAG_LOGD(AAFwkTag::APPKIT, "ExitMasterProcessRole Call");
+    int32_t errCode = ERR_OK;
+    errCode = OHOS::DelayedSingleton<OHOS::AppExecFwk::AppMgrClient>::GetInstance()->ExitMasterProcessRole();
+    if (errCode == ERR_OK) {
+        AppExecFwk::AsyncCallback(
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
+    }
+    AppExecFwk::AsyncCallback(
+        env, callback, nullptr, nullptr);
+}
+
+void EtsApplication::CreatePluginModuleContextForHostBundle(ani_env *env, ani_object contextObj,
+    ani_string pluginBundleName, ani_string pluginModuleName, ani_string hostBundleName, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "CreatePluginModuleContextForHostBundle Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    ani_object emptyObject = CreateEmptyContextObject(env);
+    if (!CheckIsSystemAppOrPermisson(env, callback)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "CheckCaller failed");
+        return;
+    }
+    
+    std::string stdPluginBundleName = "";
+    if(!AppExecFwk::GetStdString(env, pluginBundleName, stdPluginBundleName)) {
+        return;
+    }
+    std::string stdPluginModuleName = "";
+    if(!AppExecFwk::GetStdString(env, pluginModuleName, stdPluginModuleName)) {
+        return;
+    }
+    std::string stdHostBundleName = "";
+    if(!AppExecFwk::GetStdString(env, hostBundleName, stdHostBundleName)) {
+        return;
+    }
+    auto context = GetContextByStageMode(env, contextObj, callback, emptyObject);
+    if (context == nullptr) {
+        return;
+    }
+    auto inputContextPtr = Context::ConvertTo<Context>(context);
+    if (inputContextPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Convert to context failed");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
+            "Parse param context failed, must be a context."), emptyObject);
+        return;
+    }
+
+    auto bundleContext = std::make_shared<std::shared_ptr<Context>>();
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    if (contextImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
+            "create context failed."), emptyObject);
+        return;
+    }
+
+    contextImpl->SetProcessName(context->GetProcessName());
+    *bundleContext = contextImpl->CreateTargetPluginContext(stdHostBundleName, stdPluginBundleName,
+        stdPluginModuleName, inputContextPtr);
+    SetCreateCompleteCallback(env, bundleContext, callback);
+}
+
 void ApplicationInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ApplicationInit Call");
@@ -320,6 +386,18 @@ void ApplicationInit(ani_env *env)
             "nativeGetAppPreloadType",
             ":L@ohos/app/ability/application/application/AppPreloadType;",
             reinterpret_cast<void *>(EtsApplication::GetAppPreloadType)
+        },
+        ani_native_function {
+            "nativeExitMasterProcessRole",
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsApplication::ExitMasterProcessRole)
+        },
+        ani_native_function {
+            "nativeCreatePluginModuleContextForHostBundle",
+            "Lapplication/Context/Context;Lstd/core/String;"
+            "Lstd/core/String;Lstd/core/String;"
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsApplication::CreatePluginModuleContextForHostBundle)
         },
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
