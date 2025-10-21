@@ -83,7 +83,7 @@ void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
     }
 }
 
-void NapiUncaughtExceptionCallback::operator()(const panda::OOMErrorInfo& errorInfo)
+void NapiUncaughtExceptionCallback::operator()(const panda::UncatchableErrorInfo& errorInfo)
 {
     CallbackTaskOOM(errorInfo);
 }
@@ -153,7 +153,7 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
     ProcessErrorInfo(errorName, errorMsg, errorStack, errorCode);
 }
 
-void NapiUncaughtExceptionCallback::CallbackTaskOOM(const panda::OOMErrorInfo& errorInfo)
+void NapiUncaughtExceptionCallback::CallbackTaskOOM(const panda::UncatchableErrorInfo& errorInfo)
 {
     std::string errorName = errorInfo.errorName;
     std::string errorMsg = errorInfo.errorMsg;
