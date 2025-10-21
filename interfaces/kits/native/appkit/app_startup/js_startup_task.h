@@ -27,11 +27,7 @@ class JsStartupTask : public AppStartupTask {
 public:
     static const std::string TASK_TYPE;
 
-    JsStartupTask(const std::string &name, JsRuntime &jsRuntime, const StartupTaskInfo &info,
-        const std::shared_ptr<NativeReference> &contextJsRef);
-
-    JsStartupTask(const std::string &name, JsRuntime &jsRuntime,
-        std::unique_ptr<NativeReference> &startupJsRef, std::shared_ptr<NativeReference> &contextJsRef);
+    JsStartupTask(JsRuntime &jsRuntime, const StartupTaskInfo &info, bool lazyLoad);
 
     ~JsStartupTask() override;
 
@@ -44,7 +40,7 @@ public:
 
     void OnAsyncTaskCompleted(const std::shared_ptr<StartupTaskResult> &result);
 
-    void UpdateContextRef(std::shared_ptr<NativeReference> &contextJsRef);
+    void UpdateContextRef(std::shared_ptr<NativeReference> contextJsRef) override;
 
 private:
     JsRuntime &jsRuntime_;
