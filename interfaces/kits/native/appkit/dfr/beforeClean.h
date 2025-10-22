@@ -35,7 +35,7 @@ public:
 
     bool HandleBeforeClean(const FaultData &faultData, const std::shared_ptr<OHOSApplication> &application);
 
-    static BeforeClean &getInstance();
+    static BeforeClean &GetInstance();
 
 private:
     size_t GetHeapSize(const std::shared_ptr<OHOSApplication> &application);
