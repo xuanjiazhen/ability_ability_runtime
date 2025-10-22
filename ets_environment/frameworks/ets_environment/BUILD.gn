@@ -24,7 +24,8 @@ config("public_ets_environment_config") {
 ohos_shared_library("ets_environment") {
   branch_protector_ret = "pac_ret"
   cflags_cc = [
-    "-Wno-gnu-zero-variadic-macro-arguments",
+  "-Wno-c++20-designator",
+  "-Wno-extra-semi",
   ]
   public_configs = [ ":public_ets_environment_config" ]
 

@@ -51,7 +51,8 @@ config("runtime_all_deps_config") {
 ohos_shared_library("runtime") {
   branch_protector_ret = "pac_ret"
   cflags_cc = [
-    "-Wno-gnu-zero-variadic-macro-arguments",
+  "-Wno-c++20-designator",
+  "-Wno-extra-semi",
   ]
   include_dirs = [
     "${ability_runtime_path}/ets_environment/interfaces/inner_api",
