@@ -42,7 +42,7 @@ bool SleepClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &app
     return true;
 }
 
-bool SleepClean::HandleSleepCleann(const FaultData &faultData, const std::shared_ptr<OHOSApplication> &application)
+bool SleepClean::HandleSleepClean(const FaultData &faultData, const std::shared_ptr<OHOSApplication> &application)
 {
     if (faultData.waitSaveState) {
         return HandleAppSaveIfHeap(application);
