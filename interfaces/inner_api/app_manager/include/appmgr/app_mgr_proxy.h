@@ -907,6 +907,8 @@ public:
     
     void SetIsAllowedScbAccessBackground() override;
 
+    int32_t KillChildProcessByPid(int32_t pid) override;
+
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);
