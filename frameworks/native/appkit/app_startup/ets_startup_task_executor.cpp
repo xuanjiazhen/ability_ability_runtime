@@ -22,33 +22,63 @@
 namespace OHOS {
 namespace AbilityRuntime {
 
-int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_object startup, 
-    ani_object context, ani_object asyncTaskExecutor, ani_object asyncTaskCallback, 
-    const std::string &startupName)
+int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startup, 
+    ani_ref context, const std::string &startupName)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "RunOnTaskPool called for task: %s", startupName.c_str());
     
-    if (env == nullptr || startup == nullptr || context == nullptr || 
-        asyncTaskExecutor == nullptr || asyncTaskCallback == nullptr) {
+    if (env == nullptr || startup == nullptr || context == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null args in RunOnTaskPool");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    // 创建startupName的ANI字符串
+    ani_status status = ANI_ERROR;
+    ani_class cls = nullptr;
+    ani_method ctor = nullptr;
+    ani_object object = nullptr;
+    
+    // 查找StartupTaskExecutor类
+    if ((status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "FindClass failed, status: %{public}d", status);
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "null cls");
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+
+    // 查找构造函数
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &ctor)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "findMethod failed, status: %{public}d", status);
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+
+    // 创建对象实例
+    if ((status = env->Object_New(cls, ctor, &object)) != ANI_OK || object == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "Object_New failed, status: %{public}d", status);
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+
+    // 将ani_ref转换为ani_object
+    ani_object startupObj = reinterpret_cast<ani_object>(startup);
+    ani_object contextObj = reinterpret_cast<ani_object>(context);
+
+    // 创建startupName字符串
     ani_object startupNameObj = nullptr;
-    ani_status status = env->CreateString(startupName.c_str(), &startupNameObj);
+    status = env->CreateString(startupName.c_str(), &startupNameObj);
     if (status != ANI_OK || startupNameObj == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "failed to create startup name string");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    // 调用AsyncTaskExecutor的asyncPushTask方法
-    // 参数顺序: startup, asyncCallback, context, startupName
-    ani_object args[4] = { startup, asyncTaskCallback, context, startupNameObj };
+    // 调用asyncPushTask方法
+    status = env->Object_CallMethodByName_Void(object, "asyncPushTask", 
+        "L@ohos/app/appstartup/StartupTask/StartupTask;Lapplication/AbilityStageContext/AbilityStageContext;"
+        "Lstd/core/String;:V", 
+        startupObj, contextObj, startupNameObj);
     
-    status = env->CallObjectMethodByName_Void(asyncTaskExecutor, "asyncPushTask", args, 4);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STARTUP, "failed to call asyncPushTask, status: %d", status);
+        TAG_LOGE(AAFwkTag::STARTUP, "failed to call asyncPushTask, status: %{public}d", status);
         return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
     }
 
@@ -70,7 +100,7 @@ int32_t ETSStartupTaskExecutor::RunOnMainThread(ani_env *env, ani_ref startupTas
     ani_class cls = nullptr;
     ani_method ctor = nullptr;
     ani_object object = nullptr;
-    if ((status = env->FindClass("Lapp_startup/AsyncTaskExecutor/AsyncTaskExecutor", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "status : %{public}d", status);
         return ERR_STARTUP_INTERNAL_ERROR;
     }
@@ -118,14 +148,12 @@ void ETSStartupTaskExecutor::NativeOnTaskSuccess(ani_env *env, ani_object obj,
         return;
     }
 
-    // 将long转换回指针
     auto *callback = reinterpret_cast<StartupTaskResultCallback *>(callbackLong);
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null callback pointer");
         return;
     }
 
-    // 创建result的引用
     ani_ref resultRef = nullptr;
     if (result != nullptr) {
         env->CreateReference(result, 1, &resultRef);
@@ -134,7 +162,6 @@ void ETSStartupTaskExecutor::NativeOnTaskSuccess(ani_env *env, ani_object obj,
     std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<ETSStartupTaskResult>(resultRef);
     callback->Call(taskResult);
     
-    // 删除callback
     delete callback;
 }
 

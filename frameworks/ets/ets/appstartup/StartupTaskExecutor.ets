@@ -15,45 +15,42 @@
 
 import StartupTask from '@ohos.app.appstartup.StartupTask';
 import common from '@ohos.app.ability.common';
-import { AsyncTaskCallback } from './async_task_callback';
 
-export default class AsyncTaskExecutor {
+export default class StartupTaskExecutor {
   // 在taskpool中执行的静态方法
 
   private native function nativeOnTaskSuccess(callback: long, result?: Object): void;
   private native function nativeOnTaskFailure(callback: long, error: string): void;
-  private static executeStartupTask(startup: StartupTask, context: common.AbilityStageContext): Promise<any> {
-    console.log('executeStartupTask start.');
-    // 直接调用startup.init并返回Promise
-    return startup.init(context);
-  }
-
-  public asyncPushTask(startup: StartupTask, asyncCallback: AsyncTaskCallback, context: common.AbilityStageContext, startupName: string): void {
+  
+  // 任务池执行方法
+  public asyncPushTask(startup: StartupTask, context: common.AbilityStageContext, startupName: string): void {
     console.log('asyncPushTask start for task: ' + startupName);
     
-    try {
-      // 创建taskpool任务
-      let task = new taskpool.Task(AsyncTaskExecutor.executeStartupTask, startup, context);
-      
-      // 执行任务并处理结果
-      taskpool.execute(task).then((result: any) => {
-        console.log('Task completed successfully for: ' + startupName);
-        asyncCallback.onAsyncTaskCompleted(startupName, result);
-      }).catch((error: Error) => {
-        console.error('Task failed for: ' + startupName + ', error: ' + error);
-        // 传递错误信息给回调
-        asyncCallback.onAsyncTaskCompleted(startupName, { 
-          error: true, 
-          message: error.message 
-        });
+    // 异步执行函数
+    const executeAsync = async (startup: StartupTask, context: common.AbilityStageContext): Promise<any> => {
+      try {
+        console.log('Starting startup task in taskpool: ' + startupName);
+        const result = await startup.init(context);
+        console.log('Startup task completed successfully in taskpool: ' + startupName);
+        return result;
+      } catch (error) {
+        console.error('Startup task failed in taskpool: ' + startupName + ', error: ' + error);
+        throw error;
+      }
+    };
+
+    // 创建并执行任务
+    const task = new taskpool.Task(executeAsync, startup, context);
+    
+    taskpool.execute(task)
+      .then((result: any) => {
+        console.log('Task execution completed for: ' + startupName);
+        this.nativeOnTaskPoolSuccess(startupName, result);
+      })
+      .catch((error: Error) => {
+        console.error('Task execution failed for: ' + startupName + ', error: ' + error);
+        this.nativeOnTaskPoolFailure(startupName, error.message);
       });
-    } catch (error) {
-      console.error('Failed to create or execute task for: ' + startupName + ', error: ' + error);
-      asyncCallback.onAsyncTaskCompleted(startupName, { 
-        error: true, 
-        message: error.message 
-      });
-    }
   }
 
   // 主线程中执行的静态方法
