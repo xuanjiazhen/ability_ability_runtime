@@ -925,6 +925,8 @@ public:
     
     void SetIsAllowedScbAccessBackground() override;
 
+    int32_t KillChildProcessByPid(int32_t pid) override;
+
 private:
     /**
      * Init, Initialize application services.
