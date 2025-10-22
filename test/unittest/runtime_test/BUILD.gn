@@ -259,6 +259,9 @@ ohos_unittest("js_worker_test") {
 
 ohos_unittest("ets_runtime_test") {
   module_out_path = module_output_path
+  cflags_cc = [
+    "-Wno-gnu-zero-variadic-macro-arguments",
+  ]
   sanitize = {
     cfi = true
     cfi_cross_dso = true
