@@ -479,6 +479,8 @@ Ability_NativeChildProcess_ErrCode OH_Ability_RegisterNativeChildProcessExitCall
 Ability_NativeChildProcess_ErrCode OH_Ability_UnregisterNativeChildProcessExitCallback(
     OH_Ability_OnNativeChildProcessExit onProcessExit);
 
+Ability_NativeChildProcess_ErrCode OH_Ability_KillChildProcessByPid(int32_t pid);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

@@ -1066,6 +1066,11 @@ public:
     }
 
     virtual void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId) {}
+
+    virtual int32_t KillChildProcessByPid(int32_t pid)
+    {
+        return 0;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

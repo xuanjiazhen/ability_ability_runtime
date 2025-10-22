@@ -2638,5 +2638,30 @@ int32_t AppMgrProxy::RegisterApplicationStateObserverWithFilter(sptr<IApplicatio
     }
     return reply.ReadInt32();
 }
+
+int32_t AppMgrProxy::KillChildProcessByPid(int32_t pid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, pid);
+    int32_t ret = SendRequest(AppMgrInterfaceCode::KILL_CHILD_PROCESS_BY_PID, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, error code: %{public}d", ret);
+        return ret;
+    }
+
+    int32_t result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return result;
+    }
+    return ERR_OK;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

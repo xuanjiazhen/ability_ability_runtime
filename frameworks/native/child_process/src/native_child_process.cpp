@@ -355,3 +355,13 @@ Ability_NativeChildProcess_ErrCode OH_Ability_ChildProcessConfigs_SetIsolationUi
     configs->isIsolationUid = isolationUid;
     return NCP_NO_ERROR;
 }
+
+Ability_NativeChildProcess_ErrCode OH_Ability_KillChildProcessByPid(int32_t pid)
+{
+    auto ret = DelayedSingleton<OHOS::AppExecFwk::AppMgrClient>::GetInstance()->KillChildProcessByPid(pid);
+    if (ret != NCP_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "kill child process by pid, %{public}d", ret);
+        return NCP_ERR_INTERNAL;
+    }
+    return NCP_NO_ERROR;
+}

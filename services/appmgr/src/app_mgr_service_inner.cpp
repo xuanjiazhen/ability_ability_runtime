@@ -10855,5 +10855,14 @@ void AppMgrServiceInner::SetSpecifiedProcessRequestId(int32_t recordId, int32_t 
     appRecord->SetSpecifiedProcessRequestId(requestId);
     return;
 }
+
+int32_t KillChildProcessByPid(int32_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    auto appRecord = GetAppRunningRecordByPid(pid);
+
+}
 } // namespace AppExecFwk
 }  // namespace OHOS
