@@ -262,6 +262,7 @@ ohos_unittest("ets_runtime_test") {
   cflags_cc = [
   "-Wno-c++20-designator",
   "-Wno-extra-semi",
+  "-Wno-gnu-zero-variadic-macro-arguments",
   ]
   sanitize = {
     cfi = true

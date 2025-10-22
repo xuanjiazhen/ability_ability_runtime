@@ -26,6 +26,7 @@ ohos_shared_library("ets_environment") {
   cflags_cc = [
   "-Wno-c++20-designator",
   "-Wno-extra-semi",
+  "-Wno-gnu-zero-variadic-macro-arguments",
   ]
   public_configs = [ ":public_ets_environment_config" ]
 

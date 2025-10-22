@@ -53,6 +53,7 @@ ohos_shared_library("runtime") {
   cflags_cc = [
   "-Wno-c++20-designator",
   "-Wno-extra-semi",
+  "-Wno-gnu-zero-variadic-macro-arguments",
   ]
   include_dirs = [
     "${ability_runtime_path}/ets_environment/interfaces/inner_api",
