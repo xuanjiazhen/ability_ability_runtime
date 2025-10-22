@@ -3626,7 +3626,7 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
 #endif
 
     if (faultData.faultType == FaultDataType::NIGHT_CLEAR) {
-        if(AppExecFwk::BeforeClean::GetInstance()::HandleBeforeClean(faultData,application_)){
+        if(AppExecFwk::BeforeClean::GetInstance().HandleBeforeClean(faultData,application_)){
             return NO_ERROR;
         }
         return ERR_INVALID_VALUE;

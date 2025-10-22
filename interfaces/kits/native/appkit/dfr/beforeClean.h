@@ -19,14 +19,14 @@
 #include <memory>
 
 #include "ability_record_mgr.h"
-#include "asser_fault_task_thread.h"
+#include "assert_fault_task_thread.h"
 #include "application_impl.h"
 #include "fault_data.h"
 #include "ohos_application.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-const size_t APP_SAVE_HEAP_SIZE = 200 * 1024 * 1024;
+const size_t APP_SAVE_HEAP_SIZE = 200 * 1024 * 1024;    //200M
 
 class BeforeClean {
 public:
