@@ -116,6 +116,12 @@ typedef enum Ability_NativeChildProcess_ErrCode {
      * @error The callback does not exist; it may not have been registered or has already been unregistered.
      */
     NCP_ERR_CALLBACK_NOT_EXIST = 16010009,
+
+    /**
+     * @error The specified PID does not exist or is not a child process of the current process.
+     * @since 23
+     */
+    NCP_ERR_INVALID_PID = 16010010,
 } Ability_NativeChildProcess_ErrCode;
 
 /**
@@ -478,6 +484,17 @@ Ability_NativeChildProcess_ErrCode OH_Ability_RegisterNativeChildProcessExitCall
  */
 Ability_NativeChildProcess_ErrCode OH_Ability_UnregisterNativeChildProcessExitCallback(
     OH_Ability_OnNativeChildProcessExit onProcessExit);
+
+/**
+ * @brief Terminates a child process created by the current process.
+ *
+ * @param pid Process ID of the target child process to terminate.
+ * @return Returns {@link NCP_NO_ERROR} if the operation succeeds.
+ *         Returns {@link NCP_ERR_INVALID_PID} if the specified PID does not exist or is not a child process of the current process.
+ *         For details, see {@link Ability_NativeChildProcess_ErrCode}.
+ * @since 23
+ */
+Ability_NativeChildProcess_ErrCode OH_Ability_KillChildProcess(int32_t pid);
 
 #ifdef __cplusplus
 } // extern "C"
