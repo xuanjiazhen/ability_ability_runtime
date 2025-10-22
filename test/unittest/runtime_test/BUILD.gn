@@ -259,11 +259,7 @@ ohos_unittest("js_worker_test") {
 
 ohos_unittest("ets_runtime_test") {
   module_out_path = module_output_path
-  cflags_cc = [
-  "-Wno-c++20-designator",
-  "-Wno-extra-semi",
-  "-Wno-gnu-zero-variadic-macro-arguments",
-  ]
+
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -309,7 +305,7 @@ ohos_unittest("ets_runtime_test") {
     "napi:ace_napi",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
-    "runtime_core:libarkfile_static",
+    "runtime_core:libarkfile_runtime_static",
   ]
 
   if (ability_runtime_graphics) {

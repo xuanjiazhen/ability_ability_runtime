@@ -23,11 +23,7 @@ config("public_ets_environment_config") {
 
 ohos_shared_library("ets_environment") {
   branch_protector_ret = "pac_ret"
-  cflags_cc = [
-  "-Wno-c++20-designator",
-  "-Wno-extra-semi",
-  "-Wno-gnu-zero-variadic-macro-arguments",
-  ]
+
   public_configs = [ ":public_ets_environment_config" ]
 
   sanitize = {
@@ -66,7 +62,7 @@ ohos_shared_library("ets_environment") {
     "napi:ace_napi",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
-    "runtime_core:libarkfile_static",
+    "runtime_core:libarkfile_runtime_static",
   ]
 
   if (ability_runtime_graphics) {

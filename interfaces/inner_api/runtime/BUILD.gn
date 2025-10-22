@@ -50,11 +50,7 @@ config("runtime_all_deps_config") {
 
 ohos_shared_library("runtime") {
   branch_protector_ret = "pac_ret"
-  cflags_cc = [
-  "-Wno-c++20-designator",
-  "-Wno-extra-semi",
-  "-Wno-gnu-zero-variadic-macro-arguments",
-  ]
+
   include_dirs = [
     "${ability_runtime_path}/ets_environment/interfaces/inner_api",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
@@ -131,7 +127,7 @@ ohos_shared_library("runtime") {
     "samgr:samgr_proxy",
     "zlib:shared_libz",
     "faultloggerd:libfaultloggerd",
-    "runtime_core:libarkfile_static"
+    "runtime_core:libarkfile_runtime_static"
   ]
 
   public_external_deps = [
