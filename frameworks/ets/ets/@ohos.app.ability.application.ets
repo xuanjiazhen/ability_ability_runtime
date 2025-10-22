@@ -36,6 +36,11 @@ export default namespace application {
 
   export native function nativeGetApplicationContext(): ApplicationContext;
 
+  export native function nativeDemoteCurrentFromCandidateMasterProcess(callback: AsyncCallbackWrapper<void>): void;
+
+  export native function nativePromoteCurrentToCandidateMasterProcess(isInsertToHead: boolean,
+    callback:AsyncCallbackWrapper<void>): void;
+
   export native function nativeGetAppPreloadType(): AppPreloadType;
 
   export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
@@ -87,6 +92,55 @@ export default namespace application {
         });
       });
     return p;
+  }
+
+  export function demoteCurrentFromCandidateMasterProcess(callback: AsyncCallback<void>): void {
+    console.log("testTag DemoteCurrentFromCandidateMasterProcess")
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      application.nativeDemoteCurrentFromCandidateMasterProcess(myCall);
+    });
+  }
+
+  export function demoteCurrentFromCandidateMasterProcess(): Promise<void> {
+    console.log("testTag DemoteCurrentFromCandidateMasterProcess")
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          application.nativeDemoteCurrentFromCandidateMasterProcess(myCall);
+        });
+      });
+    return p;
+  }
+
+  export function promoteCurrentToCandidateMasterProcess(isInsertToHead: boolean, callback: AsyncCallback<void>): void {
+    console.log("testTag PromoteCurrentToCandidateMasterProcess")
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      application.nativePromoteCurrentToCandidateMasterProcess(isInsertToHead, asyncCall);
+    });
+  }
+  export function promoteCurrentToCandidateMasterProcess(isInsertToHead: boolean): Promise<void> {
+    console.log("testTag PromoteCurrentToCandidateMasterProcess")
+    return new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        application.nativePromoteCurrentToCandidateMasterProcess(isInsertToHead, asyncCall);
+      });
+    });
   }
 
   export function getApplicationContext(): ApplicationContext {

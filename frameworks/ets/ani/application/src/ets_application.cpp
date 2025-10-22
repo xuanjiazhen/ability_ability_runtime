@@ -17,6 +17,7 @@
 #include "ani_base_context.h"
 #include "ani_common_util.h"
 #include "application_context.h"
+#include "app_mgr_client.h"
 #include "application_context_manager.h"
 #include "context_impl.h"
 #include "ets_application_context_utils.h"
@@ -162,6 +163,67 @@ std::shared_ptr<Context> GetContextByStageMode(ani_env *env, ani_object &context
     return context;
 }
 
+void EtsApplication::DemoteCurrentFromCandidateMasterProcess(ani_env *env, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "DemoteCurrentFromCandidateMasterProcess Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    ani_object emptyObject = CreateEmptyContextObject(env);
+    if (emptyObject == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create empty context object");
+        return;
+    }
+    auto errCode = std::make_shared<int32_t>(ERR_OK);
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Null appMgrClient");
+        *errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    } else {
+        *errCode = appMgrClient->DemoteCurrentFromCandidateMasterProcess();
+    }
+    if (*errCode == ERR_OK) {
+        TAG_LOGD(AAFwkTag::APPKIT, "demote to standby master process success");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK),
+        emptyObject);
+    } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "demote to standby master process failed, errCode: %{public}d", *errCode);
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, *errCode), 
+            emptyObject);
+    }
+}
+void EtsApplication::PromoteCurrentToCandidateMasterProcess(ani_env *env, 
+    ani_boolean isInsertToHead, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "PromoteCurrentToCandidateMasterProcess Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    ani_object emptyObject = CreateEmptyContextObject(env);
+    if (emptyObject == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create empty context object");
+        return;
+    }
+    bool insertToHead = static_cast<bool>(isInsertToHead);
+    auto errCode = std::make_shared<int32_t>(ERR_OK);
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Null appMgrClient");
+        *errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    } else {
+        *errCode = appMgrClient->PromoteCurrentToCandidateMasterProcess(insertToHead);
+    }
+    if (*errCode == ERR_OK) {
+        TAG_LOGD(AAFwkTag::APPKIT, "promote to candidate master process success");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK),
+        emptyObject);
+    } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "promote to candidate master process failed, errCode: %{public}d", *errCode);
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, *errCode), emptyObject);
+    }
+}
 void EtsApplication::CreateModuleContext(ani_env *env,
     ani_object contextObj, ani_string bundleName, ani_string moduleName, ani_object callback)
 {
@@ -315,6 +377,16 @@ void ApplicationInit(ani_env *env)
             "nativeGetApplicationContext",
             ":Lapplication/ApplicationContext/ApplicationContext;",
             reinterpret_cast<void *>(EtsApplication::GetApplicationContext)
+        },
+        ani_native_function {
+            "nativeDemoteCurrentFromCandidateMasterProcess",
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsApplication::DemoteCurrentFromCandidateMasterProcess)
+        },
+        ani_native_function {
+            "nativePromoteCurrentToCandidateMasterProcess",
+            "ZLutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsApplication::PromoteCurrentToCandidateMasterProcess)
         },
         ani_native_function {
             "nativeGetAppPreloadType",

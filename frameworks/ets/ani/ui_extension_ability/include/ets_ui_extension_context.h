@@ -26,6 +26,7 @@
 #include "hitrace_meter.h"
 #include "ohos_application.h"
 #include "ui_extension_context.h"
+#include "ets_start_abilities_observer.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -77,6 +78,9 @@ public:
     static void ReportDrawnCompleted(ani_env *env,  ani_object aniObj, ani_object callback);
     static void ConnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object uiServiceExtConCallbackObj, ani_object callback);
+    static void StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
+        ani_object callback);
+    static bool UnwrapWantList(ani_env *env, ani_object wantListObj, std::vector<AAFwk::Want> &wantList);
     static void StartUIServiceExtension(ani_env *env, ani_object aniObj,
         ani_object wantObj, ani_object callback);
     static void DisconnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object proxyObj,
@@ -103,6 +107,8 @@ private:
         sptr<EtsUIExtensionConnection>& connection, AAFwk::Want& want);
     void OnSetColorMode(ani_env *env, ani_object aniCls, ani_enum_item aniColorMode);
     void OnReportDrawnCompleted(ani_env *env,  ani_object aniCls, ani_object callback);
+    void OnStartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
+        ani_object callback);
     void OnConnectUIServiceExtension(ani_env *env, ani_object wantObj, ani_object uiServiceExtConCallbackObj,
         ani_object callback);
     void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);

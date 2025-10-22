@@ -25,6 +25,7 @@
 #include "ohos_application.h"
 #include "service_extension.h"
 #include "service_extension_context.h"
+#include "ets_start_abilities_observer.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -66,6 +67,9 @@ public:
     static void StartServiceExtensionAbility(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj);
     static void StopServiceExtensionAbility(
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callbackobj);
+    static void StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
+        ani_object callback);
+    static bool UnwrapWantList(ani_env *env, ani_object wantListObj, std::vector<AAFwk::Want> &wantList);
     static void StartUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callback);
     static void WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj);
 
@@ -85,6 +89,7 @@ private:
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
         ani_object callbackObj, std::shared_ptr<ServiceExtensionContext> context);
     void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
+    void OnStartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj, ani_object callback);
 
     std::weak_ptr<ServiceExtensionContext> context_;
     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;
