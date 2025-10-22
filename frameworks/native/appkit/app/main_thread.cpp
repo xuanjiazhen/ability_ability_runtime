@@ -107,7 +107,7 @@
 #include "appcapture_perf.h"
 #endif
 
-#include "beforeClean.h"
+#include "sleep_clean.h"
 
 #if defined(NWEB)
 #include <thread>
@@ -3625,7 +3625,7 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
     }
 #endif
 
-    if (faultData.faultType == FaultDataType::NIGHT_CLEAR) {
+    if (faultData.faultType == FaultDataType::SLEEP_CLEAN) {
         if(AppExecFwk::BeforeClean::GetInstance().HandleBeforeClean(faultData,application_)){
             return NO_ERROR;
         }
