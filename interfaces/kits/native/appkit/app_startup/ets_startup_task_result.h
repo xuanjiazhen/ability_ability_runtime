@@ -36,7 +36,7 @@ public:
     ani_ref GetEtsStartupResultRef() const;
 
 private:
-    ani_ref etsStartupResultRef_;
+    ani_ref etsStartupResultRef_ = nullptr;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

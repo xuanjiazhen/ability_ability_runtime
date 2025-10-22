@@ -461,7 +461,7 @@ int32_t ETSAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &ca
         TAG_LOGE(AAFwkTag::APPKIT, "null shellContextRef_");
         return ERR_INVALID_VALUE;
     }
-    auto &tasks = startupTaskManager->GetStartupTasks();
+    auto tasks = startupTaskManager->GetStartupTasks();
     UpdateStartupTasks(tasks, moduleName);
     result = startupTaskManager->Prepare();
     if (result != ERR_OK) {

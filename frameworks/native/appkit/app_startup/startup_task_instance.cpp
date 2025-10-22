@@ -16,6 +16,7 @@
 #include "startup_task_instance.h"
 
 #include <dlfcn.h>
+#include <mutex>
 
 #include "ets_runtime.h"
 #include "hilog_tag_wrapper.h"
@@ -30,6 +31,7 @@ const char* CREATE_ETS_STARTUP_TASK_FUNC = "OHOS_CreateEtsStartupTask";
 using CreateEtsStartupTaskFunc = AppStartupTask*(*)(const std::unique_ptr<Runtime> &runtime,
     const StartupTaskInfo &info, bool lazyLoad);
 CreateEtsStartupTaskFunc g_etsStartupTaskCreateFunc = nullptr;
+std::mutex g_etsStartupTaskCreateFuncMutex;
 }
 
 const std::unique_ptr<Runtime> &StartupTaskInstance::GetSpecifiedRuntime(
@@ -77,6 +79,7 @@ std::shared_ptr<AppStartupTask> StartupTaskInstance::CreateJsStartupTask(const s
 std::shared_ptr<AppStartupTask> StartupTaskInstance::CreateEtsStartupTask(const std::unique_ptr<Runtime> &runtime,
     const StartupTaskInfo &info, bool lazyLoad)
 {
+    std::lock_guard<std::mutex> lock(g_etsStartupTaskCreateFuncMutex);
     if (g_etsStartupTaskCreateFunc != nullptr) {
         auto taskPtr = g_etsStartupTaskCreateFunc(runtime, info, lazyLoad);
         return std::shared_ptr<AppStartupTask>(taskPtr);

@@ -16,6 +16,7 @@
 #include "startup_config_instance.h"
 
 #include <dlfcn.h>
+#include <mutex>
 
 #include "ets_runtime.h"
 #include "hilog_tag_wrapper.h"
@@ -30,6 +31,7 @@ const char* ETS_STARTUP_CONFIG_LIBNAME = "libability_stage_ani.z.so";
 const char* CREATE_ETS_STARTUP_CONFIG_FUNC = "OHOS_CreateEtsStartupConfig";
 using CreateEtsStartupConfigFunc = StartupConfig*(*)(ani_env* env);
 CreateEtsStartupConfigFunc g_etsStartupConfigCreateFunc = nullptr;
+std::mutex g_etsStartupConfigCreateFuncMutex;
 }
 
 std::shared_ptr<StartupConfig> StartupConfigInstance::CreateStartupConfig(const std::unique_ptr<Runtime> &runtime,
@@ -65,6 +67,7 @@ std::shared_ptr<StartupConfig> StartupConfigInstance::CreateJsStartupConfig(cons
 
 std::shared_ptr<StartupConfig> StartupConfigInstance::CreateEtsStartupConfig(const std::unique_ptr<Runtime> &runtime)
 {
+    std::lock_guard<std::mutex> lock(g_etsStartupConfigCreateFuncMutex);
     auto &etsRuntime = static_cast<ETSRuntime &>(*runtime);
     auto env = etsRuntime.GetAniEnv();
     if (g_etsStartupConfigCreateFunc != nullptr) {

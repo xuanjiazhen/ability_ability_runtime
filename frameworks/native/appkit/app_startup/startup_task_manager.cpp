@@ -53,7 +53,7 @@ void StartupTaskManager::SetConfig(const std::shared_ptr<StartupConfig> &config)
     config_ = config;
 }
 
-std::map<std::string, std::shared_ptr<StartupTask>> &StartupTaskManager::GetStartupTasks()
+std::map<std::string, std::shared_ptr<StartupTask>> StartupTaskManager::GetStartupTasks()
 {
     return tasks_;
 }
