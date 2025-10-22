@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 
 int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startup, 
-    ani_ref context, const std::string &startupName)
+    ani_ref context, std::unique_ptr<StartupTaskResultCallback> callback)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "RunOnTaskPool called for task: %s", startupName.c_str());
     
@@ -37,7 +37,6 @@ int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startup,
     ani_method ctor = nullptr;
     ani_object object = nullptr;
     
-    // 查找StartupTaskExecutor类
     if ((status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "FindClass failed, status: %{public}d", status);
         return ERR_STARTUP_INTERNAL_ERROR;
@@ -47,38 +46,31 @@ int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startup,
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    // 查找构造函数
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &ctor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "findMethod failed, status: %{public}d", status);
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    // 创建对象实例
     if ((status = env->Object_New(cls, ctor, &object)) != ANI_OK || object == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "Object_New failed, status: %{public}d", status);
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    // 将ani_ref转换为ani_object
     ani_object startupObj = reinterpret_cast<ani_object>(startup);
     ani_object contextObj = reinterpret_cast<ani_object>(context);
 
-    // 创建startupName字符串
-    ani_object startupNameObj = nullptr;
-    status = env->CreateString(startupName.c_str(), &startupNameObj);
-    if (status != ANI_OK || startupNameObj == nullptr) {
-        TAG_LOGE(AAFwkTag::STARTUP, "failed to create startup name string");
-        return ERR_STARTUP_INTERNAL_ERROR;
+    auto sharedCallback = std::shared_ptr<StartupTaskResultCallback>(callback.release());
+    auto workCallback = new (std::nothrow) std::weak_ptr<StartupTaskResultCallback>(sharedCallback);
+    if (workCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null workCallback");
+        return nullptr;
     }
-
-    // 调用asyncPushTask方法
-    status = env->Object_CallMethodByName_Void(object, "asyncPushTask", 
+    ani_long nativeCallbackLong = reinterpret_cast<ani_long>(workCallback);
+    if ((status = env->Object_CallMethodByName_Void(object, "asyncPushTask", 
         "L@ohos/app/appstartup/StartupTask/StartupTask;Lapplication/AbilityStageContext/AbilityStageContext;"
-        "Lstd/core/String;:V", 
-        startupObj, contextObj, startupNameObj);
-    
-    if (status != ANI_OK) {
+        "Lstd/core/Long;:V", startupTask, context, nativeCallbackLong)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "failed to call asyncPushTask, status: %{public}d", status);
+        delete weakContext;
         return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
     }
 
@@ -195,5 +187,59 @@ void ETSStartupTaskExecutor::NativeOnTaskFailure(ani_env *env, ani_object thisOb
     delete callback;
 }
 
+void ETSStartupTaskExecutorInit(ani_env *env)
+{
+    TAG_LOGI(AAFwkTag::STARTUP, "Init startup task executor");
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "env is null");
+        return;
+    }
+    ani_class startupTaskExecutorCls = nullptr;
+    auto status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor", &startupTaskExecutorCls);
+    if (status != ANI_OK || startupTaskExecutorCls == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "find StartupTaskExecutor class failed");
+        return;
+    }
+
+    std::array startupTaskExecutorNativeFuncs = {
+        ani_native_function { "nativeOnTaskSuccess", "Lstd/core/Long;Lstd/core/Object;:V",
+            reinterpret_cast<void*>(ETSStartupTaskExecutor::NativeOnTaskSuccess) },
+        ani_native_function { "nativeOnTaskFailure", "Lstd/core/Long;Lstd/core/String;:V",
+            reinterpret_cast<void*>(ETSStartupTaskExecutor::NativeOnTaskFailure) },
+    };
+
+    status = env->Class_BindNativeMethods(startupTaskExecutorCls, 
+        startupTaskExecutorNativeFuncs.data(), 
+        static_cast<int32_t>(startupTaskExecutorNativeFuncs.size()));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "bind StartupTaskExecutor native methods failed");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::STARTUP, "StartupTaskExecutor native methods bound successfully");
+}
+
+extern "C" {
+ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
+{
+    TAG_LOGD(AAFwkTag::STARTUP, "ANI_Constructor");
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "null vm");
+        return ANI_ERROR;
+    }
+    status = vm->GetEnv(ANI_VERSION_1, &env);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "GetEnv failed status: %{public}d", status);
+        return ANI_NOT_FOUND;
+    }
+
+    ETSStartupTaskExecutorInit(env);
+    *result = ANI_VERSION_1;
+    TAG_LOGD(AAFwkTag::STARTUP, "ANI_Constructor finish");
+    return ANI_OK;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

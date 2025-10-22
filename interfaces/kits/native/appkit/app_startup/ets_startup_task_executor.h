@@ -26,31 +26,18 @@ namespace AbilityRuntime {
 
 class ETSStartupTaskExecutor {
 public:
-    static int32_t RunOnTaskPool(ani_env *env, ani_object startup, ani_object context, 
-        ani_object asyncTaskExecutor, ani_object asyncTaskCallback, const std::string &startupName);
+    static int32_t RunOnMainThread(ani_env *env, ani_ref startupTask, ani_ref context, 
+        std::unique_ptr<StartupTaskResultCallback> callback);    
+    static int32_t RunOnTaskPool(ani_env *env, ani_ref startup, ani_ref context, 
+        const std::string &startupName);    
+    static void NativeOnTaskSuccess(ani_env *env, ani_object obj, ani_long callbackLong, ani_object result);
+    static void NativeOnTaskFailure(ani_env *env, ani_object obj, ani_long callbackLong, ani_string errorMessage);
     
-    static int32_t RunOnMainThread(ani_env *env, ani_object startup, ani_object context, 
-        std::unique_ptr<StartupTaskResultCallback> callback);
-    
-    static int32_t CallStartupInit(ani_env *env, ani_object startup, ani_object context, 
-        std::unique_ptr<StartupTaskResultCallback> &callback, ani_object &returnVal);
-    
-    static int32_t HandleReturnVal(ani_env *env, ani_object returnVal,
-        std::unique_ptr<StartupTaskResultCallback> &callback);
-    
-    static ani_object ResolveResultCallback(ani_env *env, ani_object thisObj, 
-        ani_object *args, int32_t argc, void *data);
-    
-    static ani_object RejectResultCallback(ani_env *env, ani_object thisObj, 
-        ani_object *args, int32_t argc, void *data);
-    
-    static void ReplyFailed(StartupTaskResultCallback *callback, int32_t resultCode, 
-        const std::string &resultMessage);
-    
-    static void ReplyFailed(std::unique_ptr<StartupTaskResultCallback> callback, 
-        int32_t resultCode, const std::string &resultMessage);
+    static void NativeOnTaskPoolSuccess(ani_env *env, ani_object obj, ani_string startupName, ani_object result);
+    static void NativeOnTaskPoolFailure(ani_env *env, ani_object obj, ani_string startupName, ani_string errorMessage);
 };
 
+void ETSStartupTaskExecutorInit(ani_env *env);
 } // namespace AbilityRuntime
 } // namespace OHOS
 

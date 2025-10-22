@@ -1521,7 +1521,7 @@ ohos_prebuilt_etc("quick_fix_manager_abc_etc") {
   part_name = "ability_runtime"
   deps = [ ":quick_fix_manager_abc" ]
 }
-
+1
 group("ets_packages") {
   deps = [
     ":ability_application_abc_etc",
