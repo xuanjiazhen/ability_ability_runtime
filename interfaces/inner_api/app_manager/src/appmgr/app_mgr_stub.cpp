@@ -418,8 +418,13 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleQueryRunningSharedBundles(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_SPECIFIED_PROCESS_REQUEST_ID):
             return HandleSetSpecifiedProcessRequestId(data, reply);
+<<<<<<< HEAD
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_IS_ALLOWED_SCB_ACCESSS_BACKGROUND):
             return HandleSetIsAllowedScbAccessBackground(data, reply);
+=======
+        case static_cast<uint32_t>(AppMgrInterfaceCode::KILL_CHILD_PROCESS_BY_PID):
+            return HandleKillChildProcessByPid(data, reply);
+>>>>>>> 095b9a44de (提供杀应用自身子进程能力)
     }
     return INVALID_FD;
 }
@@ -2193,6 +2198,18 @@ int32_t AppMgrStub::HandleSetIsAllowedScbAccessBackground(MessageParcel &data, M
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call");
     SetIsAllowedScbAccessBackground();
+}
+
+int32_t AppMgrStub::HandleKillChildProcessByPid(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleKillChildProcessByPid call");
+    pid_t pid = data.ReadInt32();
+
+    int32_t result = KillChildProcessByPid(pid);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
+        return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
+    }
     return NO_ERROR;
 }
 }  // namespace AppExecFwk
