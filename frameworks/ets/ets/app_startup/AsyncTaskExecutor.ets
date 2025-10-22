@@ -17,8 +17,11 @@ import StartupTask from '@ohos.app.appstartup.StartupTask';
 import common from '@ohos.app.ability.common';
 import { AsyncTaskCallback } from './async_task_callback';
 
-export class AsyncTaskExecutor {
+export default class AsyncTaskExecutor {
   // 在taskpool中执行的静态方法
+
+  private native function nativeOnTaskSuccess(callback: long, result?: Object): void;
+  private native function nativeOnTaskFailure(callback: long, error: string): void;
   private static executeStartupTask(startup: StartupTask, context: common.AbilityStageContext): Promise<any> {
     console.log('executeStartupTask start.');
     // 直接调用startup.init并返回Promise
@@ -51,5 +54,19 @@ export class AsyncTaskExecutor {
         message: error.message 
       });
     }
+  }
+
+  // 主线程中执行的静态方法
+  public executeStartupTaskOnMainThread(startup: StartupTask, context: common.AbilityStageContext, 
+    callback: long, startupName: string): void {
+    console.log('executeStartupTaskOnMainThread start for task: ' + startupName);
+    // 调用startup.init并处理Promise
+    startup.init(context).then((result: Object) => {
+      console.log('Task completed successfully on main thread for: ' + startupName);
+      // 调用native成功回调
+      this.nativeRunCallback(callback, result);
+    }).catch((error: Error) => {
+      console.error('Task failed on main thread for: ' + startupName + ', error: ' + error);
+    });
   }
 }

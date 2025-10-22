@@ -238,7 +238,7 @@ void ETSStartupManagerInit(ani_env *env)
         ani_native_function { "nativeRemoveStartupTaskResult", SIGNATURE_STARTUP_MANAGER_REMOVE_STARTUP_TASK_RESULT,
             reinterpret_cast<void*>(ETSStartupManager::NativeRemoveStartupTaskResult) },
     };
-    status = env->ClassBindNativeMethods(cls, nativeFuncs.data(), static_cast<int32_t>(nativeFuncs.size()));
+    status = env->Class_BindNativeMethods(cls, nativeFuncs.data(), static_cast<int32_t>(nativeFuncs.size()));
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "bind native methods failed, status: %{public}d", status);
         return;

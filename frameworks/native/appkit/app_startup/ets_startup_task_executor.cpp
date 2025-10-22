@@ -56,150 +56,116 @@ int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_object startup,
     return ERR_OK;
 }
 
-int32_t ETSStartupTaskExecutor::RunOnMainThread(ani_env *env, ani_object startup, 
-    ani_object context, std::unique_ptr<StartupTaskResultCallback> callback)
+int32_t ETSStartupTaskExecutor::RunOnMainThread(ani_env *env, ani_ref startupTask, 
+    ani_ref context, std::unique_ptr<StartupTaskResultCallback> callback)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "RunOnMainThread called");
     
-    if (env == nullptr || startup == nullptr || context == nullptr) {
+    if (env == nullptr || startupTask == nullptr || context == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null args in RunOnMainThread");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    ani_object returnVal = nullptr;
-    int32_t resultCode = CallStartupInit(env, startup, context, callback, returnVal);
-    if (resultCode != ERR_OK) {
-        return resultCode;
+    ani_status status = ANI_ERROR;
+    ani_class cls = nullptr;
+    ani_method ctor = nullptr;
+    ani_object object = nullptr;
+    if ((status = env->FindClass("Lapp_startup/AsyncTaskExecutor/AsyncTaskExecutor", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "status : %{public}d", status);
+        return ERR_STARTUP_INTERNAL_ERROR;
     }
-    return HandleReturnVal(env, returnVal, callback);
-}
-
-int32_t ETSStartupTaskExecutor::CallStartupInit(ani_env *env, ani_object startup, 
-    ani_object context, std::unique_ptr<StartupTaskResultCallback> &callback, ani_object &returnVal)
-{
-    if (startup == nullptr || context == nullptr) {
-        ReplyFailed(std::move(callback), ERR_STARTUP_INTERNAL_ERROR,
-            "startup task is null or context is null.");
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "null cls");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    // 调用ETS StartupTask的init方法
-    ani_object args[1] = { context };
-    ani_status status = env->CallObjectMethodByName_Ref(startup, "init", &returnVal, args, 1);
-    if (status != ANI_OK) {
-        ReplyFailed(std::move(callback), ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP,
-            "failed to call init method.");
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &ctor)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "findMethod failed, status : %{public}d", status);
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+
+    if ((status = env->Object_New(cls, ctor, &object)) != ANI_OK || object == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Object_New status : %{public}d or null object", status);
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+
+    auto sharedCallback = std::shared_ptr<StartupTaskResultCallback>(callback.release());
+
+    auto workCallback = new (std::nothrow) std::weak_ptr<StartupTaskResultCallback>(sharedCallback);
+    if (workCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null workCallback");
+        return nullptr;
+    }
+    ani_long nativeCallbackLong = reinterpret_cast<ani_long>(workCallback);
+    if ((status = env->Object_CallMethodByName_Void(object, "executeStartupTaskOnMainThread", 
+        "L@ohos/app/appstartup/StartupTask/StartupTask;Lapplication/AbilityStageContext/AbilityStageContext;"
+        "Lstd/core/Long;:V", startupTask, context, nativeCallbackLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "failed to call executeStartupTaskOnMainThread");
+        delete weakContext;
         return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
     }
 
-    return ERR_OK;
+    return ani_status;
 }
 
-int32_t ETSStartupTaskExecutor::HandleReturnVal(ani_env *env, ani_object returnVal,
-    std::unique_ptr<StartupTaskResultCallback> &callback)
+void ETSStartupTaskExecutor::NativeOnTaskSuccess(ani_env *env, ani_object obj, 
+    ani_long callbackLong, ani_object result)
 {
-    if (returnVal == nullptr) {
-        ReplyFailed(std::move(callback), ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP,
-            "the return value of startup task init is null.");
-        return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
-    }
-
-    // 检查是否为Promise
-    bool isPromise = false;
-    ani_status status = env->IsPromise(returnVal, &isPromise);
-    if (status != ANI_OK || !isPromise) {
-        ReplyFailed(std::move(callback), ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP,
-            "the return value of startup task init is not promise.");
-        return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
-    }
-
-    auto *callbackPtr = callback.release();
+    TAG_LOGD(AAFwkTag::STARTUP, "NativeOnTaskSuccess called");
     
-    // 设置Promise的resolve回调
-    ani_object thenFunc = nullptr;
-    status = env->GetPropertyByName(returnVal, "then", &thenFunc);
-    if (status == ANI_OK && thenFunc != nullptr) {
-        ani_object resolveCallback = nullptr;
-        status = env->CreateFunction(ResolveResultCallback, callbackPtr, &resolveCallback);
-        if (status == ANI_OK && resolveCallback != nullptr) {
-            ani_object argvThen[1] = { resolveCallback };
-            env->CallFunction(returnVal, thenFunc, 1, argvThen, nullptr);
-        }
-    }
-
-    // 设置Promise的reject回调  
-    ani_object catchFunc = nullptr;
-    status = env->GetPropertyByName(returnVal, "catch", &catchFunc);
-    if (status == ANI_OK && catchFunc != nullptr) {
-        ani_object rejectCallback = nullptr;
-        status = env->CreateFunction(RejectResultCallback, callbackPtr, &rejectCallback);
-        if (status == ANI_OK && rejectCallback != nullptr) {
-            ani_object argvCatch[1] = { rejectCallback };
-            env->CallFunction(returnVal, catchFunc, 1, argvCatch, nullptr);
-        }
-    }
-
-    return ERR_OK;
-}
-
-ani_object ETSStartupTaskExecutor::ResolveResultCallback(ani_env *env, ani_object thisObj, 
-    ani_object *args, int32_t argc, void *data)
-{
-    TAG_LOGD(AAFwkTag::STARTUP, "ResolveResultCallback called");
-    
-    if (argc >= 1 && data != nullptr) {
-        auto *callback = static_cast<StartupTaskResultCallback *>(data);
-        ani_object resultObj = args[0];
-        
-        if (resultObj != nullptr) {
-            ani_ref resultRef = nullptr;
-            env->CreateReference(resultObj, 1, &resultRef);
-            
-            if (resultRef != nullptr) {
-                std::shared_ptr<StartupTaskResult> result = std::make_shared<ETSStartupTaskResult>(resultRef);
-                callback->Call(result);
-            }
-        }
-        
-        delete callback;
-    }
-    
-    return nullptr;
-}
-
-ani_object ETSStartupTaskExecutor::RejectResultCallback(ani_env *env, ani_object thisObj, 
-    ani_object *args, int32_t argc, void *data)
-{
-    TAG_LOGD(AAFwkTag::STARTUP, "RejectResultCallback called");
-    
-    if (data != nullptr) {
-        auto *callback = static_cast<StartupTaskResultCallback *>(data);
-        ReplyFailed(callback, ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP,
-            "the promise of startup task init is reject.");
-    }
-    
-    return nullptr;
-}
-
-void ETSStartupTaskExecutor::ReplyFailed(StartupTaskResultCallback *callback,
-    int32_t resultCode, const std::string &resultMessage)
-{
-    if (callback == nullptr) {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "invalid arguments in NativeOnTaskSuccess");
         return;
     }
-    std::shared_ptr<StartupTaskResult> result = std::make_shared<ETSStartupTaskResult>(resultCode, resultMessage);
-    callback->Call(result);
+
+    // 将long转换回指针
+    auto *callback = reinterpret_cast<StartupTaskResultCallback *>(callbackLong);
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "null callback pointer");
+        return;
+    }
+
+    // 创建result的引用
+    ani_ref resultRef = nullptr;
+    if (result != nullptr) {
+        env->CreateReference(result, 1, &resultRef);
+    }
+
+    std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<ETSStartupTaskResult>(resultRef);
+    callback->Call(taskResult);
+    
+    // 删除callback
     delete callback;
 }
 
-void ETSStartupTaskExecutor::ReplyFailed(std::unique_ptr<StartupTaskResultCallback> callback,
-    int32_t resultCode, const std::string &resultMessage)
+void ETSStartupTaskExecutor::NativeOnTaskFailure(ani_env *env, ani_object thisObj, 
+    ani_long callbackLong, ani_string errorMessage)
 {
-    if (callback == nullptr) {
+    TAG_LOGD(AAFwkTag::STARTUP, "NativeOnTaskFailure called");
+    
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "invalid arguments in NativeOnTaskFailure");
         return;
     }
-    std::shared_ptr<StartupTaskResult> result = std::make_shared<ETSStartupTaskResult>(resultCode, resultMessage);
-    callback->Call(result);
+
+    auto *callback = reinterpret_cast<StartupTaskResultCallback *>(callbackLong);
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "null callback pointer");
+        return;
+    }
+
+    std::string strErrorMessage;
+    if (!AppExecFwk::GetStdString(env, errorMessage, strErrorMessage)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "GetStdString failed.");
+        // 即使获取错误信息失败，我们仍然需要回调并传递一个错误
+        strErrorMessage = "Unknown error";
+    }
+
+    std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<ETSStartupTaskResult>(
+        ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP, strErrorMessage);
+    callback->Call(taskResult);
+    
+    delete callback;
 }
 
 } // namespace AbilityRuntime
