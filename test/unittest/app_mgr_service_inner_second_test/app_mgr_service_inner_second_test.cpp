@@ -2217,6 +2217,49 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_KillChildPro
 
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_KillChildProcess_0100 end");
 }
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_KillChildProcessByPid_0100
+ * @tc.desc: Test KillChildProcessByPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_KillChildProcessByPid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_KillChildProcessByPid_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    const BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.isStageBasedModel = true;
+    hapModuleInfo.process = TEST_PROCESS_NAME;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    int32_t childPid = 1;
+    auto ret = appMgrServiceInner->KillChildProcessByPid(childPid);
+    EXPECT_EQ(ret, AAFwk::ERR_INVALID_PID);
+    EXPECT_EQ(appRecord->GetChildProcessRecordMap().size(), 0);
+
+    ChildProcessRequest childRequest;
+    childRequest.childProcessType = 1;
+    auto childAppRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    childAppRecord->GetPriorityObject()->SetPid(1);
+    auto childProcessRecord = std::make_shared<ChildProcessRecord>(childAppRecord->GetRecordId(), childRequest,
+        childAppRecord);
+    childProcessRecord->SetPid(childPid);
+    appMgrServiceInner->KillChildProcessByPid(childPid);
+    EXPECT_EQ(ret, AAFwk::ERR_INVALID_PID);
+    EXPECT_EQ(appMgrServiceInner->killedProcessMap_.size(), 0);
+
+    appRecord->AddChildProcessRecord(childPid, childProcessRecord);
+    appMgrServiceInner->KillChildProcessByPid(childPid);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(appMgrServiceInner->killedProcessMap_.size(), 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_KillChildProcessByPid_0100 end");
+}
 #endif // SUPPORT_CHILD_PROCESS
 
 /**

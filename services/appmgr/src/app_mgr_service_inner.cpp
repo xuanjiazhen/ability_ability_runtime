@@ -10855,5 +10855,47 @@ void AppMgrServiceInner::SetSpecifiedProcessRequestId(int32_t recordId, int32_t 
     appRecord->SetSpecifiedProcessRequestId(requestId);
     return;
 }
+
+int32_t KillChildProcessByPid(int32_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no appRecord");
+        return AAFwk::ERR_INVALID_PID;
+    }
+    int32_t callingPid = IPCSkeleton::GetCallingPid();
+    auto callingAppRecord = GetAppRunningRecordByPid(callingPid);
+    if (callingAppRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no callingAppRecord");
+        return AAFwk::ERR_INVALID_PID;
+    }
+    auto childRecordMap = callingAppRecord->GetChildProcessRecordMap();
+    if (childRecordMap.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no childRecordMap");
+        return AAFwk::ERR_INVALID_PID;
+    }
+    for (auto iter : childRecordMap) {
+        auto childRecord = iter.second;
+        if (!childRecord) {
+            continue;
+        }
+        auto childPid = childRecord->GetPid();
+        if (childPid == pid) {
+            TAG_LOGD(AAFwkTag::APPMGR, "kill child process, childPid:%{public}d, childUid:%{public}d",
+                childPid, childRecord->GetUid());
+            auto ret = KillProcessByPid(childPid, "KillChildProcessByPid");
+            if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::APPMGR, "fail, pid:%{public}d, ret:%{public}d", pid, ret);
+                return ret;
+            }
+            DelayedSingleton<AppStateObserverManager>::GetInstance()->OnChildProcessDied(childRecord);
+            callingAppRecord.RemoveChildAppRecord(childPid);
+            return ERR_OK;
+        }
+    }
+    return AAFwk::ERR_INVALID_PID;
+}
 } // namespace AppExecFwk
 }  // namespace OHOS
