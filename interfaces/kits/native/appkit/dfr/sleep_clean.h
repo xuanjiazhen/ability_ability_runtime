@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_BEFORECLEAN_H
-#define OHOS_ABILITY_RUNTIME_BEFORECLEAN_H
+#ifndef OHOS_ABILITY_RUNTIME_SLEEPCLEAN_H
+#define OHOS_ABILITY_RUNTIME_SLEEPCLEAN_H
 
 #include <memory>
 
@@ -45,4 +45,4 @@ private:
 }//namespace OHOS
 
 
-#endif //OHOS_ABILITY_RUNTIME_BEFORECLEAN_H
+#endif //OHOS_ABILITY_RUNTIME_SLEEPCLEAN_H
