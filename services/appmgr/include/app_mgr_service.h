@@ -922,6 +922,8 @@ public:
         const std::vector<std::string> &bundleNameList = {},
         const AppStateFilter &appStateFilter = AppStateFilter(),
         bool isUsingFilter = false) override;
+    
+    int32_t KillChildProcessByPid(int32_t pid) override;
 
 private:
     /**
