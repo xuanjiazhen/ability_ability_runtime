@@ -25,13 +25,13 @@
 namespace OHOS{
 namespace AppExecFwk{
 
-BeforeClean &BeforeClean::GetInstance()
+SleepClean &SleepClean::GetInstance()
 {
-    static BeforeClean instance_;
+    static SleepClean instance_;
     return instance_;
 }
 
-bool BeforeClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &application)
+bool SleepClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &application)
 {
     auto appHeapTotalSize=GetHeapSize(application);
     TAG_LOGE(AAFwkTag::APPDFR, "appHeapTotalSize is %{public}s",std::to_string(appHeapTotalSize).c_str());
@@ -42,7 +42,7 @@ bool BeforeClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &ap
     return true;
 }
 
-bool BeforeClean::HandleBeforeClean(const FaultData &faultData, const std::shared_ptr<OHOSApplication> &application)
+bool SleepClean::HandleSleepCleann(const FaultData &faultData, const std::shared_ptr<OHOSApplication> &application)
 {
     if (faultData.waitSaveState) {
         return HandleAppSaveIfHeap(application);
@@ -50,7 +50,7 @@ bool BeforeClean::HandleBeforeClean(const FaultData &faultData, const std::share
     return AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
 }
 
-size_t BeforeClean::GetHeapSize(const std::shared_ptr<OHOSApplication> &application)
+size_t SleepClean::GetHeapSize(const std::shared_ptr<OHOSApplication> &application)
 {
     auto &runtime = application->GetRuntime();
     if (runtime == nullptr) {

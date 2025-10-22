@@ -28,14 +28,14 @@ namespace OHOS {
 namespace AppExecFwk {
 const size_t APP_SAVE_HEAP_SIZE = 200 * 1024 * 1024;    //200M
 
-class BeforeClean {
+class SleepClean {
 public:
-    BeforeClean() {}
-    ~BeforeClean() {}
+    SleepClean() {}
+    ~SleepClean() {}
 
-    bool HandleBeforeClean(const FaultData &faultData, const std::shared_ptr<OHOSApplication> &application);
+    bool HandleSleepClean(const FaultData &faultData, const std::shared_ptr<OHOSApplication> &application);
 
-    static BeforeClean &GetInstance();
+    static SleepClean &GetInstance();
 
 private:
     size_t GetHeapSize(const std::shared_ptr<OHOSApplication> &application);
