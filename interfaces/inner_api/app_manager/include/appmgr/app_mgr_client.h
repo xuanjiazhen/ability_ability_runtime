@@ -1062,6 +1062,8 @@ public:
 
     void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId);
 
+    int32_t KillChildProcessByPid(int32_t pid);
+
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
     /**
