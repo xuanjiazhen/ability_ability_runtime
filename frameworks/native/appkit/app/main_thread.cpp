@@ -3626,7 +3626,7 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
 #endif
 
     if (faultData.faultType == FaultDataType::SLEEP_CLEAN) {
-        if (AppExecFwk::SleepClean::GetInstance().HandleSleepClean(faultData, application_)){
+        if (AppExecFwk::SleepClean::GetInstance().HandleSleepClean(faultData, application_)) {
             return NO_ERROR;
         }
         return ERR_INVALID_VALUE;
