@@ -60,7 +60,7 @@ size_t BeforeClean::GetHeapSize(const std::shared_ptr<OHOSApplication> &applicat
     if (jsRuntime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
     }
-    auto vm = jsRuntime->GetVm();
+    auto vm = jsRuntime->GetEcmaVm();
     if (!vm) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null runtime");
         return 0;
