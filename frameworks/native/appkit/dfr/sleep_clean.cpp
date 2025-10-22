@@ -22,8 +22,8 @@
 #include "app_recovery.h"
 #include "recovery_param.h"
 
-namespace OHOS{
-namespace AppExecFwk{
+namespace OH {
+namespace AppExecFwk {
 
 SleepClean &SleepClean::GetInstance()
 {
@@ -33,7 +33,7 @@ SleepClean &SleepClean::GetInstance()
 
 bool SleepClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &application)
 {
-    auto appHeapTotalSize=GetHeapSize(application);
+    auto appHeapTotalSize = GetHeapSize(application);
     TAG_LOGI(AAFwkTag::APPDFR, "appHeapTotalSize is %{public}s",std::to_string(appHeapTotalSize).c_str());
     if (appHeapTotalSize < APP_SAVE_HEAP_SIZE) {
         return false;
@@ -56,7 +56,7 @@ size_t SleepClean::GetHeapSize(const std::shared_ptr<OHOSApplication> &applicati
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
     }
-    AbilityRuntime::JsRuntime * jsRuntime = static_cast<AbilityRuntime::JsRuntime *>(runtime.get());
+    AbilityRuntime::JsRuntime* jsRuntime = static_cast<AbilityRuntime::JsRuntime*>(runtime.get());   
     if (jsRuntime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
     }
@@ -67,5 +67,5 @@ size_t SleepClean::GetHeapSize(const std::shared_ptr<OHOSApplication> &applicati
     }
     return DFXJSNApi::GetHeapTotalSize(vm);
 }
-}//namespace AppExecFwk
-}//namespace OHOS
+}   //namespace AppExecFwk
+}   //namespace OHOS

@@ -41,8 +41,8 @@ private:
     size_t GetHeapSize(const std::shared_ptr<OHOSApplication> &application);
     bool HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &application);
 };
-}//namespace AppExecFwk
-}//namespace OHOS
+}   //namespace AppExecFwk
+}   //namespace OHOS
 
 
-#endif //OHOS_ABILITY_RUNTIME_SLEEPCLEAN_H
+#endif  //OHOS_ABILITY_RUNTIME_SLEEPCLEAN_H
