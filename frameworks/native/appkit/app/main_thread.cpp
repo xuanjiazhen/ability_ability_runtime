@@ -2564,8 +2564,19 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
             TAG_LOGE(AAFwkTag::APPKIT, "null application");
             return;
         }
-        auto &runtime = application->GetRuntime();
-        appThread->UpdateRuntimeModuleChecker(runtime);
+        string arkTSMode = abilityRecord->GetAbilityInfo()->arkTSMode;
+        if (arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 ) {
+            auto &runtime = application->GetRuntime();
+            // 构建 ETSRuntime::Options
+            auto &jsRuntimePoint = (static_cast<AbilityRuntime::JsRuntime &>(*runtime));
+            AbilityRuntime::Runtime::Options options = jsRuntimePoint.GetOptions();
+            options.lang = AbilityRuntime::Runtime::Language::ETS;
+            auto etsRuntime = AbilityRuntime::Runtime::Create(options);
+            appThread->UpdateRuntimeModuleChecker(etsRuntime);
+        } else {
+            auto &runtime = application->GetRuntime();
+            appThread->UpdateRuntimeModuleChecker(runtime);
+        }
 #ifdef APP_ABILITY_USE_TWO_RUNNER
         AbilityThread::AbilityThreadMain(application, abilityRecord, stageContext);
 #else
