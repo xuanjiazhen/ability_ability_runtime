@@ -39,6 +39,7 @@ bool SleepClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &app
         return false;
     }
     AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
+    sleep(2);
     return true;
 }
 
