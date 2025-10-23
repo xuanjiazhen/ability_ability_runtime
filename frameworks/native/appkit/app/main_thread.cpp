@@ -2592,7 +2592,23 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
     }
     SetProcessExtensionType(abilityRecord);
     auto &runtime = application_->GetRuntime();
-    UpdateRuntimeModuleChecker(runtime);
+    if (runtime.DebugOption.arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0) {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->SetProcessessExtensionType(abilityRecord);
+        auto application = appThread ->GetApplication();
+        if (application == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null application");
+        }
+        SetRuntimeLang(application, runtime.Option);
+        std::unique_ptr<OHOS::AbilityRuntime::ETSRuntime> runtimeStatic = AbilityRuntime::ETSRuntime::PreFork(runtime.Option, runtime);
+        UpdateRuntimeModuleChecker(runtimeStatic);
+    }else {
+        UpdateRuntimeModuleChecker(runtime);
+    }
 #ifdef APP_ABILITY_USE_TWO_RUNNER
     AbilityThread::AbilityThreadMain(application_, abilityRecord, stageContext);
 #else
