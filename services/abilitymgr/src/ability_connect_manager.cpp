@@ -2592,6 +2592,10 @@ void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<AbilityRecord
     }
     if (IsNeedToRestart(abilityRecord, abilityInfo.bundleName, abilityInfo.name)) {
         RestartAbility(abilityRecord, userId_);
+    } else if (!ExitResidentProcessManager::GetInstance().RecordExitResidentBundleName(
+        abilityInfo.bundleName, abilityRecord->GetUid())) {
+        ExitResidentProcessManager::GetInstance().RecordExitResidentBundleNameOnRequireBigMemory(
+            abilityInfo.bundleName, abilityRecord->GetUid());
     }
 }
 

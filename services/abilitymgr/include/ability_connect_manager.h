@@ -31,6 +31,7 @@
 #include "ability_record.h"
 #include "ability_running_info.h"
 #include "event_report.h"
+#include "exit_resident_process_manager.h"
 #include "extension_config.h"
 #include "extension_running_info.h"
 #include "connection_record.h"

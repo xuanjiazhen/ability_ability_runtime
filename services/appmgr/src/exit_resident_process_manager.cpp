@@ -55,6 +55,7 @@ bool ExitResidentProcessManager::RecordExitResidentBundleName(const std::string 
     if (currentMemorySizeState_ == MemoryState::MEMORY_RECOVERY) {
         return false;
     }
+    TAG_LOGW(AAFwkTag::APPMGR, "%{public}s will restart later", bundleName);
     exitResidentInfos_.emplace_back(bundleName, uid);
     return true;
 }
@@ -66,6 +67,7 @@ bool ExitResidentProcessManager::RecordExitResidentBundleNameOnRequireBigMemory(
     if (currentBigMemoryState_ == MemoryState::NO_REQUIRE_BIG_MEMORY) {
         return false;
     }
+    TAG_LOGW(AAFwkTag::APPMGR, "%{public}s will restart when no require big memory", bundleName);
     exitResidentBigMemoryInfos_.emplace_back(bundleName, uid);
     return true;
 }
