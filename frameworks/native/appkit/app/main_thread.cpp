@@ -1756,19 +1756,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return;
         }
-
-        if (appInfo.debug && appLaunchData.GetDebugApp()) {
-            wptr<MainThread> weak = this;
-            auto cb = [weak]() {
-                auto appThread = weak.promote();
-                if (appThread == nullptr) {
-                    TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
-                    return false;
-                }
-                return appThread->NotifyDeviceDisConnect();
-            };
-            runtime->SetDeviceDisconnectCallback(cb);
-        }
         auto perfCmd = appLaunchData.GetPerfCmd();
 
         int32_t pid = -1;
