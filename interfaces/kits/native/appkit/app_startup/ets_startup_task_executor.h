@@ -17,9 +17,8 @@
 #ifndef ETS_STARTUP_TASK_EXECUTOR_H
 #define ETS_STARTUP_TASK_EXECUTOR_H
 
-#include "ani_runtime.h"
+#include "ani.h"
 #include "startup_task_result.h"
-#include "startup_task_result_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -28,13 +27,10 @@ class ETSStartupTaskExecutor {
 public:
     static int32_t RunOnMainThread(ani_env *env, ani_ref startupTask, ani_ref context, 
         std::unique_ptr<StartupTaskResultCallback> callback);    
-    static int32_t RunOnTaskPool(ani_env *env, ani_ref startup, ani_ref context, 
-        const std::string &startupName);    
+    static int32_t RunOnTaskPool(ani_env *env, ani_ref startupTask, ani_ref context, 
+        std::unique_ptr<StartupTaskResultCallback> callback);    
     static void NativeOnTaskSuccess(ani_env *env, ani_object obj, ani_long callbackLong, ani_object result);
     static void NativeOnTaskFailure(ani_env *env, ani_object obj, ani_long callbackLong, ani_string errorMessage);
-    
-    static void NativeOnTaskPoolSuccess(ani_env *env, ani_object obj, ani_string startupName, ani_object result);
-    static void NativeOnTaskPoolFailure(ani_env *env, ani_object obj, ani_string startupName, ani_string errorMessage);
 };
 
 void ETSStartupTaskExecutorInit(ani_env *env);

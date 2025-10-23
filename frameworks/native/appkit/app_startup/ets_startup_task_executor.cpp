@@ -15,19 +15,20 @@
 
 // ets_startup_task_executor.cpp
 
+#include "ani_common_util.h"
 #include "ets_startup_task_executor.h"
-#include "hilog_tag_wrapper.h"
 #include "ets_startup_task_result.h"
+#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 
-int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startup, 
+int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startupTask, 
     ani_ref context, std::unique_ptr<StartupTaskResultCallback> callback)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "RunOnTaskPool called for task");
     
-    if (env == nullptr || startup == nullptr || context == nullptr) {
+    if (env == nullptr || startupTask == nullptr || context == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null args in RunOnTaskPool");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
@@ -56,19 +57,19 @@ int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startup,
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    ani_object startupObj = reinterpret_cast<ani_object>(startup);
+    ani_object startupTaskObj = reinterpret_cast<ani_object>(startupTask);
     ani_object contextObj = reinterpret_cast<ani_object>(context);
 
     auto sharedCallback = std::shared_ptr<StartupTaskResultCallback>(callback.release());
     auto weakCallback = new (std::nothrow) std::weak_ptr<StartupTaskResultCallback>(sharedCallback);
     if (weakCallback == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null weakCallback");
-        return nullptr;
+        return ERR_STARTUP_INTERNAL_ERROR;
     }
     ani_long nativeCallbackLong = reinterpret_cast<ani_long>(weakCallback);
     if ((status = env->Object_CallMethodByName_Void(object, "asyncPushTask", 
         "L@ohos/app/appstartup/StartupTask/StartupTask;Lapplication/AbilityStageContext/AbilityStageContext;"
-        "Lstd/core/Long;:V", startupTask, context, nativeCallbackLong)) != ANI_OK) {
+        "Lstd/core/Long;:V", startupTaskObj, contextObj, nativeCallbackLong)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "failed to call asyncPushTask, status: %{public}d", status);
         delete weakCallback;
         return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
@@ -116,14 +117,14 @@ int32_t ETSStartupTaskExecutor::RunOnMainThread(ani_env *env, ani_ref startupTas
     auto weakCallback = new (std::nothrow) std::weak_ptr<StartupTaskResultCallback>(sharedCallback);
     if (weakCallback == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null workCallback");
-        return nullptr;
+        return ERR_STARTUP_INTERNAL_ERROR;
     }
-    ani_object startupObj = reinterpret_cast<ani_object>(startup);
+    ani_object startupTaskObj = reinterpret_cast<ani_object>(startupTask);
     ani_object contextObj = reinterpret_cast<ani_object>(context);
     ani_long nativeCallbackLong = reinterpret_cast<ani_long>(weakCallback);
     if ((status = env->Object_CallMethodByName_Void(object, "executeStartupTaskOnMainThread", 
         "L@ohos/app/appstartup/StartupTask/StartupTask;Lapplication/AbilityStageContext/AbilityStageContext;"
-        "Lstd/core/Long;:V", startupObj, contextObj, nativeCallbackLong)) != ANI_OK) {
+        "Lstd/core/Long;:V", startupTaskObj, contextObj, nativeCallbackLong)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "failed to call executeStartupTaskOnMainThread");
         delete weakCallback;
         return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
@@ -150,7 +151,7 @@ void ETSStartupTaskExecutor::NativeOnTaskSuccess(ani_env *env, ani_object obj,
 
     ani_ref resultRef = reinterpret_cast<ani_ref>(result);
 
-    std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<ETSStartupTaskResult>(resultRef);
+    std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<EtsStartupTaskResult>(resultRef);
     callback->Call(taskResult);
     
     delete callback;
@@ -179,7 +180,7 @@ void ETSStartupTaskExecutor::NativeOnTaskFailure(ani_env *env, ani_object thisOb
         strErrorMessage = "Unknown error";
     }
 
-    std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<ETSStartupTaskResult>(
+    std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<EtsStartupTaskResult>(
         ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP, strErrorMessage);
     callback->Call(taskResult);
     
@@ -240,5 +241,6 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     TAG_LOGD(AAFwkTag::STARTUP, "ANI_Constructor finish");
     return ANI_OK;
 }
+} 
 } // namespace AbilityRuntime
 } // namespace OHOS
