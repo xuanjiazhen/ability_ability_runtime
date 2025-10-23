@@ -30,7 +30,7 @@ ohos_unittest("sleep_clean_test") {
   configs = []
 
   sources = [
-    "${ability_runtime_native_path}/appkit/dfr/dump_process_helper.cpp",
+    "${ability_runtime_native_path}/appkit/dfr/sleep_clean.cpp",
     "sleep_clean_test.cpp",
   ]
 
