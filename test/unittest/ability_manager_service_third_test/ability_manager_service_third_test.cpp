@@ -1791,7 +1791,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartUIAbilityBySCB_001, TestSize.Level
     auto abilityMs = std::make_shared<AbilityManagerService>();
     sptr<SessionInfo> sessionInfo = nullptr;
     bool isColdStart = true;
-    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart);
+    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart, 0, false);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 
@@ -1805,7 +1805,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartUIAbilityBySCB_002, TestSize.Level
     auto abilityMs = std::make_shared<AbilityManagerService>();
     sptr<SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
     bool isColdStart = true;
-    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart);
+    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart, 0, false);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 
@@ -1856,7 +1856,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, AppUpgradeCompleted_001, TestSize.Level
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
     int32_t uid = 0;
-    abilityMs->AppUpgradeCompleted(uid);
+    abilityMs->AppUpgradeCompleted(uid, 1);
     EXPECT_TRUE(abilityMs != nullptr);
 }
 
@@ -1870,7 +1870,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, AppUpgradeCompleted_002, TestSize.Level
     AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
     auto abilityMs = std::make_shared<AbilityManagerService>();
     int32_t uid = 1;
-    abilityMs->AppUpgradeCompleted(uid);
+    abilityMs->AppUpgradeCompleted(uid, 1);
     EXPECT_TRUE(abilityMs != nullptr);
 }
 

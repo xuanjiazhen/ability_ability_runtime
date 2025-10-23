@@ -32,6 +32,7 @@ import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 import UIServiceProxy from 'application.UIServiceProxy';
 import UIServiceExtensionConnectCallback from 'application.UIServiceExtensionConnectCallback';
 import dialogRequest from '@ohos.app.ability.dialogRequest';
+import image from '@ohos.multimedia.image';
 
 class Cleaner {
   public ptr: long = 0;
@@ -146,6 +147,9 @@ export default class UIAbilityContext extends Context {
   private native nativeStartSelfUIAbilityInCurrentProcessSync(want: Want, specifiedFlag: string, callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeStartSelfUIAbilityInCurrentProcessSync(want: Want, specifiedFlag: string, options: StartOptions, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeSetMissionWindowIcon(windowIcon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
+
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -158,6 +162,8 @@ export default class UIAbilityContext extends Context {
   private native nativeConnectUIServiceExtensionAbility(want: Want, uiServiceExtConCallback: UIServiceExtensionConnectCallback, callback:AsyncCallbackWrapper<UIServiceProxy>): void;
   private native nativeStartUIServiceExtensionAbility(want: Want, callback:AsyncCallbackWrapper<void>): void;
   private native nativeDisconnectUIServiceExtensionAbility(proxy: UIServiceProxy, callback:AsyncCallbackWrapper<void>): void;
+
+  private native nativeRestartAppSync(want: Want): void;
 
   startAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
     this.nativeStartAbilitySyncCheck(options);
@@ -580,6 +586,27 @@ export default class UIAbilityContext extends Context {
         }
       }).catch((err: Error): void => {
         reject(err as BusinessError);
+      });
+    });
+  }
+
+  restartApp(want: Want): Promise<void> {
+    return taskpool.execute((): void => {
+      this.nativeRestartAppSync(want);
+    }) as Promise<void>;
+  }
+
+  setMissionWindowIcon(windowIcon: image.PixelMap): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeSetMissionWindowIcon(windowIcon, syncCall);
       });
     });
   }

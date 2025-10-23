@@ -197,6 +197,10 @@ class AbilityContext extends Context {
     return this.__context_impl__.setMissionIcon(icon, callback);
   }
 
+  setMissionWindowIcon(windowIcon) {
+    return this.__context_impl__.setMissionWindowIcon(windowIcon);
+  }
+
   setAbilityInstanceInfo(label, callback) {
     return this.__context_impl__.setAbilityInstanceInfo(label, callback);
   }
@@ -267,6 +271,10 @@ class AbilityContext extends Context {
 
   startSelfUIAbilityInCurrentProcess(want, specifiedFlag, options) {
     return this.__context_impl__.startSelfUIAbilityInCurrentProcess(want, specifiedFlag, options);
+  }
+
+  restartApp(want) {
+    return this.__context_impl__.restartApp(want);
   }
 }
 
