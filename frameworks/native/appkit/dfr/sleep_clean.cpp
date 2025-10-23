@@ -55,10 +55,12 @@ size_t SleepClean::GetHeapSize(const std::shared_ptr<OHOSApplication> &applicati
     auto &runtime = application->GetRuntime();
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
+        return 0;
     }
     AbilityRuntime::JsRuntime *jsRuntime = static_cast<AbilityRuntime::JsRuntime *>(runtime.get());
     if (jsRuntime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
+        return 0;
     }
     auto vm = jsRuntime->GetEcmaVm();
     if (!vm) {
