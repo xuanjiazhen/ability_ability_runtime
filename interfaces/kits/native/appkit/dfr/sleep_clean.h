@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-const size_t APP_SAVE_HEAP_SIZE = 200 * 1024 * 1024;    //200M
+const size_t APP_SAVE_HEAP_SIZE = 220 * 1024 * 1024;    //220M
 
 class SleepClean {
 public:

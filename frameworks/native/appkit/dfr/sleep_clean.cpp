@@ -22,7 +22,7 @@
 #include "app_recovery.h"
 #include "recovery_param.h"
 
-namespace OH {
+namespace OHOS {
 namespace AppExecFwk {
 
 SleepClean &SleepClean::GetInstance()
