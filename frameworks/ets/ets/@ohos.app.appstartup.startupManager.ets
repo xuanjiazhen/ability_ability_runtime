@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import StartupConfig from '@ohos.app.appstartup.StartupConfig';
+import StartupConfig from './@ohos.app.appstartup.StartupConfig';
 import common from '@ohos.app.ability.common';
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
@@ -21,8 +21,8 @@ import AsyncCallbackWrapper from './utils/AbilityUtils';
 export default namespace startupManager {
     loadLibraryWithPermissionCheck("startup_manager_ani_kit.z", "@ohos.app.appstartup.startupManager");
 
-    export native function nativeRun(startupTasks: Array<string>, context?: common.AbilityStageContext,
-        config: StartupConfig, callback: AsyncCallbackWrapper<void>): void;
+    export native function nativeRun(startupTasks: Array<string>, callback: AsyncCallbackWrapper<void>,
+        config?: StartupConfig, context?: common.AbilityStageContext): void;
 
     export native function nativeRemoveAllStartupTaskResults(): void;
 
@@ -43,7 +43,7 @@ export default namespace startupManager {
                 }
             });
             taskpool.execute((): void => {
-                startupManager.nativeRun(startupTasks, undefined, config, myCall);
+                startupManager.nativeRun(startupTasks, myCall, config, undefined);
             });
         });
         return p;
@@ -60,7 +60,7 @@ export default namespace startupManager {
                 }
             });
             taskpool.execute((): void => {
-                startupManager.nativeRun(startupTasks, context, config, myCall);
+                startupManager.nativeRun(startupTasks, myCall, config, context);
             });
         });
         return p;

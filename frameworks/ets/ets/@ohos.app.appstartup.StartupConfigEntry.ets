@@ -13,11 +13,15 @@
  * limitations under the License.
  */
 
-import StartupConfig from '@ohos.app.appstartup.StartupConfig';
+import StartupConfig, { StartupConfigImpl } from './@ohos.app.appstartup.StartupConfig';
 import Want from '@ohos.app.ability.Want';
 
 export default class StartupConfigEntry {
-    onConfig?(): StartupConfig {}
+    onConfig(): StartupConfig {
+        return new StartupConfigImpl() as StartupConfig;
+    }
 
-    onRequestCustomMatchRule(want: Want): string {}
+    onRequestCustomMatchRule(want: Want): string {
+        return "";
+    }
 }

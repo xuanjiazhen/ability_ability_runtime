@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import StartupListener from '@ohos.app.appstartup.StartupListener';
+import StartupListener from './@ohos.app.appstartup.StartupListener';
 export default interface StartupConfig {
    timeoutMs?: int;
    startupListener?: StartupListener;
 }
 
-class StartupConfigImpl implements StartupConfig {
+export class StartupConfigImpl implements StartupConfig {
     timeoutMs?: int;
     startupListener?: StartupListener;
 }

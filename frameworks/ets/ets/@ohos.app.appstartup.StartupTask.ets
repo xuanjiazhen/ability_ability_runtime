@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
-import AbilityStageContext from 'application/AbilityStageContext';
+import AbilityStageContext from 'application.AbilityStageContext'
 
 export default class StartupTask {
-    onDependencyCompleted?(dependency: string, result: Any): void {}
+    onDependencyCompleted(dependency: string, result: Any): void {}
 
-    init(context: AbilityStageContext): Promise<Any> | Promise<void> {}
+    init(context: AbilityStageContext): Promise<Any> | Promise<void> {
+        return Promise.resolve();
+    }
 }

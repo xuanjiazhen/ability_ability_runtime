@@ -13,33 +13,35 @@
  * limitations under the License.
  */
 
-import StartupTask from '@ohos.app.appstartup.StartupTask';
+import StartupTask from '../@ohos.app.appstartup.StartupTask';
 import common from '@ohos.app.ability.common';
 
 export default class StartupTaskExecutor {
 
-  private native function nativeOnTaskSuccess(callback: long, result?: Object): void;
-  private native function nativeOnTaskFailure(callback: long, error: string): void;
+  private native nativeOnTaskSuccess(callback: long, result?: Any): void;
+  private native nativeOnTaskFailure(callback: long, error: string): void;
   
-  public asyncPushTask(startup: StartupTask, context: common.AbilityStageContext, callback: long): void {
-
-    const executeAsync = async (startup: StartupTask, context: common.AbilityStageContext,
-      callback: long): void => {
+  asyncPushTask(startup: StartupTask, context: common.AbilityStageContext, callback: long): void {
+    const executeAsync = async (startup: StartupTask, context: common.AbilityStageContext): Promise<Any> => {
       try {
         const result = await startup.init(context);
-        this.nativeOnTaskSuccess(callback, result);
+        return result;
       } catch (error) {
-        this.nativeOnTaskFailure(callback, error.message);
+        throw error;
       }
     };
 
-    const task = new taskpool.Task(executeAsync, startup, context, callback);
-    taskpool.execute(task);
+    const task = new taskpool.Task(executeAsync, startup, context);
+    taskpool.execute(task).then((result: Any) => {
+      this.nativeOnTaskSuccess(callback, result);
+    }).catch((error: Error) => {
+      this.nativeOnTaskFailure(callback, error.message);
+    });
   }
 
-  public executeStartupTaskOnMainThread(startup: StartupTask, context: common.AbilityStageContext, 
+  executeStartupTaskOnMainThread(startup: StartupTask, context: common.AbilityStageContext, 
     callback: long): void {
-    startup.init(context).then((result: Object) => {
+    startup.init(context).then((result: Any) => {
       this.nativeOnTaskSuccess(callback, result);
     }).catch((error: Error) => {
       this.nativeOnTaskFailure(callback, error.message);
