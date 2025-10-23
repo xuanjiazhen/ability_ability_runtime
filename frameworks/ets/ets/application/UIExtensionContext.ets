@@ -93,7 +93,7 @@ export default class UIExtensionContext extends ExtensionContext {
   private native nativeDisconnectUIServiceExtensionAbility(proxy: UIServiceProxy, callback:AsyncCallbackWrapper<void>): void;
   private native nativeWantCheck(want: Want): void;
   private native nativeDisconnectUIServiceExtensionCheck(proxy: UIServiceProxy) : void;
-  private native nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId: int, secondaryWant: Want) : void;
+  private native nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId: int, secondaryWant: Want, callback:AsyncCallbackWrapper<void>) : void;
 
   terminateSelf(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -305,7 +305,7 @@ export default class UIExtensionContext extends ExtensionContext {
         }
       });
       taskpool.execute((): void => {
-        this.nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId, proxy, myCall);
+        this.nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId, secondaryWant, myCall);
       });
     });
   }
