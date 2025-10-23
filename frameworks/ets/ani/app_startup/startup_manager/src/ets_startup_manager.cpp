@@ -15,6 +15,12 @@
 
 #include "ets_startup_manager.h"
 
+#include "ani_common_util.h"
+#include "ets_error_utils.h"
+#include "ets_runtime.h"
+#include "ets_startup_config.h"
+#include "event_report.h"
+#include "hilog_tag_wrapper.h"
 #include "startup_manager.h"
 #include "ability_stage_context.h"
 
@@ -40,7 +46,7 @@ void ETSStartupManager::NativeRun(ani_env *env, ani_object startupTasks,
     ani_object abilityStageContext, ani_object startupConfig, ani_object callback)
 {
     std::shared_ptr<StartupTaskManager> startupTaskManager = nullptr;
-    int32_t result = RunStartupTask(env, startupTasks, abilityStageContext, startupConfig, startupTaskManager);
+    int32_t result = ETSStartupManager::RunStartupTask(env, startupTasks, abilityStageContext, startupConfig, startupTaskManager);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "RunStartupTask failed");
         return;
@@ -76,7 +82,7 @@ void ETSStartupManager::NativeRun(ani_env *env, ani_object startupTasks,
     result = startupTaskManager->Run(onCompletedCallback);
     if (result != ERR_OK) {
         if (!onCompletedCallback->IsCalled()) {
-            AbilityRuntimeErrorUtil::Throw(env, result, StartupUtils::GetErrorMessage(result));
+            EtsErrorUtil::ThrowError(env, result, StartupUtils::GetErrorMessage(result));
             return;
         }
     }
@@ -174,9 +180,9 @@ int32_t ETSStartupManager::RunStartupTask(ani_env *env, ani_object startupTasks,
         TAG_LOGE(AAFwkTag::STARTUP, "startup task manager is null");
         return ERR_STARTUP_INVALID_VALUE;
     }
-    if (abilityStageContext != nullptr) {
-        startupTaskManager->UpdateStartupTaskContextRef(reinterpret_cast<ani_ref>(abilityStageContext), true);
-    }
+    // if (abilityStageContext != nullptr) {
+        // startupTaskManager->UpdateStartupTaskContextRef(reinterpret_cast<ani_ref>(abilityStageContext), true);
+    // }
     result = startupTaskManager->Prepare();
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "prepare startup task manager failed");
@@ -207,7 +213,7 @@ int32_t ETSStartupManager::GetConfig(ani_env *env, ani_object configObj, std::sh
 void ETSStartupManager::NativeRemoveAllStartupTaskResults(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "called");
-    DelayedSingleton<StartupManager>::GetInstance()->RemoveAllResults();
+    DelayedSingleton<StartupManager>::GetInstance()->RemoveAllResult();
     return;
 }
 

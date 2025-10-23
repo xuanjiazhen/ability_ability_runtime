@@ -14,31 +14,43 @@
  */
 #include "ets_startup_config.h"
 
+#include "ets_error_utils.h"
+#include "ets_runtime.h"
+#include "hilog_tag_wrapper.h"
 #include "ani_common_util.h"
 #include "ani_common_want.h"
+
+#ifdef WINDOWS_PLATFORM
+#define ETS_EXPORT __declspec(dllexport)
+#else
+#define ETS_EXPORT __attribute__((visibility("default")))
+#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char STARTUP_CONFIG_CLASS_NAME* = "L@ohos/app/appstartup/StartupConfig/StartupConfigImpl";
-constexpr const char STARTUP_CONFIG_ENTRY_CLASS_NAME* = "L@ohos/app/appstartup/StartupConfigEntry/StartupConfigEntry";
-constexpr const char STARTUP_CONFIG_ENTRY_SIGNATURE_ON_REQUEST_CUSTOM_MATCH_RULE* =
+constexpr const char *STARTUP_CONFIG_CLASS_NAME = "L@ohos/app/appstartup/StartupConfig/StartupConfigImpl";
+constexpr const char *STARTUP_CONFIG_ENTRY_CLASS_NAME = "L@ohos/app/appstartup/StartupConfigEntry/StartupConfigEntry";
+constexpr const char *STARTUP_CONFIG_ENTRY_SIGNATURE_ON_REQUEST_CUSTOM_MATCH_RULE =
     "L@ohos/app/ability/Want/Want;:Lstd/core/String;";
-    constexpr const char *STARTUP_LISTEN_SIGNATURE_ON_COMPLETED = "L@ohos/base/BusinessError;:V";
+constexpr const char *STARTUP_LISTEN_SIGNATURE_ON_COMPLETED = "L@ohos/base/BusinessError;:V";
 constexpr int32_t DEFAULT_AWAIT_TIMEOUT_MS = 10000;
 }
-ETSStartupConfig::ETSStartupConfig(ani_env env) : StartupConfig(), env_(env)
+ETSStartupConfig::ETSStartupConfig(ani_env *env) : StartupConfig(), env_(env)
 {}
 
 ETSStartupConfig::~ETSStartupConfig() = default;
 
-int32_t ETSStartupConfig::Init(ani_ref &configEntry, std::shared_ptr<AAFwk::Want> want)
+int32_t ETSStartupConfig::Init(Runtime &runtime, std::shared_ptr<Context> context, const std::string &srcEntry,
+    std::shared_ptr<AAFwk::Want> want)
 {
-    if (configEntry == nullptr) {
-        TAG_LOGE(AAFwkTag::STARTUP, "null configEntry");
+    auto &etsRuntime = static_cast<ETSRuntime&>(runtime);
+    auto configEntryRef = LoadSrcEntry(etsRuntime, context, srcEntry);
+    if (configEntryRef == nullptr || configEntryRef->aniRef == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "null configEntry or aniRef");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
-
+    ani_ref configEntry = configEntryRef->aniRef;
     if (env_ == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null env_");
         return ERR_STARTUP_INTERNAL_ERROR;
@@ -61,7 +73,7 @@ int32_t ETSStartupConfig::Init(ani_ref &configEntry, std::shared_ptr<AAFwk::Want
     return ERR_OK;
 }
 
-void ETSStartupConfig::Init(ani_object config)
+int32_t ETSStartupConfig::Init(ani_object config)
 {
     if (config == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null config");
@@ -73,7 +85,38 @@ void ETSStartupConfig::Init(ani_object config)
     return ERR_OK;
 }
 
-void ETSStartupConfig::InitAwaitTimeout(ani_env env, ani_object config)
+std::unique_ptr<AppExecFwk::ETSNativeReference> ETSStartupConfig::LoadSrcEntry(ETSRuntime &etsRuntime,
+    std::shared_ptr<Context> context, const std::string &srcEntry)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "LoadSrcEntry call");
+    if (srcEntry.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "srcEntry invalid");
+        return nullptr;
+    }
+    if (!context) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        return nullptr;
+    }
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    if (!hapModuleInfo) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
+        return nullptr;
+    }
+
+    std::string moduleName(hapModuleInfo->moduleName);
+    std::string srcPath(moduleName + "/" + srcEntry);
+    auto pos = srcPath.rfind('.');
+    if (pos == std::string::npos) {
+        return nullptr;
+    }
+    srcPath.erase(pos);
+    srcPath.append(".abc");
+    bool esModule = hapModuleInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    return etsRuntime.LoadModule(moduleName, srcPath, hapModuleInfo->hapPath, esModule, false, srcEntry);
+}
+
+
+void ETSStartupConfig::InitAwaitTimeout(ani_env *env, ani_object config)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null env");
@@ -86,7 +129,7 @@ void ETSStartupConfig::InitAwaitTimeout(ani_env env, ani_object config)
 
 
     int32_t awaitTimeoutNum = DEFAULT_AWAIT_TIMEOUT_MS;
-    if (!GetIntPropertyValue(env, config, "timeoutMs", awaitTimeoutNum)) {
+    if (!AppExecFwk::GetIntPropertyValue(env, config, "timeoutMs", awaitTimeoutNum)) {
         TAG_LOGE(AAFwkTag::STARTUP, "timeoutMs, GetPropertyRef failed");
         return;
     }
@@ -99,7 +142,7 @@ void ETSStartupConfig::InitAwaitTimeout(ani_env env, ani_object config)
     awaitTimeoutMs_ = awaitTimeoutNum;
 }
 
-void ETSStartupConfig::InitListener(ani_env env, ani_object config)
+void ETSStartupConfig::InitListener(ani_env *env, ani_object config)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null env");
@@ -110,7 +153,7 @@ void ETSStartupConfig::InitListener(ani_env env, ani_object config)
         return;
     }
     ani_ref listener = nullptr;
-    if (!GetRefProperty(env, config, "startupListener", listener)) {
+    if (!AppExecFwk::GetRefProperty(env, config, "startupListener", listener)) {
         TAG_LOGE(AAFwkTag::STARTUP, "startupListener GetPropertyRef failed");
         return;
     }
@@ -127,20 +170,20 @@ void ETSStartupConfig::InitListener(ani_env env, ani_object config)
         ani_status status = ANI_ERROR;
         if ((status = env->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(listener),
             "onCompleted", STARTUP_LISTEN_SIGNATURE_ON_COMPLETED,
-            resultValue) != ANI_OK)) {
+            resultValue)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::STARTUP, "Function_Call onCompleted failed, %{public}d", status);
         }
     };
     listener_ = std::make_shared<StartupListener>(onCompletedCallback);
 }
 
-void ETSStartupConfig::InitCustomization(ani_env env, ani_object configEntry, std::shared_ptr<AAFwk::Want> want)
+void ETSStartupConfig::InitCustomization(ani_env *env, ani_object configEntry, std::shared_ptr<AAFwk::Want> want)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null env");
         return;
     }
-    if (config == nullptr) {
+    if (configEntry == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null config");
         return;
     }
@@ -149,7 +192,7 @@ void ETSStartupConfig::InitCustomization(ani_env env, ani_object configEntry, st
         return;
     }
     ani_object wantAniObj = nullptr;
-    wantAniObj = WrapWant(env, *want);
+    wantAniObj = AppExecFwk::WrapWant(env, *want);
 
     ani_status status = ANI_ERROR;
     ani_ref callResult = nullptr;
@@ -165,14 +208,14 @@ void ETSStartupConfig::InitCustomization(ani_env env, ani_object configEntry, st
     }
 
     std::string customization = ""; 
-    if (!GetStdString(env, reinterpret_cast<ani_string>(callResult), customization)) {
+    if (!AppExecFwk::GetStdString(env, reinterpret_cast<ani_string>(callResult), customization)) {
         TAG_LOGE(AAFwkTag::STARTUP, "GetStdString failed");
         return;
     }
     customization_ = customization;
 }
 
-ani_object ETSStartupConfig::BuildResult(ani_env env, const std::shared_ptr<StartupTaskResult> &result)
+ani_object ETSStartupConfig::BuildResult(ani_env *env, const std::shared_ptr<StartupTaskResult> &result)
 {
     if (result == nullptr) {
         return EtsErrorUtil::CreateError(env, ERR_STARTUP_INTERNAL_ERROR,
@@ -183,6 +226,11 @@ ani_object ETSStartupConfig::BuildResult(ani_env env, const std::shared_ptr<Star
         return EtsErrorUtil::CreateError(env, result->GetResultCode(), result->GetResultMessage());
     }
     return nullptr;
+}
+
+extern "C" ETS_EXPORT StartupConfig* OHOS_CreateEtsStartupConfig(ani_env *env)
+{
+    return new (std::nothrow) ETSStartupConfig(env);
 }
 }
 }

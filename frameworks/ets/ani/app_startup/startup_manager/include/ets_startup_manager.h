@@ -16,9 +16,12 @@
 #ifndef OHOS_ABILITY_RUNTIME_ETS_STARTUP_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_ETS_STARTUP_MANAGER_H
 
+#include "ani.h"
 #include "ets_runtime.h"
 #include "ets_startup_task_result.h"
-#include "ani.h"
+#include "startup_config.h"
+#include "startup_manager.h"
+
  
 namespace OHOS {
 namespace AbilityRuntime {
@@ -33,16 +36,84 @@ public:
     ETSStartupManager &operator=(const ETSStartupManager&) = delete;
     ETSStartupManager &operator=(ETSStartupManager&&) = delete;
     
+    /**
+     * Native method to run startup tasks asynchronously
+     * 
+     * @param env The ANI environment
+     * @param startupTasks Array of startup tasks to run
+     * @param abilityStageContext The ability stage context
+     * @param startupConfig Configuration for startup tasks
+     * @param callback Callback for async operation completion
+     */
     static void NativeRun(ani_env *env, ani_object startupTasks,
         ani_object abilityStageContext, ani_object startupConfig, ani_object callback);
-    static void NativeRemoveAllStartupTaskResults(ani_env *env);
+
+    /**
+     * Native method to get the result of a specific startup task
+     * 
+     * @param env The ANI environment
+     * @param startupTask The name of the startup task
+     * @return The result object of the startup task, or nullptr if failed
+     */
     static ani_object NativeGetStartupTaskResult(ani_env *env, ani_string startupTask);
+
+    /**
+     * Native method to check if a startup task is initialized
+     * 
+     * @param env The ANI environment
+     * @param startupTask The name of the startup task
+     * @return true if the startup task is initialized, false otherwise
+     */
     static bool NativeIsStartupTaskInitialized(ani_env *env, ani_string startupTask);
+
+    /**
+     * Native method to remove the result of a specific startup task
+     * 
+     * @param env The ANI environment
+     * @param startupTask The name of the startup task
+     */
     static void NativeRemoveStartupTaskResult(ani_env *env, ani_string startupTask);
+
+    /**
+     * Native method to remove all startup task results
+     * 
+     * @param env The ANI environment
+     */
+    static void NativeRemoveAllStartupTaskResults(ani_env *env);
+
+private:
+    /**
+     * Run startup tasks with the given configuration
+     * 
+     * @param env The ANI environment
+     * @param startupTasks Array of startup tasks
+     * @param startupConfig Configuration for startup tasks
+     * @param abilityStageContext The ability stage context
+     * @param startupTaskManager Output parameter for the created startup task manager
+     * @return Error code indicating success or failure
+     */
+    static int32_t RunStartupTask(ani_env *env, ani_object startupTasks, ani_object startupConfig,
+        ani_object abilityStageContext, std::shared_ptr<StartupTaskManager> &startupTaskManager);
+
+    /**
+     * Get startup configuration from the given object
+     * 
+     * @param env The ANI environment
+     * @param configObj The configuration object
+     * @param config Output parameter for the parsed configuration
+     * @return Error code indicating success or failure
+     */
+    static int32_t GetConfig(ani_env *env, ani_object configObj, std::shared_ptr<StartupConfig> &config);
 };
 
+/**
+ * Initialize the ETS startup manager
+ * 
+ * @param env The ANI environment
+ */
 void ETSStartupManagerInit(ani_env *env);
+
 } // namespace AbilityRuntime
 } // namespace OHOS
- 
-#endif // OHOS_ABILITY_RUNTIME_ETS_STARTUP_MANAGER_H
+
+#endif // ETS_STARTUP_MANAGER_H

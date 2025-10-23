@@ -396,6 +396,7 @@ ohos_shared_library("ability_stage_ani") {
     "${ability_runtime_innerkits_path}/napi_base_context:napi_base_context",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
     "${ability_runtime_native_path}/ability/native:extensionkit_native",

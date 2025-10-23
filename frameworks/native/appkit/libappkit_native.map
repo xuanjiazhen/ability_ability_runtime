@@ -29,6 +29,7 @@
       *OHOSApplication*;
       *OnCompletedCallback*;
       *StartupConfig*;
+      *StartupListener*;
       *StartupManager*;
       *StartupTask*;
       *StartupTaskManager*;

@@ -19,30 +19,34 @@
 #include <memory>
 
 #include "ets_runtime.h"
+#include "ets_native_reference.h"
 #include "startup_config.h"
 #include "startup_utils.h"
 #include "want.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class JsStartupConfig : public StartupConfig {
+class ETSStartupConfig : public StartupConfig {
 public:
-    JsStartupConfig(ani_env env);
+    ETSStartupConfig(ani_env *env);
 
-    ~JsStartupConfig() override;
+    ~ETSStartupConfig() override;
 
-    int32_t Init(ani_ref &configEntry, std::shared_ptr<AAFwk::Want> want);
+    int32_t Init(Runtime &runtime, std::shared_ptr<Context> context, const std::string &srcEntry,
+        std::shared_ptr<AAFwk::Want> want) override;
 
     int32_t Init(ani_object config);
 
-    static ani_object BuildResult(ani_env env, const std::shared_ptr<StartupTaskResult> &result);
+    static ani_object BuildResult(ani_env *env, const std::shared_ptr<StartupTaskResult> &result);
 
 private:
-    ani_env env_;
+    ani_env *env_ = nullptr;
 
-    void InitAwaitTimeout(ani_env env, ani_object config);
-    void InitListener(ani_env env, ani_object config);
-    void InitCustomization(ani_env env, ani_object configEntry, std::shared_ptr<AAFwk::Want> want);
+    std::unique_ptr<AppExecFwk::ETSNativeReference> LoadSrcEntry(ETSRuntime &etsRuntime,
+        std::shared_ptr<Context> context, const std::string &srcEntry);
+    void InitAwaitTimeout(ani_env *env, ani_object config);
+    void InitListener(ani_env *env, ani_object config);
+    void InitCustomization(ani_env *env, ani_object configEntry, std::shared_ptr<AAFwk::Want> want);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
