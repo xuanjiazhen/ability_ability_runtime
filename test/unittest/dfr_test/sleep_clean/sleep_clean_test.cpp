@@ -59,7 +59,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest001, TestSize.Level1) {
     FaultData faultData;
     faultData.waitSaveState = false;
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_FLASE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest001 end";
 }
 
@@ -75,7 +75,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest002, TestSize.Level1) {
     FaultData faultData;
     faultData.waitSaveState = false;
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_FLASE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest002 end";
 }
 
@@ -90,7 +90,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest003, TestSize.Level1) {
     FaultData faultData;
     faultData.waitSaveState = true;
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_FLASE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest003 end";
 }
 
@@ -105,7 +105,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest004, TestSize.Level1) {
     FaultData faultData;
     faultData.waitSaveState = true;
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_FLASE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest004 end";
 }
 }
