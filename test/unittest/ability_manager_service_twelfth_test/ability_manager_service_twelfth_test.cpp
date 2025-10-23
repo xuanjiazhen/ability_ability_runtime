@@ -1372,6 +1372,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, OnAbilityDied_001, TestSize.Level1)
     abilityMs->OnAbilityDied(abilityRecord);
     EXPECT_NE(abilityRecord->GetToken(), nullptr);
     KioskManager::GetInstance().whitelist_.emplace(abilityRecord->GetAbilityInfo().bundleName);
+    KioskManager::GetInstance().kioskStatus_.kioskBundleUid_ = abilityRecord->GetAbilityInfo().uid;
     abilityMs->OnAbilityDied(abilityRecord);
     if (system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.kioskBundleName_, "");
@@ -1439,6 +1440,23 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, ExitKioskMode_003, TestSize.Level1) {
     ASSERT_NE(callerToken, nullptr);
     auto result = abilityManagerService->ExitKioskMode(callerToken);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: SubscribeScreenUnlockedEvent
+ * SubFunction: NA
+ * Function: AbilityManagerService SubscribeScreenUnlockedEvent
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, SubscribeScreenUnlockedEvent_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest SubscribeScreenUnlockedEvent_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->SubscribeScreenUnlockedEvent();
+    EXPECT_EQ(abilityMs->isSubscribed_, true);
+    abilityMs->UnSubscribeScreenUnlockedEvent();
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest SubscribeScreenUnlockedEvent_001 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

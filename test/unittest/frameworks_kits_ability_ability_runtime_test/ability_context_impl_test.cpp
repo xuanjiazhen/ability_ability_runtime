@@ -2804,5 +2804,22 @@ HWTEST_F(AbilityContextImplTest, StartSelfUIAbilityInCurrentProcess_0100, Functi
     auto ret = context_->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false);
     EXPECT_EQ(ret, ERR_OK);
 }
+
+/**
+ * @tc.name: Ability_Context_Impl_SetMissionWindowIcon_0100
+ * @tc.desc: test set mission window icon.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetMissionWindowIcon_0100, Function | MediumTest | Level1)
+{
+    ASSERT_TRUE(context_ != nullptr);
+    std::shared_ptr<OHOS::Media::PixelMap> windowIcon = nullptr;
+    auto ret = context_->SetMissionWindowIcon(windowIcon);
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(ret, AAFwk::INNER_ERR);
+    } else {
+        EXPECT_EQ(ret, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
+    }
+}
 } // namespace AppExecFwk
 } // namespace OHOS

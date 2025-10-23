@@ -887,7 +887,7 @@ public:
      * whether memory size is sufficient.
      * @return Returns true is sufficient memory size, others return false.
      */
-    bool IsMemorySizeSufficent() const;
+    bool IsMemorySizeSufficient() const;
 
     /**
      * whether or not requier a big memory
@@ -1012,6 +1012,18 @@ public:
      */
     virtual AppMgrResultCode IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
         bool &isRunning);
+
+    /**
+     * Check whether the bundle is running.
+     *
+     * @param bundleName Indicates the bundle name of the bundle.
+     * @param appCloneIndex the appindex of the bundle.
+     * @param userId the userId of the bundle.
+     * @param isRunning Obtain the running status of the application, the result is true if running, false otherwise.
+     * @return Return ERR_OK if success, others fail.
+     */
+    int32_t IsAppRunning(const std::string &bundleName, int32_t appCloneIndex,
+        int32_t userId, bool &isRunning);
 
     /**
      * Elevate the current process to be a candidate master process.

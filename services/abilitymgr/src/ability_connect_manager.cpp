@@ -224,6 +224,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
             uiExtensionMap_[remoteObj] = UIExtWindowMapValType(targetService, abilityRequest.sessionInfo);
         }
         AddUIExtWindowDeathRecipient(remoteObj);
+        targetService->AddUIExtensionLaunchTimestamp();
     }
 
     ret = ReportXiaoYiToRSSIfNeeded(abilityRequest.abilityInfo);
@@ -1049,6 +1050,7 @@ void AbilityConnectManager::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
         std::string element = abilityRecord->GetURI();
         TAG_LOGD(AAFwkTag::EXT, "Ability is %{public}s, start to foreground.", element.c_str());
         abilityRecord->ForegroundUIExtensionAbility();
+        abilityRecord->RemoveUIExtensionLaunchTimestamp();
     }
 }
 
@@ -2600,7 +2602,7 @@ bool AbilityConnectManager::IsNeedToRestart(const std::shared_ptr<AbilityRecord>
         return true;
     }
 
-    if (DelayedSingleton<AppScheduler>::GetInstance()->IsMemorySizeSufficent()) {
+    if (DelayedSingleton<AppScheduler>::GetInstance()->IsMemorySizeSufficient()) {
         if (DelayedSingleton<AppScheduler>::GetInstance()->IsNoRequireBigMemory() ||
         !AppUtils::GetInstance().IsBigMemoryUnrelatedKeepAliveProc(bundleName)) {
             TAG_LOGD(AAFwkTag::EXT, "restart keep alive ability");

@@ -27,6 +27,9 @@
 #include "local_call_container.h"
 
 namespace OHOS {
+namespace Rosen {
+enum class WSError;
+}
 namespace AbilityRuntime {
 class AbilityContextImpl : public AbilityContext {
 public:
@@ -275,6 +278,14 @@ public:
      */
     ErrCode SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap> &icon) override;
 
+    /**
+     * @brief Set mission window icon of this ability.
+     *
+     * @param windowIcon the window icon of this ability.
+     * @return Returns ERR_OK if success.
+     */
+    ErrCode SetMissionWindowIcon(std::shared_ptr<OHOS::Media::PixelMap> windowIcon) override;
+
      /**
      * @brief Set ability label and icon of this ability.
      *
@@ -332,6 +343,8 @@ public:
     {
         isHook_ = isHook;
     }
+
+    static int32_t TransferRestartWSError(Rosen::WSError srcError);
 #endif
 
     /**
@@ -377,6 +390,7 @@ public:
     ErrCode ConnectExtensionAbilityWithExtensionType(const AAFwk::Want& want,
         const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType) override;
     ErrCode SetOnNewWantSkipScenarios(int32_t scenarios) override;
+    ErrCode RestartAppWithWindow(const Want &want) override;
 
     ErrCode AddCompletionHandlerForAtomicService(const std::string &requestId, OnAtomicRequestSuccess onRequestSucc,
         OnAtomicRequestFailure onRequestFail, const std::string &appId) override;
