@@ -25,7 +25,6 @@ namespace OHOS {
 namespace AbilityRuntime {
 class JsStartupTask : public AppStartupTask {
 public:
-    static const std::string TASK_TYPE;
 
     JsStartupTask(JsRuntime &jsRuntime, const StartupTaskInfo &info, bool lazyLoad);
 

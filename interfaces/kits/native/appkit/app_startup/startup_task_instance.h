@@ -31,9 +31,10 @@ public:
     static const std::unique_ptr<Runtime> &GetSpecifiedRuntime(const std::unique_ptr<Runtime> &runtime,
         const std::string &arkTSMode);
 
-    static std::shared_ptr<AppStartupTask> CreateStartupTask(const std::string &arkTsMode,
-        const std::unique_ptr<Runtime> &runtime, const StartupTaskInfo &info, bool lazyLoad);
+    static std::shared_ptr<AppStartupTask> CreateStartupTask(const std::unique_ptr<Runtime> &runtime,
+        const std::string &arkTsMode, const StartupTaskInfo &info, bool lazyLoad);
 
+private:
     static std::shared_ptr<AppStartupTask> CreateJsStartupTask(const std::unique_ptr<Runtime> &runtime,
         const StartupTaskInfo &info, bool lazyLoad);
 

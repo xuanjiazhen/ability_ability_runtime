@@ -77,9 +77,7 @@ private:
 
     static bool UseCommonChunk(const AppExecFwk::HapModuleInfo& hapModuleInfo);
 
-    std::unique_ptr<NativeReference> LoadJsSrcEntry(const std::string &srcEntry);
-
-    bool LoadJsStartupConfig(const std::string &srcEntry, std::shared_ptr<AAFwk::Want> want,
+    bool LoadJsStartupConfig(const std::pair<std::string, std::string> &configEntry, std::shared_ptr<AAFwk::Want> want,
         const std::string &moduleName, AppExecFwk::ModuleType moduleType);
 
     bool CallOnPrepareTerminate(napi_env env,

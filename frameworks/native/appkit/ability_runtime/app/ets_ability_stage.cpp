@@ -26,6 +26,7 @@
 #include "ani_common_configuration.h"
 #include "configuration_convertor.h"
 #include "ets_ability_stage_context.h"
+#include "ets_startup_config.h"
 #include "ets_startup_task.h"
 #include "event_report.h"
 #include "freeze_util.h"
@@ -33,6 +34,7 @@
 #include "hitrace_meter.h"
 #include "ohos_application.h"
 #include "stage_context_transfer.h"
+#include "startup_config_instance.h"
 #include "startup_manager.h"
 #include "startup_task_instance.h"
 #include "application_env.h"
@@ -363,7 +365,7 @@ int32_t ETSAbilityStage::RegisterAppStartupTask(std::shared_ptr<AppExecFwk::HapM
         return ERR_OK;
     }
 
-    const std::string &configEntry = startupManager->GetPendingConfigEntry().first; // todo StartupConfig互通
+    auto configEntry = startupManager->GetPendingConfigEntry();
     if (!LoadEtsStartupConfig(configEntry, want, hapModuleInfo->moduleName, hapModuleInfo->moduleType)) {
         TAG_LOGE(AAFwkTag::APPKIT, "load ets appStartup config failed.");
         return ERR_INVALID_VALUE;
@@ -371,65 +373,32 @@ int32_t ETSAbilityStage::RegisterAppStartupTask(std::shared_ptr<AppExecFwk::HapM
     return RegisterEtsStartupTask(hapModuleInfo);
 }
 
-bool ETSAbilityStage::LoadEtsStartupConfig(const std::string &srcEntry, std::shared_ptr<AAFwk::Want> want,
-    const std::string &moduleName, AppExecFwk::ModuleType moduleType)
+bool ETSAbilityStage::LoadEtsStartupConfig(const std::pair<std::string, std::string> &configEntry,
+    std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, AppExecFwk::ModuleType moduleType)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    // todo StartupConfig互通
-    std::unique_ptr<AppExecFwk::ETSNativeReference> startupConfigEntry = LoadStartupConfigSrcEntry(srcEntry);
-    if (startupConfigEntry == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null startupConfigEntry");
+    auto application = application_.lock();
+    if (application == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null application");
         return false;
     }
-    // auto env = etsRuntime_.GetAniEnv();
-    // std::shared_ptr<EtsStartupConfig> startupConfig = std::make_shared<EtsStartupConfig>(env);
-    // if (startupConfig == nullptr) {
-    //     TAG_LOGE(AAFwkTag::APPKIT, "null startupConfig");
-    //     return false;
-    // }
-    // if (startupConfig->Init(startupConfigEntry->aniRef, want) != ERR_OK) {
-    //     return false;
-    // }
-    // std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
-    // if (startupManager == nullptr) {
-    //     TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
-    //     return false;
-    // }
-    // startupManager->SetModuleConfig(startupConfig, moduleName, moduleType == AppExecFwk::ModuleType::ENTRY);
+    auto arkTsMode = configEntry.second;
+    auto startupConfig = StartupConfigInstance::CreateStartupConfig(application->GetRuntime(), arkTsMode);
+    if (startupConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupConfig");
+        return false;
+    }
+    auto srcEntry = configEntry.first;
+    if (startupConfig->Init(etsRuntime_, GetContext(), srcEntry, want) != ERR_OK) {
+        return false;
+    }
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    if (startupManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+        return false;
+    }
+    startupManager->SetModuleConfig(startupConfig, moduleName, moduleType == AppExecFwk::ModuleType::ENTRY);
     return true;
-}
-
-std::unique_ptr<AppExecFwk::ETSNativeReference> ETSAbilityStage::LoadStartupConfigSrcEntry(const std::string &srcEntry)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPKIT, "LoadStartupConfigSrcEntry call");
-    if (srcEntry.empty()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "srcEntry invalid");
-        return nullptr;
-    }
-    auto context = GetContext();
-    if (!context) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null context");
-        return nullptr;
-    }
-    auto hapModuleInfo = context->GetHapModuleInfo();
-    if (!hapModuleInfo) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
-        return nullptr;
-    }
-
-    std::string moduleName(hapModuleInfo->moduleName);
-    std::string srcPath(moduleName + "/" + srcEntry);
-    auto pos = srcPath.rfind('.');
-    if (pos == std::string::npos) {
-        return nullptr;
-    }
-    srcPath.erase(pos);
-    srcPath.append(".abc");
-    bool esModule = hapModuleInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
-    std::unique_ptr<AppExecFwk::ETSNativeReference> etsCode =
-        etsRuntime_.LoadModule(moduleName, srcPath, hapModuleInfo->hapPath, esModule, false, srcEntry);
-    return etsCode;
 }
 
 int32_t ETSAbilityStage::RegisterEtsStartupTask(std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo)
@@ -450,7 +419,7 @@ int32_t ETSAbilityStage::RegisterEtsStartupTask(std::shared_ptr<AppExecFwk::HapM
     }
     const std::vector<StartupTaskInfo> startupTaskInfos = startupManager->GetStartupTaskInfos(hapModuleInfo->name);
     for (const auto& item : startupTaskInfos) {
-        auto startupTask = StartupTaskInstance::CreateStartupTask(item.arkTsMode, application->GetRuntime(), item,
+        auto startupTask = StartupTaskInstance::CreateStartupTask(application->GetRuntime(), item.arkTsMode, item,
             startupManager->EnableLazyLoadingAppStartupTasks());
         if (startupTask == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "crate null startupTask");
@@ -492,7 +461,7 @@ int32_t ETSAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &ca
         TAG_LOGE(AAFwkTag::APPKIT, "null shellContextRef_");
         return ERR_INVALID_VALUE;
     }
-    auto &tasks = startupTaskManager->GetStartupTasks();
+    auto tasks = startupTaskManager->GetStartupTasks();
     UpdateStartupTasks(tasks, moduleName);
     result = startupTaskManager->Prepare();
     if (result != ERR_OK) {
@@ -573,6 +542,7 @@ void ETSAbilityStage::UpdateStartupTaskContextRef(std::shared_ptr<AppStartupTask
             auto &jsRuntime = static_cast<JsRuntime &>(*jsRuntimePtr);
             auto nativeRefPtr = StageContextTransfer::GetDynamicRef(jsRuntime.GetNapiEnv(), GetContext());
             contextRef = std::shared_ptr<NativeReference>(nativeRefPtr);
+            StageContextTransfer::GetInstance().SaveContextRef(moduleName, contextRef);
         } else {
             contextRef = StageContextTransfer::GetInstance().GetContextRef(moduleName);
         }

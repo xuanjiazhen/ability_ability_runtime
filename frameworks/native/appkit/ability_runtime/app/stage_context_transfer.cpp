@@ -121,7 +121,7 @@ bool StageContextTransfer::HasTransferDynamic(std::shared_ptr<AppStartupTask> st
     std::shared_ptr<Context> context)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    if (context != nullptr) {
+    if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "context null");
         return false;
     }
@@ -170,7 +170,7 @@ std::shared_ptr<Context> StageContextTransfer::UnwrapContext(ani_env *aniEnv, an
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null napiEnv");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null aniEnv");
         return nullptr;
     }
     if (contextRef == nullptr) {

@@ -42,7 +42,7 @@ public:
 
     size_t GetStartupTaskCount() const;
 
-    std::map<std::string, std::shared_ptr<StartupTask>> &GetStartupTasks();
+    std::map<std::string, std::shared_ptr<StartupTask>> GetStartupTasks();
 
     int32_t Prepare();
 

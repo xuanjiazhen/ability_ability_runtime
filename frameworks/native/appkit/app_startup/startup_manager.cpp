@@ -1001,12 +1001,11 @@ bool StartupManager::AnalyzeStartupConfig(const ModuleStartupConfigInfo& info, c
             return false;
         }
         pendingConfigEntry.first = pendingConfigEntrySrc;
-        if (!startupConfigJson.contains(ARK_TS_MODE) || !startupConfigJson[ARK_TS_MODE].is_string()) {
-            TAG_LOGD(AAFwkTag::STARTUP, "no arkTsMode.");
-            return false;
+        if (startupConfigJson.contains(ARK_TS_MODE) && startupConfigJson[ARK_TS_MODE].is_string()) {
+            TAG_LOGD(AAFwkTag::STARTUP, "has arkTsMode.");
+            std::string arkTsMode = startupConfigJson.at(ARK_TS_MODE).get<std::string>();
+            pendingConfigEntry.second = arkTsMode;
         }
-        std::string arkTsMode = startupConfigJson.at(ARK_TS_MODE).get<std::string>();
-        pendingConfigEntry.second = arkTsMode;
     }
 
     if (!AnalyzeAppStartupTask(info, startupConfigJson, pendingStartupTaskInfos)) {

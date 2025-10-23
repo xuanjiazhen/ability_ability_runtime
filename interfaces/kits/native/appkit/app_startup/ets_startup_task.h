@@ -25,7 +25,6 @@ namespace OHOS {
 namespace AbilityRuntime {
 class EtsStartupTask : public AppStartupTask {
 public:
-    static const std::string TASK_TYPE;
 
     EtsStartupTask(ETSRuntime &etsRuntime, const StartupTaskInfo &info, bool lazyLoad);
 
@@ -47,23 +46,16 @@ public:
 private:
     ETSRuntime &etsRuntime_;
     ani_ref contextRef_ = nullptr;
-    std::unique_ptr<AppExecFwk::ETSNativeReference> startupEtsRef_;
-    std::unique_ptr<AppExecFwk::ETSNativeReference> asyncTaskExecutorEtsRef_;
-    std::unique_ptr<AppExecFwk::ETSNativeReference> asyncTaskExecutorCallbackEtsRef_;
-    std::unique_ptr<StartupTaskResultCallback> startupTaskResultCallback_;
+    ani_ref startupRef_ = nullptr;
     std::string srcEntry_;
     std::string ohmUrl_;
     std::string hapPath_;
     bool esModule_ = true;
 
-    // static ani_object GetDependencyResult(ani_env env, const std::string &dependencyName,
-    //     const std::shared_ptr<StartupTaskResult> &result);
+    static ani_ref GetDependencyResult(ani_env *env, const std::string &dependencyName,
+        std::shared_ptr<StartupTaskResult> result);
 
     int32_t LoadEtsOhmUrl();
-
-    int32_t LoadEtsAsyncTaskExecutor();
-
-    void LoadEtsAsyncTaskCallback();
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

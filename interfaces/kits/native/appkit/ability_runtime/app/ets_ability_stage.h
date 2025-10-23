@@ -72,10 +72,8 @@ private:
     int32_t RegisterAppStartupTask(std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo,
         std::shared_ptr<AAFwk::Want> want);
     
-    bool LoadEtsStartupConfig(const std::string &srcEntry, std::shared_ptr<AAFwk::Want> want,
-        const std::string &moduleName, AppExecFwk::ModuleType moduleType);
-
-    std::unique_ptr<AppExecFwk::ETSNativeReference> LoadStartupConfigSrcEntry(const std::string &srcEntry);
+    bool LoadEtsStartupConfig(const std::pair<std::string, std::string> &configEntry,
+        std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, AppExecFwk::ModuleType moduleType);
 
     int32_t RegisterEtsStartupTask(std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo);
 

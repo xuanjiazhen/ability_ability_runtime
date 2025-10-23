@@ -28,6 +28,7 @@
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "ohos_application.h"
+#include "startup_config_instance.h"
 #include "startup_manager.h"
 #include "startup_task_instance.h"
 #include "hitrace_meter.h"
@@ -650,7 +651,7 @@ int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk:
     }
     jsRuntime_.UpdateModuleNameAndAssetPath(hapModuleInfo->moduleName);
 
-    const std::string &configEntry = startupManager->GetPendingConfigEntry().first; // todo StartupConfig互通
+    auto configEntry = startupManager->GetPendingConfigEntry();
     if (!LoadJsStartupConfig(configEntry, want, hapModuleInfo->moduleName, hapModuleInfo->moduleType)) {
         TAG_LOGE(AAFwkTag::APPKIT, "load js appStartup config failed.");
         return ERR_INVALID_VALUE;
@@ -676,7 +677,7 @@ int32_t JsAbilityStage::RegisterJsStartupTask(std::shared_ptr<AppExecFwk::HapMod
     }
     const std::vector<StartupTaskInfo> startupTaskInfos = startupManager->GetStartupTaskInfos(hapModuleInfo->name);
     for (const auto& item : startupTaskInfos) {
-        auto startupTask = StartupTaskInstance::CreateStartupTask(item.arkTsMode, application->GetRuntime(), item,
+        auto startupTask = StartupTaskInstance::CreateStartupTask(application->GetRuntime(), item.arkTsMode, item,
             startupManager->EnableLazyLoadingAppStartupTasks());
         if (startupTask == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "crate null startupTask");
@@ -750,55 +751,22 @@ int32_t JsAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &cal
     return ERR_OK;
 }
 
-std::unique_ptr<NativeReference> JsAbilityStage::LoadJsSrcEntry(const std::string &srcEntry)
+bool JsAbilityStage::LoadJsStartupConfig(const std::pair<std::string, std::string> &configEntry,
+    std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, AppExecFwk::ModuleType moduleType)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "call");
-    if (srcEntry.empty()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "srcEntry invalid");
-        return nullptr;
-    }
-    auto context = GetContext();
-    if (!context) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null context");
-        return nullptr;
-    }
-    auto hapModuleInfo = context->GetHapModuleInfo();
-    if (!hapModuleInfo) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
-        return nullptr;
-    }
-
-    bool esmodule = hapModuleInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
-    std::string moduleName(hapModuleInfo->moduleName);
-    std::string srcPath(moduleName + "/" + srcEntry);
-
-    auto pos = srcPath.rfind('.');
-    if (pos == std::string::npos) {
-        return nullptr;
-    }
-    srcPath.erase(pos);
-    srcPath.append(".abc");
-
-    std::unique_ptr<NativeReference> jsCode(
-        jsRuntime_.LoadModule(moduleName, srcPath, hapModuleInfo->hapPath, esmodule));
-    return jsCode;
-}
-
-bool JsAbilityStage::LoadJsStartupConfig(const std::string &srcEntry, std::shared_ptr<AAFwk::Want> want,
-    const std::string &moduleName, AppExecFwk::ModuleType moduleType)
-{
-    std::unique_ptr<NativeReference> startupConfigEntry = LoadJsSrcEntry(srcEntry);
-    if (startupConfigEntry == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null startupConfigEntry");
+    auto application = application_.lock();
+    if (application == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null application");
         return false;
     }
-    auto env = jsRuntime_.GetNapiEnv();
-    std::shared_ptr<JsStartupConfig> startupConfig = std::make_shared<JsStartupConfig>(env);
+    auto arkTsMode = configEntry.second;
+    auto startupConfig = StartupConfigInstance::CreateStartupConfig(application->GetRuntime(), arkTsMode);
     if (startupConfig == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null startupConfig");
         return false;
     }
-    if (startupConfig->Init(startupConfigEntry, want) != ERR_OK) {
+    auto srcEntry = configEntry.first;
+    if (startupConfig->Init(jsRuntime_, GetContext(), srcEntry, want) != ERR_OK) {
         return false;
     }
     std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
@@ -842,7 +810,7 @@ napi_value JsAbilityStage::CallObjectMethod(
     if (withResultStatus != napi_ok) {
         TAG_LOGE(AAFwkTag::APPKIT, "JsAbilityStage call js, withResult failed: %{public}d", withResultStatus);
     }
-    if (tryCatch.HasCaught()) { 
+    if (tryCatch.HasCaught()) {
         TAG_LOGE(AAFwkTag::APPKIT, "%{public}s exception occurred", name);
         reinterpret_cast<NativeEngine*>(env)->HandleUncaughtException();
         hasCaughtException = true;
