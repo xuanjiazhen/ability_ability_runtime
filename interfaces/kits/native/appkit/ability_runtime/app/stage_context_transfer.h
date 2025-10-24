@@ -46,17 +46,13 @@ public:
     static NativeReference *GetDynamicRef(ETSRuntime &etsRuntime, ani_ref contextRef);
     static NativeReference *GetDynamicRef(napi_env napiEnv, std::shared_ptr<Context> stageContext);
 
-    static bool HasTransferDynamic(std::shared_ptr<AppStartupTask> startupTask, std::shared_ptr<Context> context);
+    static std::shared_ptr<Context> UnwrapContext(ani_env *aniEnv, ani_ref contextRef);
+    static std::shared_ptr<Context> UnwrapContext(napi_env napiEnv, std::shared_ptr<NativeReference> contextRef);
 
     void SaveContextRef(const std::string &moduleName, std::shared_ptr<NativeReference> ref);
     std::shared_ptr<NativeReference> GetContextRef(const std::string &moduleName);
 
 private:
-    static std::shared_ptr<Context> UnwrapContext(ani_env *aniEnv, ani_ref contextRef);
-
-    static std::shared_ptr<Context> UnwrapContext(napi_env napiEnv,
-        std::shared_ptr<NativeReference> contextRef);
-
     static std::unique_ptr<NativeReference> CreateNativeReference(napi_env napiEnv, std::shared_ptr<Context> stageContext);
 
     std::map<std::string, std::shared_ptr<NativeReference>> contextRefMap_;

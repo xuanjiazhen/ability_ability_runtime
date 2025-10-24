@@ -117,22 +117,6 @@ NativeReference *StageContextTransfer::GetDynamicRef(napi_env napiEnv, std::shar
     return nativeRef;
 }
 
-bool StageContextTransfer::HasTransferDynamic(std::shared_ptr<AppStartupTask> startupTask,
-    std::shared_ptr<Context> context)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "context null");
-        return false;
-    }
-    auto &bindingObj = context->GetBindingObject();
-    if (bindingObj == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null bindingObj");
-        return false;
-    }
-    return bindingObj->Get<NativeReference>() != nullptr;
-}
-
 void StageContextTransfer::SaveContextRef(const std::string &moduleName, std::shared_ptr<NativeReference> contextRef)
 {
     TAG_LOGI(AAFwkTag::CONTEXT, "Save contextRef:%{public}s", moduleName.c_str());
