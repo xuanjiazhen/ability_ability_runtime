@@ -35,6 +35,8 @@ constexpr const char *STARTUP_CONFIG_ENTRY_SIGNATURE_ON_REQUEST_CUSTOM_MATCH_RUL
     "L@ohos/app/ability/Want/Want;:Lstd/core/String;";
 constexpr const char *STARTUP_LISTEN_SIGNATURE_ON_COMPLETED = "L@ohos/base/BusinessError;:V";
 constexpr int32_t DEFAULT_AWAIT_TIMEOUT_MS = 10000;
+constexpr int32_t ARGC_ZERO = 0;
+constexpr int32_t ARGC_ONE = 1;
 }
 ETSStartupConfig::ETSStartupConfig(ani_env *env) : StartupConfig(), env_(env)
 {}
@@ -56,10 +58,18 @@ int32_t ETSStartupConfig::Init(Runtime &runtime, std::shared_ptr<Context> contex
         return ERR_STARTUP_INTERNAL_ERROR;
     }
     ani_status status = ANI_ERROR;
+    ani_ref funRef = nullptr;
+    if ((status = env_->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(configEntry), "OnConfig", &funRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "Object_GetPropertyByName_Ref OnConfig failed");
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+    if (!AppExecFwk::IsValidProperty(env_, funRef)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "null funRef");
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
     ani_ref config = nullptr;
-    if ((status = env_->Object_CallMethodByName_Ref(reinterpret_cast<ani_object>(configEntry), "onConfig",
-        ":V", &config)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STARTUP, "Object_CallMethodByName_Ref onConfig failed");
+    if ((status = env_->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ZERO, nullptr, &config)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "FunctionalObject_Call OnConfig failed");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
     if (config == nullptr) {
@@ -166,12 +176,22 @@ void ETSStartupConfig::InitListener(ani_env *env, ani_object config)
         }
 
         ani_object resultValue = ETSStartupConfig::BuildResult(env, result);
-
         ani_status status = ANI_ERROR;
-        if ((status = env->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(listener),
-            "onCompleted", STARTUP_LISTEN_SIGNATURE_ON_COMPLETED,
-            resultValue)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::STARTUP, "Function_Call onCompleted failed, %{public}d", status);
+        ani_ref funRef = nullptr;
+        if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(listener), "onCompleted",
+            &funRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::STARTUP, "Object_GetPropertyByName_Ref onCompleted failed");
+            return;
+        }
+        if (!AppExecFwk::IsValidProperty(env, funRef)) {
+            TAG_LOGE(AAFwkTag::STARTUP, "null funRef");
+            return;
+        }
+        ani_ref res = nullptr;
+        std::vector<ani_ref> argv = { resultValue };
+        if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ONE, argv.data(), &res)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::STARTUP, "FunctionalObject_Call onCompleted failed");
+            return;
         }
     };
     listener_ = std::make_shared<StartupListener>(onCompletedCallback);
