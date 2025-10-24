@@ -80,10 +80,9 @@ private:
     int32_t RunAutoStartupTaskInner(const std::function<void()> &callback, std::shared_ptr<AAFwk::Want> want,
         bool &isAsyncCallback, const std::string &moduleName, bool preAbilityStageLoad);
     
-    void UpdateStartupTasks(std::map<std::string, std::shared_ptr<StartupTask>> &tasks,
-        const std::string &moduleName);
+    void UpdateStartupTasks(std::map<std::string, std::shared_ptr<StartupTask>> &tasks);
 
-    void UpdateStartupTaskContextRef(std::shared_ptr<AppStartupTask> startupTask, const std::string &moduleName);
+    napi_env GetNapiEnv();
 
     bool isStartupTaskRegistered_ = false;
     ETSRuntime& etsRuntime_;

@@ -37,6 +37,7 @@
 #include "startup_config_instance.h"
 #include "startup_manager.h"
 #include "startup_task_instance.h"
+#include "startup_task_utils.h"
 #include "application_env.h"
 
 #ifdef WINDOWS_PLATFORM
@@ -430,7 +431,8 @@ int32_t ETSAbilityStage::RegisterEtsStartupTask(std::shared_ptr<AppExecFwk::HapM
             TAG_LOGE(AAFwkTag::APPKIT, "crate null startupTask");
             return ERR_INVALID_VALUE;
         }
-        UpdateStartupTaskContextRef(startupTask, hapModuleInfo->name);
+        StartupTaskUtils::UpdateStartupTaskContextRef(GetNapiEnv(), startupTask, GetContext(),
+            shellContextRef_->aniRef);
         startupTask->SetDependencies(item.dependencies);
         startupTask->SetIsExcludeFromAutoStart(item.excludeFromAutoStart);
         startupTask->SetCallCreateOnMainThread(item.callCreateOnMainThread);
@@ -467,7 +469,7 @@ int32_t ETSAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &ca
         return ERR_INVALID_VALUE;
     }
     auto tasks = startupTaskManager->GetStartupTasks();
-    UpdateStartupTasks(tasks, moduleName);
+    UpdateStartupTasks(tasks);
     result = startupTaskManager->Prepare();
     if (result != ERR_OK) {
         return result;
@@ -503,8 +505,7 @@ int32_t ETSAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &ca
     return ERR_OK;
 }
 
-void ETSAbilityStage::UpdateStartupTasks(std::map<std::string, std::shared_ptr<StartupTask>> &tasks,
-    const std::string &moduleName)
+void ETSAbilityStage::UpdateStartupTasks(std::map<std::string, std::shared_ptr<StartupTask>> &tasks)
 {
     for (auto &iter : tasks) {
         if (iter.second == nullptr) {
@@ -518,43 +519,24 @@ void ETSAbilityStage::UpdateStartupTasks(std::map<std::string, std::shared_ptr<S
         if (appStartupTask->GetModuleType() != AppExecFwk::ModuleType::SHARED) {
             continue;
         }
-        UpdateStartupTaskContextRef(appStartupTask, moduleName);
+        if (shellContextRef_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "shellContextRef_ null");
+            continue;
+        }
+        StartupTaskUtils::UpdateStartupTaskContextRef(GetNapiEnv(), appStartupTask, GetContext(),
+            shellContextRef_->aniRef);
     }
 }
 
-void ETSAbilityStage::UpdateStartupTaskContextRef(std::shared_ptr<AppStartupTask> startupTask,
-    const std::string &moduleName)
+napi_env ETSAbilityStage::GetNapiEnv()
 {
-    if (startupTask == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null startupTask");
-        return;
+    auto &jsRuntimePtr = etsRuntime_.GetJsRuntime();
+    if (jsRuntimePtr == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "jsRuntime is null");
+        return nullptr;
     }
-    if (startupTask->GetType() == AppStartupTask::TASK_TYPE_ETS) {
-        auto etsStartupTask = std::static_pointer_cast<EtsStartupTask>(startupTask);
-        if (shellContextRef_ == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "shellContextRef_ null");
-            return;
-        }
-        etsStartupTask->UpdateContextRef(shellContextRef_->aniRef);
-    } else if (startupTask->GetType() == AppStartupTask::TASK_TYPE_JS) {
-        std::shared_ptr<NativeReference> contextRef = nullptr;
-        if (!StageContextTransfer::GetInstance().HasTransferDynamic(startupTask, GetContext())) {
-            auto &jsRuntimePtr = etsRuntime_.GetJsRuntime();
-            if (jsRuntimePtr == nullptr) {
-                TAG_LOGE(AAFwkTag::CONTEXT, "jsRuntime is null");
-                return;
-            }
-            auto &jsRuntime = static_cast<JsRuntime &>(*jsRuntimePtr);
-            auto nativeRefPtr = StageContextTransfer::GetDynamicRef(jsRuntime.GetNapiEnv(), GetContext());
-            contextRef = std::shared_ptr<NativeReference>(nativeRefPtr);
-            StageContextTransfer::GetInstance().SaveContextRef(moduleName, contextRef);
-        } else {
-            contextRef = StageContextTransfer::GetInstance().GetContextRef(moduleName);
-        }
-        startupTask->UpdateContextRef(contextRef);
-    } else {
-        TAG_LOGW(AAFwkTag::APPKIT, "Unknown startup task type: %{public}s", startupTask->GetType().c_str());
-    }
+    auto &jsRuntime = static_cast<JsRuntime &>(*jsRuntimePtr);
+    return jsRuntime.GetNapiEnv();
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
