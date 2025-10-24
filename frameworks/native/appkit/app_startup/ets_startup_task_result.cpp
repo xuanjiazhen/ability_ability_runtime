@@ -15,19 +15,31 @@
 
 #include "ets_startup_task_result.h"
 
+#include "hilog_tag_wrapper.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 EtsStartupTaskResult::EtsStartupTaskResult() : StartupTaskResult()
 {}
 
-EtsStartupTaskResult::~EtsStartupTaskResult() = default;
+EtsStartupTaskResult::~EtsStartupTaskResult()
+{
+    if (aniEnv_ != nullptr && resultRef_ != nullptr) {
+        aniEnv_->GlobalReference_Delete(resultRef_);
+    }
+}
 
 EtsStartupTaskResult::EtsStartupTaskResult(int32_t resultCode, const std::string &resultMessage)
     : StartupTaskResult(resultCode, resultMessage)
 {}
 
-EtsStartupTaskResult::EtsStartupTaskResult(ani_ref result) : StartupTaskResult(), etsStartupResultRef_(result)
-{}
+EtsStartupTaskResult::EtsStartupTaskResult(ani_env *aniEnv, ani_object result) : StartupTaskResult(), aniEnv_(aniEnv)
+{
+    ani_status status = aniEnv_->GlobalReference_Create(result, &resultRef_);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GlobalReference_Create failed, status: %{public}d", status);
+    }
+}
 
 StartupTaskResult::ResultType EtsStartupTaskResult::GetResultType() const
 {
@@ -36,7 +48,7 @@ StartupTaskResult::ResultType EtsStartupTaskResult::GetResultType() const
 
 ani_ref EtsStartupTaskResult::GetEtsStartupResultRef() const
 {
-    return etsStartupResultRef_;
+    return resultRef_;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

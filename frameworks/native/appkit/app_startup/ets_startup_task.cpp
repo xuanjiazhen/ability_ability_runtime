@@ -55,12 +55,10 @@ int32_t EtsStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> c
         }
     }
 
-    // todo
-    // if (callCreateOnMainThread_) {
-    //     return EtsStartupTaskExecutor::RunOnMainThread(etsRuntime_, startupRef_, contextRef_, std::move(callback));
-    // }
-    // return EtsStartupTaskExecutor::RunOnTaskPool(etsRuntime_, startupRef_, contextRef_, std::move(callback));
-    return ERR_OK;
+    if (callCreateOnMainThread_) {
+        return ETSStartupTaskExecutor::RunOnMainThread(etsRuntime_.GetAniEnv(), startupRef_, contextRef_, std::move(callback));
+    }
+    return ETSStartupTaskExecutor::RunOnTaskPool(etsRuntime_.GetAniEnv(), startupRef_, contextRef_, std::move(callback));
 }
 
 int32_t EtsStartupTask::LoadEtsOhmUrl()

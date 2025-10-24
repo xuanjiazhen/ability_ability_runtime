@@ -149,9 +149,7 @@ void ETSStartupTaskExecutor::NativeOnTaskSuccess(ani_env *env, ani_object obj,
         return;
     }
 
-    ani_ref resultRef = reinterpret_cast<ani_ref>(result);
-
-    std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<EtsStartupTaskResult>(resultRef);
+    std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<EtsStartupTaskResult>(env, result);
     callback->Call(taskResult);
     
     delete callback;
