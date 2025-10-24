@@ -1451,7 +1451,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             return result;
         }
         abilityRequest.userId = validUserId;
-        if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
+        if (!isSendDialogResult && !HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkCallPermission error, result:%{public}d", result);
             eventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "HandleExecuteSAInterceptor failed");
             return result;
