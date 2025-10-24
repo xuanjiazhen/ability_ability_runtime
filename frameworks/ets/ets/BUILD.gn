@@ -1538,6 +1538,22 @@ ohos_prebuilt_etc("ability_ability_abc_etc") {
   deps = [ ":ability_ability_abc" ]
 }
 
+generate_static_abc("app_processInfo_abc") {
+  base_url = "./"
+  files = [ "./app/processInfo.ets" ]
+  is_boot_abc = "True"
+  device_dst_file =
+      "/system/framework/app_processInfo_abc.abc"
+}
+
+ohos_prebuilt_etc("app_processInfo_abc_etc") {
+  source = "$target_out_dir/app_processInfo_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":app_processInfo_abc" ]
+}
+
 group("ets_packages") {
   deps = [
     ":ability_ability_abc_etc",
@@ -1631,5 +1647,6 @@ group("ets_packages") {
     ":ui_service_host_proxy_abc_etc",
     ":ui_service_proxy_abc_etc",
     ":uri_permission_manager_abc_etc",
+    ":app_processInfo_abc_etc",
   ]
 }
