@@ -15,10 +15,11 @@
 
 import AbilityStageContext from 'application.AbilityStageContext'
 
-export default class StartupTask {
-    onDependencyCompleted(dependency: string, result: Any): void {}
+type OnDependencyCompletedFn = (dependency: string, result: Any) => void;
 
-    init(context: AbilityStageContext): Promise<Any> | Promise<void> {
-        return Promise.resolve();
-    }
+declare class StartupTask {
+    onDependencyCompleted?: OnDependencyCompletedFn;
+
+    init(context: AbilityStageContext): Promise<Any> | Promise<void>;
 }
+export default StartupTask;
