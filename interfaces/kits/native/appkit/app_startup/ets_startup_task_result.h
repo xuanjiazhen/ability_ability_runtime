@@ -29,14 +29,15 @@ public:
 
     EtsStartupTaskResult(int32_t resultCode, const std::string &resultMessage);
 
-    explicit EtsStartupTaskResult(ani_ref result);
+    explicit EtsStartupTaskResult(ani_env *aniEnv, ani_object result);
 
     ResultType GetResultType() const override;
 
     ani_ref GetEtsStartupResultRef() const;
 
 private:
-    ani_ref etsStartupResultRef_ = nullptr;
+    ani_env *aniEnv_ = nullptr;
+    ani_ref resultRef_ = nullptr;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
