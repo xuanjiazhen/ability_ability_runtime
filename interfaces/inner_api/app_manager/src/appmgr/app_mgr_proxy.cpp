@@ -2639,7 +2639,7 @@ int32_t AppMgrProxy::RegisterApplicationStateObserverWithFilter(sptr<IApplicatio
     return reply.ReadInt32();
 }
 
-void AppMgrProxy::SetIsAllowedScbAccessBackground()
+void AppMgrProxy::AllowScbProcessMoveToBackground()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
