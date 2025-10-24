@@ -11626,7 +11626,7 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
     auto sessionInfo = abilityRequest.sessionInfo;
     CHECK_POINTER_AND_RETURN(sessionInfo, false);
     auto hostWindowId = sessionInfo->hostWindowId;
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    auto sceneSessionManager = Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(validUserId);
     CHECK_POINTER_AND_RETURN(sceneSessionManager, false);
     pid_t hostPid = 0;
     // If host window id is scb, it will return with error.
