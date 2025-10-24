@@ -21,7 +21,10 @@
 #include "ets_startup_config.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "stage_context_transfer.h"
 #include "startup_manager.h"
+#include "startup_task_utils.h"
 #include "ability_stage_context.h"
 
 namespace OHOS {
@@ -180,9 +183,8 @@ int32_t ETSStartupManager::RunStartupTask(ani_env *env, ani_object startupTasks,
         TAG_LOGE(AAFwkTag::STARTUP, "startup task manager is null");
         return ERR_STARTUP_INVALID_VALUE;
     }
-    // if (abilityStageContext != nullptr) {
-        // startupTaskManager->UpdateStartupTaskContextRef(reinterpret_cast<ani_ref>(abilityStageContext), true);
-    // }
+    auto tasks = startupTaskManager->GetStartupTasks();
+    UpdateStartupTasks(env, tasks, reinterpret_cast<ani_ref>(abilityStageContext));
     result = startupTaskManager->Prepare();
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "prepare startup task manager failed");
@@ -215,6 +217,29 @@ void ETSStartupManager::NativeRemoveAllStartupTaskResults(ani_env *env)
     TAG_LOGD(AAFwkTag::STARTUP, "called");
     DelayedSingleton<StartupManager>::GetInstance()->RemoveAllResult();
     return;
+}
+
+void ETSStartupManager::UpdateStartupTasks(ani_env *env, std::map<std::string, std::shared_ptr<StartupTask>> &tasks,
+    ani_ref stageContextRef)
+{
+    napi_env napiEnv = {};
+    if (!arkts_napi_scope_open(env, &napiEnv)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "arkts_napi_scope_open failed");
+        return;
+    }
+    for (auto &iter : tasks) {
+        if (iter.second == nullptr) {
+            continue;
+        }
+        if (iter.second->GetType() != AppStartupTask::TASK_TYPE_JS &&
+            iter.second->GetType() != AppStartupTask::TASK_TYPE_ETS) {
+            continue;
+        }
+        std::shared_ptr<AppStartupTask> appStartupTask = std::static_pointer_cast<AppStartupTask>(iter.second);
+        auto context = StageContextTransfer::UnwrapContext(env, stageContextRef);
+        StartupTaskUtils::UpdateStartupTaskContextRef(napiEnv, appStartupTask, context, stageContextRef);
+    }
+    arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
 }
 
 void ETSStartupManagerInit(ani_env *env)

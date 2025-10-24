@@ -104,6 +104,16 @@ private:
      * @return Error code indicating success or failure
      */
     static int32_t GetConfig(ani_env *env, ani_object configObj, std::shared_ptr<StartupConfig> &config);
+
+    /**
+     * Update startup tasks context reference
+     * 
+     * @param env The ANI environment
+     * @param tasks The startup tasks to update
+     * @param stageContextRef The ability stage context reference
+     */
+    static void UpdateStartupTasks(ani_env *env, std::map<std::string, std::shared_ptr<StartupTask>> &tasks,
+        ani_ref stageContextRef);
 };
 
 /**
