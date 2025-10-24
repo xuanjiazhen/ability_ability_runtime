@@ -1161,7 +1161,7 @@ public:
         return hasBeenExistedMasterProcessRole_.load();
     }
 
-    inline void SetIsAllowedScbAccessBackground()
+    inline void AllowScbProcessMoveToBackground()
     {
         isAllowedScbAccessBackground_.store(true);
     }
