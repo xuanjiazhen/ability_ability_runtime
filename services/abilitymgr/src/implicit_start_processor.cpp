@@ -141,12 +141,8 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     std::vector<DialogAppInfo> dialogAppInfos;
     request.want.RemoveParam(APP_CLONE_INDEX);
     GenerateRequestParam genReqParam;
-    int32_t ret = ERR_OK;
-    if (isAppCloneSelector) {
-        ret = GenerateAbilityRequestByAppIndexes(userId, request, dialogAppInfos);
-    } else {
-        ret = GenerateAbilityRequestByAction(userId, request, dialogAppInfos, genReqParam);
-    }
+    int32_t ret = isAppCloneSelector ? GenerateAbilityRequestByAppIndexes(userId, request, dialogAppInfos) :
+        GenerateAbilityRequestByAction(userId, request, dialogAppInfos, genReqParam);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate request failed");
         return ret;
