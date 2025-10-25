@@ -8326,6 +8326,11 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
 void AbilityManagerService::SubscribeScreenUnlockedEvent()
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    std::lock_guard<std::mutex> lock(subscribedMutex_);
+    if (isSubscribed_) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Screen unlocked event subscriber already exists");
+        return;
+    }
     // add listen screen unlocked.
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
@@ -8338,6 +8343,7 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
     if (!subResult) {
         RetrySubscribeScreenUnlockedEvent(RETRY_COUNT);
     }
+    isSubscribed_ = true;
 }
 
 std::function<void()> AbilityManagerService::GetScreenUnlockCallback()
@@ -8396,7 +8402,11 @@ std::function<void()> AbilityManagerService::GetUserScreenUnlockCallback()
 void AbilityManagerService::UnSubscribeScreenUnlockedEvent()
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    std::lock_guard<std::mutex> lock(subscribedMutex_);
     bool subResult = EventFwk::CommonEventManager::UnSubscribeCommonEvent(screenSubscriber_);
+    if (subResult) {
+        isSubscribed_ = false;
+    }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Screen unlocked event subscriber unsubscribe result is %{public}d.", subResult);
 }
 
