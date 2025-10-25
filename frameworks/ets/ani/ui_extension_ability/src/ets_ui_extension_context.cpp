@@ -403,7 +403,7 @@ void EtsUIExtensionContext::OnStartUIAbilities(ani_env *env, ani_object aniObj, 
     }
     innerErrCode = context->StartUIAbilities(wantList, requestKey);
 
-    TAG_LOGI(AAFwkTag::UI_EXT, "startUIAbilities complete innerErrCode: %{public}d", innerErrCode);
+    // TAG_LOGI(AAFwkTag::UI_EXT, "startUIAbilities complete innerErrCode: %{public}d", innerErrCode);
     if (innerErrCode == AAFwk::START_UI_ABILITIES_WAITING_SPECIFIED_CODE) {
         TAG_LOGI(AAFwkTag::UI_EXT, "startUIAbilities waiting specified.");
         ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
@@ -788,7 +788,7 @@ void EtsUIExtensionContext::OnStartUIServiceExtension(ani_env *env, ani_object w
     }
     int32_t innerErrCode = static_cast<int32_t>(ERR_OK);
     innerErrCode = context->StartUIServiceExtension(want);
-    TAG_LOGD(AAFwkTag::UI_EXT, "StartUIServiceExtension code:%{public}d", innerErrCode);
+    // TAG_LOGD(AAFwkTag::UI_EXT, "StartUIServiceExtension code:%{public}d", innerErrCode);
     AppExecFwk::AsyncCallback(env, callback,
         AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
 }
@@ -901,7 +901,7 @@ void EtsUIExtensionContext::OnStartUIAbilitiesInSplitWindowMode(ani_env *env, an
     }
     int32_t innerErrCode = static_cast<int32_t>(ERR_OK);
     innerErrCode = context->StartUIAbilitiesInSplitWindowMode(primaryWindowId, want);
-    TAG_LOGD(AAFwkTag::UI_EXT, "StartUIServiceExtension code:%{public}d", innerErrCode);
+    // TAG_LOGD(AAFwkTag::UI_EXT, "StartUIServiceExtension code:%{public}d", innerErrCode);
     AppExecFwk::AsyncCallback(env, callback,
         AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
 }
@@ -1071,7 +1071,7 @@ bool EtsUIExtensionContext::UnwrapWantList(ani_env *env, ani_object wantListObj,
     for (ani_size i = 0; i < arrayLength; i++) {
         ani_ref wantRef  = nullptr;
         if (env->Array_Get_Ref(wantListArray, i, &wantRef) != ANI_OK || wantRef == nullptr) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "Failed to get want object at index %{public}d", i);
+            // TAG_LOGE(AAFwkTag::UI_EXT, "Failed to get want object at index %{public}d", i);
             return false;
         }
         ani_object wantObj = reinterpret_cast<ani_object>(wantRef);

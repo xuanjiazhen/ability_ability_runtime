@@ -586,7 +586,7 @@ bool EtsServiceExtensionContext::UnwrapWantList(ani_env *env, ani_object wantLis
     for (ani_size i = 0; i < arrayLength; i++) {
         ani_ref wantRef  = nullptr;
         if (env->Array_Get_Ref(wantListArray, i, &wantRef) != ANI_OK || wantRef == nullptr) {
-            TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to get want object at index %{public}d", i);
+            // TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to get want object at index %{public}d", i);
             return false;
         }
         ani_object wantObj = reinterpret_cast<ani_object>(wantRef);
