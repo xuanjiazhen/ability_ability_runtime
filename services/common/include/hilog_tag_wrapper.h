@@ -217,7 +217,7 @@ static inline std::unordered_map<std::string, std::string> abbrFileNameMap = {
     { "service_extension_context", "SEC" },
     { "ui_ability_lifecycle_manager", "UALM" },
     { "window_pid_visibility_changed_listener", "WND_CHG_LSNR" }
-}
+};
 
 static inline std::string CovertFileName(const std::string& fileName)
 {
