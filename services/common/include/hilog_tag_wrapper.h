@@ -218,7 +218,7 @@ static inline std::unordered_map<std::string, std::string> abbrFileNameMap = {
     { "window_pid_visibility_changed_listener.cpp", "WND_CHG_LSNR" }
 };
 
-static inline std::string CovertFileName(const std::string& fileName)
+static inline std::string ConvertFileName(const std::string& fileName)
 {
     if (abbrFileNameMap.find(fileName) != abbrFileNameMap.end()) {
         return abbrFileNameMap[fileName];
@@ -256,7 +256,7 @@ using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
 #define AAFWK_PRINT_LOG(level, tag, fmt, ...)                                                           \
     do {                                                                                                \
         AAFwkTag logTag = tag;                                                                          \
-        std::string abbrFileName = OHOS::AAFwk::CovertFileName(std::string(AAFWK_FILE_NAME));   \
+        std::string abbrFileName = OHOS::AAFwk::ConvertFileName(std::string(AAFWK_FILE_NAME));   \
         ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                               \
         OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, \
         abbrFileName.c_str(), __LINE__, ##__VA_ARGS__));  \
