@@ -2040,7 +2040,7 @@ HWTEST_F(AppMgrServiceTest, GetSupportedProcessCachePids_002, TestSize.Level2)
 {
     auto appMgrService = std::make_shared<AppMgrService>();
     ASSERT_NE(appMgrService, nullptr);
-
+    OHOS::AppExecFwk::MockNativeToken::SetNativeToken();
     appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
