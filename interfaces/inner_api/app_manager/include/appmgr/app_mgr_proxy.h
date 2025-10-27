@@ -862,6 +862,8 @@ public:
      */
     int32_t DemoteCurrentFromCandidateMasterProcess() override;
 
+    void AllowScbProcessMoveToBackground() override;
+
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

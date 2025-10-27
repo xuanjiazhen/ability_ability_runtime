@@ -10524,5 +10524,22 @@ int32_t AppMgrServiceInner::QueryRunningSharedBundles(pid_t pid, std::map<std::s
     }
     return ERR_OK;
 }
+
+void AppMgrServiceInner::AllowScbProcessMoveToBackground()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    if (!IsSceneBoardCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not called by sceneBoard");
+        return;
+    }
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no appRecord");
+        return;
+    }
+    appRecord->AllowScbProcessMoveToBackground();
+    return;
+}
 } // namespace AppExecFwk
 }  // namespace OHOS

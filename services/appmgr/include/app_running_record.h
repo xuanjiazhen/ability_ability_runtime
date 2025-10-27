@@ -1141,6 +1141,16 @@ public:
         return timeStamp_;
     }
 
+    inline void AllowScbProcessMoveToBackground()
+    {
+        isAllowScbProcessMoveToBackground_.store(true);
+    }
+
+    inline bool IsAllowScbProcessMoveToBackground() const
+    {
+        return isAllowScbProcessMoveToBackground_.load();
+    }
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1328,6 +1338,7 @@ private:
 
     bool isMasterProcess_ = false; // Only MasterProcess can be keepalive
     int64_t timeStamp_ = 0; // the flag of BackUpMainControlProcess
+    std::atomic<bool> isAllowScbProcessMoveToBackground_ = false;
 };
 
 }  // namespace AppExecFwk

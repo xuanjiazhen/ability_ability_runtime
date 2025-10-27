@@ -406,6 +406,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleDemoteCurrentFromCandidateMasterProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::QUERY_RUNNING_SHARED_BUNDLES):
             return HandleQueryRunningSharedBundles(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::ALLOW_SCB_PROCESS_MOVE_TO_BACKGROUND):
+            return HandleAllowScbProcessMoveToBackground(data, reply);
     }
     return INVALID_FD;
 }
@@ -2066,6 +2068,13 @@ int32_t AppMgrStub::HandleQueryRunningSharedBundles(MessageParcel &data, Message
             return IPC_STUB_ERR;
         }
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleAllowScbProcessMoveToBackground(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    AllowScbProcessMoveToBackground();
     return NO_ERROR;
 }
 }  // namespace AppExecFwk
