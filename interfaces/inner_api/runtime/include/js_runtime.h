@@ -170,7 +170,8 @@ public:
     void UpdatePkgContextInfoJson(const std::string& moduleName, const std::string& hapPath,
         const std::string& packageName);
     bool Init(const Options& options);
-    Options GetOptions() const;
+    Options &GetOptions();
+    void SetOptions(const Options& options);
     size_t GetHeapTotalSize();
     size_t GetHeapObjectSize();
 

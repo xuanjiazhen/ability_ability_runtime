@@ -2552,7 +2552,7 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
 
     mainThreadState_ = MainThreadState::RUNNING;
     wptr<MainThread> weak = this;
-    auto callback = [weak, abilityRecord](const std::shared_ptr<AbilityRuntime::Context> &stageContext) {
+    auto callback = [this, weak, abilityRecord](const std::shared_ptr<AbilityRuntime::Context> &stageContext) {
         auto appThread = weak.promote();
         if (appThread == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
@@ -2564,16 +2564,30 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
             TAG_LOGE(AAFwkTag::APPKIT, "null application");
             return;
         }
-        string arkTSMode = abilityRecord->GetAbilityInfo()->arkTSMode;
-        if (arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 ) {
+        string AbilityArkTSMode = abilityRecord->GetAbilityInfo()->arkTSMode;
+        if(AbilityArkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 || AbilityArkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID){
+            auto applicationInfo = this->GetApplicationInfo();
+            if(applicationInfo->arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0){
+                auto &runtime = application->GetRuntime();
+                auto &jsRuntimePoint = (static_cast<AbilityRuntime::JsRuntime &>(*runtime));
+                AbilityRuntime::Runtime::Options options = jsRuntimePoint.GetOptions();
+                if(options.lang == AbilityRuntime::Runtime::Language::JS){
+                    options.lang = AbilityRuntime::Runtime::Language::ETS;
+                    auto etsRuntime = AbilityRuntime::Runtime::Create(options);
+                    appThread->UpdateRuntimeModuleChecker(etsRuntime);
+                    // auto expectionInfo =
+                    //     CreateEtsExceptionInfo(options.bundleName, options.versionCode, options.hapPath, AppRunningId, Pid, ProcessName);
+                    // AppRunningId, Pid, ProcessName 三个参数有问题
+                    // (static_cast<AbilityRuntime::ETSRuntime&>(*etsRuntime)).RegisterUncaughtExceptionHandler(expectionInfo);
+                }else{
+                    auto &runtime = application->GetRuntime();
+                    appThread->UpdateRuntimeModuleChecker(runtime);
+                }
+            } else {
             auto &runtime = application->GetRuntime();
-            // 构建 ETSRuntime::Options
-            auto &jsRuntimePoint = (static_cast<AbilityRuntime::JsRuntime &>(*runtime));
-            AbilityRuntime::Runtime::Options options = jsRuntimePoint.GetOptions();
-            options.lang = AbilityRuntime::Runtime::Language::ETS;
-            auto etsRuntime = AbilityRuntime::Runtime::Create(options);
-            appThread->UpdateRuntimeModuleChecker(etsRuntime);
-        } else {
+            appThread->UpdateRuntimeModuleChecker(runtime);
+            }
+        }else{
             auto &runtime = application->GetRuntime();
             appThread->UpdateRuntimeModuleChecker(runtime);
         }
