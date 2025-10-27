@@ -46,9 +46,9 @@ const std::unique_ptr<Runtime> &StartupTaskInstance::GetSpecifiedRuntime(
 }
 
 std::shared_ptr<AppStartupTask> StartupTaskInstance::CreateStartupTask(const std::unique_ptr<Runtime> &runtime, 
-    const std::string &arkTsMode, const StartupTaskInfo &info, bool lazyLoad)
+    const std::string &arkTSMode, const StartupTaskInfo &info, bool lazyLoad)
 {
-    auto &taskRuntime = GetSpecifiedRuntime(runtime, arkTsMode);
+    auto &taskRuntime = GetSpecifiedRuntime(runtime, arkTSMode);
     if (taskRuntime == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null taskRuntime");
         return nullptr;
@@ -69,6 +69,7 @@ std::shared_ptr<AppStartupTask> StartupTaskInstance::CreateStartupTask(const std
 std::shared_ptr<AppStartupTask> StartupTaskInstance::CreateJsStartupTask(const std::unique_ptr<Runtime> &runtime,
     const StartupTaskInfo &info, bool lazyLoad)
 {
+    TAG_LOGD(AAFwkTag::STARTUP, "CreateJsStartupTask");
     if (runtime == nullptr) {
         return nullptr;
     }
@@ -79,6 +80,7 @@ std::shared_ptr<AppStartupTask> StartupTaskInstance::CreateJsStartupTask(const s
 std::shared_ptr<AppStartupTask> StartupTaskInstance::CreateEtsStartupTask(const std::unique_ptr<Runtime> &runtime,
     const StartupTaskInfo &info, bool lazyLoad)
 {
+    TAG_LOGD(AAFwkTag::STARTUP, "CreateEtsStartupTask");
     std::lock_guard<std::mutex> lock(g_etsStartupTaskCreateFuncMutex);
     if (g_etsStartupTaskCreateFunc != nullptr) {
         auto taskPtr = g_etsStartupTaskCreateFunc(runtime, info, lazyLoad);
