@@ -358,6 +358,8 @@ private:
         const std::string& startTime, const std::string& url)
     {
         auto innerErrorCode = std::make_shared<int>(ERR_OK);
+        napi_value result = nullptr;
+        AddFreeInstallObserver(env, want, nullptr, &result, true);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, innerErrorCode]() {
             auto context = weak.lock();
             if (!context) {
@@ -388,8 +390,6 @@ private:
             freeInstallObserver->OnInstallFinishedByUrl(startTime, url, *innerErrorCode);
         };
 
-        napi_value result = nullptr;
-        AddFreeInstallObserver(env, want, nullptr, &result, true);
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnOpenLink", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
         
@@ -489,6 +489,8 @@ private:
         std::string startTime)
     {
         auto innerErrorCode = std::make_shared<int>(ERR_OK);
+        napi_value result = nullptr;
+        AddFreeInstallObserver(env, want, nullptr, &result);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, options, innerErrorCode]() {
             auto context = weak.lock();
             if (!context) {
@@ -523,8 +525,6 @@ private:
                 context->OnRequestFailure(options.requestId_, want.GetElement(), jsonObject.dump());
             }
         };
-        napi_value result = nullptr;
-        AddFreeInstallObserver(env, want, nullptr, &result);
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnOpenAtomicService", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
         return result;
