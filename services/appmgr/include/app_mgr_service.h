@@ -883,6 +883,8 @@ public:
     int32_t LaunchAbility(sptr<IRemoteObject> token) override;
     
     virtual int32_t QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles) override;
+
+    void SetIsAllowedScbAccessBackground() override;
 private:
     /**
      * Init, Initialize application services.

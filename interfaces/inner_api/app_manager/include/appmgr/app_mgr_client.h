@@ -1018,6 +1018,8 @@ public:
 
     int32_t VerifyKillProcessPermission(const std::string &bundleName) const;
 
+    void SetIsAllowedScbAccessBackground();
+
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
     /**

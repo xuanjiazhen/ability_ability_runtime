@@ -2485,5 +2485,19 @@ int32_t AppMgrProxy::QueryRunningSharedBundles(pid_t pid, std::map<std::string, 
     }
     return ERR_OK;
 }
+
+void AppMgrProxy::SetIsAllowedScbAccessBackground()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+
+    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::SET_IS_ALLOWED_SCB_ACCESSS_BACKGROUND, data, reply, option);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
