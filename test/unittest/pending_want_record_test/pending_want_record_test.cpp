@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "bundlemgr/mock_bundle_manager.h"
+#include "mock_bundle_mgr_helper.h"
 #include "mock_ability_connect_callback.h"
 #include "ability_manager_errors.h"
 #include "ability_scheduler.h"
@@ -743,6 +744,30 @@ HWTEST_F(PendingWantRecordTest, PendingWantRecordTest_2500, TestSize.Level1)
     pendingWantRecord->CheckAppInstanceKey(bundleName, params);
     EXPECT_EQ(params.GetStringParam(
         std::string("ohos.extra.param.key.appInstance")), std::string("app_instance_3"));
+}
+
+/*
+ * @tc.number    : PendingWantRecordTest_2600
+ * @tc.name      : GetAppIndexbyUid
+ * @tc.desc      : 1.GetAppIndexbyUid
+ */
+HWTEST_F(PendingWantRecordTest, PendingWantRecordTest_2600, TestSize.Level1)
+{
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    want.SetParam(std::string("ohos.extra.param.key.appInstance"), std::string("app_instance_100"));
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    EXPECT_NE(pendingManager_, nullptr);
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, (int32_t)Flags::ONE_TIME_FLAG, 0);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    EXPECT_NE(key, nullptr);
+    key->SetType(static_cast<int32_t>(OperationType::START_SERVICE));
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+    int32_t appIndex;
+    int32_t ret = PendingWantRecord::GetAppIndexbyUid(uid, bundleName, appIndex);
+    EXPECT_NE(ret, NO_ERROR);
 }
 
 /*
