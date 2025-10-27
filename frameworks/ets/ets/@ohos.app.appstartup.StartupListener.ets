@@ -15,9 +15,7 @@
 
 import { BusinessError } from '@ohos.base';
 
-type OnCompletedFn = (error: BusinessError<void>) => void;
-
-declare class StartupListener {
-    onCompleted?: OnCompletedFn;
+export default class StartupListener {
+    onCompleted(error: BusinessError<void>): void {
+    }
 }
-export default StartupListener;
