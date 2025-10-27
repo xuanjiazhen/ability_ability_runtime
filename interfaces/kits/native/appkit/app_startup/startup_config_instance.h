@@ -27,7 +27,7 @@ namespace AbilityRuntime {
 class StartupConfigInstance {
 public:
     static std::shared_ptr<StartupConfig> CreateStartupConfig(const std::unique_ptr<Runtime> &runtime,
-        const std::string &arkTsMode);
+        const std::string &arkTSMode);
 
 private:
     static std::shared_ptr<StartupConfig> CreateJsStartupConfig(const std::unique_ptr<Runtime> &runtime);

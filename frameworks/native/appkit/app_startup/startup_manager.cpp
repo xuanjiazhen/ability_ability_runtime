@@ -62,7 +62,7 @@ constexpr const char* PRE_ABILITY_STAGE_LOAD = "preAbilityStageLoad";
 constexpr const char* PRELOAD_SYSTEM_SO_STARTUP_TASKS = "systemPreloadHintStartupTasks";
 constexpr const char* PRELOAD_SYSTEM_SO_ALLOWLIST_FILE_PATH = "/etc/ability_runtime_app_startup.json";
 constexpr const char* SYSTEM_PRELOAD_SO_ALLOW_LIST = "systemPreloadSoAllowList";
-constexpr const char* ARK_TS_MODE = "arkTsMode";
+constexpr const char* ARK_TS_MODE = "arkTSMode";
 
 struct StartupTaskResultCallbackInfo {
     std::unique_ptr<StartupTaskResultCallback> callback_;
@@ -1002,9 +1002,9 @@ bool StartupManager::AnalyzeStartupConfig(const ModuleStartupConfigInfo& info, c
         }
         pendingConfigEntry.first = pendingConfigEntrySrc;
         if (startupConfigJson.contains(ARK_TS_MODE) && startupConfigJson[ARK_TS_MODE].is_string()) {
-            TAG_LOGD(AAFwkTag::STARTUP, "has arkTsMode.");
-            std::string arkTsMode = startupConfigJson.at(ARK_TS_MODE).get<std::string>();
-            pendingConfigEntry.second = arkTsMode;
+            TAG_LOGD(AAFwkTag::STARTUP, "has arkTSMode.");
+            std::string arkTSMode = startupConfigJson.at(ARK_TS_MODE).get<std::string>();
+            pendingConfigEntry.second = arkTSMode;
         }
     }
 
@@ -1084,7 +1084,7 @@ bool StartupManager::AnalyzeAppStartupTaskInner(const ModuleStartupConfigInfo& i
         return false;
     }
     if (startupTaskJson.contains(ARK_TS_MODE) && startupTaskJson[ARK_TS_MODE].is_string()) {
-        startupTaskInfo.arkTsMode = startupTaskJson[ARK_TS_MODE].get<std::string>();
+        startupTaskInfo.arkTSMode = startupTaskJson[ARK_TS_MODE].get<std::string>();
     }
     SetOptionalParameters(startupTaskJson, info.moduleType_, startupTaskInfo);
     pendingStartupTaskInfos.emplace_back(startupTaskInfo);

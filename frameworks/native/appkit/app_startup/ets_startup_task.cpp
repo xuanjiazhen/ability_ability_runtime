@@ -63,7 +63,7 @@ int32_t EtsStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> c
 
 int32_t EtsStartupTask::LoadEtsOhmUrl()
 {
-    TAG_LOGD(AAFwkTag::STARTUP, "LoadEtsOhmUrl call");
+    TAG_LOGD(AAFwkTag::STARTUP, "LoadEtsOhmUrl call, srcEntry: %{private}s", srcEntry_.c_str());
     if (srcEntry_.empty() && ohmUrl_.empty()) {
         TAG_LOGE(AAFwkTag::STARTUP, "srcEntry and ohmUrl empty");
         return ERR_STARTUP_INTERNAL_ERROR;
@@ -72,12 +72,10 @@ int32_t EtsStartupTask::LoadEtsOhmUrl()
     std::string moduleNameWithStartupTask = GetModuleName() + "::startupTask";
     std::string srcPath(GetModuleName() + "/" + srcEntry_);
     auto pos = srcPath.rfind('.');
-    if (pos == std::string::npos) {
-        TAG_LOGE(AAFwkTag::STARTUP, "invalid srcEntry");
-        return ERR_STARTUP_INTERNAL_ERROR;
+    if (pos != std::string::npos) {
+        srcPath.erase(pos);
+        srcPath.append(".abc");
     }
-    srcPath.erase(pos);
-    srcPath.append(".abc");
     
     auto startupEtsRef = etsRuntime_.LoadModule(moduleNameWithStartupTask, srcPath, hapPath_, esModule_, false, ohmUrl_);
     if (startupEtsRef == nullptr || startupEtsRef->aniRef == nullptr) {

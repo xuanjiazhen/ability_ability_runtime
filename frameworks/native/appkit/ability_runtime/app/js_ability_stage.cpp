@@ -677,7 +677,7 @@ int32_t JsAbilityStage::RegisterJsStartupTask(std::shared_ptr<AppExecFwk::HapMod
     }
     const std::vector<StartupTaskInfo> startupTaskInfos = startupManager->GetStartupTaskInfos(hapModuleInfo->name);
     for (const auto& item : startupTaskInfos) {
-        auto startupTask = StartupTaskInstance::CreateStartupTask(application->GetRuntime(), item.arkTsMode, item,
+        auto startupTask = StartupTaskInstance::CreateStartupTask(application->GetRuntime(), item.arkTSMode, item,
             startupManager->EnableLazyLoadingAppStartupTasks());
         if (startupTask == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "crate null startupTask");
@@ -759,13 +759,13 @@ bool JsAbilityStage::LoadJsStartupConfig(const std::pair<std::string, std::strin
         TAG_LOGE(AAFwkTag::APPKIT, "null application");
         return false;
     }
-    auto arkTsMode = configEntry.second;
-    auto startupConfig = StartupConfigInstance::CreateStartupConfig(application->GetRuntime(), arkTsMode);
+    auto arkTSMode = configEntry.second;
+    auto startupConfig = StartupConfigInstance::CreateStartupConfig(application->GetRuntime(), arkTSMode);
     if (startupConfig == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null startupConfig");
         return false;
     }
-    auto &runtime = StartupTaskInstance::GetSpecifiedRuntime(application->GetRuntime(), arkTsMode);
+    auto &runtime = StartupTaskInstance::GetSpecifiedRuntime(application->GetRuntime(), arkTSMode);
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return false;
