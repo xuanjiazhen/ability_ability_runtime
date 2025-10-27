@@ -326,7 +326,7 @@ constexpr int32_t DEFAULT_REQUEST_CODE = -1;
 constexpr const char* PARAM_PREVENT_STARTABILITY = "persist.sys.abilityms.prevent_startability";
 constexpr const char* SUSPEND_SERVICE_CONFIG_FILE = "/etc/efficiency_manager/prevent_startability_whitelist.json";
 constexpr const char* VPN_WHITELIST_CONFIG_FILE = "/system/etc/vpn_startability_whitelist.json";
-constexpr const char* VPN_WHITE_BundleNames = "bundleNames";
+constexpr const char* VPN_WHITE_BUNDLENAMES = "bundleNames";
 constexpr int32_t MAX_BUFFER = 2048;
 constexpr int32_t API12 = 12;
 constexpr int32_t API20 = 20;
@@ -449,7 +449,7 @@ bool AbilityManagerService::Init()
     insightIntentEventMgr_ = std::make_shared<AbilityRuntime::InsightIntentEventMgr>();
     insightIntentEventMgr_->SubscribeSysEventReceiver();
     ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent();
-    if (!ParseVpnWhiteListJson(VPN_WHITELIST_CONFIG_FILE, VPN_WHITE_BundleNames)) {
+    if (!ParseVpnWhiteListJson(VPN_WHITELIST_CONFIG_FILE, VPN_WHITE_BUNDLENAMES)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "parse vpn white list json fail");
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "init success");
