@@ -373,6 +373,15 @@
           },
           {
             "header": {
+              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_observer/include",
+              "header_files": [
+                "ets_start_abilities_observer.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_observer:ani_observer"
+          },
+          {
+            "header": {
               "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_ability_common",
               "header_files": [
               ]
