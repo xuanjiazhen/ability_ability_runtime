@@ -338,6 +338,10 @@ void AbilityRecord::LoadUIAbility()
         std::lock_guard guard(wantLock_);
         loadTimeout = want_.GetBoolParam("coldStart", false) ? coldStartTimeout : loadTimeout;
     }
+    if (IsPreloadStart()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "preload, no event sent");
+        return;
+    }
     SendEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, loadTimeout / HALF_TIMEOUT);
     SendEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, loadTimeout);
     std::string methodName = "LoadAbility";
