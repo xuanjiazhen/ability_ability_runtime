@@ -113,20 +113,9 @@ int32_t EtsStartupTask::RunTaskOnDependencyCompleted(const std::string &dependen
 
     ani_string dependency = AppExecFwk::GetAniString(env, dependencyName);
     ani_ref etsResult = GetDependencyResult(env, dependencyName, result);
-    ani_status status = ANI_ERROR;
-    ani_ref funRef = nullptr;
-    if ((status = env->Object_GetPropertyByName_Ref(startupObj, "onDependencyCompleted", &funRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STARTUP, "Object_GetPropertyByName_Ref onCompleted failed");
-        return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
-    }
-    if (!AppExecFwk::IsValidProperty(env, funRef)) {
-        TAG_LOGE(AAFwkTag::STARTUP, "null funRef");
-        return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
-    }
-    ani_ref res = nullptr;
-    std::vector<ani_ref> argv = { dependency, etsResult };
-    if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), 2, argv.data(), &res)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STARTUP, "FunctionalObject_Call onCompleted failed");
+    ani_status status = env->Object_CallMethodByName_Void(startupObj, "onDependencyCompleted", nullptr, dependency, etsResult);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "%{public}s, call onDependencyCompleted fail:%{public}d", name_.c_str(), status);
         return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
     }
     return ERR_OK;
