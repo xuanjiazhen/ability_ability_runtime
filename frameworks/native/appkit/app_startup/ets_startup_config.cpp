@@ -98,7 +98,7 @@ int32_t ETSStartupConfig::Init(ani_object config)
 std::unique_ptr<AppExecFwk::ETSNativeReference> ETSStartupConfig::LoadSrcEntry(ETSRuntime &etsRuntime,
     std::shared_ptr<Context> context, const std::string &srcEntry)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "LoadSrcEntry call");
+    TAG_LOGD(AAFwkTag::APPKIT, "LoadSrcEntry call, srcEntry: %{private}s", srcEntry.c_str());
     if (srcEntry.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "srcEntry invalid");
         return nullptr;
@@ -113,16 +113,16 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> ETSStartupConfig::LoadSrcEntry(E
         return nullptr;
     }
 
-    std::string moduleName(hapModuleInfo->moduleName);
-    std::string srcPath(moduleName + "/" + srcEntry);
+    std::string moduleNameWithStartupConfig(hapModuleInfo->moduleName + "::startupConfig");
+    std::string srcPath(srcEntry);
     auto pos = srcPath.rfind('.');
-    if (pos == std::string::npos) {
-        return nullptr;
+    if (pos != std::string::npos) {
+        srcPath.erase(pos);
+        srcPath.append(".abc");
     }
-    srcPath.erase(pos);
-    srcPath.append(".abc");
     bool esModule = hapModuleInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
-    return etsRuntime.LoadModule(moduleName, srcPath, hapModuleInfo->hapPath, esModule, false, srcEntry);
+    return etsRuntime.LoadModule(moduleNameWithStartupConfig, srcPath, hapModuleInfo->hapPath, esModule, false,
+        srcEntry);
 }
 
 

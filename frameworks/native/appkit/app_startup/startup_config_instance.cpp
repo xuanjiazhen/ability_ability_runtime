@@ -35,9 +35,9 @@ std::mutex g_etsStartupConfigCreateFuncMutex;
 }
 
 std::shared_ptr<StartupConfig> StartupConfigInstance::CreateStartupConfig(const std::unique_ptr<Runtime> &runtime,
-    const std::string &arkTsMode)
+    const std::string &arkTSMode)
 {
-    auto &taskRuntime = StartupTaskInstance::GetSpecifiedRuntime(runtime, arkTsMode);
+    auto &taskRuntime = StartupTaskInstance::GetSpecifiedRuntime(runtime, arkTSMode);
     if (taskRuntime == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null taskRuntime");
         return nullptr;
@@ -57,6 +57,7 @@ std::shared_ptr<StartupConfig> StartupConfigInstance::CreateStartupConfig(const 
 
 std::shared_ptr<StartupConfig> StartupConfigInstance::CreateJsStartupConfig(const std::unique_ptr<Runtime> &runtime)
 {
+    TAG_LOGD(AAFwkTag::STARTUP, "CreateJsStartupConfig");
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null runtime or env");
         return nullptr;
@@ -67,6 +68,7 @@ std::shared_ptr<StartupConfig> StartupConfigInstance::CreateJsStartupConfig(cons
 
 std::shared_ptr<StartupConfig> StartupConfigInstance::CreateEtsStartupConfig(const std::unique_ptr<Runtime> &runtime)
 {
+    TAG_LOGD(AAFwkTag::STARTUP, "CreateEtsStartupConfig");
     std::lock_guard<std::mutex> lock(g_etsStartupConfigCreateFuncMutex);
     auto &etsRuntime = static_cast<ETSRuntime &>(*runtime);
     auto env = etsRuntime.GetAniEnv();

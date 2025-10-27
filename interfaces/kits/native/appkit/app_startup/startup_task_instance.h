@@ -32,7 +32,7 @@ public:
         const std::string &arkTSMode);
 
     static std::shared_ptr<AppStartupTask> CreateStartupTask(const std::unique_ptr<Runtime> &runtime,
-        const std::string &arkTsMode, const StartupTaskInfo &info, bool lazyLoad);
+        const std::string &arkTSMode, const StartupTaskInfo &info, bool lazyLoad);
 
 private:
     static std::shared_ptr<AppStartupTask> CreateJsStartupTask(const std::unique_ptr<Runtime> &runtime,

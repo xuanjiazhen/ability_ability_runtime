@@ -38,7 +38,7 @@ struct StartupTaskInfo {
     std::string ohmUrl;
     std::string moduleName;
     std::string hapPath;
-    std::string arkTsMode;
+    std::string arkTSMode;
     std::vector<std::string> dependencies;
     bool excludeFromAutoStart = false;
     bool callCreateOnMainThread = true;
