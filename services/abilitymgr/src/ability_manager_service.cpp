@@ -325,8 +325,11 @@ constexpr int32_t DEFAULT_DMS_MISSION_ID = -1;
 constexpr int32_t DEFAULT_REQUEST_CODE = -1;
 constexpr const char* PARAM_PREVENT_STARTABILITY = "persist.sys.abilityms.prevent_startability";
 constexpr const char* SUSPEND_SERVICE_CONFIG_FILE = "/etc/efficiency_manager/prevent_startability_whitelist.json";
+constexpr const char* VPN_WHITELIST_CONFIG_FILE = "/system/etc/vpn_startability_whitelist.json";
+constexpr const char* VPN_WHITE_BundleNames = "bundleNames";
 constexpr int32_t MAX_BUFFER = 2048;
 constexpr int32_t API12 = 12;
+constexpr int32_t API20 = 20;
 constexpr int32_t API_VERSION_MOD = 100;
 constexpr const char* WHITE_LIST = "white_list";
 constexpr const char* SUPPORT_COLLABORATE_INDEX = "ohos.extra.param.key.supportCollaborateIndex";
@@ -446,6 +449,9 @@ bool AbilityManagerService::Init()
     insightIntentEventMgr_ = std::make_shared<AbilityRuntime::InsightIntentEventMgr>();
     insightIntentEventMgr_->SubscribeSysEventReceiver();
     ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent();
+    if (!ParseVpnWhiteListJson(VPN_WHITELIST_CONFIG_FILE, VPN_WHITE_BundleNames)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "parse vpn white list json fail");
+    }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "init success");
     return true;
 }
@@ -5452,6 +5458,45 @@ int AbilityManagerService::DisconnectAbility(sptr<IAbilityConnection> connect)
     return err;
 }
 
+static bool CheckSupportVpn(AppExecFwk::AbilityInfo abilityInfo, std::list<std::string> vpnWhiteList)
+{
+    auto apiVerison = abilityInfo.applicationInfo.apiTargetVersion % API_VERSION_MOD;
+    auto bundleName = abilityInfo.applicationInfo.bundleName;
+    bool isVpnWhiteBundleName = false;
+    std::list<std::string>::iterator it = std::find(vpnWhiteList.begin(), vpnWhiteList.end(), bundleName);
+    if (it != vpnWhiteList.end()) {
+        isVpnWhiteBundleName = true;
+    }
+
+    if (abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::VPN) {
+        TAG_LOGW(AAFwkTag::SERVICE_EXT, "CheckSupportVpn bundleName: %{public}s, apiVerison: %{public}d, isVpnWhiteList: %{public}d",
+            bundleName.c_str(), apiVerison, isVpnWhiteBundleName);
+        return apiVerison <= API20 && isVpnWhiteBundleName;
+    }
+    return false;
+}
+
+bool AbilityManagerService::ParseVpnWhiteListJson(const std::string &relativePath, const std::string &jsonItemStr)
+{
+    nlohmann::json jsonObj;
+    if (ParseJsonValueFromFile(jsonObj, relativePath) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "ParseJsonValueFromFile err");
+        return false;
+    }
+    std::lock_guard<std::mutex> locker(whiteListMutex_);
+    if (!jsonObj.contains(jsonItemStr)) {
+        return false;
+    }
+    nlohmann::json vpnWhiteJsonList = jsonObj[jsonItemStr.c_str()];
+    for (const auto& it : vpnWhiteJsonList) {
+        if (it.is_string()) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "ParseVpnWhiteListJson: bundleName: %{public}s", it.dump().c_str());
+            vpnWhiteList_.push_back(it);
+        }
+    }
+    return true;
+}
+
 int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32_t userId,
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken,
     AppExecFwk::ExtensionAbilityType extensionType, const sptr<SessionInfo> &sessionInfo,
@@ -5500,7 +5545,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
             return ERR_WRONG_INTERFACE_CALL;
         }
         // not allow app to connect other extension by using connectServiceExtensionAbility
-        bool isVpn = abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::VPN;
+        bool isVpn = CheckSupportVpn(abilityInfo, vpnWhiteList_);
         if (callerToken && extensionType == AppExecFwk::ExtensionAbilityType::SERVICE && !isService && !isVpn) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "ability, type not service");
             return TARGET_ABILITY_NOT_SERVICE;

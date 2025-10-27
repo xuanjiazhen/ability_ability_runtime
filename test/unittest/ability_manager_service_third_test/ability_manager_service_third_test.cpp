@@ -3018,5 +3018,19 @@ HWTEST_F(AbilityManagerServiceThirdTest, RestartSelfAtomicService_004, TestSize.
     EXPECT_EQ(abilityMs_->RestartSelfAtomicService(callerRecord->GetToken()), NOT_TOP_ABILITY);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest RestartSelfAtomicService_004 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ParseVpnWhiteListJson
+ * FunctionPoints: ParseVpnWhiteListJson
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, ParseVpnWhiteListJson_001, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    abilityMs_->ParseVpnWhiteListJson("/system/etc/vpn_startability_whitelist.json", "bundleNames");
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
