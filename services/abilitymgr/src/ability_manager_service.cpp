@@ -5458,7 +5458,7 @@ int AbilityManagerService::DisconnectAbility(sptr<IAbilityConnection> connect)
     return err;
 }
 
-static bool CheckSupportVpn(AppExecFwk::AbilityInfo abilityInfo, std::list<std::string> vpnWhiteList)
+bool AbilityManagerService::CheckSupportVpn(AppExecFwk::AbilityInfo abilityInfo, std::list<std::string> vpnWhiteList)
 {
     auto apiVerison = abilityInfo.applicationInfo.apiTargetVersion % API_VERSION_MOD;
     auto bundleName = abilityInfo.applicationInfo.bundleName;
