@@ -138,9 +138,14 @@ bool JsRuntime::Init(const Options& options)
     return Initialize(options);
 }
 
-Options JsRuntime::GetOptions() const
+Options &JsRuntime::GetOptions()
 {
     return options_;
+}
+
+void JsRuntime::SetOptions(const Options& options)
+{
+    options_ = options;
 }
 
 std::unique_ptr<JsRuntime> JsRuntime::Create(const Options& options)
