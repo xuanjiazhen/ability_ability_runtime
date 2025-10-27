@@ -302,8 +302,9 @@ void ConnectServerManager::RemoveInstance(int32_t instanceId)
         instanceName = std::move(it->second.first);
         tid = std::move(it->second.second);
         instanceMap_.erase(it);
+        g_debuggerInfo.erase(tid);
     }
-
+    
     if (!isConnected_) {
         TAG_LOGW(AAFwkTag::JSRUNTIME, "not Connected");
         return;
