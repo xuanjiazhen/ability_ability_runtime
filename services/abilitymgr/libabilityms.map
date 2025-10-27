@@ -59,6 +59,7 @@
       *DataAbilityManager*;
       *FreeInstallManager*;
       *FreeInstallObserverManager*;
+      *ForegroundAppConnectionManager*;
       *ImplicitStartProcessor*;
       *InnerMissionInfo*;
       *InsightIntentUtils*;
