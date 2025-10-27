@@ -1019,6 +1019,8 @@ public:
     {
         return 0;
     }
+
+    virtual void AllowScbProcessMoveToBackground() {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

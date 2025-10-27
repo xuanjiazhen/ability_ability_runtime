@@ -1942,5 +1942,15 @@ int32_t AppMgrService::QueryRunningSharedBundles(pid_t pid, std::map<std::string
     }
     return appMgrServiceInner_->QueryRunningSharedBundles(pid, sharedBundles);
 }
+
+void AppMgrService::AllowScbProcessMoveToBackground()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return;
+    }
+    appMgrServiceInner_->AllowScbProcessMoveToBackground();
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
