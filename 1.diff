@@ -1,0 +1,52 @@
+diff --git a/interfaces/inner_api/connect_server_manager/src/connect_server_manager.cpp b/interfaces/inner_api/connect_server_manager/src/connect_server_manager.cpp
+index 3788f4e09..ef04235f1 100644
+--- a/interfaces/inner_api/connect_server_manager/src/connect_server_manager.cpp
++++ b/interfaces/inner_api/connect_server_manager/src/connect_server_manager.cpp
+@@ -301,8 +301,9 @@ void ConnectServerManager::RemoveInstance(int32_t instanceId)
+         instanceName = std::move(it->second.first);
+         tid = std::move(it->second.second);
+         instanceMap_.erase(it);
++        g_debuggerInfo.erase(tid);
+     }
+-
++    
+     if (!isConnected_) {
+         TAG_LOGW(AAFwkTag::JSRUNTIME, "not Connected");
+         return;
+diff --git a/test/unittest/connect_server_manager_test/connect_server_manager_test.cpp b/test/unittest/connect_server_manager_test/connect_server_manager_test.cpp
+index ac7e13e1c..e56254a83 100644
+--- a/test/unittest/connect_server_manager_test/connect_server_manager_test.cpp
++++ b/test/unittest/connect_server_manager_test/connect_server_manager_test.cpp
+@@ -190,6 +190,32 @@ HWTEST_F(ConnectServerManagerTest, ConnectServerManagerTest_0800, TestSize.Level
+     TAG_LOGI(AAFwkTag::TEST, "ConnectServerManagerTest_0800 is end");
+ }
+ 
++/*
++ * @tc.number    : ConnectServerManagerTest_0900
++ * @tc.name      : ConnectServerManager
++ * @tc.desc      : Test Function ConnectServerManager::RemoveInstance::g_debuggerInfo
++ */
++HWTEST_F(ConnectServerManagerTest, ConnectServerManagerTest_0900, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "ConnectServerManagerTest_0900 is start");
++    ConnectServerManager &connectServerManager = AbilityRuntime::ConnectServerManager::Get();
++    connectServerManager.handlerConnectServerSo_ = nullptr;
++    EXPECT_FALSE(connectServerManager.handlerConnectServerSo_);
++    connectServerManager.RemoveInstance(ONE);
++    const std::string instanceName = "test";
++    char data[] = "WaitForConnection";
++    char *dptr = data;
++    connectServerManager.handlerConnectServerSo_ = dptr;
++    connectServerManager.g_debuggerInfo.clear();
++    void* vm = nullptr;
++    DebuggerPostTask debuggerPostTask = [](std::function<void()>&&) {};
++    auto res = connectServerManager.g_debuggerInfo.emplace(gettid(), std::make_pair(vm, debuggerPostTask));
++    EXPECT_TRUE(res.second);
++    connectServerManager.RemoveInstance(ONE);
++    EXPECT_TRUE(connectServerManager.handlerConnectServerSo_);
++    EXPECT_TRUE(g_debuggerInfo.empty()); 
++    TAG_LOGI(AAFwkTag::TEST, "ConnectServerManagerTest_0900 is end");
++}
+ /*
+  * @tc.number    : SendInstanceMessageTest_0100
+  * @tc.name      : ConnectServerManager
