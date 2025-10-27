@@ -191,6 +191,25 @@ HWTEST_F(ConnectServerManagerTest, ConnectServerManagerTest_0800, TestSize.Level
 }
 
 /*
+ * @tc.number    : ConnectServerManagerTest_0900
+ * @tc.name      : ConnectServerManager
+ * @tc.desc      : Test Function ConnectServerManager::RemoveInstance::g_debuggerInfo
+ */
+HWTEST_F(ConnectServerManagerTest, ConnectServerManagerTest_0900, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ConnectServerManagerTest_0900 is start");
+    ConnectServerManager &connectServerManager = AbilityRuntime::ConnectServerManager::Get();
+    connectServerManager.RemoveInstance(ONE);
+    connectServerManager.g_debuggerInfo.clear();
+    void* vm = nullptr;
+    DebuggerPostTask debuggerPostTask = [](std::function<void()>&&) {};
+    auto res = connectServerManager.g_debuggerInfo.emplace(gettid(), std::make_pair(vm, debuggerPostTask));
+    EXPECT_TRUE(res.second);
+    connectServerManager.RemoveInstance(ONE);
+    EXPECT_TRUE(connectServerManager.g_debuggerInfo.empty());
+    TAG_LOGI(AAFwkTag::TEST, "ConnectServerManagerTest_0900 is end");
+}
+/*
  * @tc.number    : SendInstanceMessageTest_0100
  * @tc.name      : ConnectServerManager
  * @tc.desc      : Test Function ConnectServerManager::SendInstanceMessage
