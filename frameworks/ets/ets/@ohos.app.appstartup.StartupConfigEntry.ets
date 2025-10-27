@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License"),
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -13,14 +13,17 @@
  * limitations under the License.
  */
 
-import StartupConfig from './@ohos.app.appstartup.StartupConfig';
+import StartupConfig, { StartupConfigImpl } from './@ohos.app.appstartup.StartupConfig';
 import Want from '@ohos.app.ability.Want';
 
-type OnConfigFn = () => StartupConfig;
+export default class StartupConfigEntry {
+    onConfig(): StartupConfig {
+        console.log("onConfig called")
+        return new StartupConfigImpl() as StartupConfig;
+    }
 
-declare class StartupConfigEntry {
-    onConfig?: OnConfigFn;
-    onRequestCustomMatchRule(want: Want): string;
+    onRequestCustomMatchRule(want: Want): string {
+        console.log("onRequestCustomMatchRule called")
+        return "";
+    }
 }
-
-export default StartupConfigEntry;
