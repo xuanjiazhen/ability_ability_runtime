@@ -288,6 +288,7 @@ struct AbilityRequest {
     AppExecFwk::ApplicationInfo appInfo;
     StartOptions startOptions;
     bool hideFailureTipDialog = false;
+    bool promotePriority = false;
     std::pair<bool, LaunchReason> IsContinuation() const
     {
         auto flags = want.GetFlags();
@@ -1312,8 +1313,14 @@ public:
     void AddUIExtensionLaunchTimestamp();
 
     void RemoveUIExtensionLaunchTimestamp();
-protected:
 
+    void SetPromotePriority(bool promotePriority);
+
+    bool ShouldPromotePriority();
+
+    void PromotePriority();
+
+protected:
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
     AbilityState currentState_ = AbilityState::INITIAL;    // current life state
@@ -1558,6 +1565,10 @@ private:
     std::atomic<int32_t> scenarios_ = 0;
     std::atomic<bool> isPreloaded_ = false;
     std::atomic<bool> isFrozenByPreload_ = false;
+    struct UIAbilityProperty {
+        bool promotePriority = false;
+    };
+    std::shared_ptr<UIAbilityProperty> uiAbilityProperty_ = nullptr;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
