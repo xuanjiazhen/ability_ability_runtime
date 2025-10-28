@@ -400,7 +400,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
             TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord invalid");
             return nullptr;
         }
-        if (abilityRecord->GetPrelaunchState() == PrelaunchState::PRELAUNCH_BEGIN) {
+        if (uiAbilityRecord->GetPrelaunchState() == PrelaunchState::PRELAUNCH_BEGIN) {
             uiAbilityRecord->SetPrelaunchState(PrelaunchState::PRELAUNCH_END);
         }
         if (sessionInfo->sessionToken != uiAbilityRecord->GetSessionInfo()->sessionToken) {
