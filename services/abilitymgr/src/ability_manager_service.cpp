@@ -325,7 +325,8 @@ constexpr int32_t DEFAULT_DMS_MISSION_ID = -1;
 constexpr int32_t DEFAULT_REQUEST_CODE = -1;
 constexpr const char* PARAM_PREVENT_STARTABILITY = "persist.sys.abilityms.prevent_startability";
 constexpr const char* SUSPEND_SERVICE_CONFIG_FILE = "/etc/efficiency_manager/prevent_startability_whitelist.json";
-constexpr const char* VPN_WHITELIST_CONFIG_FILE = "/system/etc/vpn_startability_whitelist.json";
+constexpr const char* VPN_WHITELIST_CONFIG_FILE = "/etc/ability_runtime/vpn_startability_whitelist.json";
+constexpr const char* DEFAULT_VPN_WHITELIST_CONFIG_FILE = "/system/etc/vpn_startability_whitelist.json";
 constexpr const char* VPN_WHITE_BUNDLENAMES = "bundleNames";
 constexpr int32_t MAX_BUFFER = 2048;
 constexpr int32_t API12 = 12;
@@ -5479,18 +5480,24 @@ bool AbilityManagerService::CheckSupportVpn(AppExecFwk::AbilityInfo abilityInfo,
 bool AbilityManagerService::ParseVpnWhiteListJson(const std::string &relativePath, const std::string &jsonItemStr)
 {
     nlohmann::json jsonObj;
-    if (ParseJsonValueFromFile(jsonObj, relativePath) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "ParseJsonValueFromFile err");
+    std::string absolutePath = GetConfigFileAbsolutePath(relativePath);
+    if (absolutePath.length() == 0) {
+        TAG_LOGW(AAFwkTag::SERVICE_EXT, "ParseVpnWhiteListJson absolutePath isEmpty");
+        absolutePath = DEFAULT_VPN_WHITELIST_CONFIG_FILE;
+    }
+    if (ParseJsonValueFromFile(jsonObj, absolutePath) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "ParseVpnWhiteListJson parse file err");
         return false;
     }
     std::lock_guard<std::mutex> locker(whiteListMutex_);
     if (!jsonObj.contains(jsonItemStr)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "ParseVpnWhiteListJson not contains item");
         return false;
     }
     nlohmann::json vpnWhiteJsonList = jsonObj[jsonItemStr.c_str()];
     for (const auto& it : vpnWhiteJsonList) {
         if (it.is_string()) {
-            TAG_LOGE(AAFwkTag::SERVICE_EXT, "ParseVpnWhiteListJson: bundleName: %{public}s", it.dump().c_str());
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "ParseVpnWhiteListJson: bundleName: %{public}s", it.dump().c_str());
             vpnWhiteList_.push_back(it);
         }
     }
