@@ -22,19 +22,30 @@ import { ExtensionRunningInfo } from 'application.ExtensionRunningInfo';
 import _AbilityStateData from 'application.AbilityStateData';
 import Context from 'application.Context';
 import _AbilityForegroundStateObserver from 'application.AbilityForegroundStateObserver';
+import Want from '@ohos.app.ability.Want';
 
 export default namespace abilityManager {
   loadLibraryWithPermissionCheck("ability_manager_ani_kit.z", "@ohos.app.ability.abilityManager")
+  export type PreloadedUIExtensionAbilityLoadedFn = (preloadId: int) => void;
+  export type PreloadedUIExtensionAbilityDestroyedFn = (preloadId: int) => void;
 
   export native function nativeGetForegroundUIAbilities(): Array<AbilityStateData>;
   export native function getForegroundUIAbilitiesCallback(callback:AsyncCallbackWrapper<Array<AbilityStateData>>) : void;
   export native function nativeGetTopAbility(callback:AsyncCallbackWrapper<ElementName>) : void;
   export native function nativeCheckSystemApp() : void;
+  export native function nativeCheckPerloadUIExtensionAbilityPermission() : void;
   export native function nativeGetAbilityRunningInfos(callback:AsyncCallbackWrapper<Array<AbilityRunningInfo>>) : void;
   export native function nativeIsEmbeddedOpenAllowed(context: Context, appId: string, callback:AsyncCallbackWrapper<boolean>) : void;
   export native function nativeOn(type:string, observer: AbilityForegroundStateObserver): void;
   export native function nativeOff(type:string, observer?: AbilityForegroundStateObserver): void;
   export native function nativeGetExtensionRunningInfos(upperLimit:int, callback:AsyncCallbackWrapper<Array<ExtensionRunningInfo>>) : void;
+  export native function nativeOnPreloadUIExtensionAbilityLoaded(callback: PreloadedUIExtensionAbilityLoadedFn): void;
+  export native function nativeOffPreloadUIExtensionAbilityLoaded(callback?: PreloadedUIExtensionAbilityLoadedFn): void;
+  export native function nativeOnPreloadUIExtensionAbilityDestroy(callback: PreloadedUIExtensionAbilityDestroyedFn): void;
+  export native function nativeOffPreloadUIExtensionAbilityDestroy(callback?: PreloadedUIExtensionAbilityDestroyedFn): void;
+  export native function nativePreloadUIExtensionAbility(want: Want, callback: AsyncCallbackWrapper<int>): void;
+  export native function nativeClearPreloadUIExtensionAbility(preloadId: int, callback: AsyncCallbackWrapper<void>): void;
+  export native function nativeClearPreloadUIExtensionAbilities(callback: AsyncCallbackWrapper<void>): void;
 
   export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
@@ -156,6 +167,92 @@ export default namespace abilityManager {
     });
   }
 
+  function onPreloadUIExtensionAbilityLoaded(callback: PreloadedUIExtensionAbilityLoadedFn): void {
+    abilityManager.nativeCheckSystemApp();
+    abilityManager.nativeCheckPerloadUIExtensionAbilityPermission();
+    abilityManager.nativeOnPreloadUIExtensionAbilityLoaded(callback);
+  }
+
+  function offPreloadUIExtensionAbilityLoaded(callback?: PreloadedUIExtensionAbilityLoadedFn): void {
+    abilityManager.nativeCheckSystemApp();
+    abilityManager.nativeCheckPerloadUIExtensionAbilityPermission();
+    abilityManager.nativeOffPreloadUIExtensionAbilityLoaded(callback);
+  }
+
+  function onPreloadUIExtensionAbilityDestroy(callback: PreloadedUIExtensionAbilityDestroyedFn): void {
+    abilityManager.nativeCheckSystemApp();
+    abilityManager.nativeCheckPerloadUIExtensionAbilityPermission();
+    abilityManager.nativeOnPreloadUIExtensionAbilityDestroy(callback);
+  }
+
+  function offPreloadUIExtensionAbilityDestroy(callback?: PreloadedUIExtensionAbilityDestroyedFn): void {
+    abilityManager.nativeCheckSystemApp();
+    abilityManager.nativeCheckPerloadUIExtensionAbilityPermission();
+    abilityManager.nativeOffPreloadUIExtensionAbilityDestroy(callback);
+  }
+
+  function preloadUIExtensionAbility(want: Want): Promise<int> {
+    abilityManager.nativeCheckSystemApp();
+    abilityManager.nativeCheckPerloadUIExtensionAbilityPermission();
+    return new Promise<int>((resolve: (data: int) => void, reject: (err: BusinessError) => void): void => {
+      let call = new AsyncCallbackWrapper<int>((err: BusinessError | null, data: int | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as int);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        try {
+          abilityManager.nativePreloadUIExtensionAbility(want, call);
+        } catch (err: BusinessError) {
+          reject(err);
+        }
+      });
+    });
+  }
+
+  function clearPreloadUIExtensionAbility(preloadId: int): Promise<void> {
+    abilityManager.nativeCheckSystemApp();
+    abilityManager.nativeCheckPerloadUIExtensionAbilityPermission();
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let call = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        try {
+          abilityManager.nativeClearPreloadUIExtensionAbility(preloadId, call);
+        } catch (err: BusinessError) {
+          reject(err);
+        }
+      });
+    });
+  }
+
+  function clearPreloadUIExtensionAbilities(): Promise<void> {
+    abilityManager.nativeCheckSystemApp();
+    abilityManager.nativeCheckPerloadUIExtensionAbilityPermission();
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let call = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        try {
+          abilityManager.nativeClearPreloadUIExtensionAbilities(call);
+        } catch (err: BusinessError) {
+          reject(err);
+        }
+      });
+    });
+  }
 
   export enum AbilityState {
     INITIAL = 0,

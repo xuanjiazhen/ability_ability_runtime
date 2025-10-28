@@ -1901,6 +1901,9 @@ public:
      * @return Returns true on being limited.
      */
     virtual bool IsRestartAppLimit() override;
+
+    virtual int32_t PreloadUIExtensionAbilityWithId(
+        const Want &want, std::string &hostBundleName, int32_t &preloadId, int32_t userId, int32_t hostPid) override;
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

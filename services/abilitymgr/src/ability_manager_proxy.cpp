@@ -7350,5 +7350,38 @@ bool AbilityManagerProxy::IsRestartAppLimit()
 
     return reply.ReadBool();
 }
+
+int32_t AbilityManagerProxy::PreloadUIExtensionAbilityWithId(const Want &want, std::string &hostBundleName,
+    int32_t &preloadId, int32_t userId, int32_t hostPid)
+{
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
+        return INNER_ERR;
+    }
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &want);
+
+    if (!data.WriteString16(Str8ToStr16(hostBundleName))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "hostBundleName write fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, userId);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, hostPid);
+    int error;
+    MessageParcel reply;
+    MessageOption option;
+    error = SendRequest(AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY_WITH_ID, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    preloadId = reply.ReadInt32();
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS

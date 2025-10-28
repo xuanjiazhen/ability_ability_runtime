@@ -1968,6 +1968,9 @@ public:
      * @return Returns true on being limited.
      */
     bool IsRestartAppLimit();
+
+    ErrCode PreloadUIExtensionAbilityWithId(const Want &want, std::string &hostBundleName, int32_t &preloadId,
+        int32_t userId, int32_t hostPid);
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

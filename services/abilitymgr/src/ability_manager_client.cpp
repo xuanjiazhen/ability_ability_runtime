@@ -2441,5 +2441,15 @@ bool AbilityManagerClient::IsRestartAppLimit()
     }
     return abms->IsRestartAppLimit();
 }
+
+ErrCode AbilityManagerClient::PreloadUIExtensionAbilityWithId(const Want &want, std::string &hostBundleName, int32_t &preloadId,
+    int32_t userId, int32_t hostPid)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "elementName:%{public}s/%{public}s, hostBundleName:%{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), hostBundleName.c_str());
+    return abms->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, userId, hostPid);
+}
 } // namespace AAFwk
 } // namespace OHOS

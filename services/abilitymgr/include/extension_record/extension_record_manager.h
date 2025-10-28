@@ -139,6 +139,8 @@ public:
                                           const std::string &hostBundleName,
                                           int32_t &recordNum);
 
+    void CheckIsPreloadUIExtensionDestroyedById(int32_t extensionRecordId);
+    void CheckIsPreloadUIExtensionLoadedById(int32_t extensionRecordId);
 private:
     inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
 
@@ -151,6 +153,8 @@ private:
     ExtensionAbilityRecordMap extensionRecords_;
     ExtensionAbilityRecordMap terminateRecords_;
     PreLoadUIExtensionMapType preloadUIExtensionMap_;
+    std::map<int32_t, std::string> preloadUIExtensionIdLoadedSet_;
+    std::map<int32_t, std::string> preloadUIExtensionIdDestroyedSet_;
 
     void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);
     sptr<IRemoteObject> GetCachedFocusedCallerToken(int32_t extensionRecordId) const;
@@ -168,6 +172,7 @@ private:
         const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::shared_ptr<ExtensionRecord> &extensionRecord);
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
         std::shared_ptr<ExtensionRecord> &record, const std::string &process);
+    PreLoadUIExtensionMapKey GetPreLoadUIExtensionMapKey(int32_t extensionRecordId);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

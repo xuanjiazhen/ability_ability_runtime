@@ -1171,7 +1171,7 @@ public:
 
     int RequestModalUIExtensionInner(Want want);
 
-    int PreloadUIExtensionAbilityInner(const Want &want, std::string &bundleName,
+    int PreloadUIExtensionAbilityInner(const Want &want, std::string &bundleName, int32_t &preloadId,
         int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE);
 
     int StartAbilityForOptionWrap(
@@ -2294,6 +2294,12 @@ public:
         TERMINATE_ABILITY_CODE
     };
 
+    enum PreloadUIExtensionStateCode {
+        ABILITY_TO_PRELOAD = 0,
+        ABILITY_PRELOAD_DONE,
+        ABILITY_DESTROY_DONE
+    };
+
 protected:
     /**
      * AbilityMgr's request is done.
@@ -2371,6 +2377,9 @@ protected:
         std::shared_ptr<AbilityRecord> targetService, bool isFromConnect);
 
     static void HandleAutoStartupReadyCallback(const char *key, const char *value, void *context);
+
+    int32_t PreloadUIExtensionAbilityWithId(const Want &want, std::string &bundleName, int32_t &preloadId,
+        int32_t userId, int32_t hostPid) override;
 
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
@@ -3015,6 +3024,7 @@ private:
     int32_t ProcessUdmfKey(
         const Want &want, uint32_t targetTokenId, AppExecFwk::ExtensionAbilityType extensionType);
 
+    // void NotifyPreLoadUIExtensionAbilityTransitionDone(int32_t extensionRecordId);
     bool IsAllowAttachOrDetachAppDebug(AppExecFwk::ApplicationInfo &appInfo);
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
@@ -3056,6 +3066,9 @@ private:
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;
     AbilityEventUtil eventHelper_;
+    std::mutex transitionMutex_;
+    std::condition_variable transitionCondition_;
+    std::map<std::string, bool> transitionDoneMap_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
