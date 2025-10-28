@@ -32,6 +32,7 @@
 #include "permission_constants.h"
 #include "process_options.h"
 #include "request_id_util.h"
+#include "res_sched_util.h"
 #include "restart_app_manager.h"
 #include "scene_board/status_bar_delegate_manager.h"
 #include "server_constant.h"
@@ -547,6 +548,7 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
         return ERR_INVALID_VALUE;
     }
     if (abilityRecord->IsStartedByCall()) {
+        abilityRecord->PromotePriority();
         if (abilityRecord->GetWant().GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false)) {
             abilityRecord->SetStartToForeground(true);
             abilityRecord->PostForegroundTimeoutTask();
@@ -1527,6 +1529,7 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
     }
     uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     uiAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CALL);
+    uiAbilityRecord->SetPromotePriority(abilityRequest.promotePriority);
 
 #ifdef SUPPORT_UPMS
     if (InsightIntentExecuteParam::IsInsightIntentExecute(abilityRequest.want)) {
