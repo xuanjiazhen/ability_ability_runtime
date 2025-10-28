@@ -561,7 +561,8 @@ void AppStateObserverManager::HandleAppStateChanged(const std::shared_ptr<AppRun
     }
     BundleType bundleType = appRecord->GetApplicationInfo() != nullptr ?
         appRecord->GetApplicationInfo()->bundleType : BundleType::APP;
-    if (state == ApplicationState::APP_STATE_FOREGROUND && appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
+    if (state == ApplicationState::APP_STATE_FOREGROUND && appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH
+        && appRecord->IsPrelaunching()) {
         TAG_LOGI(AAFwkTag::APPMGR, "name:%{public}s, uid:%{public}d, prelaunch status cancel notify forground state",
             appRecord->GetBundleName().c_str(), appRecord->GetUid());
         return;

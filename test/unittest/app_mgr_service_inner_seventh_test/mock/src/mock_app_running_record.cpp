@@ -1014,6 +1014,11 @@ bool AppRunningRecord::IsPreloaded() const
     return preloadState_ == PreloadState::PRELOADED;
 }
 
+bool AppRunningRecord::IsPrelaunching() const
+{
+    return preloadState_ == PreloadState::PRELAUNCHING;
+}
+
 int32_t AppRunningRecord::GetAssignTokenId() const
 {
     return assignTokenId_;

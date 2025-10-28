@@ -1048,6 +1048,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             appRecord->SetExtensionSandBoxFlag(isExtensionSandBox);
             if (loadParam->isPrelaunch) {
                 appRecord->SetPreloadMode(PreloadMode::PRE_LAUNCH);
+                appRecord->SetPreloadState(PreloadState::PRELAUNCHING);
             }
             if (loadParam->isPreloadStart) {
                 appRecord->SetPreloadMode(PreloadMode::PRELOAD_BY_PHASE);
@@ -1077,10 +1078,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         } else {
             SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::WARM, AppStartReason::SUGGEST_CACHE);
         }
-        if (appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
-            appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
-        }
-        if (appRecord->IsPreloaded()) {
+        if (appRecord->IsPreloaded() || appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
             appRecord->SetPreloadState(PreloadState::NONE);
             appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
         }
@@ -1740,7 +1738,7 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
         appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
         bool needNotifyApp = appRunningManager_->IsApplicationFirstForeground(*appRecord);
         OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, false);
-        if (appRecord->GetPreloadMode() != PreloadMode::PRE_LAUNCH) {
+        if (appRecord->GetPreloadMode() != PreloadMode::PRE_LAUNCH || !appRecord->IsPrelaunching()) {
             DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord);
         }
     } else {
@@ -1766,8 +1764,8 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
         TAG_LOGD(AAFwkTag::APPMGR, "callerRecord null");
     }
     AAFwk::EventReport::SendAppForegroundEvent(AAFwk::EventName::APP_FOREGROUND, eventInfo);
-    if (appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
-        appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
+    if (appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH && appRecord->IsPrelaunching()) {
+        appRecord->SetPreloadState(PreloadState::NONE);
     }
 }
 
@@ -1807,6 +1805,22 @@ void AppMgrServiceInner::ApplicationBackgrounded(const int32_t recordId)
     }
     auto eventInfo = BuildEventInfo(appRecord);
     AAFwk::EventReport::SendAppBackgroundEvent(AAFwk::EventName::APP_BACKGROUND, eventInfo);
+    if (appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
+        TAG_LOGI(AAFwkTag::APPMGR, "app %{public}s backgrounded: set prelaunch state to none",
+            appRecord->GetBundleName().c_str());
+        appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
+        appRecord->SetPreloadState(PreloadState::NONE);
+    }
+}
+
+void AppMgrServiceInner::AbilityStartAfterPrelaunch(const sptr<IRemoteObject> &token)
+{
+    auto appRecord = GetAppRunningRecordByAbilityToken(loadParam->preToken);
+    CHECK_POINTER_AND_RETURN_LOG(appRecord, "app unexist");
+    AG_LOGI(AAFwkTag::APPMGR, "app %{public}s AbilityStartAfterPrelaunch  set prelaunch state to none",
+        appRecord->GetBundleName().c_str());
+    appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
+    appRecord->SetPreloadState(PreloadState::NONE);
 }
 
 AAFwk::EventInfo AppMgrServiceInner::BuildEventInfo(std::shared_ptr<AppRunningRecord> appRecord) const

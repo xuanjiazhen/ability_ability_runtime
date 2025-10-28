@@ -108,6 +108,26 @@ void AmsMgrProxy::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
 
+void AmsMgrProxy::AbilityStartAfterPrelaunch(const sptr<IRemoteObject> &token)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "AbilityStartAfterPrelaunch start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    if (!data.WriteRemoteObject(token.GetRefPtr())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write token");
+        return;
+    }
+    int32_t ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::ABILITY_START_AFTER_PRELAUNCH), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "AbilityStartAfterPrelaunch end");
+}
+
 void AmsMgrProxy::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
 {
     MessageParcel data;

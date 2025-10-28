@@ -400,7 +400,9 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
             TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord invalid");
             return nullptr;
         }
-        uiAbilityRecord->SetPrelaunchFlag(false);
+        if (abilityRecord->GetPrelaunchState() == PrelaunchState::PRELAUNCH_BEGIN) {
+            uiAbilityRecord->SetPrelaunchState(PrelaunchState::PRELAUNCH_END);
+        }
         if (sessionInfo->sessionToken != uiAbilityRecord->GetSessionInfo()->sessionToken) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionToken invalid");
             return nullptr;
@@ -1096,7 +1098,7 @@ void UIAbilityLifecycleManager::CompleteForegroundSuccess(const std::shared_ptr<
         TAG_LOGD(AAFwkTag::ABILITYMGR, "has last want");
         abilityRecord->ForegroundAbility(0, true);
     } else if (abilityRecord->GetPendingState() == AbilityState::BACKGROUND) {
-        if (abilityRecord->GetPrelaunchFlag()) {
+        if (abilityRecord->GetPrelaunchState() == PrelaunchState::PRELAUNCH_BEGIN) {
             HandlePrelaunchBackground(abilityRecord);
         } else {
             abilityRecord->SetMinimizeReason(true);
@@ -1446,7 +1448,7 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
         uiAbilityRecord->SetLaunchReasonMessage(value);
     }
     NotifyAbilityToken(uiAbilityRecord->GetToken(), abilityRequest);
-    uiAbilityRecord->SetPrelaunchFlag(true);
+    uiAbilityRecord->SetPrelaunchState(PrelaunchState::PRELAUNCH_BEGIN);
 
     auto sessionInfo = CreateSessionInfo(abilityRequest, RequestIdUtil::GetRequestId());
     sessionInfo->persistentId = persistentId;

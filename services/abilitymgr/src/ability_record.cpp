@@ -387,7 +387,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     loadParam.isStartupHide = isStartupHide;
     loadParam.callingPid = callingPid;
     loadParam.loadAbilityCallbackId = loadAbilityCallbackId;
-    loadParam.isPrelaunch = isPrelaunch_;
+    loadParam.isPrelaunch = prelaunchState_ == PrelaunchState::PRELAUNCH_BEGIN;
     loadParam.isPreloadStart = isPreloadStart_;
     auto userId = abilityInfo_.uid / BASE_USER_RANGE;
     bool isMainUIAbility =
@@ -525,6 +525,14 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
         LoadAbility(options.isShellCall, options.isStartupHide, options.callingPid, options.loadAbilityCallbackId);
         return;
+    } else if (prelaunchState_ == PrelaunchState::PRELAUNCH_END) {
+        sptr<Token> callerToken = nullptr;
+        auto caller = GetCallerRecord();
+        if (caller) {
+            callerToken = caller->GetToken();
+            IN_PROCESS_CALL_WITHOUT_RET(
+                DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->AbilityStartAfterPrelaunch(callerToken));
+        }
     }
 
     DelayedSingleton<AppScheduler>::GetInstance()->NotifyLoadAbilityFinished(options.callingPid,
@@ -1327,15 +1335,14 @@ void AbilityRecord::SetColdStartFlag(bool isColdStart)
 {
     coldStart_ = isColdStart;
 }
-
-bool AbilityRecord::GetPrelaunchFlag()
+PrelaunchState AbilityRecord::GetPrelaunchState()
 {
-    return isPrelaunch_;
+    return prelaunchState_;
 }
 
-void AbilityRecord::SetPrelaunchFlag(bool isPrelaunch)
+void AbilityRecord::SetPrelaunchState(PrelaunchState state)
 {
-    isPrelaunch_ = isPrelaunch;
+    prelaunchState_ = state;
 }
 #endif
 

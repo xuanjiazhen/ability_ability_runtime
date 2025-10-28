@@ -877,6 +877,8 @@ public:
 
     bool IsPreloaded() const;
 
+    bool IsPrelaunching() const;
+
     void SetPreloadMode(PreloadMode mode);
 
     PreloadMode GetPreloadMode();

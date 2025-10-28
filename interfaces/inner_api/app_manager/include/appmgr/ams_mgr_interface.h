@@ -52,6 +52,14 @@ public:
         std::shared_ptr<AbilityRuntime::LoadParam> loadParam) {};
 
     /**
+     * Ability start after prelaunch.
+     *
+     * @param token, the unique identification to the ability.
+     * @return
+     */
+    virtual void AbilityStartAfterPrelaunch(const sptr<IRemoteObject> &token) {};
+
+    /**
      * notify load ability finished.
      *
      * @param callingPid, the pid of the caller.
@@ -589,6 +597,7 @@ public:
         CHECK_PRELOAD_APP_RECORD_EXIST,
         VERIFY_KILL_PROCESS_PERMISSION,
         NOTIFY_LOAD_ABILITY_FINISHED,
+        ABILITY_START_AFTER_PRELAUNCH,
         // Add enumeration values above
         END
     };

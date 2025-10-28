@@ -150,6 +150,14 @@ public:
         std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
 
     /**
+     * Ability start after prelaunch.
+     *
+     * @param token, the unique identification to the ability.
+     * @return
+     */
+    virtual void AbilityStartAfterPrelaunch(const sptr<IRemoteObject> &token);
+
+    /**
      * notify load ability finished.
      *
      * @param callingPid, the pid of the caller.

@@ -866,7 +866,8 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
         TAG_LOGE(AAFwkTag::APPMGR, "can not find ability record");
         return;
     }
-    if (state == AbilityState::ABILITY_STATE_CREATE && preloadMode_ != PreloadMode::PRE_LAUNCH) {
+    if (state == AbilityState::ABILITY_STATE_CREATE
+            && (preloadMode_ != PreloadMode::PRE_LAUNCH || !isPrelaunching())) {
         StateChangedNotifyObserver(
             abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE), true, false);
         return;
@@ -1062,7 +1063,7 @@ void AppRunningRecord::PopForegroundingAbilityTokens()
         auto moduleRecord = GetModuleRunningRecordByToken(*iter);
         if (moduleRecord != nullptr) {
             moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_FOREGROUND);
-            if (preloadMode_ != PreloadMode::PRE_LAUNCH) {
+            if (preloadMode_ != PreloadMode::PRE_LAUNCH || !isPrelaunching()) {
                 StateChangedNotifyObserver(
                     ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
             }
@@ -2367,6 +2368,11 @@ bool AppRunningRecord::IsPreloading() const
 bool AppRunningRecord::IsPreloaded() const
 {
     return preloadState_ == PreloadState::PRELOADED;
+}
+
+bool AppRunningRecord::IsPrelaunching() const
+{
+    return preloadState_ == PreloadState::PRELAUNCHING;
 }
 
 int32_t AppRunningRecord::GetAssignTokenId() const

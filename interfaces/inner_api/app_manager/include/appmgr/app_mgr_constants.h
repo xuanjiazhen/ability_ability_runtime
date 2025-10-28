@@ -137,6 +137,7 @@ enum class PreloadState {
     NONE = 0,
     PRELOADING = 1,
     PRELOADED = 2,
+    PRELAUNCHING = 3,
 };
 
 enum class SupportProcessCacheState {

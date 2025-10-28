@@ -362,6 +362,13 @@ enum class AbilityVisibilityState {
     UNSPECIFIED,
 };
 
+enum class PrelaunchState {
+    NONE = 0,
+    PRELAUNCH_BEGIN,
+    PRELAUNCH_END,
+    UNSPECIFIED,
+};
+
 struct LaunchDebugInfo {
 public:
     void Update(const Want &want);
@@ -643,8 +650,8 @@ public:
     bool IsCompleteFirstFrameDrawing() const;
     bool GetColdStartFlag();
     void SetColdStartFlag(bool isColdStart);
-    bool GetPrelaunchFlag();
-    void SetPrelaunchFlag(bool isPrelaunch);
+    PrelaunchState GetPrelaunchState();
+    void SetPrelaunchState(PrelaunchState state);
 #endif
 
     /**
@@ -1537,7 +1544,7 @@ private:
     bool isStartingWindow_ = false;
     bool isCompleteFirstFrameDrawing_ = false;
     bool coldStart_ = false;
-    bool isPrelaunch_ = false;
+    PrelaunchState prelaunchState_ = PrelaunchState::NONE;
     uint32_t bgColor_ = 0;
     std::shared_ptr<Media::PixelMap> startingWindowBg_ = nullptr;
 #endif
