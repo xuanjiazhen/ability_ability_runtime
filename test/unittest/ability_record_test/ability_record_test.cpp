@@ -3471,5 +3471,80 @@ HWTEST_F(AbilityRecordTest, ReportAbilityConnectionRelations_002, TestSize.Level
     abilityRecord_->callerList_.push_back(callerRecord_6);
     EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
 }
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetPromotePriority
+ * SubFunction: SetPromotePriority
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetPromotePriority
+ */
+HWTEST_F(AbilityRecordTest, SetPromotePriority_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetPromotePriority_001 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->uiAbilityProperty_ = nullptr;
+    abilityRecord_->SetPromotePriority(true);
+    EXPECT_NE(abilityRecord_->uiAbilityProperty_, nullptr);
+    EXPECT_TRUE(abilityRecord_->uiAbilityProperty_->promotePriority);
+
+    abilityRecord_->uiAbilityProperty_ = nullptr;
+    abilityRecord_->SetPromotePriority(false);
+    EXPECT_NE(abilityRecord_->uiAbilityProperty_, nullptr);
+    EXPECT_FALSE(abilityRecord_->uiAbilityProperty_->promotePriority);
+    GTEST_LOG_(INFO) << "SetPromotePriority_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: ShouldPromotePriority
+ * SubFunction: ShouldPromotePriority
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord ShouldPromotePriority
+ */
+HWTEST_F(AbilityRecordTest, ShouldPromotePriority_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ShouldPromotePriority_001 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->uiAbilityProperty_ = nullptr;
+    EXPECT_FALSE(abilityRecord_->ShouldPromotePriority());
+
+    abilityRecord_->uiAbilityProperty_ = std::make_shared<UIAbilityProperty>();
+    EXPECT_FALSE(abilityRecord_->ShouldPromotePriority());
+
+    abilityRecord_->uiAbilityProperty_->promotePriority = true;
+    EXPECT_TRUE(abilityRecord_->ShouldPromotePriority());
+    GTEST_LOG_(INFO) << "ShouldPromotePriority_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: PromotePriority
+ * SubFunction: PromotePriority
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord PromotePriority
+ */
+HWTEST_F(AbilityRecordTest, PromotePriority_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "PromotePriority_001 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->isStartedByCall_ = true;
+    EXPECT_TRUE(abilityRecord_->IsStartedByCall());
+
+    abilityRecord_->uiAbilityProperty_ = std::make_shared<UIAbilityProperty>();
+    abilityRecord_->uiAbilityProperty_->promotePriority = true;
+    EXPECT_TRUE(abilityRecord_->ShouldPromotePriority());
+
+    abilityRecord_->callerList_.clear();
+    auto callerInfo = std::make_shared<CallerAbilityInfo>();
+    abilityRecord_->callerList_.emplace_back(callerInfo);
+    EXPECT_NE(abilityRecord_->GetCallerInfo(), nullptr);
+
+    abilityRecord_->PromotePriority();
+    GTEST_LOG_(INFO) << "PromotePriority_001 end";
+}
 }  // namespace AAFwk
 }  // namespace OHOS
