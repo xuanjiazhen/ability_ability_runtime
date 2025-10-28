@@ -49,6 +49,8 @@ constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION =
     "Lapplication/UIServiceProxy/UIServiceProxy;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
 constexpr const char *SIGNATURE_WANT_CHK = "L@ohos/app/ability/Want/Want;:V";
 constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK = "Lapplication/UIServiceProxy/UIServiceProxy;:V";
+constexpr const char *SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE =
+    "IL@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
 
@@ -787,6 +789,53 @@ void EtsUIExtensionContext::OnDisconnectUIServiceExtension(ani_env *env, ani_obj
         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
 }
 
+void EtsUIExtensionContext::StartUIAbilitiesInSplitWindowMode(ani_env *env, ani_object aniObj,
+    ani_int primaryWindowId, ani_object wantObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "StartUIAbilitiesInSplitWindowMode called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    auto etsUiExtensionContext = GetEtsUIExtensionContext(env, aniObj);
+    if (etsUiExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsUiExtensionContext");
+        return;
+    }
+    etsUiExtensionContext->OnStartUIAbilitiesInSplitWindowMode(env, primaryWindowId, wantObj, callback);
+}
+
+void EtsUIExtensionContext::OnStartUIAbilitiesInSplitWindowMode(ani_env *env, ani_int primaryWindowId,
+    ani_object wantObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnStartUIAbilitiesInSplitWindowMode is called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    AAFwk::Want want;
+    if (!want.HasParameter(AAFwk::Want::PARAM_BACK_TO_OTHER_MISSION_STACK)) {
+        want.SetParam(AAFwk::Want::PARAM_BACK_TO_OTHER_MISSION_STACK, true);
+    }
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "UnwrapWant failed");
+        return;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    int32_t innerErrCode = static_cast<int32_t>(ERR_OK);
+    innerErrCode = context->StartUIAbilitiesInSplitWindowMode(primaryWindowId, want);
+    TAG_LOGD(AAFwkTag::UI_EXT, "StartUIServiceExtension code:%{public}d", innerErrCode);
+    AppExecFwk::AsyncCallback(env, callback,
+        AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
+}
+
+
 bool EtsUIExtensionContext::BindNativePtrCleaner(ani_env *env)
 {
     if (env == nullptr) {
@@ -869,6 +918,9 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
             reinterpret_cast<void*>(EtsUIExtensionContext::WantCheck)},
         ani_native_function{"nativeDisconnectUIServiceExtensionCheck", SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK,
             reinterpret_cast<void*>(EtsUIExtensionContext::DisconnectUIServiceExtensionCheck)},
+        ani_native_function{"nativeStartUIAbilitiesInSplitWindowMode",
+            SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE,
+            reinterpret_cast<void*>(EtsUIExtensionContext::StartUIAbilitiesInSplitWindowMode)},
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK
         && status != ANI_ALREADY_BINDED) {
