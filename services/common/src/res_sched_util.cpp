@@ -163,6 +163,24 @@ void ResSchedUtil::ReportEventToRSS(const int32_t uid, const std::string &bundle
 #endif
 }
 
+void ResSchedUtil::PromotePriorityToRSS(int32_t callerUid, int32_t callerPid, const std::string &targetBundleName,
+    int32_t targetUid, int32_t targetPid)
+{
+    TAG_LOGD(AAFwkTag::DEFAULT, "PromotePriorityToRSS---%{public}d_%{public}d_%{public}s_%{public}d_%{public}d",
+        callerUid, callerPid, targetBundleName.c_str(), targetUid, targetPid);
+#ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
+    uint32_t resType = ResourceSchedule::ResType::RES_TYPE_SA_PULL_APP_IDENTIFIER;
+    nlohmann::json payload;
+    payload.emplace("callerUid", callerUid);
+    payload.emplace("callerPid", callerPid);
+    payload.emplace("targetBundleName", targetBundleName);
+    payload.emplace("targetUid", targetUid);
+    payload.emplace("targetPid", targetPid);
+    TAG_LOGD(AAFwkTag::DEFAULT, "PromotePriorityToRSS---payload:%{public}s", payload.dump().c_str());
+    ResourceSchedule::ResSchedClient::GetInstance().ReportData(resType, 0, payload);
+#endif
+}
+
 void ResSchedUtil::GetAllFrozenPidsFromRSS(std::unordered_set<int32_t> &frozenPids)
 {
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
