@@ -1324,8 +1324,14 @@ public:
     }
 
     bool ReportAbilityConnectionRelations();
-protected:
 
+    void SetPromotePriority(bool promotePriority);
+
+    bool ShouldPromotePriority();
+
+    void PromotePriority();
+
+protected:
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
     AbilityState currentState_ = AbilityState::INITIAL;    // current life state
@@ -1571,6 +1577,10 @@ private:
     std::atomic<bool> isPreloaded_ = false;
     std::atomic<bool> isFrozenByPreload_ = false;
     std::atomic<bool> isAbilityConnectionReported_ = false;
+    struct UIAbilityProperty {
+        bool promotePriority = false;
+    };
+    std::shared_ptr<UIAbilityProperty> uiAbilityProperty_ = nullptr;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
