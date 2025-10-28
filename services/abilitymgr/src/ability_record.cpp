@@ -524,6 +524,10 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         return;
     }
 
+    if (ShouldPromotePriority() && GetCallerInfo() != nullptr) {
+        ResSchedUtil::GetInstance().PromotePriorityToRSS(GetCallerInfo()->callerUid, GetCallerInfo()->callerPid,
+            GetAbilityInfo().bundleName, GetPid(), GetUid());
+    }
     DelayedSingleton<AppScheduler>::GetInstance()->NotifyLoadAbilityFinished(options.callingPid,
         GetPid(), options.loadAbilityCallbackId);
     auto recordCallerInfo = GetCallerInfo();
@@ -4139,6 +4143,28 @@ bool AbilityRecord::ReportAbilityConnectionRelations()
     DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(info,
         GetAbilityRecordId());
     return true;
+}
+
+void AbilityRecord::SetPromotePriority(bool promotePriority)
+{
+    if (uiAbilityProperty_ == nullptr) {
+        uiAbilityProperty_ = std::make_shared<UIAbilityProperty>();
+    }
+    uiAbilityProperty_->promotePriority = promotePriority;
+}
+
+bool AbilityRecord::ShouldPromotePriority()
+{
+    return uiAbilityProperty_ != nullptr && uiAbilityProperty_->promotePriority;
+}
+
+void AbilityRecord::PromotePriority()
+{
+    if (ShouldPromotePriority() && GetCallerInfo() != nullptr) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "promoting priority: %{public}s", GetAbilityInfo().bundleName.c_str());
+        ResSchedUtil::GetInstance().PromotePriorityToRSS(GetCallerInfo()->callerUid, GetCallerInfo()->callerPid,
+            GetAbilityInfo().bundleName, GetPid(), GetUid());
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS
