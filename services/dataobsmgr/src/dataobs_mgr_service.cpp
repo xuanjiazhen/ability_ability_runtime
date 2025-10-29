@@ -21,6 +21,7 @@
 #include "ability_manager_interface.h"
 #include "ability_manager_proxy.h"
 #include "accesstoken_kit.h"
+#include "bundle_mgr_helper.h"
 #include "dataobs_mgr_errors.h"
 #include "data_share_permission.h"
 #include "datashare_log.h"
@@ -45,6 +46,8 @@
 namespace OHOS {
 namespace AAFwk {
 using namespace DataShare;
+using namespace Security::AccessToken;
+using namespace AppExecFwk;
 static constexpr const char *DIALOG_APP = "com.ohos.pasteboarddialog";
 static constexpr const char *PROGRESS_ABILITY = "PasteboardProgressAbility";
 static constexpr const char *PROMPT_TEXT = "PromptText_PasteBoard_Local";
@@ -325,6 +328,35 @@ Status DataObsMgrService::VerifyDataSharePermissionInner(Uri &uri, bool isRead, 
     return SUCCESS;
 }
 
+void VerifyRdbPermission(const std::string &uri, const uint32_t tokenId, const uint32_t userId)
+{
+    HapTokenInfo tokenInfo;
+    auto result = AccessTokenKit::GetHapTokenInfo(tokenId, tokenInfo);
+    if (result != RET_SUCCESS) {
+        LOG_ERROR("token:0x%{public}x, result:%{public}d", tokenId, result);
+        return;
+    }
+    if (uri.find(tokenInfo.bundleName) != std::string::npos) {
+        LOG_ERROR("bundleName permission is success");
+        return;
+    }
+    auto bmsHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    std::vector<DataGroupInfo> infos;
+    bool res = bmsHelper->QueryDataGroupInfos(tokenInfo.bundleName, userId, infos);
+    if (res) {
+        return;
+    }
+    for (auto &groupId : infos) {
+        if (uri.find(groupId.dataGroupId) != std::string::npos) {
+            LOG_ERROR("groupId permission is success");
+            return;
+        }
+    }
+    auto reportUri = uri;
+    std::string errMsg = "rdb check obs failed";
+    DataShare::DataSharePermission::ReportExtensionFault(DATAOBS_INVALID_URI, tokenId, reportUri, errMsg);
+}
+
 int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
     int32_t userId, DataObsOption opt, bool isExtension)
 {
@@ -353,6 +385,10 @@ int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbili
     if (opt.IsDataShare() && !isDataShareUri) {
         LOG_ERROR("uri invalid, uri:%{public}s", CommonUtils::Anonymous(uri.ToString()).c_str());
         return DATAOBS_INVALID_URI;
+    }
+    std::string rdbUri = uriInner.ToString();
+    if (rdbUri.find("rdb://") != std::string::npos) {
+        VerifyRdbPermission(rdbUri, callingToken, callingUserId);
     }
     bool checkPermission = opt.IsDataShare() || isDataShareUri;
     if (checkPermission) {
