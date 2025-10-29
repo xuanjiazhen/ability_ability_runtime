@@ -187,39 +187,38 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
-static inline std::unordered_map<std::string, std::string> abbrFileNameMap = {
-    { "ability_connect_manager.cpp", "ABCM" },
-    { "ability_manager_service.cpp", "ABMS" },
-    { "ability_record.cpp", "ABR" },
-    { "ability_connect_callback_stub.cpp", "ACCS" },
-    { "ability_manager_client.cpp", "AMC" },
-    { "app_mgr_service_inner.cpp", "AMSI" },
-    { "app_running_manager.cpp", "ARM" },
-    { "app_running_record.cpp", "ARR" },
-    { "app_spawn_client.cpp", "ASC" },
-    { "app_state_observer_manager.cpp", "ASOM" },
-    { "cache_process_manager.cpp", "CPM" },
-    { "connection_record.cpp", "CONN" },
-    { "connect_server_manager.cpp", "CSM" },
-    { "dump_runtime_helper.cpp", "DRH" },
-    { "ecological_rule_interceptor.cpp", "ERI" },
-    { "extension_record_manager.cpp", "ERM" },
-    { "js_ability_stage.cpp", "JAS" },
-    { "js_runtime_common.cpp", "JRC" },
-    { "js_service_extension.cpp", "JSE" },
-    { "js_environment.cpp", "JSENV" },
-    { "js_service_extension_context.cpp", "JSEC" },
-    { "js_ui_ability.cpp", "JUA" },
-    { "main_thread.cpp", "MTHRD" },
-    { "ohos_application.cpp", "OH_APP" },
-    { "preload_uiext_state_observer.cpp", "PUSO" },
-    { "service_extension_context.cpp", "SEC" },
-    { "ui_ability_lifecycle_manager.cpp", "UALM" },
-    { "window_pid_visibility_changed_listener.cpp", "WND_CHG_LSNR" }
-};
-
 static inline std::string ConvertFileName(const std::string& fileName)
 {
+    std::unordered_map<std::string, std::string> abbrFileNameMap = {
+        { "ability_connect_manager.cpp", "ABCM" },
+        { "ability_manager_service.cpp", "ABMS" },
+        { "ability_record.cpp", "ABR" },
+        { "ability_connect_callback_stub.cpp", "ACCS" },
+        { "ability_manager_client.cpp", "AMC" },
+        { "app_mgr_service_inner.cpp", "AMSI" },
+        { "app_running_manager.cpp", "ARM" },
+        { "app_running_record.cpp", "ARR" },
+        { "app_spawn_client.cpp", "ASC" },
+        { "app_state_observer_manager.cpp", "ASOM" },
+        { "cache_process_manager.cpp", "CPM" },
+        { "connection_record.cpp", "CONN" },
+        { "connect_server_manager.cpp", "CSM" },
+        { "dump_runtime_helper.cpp", "DRH" },
+        { "ecological_rule_interceptor.cpp", "ERI" },
+        { "extension_record_manager.cpp", "ERM" },
+        { "js_ability_stage.cpp", "JAS" },
+        { "js_runtime_common.cpp", "JRC" },
+        { "js_service_extension.cpp", "JSE" },
+        { "js_environment.cpp", "JSENV" },
+        { "js_service_extension_context.cpp", "JSEC" },
+        { "js_ui_ability.cpp", "JUA" },
+        { "main_thread.cpp", "MTHRD" },
+        { "ohos_application.cpp", "OH_APP" },
+        { "preload_uiext_state_observer.cpp", "PUSO" },
+        { "service_extension_context.cpp", "SEC" },
+        { "ui_ability_lifecycle_manager.cpp", "UALM" },
+        { "window_pid_visibility_changed_listener.cpp", "WND_CHG_LSNR" }
+    };
     if (abbrFileNameMap.find(fileName) != abbrFileNameMap.end()) {
         return abbrFileNameMap[fileName];
     }
