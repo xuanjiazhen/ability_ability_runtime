@@ -99,7 +99,6 @@ void EtsStartupTask::UpdateContextRef(ani_ref contextRef)
 int32_t EtsStartupTask::RunTaskOnDependencyCompleted(const std::string &dependencyName,
     const std::shared_ptr<StartupTaskResult> &result)
 {
-    // todo HandleScope
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null env");
@@ -124,16 +123,20 @@ int32_t EtsStartupTask::RunTaskOnDependencyCompleted(const std::string &dependen
 ani_ref EtsStartupTask::GetDependencyResult(ani_env *env, const std::string &dependencyName,
     std::shared_ptr<StartupTaskResult> result)
 {
-    if (result == nullptr || result->GetResultType() != StartupTaskResult::ResultType::ETS) {
-        return nullptr; // Return undefined equivalent
-    } else {
+    if (result == nullptr) {
+        return nullptr;
+    }
+    if (result->GetResultType() == StartupTaskResult::ResultType::ETS) {
         std::shared_ptr<EtsStartupTaskResult> etsResultPtr = std::static_pointer_cast<EtsStartupTaskResult>(result);
-        if (etsResultPtr == nullptr) {
-            TAG_LOGE(AAFwkTag::STARTUP, "%{public}s, convert failed", dependencyName.c_str());
-            return nullptr;
-        }
         return etsResultPtr->GetEtsStartupResultRef();
     }
+    if (result->GetResultType() == StartupTaskResult::ResultType::JS) {
+        std::shared_ptr<JsStartupTaskResult> jsResultPtr = std::static_pointer_cast<JsStartupTaskResult>(result);
+        auto resultObj = EtsStartupTaskResult::JsToEtsResult(env, jsResultPtr->GetJsStartupResultRef());
+        return reinterpret_cast<ani_ref>(resultObj);
+    }
+    TAG_LOGE(AAFwkTag::STARTUP, "invalid result type:%{public}d", static_cast<int32_t>(result->GetResultType()));
+    return nullptr;
 }
 
 extern "C" ETS_EXPORT AppStartupTask* OHOS_CreateEtsStartupTask(

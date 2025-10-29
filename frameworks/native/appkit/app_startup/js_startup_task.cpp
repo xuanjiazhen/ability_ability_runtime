@@ -251,7 +251,11 @@ int32_t JsStartupTask::RunTaskOnDependencyCompleted(const std::string &dependenc
 napi_value JsStartupTask::GetDependencyResult(napi_env env, const std::string &dependencyName,
     const std::shared_ptr<StartupTaskResult> &result)
 {
-    if (result == nullptr || result->GetResultType() != StartupTaskResult::ResultType::JS) {
+    if (result == nullptr) {
+        return nullptr;
+    }
+    if (result->GetResultType() != StartupTaskResult::ResultType::JS &&
+        result->GetResultType() != StartupTaskResult::ResultType::ETS) {
         return CreateJsUndefined(env);
     } else {
         std::shared_ptr<JsStartupTaskResult> jsResultPtr = std::static_pointer_cast<JsStartupTaskResult>(result);

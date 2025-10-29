@@ -436,6 +436,7 @@ ohos_shared_library("ability_stage_ani") {
     "ipc:ipc_single",
     "resource_management:global_resmgr",
     "runtime_core:ani",
+    "runtime_core:ani_helpers",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

@@ -17,11 +17,11 @@
 #define OHOS_ABILITY_RUNTIME_ETS_STARTUP_TASK_RESULT_H
 
 #include "ani.h"
-#include "startup_task_result.h"
+#include "js_startup_task_result.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class EtsStartupTaskResult : public StartupTaskResult {
+class EtsStartupTaskResult : public JsStartupTaskResult {
 public:
     EtsStartupTaskResult();
 
@@ -33,9 +33,15 @@ public:
 
     ResultType GetResultType() const override;
 
+    const std::shared_ptr<NativeReference> GetJsStartupResultRef() override;
+
     ani_ref GetEtsStartupResultRef() const;
 
+    static ani_object JsToEtsResult(ani_env *aniEnv, std::shared_ptr<NativeReference> jsRef);
+
 private:
+    ani_object EtsToJsResult();
+
     ani_env *aniEnv_ = nullptr;
     ani_ref resultRef_ = nullptr;
 };

@@ -16,10 +16,13 @@
 #include "ets_startup_task_result.h"
 
 #include "hilog_tag_wrapper.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-EtsStartupTaskResult::EtsStartupTaskResult() : StartupTaskResult()
+EtsStartupTaskResult::EtsStartupTaskResult() : JsStartupTaskResult()
 {}
 
 EtsStartupTaskResult::~EtsStartupTaskResult()
@@ -30,20 +33,105 @@ EtsStartupTaskResult::~EtsStartupTaskResult()
 }
 
 EtsStartupTaskResult::EtsStartupTaskResult(int32_t resultCode, const std::string &resultMessage)
-    : StartupTaskResult(resultCode, resultMessage)
+    : JsStartupTaskResult(resultCode, resultMessage)
 {}
 
-EtsStartupTaskResult::EtsStartupTaskResult(ani_env *aniEnv, ani_object result) : StartupTaskResult(), aniEnv_(aniEnv)
+EtsStartupTaskResult::EtsStartupTaskResult(ani_env *aniEnv, ani_object result) : JsStartupTaskResult(), aniEnv_(aniEnv)
 {
     ani_status status = aniEnv_->GlobalReference_Create(result, &resultRef_);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GlobalReference_Create failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::STARTUP, "GlobalReference_Create failed, status: %{public}d", status);
     }
 }
 
 StartupTaskResult::ResultType EtsStartupTaskResult::GetResultType() const
 {
     return ResultType::ETS;
+}
+
+ani_object EtsStartupTaskResult::JsToEtsResult(ani_env *aniEnv, std::shared_ptr<NativeReference> jsRef)
+{
+    TAG_LOGD(AAFwkTag::STARTUP, "JsToEtsResult");
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "aniEnv null");
+        return nullptr;
+    }
+    if (jsRef == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "jsRef null");
+        return nullptr;
+    }
+    auto napiValue = jsRef->GetNapiValue();
+    if (napiValue == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "napiValue null");
+        return nullptr;
+    }
+    napi_env napiEnv = {};
+    if (!arkts_napi_scope_open(aniEnv, &napiEnv)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "arkts_napi_scope_open failed");
+        return nullptr;
+    }
+    hybridgref ref = nullptr;
+    bool success = hybridgref_create_from_napi(napiEnv, napiValue, &ref);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::STARTUP, "hybridgref_create_from_napi failed");
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return nullptr;
+    }
+    ani_object result = nullptr;
+    success = hybridgref_get_esvalue(aniEnv, ref, &result);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::STARTUP, "hybridgref_get_esvalue failed");
+        hybridgref_delete_from_napi(napiEnv, ref);
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return nullptr;
+    }
+    hybridgref_delete_from_napi(napiEnv, ref);
+    arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+    return result;
+}
+
+const std::shared_ptr<NativeReference> EtsStartupTaskResult::GetJsStartupResultRef()
+{
+    TAG_LOGD(AAFwkTag::STARTUP, "GetJsStartupResultRef");
+    if (jsStartupResultRef_ != nullptr) {
+        return jsStartupResultRef_;
+    }
+    if (aniEnv_ == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "aniEnv_ null");
+        return jsStartupResultRef_;
+    }
+    if (resultRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "resultRef_ null");
+        return jsStartupResultRef_;
+    }
+    hybridgref ref = nullptr;
+    if (!hybridgref_create_from_ani(aniEnv_, resultRef_, &ref)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "hybridgref_create_from_ani failed");
+        return jsStartupResultRef_;
+    }
+    napi_env napiEnv = {};
+    if (!arkts_napi_scope_open(aniEnv_, &napiEnv)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "arkts_napi_scope_open failed");
+        return jsStartupResultRef_;
+    }
+    napi_value result = nullptr;
+    if (!hybridgref_get_napi_value(napiEnv, ref, &result)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "hybridgref_get_napi_value failed");
+        hybridgref_delete_from_napi(napiEnv, ref);
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return nullptr;
+    }
+    napi_ref resultRef = nullptr;
+    napi_status status = napi_create_reference(napiEnv, result, 1, &resultRef);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::STARTUP, "napi_create_reference failed: %{public}d", status);
+        hybridgref_delete_from_napi(napiEnv, ref);
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return nullptr;
+    }
+    jsStartupResultRef_ = std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
+    arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+    return jsStartupResultRef_;
 }
 
 ani_ref EtsStartupTaskResult::GetEtsStartupResultRef() const
