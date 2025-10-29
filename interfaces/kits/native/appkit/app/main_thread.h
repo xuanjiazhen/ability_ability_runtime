@@ -75,6 +75,16 @@ struct UncatchableTaskInfo {
     int32_t pid;
     std::string processName;
 };
+struct ETSRuntimeCreateParam{
+    AbilityRuntime::Runtime::Options option;
+    BundleInfo bundleInfo;
+    std::vector<BaseSharedBundleInfo> hspList;
+    AppLibPathMap appLibPaths;
+    std::map<std::string, std::string> abcPathsToBundleModuleNameMap;
+    std::string appRunningId;
+    UncatchableTaskInfo uncatchableTaskInfo;
+    std::string hapPath;
+};
 class ContextDeal;
 struct ModuleTestRunner;
 // class Global::Resource::ResourceManager;
@@ -743,6 +753,7 @@ private:
     static std::weak_ptr<OHOSApplication> applicationForDump_;
     bool isDeveloperMode_ = false;
     bool isPluginNamespaceInherited_ = false;
+    ETSRuntimeCreateParam etsRuntimeCreateParam_;
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     Rosen::RSSurfaceNode::SharedPtr preloadSurfaceNode_ = nullptr;
     std::shared_ptr<NWeb::NWeb> preloadNWeb_ = nullptr;
