@@ -1161,6 +1161,16 @@ public:
         return hasBeenExistedMasterProcessRole_.load();
     }
 
+    inline void AllowScbProcessMoveToBackground()
+    {
+        isAllowScbProcessMoveToBackground_.store(true);
+    }
+
+    inline bool IsAllowScbProcessMoveToBackground() const
+    {
+        return isAllowScbProcessMoveToBackground_.load();
+    }
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1350,6 +1360,7 @@ private:
     int64_t timeStamp_ = 0; // the flag of BackUpMainControlProcess
     std::atomic<int32_t> specifiedProcessRequestId_ = -1;
     std::atomic<bool> hasBeenExistedMasterProcessRole_ = false;
+    std::atomic<bool> isAllowScbProcessMoveToBackground_ = false;
 };
 
 }  // namespace AppExecFwk

@@ -316,6 +316,10 @@ void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<AbilityRecor
             abilityRecord->SetWant(abilityRequest.want);
             abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken());
+            if (!abilityRecord->IsConnectionReported()) {
+                abilityRecord->ReportAbilityConnectionRelations();
+                abilityRecord->SetConnectionReported(true);
+            }
             return;
         }
     }
@@ -1024,6 +1028,10 @@ int AbilityConnectManager::AttachAbilityThreadLocked(
         && !abilityRecord->GetWant().GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
         abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
         DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token);
+        if (!abilityRecord->IsConnectionReported()) {
+            abilityRecord->ReportAbilityConnectionRelations();
+            abilityRecord->SetConnectionReported(true);
+        }
     } else {
         TAG_LOGD(AAFwkTag::EXT, "Inactivate");
         abilityRecord->Inactivate();
@@ -3635,6 +3643,20 @@ void AbilityConnectManager::SignRestartAppFlag(int32_t uid, const std::string &i
         }
     }
     AbilityCacheManager::GetInstance().SignRestartAppFlag(uid, instanceKey);
+}
+
+void AbilityConnectManager::SignRestartProcess(int32_t pid)
+{
+    {
+        std::lock_guard lock(serviceMapMutex_);
+        for (auto &[key, abilityRecord] : serviceMap_) {
+            if (abilityRecord == nullptr || abilityRecord->GetPid() != pid) {
+                continue;
+            }
+            abilityRecord->SetRestartAppFlag(true);
+        }
+    }
+    AbilityCacheManager::GetInstance().SignRestartProcess(pid);
 }
 
 bool AbilityConnectManager::AddToServiceMap(const std::string &key, std::shared_ptr<AbilityRecord> abilityRecord)
