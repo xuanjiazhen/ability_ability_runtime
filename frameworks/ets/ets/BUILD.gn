@@ -1551,7 +1551,7 @@ ohos_prebuilt_etc("app_processInfo_abc_etc") {
   module_install_dir = "framework"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  deps = [ ":app_processInfo_abc_abc" ]
+  deps = [ ":app_processInfo_abc" ]
 }
 
 group("ets_packages") {
