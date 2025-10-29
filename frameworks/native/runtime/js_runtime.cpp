@@ -138,16 +138,6 @@ bool JsRuntime::Init(const Options& options)
     return Initialize(options);
 }
 
-Options &JsRuntime::GetOptions()
-{
-    return options_;
-}
-
-void JsRuntime::SetOptions(const Options& options)
-{
-    options_ = options;
-}
-
 std::unique_ptr<JsRuntime> JsRuntime::Create(const Options& options)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -699,7 +689,6 @@ void JsRuntime::LoadAotFile(const Options& options)
 bool JsRuntime::Initialize(const Options& options)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    options_ = options;
 #ifdef SUPPORT_SCREEN
     if (Ace::AceForwardCompatibility::PipelineChanged()) {
         preloaded_ = false;

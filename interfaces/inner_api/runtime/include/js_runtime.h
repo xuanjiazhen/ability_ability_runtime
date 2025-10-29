@@ -170,7 +170,6 @@ public:
     void UpdatePkgContextInfoJson(const std::string& moduleName, const std::string& hapPath,
         const std::string& packageName);
     bool Init(const Options& options);
-    Options &GetOptions();
     void SetOptions(const Options& options);
     size_t GetHeapTotalSize();
     size_t GetHeapObjectSize();
@@ -201,7 +200,6 @@ private:
 
     static std::atomic<bool> hasInstance;
     DebugOption debugOption_;
-    Options options_;
 
 private:
     bool CreateJsEnv(const Options& options);
