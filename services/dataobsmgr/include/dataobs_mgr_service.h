@@ -101,6 +101,9 @@ private:
     std::pair<Status, std::string> GetUriPermission(Uri &uri, bool isRead, ObserverInfo &info);
     int32_t VerifyDataShareExtension(Uri &uri, ObserverInfo &info);
     int32_t VerifyDataSharePermission(Uri &uri, bool isRead, ObserverInfo &info);
+    void VerifyUriPermission(Uri &uri, const uint32_t tokenId, const uint32_t userId, const std::string uriType)
+    int32_t ConstructRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        uint32_t token, int32_t userId, int32_t pid);
     Status VerifyDataSharePermissionInner(Uri &uri, bool isRead, ObserverInfo &info);
     int32_t NotifyChangeInner(Uri &uri, int32_t userId,
         DataObsOption opt, bool isExtension);
@@ -116,6 +119,8 @@ private:
     std::uint32_t taskCount_ = 0;
     std::shared_ptr<TaskHandlerWrap> handler_;
     std::shared_ptr<DataShare::DataSharePermission> permission_;
+    std::mutex groupsIdMutex_;
+    std::unordered_map<std::pair<std::string, int>, std::vector<DataGroupInfo>> groupsIdCache_;
 
     DataObsServiceRunningState state_;
 
