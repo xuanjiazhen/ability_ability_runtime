@@ -1673,6 +1673,21 @@ int32_t AppMgrService::SignRestartAppFlag(int32_t uid, const std::string &instan
     return appMgrServiceInner_->SignRestartAppFlag(uid, instanceKey);
 }
 
+int32_t AppMgrService::SignRestartProcess(int32_t pid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    bool isCallingPermission =
+        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
+    if (!isCallingPermission) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
+        return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
+    }
+    return appMgrServiceInner_->SignRestartProcess(pid);
+}
+
 int32_t AppMgrService::GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRunningUniqueId)
 {
     if (!IsReady()) {
@@ -1888,6 +1903,21 @@ int32_t AppMgrService::KillAppSelfWithInstanceKey(const std::string &instanceKey
     return appMgrServiceInner_->KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
 }
 
+int32_t AppMgrService::KillProcessByPidForExit(int32_t pid, const std::string &reason)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    bool isCallingPermission =
+        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
+    if (!isCallingPermission) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
+        return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
+    }
+    return appMgrServiceInner_->KillProcessByPidForExit(pid, reason);
+}
+
 void AppMgrService::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
@@ -2043,6 +2073,16 @@ int32_t AppMgrService::RegisterApplicationStateObserverWithFilter(sptr<IApplicat
         ret = appMgrServiceInner_->RegisterApplicationStateObserver(observer, bundleNameList, defaultAppStateFilter);
     }
     return ret;
+}
+
+void AppMgrService::AllowScbProcessMoveToBackground()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return;
+    }
+    appMgrServiceInner_->AllowScbProcessMoveToBackground();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

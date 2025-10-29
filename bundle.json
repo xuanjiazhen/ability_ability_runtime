@@ -113,7 +113,6 @@
             "webview",
             "window_manager",
             "zlib",
-            "skia",
             "hiperf"
   ],
           "third_party": [
@@ -416,6 +415,15 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/interfaces/inner_api/connectionobs_manager:connection_obs_manager"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/foreground_app_obs_manager/include",
+              "header_files": [
+                "foreground_app_connection_client.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/foreground_app_obs_manager:foreground_app_obs_manager"
           },
           {
             "header": {

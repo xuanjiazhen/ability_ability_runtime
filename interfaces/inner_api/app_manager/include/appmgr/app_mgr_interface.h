@@ -851,6 +851,17 @@ public:
     }
 
     /**
+     * @brief mark a process which is going restart.
+     * @param pid the pid of the process.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SignRestartProcess(int32_t pid)
+    {
+        return 0;
+    }
+
+    /**
      * Get appRunningUniqueId by pid.
      * @param pid pid.
      * @param appRunningUniqueId appRunningUniqueId.
@@ -998,6 +1009,11 @@ public:
     {
         return 0;
     }
+    
+    virtual int32_t KillProcessByPidForExit(int32_t pid, const std::string &reason)
+    {
+        return 0;
+    }
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) {}
 
@@ -1066,6 +1082,8 @@ public:
     }
 
     virtual void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId) {}
+
+    virtual void AllowScbProcessMoveToBackground() {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
