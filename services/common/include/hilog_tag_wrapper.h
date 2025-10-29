@@ -187,7 +187,7 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     return tagNames[offset];
 }
 
-static inline std::string ConvertFileName(const std::string& fileName)
+[[maybe_unused]] static std::string ConvertFileName(const std::string& fileName)
 {
     std::unordered_map<std::string, std::string> abbrFileNameMap = {
         { "ability_connect_manager.cpp", "ABCM" },
