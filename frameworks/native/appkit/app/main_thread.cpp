@@ -2552,7 +2552,7 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
 
     mainThreadState_ = MainThreadState::RUNNING;
     wptr<MainThread> weak = this;
-    auto callback = [this, weak, abilityRecord](const std::shared_ptr<AbilityRuntime::Context> &stageContext) {
+    auto callback = [weak, abilityRecord](const std::shared_ptr<AbilityRuntime::Context> &stageContext) {
         auto appThread = weak.promote();
         if (appThread == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
@@ -2564,33 +2564,8 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
             TAG_LOGE(AAFwkTag::APPKIT, "null application");
             return;
         }
-        string AbilityArkTSMode = abilityRecord->GetAbilityInfo()->arkTSMode;
-        if(AbilityArkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 || AbilityArkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID){
-            auto applicationInfo = this->GetApplicationInfo();
-            if(applicationInfo->arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0){
-                auto &runtime = application->GetRuntime();
-                auto &jsRuntimePoint = (static_cast<AbilityRuntime::JsRuntime &>(*runtime));
-                AbilityRuntime::Runtime::Options options = jsRuntimePoint.GetOptions();
-                if(options.lang == AbilityRuntime::Runtime::Language::JS){
-                    options.lang = AbilityRuntime::Runtime::Language::ETS;
-                    auto etsRuntime = AbilityRuntime::Runtime::Create(options);
-                    appThread->UpdateRuntimeModuleChecker(etsRuntime);
-                    // auto expectionInfo =
-                    //     CreateEtsExceptionInfo(options.bundleName, options.versionCode, options.hapPath, AppRunningId, Pid, ProcessName);
-                    // AppRunningId, Pid, ProcessName 三个参数有问题
-                    // (static_cast<AbilityRuntime::ETSRuntime&>(*etsRuntime)).RegisterUncaughtExceptionHandler(expectionInfo);
-                }else{
-                    auto &runtime = application->GetRuntime();
-                    appThread->UpdateRuntimeModuleChecker(runtime);
-                }
-            } else {
-            auto &runtime = application->GetRuntime();
-            appThread->UpdateRuntimeModuleChecker(runtime);
-            }
-        }else{
-            auto &runtime = application->GetRuntime();
-            appThread->UpdateRuntimeModuleChecker(runtime);
-        }
+        auto &runtime = application->GetRuntime();
+        appThread->UpdateRuntimeModuleChecker(runtime);
 #ifdef APP_ABILITY_USE_TWO_RUNNER
         AbilityThread::AbilityThreadMain(application, abilityRecord, stageContext);
 #else
@@ -2609,6 +2584,7 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
     Rosen::DisplayManager::GetInstance().AddDisplayIdFromAms(displayId, abilityRecord->GetToken());
     TAG_LOGD(AAFwkTag::APPKIT, "add displayId: %{public}" PRIu64, displayId);
 #endif
+    CheckAndUpdateRuntime(abilityRecord)
     bool isAsyncCallback = false;
     std::shared_ptr<AbilityRuntime::Context> stageContext = application_->AddAbilityStage(
         abilityRecord, callback, isAsyncCallback);
@@ -4238,6 +4214,48 @@ bool MainThread::IsPluginNamespaceInherited()
     isPluginNamespaceInherited_ = system::GetBoolParameter(INHERIT_PLUGIN_NAMESPACE, false);
     TAG_LOGD(AAFwkTag::DEFAULT, "inherit_plugin_namespace: %{public}d", isPluginNamespaceInherited_);
     return isPluginNamespaceInherited_;
+}
+
+void MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord){
+    // string AbilityArkTSMode = abilityRecord->GetAbilityInfo()->arkTSMode;
+    wptr<MainThread> weak = this;//多线程？
+    auto appThread = weak.promote();
+    if (appThread == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+        return;
+    }
+    auto application = appThread->GetApplication();
+    if (application == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null application");
+        return;
+    }
+    if(abilityRecord->GetAbilityInfo()->arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 &&
+        appThread->applicationInfo_->arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0){
+       auto &runtime = application->GetRuntime();
+       if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+            return;
+       }
+       if(runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS){
+            auto &jsRuntimePoint = (static_cast<AbilityRuntime::JsRuntime &>(*runtime));
+            auto options = jsRuntimePoint.GetOptions();
+            options.lang = AbilityRuntime::Runtime::Language::ETS;
+            auto etsRuntime = AbilityRuntime::Runtime::Create(options);
+            int32_t pid = -1;
+            std::string processName = "";
+            if(this -> processInfo_ != nullptr){
+                pid = this -> processInfo_->GetPid();
+                processName = this -> processInfo_->GetProcessName();
+                TAG_LOGD(AAFwkTag::APPKIT, "pid is %{public}d, processName is %{public}s", pid, processName.c_str());
+            }
+            // auto expectionInfo =
+            //     CreateEtsExceptionInfo(options.bundleName, options.versionCode, options.hapPath, AppRunningId, pid, processName);
+            // AppRunningId 参数传入有问题
+            // (static_cast<AbilityRuntime::ETSRuntime&>(*etsRuntime)).RegisterUncaughtExceptionHandler(expectionInfo);
+            application_->SetRuntime(std::move(etsRuntime));
+            appThread->UpdateRuntimeModuleChecker(etsRuntime);
+       }
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
