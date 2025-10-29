@@ -29,6 +29,7 @@
 #include "connection_state_manager.h"
 #include "common_event_manager.h"
 #include "error_msg_util.h"
+#include "foreground_app_connection_manager.h"
 #include "freeze_util.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
@@ -114,6 +115,7 @@ const int32_t SHELL_ASSISTANT_DIETYPE = 0;
 std::atomic<int64_t> AbilityRecord::abilityRecordId = 0;
 const int32_t DEFAULT_USER_ID = 0;
 const int32_t SEND_RESULT_CANCELED = -1;
+const int32_t DEFAULT_REQUEST_CODE = -1;
 const int VECTOR_SIZE = 2;
 const int LOAD_TIMEOUT_ASANENABLED = 150;
 const int TERMINATE_TIMEOUT_ASANENABLED = 150;
@@ -336,6 +338,10 @@ void AbilityRecord::LoadUIAbility()
         std::lock_guard guard(wantLock_);
         loadTimeout = want_.GetBoolParam("coldStart", false) ? coldStartTimeout : loadTimeout;
     }
+    if (IsPreloadStart()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "preload, no event sent");
+        return;
+    }
     SendEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, loadTimeout / HALF_TIMEOUT);
     SendEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, loadTimeout);
     std::string methodName = "LoadAbility";
@@ -507,7 +513,10 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
     {
         std::lock_guard guard(wantLock_);
         std::string targetBundleName = abilityInfo_.applicationInfo.bundleName;
-        bool isNotifyCollaborator = (targetBundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName());
+        bool isNotifyCollaborator = !options.targetGrantBundleName.empty();
+        if (isNotifyCollaborator) {
+            targetBundleName = options.targetGrantBundleName;
+        }
         GrantUriPermission(want_, targetBundleName, false, tokenId, isNotifyCollaborator);
     }
 #endif // SUPPORT_UPMS
@@ -520,6 +529,13 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
 
     DelayedSingleton<AppScheduler>::GetInstance()->NotifyLoadAbilityFinished(options.callingPid,
         GetPid(), options.loadAbilityCallbackId);
+    auto recordCallerInfo = GetCallerInfo();
+    if (recordCallerInfo != nullptr && GetRequestCode() != DEFAULT_REQUEST_CODE) {
+        ForegroundAppConnectionInfo info(recordCallerInfo->callerPid, GetPid(), recordCallerInfo->callerUid, GetUid(),
+            recordCallerInfo->callerBundleName, GetElementName().GetBundleName());
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(
+            info, GetAbilityRecordId());
+    }
 
     PostForegroundTimeoutTask();
     if (IsAbilityState(AbilityState::FOREGROUND)) {
@@ -547,7 +563,9 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
 
 void AbilityRecord::PostForegroundTimeoutTask()
 {
-    if (IsDebug()) {
+    if (IsDebug() || IsPreloadStart()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "isDebug=%{public}d, isPreload=%{public}d, no event sent",
+            IsDebug(), IsPreloadStart());
         return;
     }
     int foregroundTimeout =
@@ -1837,6 +1855,10 @@ void AbilityRecord::Terminate(const Closure &task)
     SetAbilityStateInner(AbilityState::TERMINATING);
 #endif // SUPPORT_SCREEN
     lifecycleDeal_->Terminate(GetWant(), lifeCycleStateInfo_, GetSessionInfo());
+    if (GetCallerInfo() != nullptr && GetRequestCode() != DEFAULT_REQUEST_CODE) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(
+            GetCallerInfo()->callerPid, GetPid(), GetAbilityRecordId());
+    }
 }
 
 void AbilityRecord::ShareData(const int32_t &uniqueId)
@@ -1980,6 +2002,10 @@ void AbilityRecord::SendResultByBackToCaller(const std::shared_ptr<AbilityResult
     CHECK_POINTER(scheduler_);
     CHECK_POINTER(result);
     scheduler_->SendResult(result->requestCode_, result->resultCode_, result->resultWant_);
+    if (GetCallerInfo() != nullptr) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(
+            GetCallerInfo()->callerPid, GetPid(), GetAbilityRecordId());
+    }
 }
 
 void AbilityRecord::SendSandboxSavefileResult(const Want &want, int resultCode, int requestCode)
@@ -2762,11 +2788,12 @@ void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
         .taskName_ = "OnSchedulerDied",
         .timeoutMillis_ = SCHEDULER_DIED_TIMEOUT
     });
-    auto uriTask = [want = GetWant(), ability = shared_from_this()]() {
+    auto resultTask = [ability = shared_from_this()]() {
+        Want want;
         ability->SaveResultToCallers(-1, &want);
         ability->SendResultToCallers(true);
     };
-    handler->SubmitTask(uriTask);
+    handler->SubmitTask(resultTask);
 #ifdef SUPPORT_GRAPHICS
     NotifyAnimationAbilityDied();
 #endif
@@ -4087,6 +4114,34 @@ void AbilityRecord::RemoveUIExtensionLaunchTimestamp()
     std::lock_guard guard(wantLock_);
     want_.RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
     want_.RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
+}
+
+bool AbilityRecord::ReportAbilityConnectionRelations()
+{
+    auto recordCallerInfo = GetCallerInfo();
+    CHECK_POINTER_RETURN_BOOL(recordCallerInfo);
+    
+    auto targetPid = GetPid();
+    auto targetUid = GetUid();
+    auto callerPid = recordCallerInfo->callerPid;
+    auto callerUid = recordCallerInfo->callerUid;
+    auto callerBundleName = recordCallerInfo->callerBundleName;
+    auto targetBundleName = GetElementName().GetBundleName();
+    if (targetPid <= 0 || targetUid <= 0 || callerPid <= 0 || callerUid <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid target process: targetPid=%{public}d, targetUid=%{public}d, "
+            "callerPid=%{public}d, callerUid=%{public}d", targetPid, targetUid, callerPid, callerUid);
+        return false;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "ConnectionInfo: targetPid=%{public}d, targetUid=%{public}d, targetBundleName=%{public}s, "
+        "callerPid=%{public}d, callerUid=%{public}d, callerBundleName=%{public}s",
+        targetPid, targetUid, targetBundleName.c_str(), callerPid, callerUid, callerBundleName.c_str());
+
+    ForegroundAppConnectionInfo info(callerPid, targetPid, callerUid, targetUid, callerBundleName, targetBundleName);
+    DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(info,
+        GetAbilityRecordId());
+    return true;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

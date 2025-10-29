@@ -107,6 +107,8 @@
 #include "appcapture_perf.h"
 #endif
 
+#include "sleep_clean.h"
+
 #if defined(NWEB)
 #include <thread>
 #include "app_mgr_client.h"
@@ -3624,6 +3626,14 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
     }
 #endif
 
+    if (faultData.faultType == FaultDataType::SLEEP_CLEAN) {
+        if (AppExecFwk::SleepClean::GetInstance().HandleSleepClean(faultData, application_)&&faultData.waitSaveState) {
+            SleepCleanKill();
+            return NO_ERROR;
+        }
+        return ERR_INVALID_VALUE;
+    }
+
     wptr<MainThread> weak = this;
     auto task = [weak, faultData] {
         auto appThread = weak.promote();
@@ -4218,7 +4228,7 @@ bool MainThread::IsPluginNamespaceInherited()
 
 void MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord){
     // string AbilityArkTSMode = abilityRecord->GetAbilityInfo()->arkTSMode;
-    wptr<MainThread> weak = this;//多线程？
+    wptr<MainThread> weak = this;
     auto appThread = weak.promote();
     if (appThread == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
@@ -4256,6 +4266,19 @@ void MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
             appThread->UpdateRuntimeModuleChecker(etsRuntime);
        }
     }
+
+void MainThread::SleepCleanKill()
+{
+    auto task = [ weak = wptr<MainThread>(this)]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return ;
+        }
+        AbilityManagerClient::GetInstance()->RecordAppExitReason({ REASON_SIGNAL, "Sleep Clean Kill" });
+        appThread->ScheduleProcessSecurityExit();
+    };
+    mainHandler_->PostTask(task, "Sleep Clean:Over HeapSize", AppExecFwk::SLEEP_CLEAN_DELAY_TIME);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
