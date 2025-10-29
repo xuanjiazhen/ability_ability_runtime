@@ -33,7 +33,19 @@ public:
     static void AutoStartupInfoCheck(ani_env *env, ani_object info);
     static void NativeCheckCallerIsSystemApp(ani_env *env);
 
-    static sptr<EtsAbilityAutoStartupCallback> etsAutoStartupCallback_;
+private:
+
+    void OnRegisterAutoStartupCallback(ani_env *env, ani_string aniType, ani_object callback);
+    void OnUnregisterAutoStartupCallback(ani_env *env, ani_string aniType, ani_object callback);
+    void OnSetApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback);
+    void OnCancelApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback);
+    void OnQueryAllAutoStartupApplications(ani_env *env, ani_object callback);
+    void OnAutoStartupInfoCheck(ani_env *env, ani_object info);
+    void OnNativeCheckCallerIsSystemApp(ani_env *env);
+
+    sptr<EtsAbilityAutoStartupCallback> etsAutoStartupCallback_;
+    static EtsAbilityAutoStartupManager& GetInstance();
+
 };
 void EtsAbilityAutoStartupManagerInit(ani_env *env);
 } // namespace AbilityRuntime

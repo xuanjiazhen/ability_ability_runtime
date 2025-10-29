@@ -34,9 +34,55 @@ constexpr const char *ETS_AUTO_STARTUP_MANAGER_NAMESPACE =
 constexpr const char *ON_OFF_TYPE_SYSTEM = "systemAutoStartup";
 } // namespace
 
-sptr<EtsAbilityAutoStartupCallback> EtsAbilityAutoStartupManager::etsAutoStartupCallback_ = nullptr;
+EtsAbilityAutoStartupManager& EtsAbilityAutoStartupManager::GetInstance()
+{
+    static EtsAbilityAutoStartupManager instance;
+    return instance;
+}
 
 void EtsAbilityAutoStartupManager::RegisterAutoStartupCallback(
+    ani_env *env, ani_string aniType, ani_object callback)
+{
+    GetInstance().OnRegisterAutoStartupCallback(env, aniType, callback);
+}
+
+void EtsAbilityAutoStartupManager::UnregisterAutoStartupCallback(
+    ani_env *env, ani_string aniType, ani_object callback)
+{
+    GetInstance().OnUnregisterAutoStartupCallback(env, aniType, callback);
+}
+
+void EtsAbilityAutoStartupManager::SetApplicationAutoStartup(
+    ani_env *env, ani_object info, ani_object callback)
+{
+    GetInstance().OnSetApplicationAutoStartup(env, info, callback);
+}
+
+void EtsAbilityAutoStartupManager::CancelApplicationAutoStartup(
+    ani_env *env, ani_object info, ani_object callback)
+{
+    GetInstance().OnCancelApplicationAutoStartup(env, info, callback);
+}
+
+void EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications(
+    ani_env *env, ani_object callback)
+{
+    GetInstance().OnQueryAllAutoStartupApplications(env, callback);
+}
+
+void EtsAbilityAutoStartupManager::AutoStartupInfoCheck(
+    ani_env *env, ani_object info)
+{
+    GetInstance().OnAutoStartupInfoCheck(env, info);
+}
+
+void EtsAbilityAutoStartupManager::NativeCheckCallerIsSystemApp(
+    ani_env *env)
+{
+    GetInstance().OnNativeCheckCallerIsSystemApp(env);
+}
+
+void EtsAbilityAutoStartupManager::OnRegisterAutoStartupCallback(
     ani_env *env, ani_string aniType, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called RegisterAutoStartupCallback");
@@ -83,7 +129,7 @@ void EtsAbilityAutoStartupManager::RegisterAutoStartupCallback(
     etsAutoStartupCallback_->Register(callback);
 }
 
-void EtsAbilityAutoStartupManager::UnregisterAutoStartupCallback(
+void EtsAbilityAutoStartupManager::OnUnregisterAutoStartupCallback(
     ani_env *env, ani_string aniType, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called UnregisterAutoStartupCallback");
@@ -120,7 +166,7 @@ void EtsAbilityAutoStartupManager::UnregisterAutoStartupCallback(
         etsAutoStartupCallback_ = nullptr;
     }
 }
-void EtsAbilityAutoStartupManager::AutoStartupInfoCheck(ani_env *env, ani_object info)
+void EtsAbilityAutoStartupManager::OnAutoStartupInfoCheck(ani_env *env, ani_object info)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called AutoStartupInfoCheck");
 
@@ -136,7 +182,7 @@ void EtsAbilityAutoStartupManager::AutoStartupInfoCheck(ani_env *env, ani_object
         return;
     }
 }
-void EtsAbilityAutoStartupManager::SetApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback)
+void EtsAbilityAutoStartupManager::OnSetApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called SetApplicationAutoStartup");
 
@@ -160,7 +206,7 @@ void EtsAbilityAutoStartupManager::SetApplicationAutoStartup(ani_env *env, ani_o
         EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
 }
 
-void EtsAbilityAutoStartupManager::CancelApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback)
+void EtsAbilityAutoStartupManager::OnCancelApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called CancelApplicationAutoStartup");
 
@@ -184,7 +230,7 @@ void EtsAbilityAutoStartupManager::CancelApplicationAutoStartup(ani_env *env, an
         EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
 }
 
-void EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications(ani_env *env, ani_object callback)
+void EtsAbilityAutoStartupManager::OnQueryAllAutoStartupApplications(ani_env *env, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called QueryAllAutoStartupApplications");
     if (!AppExecFwk::CheckCallerIsSystemApp()) {
@@ -203,7 +249,7 @@ void EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications(ani_env *env,
         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), result);
 }
 
-void EtsAbilityAutoStartupManager::NativeCheckCallerIsSystemApp(ani_env *env)
+void EtsAbilityAutoStartupManager::OnNativeCheckCallerIsSystemApp(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called NativeCheckCallerIsSystemApp");
     if (!AppExecFwk::CheckCallerIsSystemApp()) {
