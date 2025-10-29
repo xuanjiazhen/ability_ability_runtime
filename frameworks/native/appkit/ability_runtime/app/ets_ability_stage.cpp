@@ -476,7 +476,7 @@ int32_t ETSAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &ca
     }
     auto runAutoStartupCallback = std::make_shared<OnCompletedCallback>(
         [callback](const std::shared_ptr<StartupTaskResult> &) {
-            TAG_LOGI(AAFwkTag::APPKIT, "OnCompletedCallback");
+            TAG_LOGI(AAFwkTag::APPKIT, "mainThreadAwaitCallback");
             callback();
         });
     const auto timeoutCallback = [moduleName]() {

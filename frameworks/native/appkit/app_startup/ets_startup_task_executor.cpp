@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-// ets_startup_task_executor.cpp
+#include "ets_startup_task_executor.h"
 
 #include "ani_common_util.h"
-#include "ets_startup_task_executor.h"
 #include "ets_startup_task_result.h"
 #include "hilog_tag_wrapper.h"
 
@@ -24,7 +23,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 
 int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startupTask, 
-    ani_ref context, std::unique_ptr<StartupTaskResultCallback> callback)
+    ani_ref context, std::shared_ptr<StartupTaskResultCallback> callback)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "RunOnTaskPool called for task");
     
@@ -38,7 +37,7 @@ int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startupTask,
     ani_method ctor = nullptr;
     ani_object object = nullptr;
     
-    if ((status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor;", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "FindClass failed, status: %{public}d", status);
         return ERR_STARTUP_INTERNAL_ERROR;
     }
@@ -60,8 +59,7 @@ int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startupTask,
     ani_object startupTaskObj = reinterpret_cast<ani_object>(startupTask);
     ani_object contextObj = reinterpret_cast<ani_object>(context);
 
-    auto sharedCallback = std::shared_ptr<StartupTaskResultCallback>(callback.release());
-    auto weakCallback = new (std::nothrow) std::weak_ptr<StartupTaskResultCallback>(sharedCallback);
+    auto weakCallback = new (std::nothrow) std::weak_ptr<StartupTaskResultCallback>(callback);
     if (weakCallback == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null weakCallback");
         return ERR_STARTUP_INTERNAL_ERROR;
@@ -69,7 +67,7 @@ int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startupTask,
     ani_long nativeCallbackLong = reinterpret_cast<ani_long>(weakCallback);
     if ((status = env->Object_CallMethodByName_Void(object, "asyncPushTask", 
         "L@ohos/app/appstartup/StartupTask/StartupTask;Lapplication/AbilityStageContext/AbilityStageContext;"
-        "Lstd/core/Long;:V", startupTaskObj, contextObj, nativeCallbackLong)) != ANI_OK) {
+        "J:V", startupTaskObj, contextObj, nativeCallbackLong)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "failed to call asyncPushTask, status: %{public}d", status);
         delete weakCallback;
         return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
@@ -80,7 +78,7 @@ int32_t ETSStartupTaskExecutor::RunOnTaskPool(ani_env *env, ani_ref startupTask,
 }
 
 int32_t ETSStartupTaskExecutor::RunOnMainThread(ani_env *env, ani_ref startupTask, 
-    ani_ref context, std::unique_ptr<StartupTaskResultCallback> callback)
+    ani_ref context, std::shared_ptr<StartupTaskResultCallback> callback)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "RunOnMainThread called");
     
@@ -93,7 +91,7 @@ int32_t ETSStartupTaskExecutor::RunOnMainThread(ani_env *env, ani_ref startupTas
     ani_class cls = nullptr;
     ani_method ctor = nullptr;
     ani_object object = nullptr;
-    if ((status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor;", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "status : %{public}d", status);
         return ERR_STARTUP_INTERNAL_ERROR;
     }
@@ -112,11 +110,9 @@ int32_t ETSStartupTaskExecutor::RunOnMainThread(ani_env *env, ani_ref startupTas
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    auto sharedCallback = std::shared_ptr<StartupTaskResultCallback>(callback.release());
-
-    auto weakCallback = new (std::nothrow) std::weak_ptr<StartupTaskResultCallback>(sharedCallback);
+    auto weakCallback = new (std::nothrow) std::weak_ptr<StartupTaskResultCallback>(callback);
     if (weakCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::DELEGATOR, "null workCallback");
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null weakCallback");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
     ani_object startupTaskObj = reinterpret_cast<ani_object>(startupTask);
@@ -124,8 +120,8 @@ int32_t ETSStartupTaskExecutor::RunOnMainThread(ani_env *env, ani_ref startupTas
     ani_long nativeCallbackLong = reinterpret_cast<ani_long>(weakCallback);
     if ((status = env->Object_CallMethodByName_Void(object, "executeStartupTaskOnMainThread", 
         "L@ohos/app/appstartup/StartupTask/StartupTask;Lapplication/AbilityStageContext/AbilityStageContext;"
-        "Lstd/core/Long;:V", startupTaskObj, contextObj, nativeCallbackLong)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STARTUP, "failed to call executeStartupTaskOnMainThread");
+        "J:V", startupTaskObj, contextObj, nativeCallbackLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "failed to call executeStartupTaskOnMainThread, status:%{public}d", status);
         delete weakCallback;
         return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;
     }
@@ -143,16 +139,20 @@ void ETSStartupTaskExecutor::NativeOnTaskSuccess(ani_env *env, ani_object obj,
         return;
     }
 
-    auto *callback = reinterpret_cast<StartupTaskResultCallback *>(callbackLong);
+    auto weakCallback = reinterpret_cast<std::weak_ptr<StartupTaskResultCallback>*>(callbackLong);
+    if (weakCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "null weakCallback");
+        return;
+    }
+    auto callback = weakCallback->lock();
+    delete weakCallback;
     if (callback == nullptr) {
-        TAG_LOGE(AAFwkTag::STARTUP, "null callback pointer");
+        TAG_LOGE(AAFwkTag::STARTUP, "null callback");
         return;
     }
 
     std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<EtsStartupTaskResult>(env, result);
     callback->Call(taskResult);
-    
-    delete callback;
 }
 
 void ETSStartupTaskExecutor::NativeOnTaskFailure(ani_env *env, ani_object thisObj, 
@@ -165,24 +165,23 @@ void ETSStartupTaskExecutor::NativeOnTaskFailure(ani_env *env, ani_object thisOb
         return;
     }
 
-    auto *callback = reinterpret_cast<StartupTaskResultCallback *>(callbackLong);
-    if (callback == nullptr) {
-        TAG_LOGE(AAFwkTag::STARTUP, "null callback pointer");
+    auto weakCallback = reinterpret_cast<std::weak_ptr<StartupTaskResultCallback>*>(callbackLong);
+    if (weakCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "null weakCallback");
         return;
     }
+    auto callback = weakCallback->lock();
+    delete weakCallback;
 
     std::string strErrorMessage;
     if (!AppExecFwk::GetStdString(env, errorMessage, strErrorMessage)) {
         TAG_LOGE(AAFwkTag::STARTUP, "GetStdString failed.");
-        // 即使获取错误信息失败，我们仍然需要回调并传递一个错误
         strErrorMessage = "Unknown error";
     }
 
     std::shared_ptr<StartupTaskResult> taskResult = std::make_shared<EtsStartupTaskResult>(
         ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP, strErrorMessage);
     callback->Call(taskResult);
-    
-    delete callback;
 }
 
 void ETSStartupTaskExecutorInit(ani_env *env)
@@ -194,16 +193,16 @@ void ETSStartupTaskExecutorInit(ani_env *env)
         return;
     }
     ani_class startupTaskExecutorCls = nullptr;
-    auto status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor", &startupTaskExecutorCls);
+    auto status = env->FindClass("Lappstartup/StartupTaskExecutor/StartupTaskExecutor;", &startupTaskExecutorCls);
     if (status != ANI_OK || startupTaskExecutorCls == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "find StartupTaskExecutor class failed");
         return;
     }
 
     std::array startupTaskExecutorNativeFuncs = {
-        ani_native_function { "nativeOnTaskSuccess", "Lstd/core/Long;Lstd/core/Object;:V",
+        ani_native_function { "nativeOnTaskSuccess", "JLstd/core/Object;:V",
             reinterpret_cast<void*>(ETSStartupTaskExecutor::NativeOnTaskSuccess) },
-        ani_native_function { "nativeOnTaskFailure", "Lstd/core/Long;Lstd/core/String;:V",
+        ani_native_function { "nativeOnTaskFailure", "JLstd/core/String;:V",
             reinterpret_cast<void*>(ETSStartupTaskExecutor::NativeOnTaskFailure) },
     };
 

@@ -15,6 +15,7 @@
 
 #include "ets_startup_manager.h"
 
+#include "ability_stage_context.h"
 #include "ani_common_util.h"
 #include "ets_error_utils.h"
 #include "ets_runtime.h"
@@ -25,7 +26,6 @@
 #include "stage_context_transfer.h"
 #include "startup_manager.h"
 #include "startup_task_utils.h"
-#include "ability_stage_context.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

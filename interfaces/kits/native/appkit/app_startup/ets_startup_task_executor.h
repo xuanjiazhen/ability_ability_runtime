@@ -26,9 +26,9 @@ namespace AbilityRuntime {
 class ETSStartupTaskExecutor {
 public:
     static int32_t RunOnMainThread(ani_env *env, ani_ref startupTask, ani_ref context, 
-        std::unique_ptr<StartupTaskResultCallback> callback);    
+        std::shared_ptr<StartupTaskResultCallback> callback);    
     static int32_t RunOnTaskPool(ani_env *env, ani_ref startupTask, ani_ref context, 
-        std::unique_ptr<StartupTaskResultCallback> callback);    
+        std::shared_ptr<StartupTaskResultCallback> callback);    
     static void NativeOnTaskSuccess(ani_env *env, ani_object obj, ani_long callbackLong, ani_object result);
     static void NativeOnTaskFailure(ani_env *env, ani_object obj, ani_long callbackLong, ani_string errorMessage);
 };

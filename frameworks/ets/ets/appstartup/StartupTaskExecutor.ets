@@ -14,9 +14,12 @@
  */
 
 import StartupTask from '../@ohos.app.appstartup.StartupTask';
-import common from '@ohos.app.ability.common';
+import type common from '@ohos.app.ability.common';
 
 export default class StartupTaskExecutor {
+  static {
+    loadLibraryWithPermissionCheck("ability_stage_ani.z", "appstartup.StartupTaskExecutor");
+  }
 
   private native nativeOnTaskSuccess(callback: long, result?: Any): void;
   private native nativeOnTaskFailure(callback: long, error: string): void;

@@ -29,8 +29,8 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *STARTUP_CONFIG_CLASS_NAME = "L@ohos/app/appstartup/StartupConfig/StartupConfigImpl";
-constexpr const char *STARTUP_CONFIG_ENTRY_CLASS_NAME = "L@ohos/app/appstartup/StartupConfigEntry/StartupConfigEntry";
+constexpr const char *STARTUP_CONFIG_CLASS_NAME = "L@ohos/app/appstartup/StartupConfig/StartupConfigImpl;";
+constexpr const char *STARTUP_CONFIG_ENTRY_CLASS_NAME = "L@ohos/app/appstartup/StartupConfigEntry/StartupConfigEntry;";
 constexpr const char *STARTUP_CONFIG_ENTRY_SIGNATURE_ON_REQUEST_CUSTOM_MATCH_RULE =
     "L@ohos/app/ability/Want/Want;:Lstd/core/String;";
 constexpr const char *STARTUP_LISTEN_SIGNATURE_ON_COMPLETED = "L@ohos/base/BusinessError;:V";
@@ -58,7 +58,7 @@ int32_t ETSStartupConfig::Init(Runtime &runtime, std::shared_ptr<Context> contex
     ani_status status = ANI_ERROR;
     ani_ref config = nullptr;
     if ((status = env_->Object_CallMethodByName_Ref(reinterpret_cast<ani_object>(configEntry), "onConfig",
-        ":V", &config)) != ANI_OK) {
+        ":L@ohos/app/appstartup/StartupConfig/StartupConfig;", &config)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "Object_CallMethodByName_Ref onConfig failed");
     }
     if (config == nullptr) {
@@ -129,8 +129,7 @@ void ETSStartupConfig::InitAwaitTimeout(ani_env *env, ani_object config)
 
     int32_t awaitTimeoutNum = DEFAULT_AWAIT_TIMEOUT_MS;
     if (!AppExecFwk::GetIntPropertyValue(env, config, "timeoutMs", awaitTimeoutNum)) {
-        TAG_LOGE(AAFwkTag::STARTUP, "timeoutMs, GetPropertyRef failed");
-        return;
+        TAG_LOGI(AAFwkTag::STARTUP, "timeoutMs, GetPropertyRef failed");
     }
 
     if (awaitTimeoutNum <= 0) {

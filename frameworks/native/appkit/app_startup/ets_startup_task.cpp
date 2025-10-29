@@ -55,10 +55,11 @@ int32_t EtsStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> c
         }
     }
 
+    resultCallback_ = std::move(callback);
     if (callCreateOnMainThread_) {
-        return ETSStartupTaskExecutor::RunOnMainThread(etsRuntime_.GetAniEnv(), startupRef_, contextRef_, std::move(callback));
+        return ETSStartupTaskExecutor::RunOnMainThread(etsRuntime_.GetAniEnv(), startupRef_, contextRef_, resultCallback_);
     }
-    return ETSStartupTaskExecutor::RunOnTaskPool(etsRuntime_.GetAniEnv(), startupRef_, contextRef_, std::move(callback));
+    return ETSStartupTaskExecutor::RunOnTaskPool(etsRuntime_.GetAniEnv(), startupRef_, contextRef_, resultCallback_);
 }
 
 int32_t EtsStartupTask::LoadEtsOhmUrl()
@@ -70,14 +71,14 @@ int32_t EtsStartupTask::LoadEtsOhmUrl()
     }
 
     std::string moduleNameWithStartupTask = GetModuleName() + "::startupTask";
-    std::string srcPath(GetModuleName() + "/" + srcEntry_);
+    std::string srcPath(srcEntry_);
     auto pos = srcPath.rfind('.');
     if (pos != std::string::npos) {
         srcPath.erase(pos);
         srcPath.append(".abc");
     }
     
-    auto startupEtsRef = etsRuntime_.LoadModule(moduleNameWithStartupTask, srcPath, hapPath_, esModule_, false, ohmUrl_);
+    auto startupEtsRef = etsRuntime_.LoadModule(moduleNameWithStartupTask, srcPath, hapPath_, esModule_, false, srcEntry_);
     if (startupEtsRef == nullptr || startupEtsRef->aniRef == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "startup task null");
         return ERR_STARTUP_INTERNAL_ERROR;
@@ -99,6 +100,12 @@ void EtsStartupTask::UpdateContextRef(ani_ref contextRef)
 int32_t EtsStartupTask::RunTaskOnDependencyCompleted(const std::string &dependencyName,
     const std::shared_ptr<StartupTaskResult> &result)
 {
+    if (startupRef_ == nullptr) {
+        int32_t result = LoadEtsOhmUrl();
+        if (result != ERR_OK) {
+            return result;
+        }
+    }
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "null env");

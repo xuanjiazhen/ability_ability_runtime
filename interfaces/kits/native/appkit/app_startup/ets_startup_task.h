@@ -51,6 +51,7 @@ private:
     std::string ohmUrl_;
     std::string hapPath_;
     bool esModule_ = true;
+    std::shared_ptr<StartupTaskResultCallback> resultCallback_;
 
     static ani_ref GetDependencyResult(ani_env *env, const std::string &dependencyName,
         std::shared_ptr<StartupTaskResult> result);
