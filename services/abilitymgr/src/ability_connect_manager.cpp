@@ -299,8 +299,7 @@ void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<AbilityRecor
     CHECK_POINTER(abilityRecord);
     CHECK_POINTER(abilityRequest.sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "foreground ability: %{public}s/%{public}s, persistentId: %{public}d, abilityState: %{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "foreground %{public}s/%{public}s sId:%{public}d state:%{public}s",
         abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str(),
         abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str());
@@ -1388,8 +1387,7 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     std::string element = abilityRecord->GetURI();
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "%{public}s/%{public}s, persistentId:%{private}d, winCmd:%{public}d, abilityCmd:%{public}d",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s sId:%{private}d winCmd:%{public}d abilityCmd:%{public}d",
         abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str(),
         sessionInfo->persistentId, winCmd, abilityCmd);
@@ -2219,7 +2217,7 @@ void AbilityConnectManager::DoBackgroundAbilityWindow(const std::shared_ptr<Abil
     CHECK_POINTER(abilityRecord);
     CHECK_POINTER(sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s, persistentId:%{public}d, abilityState:%{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s sId:%{public}d state:%{public}s",
         abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str(),
         sessionInfo->persistentId, abilitystateStr.c_str());
@@ -2241,8 +2239,7 @@ void AbilityConnectManager::TerminateAbilityWindowLocked(const std::shared_ptr<A
     CHECK_POINTER(abilityRecord);
     CHECK_POINTER(sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "ability:%{public}s/%{public}s, persistentId:%{public}d, abilityState:%{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s sId:%{public}d state:%{public}s",
         abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str(),
         sessionInfo->persistentId, abilitystateStr.c_str());
