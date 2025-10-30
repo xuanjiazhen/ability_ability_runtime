@@ -4240,16 +4240,18 @@ void MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
             return;    
        }
        if(runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS){
+            HITRACE_METER_NAME(HITRACE_TAG_APP, "Update ETSRUNTIME");
+            AppLibPathMap etsAppLibPaths {};
+            std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
+            GetEtsNativeLibPath(etsRuntimeCreateParam_.bundleInfo, etsRuntimeCreateParam_.hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
+            AbilityRuntime::ETSRuntime::SetAppLibPath(etsAppLibPaths, abcPathsToBundleModuleNameMap, applicationInfo_->isSystemApp);
             AbilityRuntime::JsRuntime* jsRuntimePtr = static_cast<AbilityRuntime::JsRuntime*>(&(*runtime));
             std::unique_ptr<AbilityRuntime::JsRuntime> jsRuntimeUniquePtr(jsRuntimePtr);
             etsRuntimeCreateParam_.option.lang = AbilityRuntime::Runtime::Language::ETS;
             auto etsRuntime = AbilityRuntime::ETSRuntime::Create(etsRuntimeCreateParam_.option, jsRuntimeUniquePtr);
-            int32_t pid = -1;
-            std::string processName = "";
-            if(this -> processInfo_ != nullptr){
-                pid = this -> processInfo_->GetPid();
-                processName = this -> processInfo_->GetProcessName();
-                TAG_LOGD(AAFwkTag::APPKIT, "pid is %{public}d, processName is %{public}s", pid, processName.c_str());
+            if (etsRuntime == nullptr){
+                TAG_LOGE(AAFwkTag::APPKIT, "etsRuntime create failed");
+                return;
             }
             auto expectionInfo =
                 CreateEtsExceptionInfo(etsRuntimeCreateParam_.uncatchableTaskInfo.bundleName,
@@ -4257,10 +4259,6 @@ void MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
                     etsRuntimeCreateParam_.uncatchableTaskInfo.appRunningId, etsRuntimeCreateParam_.uncatchableTaskInfo.pid, 
                     etsRuntimeCreateParam_.uncatchableTaskInfo.processName);
             (static_cast<AbilityRuntime::ETSRuntime&>(*etsRuntime)).RegisterUncaughtExceptionHandler(expectionInfo);
-            AppLibPathMap etsAppLibPaths {};
-            std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
-            GetEtsNativeLibPath(etsRuntimeCreateParam_.bundleInfo, etsRuntimeCreateParam_.hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
-            AbilityRuntime::ETSRuntime::SetAppLibPath(etsAppLibPaths, abcPathsToBundleModuleNameMap, applicationInfo_->isSystemApp);
             application_->SetRuntime(std::move(etsRuntime));
        }
     }
