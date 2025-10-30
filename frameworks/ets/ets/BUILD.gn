@@ -1542,8 +1542,7 @@ generate_static_abc("app_processInfo_abc") {
   base_url = "./"
   files = [ "./app/processInfo.ets" ]
   is_boot_abc = "True"
-  device_dst_file =
-      "/system/framework/app_processInfo_abc.abc"
+  device_dst_file = "/system/framework/app_processInfo_abc.abc"
 }
 
 ohos_prebuilt_etc("app_processInfo_abc_etc") {
