@@ -3174,7 +3174,8 @@ void UIAbilityLifecycleManager::HandleColdStartState(const AppInfo &info)
             TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
             continue;
         }
-        if (IsMatchingAppInfo(info, abilityRecord)) {
+        if (info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
+            info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
 #ifdef SUPPORT_SCREEN
             abilityRecord->SetColdStartFlag(true);
 #endif // SUPPORT_SCREEN
