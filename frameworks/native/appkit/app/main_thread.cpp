@@ -398,7 +398,7 @@ std::shared_ptr<ApplicationImpl> MainThread::GetApplicationImpl()
 bool MainThread::ConnectToAppMgr()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPKIT, "%{public}s start.", __func__);
+    TAG_LOGD(AAFwkTag::APPKIT, "%{public}sstart .", __func__);
     auto object = OHOS::DelayedSingleton<SysMrgClient>::GetInstance()->GetSystemAbility(APP_MGR_SERVICE_ID);
     if (object == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null object");
@@ -519,7 +519,7 @@ bool MainThread::ScheduleForegroundApplication()
  */
 void MainThread::ScheduleBackgroundApplication()
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "ScheduleBackgroundApplication");
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     wptr<MainThread> weak = this;
     auto task = [weak]() {
@@ -551,7 +551,7 @@ void MainThread::ScheduleBackgroundApplication()
  */
 void MainThread::ScheduleTerminateApplication(bool isLastProcess)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "ScheduleTerminateApplication");
     wptr<MainThread> weak = this;
     auto task = [weak, isLastProcess]() {
         auto appThread = weak.promote();
@@ -713,7 +713,7 @@ void MainThread::ScheduleProcessSecurityExit()
  */
 void MainThread::ScheduleClearPageStack()
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleClearPageStack called");
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleClearPageStack");
     if (applicationInfo_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo_");
         return;
@@ -741,7 +741,7 @@ void MainThread::ScheduleLowMemory()
 void MainThread::ScheduleLaunchApplication(const AppLaunchData &data, const Configuration &config)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "ScheduleLaunchApplication");
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ScheduleLaunchApplication");
     wptr<MainThread> weak = this;
     auto task = [weak, data, config]() {
@@ -790,7 +790,7 @@ void MainThread::ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &a
 
 void MainThread::ScheduleAbilityStage(const HapModuleInfo &abilityStage)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "ScheduleAbilityStage");
     wptr<MainThread> weak = this;
     auto task = [weak, abilityStage]() {
         auto appThread = weak.promote();
@@ -814,8 +814,7 @@ void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemo
     const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPKIT, "%{public}s called, ability %{public}s, type is %{public}d.",
-        __func__, info.name.c_str(), info.type);
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleLaunch %{public}s type:%{public}d.", info.name.c_str(), info.type);
 
     if (want != nullptr) {
         AAFwk::Want newWant(*want);
@@ -855,7 +854,7 @@ void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemo
  */
 void MainThread::ScheduleCleanAbility(const sptr<IRemoteObject> &token, bool isCacheProcess)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called, with isCacheProcess =%{public}d.", isCacheProcess);
+    TAG_LOGD(AAFwkTag::APPKIT, "with isCacheProcess =%{public}d.", isCacheProcess);
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
     FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
     wptr<MainThread> weak = this;
@@ -960,7 +959,7 @@ bool MainThread::CheckAbilityItem(const std::shared_ptr<AbilityLocalRecord> &rec
  */
 void MainThread::HandleTerminateApplicationLocal()
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleTerminateApplicationLocal");
     if (applicationImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "error");
         return;
@@ -990,7 +989,7 @@ void MainThread::HandleTerminateApplicationLocal()
 
 void MainThread::HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleJsHeapMemory");
     if (mainHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
         return;
@@ -1006,7 +1005,7 @@ void MainThread::HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info
 
 void MainThread::HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleCjHeapMemory");
     if (mainHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
         return;
@@ -1292,7 +1291,7 @@ void MainThread::HandleOnOverlayChanged(const EventFwk::CommonEventData &data,
     const std::shared_ptr<Global::Resource::ResourceManager> &resourceManager, const std::string &bundleName,
     const std::string &moduleName, const std::string &loadPath)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "begin");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleOnOverlayChanged");
     auto want = data.GetWant();
     std::string action = want.GetAction();
     if (action != OVERLAY_STATE_CHANGED) {
@@ -1463,9 +1462,9 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
             HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName, "MSG", KILL_REASON,
             EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId, EVENT_KEY_REASON, "JsError",
             "FOREGROUND", foreground);
-        TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event "
+        TAG_LOGW(AAFwkTag::APPKIT, "HiSysEventWrite ret=%{public}d, send event "
             "[FRAMEWORK,PROCESS_KILL],"
-            " pid=%{public}d, processName=%{public}s, msg=%{public}s, "
+            " pid=%{public}d, pname=%{public}s, msg=%{public}s, "
             "foreground=%{public}d",
             result, pid, processName.c_str(), KILL_REASON, foreground);
         AAFwk::ExitReason exitReason = { REASON_JS_ERROR, errorObj.name };
@@ -2059,8 +2058,8 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
             HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName,
             EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId, EVENT_KEY_REASON, "JsError",
             "MSG", KILL_REASON, "FOREGROUND", foreground, "IS_UNCATCHABLE", isUncatchable);
-        TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL],"
-            " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
+        TAG_LOGW(AAFwkTag::APPKIT, "HiSysEventWrite ret=%{public}d, send event [FRAMEWORK,PROCESS_KILL],"
+            " pid=%{public}d, pname=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
             result, pid, processName.c_str(), KILL_REASON, foreground, isUncatchable);
         _exit(JS_ERROR_EXIT);
     };
@@ -2380,7 +2379,7 @@ void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo &app
 
 void MainThread::HandleAbilityStage(const HapModuleInfo &abilityStage)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleAbilityStage");
     if (!application_) {
         TAG_LOGE(AAFwkTag::APPKIT, "null application_");
         return;
@@ -2521,7 +2520,7 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
  */
 void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &abilityRecord)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleLaunchAbility");
     CHECK_POINTER_LOG(abilityRecord, "parameter(abilityRecord) is null");
     std::string connector = "##";
     std::string traceName = __PRETTY_FUNCTION__ + connector;
@@ -2611,7 +2610,7 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
  */
 void MainThread::HandleCleanAbilityLocal(const sptr<IRemoteObject> &token)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "start");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleCleanAbilityLocal");
     if (!IsApplicationReady()) {
         TAG_LOGE(AAFwkTag::APPKIT, "should launch application first");
         return;
@@ -2759,7 +2758,7 @@ void MainThread::HandleBackgroundApplication()
 void MainThread::HandleTerminateApplication(bool isLastProcess)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPKIT, "start");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleTerminateApplication");
     if ((applicationImpl_ == nullptr) || (appMgr_ == nullptr)) {
         TAG_LOGE(AAFwkTag::APPKIT, "error");
         return;
@@ -2817,7 +2816,7 @@ void MainThread::HandleShrinkMemory(const int level)
 void MainThread::HandleMemoryLevel(int level)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPKIT, "start");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleMemoryLevel");
 
     if (application_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null application_");
@@ -2966,7 +2965,7 @@ void MainThread::HandleDumpHeapPrepare()
 
 void MainThread::HandleDumpHeap(bool isPrivate)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "start");
+    TAG_LOGD(AAFwkTag::APPKIT, "HandleDumpHeap");
     if (mainHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
         return;
@@ -3217,7 +3216,7 @@ void MainThread::LoadAppLibrary()
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
 #ifdef APPLICATION_LIBRARY_LOADER
     std::string appPath = applicationLibraryPath;
-    TAG_LOGI(AAFwkTag::APPKIT, "calling dlopen. appPath=%{public}s", appPath.c_str());
+    TAG_LOGI(AAFwkTag::APPKIT, "dlopen appPath=%{public}s", appPath.c_str());
     handleAppLib_ = dlopen(appPath.c_str(), RTLD_NOW | RTLD_GLOBAL);
     if (handleAppLib_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "dlopen %{public}s, [%{public}s] failed", appPath.c_str(), dlerror());
@@ -3370,7 +3369,7 @@ void MainThread::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &
 
 void MainThread::SchedulePrepareTerminate(const std::string &moduleName)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "SchedulePrepareTerminate called");
+    TAG_LOGD(AAFwkTag::APPKIT, "SchedulePrepareTerminate");
     if (getpid() == gettid()) {
         TAG_LOGE(AAFwkTag::APPKIT, "in app main thread");
         HandleSchedulePrepareTerminate(moduleName);

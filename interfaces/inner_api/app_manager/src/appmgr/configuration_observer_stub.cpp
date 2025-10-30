@@ -30,7 +30,7 @@ ConfigurationObserverStub::~ConfigurationObserverStub() {}
 int ConfigurationObserverStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "ConfigurationObserverStub::OnRemoteRequest, code = %{public}u, flags= %{public}d.",
+    TAG_LOGI(AAFwkTag::APPMGR, "OnRemoteRequest, code = %{public}u, flags= %{public}d.",
         code, option.GetFlags());
     std::u16string descriptor = ConfigurationObserverStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
@@ -43,7 +43,7 @@ int ConfigurationObserverStub::OnRemoteRequest(
         return HandleOnConfigurationUpdated(data, reply);
     }
 
-    TAG_LOGI(AAFwkTag::APPMGR, "ConfigurationObserverStub::OnRemoteRequest end");
+    TAG_LOGI(AAFwkTag::APPMGR, "OnRemoteRequest end");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 

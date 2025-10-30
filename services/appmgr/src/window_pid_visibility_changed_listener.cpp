@@ -35,7 +35,7 @@ void WindowPidVisibilityChangedListener::NotifyWindowPidVisibilityChanged(
         return;
     }
 
-    TAG_LOGI(AAFwkTag::APPMGR, "NotifyWindowPidVisibilityChanged called, pid:%{public}d, visibilityState:%{public}d.",
+    TAG_LOGI(AAFwkTag::APPMGR, "WndVisibilityChanged pid:%{public}d visibility:%{public}d.",
         windowPidVisibilityInfo->pid_, static_cast<uint32_t>(windowPidVisibilityInfo->visibilityState_));
 
     if (taskHandler_ == nullptr) {
