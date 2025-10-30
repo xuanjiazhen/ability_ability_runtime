@@ -1613,6 +1613,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     if (DFX_SetAppRunningUniqueId != nullptr) {
         DFX_SetAppRunningUniqueId(appRunningId.c_str(), appRunningId.length());
     }
+    etsRuntimeCreateParam_.appRunningId = appRunningId;
     application_->SetApplicationContext(applicationContext);
 
 #ifdef SUPPORT_SCREEN
@@ -2527,6 +2528,7 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     CHECK_POINTER_LOG(abilityRecord, "parameter(abilityRecord) is null");
+    CheckAndUpdateRuntime(abilityRecord);
     std::string connector = "##";
     std::string traceName = __PRETTY_FUNCTION__ + connector;
     if (abilityRecord->GetWant() != nullptr) {
@@ -2590,7 +2592,6 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
     Rosen::DisplayManager::GetInstance().AddDisplayIdFromAms(displayId, abilityRecord->GetToken());
     TAG_LOGD(AAFwkTag::APPKIT, "add displayId: %{public}" PRIu64, displayId);
 #endif
-    CheckAndUpdateRuntime(abilityRecord)
     bool isAsyncCallback = false;
     std::shared_ptr<AbilityRuntime::Context> stageContext = application_->AddAbilityStage(
         abilityRecord, callback, isAsyncCallback);
