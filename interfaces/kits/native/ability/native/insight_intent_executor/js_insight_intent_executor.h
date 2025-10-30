@@ -125,7 +125,8 @@ private:
     bool ExecuteInsightIntentUIAbilityForeground(
         const std::string& name,
         const AAFwk::WantParams& param,
-        const std::shared_ptr<NativeReference>& windowStage);
+        const std::shared_ptr<NativeReference>& windowStage,
+        const bool isDelayResult = false);
 
     static bool CheckParametersUIAbilityBackground();
     bool ExecuteInsightIntentUIAbilityBackground(
@@ -136,7 +137,8 @@ private:
     bool ExecuteInsightIntentUIExtension(
         const std::string& name,
         const AAFwk::WantParams& param,
-        const std::shared_ptr<NativeReference>& UIExtensionContentSession);
+        const std::shared_ptr<NativeReference>& UIExtensionContentSession,
+        const bool isDelayResult = false);
 
     static bool CheckParametersServiceExtension();
     bool ExecuteInsightIntentServiceExtension(

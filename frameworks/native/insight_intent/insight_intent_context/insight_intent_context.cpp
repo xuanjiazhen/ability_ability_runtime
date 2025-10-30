@@ -32,5 +32,17 @@ ErrCode InsightIntentContext::StartAbilityByInsightIntent(const AAFwk::Want &wan
     TAG_LOGD(AAFwkTag::INTENT, "end");
     return err;
 }
+
+ErrCode InsightIntentContext::BackToCallerExecuteResult(int32_t insightIntentId, std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> result)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    ErrCode ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->BackToCallerExecuteResult(insightIntentId, result);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "ret=%{public}d", ret);
+    }
+    TAG_LOGD(AAFwkTag::INTENT, "end");
+    return ret;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -72,7 +72,7 @@ bool InsightIntentExecutorMgr::ExecuteInsightIntent(Runtime& runtime, const Insi
         return false;
     }
     AddInsightIntentExecutor(executeParam->insightIntentId_, intentExecutor);
-
+    executeParam->isDelayResult_ = intentExecutor->GetContext()->GetIsDelayResult();
     TAG_LOGI(AAFwkTag::INTENT, "execute insight intent, type: %{public}hhu", type);
     bool isAsync = false;
     bool ret = false;
@@ -104,6 +104,18 @@ void InsightIntentExecutorMgr::RemoveInsightIntentExecutor(uint64_t intentId)
     TAG_LOGD(AAFwkTag::INTENT, "called");
     std::lock_guard<std::mutex> lock(mutex_);
     insightIntentExecutors_.erase(intentId);
+}
+
+ErrCode InsightIntentExecutorMgr::BackToCallerExecuteResult(uint64_t intentId,
+    std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> result) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    TAG_LOGD(AAFwkTag::INTENT, "Call succeed");
+    if (result->innerErr == AbilityRuntime::InsightIntentInnerErr::INSIGHT_INTENT_ERR_OK) {
+        insightIntentExecutors_[intentId]->ReplySucceededInner(result);
+        return ERR_OK;
+    }
+    insightIntentExecutors_[intentId]->ReplyFailedInner(result->innerErr);
+    return result->code;
 }
 
 void InsightIntentExecutorMgr::TriggerCallbackInner(

@@ -92,6 +92,7 @@ public:
     std::string pagePath_;
     std::string navigationId_;
     std::string navDestinationName_;
+    bool isDelayResult_ = false;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

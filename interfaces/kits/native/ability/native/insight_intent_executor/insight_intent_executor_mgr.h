@@ -40,6 +40,7 @@ public:
 private:
     void AddInsightIntentExecutor(uint64_t intentId, const std::shared_ptr<InsightIntentExecutor>& executor);
     void RemoveInsightIntentExecutor(uint64_t intentId);
+    ErrCode BackToCallerExecuteResult(uint64_t intentId, std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> result);
 
     std::mutex mutex_;
     std::map<uint64_t, std::shared_ptr<InsightIntentExecutor>> insightIntentExecutors_;

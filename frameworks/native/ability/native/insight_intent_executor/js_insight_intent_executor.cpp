@@ -96,6 +96,7 @@ bool JsInsightIntentExecutor::Init(const InsightIntentExecutorInfo& insightInten
         TAG_LOGE(AAFwkTag::INTENT, "Set context property failed");
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
+    context->SetExecuteMode(insightIntentInfo.executeParam.executeMode_);
 
     return true;
 }
@@ -129,6 +130,7 @@ bool JsInsightIntentExecutor::HandleExecuteIntent(
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(executeParam->executeMode_);
     auto name = executeParam->insightIntentName_;
     auto param = executeParam->insightIntentParam_;
+    auto isDelayResult = executeParam->isDelayResult_;
     TAG_LOGI(AAFwkTag::INTENT, "call executor, intentName: %{public}s, mode: %{public}d", name.c_str(), mode);
     switch (mode) {
         case InsightIntentExecuteMode::UIABILITY_FOREGROUND:
@@ -136,7 +138,7 @@ bool JsInsightIntentExecutor::HandleExecuteIntent(
                 TAG_LOGE(AAFwkTag::INTENT, "CheckParametersUIAbilityForeground error");
                 return ExecuteIntentCheckError();
             }
-            successful = ExecuteInsightIntentUIAbilityForeground(name, *param, pageLoader);
+            successful = ExecuteInsightIntentUIAbilityForeground(name, *param, pageLoader, isDelayResult);
             break;
         case InsightIntentExecuteMode::UIABILITY_BACKGROUND:
             if (!JsInsightIntentExecutor::CheckParametersUIAbilityBackground()) {
@@ -150,7 +152,7 @@ bool JsInsightIntentExecutor::HandleExecuteIntent(
                 TAG_LOGE(AAFwkTag::INTENT, "CheckParametersUIExtension error");
                 return ExecuteIntentCheckError();
             }
-            successful = ExecuteInsightIntentUIExtension(name, *param, pageLoader);
+            successful = ExecuteInsightIntentUIExtension(name, *param, pageLoader, isDelayResult);
             break;
         case InsightIntentExecuteMode::SERVICE_EXTENSION_ABILITY:
             if (!JsInsightIntentExecutor::CheckParametersServiceExtension()) {
@@ -389,7 +391,8 @@ bool JsInsightIntentExecutor::CheckParametersUIAbilityForeground(const std::shar
 bool JsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
     const std::string& name,
     const AAFwk::WantParams& param,
-    const std::shared_ptr<NativeReference>& windowStageJs)
+    const std::shared_ptr<NativeReference>& windowStageJs,
+    const bool isDelayResult)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
     HandleScope handleScope(runtime_);
@@ -407,6 +410,9 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
     if (!CallJsFunctionWithResultInner(funcName, argc, argv, result)) {
         ReplyFailedInner();
         return false;
+    }
+    if (isDelayResult) {
+        return true;
     }
 
     return HandleResultReturnedFromJsFunc(result);
@@ -451,7 +457,8 @@ bool JsInsightIntentExecutor::CheckParametersUIExtension(
 bool JsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
     const std::string& name,
     const AAFwk::WantParams& param,
-    const std::shared_ptr<NativeReference>& UIExtensionContentSession)
+    const std::shared_ptr<NativeReference>& UIExtensionContentSession,
+    const bool isDelayResult)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
     HandleScope handleScope(runtime_);
@@ -469,6 +476,9 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
     if (!CallJsFunctionWithResultInner(funcName, argc, argv, result)) {
         ReplyFailedInner();
         return false;
+    }
+    if (isDelayResult) {
+        return true;
     }
 
     return HandleResultReturnedFromJsFunc(result);

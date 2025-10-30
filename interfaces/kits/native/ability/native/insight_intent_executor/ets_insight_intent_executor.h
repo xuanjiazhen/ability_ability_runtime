@@ -87,7 +87,8 @@ private:
     bool ExecuteInsightIntentUIAbilityForeground(
         const std::string &name,
         const AAFwk::WantParams &param,
-        ani_ref windowStage);
+        ani_ref windowStage,
+        const bool isDelayResult = false);
 
     static bool CheckParametersUIAbilityBackground();
     bool ExecuteInsightIntentUIAbilityBackground(
@@ -98,7 +99,8 @@ private:
     bool ExecuteInsightIntentUIExtension(
         const std::string &name,
         const AAFwk::WantParams &param,
-        ani_ref UIExtensionContentSession);
+        ani_ref UIExtensionContentSession,
+        const bool isDelayResult = false);
 
     static bool CheckParametersServiceExtension();
     bool ExecuteInsightIntentServiceExtension(

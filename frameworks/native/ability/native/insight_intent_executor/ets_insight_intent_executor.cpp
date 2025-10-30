@@ -118,6 +118,7 @@ bool EtsInsightIntentExecutor::Init(const InsightIntentExecutorInfo &insightInte
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
+    context->SetExecuteMode(insightIntentInfo.executeParam.executeMode_);
 
     return true;
 }
@@ -151,6 +152,7 @@ bool EtsInsightIntentExecutor::HandleExecuteIntent(
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(executeParam->executeMode_);
     auto name = executeParam->insightIntentName_;
     auto param = executeParam->insightIntentParam_;
+    auto isDelayResult = executeParam->isDelayResult_;
     TAG_LOGI(AAFwkTag::INTENT, "call executor, intentName: %{public}s, mode: %{public}d", name.c_str(), mode);
     switch (mode) {
         case InsightIntentExecuteMode::UIABILITY_FOREGROUND:
@@ -158,7 +160,7 @@ bool EtsInsightIntentExecutor::HandleExecuteIntent(
                 TAG_LOGE(AAFwkTag::INTENT, "CheckParametersUIAbilityForeground error");
                 return ExecuteIntentCheckError();
             }
-            ret = ExecuteInsightIntentUIAbilityForeground(name, *param, reinterpret_cast<ani_ref>(pageLoader));
+            ret = ExecuteInsightIntentUIAbilityForeground(name, *param, reinterpret_cast<ani_ref>(pageLoader), isDelayResult);
             break;
         case InsightIntentExecuteMode::UIABILITY_BACKGROUND:
             if (!EtsInsightIntentExecutor::CheckParametersUIAbilityBackground()) {
@@ -172,7 +174,7 @@ bool EtsInsightIntentExecutor::HandleExecuteIntent(
                 TAG_LOGE(AAFwkTag::INTENT, "CheckParametersUIExtension error");
                 return ExecuteIntentCheckError();
             }
-            ret = ExecuteInsightIntentUIExtension(name, *param, reinterpret_cast<ani_ref>(pageLoader));
+            ret = ExecuteInsightIntentUIExtension(name, *param, reinterpret_cast<ani_ref>(pageLoader), isDelayResult);
             break;
         case InsightIntentExecuteMode::SERVICE_EXTENSION_ABILITY:
             if (!EtsInsightIntentExecutor::CheckParametersServiceExtension()) {
@@ -328,7 +330,8 @@ ani_ref EtsInsightIntentExecutor::CallObjectMethod(bool withResult, const char *
 bool EtsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
     const std::string &name,
     const AAFwk::WantParams &param,
-    ani_ref windowStage)
+    ani_ref windowStage,
+    const bool isDelayResult)
 {
     TAG_LOGD(AAFwkTag::INTENT, "EtsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground called");
     auto env = runtime_.GetAniEnv();
@@ -343,6 +346,9 @@ bool EtsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
         aniWantParams, windowStage);
     if (result == nullptr) {
         return false;
+    }
+    if (isDelayResult) {
+        return true;
     }
 
     ani_boolean isAsync  = false;
@@ -405,7 +411,8 @@ bool EtsInsightIntentExecutor::CheckParametersUIExtension(ani_ref UIExtensionCon
 bool EtsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
     const std::string &name,
     const AAFwk::WantParams &param,
-    ani_ref UIExtensionContentSession)
+    ani_ref UIExtensionContentSession,
+    const bool isDelayResult)
 {
     TAG_LOGD(AAFwkTag::INTENT, "EtsInsightIntentExecutor::ExecuteInsightIntentUIExtension called");
     auto env = runtime_.GetAniEnv();
@@ -420,6 +427,9 @@ bool EtsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
         aniWantParams, UIExtensionContentSession);
     if (result == nullptr) {
         return false;
+    }
+    if (isDelayResult) {
+        return true;
     }
 
     ani_boolean isAsync  = false;

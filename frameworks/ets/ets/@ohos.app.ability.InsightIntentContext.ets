@@ -15,6 +15,7 @@
 
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import Want from '@ohos.app.ability.Want';
+import type insightIntent from '@ohos.app.ability.insightIntent';
 
 export default class InsightIntentContext {
   static {
@@ -45,6 +46,9 @@ export default class InsightIntentContext {
   }
 
   public native nativeStartAbilitySync(want: Want): BusinessError;
+  public native nativeDelayInsightIntentResult(): int;
+  public native nativeSendInsightIntentResult(insightIntentId: int): void;
+  public native nativeBackToCallerExecuteResult(insightIntentId: int, result:insightIntent.ExecuteResult): Promise<void>;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError => {
@@ -75,5 +79,28 @@ export default class InsightIntentContext {
       });
     });
     return p;
+  }
+
+  delayInsightIntentResult() : int {
+    return this.nativeDelayInsightIntentResult();
+  }
+
+  sendInsightIntentResult(insightIntentId: int) : void {
+    return this.nativeSendInsightIntentResult(insightIntentId);
+  }
+
+  backToCallerExecuteResult(insightIntentId: int, result:insightIntent.ExecuteResult) {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeBackToCallerExecuteResult(insightIntentId, result);
+      });
+    });
   }
 }
