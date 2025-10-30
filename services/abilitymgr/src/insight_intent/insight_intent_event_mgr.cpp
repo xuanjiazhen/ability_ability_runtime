@@ -45,6 +45,7 @@ void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, c
 
 void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId)
 {
+    TAG_LOGE(AAFwkTag::INTENT, "UpdateInsightIntentEvent called");
     ErrCode ret;
     std::vector<std::string> moduleNameVec;
     std::string profile;
@@ -70,6 +71,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
     OHOS::SplitStr(moduleName, ",", moduleNameVec);
     for (std::string moduleNameLocal : moduleNameVec) {
         // Get json profile firstly
+        TAG_LOGE(AAFwkTag::INTENT, "GetJsonProfile pre");
         ret = IN_PROCESS_CALL(bundleMgrHelper->GetJsonProfile(AppExecFwk::INTENT_PROFILE, bundleName, moduleNameLocal,
             profile, userId));
         if (ret != ERR_OK) {

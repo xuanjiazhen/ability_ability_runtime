@@ -104,6 +104,7 @@ void InsightRdbStorageMgr::Transform(std::unordered_map<std::string, std::string
 int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bundleName, const std::string &moduleName,
     const int32_t userId, ExtractInsightIntentProfileInfoVec &profileInfos)
 {
+    TAG_LOGE(AAFwkTag::INTENT, "SaveStorageInsightIntentData called")
     std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     for (auto profileInfo : profileInfos.insightIntents) {
         std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
@@ -117,6 +118,7 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bu
         if (!result) {
             TAG_LOGE(AAFwkTag::INTENT, "InsertData error, key: %{private}s", key.c_str());
         }
+        TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{public}s,%{public}s", key.c_str(), jsonObject.dump());
     }
     return ERR_OK;
 }

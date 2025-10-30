@@ -48,6 +48,7 @@ InsightIntentDbCache::~InsightIntentDbCache()
 int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
     const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos)
 {
+    TAG_LOGE(AAFwkTag::INTENT, "SaveInsightIntentTotalInfo called");
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
     if (userId != userId_) {
         TAG_LOGE(AAFwkTag::INTENT, "The userId %{public}d. is not the cache userId %{public}d.", userId, userId_);
@@ -55,6 +56,7 @@ int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const std::string &bund
     }
     std::vector<ExtractInsightIntentGenericInfo> genericInfos;
     for (auto profileInfo : profileInfos.insightIntents) {
+        TAG_LOGE(AAFwkTag::INTENT, "ProfileInfoFormat pre");
         ExtractInsightIntentInfo info;
         ExtractInsightIntentProfile::ProfileInfoFormat(profileInfo, info);
         ExtractInsightIntentGenericInfo genericInfo = info.genericInfo;

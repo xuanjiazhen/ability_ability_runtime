@@ -39,6 +39,7 @@ InsightIntentSysEventReceiver::InsightIntentSysEventReceiver(const EventFwk::Com
 void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bundleName, const std::string &moduleName,
     int32_t userId)
 {
+    TAG_LOGE(AAFwkTag::INTENT, "InsightIntentSysEventReceiver::SaveInsightIntentInfos called");
     std::vector<std::string> moduleNameVec;
     std::string profile;
     AbilityRuntime::ExtractInsightIntentProfileInfoVec infos = {};
