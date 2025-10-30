@@ -1636,6 +1636,7 @@ group("ets_packages") {
     ":appRecovery_abc_etc",
     ":app_foreground_state_observer_abc_etc",
     ":app_service_extension_ability_abc_etc",
+    ":app_processInfo_abc_etc",
     ":application_state_observer_abc_etc",
     ":atomic_service_options_abc_etc",
     ":form_extension_ability_etc",
@@ -1647,6 +1648,5 @@ group("ets_packages") {
     ":ui_service_host_proxy_abc_etc",
     ":ui_service_proxy_abc_etc",
     ":uri_permission_manager_abc_etc",
-    ":app_processInfo_abc_etc",
   ]
 }
