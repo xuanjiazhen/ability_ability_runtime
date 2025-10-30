@@ -841,7 +841,7 @@ bool AppUtils::IsPreloadApplicationEnabled()
 
 bool AppUtils::IsForbidStart()
 {
-#ifdef ABILITY_RUNTIME_MEDIA_LIBRARY_ENABLE
+#ifdef ABILITY_RUNTIME_FORBIDSTART_ENABLE
     return false;
 #else
     if (!isForbidStart_.isLoaded) {
