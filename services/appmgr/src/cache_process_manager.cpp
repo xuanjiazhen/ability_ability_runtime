@@ -397,7 +397,7 @@ bool CacheProcessManager::IsAppShouldCache(const std::shared_ptr<AppRunningRecor
         return false;
     }
     if (!CheckSupportState(appRecord)) {
-        TAG_LOGI(AAFwkTag::APPMGR, "App %{public}s defines not support.",
+        TAG_LOGI(AAFwkTag::APPMGR, "%{public}s defines not support.",
             appRecord->GetBundleName().c_str());
         return false;
     }
@@ -629,7 +629,7 @@ void CacheProcessManager::OnAppProcessCacheBlocked(const std::shared_ptr<AppRunn
     if (appRecord == nullptr || !IsCachedProcess(appRecord)) {
         return;
     }
-    TAG_LOGI(AAFwkTag::APPMGR, "%{public}s is cached and is blocked, which needs exit.",
+    TAG_LOGI(AAFwkTag::APPMGR, "%{public}s is cached and blocked, needs exit",
         appRecord->GetBundleName().c_str());
     RemoveCacheRecord(appRecord);
     KillProcessByRecord(appRecord);

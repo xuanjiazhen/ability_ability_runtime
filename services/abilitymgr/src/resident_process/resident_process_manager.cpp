@@ -101,7 +101,7 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundle(const 
         keepAliveEnable = false;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "Precheck,bundle:%{public}s, process:%{public}s, keepAlive:%{public}d, enable:%{public}d",
+        "Precheck,b:%{public}s, process:%{public}s, keepAlive:%{public}d, enable:%{public}d",
         bundleInfo.name.c_str(), processName.c_str(), bundleInfo.isKeepAlive, keepAliveEnable);
     if (!keepAliveEnable || processName.empty()) {
         needEraseIndexSet.insert(index);
@@ -137,7 +137,7 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
     Want want;
     want.SetElementName(hapModuleInfo.bundleName, mainElement);
     ResidentAbilityInfoGuard residentAbilityInfoGuard(hapModuleInfo.bundleName, mainElement, userId);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentAbility, bundleName: %{public}s, mainElement: %{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentAbility %{public}s/%{public}s",
         hapModuleInfo.bundleName.c_str(), mainElement.c_str());
     auto ret = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(want, userId,
         DEFAULT_INVAL_VALUE);
@@ -151,7 +151,7 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
 int32_t ResidentProcessManager::SetResidentProcessEnabled(
     const std::string &bundleName, const std::string &callerName, bool updateEnable)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetResidentProcessEnabled,bundle:%{public}s,caller:%{public}s,enable:%{public}d",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetResidentProcessEnabled %{public}s,caller:%{public}s,enable:%{public}d",
         bundleName.c_str(), callerName.c_str(), updateEnable);
     if (bundleName.empty() || callerName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "input parameter error");
@@ -357,8 +357,7 @@ void ResidentProcessManager::StartFailedResidentAbilities()
         ResidentAbilityInfoGuard residentAbilityInfoGuard(item.bundleName, item.abilityName, item.userId);
         Want want;
         want.SetElementName(item.bundleName, item.abilityName);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "call, bundleName: %{public}s, mainElement: %{public}s",
-            item.bundleName.c_str(), item.abilityName.c_str());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s", item.bundleName.c_str(), item.abilityName.c_str());
         DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(want, item.userId,
             DEFAULT_INVAL_VALUE);
     }
@@ -367,7 +366,7 @@ void ResidentProcessManager::StartFailedResidentAbilities()
 void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleName,
     const std::string &abilityName, int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "failed bundleName: %{public}s, mainElement: %{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "failed b:%{public}s/%{public}s",
         bundleName.c_str(), abilityName.c_str());
     if (unlockedAfterBoot_) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "already unlocked");
