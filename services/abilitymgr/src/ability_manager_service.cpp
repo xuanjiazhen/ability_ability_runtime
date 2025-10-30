@@ -240,7 +240,7 @@ constexpr int32_t UPDATE_CONFIG_FLAG_COVER = 1;
 constexpr int32_t UPDATE_CONFIG_FLAG_APPEND = 2;
 constexpr int32_t START_AUTO_START_APP_DELAY_TIME = 200;
 constexpr int32_t START_AUTO_START_APP_RETRY_MAX_TIMES = 5;
-constexpr int32_t RETRY_COUNT = 20;
+constexpr int32_t AUTO_START_RETRY_COUNT = 3;
 constexpr const char* LIFE_CYCLE_STATE_FOREGROUND_DONE = "foreground done";
 constexpr const char* LIFE_CYCLE_STATE_BACKGROUND_DONE = "background done";
 
@@ -8698,7 +8698,7 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
         GetScreenUnlockCallback(), GetUserScreenUnlockCallback());
     bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(screenSubscriber_);
     if (!subResult) {
-        RetrySubscribeScreenUnlockedEvent(RETRY_COUNT);
+        RetrySubscribeScreenUnlockedEvent(AUTO_START_RETRY_COUNT);
     }
     isSubscribed_ = true;
 }
@@ -8769,7 +8769,7 @@ void AbilityManagerService::UnSubscribeScreenUnlockedEvent()
 
 void AbilityManagerService::RetrySubscribeScreenUnlockedEvent(int32_t retryCount)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "RetryCount: %{public}d.", retryCount);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "RetryCount: %{public}d.", retryCount);
     auto retrySubscribeScreenUnlockedEventTask = [aams = weak_from_this(), screenSubscriber = screenSubscriber_,
                                                      retryCount]() {
         bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(screenSubscriber);
@@ -8779,6 +8779,7 @@ void AbilityManagerService::RetrySubscribeScreenUnlockedEvent(int32_t retryCount
             return;
         }
         if (!subResult && retryCount > 0) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "retry subscribe screen unlocked event fail");
             obj->RetrySubscribeScreenUnlockedEvent(retryCount - 1);
         }
     };
