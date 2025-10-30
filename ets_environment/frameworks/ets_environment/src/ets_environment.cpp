@@ -778,6 +778,13 @@ std::vector<std::string> ETSEnvironment::GetHspPathList()
         if (bundleInfo.moduleArkTSMode == AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
             continue;
         }
+
+        const std::string sysHspFilePathPrefix = "/system/app/";
+        if (bundleInfo.hapPath.compare(0, sysHspFilePathPrefix.size(), sysHspFilePathPrefix) == 0) {
+            hspPathList.push_back(bundleInfo.hapPath);
+            continue;
+        }
+
         auto pos = bundleInfo.hapPath.rfind('/');
         if (pos == std::string::npos) {
             TAG_LOGW(AAFwkTag::ETSRUNTIME, "hapPath invalid:%{public}s", bundleInfo.hapPath.c_str());
