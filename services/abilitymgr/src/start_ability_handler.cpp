@@ -19,12 +19,13 @@
 #ifdef WITH_DLP
 #include "dlp_utils.h"
 #endif // WITH_DLP
+#include "global_constant.h"
 
 namespace OHOS {
 namespace AAFwk {
 bool StartAbilityParams::IsCallerSandboxApp()
 {
-    return GetCallerAppIndex() > 0;
+    return GetCallerAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX;
 }
 
 #ifdef WITH_DLP
