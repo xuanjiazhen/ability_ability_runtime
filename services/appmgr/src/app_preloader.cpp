@@ -45,7 +45,7 @@ bool AppPreloader::PreCheck(const std::string &bundleName, PreloadMode preloadMo
     int32_t mode = static_cast<int32_t>(preloadMode);
     auto allow = ResourceSchedule::ResSchedClient::GetInstance().IsAllowedAppPreload(bundleName, mode);
     if (!allow) {
-        TAG_LOGI(AAFwkTag::APPMGR, "BundleName: %{public}s not allow preload", bundleName.c_str());
+        TAG_LOGI(AAFwkTag::APPMGR, "%{public}s not allow preload", bundleName.c_str());
         return false;
     }
     return true;
