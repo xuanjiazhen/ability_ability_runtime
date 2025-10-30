@@ -556,7 +556,7 @@ sptr<IQuickFixManager> BundleMgrHelper::GetQuickFixManagerProxy()
 
 bool BundleMgrHelper::ProcessPreload(const Want &want)
 {
-    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "ProcessPreload");
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");

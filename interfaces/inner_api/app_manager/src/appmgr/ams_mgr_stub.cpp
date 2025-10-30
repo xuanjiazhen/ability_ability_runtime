@@ -372,7 +372,7 @@ ErrCode AmsMgrStub::HandleAttachPidToParent(MessageParcel &data, MessageParcel &
 
 ErrCode AmsMgrStub::HandleKillProcessWithAccount(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "enter");
+    TAG_LOGI(AAFwkTag::APPMGR, "HandleKillProcessWithAccount");
 
     HITRACE_METER(HITRACE_TAG_APP);
 
@@ -381,8 +381,7 @@ ErrCode AmsMgrStub::HandleKillProcessWithAccount(MessageParcel &data, MessagePar
     bool clearPageStack = data.ReadBool();
     auto appIndex = data.ReadInt32();
 
-    TAG_LOGI(AAFwkTag::APPMGR,
-        "bundleName = %{public}s, accountId = %{public}d, clearPageStack = %{public}d",
+    TAG_LOGI(AAFwkTag::APPMGR, "b:%{public}s accId:%{public}d clearPageStack:%{public}d",
         bundleName.c_str(), accountId, clearPageStack);
 
     int32_t result = KillProcessWithAccount(bundleName, accountId, clearPageStack, appIndex);
@@ -395,7 +394,7 @@ ErrCode AmsMgrStub::HandleKillProcessWithAccount(MessageParcel &data, MessagePar
 
 ErrCode AmsMgrStub::HandleKillProcessesInBatch(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "enter");
+    TAG_LOGI(AAFwkTag::APPMGR, "HandleKillProcessesInBatch");
 
     HITRACE_METER(HITRACE_TAG_APP);
 
@@ -425,9 +424,8 @@ ErrCode AmsMgrStub::HandleKillApplication(MessageParcel &data, MessageParcel &re
     bool clearPageStack = data.ReadBool();
     auto appIndex = data.ReadInt32();
 
-    TAG_LOGW(AAFwkTag::APPMGR,
-        "KillApplication,callingPid=%{public}d,bundleName=%{public}s,clearPageStack=%{public}d",
-        IPCSkeleton::GetCallingPid(), bundleName.c_str(), clearPageStack);
+    TAG_LOGW(AAFwkTag::APPMGR, "Kill %{public}s cPid=%{public}d clearPageStack=%{public}d",
+        bundleName.c_str(), IPCSkeleton::GetCallingPid(), clearPageStack);
 
     int32_t result = KillApplication(bundleName, clearPageStack, appIndex);
     reply.WriteInt32(result);
@@ -441,8 +439,8 @@ ErrCode AmsMgrStub::HandleForceKillApplication(MessageParcel &data, MessageParce
     int userId = data.ReadInt32();
     int appIndex = data.ReadInt32();
 
-    TAG_LOGI(AAFwkTag::APPMGR, "bundleName = %{public}s,userId=%{public}d,appIndex=%{public}d",
-        bundleName.c_str(), userId, appIndex);
+    TAG_LOGI(AAFwkTag::APPMGR, "ForceKill %{public}s#%{public}d u:%{public}d",
+        bundleName.c_str(), appIndex, userId);
 
     int32_t result = ForceKillApplication(bundleName, userId, appIndex);
     reply.WriteInt32(result);
@@ -467,7 +465,7 @@ ErrCode AmsMgrStub::HandleKillApplicationByUid(MessageParcel &data, MessageParce
     std::string bundleName = data.ReadString();
     int uid = data.ReadInt32();
     std::string reason = data.ReadString();
-    TAG_LOGW(AAFwkTag::APPMGR, "KillApplicationByUid,callingPid=%{public}d", IPCSkeleton::GetCallingPid());
+    TAG_LOGW(AAFwkTag::APPMGR, "KillByUid,cPid=%{public}d", IPCSkeleton::GetCallingPid());
     int32_t result = KillApplicationByUid(bundleName, uid, reason);
     reply.WriteInt32(result);
     return NO_ERROR;
@@ -479,7 +477,7 @@ ErrCode AmsMgrStub::HandleNotifyUninstallOrUpgradeApp(MessageParcel &data, Messa
     std::string bundleName = data.ReadString();
     int32_t uid = data.ReadInt32();
     bool isUpgrade = data.ReadBool();
-    TAG_LOGW(AAFwkTag::APPMGR, "NotifyUninstallOrUpgradeApp, callingPid=%{public}d", IPCSkeleton::GetCallingPid());
+    TAG_LOGW(AAFwkTag::APPMGR, "NotifyUninstallOrUpgradeApp cPid=%{public}d", IPCSkeleton::GetCallingPid());
     int32_t result = NotifyUninstallOrUpgradeApp(bundleName, uid, isUpgrade);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "result write failed.");
@@ -492,7 +490,7 @@ ErrCode AmsMgrStub::HandleNotifyUninstallOrUpgradeAppEnd(MessageParcel &data, Me
 {
     HITRACE_METER(HITRACE_TAG_APP);
     int32_t uid = data.ReadInt32();
-    TAG_LOGW(AAFwkTag::APPMGR, "NotifyUninstallOrUpgradeAppEnd, callingPid=%{public}d", IPCSkeleton::GetCallingPid());
+    TAG_LOGW(AAFwkTag::APPMGR, "NotifyUninstallOrUpgradeAppEnd cPid=%{public}d", IPCSkeleton::GetCallingPid());
     NotifyUninstallOrUpgradeAppEnd(uid);
     return NO_ERROR;
 }
@@ -500,7 +498,7 @@ ErrCode AmsMgrStub::HandleNotifyUninstallOrUpgradeAppEnd(MessageParcel &data, Me
 ErrCode AmsMgrStub::HandleKillApplicationSelf(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
-    TAG_LOGW(AAFwkTag::APPMGR, "KillApplicationSelf,callingPid=%{public}d", IPCSkeleton::GetCallingPid());
+    TAG_LOGW(AAFwkTag::APPMGR, "KillAppSelf cPid=%{public}d", IPCSkeleton::GetCallingPid());
     bool clearPageStack = data.ReadBool();
     std::string reason = data.ReadString();
     int32_t result = KillApplicationSelf(clearPageStack, reason);
@@ -552,7 +550,7 @@ int32_t AmsMgrStub::HandleSetAbilityForegroundingFlagToAppRecord(MessageParcel &
 
 int32_t AmsMgrStub::HandlePrepareTerminateApp(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandlePrepareTerminateApp");
     auto pid = static_cast<pid_t>(data.ReadInt32());
     auto moduleName = data.ReadString();
     PrepareTerminateApp(pid, moduleName);
@@ -611,7 +609,7 @@ int32_t AmsMgrStub::HandleGetApplicationInfoByProcessID(MessageParcel &data, Mes
 
 int32_t AmsMgrStub::HandleNotifyAppMgrRecordExitReason(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleNotifyAppMgrRecordExitReason");
     int32_t pid = data.ReadInt32();
     int32_t reason = data.ReadInt32();
     std::string exitMsg = Str16ToStr8(data.ReadString16());
@@ -656,7 +654,7 @@ int32_t AmsMgrStub::HandleGetBundleNameByPid(MessageParcel &data, MessageParcel 
 
 int32_t AmsMgrStub::HandleRegisterAppDebugListener(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleRegisterAppDebugListener");
     auto appDebugLister = iface_cast<IAppDebugListener>(data.ReadRemoteObject());
     if (appDebugLister == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "App debug lister is null.");
@@ -673,7 +671,7 @@ int32_t AmsMgrStub::HandleRegisterAppDebugListener(MessageParcel &data, MessageP
 
 int32_t AmsMgrStub::HandleUnregisterAppDebugListener(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleUnregisterAppDebugListener");
     auto appDebugLister = iface_cast<IAppDebugListener>(data.ReadRemoteObject());
     if (appDebugLister == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "App debug lister is nullptr.");
@@ -690,7 +688,7 @@ int32_t AmsMgrStub::HandleUnregisterAppDebugListener(MessageParcel &data, Messag
 
 int32_t AmsMgrStub::HandleAttachAppDebug(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleAttachAppDebug");
     auto bundleName = data.ReadString();
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Bundle name is empty.");
@@ -708,7 +706,7 @@ int32_t AmsMgrStub::HandleAttachAppDebug(MessageParcel &data, MessageParcel &rep
 
 int32_t AmsMgrStub::HandleDetachAppDebug(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleDetachAppDebug");
     auto bundleName = data.ReadString();
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Bundle name is empty.");
@@ -725,7 +723,7 @@ int32_t AmsMgrStub::HandleDetachAppDebug(MessageParcel &data, MessageParcel &rep
 
 int32_t AmsMgrStub::HandleSetAppWaitingDebug(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleSetAppWaitingDebug");
     auto bundleName = data.ReadString();
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Bundle name is empty.");
@@ -742,7 +740,7 @@ int32_t AmsMgrStub::HandleSetAppWaitingDebug(MessageParcel &data, MessageParcel 
 
 int32_t AmsMgrStub::HandleCancelAppWaitingDebug(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleCancelAppWaitingDebug");
     auto result = CancelAppWaitingDebug();
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
@@ -753,7 +751,7 @@ int32_t AmsMgrStub::HandleCancelAppWaitingDebug(MessageParcel &data, MessageParc
 
 int32_t AmsMgrStub::HandleGetWaitingDebugApp(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleGetWaitingDebugApp");
     std::vector<std::string> debugInfoList;
     auto result = GetWaitingDebugApp(debugInfoList);
     if (!reply.WriteInt32(result)) {
@@ -781,7 +779,7 @@ int32_t AmsMgrStub::HandleGetWaitingDebugApp(MessageParcel &data, MessageParcel 
 
 int32_t AmsMgrStub::HandleIsWaitingDebugApp(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleIsWaitingDebugApp");
     auto bundleName = data.ReadString();
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Bundle name is empty.");
@@ -798,7 +796,7 @@ int32_t AmsMgrStub::HandleIsWaitingDebugApp(MessageParcel &data, MessageParcel &
 
 int32_t AmsMgrStub::HandleSetKeepAliveEnableState(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleSetKeepAliveEnableState");
     auto bundleName = data.ReadString();
     auto enable = data.ReadBool();
     auto uid = data.ReadInt32();
@@ -808,7 +806,7 @@ int32_t AmsMgrStub::HandleSetKeepAliveEnableState(MessageParcel &data, MessagePa
 
 int32_t AmsMgrStub::HandleSetKeepAliveDkv(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleSetKeepAliveDkv");
     auto bundleName = data.ReadString();
     auto enable = data.ReadBool();
     auto uid = data.ReadInt32();
