@@ -43,7 +43,7 @@ bool UserRecordManager::IsLogoutUser(int32_t userId)
 
 void UserRecordManager::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "userId:%{public}d, enableStartProcess:%{public}d", userId, enableStartProcess);
+    TAG_LOGI(AAFwkTag::APPMGR, "u:%{public}d enableStartProcess:%{public}d", userId, enableStartProcess);
     if (enableStartProcess) {
         std::lock_guard lock(logoutUserIdLock_);
         logoutUserIdSet_.erase(userId);
