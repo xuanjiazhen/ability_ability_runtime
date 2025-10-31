@@ -78,27 +78,21 @@ public:
 std::map<std::string, std::weak_ptr<JsStartupTask>> AsyncTaskCallBack::jsStartupTaskObjects_;
 }
 
-const std::string JsStartupTask::TASK_TYPE = "Js";
-
-JsStartupTask::JsStartupTask(const std::string &name, JsRuntime &jsRuntime, const StartupTaskInfo &info,
-    const std::shared_ptr<NativeReference> &contextJsRef)
-    : AppStartupTask(name), jsRuntime_(jsRuntime), startupJsRef_(nullptr), contextJsRef_(contextJsRef),
-      srcEntry_(info.srcEntry), ohmUrl_(info.ohmUrl), hapPath_(info.hapPath), esModule_(info.esModule)
+JsStartupTask::JsStartupTask(JsRuntime &jsRuntime, const StartupTaskInfo &info, bool lazyLoad)
+    : AppStartupTask(info.name), jsRuntime_(jsRuntime), srcEntry_(info.srcEntry), ohmUrl_(info.ohmUrl),
+    hapPath_(info.hapPath), esModule_(info.esModule)
 {
     SetModuleName(info.moduleName);
-}
-
-JsStartupTask::JsStartupTask(const std::string& name, JsRuntime& jsRuntime,
-    std::unique_ptr<NativeReference>& startupJsRef, std::shared_ptr<NativeReference>& contextJsRef)
-    : AppStartupTask(name), jsRuntime_(jsRuntime), startupJsRef_(std::move(startupJsRef)), contextJsRef_(contextJsRef)
-{
+    if (!lazyLoad) {
+        LoadJsOhmUrl();
+    }
 }
 
 JsStartupTask::~JsStartupTask() = default;
 
 const std::string &JsStartupTask::GetType() const
 {
-    return TASK_TYPE;
+    return AppStartupTask::TASK_TYPE_JS;
 }
 
 int32_t JsStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> callback)
@@ -201,7 +195,7 @@ void JsStartupTask::LoadJsAsyncTaskCallback()
         JsRuntime::LoadSystemModuleByEngine(env, "app.appstartup.AsyncTaskCallback", &asyncTaskCallbackClass, 1);
 }
 
-void JsStartupTask::OnAsyncTaskCompleted(const std::shared_ptr<StartupTaskResult>  &result)
+void JsStartupTask::OnAsyncTaskCompleted(const std::shared_ptr<StartupTaskResult> &result)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "called");
     if (startupTaskResultCallback_ == nullptr) {
@@ -211,7 +205,7 @@ void JsStartupTask::OnAsyncTaskCompleted(const std::shared_ptr<StartupTaskResult
     startupTaskResultCallback_->Call(result);
 }
 
-void JsStartupTask::UpdateContextRef(std::shared_ptr<NativeReference> &contextJsRef)
+void JsStartupTask::UpdateContextRef(std::shared_ptr<NativeReference> contextJsRef)
 {
     contextJsRef_ = contextJsRef;
 }
@@ -257,7 +251,11 @@ int32_t JsStartupTask::RunTaskOnDependencyCompleted(const std::string &dependenc
 napi_value JsStartupTask::GetDependencyResult(napi_env env, const std::string &dependencyName,
     const std::shared_ptr<StartupTaskResult> &result)
 {
-    if (result == nullptr || result->GetResultType() != StartupTaskResult::ResultType::JS) {
+    if (result == nullptr) {
+        return nullptr;
+    }
+    if (result->GetResultType() != StartupTaskResult::ResultType::JS &&
+        result->GetResultType() != StartupTaskResult::ResultType::ETS) {
         return CreateJsUndefined(env);
     } else {
         std::shared_ptr<JsStartupTaskResult> jsResultPtr = std::static_pointer_cast<JsStartupTaskResult>(result);
