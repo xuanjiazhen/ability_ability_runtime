@@ -75,7 +75,7 @@ struct UncatchableTaskInfo {
     int32_t pid;
     std::string processName;
 };
-struct RuntimeUpdataParam{
+struct RuntimeUpdataParam {
     AbilityRuntime::Runtime::Options option;
     BundleInfo bundleInfo;
     std::vector<BaseSharedBundleInfo> hspList;
