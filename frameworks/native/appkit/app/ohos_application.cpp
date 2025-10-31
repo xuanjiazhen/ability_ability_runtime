@@ -1257,5 +1257,10 @@ bool OHOSApplication::GetDisplayConfig(uint64_t displayId, float &density, std::
     return true;
 }
 #endif
+
+std::unique_ptr<AbilityRuntime::Runtime> OHOSApplication::CreateETSRuntime(AbilityRuntime::Runtime::Options &option){
+    option.lang = AbilityRuntime::Runtime::Language::ETS;
+    return AbilityRuntime::ETSRuntime::Create(option, runtime_);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
