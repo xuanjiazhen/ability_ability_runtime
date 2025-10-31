@@ -630,7 +630,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAppIndexes(int32_t userId, A
     abilityInfos.emplace_back(request.abilityInfo);
     for (auto &appIndex: appIndexes) {
         AppExecFwk::AbilityInfo abilityInfo;
-        TAG_LOGD(AAFwkTag::ABILITYMGR,
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
             "abilityName: %{public}s, appIndex: %{public}d, userId: %{public}d",
             request.want.GetElement().GetAbilityName().c_str(), appIndex, userId);
         IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneAbilityInfo(request.want.GetElement(), abilityInfoFlag, appIndex,
