@@ -45,7 +45,7 @@ struct ETSNativeReference;
 namespace AbilityRuntime {
 class ETSRuntime : public Runtime {
 public:
-    static std::unique_ptr<ETSRuntime> Create(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
+    static std::unique_ptr<ETSRuntime> Create(const Options &options, std::unique_ptr<Runtime> &jsRuntime);
     static void SetAppLibPath(const AppLibPathMap& appLibPaths,
         const std::map<std::string, std::string>& abcPathsToBundleModuleNameMap, bool isSystemApp);
     ~ETSRuntime() override;
@@ -91,19 +91,19 @@ public:
     bool HandleUncaughtError();
     const std::unique_ptr<AbilityRuntime::Runtime> &GetJsRuntime() const;
     std::unique_ptr<AbilityRuntime::Runtime> MoveJsRuntime();
-    static std::unique_ptr<ETSRuntime> PreFork(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
+    static std::unique_ptr<ETSRuntime> PreFork(const Options &options, std::unique_ptr<Runtime> &jsRuntime);
     bool PreloadSystemClass(const char *className) override;
     void DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebug);
     void StopDebugMode();
     uint32_t instanceId_ = 0;
 
 private:
-    bool Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
+    bool Initialize(const Options &options, std::unique_ptr<Runtime> &jsRuntime);
     void Deinitialize();
     bool CreateEtsEnv(const Options &options);
     std::unique_ptr<AppExecFwk::ETSNativeReference> LoadEtsModule(const std::string &moduleName,
         const std::string &fileName, const std::string &hapPath, const std::string &srcEntrance);
-    bool PostFork(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
+    bool PostFork(const Options &options, std::unique_ptr<Runtime> &jsRuntime);
     std::string HandleOhmUrlSrcEntry(const std::string &srcEntry);
     void HandleOhmUrlFileName(std::string &fileName);
     int32_t apiTargetVersion_ = 0;

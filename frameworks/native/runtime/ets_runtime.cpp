@@ -131,7 +131,7 @@ private:
 std::shared_ptr<EtsAppLibNamespaceMgr> g_etsAppLibNamespaceMgr;
 } // namespace
 
-std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
+std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options, std::unique_ptr<Runtime> &jsRuntime)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreFork begin");
     std::unique_ptr<ETSRuntime> instance = std::make_unique<ETSRuntime>();
@@ -142,7 +142,7 @@ std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options, std::uni
     return instance;
 }
 
-bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
+bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRuntime)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "PostFork begin");
     codePath_ = options.codePath;
@@ -173,7 +173,7 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<JsRuntime> &js
     return true;
 }
 
-std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
+std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, std::unique_ptr<Runtime> &jsRuntime)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
     if (!RegisterETSEnvFuncs()) {
@@ -273,7 +273,7 @@ void ETSRuntime::SetExtensionApiCheckCallback(
     g_etsEnvFuncs->SetExtensionApiCheckCallback(cb);
 }
 
-bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
+bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<Runtime> &jsRuntime)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called");
     if (options.lang != GetLanguage()) {
