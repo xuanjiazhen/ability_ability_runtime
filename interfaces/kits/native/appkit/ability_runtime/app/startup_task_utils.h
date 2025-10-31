@@ -13,27 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef MOCK_OHOS_ABILITY_RUNTIME_NATIVE_MODULE_MANAGER_H
-#define MOCK_OHOS_ABILITY_RUNTIME_NATIVE_MODULE_MANAGER_H
+#ifndef OHOS_ABILITY_RUNTIME_STARTUP_TASK_UTILS_H
+#define OHOS_ABILITY_RUNTIME_STARTUP_TASK_UTILS_H
 
-#include <cstdint>
-#include <map>
-#include <mutex>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include <memory>
 #include <string>
-#include <pthread.h>
 
-struct NativeModule {
-};
- 
-class NativeModuleManager {
+#include "app_startup_task.h"
+#include "context.h"
+#include "ets_native_reference.h"
+
+namespace OHOS {
+namespace AbilityRuntime {
+class StartupTaskUtils {
 public:
-    static NativeModuleManager* GetInstance();
-    NativeModule* LoadNativeModule(const char* moduleName, const char* path, bool isAppModule,
-        std::string& errInfo, bool internal = false, const char* relativePath = "");
+    static void UpdateStartupTaskContextRef(napi_env env, std::shared_ptr<AppStartupTask> startupTask,
+        std::shared_ptr<Context> context, ani_ref contextAniRef);
 };
-
-#endif
- 
+} // namespace AbilityRuntime
+} // namespace OHOS
+#endif // OHOS_ABILITY_RUNTIME_STARTUP_TASK_UTILS_H
