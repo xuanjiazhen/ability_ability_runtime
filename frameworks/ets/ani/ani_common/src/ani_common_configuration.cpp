@@ -37,7 +37,7 @@ constexpr const char* CONFIGURATION_IMPL_CLASS_NAME = "L@ohos/app/ability/Config
 void SetBasicConfiguration(ani_env *env, ani_object object, const AppExecFwk::Configuration &configuration)
 {
     if (env == nullptr || object == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env or object");
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env or object");
         return;
     }
     std::string str = configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
@@ -80,7 +80,7 @@ void SetAdditionalConfiguration(ani_env *env, ani_object object, const AppExecFw
         env->Object_SetPropertyByName_Ref(
             object, "fontSizeScale", CreateDouble(env, fontSizeScale != "" ? std::stod(fontSizeScale) : 1.0));
     } catch (...) {
-        TAG_LOGE(AAFwkTag::ANI, "stod(%{public}s) failed", fontSizeScale.c_str());
+        TAG_LOGE(AAFwkTag::JSNAPI, "stod(%{public}s) failed", fontSizeScale.c_str());
         return;
     }
 
@@ -89,7 +89,7 @@ void SetAdditionalConfiguration(ani_env *env, ani_object object, const AppExecFw
         env->Object_SetPropertyByName_Ref(
             object, "fontWeightScale", CreateDouble(env, fontWeightScale != "" ? std::stod(fontWeightScale) : 1.0));
     } catch (...) {
-        TAG_LOGE(AAFwkTag::ANI, "stod(%{public}s) failed", fontWeightScale.c_str());
+        TAG_LOGE(AAFwkTag::JSNAPI, "stod(%{public}s) failed", fontWeightScale.c_str());
         return;
     }
 
@@ -104,31 +104,31 @@ void SetAdditionalConfiguration(ani_env *env, ani_object object, const AppExecFw
 ani_object WrapConfiguration(ani_env *env, const AppExecFwk::Configuration &configuration)
 {
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
         return nullptr;
     }
     ani_class cls = nullptr;
     ani_status status = env->FindClass(CONFIGURATION_IMPL_CLASS_NAME, &cls);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "FindClass status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::JSNAPI, "FindClass status: %{public}d", status);
         return nullptr;
     }
     if (cls == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null Configuration");
+        TAG_LOGE(AAFwkTag::JSNAPI, "null Configuration");
         return nullptr;
     }
     ani_method method = nullptr;
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::JSNAPI, "Class_FindMethod status: %{public}d", status);
         return nullptr;
     }
     ani_object object = nullptr;
     if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::JSNAPI, "Object_New status: %{public}d", status);
         return nullptr;
     }
     if (object == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null object");
+        TAG_LOGE(AAFwkTag::JSNAPI, "null object");
         return nullptr;
     }
     SetBasicConfiguration(env, object, configuration);
@@ -139,14 +139,14 @@ ani_object WrapConfiguration(ani_env *env, const AppExecFwk::Configuration &conf
 bool UnwrapConfiguration(ani_env *env, ani_object param, Configuration &config)
 {
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
         return false;
     }
     std::string language { "" };
     if (GetFieldStringByName(env, param, "language", language)) {
-        TAG_LOGD(AAFwkTag::ANI, "The parsed language part %{public}s", language.c_str());
+        TAG_LOGD(AAFwkTag::JSNAPI, "The parsed language part %{public}s", language.c_str());
         if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, language)) {
-            TAG_LOGE(AAFwkTag::ANI, "language Parsing failed");
+            TAG_LOGE(AAFwkTag::JSNAPI, "language Parsing failed");
             return false;
         }
     }
@@ -154,7 +154,7 @@ bool UnwrapConfiguration(ani_env *env, ani_object param, Configuration &config)
     ani_double fontSizeScale = 0.0;
     if (GetFieldDoubleByName(env, param, "fontSizeScale", fontSizeScale)) {
         if (fontSizeScale < FONT_SIZE_MIN_SCALE || fontSizeScale > FONT_SIZE_MAX_SCALE) {
-            TAG_LOGE(AAFwkTag::ANI, "invalid fontSizeScale");
+            TAG_LOGE(AAFwkTag::JSNAPI, "invalid fontSizeScale");
             return false;
         }
         if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_FONT_SIZE_SCALE, std::to_string(fontSizeScale))) {
@@ -165,7 +165,7 @@ bool UnwrapConfiguration(ani_env *env, ani_object param, Configuration &config)
     ani_double fontWeightScale = 0.0;
     if (GetFieldDoubleByName(env, param, "fontWeightScale", fontWeightScale)) {
         if (fontWeightScale < FONT_WEIGHT_MIN_SCALE || fontWeightScale > FONT_WEIGHT_MAX_SCALE) {
-            TAG_LOGE(AAFwkTag::ANI, "invalid fontWeightScale");
+            TAG_LOGE(AAFwkTag::JSNAPI, "invalid fontWeightScale");
             return false;
         }
         if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_FONT_WEIGHT_SCALE, std::to_string(fontWeightScale))) {
