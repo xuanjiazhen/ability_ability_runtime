@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-#include "native_module_manager.h"
+import StartupListener from './@ohos.app.appstartup.StartupListener';
 
-NativeModuleManager* NativeModuleManager::GetInstance()
-{
-    return nullptr;
+export default interface StartupConfig {
+   timeoutMs?: int;
+   startupListener?: StartupListener;
 }
 
-NativeModule* LoadNativeModule(const char* moduleName, const char* path, bool isAppModule,
-    std::string& errInfo, bool internal = false, const char* relativePath = "")
-{
-    return nullptr;
+export class StartupConfigImpl implements StartupConfig {
+    timeoutMs?: int;
+    startupListener?: StartupListener;
 }
