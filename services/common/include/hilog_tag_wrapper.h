@@ -223,7 +223,7 @@ inline const char* GetDomainName6(AAFwkLogTag tag)
     if (pos == std::string::npos) {
         return fileName;
     }
-    std::sting fileBaseName = fileName.substr(0, pos);
+    std::string fileBaseName = fileName.substr(0, pos);
     if (abbrFileNameMap.find(fileBaseName) != abbrFileNameMap.end()) {
         return abbrFileNameMap[fileBaseName];
     }
