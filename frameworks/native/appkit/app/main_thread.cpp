@@ -2558,7 +2558,7 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
         return;
     }
 
-    if (CheckAndUpdateRuntime(abilityRecord)){
+    if (CheckAndUpdateRuntime(abilityRecord)) {
         TAG_LOGE(AAFwkTag::APPKIT, "UpdateRuntime failed");
         return;
     }
@@ -4236,7 +4236,8 @@ bool MainThread::IsPluginNamespaceInherited()
     return isPluginNamespaceInherited_;
 }
 
-bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord){
+bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord)
+{
     if (abilityRecord->GetAbilityInfo()->arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 &&
         this->applicationInfo_->arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0) {
         auto &runtime = application_->GetRuntime();
@@ -4244,28 +4245,29 @@ bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
             TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return false;
         }
-        if(runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS){
+        if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS) {
             HITRACE_METER_NAME(HITRACE_TAG_APP, "Updata Runtime");
-            /////////////之前js已经加载这些了，ets还需要加载1.1的这些hsp的lib ？
             AppLibPathMap etsAppLibPaths {};
             std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
-            GetEtsNativeLibPath(runtimeUpdataParam_.bundleInfo,
-                runtimeUpdataParam_.hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
-            ////////////之前js已经加载这些了，ets还需要加载1.1的这些hsp的lib ？
+            // GetEtsNativeLibPath(runtimeUpdataParam_.bundleInfo,
+            //     runtimeUpdataParam_.hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
             AbilityRuntime::ETSRuntime::SetAppLibPath(
                 etsAppLibPaths, abcPathsToBundleModuleNameMap, applicationInfo_->isSystemApp);
-            auto etsRuntime = application_->CreateETSRuntime(runtimeUpdataParam_.option);
+            if (!application_->UpdateETSRuntime(runtimeUpdataParam_.option)) {
+                TAG_LOGE(AAFwkTag::APPKIT, "UpdateETSRuntime failed");
+                return false;
+            }
+            auto &etsRuntime = application_->GetRuntime();
             if (etsRuntime == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "CreateETSRuntime failed");
+                TAG_LOGE(AAFwkTag::APPKIT, "null etsRuntime");
                 return false;
             }
             auto expectionInfo = CreateEtsExceptionInfo(runtimeUpdataParam_.uncatchableTaskInfo.bundleName,
                 runtimeUpdataParam_.uncatchableTaskInfo.versionCode, runtimeUpdataParam_.hapPath,
-                runtimeUpdataParam_.uncatchableTaskInfo.appRunningId, runtimeUpdataParam_.uncatchableTaskInfo.pid, 
+                runtimeUpdataParam_.uncatchableTaskInfo.appRunningId, runtimeUpdataParam_.uncatchableTaskInfo.pid,
                 runtimeUpdataParam_.uncatchableTaskInfo.processName);
             (static_cast<AbilityRuntime::ETSRuntime&>(*etsRuntime)).RegisterUncaughtExceptionHandler(expectionInfo);
-            application_->SetRuntime(std::move(etsRuntime));
-       }
+        }
     }
     return true;
 }
