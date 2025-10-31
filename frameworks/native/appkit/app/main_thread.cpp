@@ -4249,14 +4249,18 @@ bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
             /////////////之前js已经加载这些了，ets还需要加载1.1的这些hsp的lib ？
             AppLibPathMap etsAppLibPaths {};
             std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
-            GetEtsNativeLibPath(runtimeUpdataParam_.bundleInfo,
-                runtimeUpdataParam_.hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
+            // GetEtsNativeLibPath(runtimeUpdataParam_.bundleInfo,
+            //     runtimeUpdataParam_.hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
             ////////////之前js已经加载这些了，ets还需要加载1.1的这些hsp的lib ？
             AbilityRuntime::ETSRuntime::SetAppLibPath(
                 etsAppLibPaths, abcPathsToBundleModuleNameMap, applicationInfo_->isSystemApp);
-            auto etsRuntime = application_->CreateETSRuntime(runtimeUpdataParam_.option);
+            if (!application_->UpdateETSRuntime(runtimeUpdataParam_.option)) {
+                TAG_LOGE(AAFwkTag::APPKIT, "UpdateETSRuntime failed");
+                return false;
+            }
+            auto &etsRuntime = application_->GetRuntime();
             if (etsRuntime == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "CreateETSRuntime failed");
+                TAG_LOGE(AAFwkTag::APPKIT, "null etsRuntime");
                 return false;
             }
             auto expectionInfo = CreateEtsExceptionInfo(runtimeUpdataParam_.uncatchableTaskInfo.bundleName,
@@ -4264,7 +4268,6 @@ bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
                 runtimeUpdataParam_.uncatchableTaskInfo.appRunningId, runtimeUpdataParam_.uncatchableTaskInfo.pid, 
                 runtimeUpdataParam_.uncatchableTaskInfo.processName);
             (static_cast<AbilityRuntime::ETSRuntime&>(*etsRuntime)).RegisterUncaughtExceptionHandler(expectionInfo);
-            application_->SetRuntime(std::move(etsRuntime));
        }
     }
     return true;
