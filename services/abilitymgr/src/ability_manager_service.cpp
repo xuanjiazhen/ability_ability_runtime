@@ -9137,6 +9137,7 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
         return result;
     }
     AbilityRequest abilityRequest;
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
     abilityRequest.callerUid = IPCSkeleton::GetCallingUid();
     abilityRequest.startSetting = nullptr;
     abilityRequest.want = want;
@@ -9171,14 +9172,12 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want)
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerTokenId);
     abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
-    abilityRequest.hideStartWindow = true;
     auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
     if (uiAbilityManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityManager null, userId is invalid:%{public}d", oriValidUserId); 
         return ERR_INVALID_VALUE;
     }
     return uiAbilityManager->PrelaunchAbilityLocked(abilityRequest);
-
 }
 
 int AbilityManagerService::StartAbilityJust(AbilityRequest &abilityRequest, int32_t validUserId)
@@ -11969,6 +11968,7 @@ bool AbilityManagerService::GetStartUpNewRuleFlag() const
 
 void AbilityManagerService::CallRequestDone(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callStub)
 {
+    FreezeUtil::GetInstance().AddLifecycleEvent(token, "AbilityManagerService::CallRequestDone");
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER(abilityRecord);
     if (!JudgeSelfCalled(abilityRecord)) {
