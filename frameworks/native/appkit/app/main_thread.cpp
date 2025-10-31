@@ -1515,7 +1515,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         TAG_LOGE(AAFwkTag::APPKIT, "get bundleInfo failed");
         return;
     }
-    runtimeUpdataParam_.bundleInfo = bundleInfo;
     auto tmpWatchdog = watchdog_;
     bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
     if (tmpWatchdog != nullptr) {
@@ -1626,7 +1625,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Get base shared bundle infos failed: %{public}d", ret);
     }
-    runtimeUpdataParam_.hspList = hspList;
 
     std::map<std::string, std::string> pkgContextInfoJsonStringMap;
     std::vector<AppExecFwk::PluginBundleInfo> pluginBundleInfos;
@@ -2540,6 +2538,11 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
     CHECK_POINTER_LOG(applicationImpl_, "applicationImpl_ is null");
     CHECK_POINTER_LOG(abilityRecordMgr_, "abilityRecordMgr_ is null");
 
+    if (!CheckAndUpdateRuntime(abilityRecord)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "UpdateRuntime failed");
+        return;
+    }
+
     auto abilityToken = abilityRecord->GetToken();
     CHECK_POINTER_LOG(abilityToken, "abilityRecord->GetToken failed");
     std::string entry = "MainThread::HandleLaunchAbility";
@@ -2555,11 +2558,6 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
 
     if (!CheckAbilityItem(abilityRecord)) {
         TAG_LOGE(AAFwkTag::APPKIT, "record invalid");
-        return;
-    }
-
-    if (CheckAndUpdateRuntime(abilityRecord)){
-        TAG_LOGE(AAFwkTag::APPKIT, "UpdateRuntime failed");
         return;
     }
 
@@ -4236,7 +4234,8 @@ bool MainThread::IsPluginNamespaceInherited()
     return isPluginNamespaceInherited_;
 }
 
-bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord){
+bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord)
+{
     if (abilityRecord->GetAbilityInfo()->arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 &&
         this->applicationInfo_->arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0) {
         auto &runtime = application_->GetRuntime();
@@ -4244,28 +4243,50 @@ bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
             TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return false;
         }
-        if(runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS){
+        if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS) {
             HITRACE_METER_NAME(HITRACE_TAG_APP, "Updata Runtime");
-            /////////////之前js已经加载这些了，ets还需要加载1.1的这些hsp的lib ？
+            std::stared_ptr<ContextDeal> contextDeal;
+            if (!InitCreate(contextDeal, applicationInfo_, processInfo_)){
+                TAG_LOGE(AAFwkTag::APPKIT, "InitCreate failed");
+                return false;
+            }
+            auto bundleMgrHelper = contextDeal->GetBundleManager();
+            if (bundleMgrHelper == nullptr) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
+                return;
+            }
+            BundleInfo bundleInfo;
+            if (!GetBundleForLaunchApplication(bundleMgrHelper, 
+                runtimeUpdataParam_.uncatchableTaskInfo.bundleName, appLaunchData.GetAppIndex(), bundleInfo)) {
+                TAG_LOGE(AAFwkTag::APPKIT, "get bundleInfo failed");
+                return;
+            }
+            HspList hspList;
+            ErrCode ret = bundleMgrHelper->GetBaseSharedBundleInfos(runtimeUpdataParam_.uncatchableTaskInfo.bundleName,
+                hspList, AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
+            if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::APPKIT, "Get base shared bundle infos failed: %{public}d", ret);
+            }
             AppLibPathMap etsAppLibPaths {};
             std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
-            GetEtsNativeLibPath(runtimeUpdataParam_.bundleInfo,
-                runtimeUpdataParam_.hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
-            ////////////之前js已经加载这些了，ets还需要加载1.1的这些hsp的lib ？
+            GetEtsNativeLibPath(bundleInfo, hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
             AbilityRuntime::ETSRuntime::SetAppLibPath(
                 etsAppLibPaths, abcPathsToBundleModuleNameMap, applicationInfo_->isSystemApp);
-            auto etsRuntime = application_->CreateETSRuntime(runtimeUpdataParam_.option);
+            if (!application_->UpdateETSRuntime(runtimeUpdataParam_.option)) {
+                TAG_LOGE(AAFwkTag::APPKIT, "UpdateETSRuntime failed");
+                return false;
+            }
+            auto &etsRuntime = application_->GetRuntime();
             if (etsRuntime == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "CreateETSRuntime failed");
+                TAG_LOGE(AAFwkTag::APPKIT, "null etsRuntime");
                 return false;
             }
             auto expectionInfo = CreateEtsExceptionInfo(runtimeUpdataParam_.uncatchableTaskInfo.bundleName,
                 runtimeUpdataParam_.uncatchableTaskInfo.versionCode, runtimeUpdataParam_.hapPath,
-                runtimeUpdataParam_.uncatchableTaskInfo.appRunningId, runtimeUpdataParam_.uncatchableTaskInfo.pid, 
+                runtimeUpdataParam_.uncatchableTaskInfo.appRunningId, runtimeUpdataParam_.uncatchableTaskInfo.pid,
                 runtimeUpdataParam_.uncatchableTaskInfo.processName);
             (static_cast<AbilityRuntime::ETSRuntime&>(*etsRuntime)).RegisterUncaughtExceptionHandler(expectionInfo);
-            application_->SetRuntime(std::move(etsRuntime));
-       }
+        }
     }
     return true;
 }
