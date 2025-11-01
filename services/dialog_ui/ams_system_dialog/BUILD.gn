@@ -63,6 +63,6 @@ ohos_resources("intent_debug_app_products_resources") {
 }
 
 group("dialog_hap") {
-  deps = [ ":ams_system_dialog_hap"
-  ]
+  # deps = [ ":ams_system_dialog_hap"
+  # ]
 }

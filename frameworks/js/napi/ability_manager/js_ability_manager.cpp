@@ -21,8 +21,10 @@
 
 #include "ability_business_error.h"
 #include "ability_manager_client.h"
+#include "accesstoken_kit.h"
 #include "acquire_share_data_callback_stub.h"
 #include "app_mgr_interface.h"
+#include "application_context.h"
 #include "errors.h"
 #include "event_runner.h"
 #include "hilog_tag_wrapper.h"
@@ -32,6 +34,8 @@
 #include "js_ability_foreground_state_observer.h"
 #include "js_ability_manager_utils.h"
 #include "js_error_utils.h"
+#include "js_preload_ui_extension_callback_client.h"
+#include "js_query_erms_observer.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
@@ -39,7 +43,8 @@
 #include "napi_common_configuration.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
-#include "js_query_erms_observer.h"
+#include "permission_constants.h"
+#include "preload_ui_extension_host_client.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 
@@ -144,9 +149,46 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsAbilityManager, OnNotifyDebugAssertResult);
     }
 
+    static napi_value OnPreloadUIExtensionAbilityLoaded(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnOnPreloadUIExtensionAbilityLoaded);
+    }
+
+    static napi_value OffPreloadUIExtensionAbilityLoaded(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnOffPreloadUIExtensionAbilityLoaded);
+    }
+
+    static napi_value OnPreloadUIExtensionAbilityDestroy(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnOnPreloadUIExtensionAbilityDestroy);
+    }
+
+    static napi_value OffPreloadUIExtensionAbilityDestroy(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnOffPreloadUIExtensionAbilityDestroy);
+    }
+
+    static napi_value PreloadUIExtensionAbility(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnPreloadUIExtensionAbility);
+    }
+
+    static napi_value ClearPreloadUIExtensionAbility(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnClearPreloadUIExtensionAbility);
+    }
+
+    static napi_value ClearPreloadUIExtensionAbilities(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnClearPreloadUIExtensionAbilities);
+    }
+
 private:
     sptr<OHOS::AbilityRuntime::JSAbilityForegroundStateObserver> observerForeground_ = nullptr;
     sptr<JsQueryERMSObserver> queryERMSObserver_ = nullptr;
+    std::map<int32_t, std::vector<std::pair<napi_ref, int32_t>>> loadedCallbackMap_ = {};
+    std::map<int32_t, std::vector<std::pair<napi_ref, int32_t>>> destroyCallbackMap_ = {};
 
     std::string ParseParamType(const napi_env &env, size_t argc, const napi_value *argv)
     {
@@ -829,6 +871,319 @@ private:
         auto token = uiAbilityContext->GetToken();
         return OnRestartSelfAtomicServiceInner(env, token);
     }
+
+    bool CheckPreloadUIExtensionAbilityPermission(napi_env env)
+    {
+        auto selfToken = IPCSkeleton::GetSelfTokenID();
+        if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Non-system app forbidden to call");
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+            return false;
+        }
+        auto callerToken = IPCSkeleton::GetCallingTokenID();
+        int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+            callerToken, AAFwk::PermissionConstants::PERMISSION_PRELOAD_UI_EXTENSION_ABILITY);
+        if (result != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "VerifyAccessToken fail");
+            ThrowNoPermissionError(
+                env, AAFwk::PermissionConstants::PERMISSION_PRELOAD_UI_EXTENSION_ABILITY);
+            return false;
+        }
+        return true;
+    }
+
+    napi_value OnOnPreloadUIExtensionAbilityLoaded(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnOnPreloadUIExtensionAbilityLoaded called");
+        if (!CheckPreloadUIExtensionAbilityPermission(env)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
+            return CreateJsUndefined(env);
+        }
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        if (!AppExecFwk::IsTypeForNapiValue(env, info.argv[INDEX_ZERO], napi_function)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid param");
+            ThrowInvalidParamError(env, "Parse param callback failed, must be a PreloadedUIExtensionAbilityLoadedFn.");
+            return CreateJsUndefined(env);
+        }
+        int32_t callerPid = IPCSkeleton::GetCallingPid();
+        auto &callbackVec = loadedCallbackMap_[callerPid];
+        napi_value newJsFunc = info.argv[INDEX_ZERO];
+        for (const auto &cb : callbackVec) {
+            napi_value jsFunc = nullptr;
+            bool isEquals = false;
+            napi_get_reference_value(env, cb.first, &jsFunc);
+            napi_strict_equals(env, newJsFunc, jsFunc, &isEquals);
+            if (isEquals) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "callback already exists");
+                return CreateJsUndefined(env);
+            }
+        }
+        auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+        std::string bundleName = context->GetBundleName();
+        napi_ref callbackRef = nullptr;
+        napi_create_reference(env, newJsFunc, 1, &callbackRef);
+        auto client = std::make_shared<JsPreloadUIExtensionLoadedCallbackClient>(env, callbackRef);
+        int32_t key = PreloadUIExtensionHostClient::GetInstance()->AddLoadedCallback(client, bundleName);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "zzl RegisterPreloadUIExtensionHostClient");
+        auto ret = AbilityManagerClient::GetInstance()->RegisterPreloadUIExtensionHostClient(PreloadUIExtensionHostClient::GetInstance());
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "resatrt atomic service failed: %{public}d", ret);
+            ThrowErrorByNativeErr(env, ret);
+        }
+        callbackVec.push_back({ callbackRef, key });
+        return CreateJsUndefined(env);
+    }
+
+    napi_value OnOffPreloadUIExtensionAbilityLoaded(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnOffPreloadUIExtensionAbilityLoaded called");
+        if (!CheckPreloadUIExtensionAbilityPermission(env)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
+            return CreateJsUndefined(env);
+        }
+        if (info.argc == ARGC_ONE && !AppExecFwk::IsTypeForNapiValue(env, info.argv[INDEX_ZERO], napi_function)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid param");
+            ThrowInvalidParamError(env, "Parse param callback failed, must be a PreloadedUIExtensionAbilityLoadedFn.");
+            return CreateJsUndefined(env);
+        }
+        auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+        std::string bundleName = context->GetBundleName();
+        int32_t callerPid = IPCSkeleton::GetCallingPid();
+        auto &callbackVec = loadedCallbackMap_[callerPid];
+        if (info.argc == ARGC_ZERO) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "callback is undefined");
+            if (callbackVec.empty()) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "null callback");
+                return CreateJsUndefined(env);
+            }
+            PreloadUIExtensionHostClient::GetInstance()->RemoveAllLoadedCallback(bundleName);
+            callbackVec.clear();
+            return CreateJsUndefined(env);
+        }
+        auto it = std::find_if(callbackVec.begin(), callbackVec.end(), [&](const auto &cb) {
+            napi_value jsFunc = nullptr;
+            bool isEquals = false;
+            napi_get_reference_value(env, cb.first, &jsFunc);
+            napi_strict_equals(env, info.argv[INDEX_ZERO], jsFunc, &isEquals);
+            return isEquals;
+        });
+        if (it == callbackVec.end()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "callback not found");
+            return CreateJsUndefined(env);
+        }
+        PreloadUIExtensionHostClient::GetInstance()->RemoveLoadedCallback(it->second, bundleName);
+        callbackVec.erase(it);
+        return CreateJsUndefined(env);
+    }
+
+    napi_value OnOnPreloadUIExtensionAbilityDestroy(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnOnPreloadUIExtensionAbilityDestroy called");
+        if (!CheckPreloadUIExtensionAbilityPermission(env)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
+            return CreateJsUndefined(env);
+        }
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        if (!AppExecFwk::IsTypeForNapiValue(env, info.argv[INDEX_ZERO], napi_function)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid param");
+            ThrowInvalidParamError(env, "Parse param callback failed, must be a PreloadedUIExtensionAbilityDestroyFn.");
+            return CreateJsUndefined(env);
+        }
+        int32_t callerPid = IPCSkeleton::GetCallingPid();
+        auto& callbackVec = destroyCallbackMap_[callerPid];
+        napi_value newJsFunc = info.argv[INDEX_ZERO];
+        for (const auto& cb : callbackVec) {
+            napi_value jsFunc = nullptr;
+            bool isEquals = false;
+            napi_get_reference_value(env, cb.first, &jsFunc);
+            napi_strict_equals(env, newJsFunc, jsFunc, &isEquals);
+            if (isEquals) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "callback already exists");
+                return CreateJsUndefined(env);
+            }
+        }
+        auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+        std::string bundleName = context->GetBundleName();
+        napi_ref callbackRef = nullptr;
+        napi_create_reference(env, newJsFunc, 1, &callbackRef);
+        auto client = std::make_shared<JsPreloadUIExtensionDestroyCallbackClient>(env, callbackRef);
+        int32_t key = PreloadUIExtensionHostClient::GetInstance()->AddDestroyCallback(client, bundleName);
+        callbackVec.push_back({ callbackRef, key });
+        return CreateJsUndefined(env);
+    }
+
+    napi_value OnOffPreloadUIExtensionAbilityDestroy(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnOffPreloadUIExtensionAbilityDestroy called");
+        if (!CheckPreloadUIExtensionAbilityPermission(env)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
+            return CreateJsUndefined(env);
+        }
+        if (info.argc == ARGC_ONE && !AppExecFwk::IsTypeForNapiValue(env, info.argv[INDEX_ZERO], napi_function)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid param");
+            ThrowInvalidParamError(env, "Parse param callback failed, must be a PreloadedUIExtensionAbilityDestroyFn.");
+            return CreateJsUndefined(env);
+        }
+        auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+        std::string bundleName = context->GetBundleName();
+        int32_t callerPid = IPCSkeleton::GetCallingPid();
+        auto& callbackVec = destroyCallbackMap_[callerPid];
+        if (info.argc == ARGC_ZERO) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "callback is undefined");
+            if (callbackVec.empty()) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "null callback");
+                return CreateJsUndefined(env);
+            }
+            PreloadUIExtensionHostClient::GetInstance()->RemoveAllDestroyCallback(bundleName);
+            callbackVec.clear();
+            return CreateJsUndefined(env);
+        }
+        auto it = std::find_if(callbackVec.begin(), callbackVec.end(), [&](const auto& cb) {
+            napi_value jsFunc = nullptr;
+            bool isEquals = false;
+            napi_get_reference_value(env, cb.first, &jsFunc);
+            napi_strict_equals(env, info.argv[INDEX_ZERO], jsFunc, &isEquals);
+            return isEquals;
+        });
+        if (it == callbackVec.end()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "callback not found");
+            return CreateJsUndefined(env);
+        }
+        PreloadUIExtensionHostClient::GetInstance()->RemoveLoadedCallback(it->second, bundleName);
+        callbackVec.erase(it);
+        return CreateJsUndefined(env);
+    }
+
+    napi_value OnPreloadUIExtensionAbility(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnPreloadUIExtensionAbility called");
+        if (!CheckPreloadUIExtensionAbilityPermission(env)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
+            return CreateJsUndefined(env);
+        }
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "params error");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        AAFwk::Want want;
+        if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Parse want failed");
+            ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+            return CreateJsUndefined(env);
+        }
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+        auto extensionId = std::make_shared<int32_t>(0);
+        NapiAsyncTask::ExecuteCallback execute = [want, innerErrCode, extensionId]() {
+            auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+            std::string bundleName = context->GetBundleName();
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "HostBundleName is %{public}s", bundleName.c_str());
+            *innerErrCode =
+                AbilityManagerClient::GetInstance()->PreloadUIExtensionAbilityWithId(want, bundleName, *extensionId);
+        };
+        NapiAsyncTask::CompleteCallback complete = [innerErrCode, extensionId](
+                                                       napi_env env, NapiAsyncTask &task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "lhy OnPreloadUIExtensionAbilityWithId returnId=%{public}d", *extensionId);
+                task.Resolve(env, CreateJsValue(env, *extensionId));
+            } else {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "lhy NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "OnPreloadUIExtensionAbility failed %{public}d", *innerErrCode);
+                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            }
+        };
+
+        napi_value result = nullptr;
+        NapiAsyncTask::ScheduleHighQos("JsApplicationContextUtils::OnPreloadUIExtensionAbility", env,
+            CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "lhy OnPreloadUIExtensionAbilityWithId end");
+        return result;
+    }
+
+    napi_value OnClearPreloadUIExtensionAbility(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnClearPreloadUIExtensionAbility called");
+        if (!CheckPreloadUIExtensionAbilityPermission(env)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
+            return CreateJsUndefined(env);
+        }
+        if (info.argc < 1) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "params error: preloadId required");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        int32_t preloadId;
+        if (!ConvertFromJsValue(env, info.argv[0], preloadId)) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "preloadId parse failed");
+            ThrowInvalidParamError(env, "preloadId must be int");
+            return CreateJsUndefined(env);
+        }
+
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+        NapiAsyncTask::ExecuteCallback execute = [preloadId, innerErrCode]() {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "PreloadId=%{public}d", preloadId);
+            *innerErrCode = AbilityManagerClient::GetInstance()->UnPreloadUIExtensionAbility(preloadId);
+        };
+
+        NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                task.ResolveWithNoError(env, CreateJsUndefined(env));
+            } else {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "OnClearPreloadedUIExtensionAbility failed %{public}d", *innerErrCode);
+                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            }
+        };
+
+        napi_value result = nullptr;
+        NapiAsyncTask::ScheduleHighQos("JsApplicationContextUtils::OnClearPreloadedUIExtensionAbility", env,
+            CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "lhy OnClearPreloadedUIExtensionAbility end");
+        return result;
+    }
+
+    napi_value OnClearPreloadUIExtensionAbilities(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnClearPreloadUIExtensionAbilities called");
+        if (!CheckPreloadUIExtensionAbilityPermission(env)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
+            return CreateJsUndefined(env);
+        }
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+
+        NapiAsyncTask::ExecuteCallback execute = [innerErrCode]() {
+            auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+            std::string bundleName = context->GetBundleName();
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "HostBundleName=%{public}s", bundleName.c_str());
+            *innerErrCode = AbilityManagerClient::GetInstance()->ClearAllPreloadUIExtensionAbility(bundleName);
+        };
+
+        NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                task.ResolveWithNoError(env, CreateJsUndefined(env)); // Promise<void>
+            } else {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "OnClearPreloadedUIExtensionAbilities failed %{public}d", *innerErrCode);
+                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            }
+        };
+
+        napi_value result = nullptr;
+        NapiAsyncTask::ScheduleHighQos("JsApplicationContextUtils::OnClearPreloadedUIExtensionAbilities", env,
+            CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "lhy OnClearPreloadedUIExtensionAbilities end");
+        return result;
+    }
+
 };
 } // namespace
 
@@ -864,6 +1219,13 @@ napi_value JsAbilityManagerInit(napi_env env, napi_value exportObj)
         env, exportObj, "setResidentProcessEnabled", moduleName, JsAbilityManager::SetResidentProcessEnabled);
     BindNativeFunction(env, exportObj, "queryAtomicServiceStartupRule",
         moduleName, JsAbilityManager::QueryAtomicServiceStartupRule);
+    BindNativeFunction(env, exportObj, "onPreloadUIExtensionAbilityLoaded", moduleName, JsAbilityManager::OnPreloadUIExtensionAbilityLoaded);
+    BindNativeFunction(env, exportObj, "offPreloadUIExtensionAbilityLoaded", moduleName, JsAbilityManager::OffPreloadUIExtensionAbilityLoaded);
+    BindNativeFunction(env, exportObj, "onPreloadUIExtensionAbilityDestroy", moduleName, JsAbilityManager::OnPreloadUIExtensionAbilityDestroy);
+    BindNativeFunction(env, exportObj, "offPreloadUIExtensionAbilityDestroy", moduleName, JsAbilityManager::OffPreloadUIExtensionAbilityDestroy);
+    BindNativeFunction(env, exportObj, "preloadUIExtensionAbility", moduleName, JsAbilityManager::PreloadUIExtensionAbility);
+    BindNativeFunction(env, exportObj, "clearPreloadUIExtensionAbility", moduleName, JsAbilityManager::ClearPreloadUIExtensionAbility);
+    BindNativeFunction(env, exportObj, "clearPreloadUIExtensionAbilities", moduleName, JsAbilityManager::ClearPreloadUIExtensionAbilities);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "end");
     return CreateJsUndefined(env);
 }

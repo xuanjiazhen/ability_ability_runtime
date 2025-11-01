@@ -1959,6 +1959,7 @@ ErrCode AbilityManagerClient::ExecuteIntent(uint64_t key, sptr<IRemoteObject> ca
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGE(AAFwkTag::UI_EXT, "zzl AbilityManagerClient::ExecuteIntent callerToken: %{public}p", callerToken.GetRefPtr());
     return abms->ExecuteIntent(key, callerToken, param);
 }
 
@@ -2440,6 +2441,46 @@ bool AbilityManagerClient::IsRestartAppLimit()
         return false;
     }
     return abms->IsRestartAppLimit();
+}
+
+ErrCode AbilityManagerClient::PreloadUIExtensionAbilityWithId(const Want &want, const std::string &hostBundleName, int32_t &preloadId,
+    int32_t userId, int32_t hostPid)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "elementName:%{public}s/%{public}s, hostBundleName:%{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), hostBundleName.c_str());
+    return abms->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, userId, hostPid);
+}
+
+ErrCode AbilityManagerClient::UnPreloadUIExtensionAbility(int32_t extensionAbilityId, int32_t userId)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, 
+        "UnPreloadUIExtensionAbility called, id:%{public}d, userId:%{public}d",
+        extensionAbilityId, userId);
+
+    return abms->UnPreloadUIExtensionAbility(extensionAbilityId, userId);
+}
+
+ErrCode AbilityManagerClient::ClearAllPreloadUIExtensionAbility(const std::string &hostBundleName, int32_t userId)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "ClearAllPreloadUIExtensionAbility called, hostBundleName:%{public}s, userId:%{public}d",
+        hostBundleName.c_str(), userId);
+    return abms->ClearAllPreloadUIExtensionAbility(hostBundleName, userId);
+}
+
+ErrCode AbilityManagerClient::RegisterPreloadUIExtensionHostClient(sptr<IRemoteObject> callerToken)
+{
+    TAG_LOGE(AAFwkTag::UI_EXT, "zzl AbilityManagerClient RegisterPreloadUIExtensionHostClient");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGE(AAFwkTag::UI_EXT, "zzl AbilityManagerClient::RegisterPreloadUIExtensionHostClient callerToken: %{public}p", callerToken.GetRefPtr());
+    return abms->RegisterPreloadUIExtensionHostClient(callerToken);
 }
 } // namespace AAFwk
 } // namespace OHOS

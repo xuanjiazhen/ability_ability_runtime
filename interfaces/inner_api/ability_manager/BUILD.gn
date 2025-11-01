@@ -107,6 +107,8 @@ ohos_shared_library("ability_manager") {
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_ability_connect_info.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_host_info.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_session_info.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/ui_extension/preload_ui_extension_callback_proxy.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/ui_extension/preload_ui_extension_callback_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/user_callback_proxy.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/user_callback_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/window_config.cpp",
