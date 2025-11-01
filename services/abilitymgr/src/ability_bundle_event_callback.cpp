@@ -133,7 +133,7 @@ void AbilityBundleEventCallback::HandleUpdatedModuleInfo(const std::string &bund
             TAG_LOGE(AAFwkTag::ABILITYMGR, "sharedThis is nullptr.");
             return;
         }
-        sharedThis->abilityEventHelper_.HandleModuleInfoUpdated(bundleName, uid, moduleName, isPlugin);
+        AbilityEventUtil::HandleModuleInfoUpdated(bundleName, uid, moduleName, isPlugin);
     };
     taskHandler_->SubmitTask(task);
 }
