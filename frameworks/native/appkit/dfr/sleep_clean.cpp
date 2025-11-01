@@ -48,7 +48,7 @@ void SleepClean::HandleAppSaveState(const std::shared_ptr<OHOSApplication> &appl
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
         return;
     }
-    auto task = [](){
+    auto task = []() {
         AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
     };
     jsRuntime->PostTask(task, "Sleep_Clean_SaveAppState", 0);
@@ -57,8 +57,8 @@ void SleepClean::HandleAppSaveState(const std::shared_ptr<OHOSApplication> &appl
 
 bool SleepClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &application)
 {
-    string getParamHeapSizeStr = OHOS::system::GetParameter("const.dfx.nightclean.jsheap","-1");
-    if(getParamHeapSizeStr == "-1"){
+    string getParamHeapSizeStr = OHOS::system::GetParameter("const.dfx.nightclean.jsheap", "-1");
+    if(getParamHeapSizeStr == "-1") {
         return false;
     }
     size_t getParamHeapSize = std::stoull(getParamHeapSizeStr) * APP_SAVE_HEAP_SIZE_M;
