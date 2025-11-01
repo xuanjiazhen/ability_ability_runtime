@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-    const size_t APP_SAVE_HEAP_SIZE_M = 1024 * 1024;    //220M
+    const size_t APP_SAVE_HEAP_SIZE_M = 1024 * 1024;    //M
 }
 
 SleepClean &SleepClean::GetInstance()
@@ -41,17 +41,18 @@ void SleepClean::HandleAppSaveState(const std::shared_ptr<OHOSApplication> &appl
     auto &runtime = application->GetRuntime();
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
-        return 0;
+        return;
     }
     AbilityRuntime::JsRuntime *jsRuntime = static_cast<AbilityRuntime::JsRuntime *>(runtime.get());
     if (jsRuntime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
-        return 0;
+        return;
     }
     auto task = [](){
         AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
     };
     jsRuntime->PostTask(task, "Sleep_Clean_SaveAppState", 0);
+    return;
 }
 
 bool SleepClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &application)
