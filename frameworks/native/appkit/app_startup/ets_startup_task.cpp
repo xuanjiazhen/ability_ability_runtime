@@ -16,6 +16,7 @@
 #include "ets_startup_task.h"
 
 #include "ani_common_util.h"
+#include "hitrace_meter.h"
 #include "ets_startup_task_executor.h"
 #include "hilog_tag_wrapper.h"
 #include "stage_context_transfer.h"
@@ -47,7 +48,8 @@ const std::string &EtsStartupTask::GetType() const
 
 int32_t EtsStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> callback)
 {
-    TAG_LOGI(AAFwkTag::STARTUP, "task: %{public}s init", GetName().c_str());
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::STARTUP, "RunTaskInit: %{public}s init", GetName().c_str());
     if (startupRef_ == nullptr) {
         int32_t result = LoadEtsOhmUrl();
         if (result != ERR_OK) {
@@ -57,15 +59,17 @@ int32_t EtsStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> c
 
     resultCallback_ = std::move(callback);
     if (callCreateOnMainThread_) {
-        return ETSStartupTaskExecutor::RunOnMainThread(etsRuntime_.GetAniEnv(), startupRef_, contextRef_, resultCallback_);
+        return ETSStartupTaskExecutor::RunOnMainThread(etsRuntime_.GetAniEnv(), startupRef_, contextRef_,
+        resultCallback_);
     }
     return ETSStartupTaskExecutor::RunOnTaskPool(etsRuntime_.GetAniEnv(), startupRef_, contextRef_, resultCallback_);
 }
 
 int32_t EtsStartupTask::LoadEtsOhmUrl()
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::STARTUP, "LoadEtsOhmUrl call, srcEntry: %{private}s", srcEntry_.c_str());
-    if (srcEntry_.empty() && ohmUrl_.empty()) {
+    if (srcEntry_.empty()) {
         TAG_LOGE(AAFwkTag::STARTUP, "srcEntry and ohmUrl empty");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
@@ -78,7 +82,8 @@ int32_t EtsStartupTask::LoadEtsOhmUrl()
         srcPath.append(".abc");
     }
     
-    auto startupEtsRef = etsRuntime_.LoadModule(moduleNameWithStartupTask, srcPath, hapPath_, esModule_, false, srcEntry_);
+    auto startupEtsRef = etsRuntime_.LoadModule(moduleNameWithStartupTask, srcPath, hapPath_, esModule_, false,
+        srcEntry_);
     if (startupEtsRef == nullptr || startupEtsRef->aniRef == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "startup task null");
         return ERR_STARTUP_INTERNAL_ERROR;
@@ -100,6 +105,8 @@ void EtsStartupTask::UpdateContextRef(ani_ref contextRef)
 int32_t EtsStartupTask::RunTaskOnDependencyCompleted(const std::string &dependencyName,
     const std::shared_ptr<StartupTaskResult> &result)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::STARTUP, "RunTaskOnDependencyCompleted");
     if (startupRef_ == nullptr) {
         int32_t result = LoadEtsOhmUrl();
         if (result != ERR_OK) {
@@ -119,7 +126,8 @@ int32_t EtsStartupTask::RunTaskOnDependencyCompleted(const std::string &dependen
 
     ani_string dependency = AppExecFwk::GetAniString(env, dependencyName);
     ani_ref etsResult = GetDependencyResult(env, dependencyName, result);
-    ani_status status = env->Object_CallMethodByName_Void(startupObj, "onDependencyCompleted", nullptr, dependency, etsResult);
+    ani_status status = env->Object_CallMethodByName_Void(startupObj, "onDependencyCompleted", nullptr, dependency,
+        etsResult);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "%{public}s, call onDependencyCompleted fail:%{public}d", name_.c_str(), status);
         return ERR_STARTUP_FAILED_TO_EXECUTE_STARTUP;

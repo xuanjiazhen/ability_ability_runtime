@@ -76,7 +76,6 @@ ETSAbilityStage::~ETSAbilityStage()
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null env");
-        return;
     }
 }
 
@@ -365,7 +364,10 @@ int32_t ETSAbilityStage::RegisterAppStartupTask(std::shared_ptr<AppExecFwk::HapM
     if (!needRunAutoStartupTask) {
         return ERR_OK;
     }
-
+    if (hapModuleInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
+        return ERR_INVALID_VALUE;
+    }
     auto configEntry = startupManager->GetPendingConfigEntry();
     if (!LoadEtsStartupConfig(configEntry, want, hapModuleInfo->moduleName, hapModuleInfo->moduleType)) {
         TAG_LOGE(AAFwkTag::APPKIT, "load ets appStartup config failed.");
@@ -416,6 +418,10 @@ int32_t ETSAbilityStage::RegisterEtsStartupTask(std::shared_ptr<AppExecFwk::HapM
     }
     if (hapModuleInfo == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
+        return ERR_INVALID_VALUE;
+    }
+    if (shellContextRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null shellContextRef_");
         return ERR_INVALID_VALUE;
     }
     auto application = application_.lock();

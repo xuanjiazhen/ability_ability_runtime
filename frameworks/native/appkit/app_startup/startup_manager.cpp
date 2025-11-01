@@ -16,14 +16,14 @@
 #include "startup_manager.h"
 
 #include <fstream>
-#include <set>
 #include <nlohmann/json.hpp>
+#include <set>
 
 #include "app_startup_task_matcher.h"
 #include "config_policy_utils.h"
+#include "extractor.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
-#include "extractor.h"
 #include "hitrace_meter.h"
 #include "native_startup_task.h"
 #include "preload_system_so_startup_task.h"
