@@ -21,11 +21,9 @@
 #include "ets_startup_task_result.h"
 #include "startup_config.h"
 #include "startup_manager.h"
-
  
 namespace OHOS {
 namespace AbilityRuntime {
- 
 class ETSStartupManager {
 public:
     ETSStartupManager() = default;
@@ -76,7 +74,7 @@ public:
 
     /**
      * Native method to remove all startup task results
-     * 
+     *
      * @param env The ANI environment
      */
     static void NativeRemoveAllStartupTaskResults(ani_env *env);
@@ -122,8 +120,6 @@ private:
  * @param env The ANI environment
  */
 void ETSStartupManagerInit(ani_env *env);
-
 } // namespace AbilityRuntime
 } // namespace OHOS
-
-#endif // ETS_STARTUP_MANAGER_H
+#endif // OHOS_ABILITY_RUNTIME_ETS_STARTUP_MANAGER_H

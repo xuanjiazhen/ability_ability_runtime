@@ -13,24 +13,26 @@
  * limitations under the License.
  */
 
-
 #ifndef ETS_STARTUP_TASK_EXECUTOR_H
 #define ETS_STARTUP_TASK_EXECUTOR_H
 
+#include <functional>
+
 #include "ani.h"
+#include "event_handler.h"
 #include "startup_task_result.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-
 class ETSStartupTaskExecutor {
 public:
-    static int32_t RunOnMainThread(ani_env *env, ani_ref startupTask, ani_ref context, 
-        std::shared_ptr<StartupTaskResultCallback> callback);    
-    static int32_t RunOnTaskPool(ani_env *env, ani_ref startupTask, ani_ref context, 
-        std::shared_ptr<StartupTaskResultCallback> callback);    
+    static int32_t RunOnMainThread(ani_env *env, ani_ref startupTask, ani_ref context,
+        std::shared_ptr<StartupTaskResultCallback> callback);
+    static int32_t RunOnTaskPool(ani_env *env, ani_ref startupTask, ani_ref context,
+        std::shared_ptr<StartupTaskResultCallback> callback);
     static void NativeOnTaskSuccess(ani_env *env, ani_object obj, ani_long callbackLong, ani_object result);
     static void NativeOnTaskFailure(ani_env *env, ani_object obj, ani_long callbackLong, ani_string errorMessage);
+    static void PostMainThreadTask(std::function<void()> task);
 };
 
 void ETSStartupTaskExecutorInit(ani_env *env);

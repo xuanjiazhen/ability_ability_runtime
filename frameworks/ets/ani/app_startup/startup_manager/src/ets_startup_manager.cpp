@@ -32,7 +32,7 @@ namespace AbilityRuntime {
 
 namespace {
 constexpr const char *ETS_STARTUP_MANAGER_CLASS_NAME = "L@ohos/app/appstartup/startupManager/startupManager;";
-constexpr const char *SIGNATURE_STARTUP_MANAGER_RUN_ASYNCCALLBACK = 
+constexpr const char *SIGNATURE_STARTUP_MANAGER_RUN_ASYNCCALLBACK =
     "Lescompat/Array;Lutils/AbilityUtils/AsyncCallbackWrapper;"
     "L@ohos/app/appstartup/StartupConfig/StartupConfig;Lapplication/AbilityStageContext/AbilityStageContext;:V";
 constexpr const char *SIGNATURE_STARTUP_MANAGER_REMOVE_ALL_STARTUP_TASK_RESULTS =
@@ -40,7 +40,7 @@ constexpr const char *SIGNATURE_STARTUP_MANAGER_REMOVE_ALL_STARTUP_TASK_RESULTS 
 constexpr const char *SIGNATURE_STARTUP_MANAGER_GET_STARTUP_TASK_RESULTS =
     "Lstd/core/String;:Lstd/core/Object;";
 constexpr const char *SIGNATURE_STARTUP_MANAGER_IS_STARTUP_TASK_INITIALIZED =
-    "Lstd/core/String;:Lstd/core/Boolean;";
+    "Lstd/core/String;:Z";
 constexpr const char *SIGNATURE_STARTUP_MANAGER_REMOVE_STARTUP_TASK_RESULT =
     "Lstd/core/String;:V";
 }
@@ -48,22 +48,44 @@ constexpr const char *SIGNATURE_STARTUP_MANAGER_REMOVE_STARTUP_TASK_RESULT =
 void ETSStartupManager::NativeRun(ani_env *env, ani_object startupTasks,
     ani_object abilityStageContext, ani_object startupConfig, ani_object callback)
 {
+    TAG_LOGD(AAFwkTag::STARTUP, "NativeRun");
     std::shared_ptr<StartupTaskManager> startupTaskManager = nullptr;
-    int32_t result = ETSStartupManager::RunStartupTask(env, startupTasks, abilityStageContext, startupConfig, startupTaskManager);
-    if (result != ERR_OK) {
+    int32_t result = ETSStartupManager::RunStartupTask(env, startupTasks, abilityStageContext, startupConfig,
+        startupTaskManager);
+    if (result != ERR_OK || startupTaskManager == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "RunStartupTask failed");
         return;
     }
+    ani_ref gl = nullptr;
+    // todo delete gl
+    env->GlobalReference_Create(callback, &gl);
+    ani_vm *aniVM = nullptr;
+    if (env->GetVM(&aniVM) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "GetVM failed");
+        return;
+    }
     auto onCompletedCallback = std::make_shared<OnCompletedCallback>(
-        [env, callback](const std::shared_ptr<StartupTaskResult> &result) {
+        [etsVm = aniVM, callbackRef = gl](const std::shared_ptr<StartupTaskResult> &result) {
+            if (etsVm == nullptr || callbackRef == nullptr) {
+                TAG_LOGE(AAFwkTag::STARTUP, "etsVm or callbackRef is null");
+                return;
+            }
+            ani_object callback = reinterpret_cast<ani_object>(callbackRef);
+            bool isAttachedThread = false;
+            ani_env *env = AppExecFwk::AttachAniEnv(etsVm, isAttachedThread);
+            if (env == nullptr) {
+                TAG_LOGE(AAFwkTag::STARTUP, "AttachAniEnv failed")
+                return;
+            }
             if (result == nullptr || result->GetResultCode() != ERR_OK) {
                 ani_object resultValue = ETSStartupConfig::BuildResult(env, result);
                 AppExecFwk::AsyncCallback(env, callback, resultValue, nullptr);
+                AppExecFwk::DetachAniEnv(etsVm, isAttachedThread);
                 return;
             }
             ani_object resultValue = ETSStartupConfig::BuildResult(env, result);
             AppExecFwk::AsyncCallback(env, callback, resultValue, nullptr);
-            return;
+            AppExecFwk::DetachAniEnv(etsVm, isAttachedThread);
         }
     );
     const auto timeoutCallback = []() {
@@ -85,7 +107,7 @@ void ETSStartupManager::NativeRun(ani_env *env, ani_object startupTasks,
     result = startupTaskManager->Run(onCompletedCallback);
     if (result != ERR_OK) {
         if (!onCompletedCallback->IsCalled()) {
-            EtsErrorUtil::ThrowError(env, result, StartupUtils::GetErrorMessage(result));
+            // todo throwError
             return;
         }
     }
@@ -93,29 +115,29 @@ void ETSStartupManager::NativeRun(ani_env *env, ani_object startupTasks,
 
 ani_object ETSStartupManager::NativeGetStartupTaskResult(ani_env *env, ani_string startupTask)
 {
-    TAG_LOGI(AAFwkTag::STARTUP, "called");
+    TAG_LOGD(AAFwkTag::STARTUP, "NativeGetStartupTaskResult");
     std::string strStartupTask;
     if (!AppExecFwk::GetStdString(env, startupTask, strStartupTask)) {
         TAG_LOGE(AAFwkTag::STARTUP, "GetStdString failed.");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param startupTask failed");
+        // todo throwError
         return nullptr;
     }
     std::shared_ptr<StartupTaskResult> result;
     int32_t res = DelayedSingleton<StartupManager>::GetInstance()->GetResult(strStartupTask, result);
     if (res != ERR_OK || result == nullptr || result->GetResultCode() != ERR_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "get %{public}s result failed", strStartupTask.c_str());
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error: Failed to get result.");
+        // todo throwError
         return nullptr;
     }
     if (result->GetResultType() != StartupTaskResult::ResultType::ETS) {
         TAG_LOGE(AAFwkTag::STARTUP, "result type not ets");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error: result type not ets.");
+        // todo throwError
         return nullptr;
     }
     std::shared_ptr<EtsStartupTaskResult> etsResult = std::static_pointer_cast<EtsStartupTaskResult>(result);
     if (etsResult == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "ets result is null");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error: ets result is null.");
+        // todo throwError
         return nullptr;
     }
     ani_ref etsResultRef = etsResult->GetEtsStartupResultRef();
@@ -128,31 +150,31 @@ bool ETSStartupManager::NativeIsStartupTaskInitialized(ani_env *env, ani_string 
     std::string strStartupTask;
     if (!AppExecFwk::GetStdString(env, startupTask, strStartupTask)) {
         TAG_LOGE(AAFwkTag::STARTUP, "GetStdString failed.");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param startupTask failed");
-        return isInitialized;
+        // todo throwError
+        return false;
     }
     int32_t res = DelayedSingleton<StartupManager>::GetInstance()->IsInitialized(strStartupTask, isInitialized);
     if (res != ERR_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "get %{public}s result failed", strStartupTask.c_str());
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error: Failed to get result.");
-        return isInitialized;
+        // todo throwError
+        return false;
     }
     return isInitialized;
 }
 
 void ETSStartupManager::NativeRemoveStartupTaskResult(ani_env *env, ani_string startupTask)
 {
-    TAG_LOGI(AAFwkTag::STARTUP, "called");
+    TAG_LOGD(AAFwkTag::STARTUP, "NativeRemoveStartupTaskResult");
     std::string strStartupTask;
     if (!AppExecFwk::GetStdString(env, startupTask, strStartupTask)) {
         TAG_LOGE(AAFwkTag::STARTUP, "GetStdString failed.");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param startupTask failed");
+        // todo throwError
         return;
     }
     int32_t res = DelayedSingleton<StartupManager>::GetInstance()->RemoveResult(strStartupTask);
     if (res != ERR_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "remove %{public}s result failed", strStartupTask.c_str());
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error: Failed to remove result.");
+        // todo throwError
         return;
     }
     return;
@@ -205,7 +227,7 @@ int32_t ETSStartupManager::GetConfig(ani_env *env, ani_object configObj, std::sh
     }
     if (startupConfig->Init(configObj) != ERR_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "init startup config failed");
-        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error: Failed to init config.");
+        // todo throwError
         return ERR_STARTUP_INVALID_VALUE;
     }
     config = startupConfig;
@@ -216,7 +238,6 @@ void ETSStartupManager::NativeRemoveAllStartupTaskResults(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::STARTUP, "called");
     DelayedSingleton<StartupManager>::GetInstance()->RemoveAllResult();
-    return;
 }
 
 void ETSStartupManager::UpdateStartupTasks(ani_env *env, std::map<std::string, std::shared_ptr<StartupTask>> &tasks,
@@ -244,18 +265,21 @@ void ETSStartupManager::UpdateStartupTasks(ani_env *env, std::map<std::string, s
 
 void ETSStartupManagerInit(ani_env *env)
 {
-    TAG_LOGI(AAFwkTag::STARTUP, "Init startup manager");
+    TAG_LOGD(AAFwkTag::STARTUP, "Init startup manager");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "env is null");
         return;
     }
-    ani_class cls = nullptr;
-    auto status = env->FindClass(ETS_STARTUP_MANAGER_CLASS_NAME, &cls);
+    ani_namespace ns;
+    auto status = env->FindNamespace(ETS_STARTUP_MANAGER_CLASS_NAME, &ns);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STARTUP, "find class failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::STARTUP, "find namespace failed, status: %{public}d", status);
         return;
     }
-
+    if (ns == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "ns null");
+        return;
+    }
     std::array nativeFuncs = {
         ani_native_function { "nativeRun", SIGNATURE_STARTUP_MANAGER_RUN_ASYNCCALLBACK,
             reinterpret_cast<void*>(ETSStartupManager::NativeRun) },
@@ -269,12 +293,12 @@ void ETSStartupManagerInit(ani_env *env)
         ani_native_function { "nativeRemoveStartupTaskResult", SIGNATURE_STARTUP_MANAGER_REMOVE_STARTUP_TASK_RESULT,
             reinterpret_cast<void*>(ETSStartupManager::NativeRemoveStartupTaskResult) },
     };
-    status = env->Class_BindNativeMethods(cls, nativeFuncs.data(), static_cast<int32_t>(nativeFuncs.size()));
+    status = env->Namespace_BindNativeFunctions(ns, nativeFuncs.data(), static_cast<int32_t>(nativeFuncs.size()));
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "bind native methods failed, status: %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::STARTUP, "Init startup manager success");
+    TAG_LOGD(AAFwkTag::STARTUP, "Init startup manager success");
 }
 
 extern "C" {

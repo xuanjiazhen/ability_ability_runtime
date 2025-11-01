@@ -17,6 +17,7 @@
 
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
+#include "hitrace_meter.h"
 #include "js_runtime_utils.h"
 #include "js_startup_task_executor.h"
 
@@ -97,7 +98,8 @@ const std::string &JsStartupTask::GetType() const
 
 int32_t JsStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> callback)
 {
-    TAG_LOGI(AAFwkTag::STARTUP, "task: %{public}s init", GetName().c_str());
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::STARTUP, "RunTaskInit: %{public}s init", GetName().c_str());
     if (startupJsRef_ == nullptr) {
         int32_t result = LoadJsOhmUrl();
         if (result != ERR_OK) {
@@ -131,7 +133,8 @@ int32_t JsStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> ca
 
 int32_t JsStartupTask::LoadJsOhmUrl()
 {
-    TAG_LOGD(AAFwkTag::STARTUP, "call");
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::STARTUP, "LoadJsOhmUrl");
     if (srcEntry_.empty() && ohmUrl_.empty()) {
         TAG_LOGE(AAFwkTag::STARTUP, "srcEntry and ohmUrl empty");
         return ERR_STARTUP_INTERNAL_ERROR;
@@ -213,6 +216,8 @@ void JsStartupTask::UpdateContextRef(std::shared_ptr<NativeReference> contextJsR
 int32_t JsStartupTask::RunTaskOnDependencyCompleted(const std::string &dependencyName,
     const std::shared_ptr<StartupTaskResult> &result)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::STARTUP, "RunTaskOnDependencyCompleted");
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
 

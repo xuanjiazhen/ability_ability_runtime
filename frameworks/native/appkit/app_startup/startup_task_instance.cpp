@@ -45,7 +45,7 @@ const std::unique_ptr<Runtime> &StartupTaskInstance::GetSpecifiedRuntime(
     return runtime;
 }
 
-std::shared_ptr<AppStartupTask> StartupTaskInstance::CreateStartupTask(const std::unique_ptr<Runtime> &runtime, 
+std::shared_ptr<AppStartupTask> StartupTaskInstance::CreateStartupTask(const std::unique_ptr<Runtime> &runtime,
     const std::string &arkTSMode, const StartupTaskInfo &info, bool lazyLoad)
 {
     auto &taskRuntime = GetSpecifiedRuntime(runtime, arkTSMode);

@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-import StartupConfig, { StartupConfigImpl } from './@ohos.app.appstartup.StartupConfig';
+import StartupConfig from './@ohos.app.appstartup.StartupConfig';
 import Want from '@ohos.app.ability.Want';
 
 export default class StartupConfigEntry {
     onConfig(): StartupConfig {
-        console.log("onConfig called")
-        return new StartupConfigImpl() as StartupConfig;
+        console.log('onConfig called')
+        let config: StartupConfig = {};
+        return config;
     }
 
     onRequestCustomMatchRule(want: Want): string {
-        console.log("onRequestCustomMatchRule called")
-        return "";
+        console.log('onRequestCustomMatchRule called')
+        return '';
     }
 }
