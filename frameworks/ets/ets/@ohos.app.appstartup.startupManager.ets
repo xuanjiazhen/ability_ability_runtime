@@ -32,7 +32,6 @@ export default namespace startupManager {
 
     export native function nativeRemoveStartupTaskResult(startupTask: string): void;
 
-
     export function run(startupTasks: Array<string>, config?: StartupConfig): Promise<void> {
         let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
             let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null, data: undefined)=>{
@@ -43,6 +42,7 @@ export default namespace startupManager {
                 }
             });
             taskpool.execute((): void => {
+                console.log('ready to call nativeRun');
                 startupManager.nativeRun(startupTasks, myCall, config, undefined);
             });
         });
@@ -60,6 +60,7 @@ export default namespace startupManager {
                 }
             });
             taskpool.execute((): void => {
+                console.log('ready to call nativeRun');
                 startupManager.nativeRun(startupTasks, myCall, config, context);
             });
         });
@@ -67,18 +68,34 @@ export default namespace startupManager {
     }
 
     export function removeAllStartupTaskResults(): void {
-        startupManager.nativeRemoveAllStartupTaskResults();
+        try {
+            startupManager.nativeRemoveAllStartupTaskResults();
+        } catch (err) {
+            throw(err);
+        }
     }
 
     export function getStartupTaskResult(startupTask: string): Any {
-        return startupManager.nativeGetStartupTaskResult(startupTask);
+        try {
+            return startupManager.nativeGetStartupTaskResult(startupTask);
+        } catch (err) {
+            throw(err);
+        }
     }
 
     export function isStartupTaskInitialized(startupTask: string): boolean {
-        return startupManager.nativeIsStartupTaskInitialized(startupTask);
+        try {
+            return startupManager.nativeIsStartupTaskInitialized(startupTask);
+        } catch (err) {
+            throw(err);
+        }
     }
 
     export function removeStartupTaskResult(startupTask: string): void {
-        startupManager.nativeRemoveStartupTaskResult(startupTask);
+        try {
+            startupManager.nativeRemoveStartupTaskResult(startupTask);
+        } catch (err) {
+            throw(err);
+        }
     }
 }

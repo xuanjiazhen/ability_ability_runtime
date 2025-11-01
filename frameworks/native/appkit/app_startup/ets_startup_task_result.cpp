@@ -15,6 +15,7 @@
 
 #include "ets_startup_task_result.h"
 
+#include "ani_common_util.h"
 #include "hilog_tag_wrapper.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
@@ -27,21 +28,47 @@ EtsStartupTaskResult::EtsStartupTaskResult() : JsStartupTaskResult()
 
 EtsStartupTaskResult::~EtsStartupTaskResult()
 {
-    if (aniEnv_ != nullptr && resultRef_ != nullptr) {
-        aniEnv_->GlobalReference_Delete(resultRef_);
+    if (resultRef_ == nullptr) {
+        return;
     }
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "etsVm null");
+        return;
+    }
+    bool isAttachThread = false;
+    ani_env *aniEnv = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "aniEnv null");
+        return;
+    }
+    ani_status = aniEnv->GlobalReference_Delete(resultRef_);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "GlobalReference_Delete failed, status: %{public}d", status);
+    }
+    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
 }
 
 EtsStartupTaskResult::EtsStartupTaskResult(int32_t resultCode, const std::string &resultMessage)
     : JsStartupTaskResult(resultCode, resultMessage)
 {}
 
-EtsStartupTaskResult::EtsStartupTaskResult(ani_env *aniEnv, ani_object result) : JsStartupTaskResult(), aniEnv_(aniEnv)
+EtsStartupTaskResult::EtsStartupTaskResult(ani_vm *etsVm, ani_object result) : JsStartupTaskResult(), etsVm_(etsVm)
 {
-    ani_status status = aniEnv_->GlobalReference_Create(result, &resultRef_);
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "etsVm null");
+        return;
+    }
+    bool isAttachThread = false;
+    ani_env *aniEnv = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "aniEnv null");
+        return;
+    }
+    ani_status status = aniEnv->GlobalReference_Create(result, &resultRef_);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "GlobalReference_Create failed, status: %{public}d", status);
     }
+    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
 }
 
 StartupTaskResult::ResultType EtsStartupTaskResult::GetResultType() const
@@ -96,29 +123,39 @@ const std::shared_ptr<NativeReference> EtsStartupTaskResult::GetJsStartupResultR
     if (jsStartupResultRef_ != nullptr) {
         return jsStartupResultRef_;
     }
-    if (aniEnv_ == nullptr) {
-        TAG_LOGE(AAFwkTag::STARTUP, "aniEnv_ null");
-        return jsStartupResultRef_;
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "etsVm null");
+        return nullptr;
     }
     if (resultRef_ == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "resultRef_ null");
-        return jsStartupResultRef_;
+        return nullptr;
     }
-    hybridgref ref = nullptr;
-    if (!hybridgref_create_from_ani(aniEnv_, resultRef_, &ref)) {
-        TAG_LOGE(AAFwkTag::STARTUP, "hybridgref_create_from_ani failed");
-        return jsStartupResultRef_;
+    bool isAttachThread = false;
+    ani_env *aniEnv = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "aniEnv null");
+        return nullptr;
     }
     napi_env napiEnv = {};
-    if (!arkts_napi_scope_open(aniEnv_, &napiEnv)) {
+    if (!arkts_napi_scope_open(aniEnv, &napiEnv)) {
         TAG_LOGE(AAFwkTag::STARTUP, "arkts_napi_scope_open failed");
-        return jsStartupResultRef_;
+        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+        return nullptr;
+    }
+    hybridgref ref = nullptr;
+    if (!hybridgref_create_from_ani(aniEnv, resultRef_, &ref)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "hybridgref_create_from_ani failed");
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+        return nullptr;
     }
     napi_value result = nullptr;
     if (!hybridgref_get_napi_value(napiEnv, ref, &result)) {
         TAG_LOGE(AAFwkTag::STARTUP, "hybridgref_get_napi_value failed");
         hybridgref_delete_from_napi(napiEnv, ref);
         arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return nullptr;
     }
     napi_ref resultRef = nullptr;
@@ -127,10 +164,13 @@ const std::shared_ptr<NativeReference> EtsStartupTaskResult::GetJsStartupResultR
         TAG_LOGE(AAFwkTag::STARTUP, "napi_create_reference failed: %{public}d", status);
         hybridgref_delete_from_napi(napiEnv, ref);
         arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return nullptr;
     }
     jsStartupResultRef_ = std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
+    hybridgref_delete_from_napi(napiEnv, ref);
     arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
     return jsStartupResultRef_;
 }
 

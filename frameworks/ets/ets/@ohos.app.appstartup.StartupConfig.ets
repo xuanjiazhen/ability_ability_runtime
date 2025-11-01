@@ -16,11 +16,6 @@
 import StartupListener from './@ohos.app.appstartup.StartupListener';
 
 export default interface StartupConfig {
-   timeoutMs?: int;
-   startupListener?: StartupListener;
-}
-
-export class StartupConfigImpl implements StartupConfig {
-    timeoutMs?: int;
-    startupListener?: StartupListener;
+  timeoutMs?: int;
+  startupListener?: StartupListener;
 }
