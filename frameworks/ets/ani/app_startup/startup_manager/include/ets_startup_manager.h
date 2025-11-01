@@ -21,11 +21,9 @@
 #include "ets_startup_task_result.h"
 #include "startup_config.h"
 #include "startup_manager.h"
-
  
 namespace OHOS {
 namespace AbilityRuntime {
- 
 class ETSStartupManager {
 public:
     ETSStartupManager() = default;
@@ -38,7 +36,7 @@ public:
     
     /**
      * Native method to run startup tasks asynchronously
-     * 
+     *
      * @param env The ANI environment
      * @param startupTasks Array of startup tasks to run
      * @param abilityStageContext The ability stage context
@@ -50,7 +48,7 @@ public:
 
     /**
      * Native method to get the result of a specific startup task
-     * 
+     *
      * @param env The ANI environment
      * @param startupTask The name of the startup task
      * @return The result object of the startup task, or nullptr if failed
@@ -59,7 +57,7 @@ public:
 
     /**
      * Native method to check if a startup task is initialized
-     * 
+     *
      * @param env The ANI environment
      * @param startupTask The name of the startup task
      * @return true if the startup task is initialized, false otherwise
@@ -68,7 +66,7 @@ public:
 
     /**
      * Native method to remove the result of a specific startup task
-     * 
+     *
      * @param env The ANI environment
      * @param startupTask The name of the startup task
      */
@@ -76,7 +74,7 @@ public:
 
     /**
      * Native method to remove all startup task results
-     * 
+     *
      * @param env The ANI environment
      */
     static void NativeRemoveAllStartupTaskResults(ani_env *env);
@@ -84,7 +82,7 @@ public:
 private:
     /**
      * Run startup tasks with the given configuration
-     * 
+     *
      * @param env The ANI environment
      * @param startupTasks Array of startup tasks
      * @param startupConfig Configuration for startup tasks
@@ -97,7 +95,7 @@ private:
 
     /**
      * Get startup configuration from the given object
-     * 
+     *
      * @param env The ANI environment
      * @param configObj The configuration object
      * @param config Output parameter for the parsed configuration
@@ -107,7 +105,7 @@ private:
 
     /**
      * Update startup tasks context reference
-     * 
+     *
      * @param env The ANI environment
      * @param tasks The startup tasks to update
      * @param stageContextRef The ability stage context reference
@@ -118,12 +116,10 @@ private:
 
 /**
  * Initialize the ETS startup manager
- * 
+ *
  * @param env The ANI environment
  */
 void ETSStartupManagerInit(ani_env *env);
-
 } // namespace AbilityRuntime
 } // namespace OHOS
-
-#endif // ETS_STARTUP_MANAGER_H
+#endif // OHOS_ABILITY_RUNTIME_ETS_STARTUP_MANAGER_H

@@ -130,7 +130,7 @@ std::shared_ptr<NativeReference> StageContextTransfer::GetContextRef(const std::
     return contextRefMap_[moduleName];
 }
 
-std::shared_ptr<Context> StageContextTransfer::UnwrapContext(napi_env napiEnv, 
+std::shared_ptr<Context> StageContextTransfer::UnwrapContext(napi_env napiEnv,
     std::shared_ptr<NativeReference> contextRef)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

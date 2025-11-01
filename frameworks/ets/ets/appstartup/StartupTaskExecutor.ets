@@ -26,12 +26,7 @@ export default class StartupTaskExecutor {
   
   asyncPushTask(startup: StartupTask, context: common.AbilityStageContext, callback: long): void {
     const executeAsync = async (startup: StartupTask, context: common.AbilityStageContext): Promise<Any> => {
-      try {
-        const result = await startup.init(context);
-        return result;
-      } catch (error) {
-        throw error;
-      }
+      return await startup.init(context);
     };
 
     const task = new taskpool.Task(executeAsync, startup, context);

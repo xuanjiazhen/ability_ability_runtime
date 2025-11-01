@@ -47,6 +47,7 @@ private:
     void InitAwaitTimeout(ani_env *env, ani_object config);
     void InitListener(ani_env *env, ani_object config);
     void InitCustomization(ani_env *env, ani_object configEntry, std::shared_ptr<AAFwk::Want> want);
+    bool GetTimeoutMs(ani_env *env, ani_object config, int32_t &timeoutMs);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

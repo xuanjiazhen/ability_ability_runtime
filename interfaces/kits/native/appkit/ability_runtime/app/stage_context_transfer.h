@@ -53,7 +53,8 @@ public:
     std::shared_ptr<NativeReference> GetContextRef(const std::string &moduleName);
 
 private:
-    static std::unique_ptr<NativeReference> CreateNativeReference(napi_env napiEnv, std::shared_ptr<Context> stageContext);
+    static std::unique_ptr<NativeReference> CreateNativeReference(napi_env napiEnv,
+        std::shared_ptr<Context> stageContext);
 
     std::map<std::string, std::shared_ptr<NativeReference>> contextRefMap_;
     std::mutex contextRefMapMutex_;
