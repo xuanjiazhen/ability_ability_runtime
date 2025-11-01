@@ -914,10 +914,13 @@ HWTEST_F(AppMgrServiceInnerTest, GenerateRenderUid_001, TestSize.Level1)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->Init();
     EXPECT_NE(appMgrServiceInner, nullptr);
+    int32_t userId = 100;
     int32_t renderUid = Constants::INVALID_UID;
-    EXPECT_TRUE(appMgrServiceInner->GenerateRenderUid(renderUid));
+    EXPECT_TRUE(appMgrServiceInner->GenerateRenderUid(userId, renderUid));
+    
     int32_t renderUid1 = Constants::INVALID_UID;
-    EXPECT_TRUE(appMgrServiceInner->GenerateRenderUid(renderUid1));
+    EXPECT_TRUE(appMgrServiceInner->GenerateRenderUid(userId, renderUid1));
+    
     TAG_LOGI(AAFwkTag::TEST, "GenerateRenderUid_001 end");
 }
 
