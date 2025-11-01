@@ -148,7 +148,8 @@ int AbilityConnectManager::TerminateAbilityInner(const sptr<IRemoteObject> &toke
             abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING) ||
             abilityRecord->IsAbilityState(AbilityState::BACKGROUNDING)) {
             TAG_LOGD(AAFwkTag::EXT, "current ability is active");
-            DoBackgroundAbilityWindow(abilityRecord, abilityRecord->GetSessionInfo());
+            //DoBackgroundAbilityWindow(abilityRecord, abilityRecord->GetSessionInfo());
+            EnqueueBackgroundOp(abilityRecord, abilityRecord->GetSessionInfo());
             MoveToTerminatingMap(abilityRecord);
             return ERR_OK;
         }
@@ -234,26 +235,27 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
 
     ReportEventToRSS(abilityRequest.abilityInfo, targetService, abilityRequest.callerToken);
     if (!isLoadedAbility) {
-        TAG_LOGD(AAFwkTag::EXT, "targetService has not been loaded");
-        SetLastExitReason(abilityRequest, targetService);
-        if (IsUIExtensionAbility(targetService)) {
-            targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_ABILITY);
-        }
+        TAG_LOGD(AAFwkTag::EXT, "targetService has not been loaded → enqueue LoadOp");
+        // 原代码：直接执行LoadAbility相关逻辑
+        // SetLastExitReason(abilityRequest, targetService);
+        // UpdateUIExtensionBindInfo(...);
+        // LoadAbility(targetService, updateRecordCallback);
+
+        // 新代码：调用EnqueueLoadOp，将LoadAbility操作入队
         auto updateRecordCallback = [mgr = shared_from_this()](
             const std::shared_ptr<AbilityRecord>& targetService) {
             if (mgr != nullptr) {
                 mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
             }
         };
-        UpdateUIExtensionBindInfo(
-            targetService, hostBundleName, abilityRequest.want.GetIntParam(UIEXTENSION_NOTIFY_BIND, -1));
-        LoadAbility(targetService, updateRecordCallback);
+        EnqueueLoadOp(abilityRequest, targetService, hostBundleName, updateRecordCallback);
     } else if (targetService->IsAbilityState(AbilityState::ACTIVE) && !IsUIExtensionAbility(targetService)) {
         // It may have been started through connect
         targetService->SetWant(abilityRequest.want);
         CommandAbility(targetService);
     } else if (IsUIExtensionAbility(targetService)) {
-        DoForegroundUIExtension(targetService, abilityRequest);
+        //DoForegroundUIExtension(targetService, abilityRequest);
+        EnqueueForegroundOp(targetService, abilityRequest);  // 替换为入队
     } else {
         TAG_LOGI(AAFwkTag::EXT, "TargetService not active, state: %{public}d",
             targetService->GetAbilityState());
@@ -2210,7 +2212,8 @@ void AbilityConnectManager::BackgroundAbilityWindowLocked(const std::shared_ptr<
     const sptr<SessionInfo> &sessionInfo)
 {
     std::lock_guard guard(serialMutex_);
-    DoBackgroundAbilityWindow(abilityRecord, sessionInfo);
+    //DoBackgroundAbilityWindow(abilityRecord, sessionInfo);
+    EnqueueBackgroundOp(abilityRecord, sessionInfo);
 }
 
 void AbilityConnectManager::DoBackgroundAbilityWindow(const std::shared_ptr<AbilityRecord> &abilityRecord,
@@ -3174,7 +3177,8 @@ void AbilityConnectManager::CompleteForeground(const std::shared_ptr<AbilityReco
     if (abilityRecord->BackgroundAbilityWindowDelayed()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "response background request");
         abilityRecord->DoBackgroundAbilityWindowDelayed(false);
-        DoBackgroundAbilityWindow(abilityRecord, abilityRecord->GetSessionInfo());
+        //DoBackgroundAbilityWindow(abilityRecord, abilityRecord->GetSessionInfo());
+        EnqueueBackgroundOp(abilityRecord, abilityRecord->GetSessionInfo()); 
     }
     CompleteStartServiceReq(abilityRecord->GetURI());
 }
@@ -3401,7 +3405,8 @@ void AbilityConnectManager::HandleUIExtWindowDiedTask(const sptr<IRemoteObject> 
     }
 
     if (abilityRecord) {
-        TerminateAbilityWindowLocked(abilityRecord, sessionInfo);
+        EnqueueTerminateOp(abilityRecord, sessionInfo);
+        //TerminateAbilityWindowLocked(abilityRecord, sessionInfo);
     } else {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "abilityRecord null");
     }
@@ -3899,6 +3904,187 @@ void AbilityConnectManager::UpdateUIExtensionBindInfo(
     wantParams.SetParam(UIEXTENSION_HOST_UID, AAFwk::Integer::Box(IPCSkeleton::GetCallingUid()));
     wantParams.SetParam(UIEXTENSION_HOST_BUNDLENAME, String ::Box(callerBundleName));
     abilityRecord->UpdateUIExtensionBindInfo(wantParams);
+}
+
+int64_t AbilityConnectManager::GetAbilityUniqueKey(const std::shared_ptr<AbilityRecord>& abilityRecord) {
+    CHECK_POINTER_RETURN(abilityRecord, -1);
+    return reinterpret_cast<int64_t>(abilityRecord->GetToken().GetRefPtr());
+}
+
+void AbilityConnectManager::EnqueueForegroundOp(std::shared_ptr<AbilityRecord> abilityRecord, const AbilityRequest& abilityRequest) {
+    if (!abilityRecord || abilityRecord->IsTerminating() || abilityRecord->IsAbilityState(AbilityState::INITIAL)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "abilityRecord is terminating/terminated, skip enqueue foreground");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(queueMutex_);
+    int64_t uniqueKey = GetAbilityUniqueKey(abilityRecord);
+    uint64_t taskId = ++taskIdGenerator_;  
+
+    StateOp op = {
+        .taskId = taskId,
+        .type = StateOpType::OP_FOREGROUND_UI_EXT,
+        .status = StateOpStatus::OP_STATUS_PENDING,
+        .abilityRecord = abilityRecord,
+        .abilityRequest = abilityRequest,
+        .sessionInfo = abilityRequest.sessionInfo,
+        .updateRecordCallback = nullptr,
+        .hostBundleName = ""
+    };
+    abilityOpQueues_[uniqueKey].push(op);
+
+    if (abilityOpQueues_[uniqueKey].size() == 1) {
+        ProcessNextOp(uniqueKey);
+    }
+}
+
+void AbilityConnectManager::EnqueueBackgroundOp(std::shared_ptr<AbilityRecord> abilityRecord, const sptr<SessionInfo>& sessionInfo) {
+    if (!abilityRecord || abilityRecord->IsTerminating() || abilityRecord->IsAbilityState(AbilityState::INITIAL) || !sessionInfo) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "abilityRecord is terminating/terminated, skip enqueue background");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(queueMutex_);
+    int64_t uniqueKey = GetAbilityUniqueKey(abilityRecord);
+    abilityOpQueues_[uniqueKey].push({
+        .type = StateOpType::OP_BACKGROUND_ABILITY,
+        .abilityRecord = abilityRecord,
+        .abilityRequest = AbilityRequest(),
+        .sessionInfo = sessionInfo
+    });
+    if (abilityOpQueues_[uniqueKey].size() == 1) {
+        ProcessNextOp(uniqueKey);
+    }
+}
+
+void AbilityConnectManager::EnqueueTerminateOp(std::shared_ptr<AbilityRecord> abilityRecord, const sptr<SessionInfo>& sessionInfo) {
+    if (!abilityRecord || !sessionInfo) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid abilityRecord or sessionInfo, skip enqueue terminate");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(queueMutex_);
+    int64_t uniqueKey = GetAbilityUniqueKey(abilityRecord);
+    abilityOpQueues_[uniqueKey].push({
+        .type = StateOpType::OP_TERMINATE_ABILITY,
+        .abilityRecord = abilityRecord,
+        .abilityRequest = AbilityRequest(),
+        .sessionInfo = sessionInfo
+    });
+    if (abilityOpQueues_[uniqueKey].size() == 1) {
+        ProcessNextOp(uniqueKey);
+    }
+}
+
+void AbilityConnectManager::ProcessNextOp(int64_t uniqueKey) {
+    std::lock_guard<std::mutex> lock(queueMutex_);
+    auto queueIt = abilityOpQueues_.find(uniqueKey);
+    if (queueIt == abilityOpQueues_.end() || queueIt->second.empty()) {
+        return;
+    }
+
+    StateOp& currentOp = queueIt->second.front();  // 注意：改为引用，用于修改状态
+    // 跳过已完成或超时的任务
+    if (currentOp.status == StateOpStatus::OP_STATUS_COMPLETED) {
+        queueIt->second.pop();
+        if (!queueIt->second.empty()) {
+            ProcessNextOp(uniqueKey);
+        } else {
+            abilityOpQueues_.erase(queueIt);
+        }
+        return;
+    }
+
+    // 标记任务为“执行中”
+    currentOp.status = StateOpStatus::OP_STATUS_RUNNING;
+    queueMutex_.unlock();  // 释放锁，允许异步流程并发访问
+
+    // 执行操作（逻辑不变，仅新增任务ID传递）
+    switch (currentOp.type) {
+        case StateOpType::OP_FOREGROUND_UI_EXT: {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "execute foreground op, taskId: %lu", currentOp.taskId);
+            // 执行moveToForeground（异步流程），需在后续回调中通知任务完成
+            DoForegroundUIExtension(currentOp.abilityRecord, currentOp.abilityRequest);
+            break;
+        }
+        case StateOpType::OP_BACKGROUND_ABILITY: {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "execute background op, taskId: %lu", currentOp.taskId);
+            DoBackgroundAbilityWindow(currentOp.abilityRecord, currentOp.sessionInfo);
+            break;
+        }
+        case StateOpType::OP_LOAD_ABILITY: {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "execute load op, taskId: %lu", currentOp.taskId);
+            // 执行LoadAbility（异步流程）
+            auto loadCompleteCallback = [this, uniqueKey, taskId = currentOp.taskId](const std::shared_ptr<AbilityRecord>& record) {
+                // 加载完成，调用外部通知移除任务
+                this->OnStateOpCompleted(taskId, uniqueKey);
+            };
+            LoadAbility(currentOp.abilityRecord, loadCompleteCallback);
+            break;
+        }
+        default:
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "unknown op type, taskId: %lu", currentOp.taskId);
+            // 未知操作，直接标记完成
+            OnStateOpCompleted(currentOp.taskId, uniqueKey);
+            break;
+    }
+}
+
+// 新增：LoadAbility操作入队函数
+void AbilityConnectManager::EnqueueLoadOp(const AbilityRequest& abilityRequest, std::shared_ptr<AbilityRecord> abilityRecord,
+    const std::string& hostBundleName, std::function<void(const std::shared_ptr<AbilityRecord>&)> updateRecordCallback) {
+    // 1. 参数校验：排除已销毁/正在销毁的AbilityRecord
+    if (!abilityRecord || abilityRecord->IsTerminating() || abilityRecord->IsAbilityState(AbilityState::INITIAL)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid abilityRecord for load op");
+        return;
+    }
+
+    // 2. 入队操作：依赖serialMutex_大锁，无需额外防重复
+    std::lock_guard<std::mutex> lock(queueMutex_);
+    int64_t uniqueKey = GetAbilityUniqueKey(abilityRecord);
+    abilityOpQueues_[uniqueKey].push({
+        .type = StateOpType::OP_LOAD_ABILITY,
+        .abilityRecord = abilityRecord,
+        .abilityRequest = abilityRequest,
+        .sessionInfo = nullptr, // LoadAbility无需sessionInfo
+        .updateRecordCallback = updateRecordCallback,
+        .hostBundleName = hostBundleName
+    });
+
+    // 3. 若为队列首个操作，立即触发执行
+    if (abilityOpQueues_[uniqueKey].size() == 1) {
+        ProcessNextOp(uniqueKey);
+    }
+}
+
+void AbilityConnectManager::CleanAbilityOpQueue(const std::shared_ptr<AbilityRecord>& abilityRecord) {
+    if (!abilityRecord) return;
+    std::lock_guard<std::mutex> lock(queueMutex_);
+    int64_t uniqueKey = GetAbilityUniqueKey(abilityRecord);
+    auto erased = abilityOpQueues_.erase(uniqueKey);
+    if (erased > 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "cleaned queue for terminated abilityRecord");
+    }
+}
+
+void AbilityConnectManager::OnStateOpCompleted(uint64_t taskId, int64_t abilityUniqueKey) {
+    std::lock_guard<std::mutex> lock(queueMutex_);
+    auto queueIt = abilityOpQueues_.find(abilityUniqueKey);
+    if (queueIt == abilityOpQueues_.end() || queueIt->second.empty()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "queue not found for completed op, taskId: %lu", taskId);
+        return;
+    }
+
+    // 定位当前任务（队列首个任务，因按顺序执行）
+    StateOp& currentOp = queueIt->second.front();
+    if (currentOp.taskId != taskId) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "taskId mismatch, expect: %lu, actual: %lu", currentOp.taskId, taskId);
+        return;
+    }
+
+    // 标记任务为完成，触发下一个任务执行
+    currentOp.status = StateOpStatus::OP_STATUS_COMPLETED;
+    queueMutex_.unlock();
+
+    // 继续执行下一个任务（通过ProcessNextOp清理当前任务并执行下一个）
+    ProcessNextOp(abilityUniqueKey);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

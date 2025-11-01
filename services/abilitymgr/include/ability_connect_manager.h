@@ -746,6 +746,48 @@ private:
     std::mutex loadAbilityQueueLock_;
     std::deque<std::map<int32_t, LoadAbilityContext>> loadAbilityQueue_;
 
+    // 状态切换操作类型
+    enum class StateOpType {
+        OP_FOREGROUND_UI_EXT,    // 前台化UIExtension
+        OP_BACKGROUND_ABILITY,   // 后台化Ability窗口
+        OP_TERMINATE_ABILITY,     // 终止Ability窗口
+        OP_LOAD_ABILITY          // 加载Ability
+    };
+
+    // 操作参数封装
+    struct StateOp {
+        StateOpType type;
+        std::shared_ptr<AbilityRecord> abilityRecord;
+        AbilityRequest abilityRequest;  // 仅OP_FOREGROUND_UI_EXT使用
+        sptr<SessionInfo> sessionInfo;  // OP_BACKGROUND_ABILITY/OP_TERMINATE_ABILITY使用
+        // 新增：LoadAbility专属参数
+        std::function<void(const std::shared_ptr<AbilityRecord>&)> updateRecordCallback;
+        std::string hostBundleName;  
+    };
+
+    // 每个AbilityRecord的专属操作队列（key：AbilityRecord的Token哈希值）
+    std::unordered_map<int64_t, std::queue<StateOp>> abilityOpQueues_;
+    std::mutex queueMutex_;  // 保护队列操作的线程安全
+    std::atomic<uint64_t> taskIdGenerator_ = 0;     
+
+    // 获取AbilityRecord的唯一标识（基于Token）
+    int64_t GetAbilityUniqueKey(const std::shared_ptr<AbilityRecord>& abilityRecord);
+
+    // 入队操作：前台化UIExtension
+    void EnqueueForegroundOp(std::shared_ptr<AbilityRecord> abilityRecord, const AbilityRequest& abilityRequest);
+    // 入队操作：后台化Ability窗口
+    void EnqueueBackgroundOp(std::shared_ptr<AbilityRecord> abilityRecord, const sptr<SessionInfo>& sessionInfo);
+    // 入队操作：终止Ability窗口
+    void EnqueueTerminateOp(std::shared_ptr<AbilityRecord> abilityRecord, const sptr<SessionInfo>& sessionInfo);
+    // 新增：LoadAbility入队函数
+    void EnqueueLoadOp(const AbilityRequest& abilityRequest, std::shared_ptr<AbilityRecord> abilityRecord,
+        const std::string& hostBundleName, std::function<void(const std::shared_ptr<AbilityRecord>&)> updateRecordCallback);
+    // 执行队列中的下一个操作
+    void ProcessNextOp(int64_t uniqueKey);
+    // 清理指定AbilityRecord的操作队列（AbilityRecord销毁时调用）
+    void CleanAbilityOpQueue(const std::shared_ptr<AbilityRecord>& abilityRecord);
+
+    void OnStateOpCompleted(uint64_t taskId, int64_t abilityUniqueKey);
     DISALLOW_COPY_AND_MOVE(AbilityConnectManager);
 };
 }  // namespace AAFwk
