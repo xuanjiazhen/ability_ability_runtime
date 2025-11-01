@@ -3190,5 +3190,114 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GenerateUid_0400, TestSize.Level1)
     EXPECT_EQ(uid, 20600003);
     TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0400 end");
 }
+
+/**
+ * @tc.name: GenerateUid_0500
+ * @tc.desc: test GenerateUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, GenerateUid_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0500 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    std::unordered_set<int32_t> assignedUids = {20300001, 20300002, 20300003};
+    int32_t beginId = 1;
+    int32_t endId = 10;
+    int32_t userId = 101;
+    int32_t uid = 0;
+    std::unordered_map<int32_t, int32_t> lastIsolationIdMap = {{101, 3}, {102, 4}, {100, 5}};
+    int32_t res = appMgrServiceInner->GenerateUid(assignedUids, beginId, endId, userId, uid, lastIsolationIdMap);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(uid, 20300004);
+    TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0500 end");
+}
+
+/**
+ * @tc.name: GenerateUid_0600
+ * @tc.desc: test GenerateUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, GenerateUid_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0600 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    std::unordered_set<int32_t> assignedUids = {20300001, 20300002, 20300004, 20300005};
+    int32_t beginId = 1;
+    int32_t endId = 5;
+    int32_t userId = 101;
+    int32_t uid = 0;
+    std::unordered_map<int32_t, int32_t> lastIsolationIdMap = {{101, 5}, {102, 4}, {100, 5}};
+    int32_t res = appMgrServiceInner->GenerateUid(assignedUids, beginId, endId, userId, uid, lastIsolationIdMap);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(uid, 20300003);
+    TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0600 end");
+}
+
+/**
+ * @tc.name: GenerateUid_0700
+ * @tc.desc: test GenerateUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, GenerateUid_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0700 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    std::unordered_set<int32_t> assignedUids = {20300001, 20300002, 20300003, 20300004, 20300005};
+    int32_t beginId = 1;
+    int32_t endId = 5;
+    int32_t userId = 101;
+    int32_t uid = 0;
+    std::unordered_map<int32_t, int32_t> lastIsolationIdMap = {{101, 5}, {102, 4}, {100, 5}};
+    int32_t res = appMgrServiceInner->GenerateUid(assignedUids, beginId, endId, userId, uid, lastIsolationIdMap);
+    EXPECT_EQ(res, false);
+    EXPECT_EQ(uid, 0);
+    TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0700 end");
+}
+
+/**
+ * @tc.name: GenerateUid_0800
+ * @tc.desc: test GenerateUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, GenerateUid_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0800 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    std::unordered_set<int32_t> assignedUids = {20100006, 20100009, 20300001, 20300003};
+    int32_t beginId = 1;
+    int32_t endId = 11;
+    int32_t userId = 100;
+    int32_t uid = 0;
+    std::unordered_map<int32_t, int32_t> lastIsolationIdMap = {{100, 9}, {101, 3}, {102, 5}};
+    int32_t res = appMgrServiceInner->GenerateUid(assignedUids, beginId, endId, userId, uid, lastIsolationIdMap);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(uid, 20100010);
+    assignedUids.insert(uid);
+    res = appMgrServiceInner->GenerateUid(assignedUids, beginId, endId, userId, uid, lastIsolationIdMap);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(uid, 20100011);
+    assignedUids.insert(uid);
+    res = appMgrServiceInner->GenerateUid(assignedUids, beginId, endId, userId, uid, lastIsolationIdMap);
+    EXPECT_EQ(res, false);
+    EXPECT_EQ(uid, 20100011);
+    assignedUids.erase(20100009);
+    res = appMgrServiceInner->GenerateUid(assignedUids, beginId, endId, userId, uid, lastIsolationIdMap);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(uid, 20100009);
+    userId = 101;
+    res = appMgrServiceInner->GenerateUid(assignedUids, beginId, endId, userId, uid, lastIsolationIdMap);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(uid, 20300004);
+    assignedUids.insert(uid);
+    userId = 102;
+    res = appMgrServiceInner->GenerateUid(assignedUids, beginId, endId, userId, uid, lastIsolationIdMap);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(uid, 20500006);
+    TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0800 end");
+}
 } // namespace AppExecFwk
 } // namespace OHOS
