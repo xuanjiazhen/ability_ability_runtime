@@ -38,6 +38,7 @@ namespace OHOS {
 namespace AAFwk {
 constexpr int32_t WANTAGENT_NUMBER_THRESHOLD = 288; // DFX THRESHOLD
 constexpr int32_t WANTAGENT_FLOAT_THRESHOLD = 40; // FLOAT RANGE
+constexpr int32_t DFX_INTERVAL = 10; //DFX INTERVAL
 enum class OperationType {
     /**
      * Unknown operation.
@@ -188,7 +189,9 @@ private:
     void MakeWantSenderCanceledLocked(PendingWantRecord &record);
 
     void AddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
+    void HandleAddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
     void ReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
+    void HandleReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
 
     sptr<PendingWantRecord> GetPendingWantRecordByKey(const std::shared_ptr<PendingWantKey> &key);
     bool CheckPendingWantRecordByKey(
