@@ -1931,7 +1931,8 @@ int32_t AppMgrServiceInner::UpdateApplicationInfoInstalled(
     return result;
 }
 
-int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
+int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
+    const std::string &reason)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "KillApplication");
     if (!appRunningManager_) {
@@ -1945,7 +1946,7 @@ int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool 
         return result;
     }
 
-    return KillApplicationByBundleName(bundleName, appIndex, clearPageStack, "KillApplication");
+    return KillApplicationByBundleName(bundleName, appIndex, clearPageStack, reason);
 }
 
 int32_t AppMgrServiceInner::ForceKillApplication(const std::string &bundleName,
