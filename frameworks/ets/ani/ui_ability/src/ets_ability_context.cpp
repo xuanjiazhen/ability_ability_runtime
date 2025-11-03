@@ -850,23 +850,12 @@ void EtsAbilityContext::InheritWindowMode(AAFwk::Want &want)
 #endif
 }
 
-void EtsAbilityContext::StartAbilitySyncCheck(ani_env *env, ani_object aniObj, ani_object opt)
-{
-    AAFwk::StartOptions startOptions;
-    if (!AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions)) {
-        EtsErrorUtil::ThrowInvalidParamError(env,
-            "Parse param startOptions failed, startOptions must be StartOptions.");
-        TAG_LOGE(AAFwkTag::CONTEXT, "invalid options");
-        return;
-    }
-}
-
 void EtsAbilityContext::OnStartAbility(
     ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call, bool isStartRecent)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AAFwk::Want want;
-    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {	
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
         return;
     }
@@ -1009,7 +998,7 @@ void EtsAbilityContext::RestartAppWithWindow(ani_env *env, ani_object aniObj, an
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
         return;
     }
-    etsContext->InheritWindowMode(env, aniObj, want);
+    etsContext->InheritWindowMode(want);
     auto ret = context->RestartAppWithWindow(want);
     if (ret != ERR_OK) {
         EtsErrorUtil::ThrowErrorByNativeErr(env, ret);

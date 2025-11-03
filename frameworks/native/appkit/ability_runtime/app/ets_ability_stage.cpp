@@ -143,6 +143,9 @@ void ETSAbilityStage::Init(const std::shared_ptr<Context> &context,
 {
     AbilityStage::Init(context, application);
     SetShellContextRef(context);
+    if (!BindNativeMethods()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "BindNativeMethods failed");
+    }
 }
 
 void ETSAbilityStage::LoadModule(const AppExecFwk::HapModuleInfo &hapModuleInfo)
@@ -165,11 +168,11 @@ void ETSAbilityStage::LoadModule(const AppExecFwk::HapModuleInfo &hapModuleInfo)
     if (hapModuleInfo.srcEntrance.empty()) {
         return;
     }
-    SetEtsAbilityStage(context);
-
-    if (!BindNativeMethods()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "BindNativeMethods failed");
-    }
+    TAG_LOGD(AAFwkTag::APPKIT, "entry path: %{public}s", hapModuleInfo.srcEntrance.c_str());
+    bool esModule = hapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    etsAbilityStageObj_ = etsRuntime_.LoadModule(moduleName, srcPath,
+        hapModuleInfo.hapPath, esModule, false, hapModuleInfo.srcEntrance);
+    SetEtsAbilityStage();
 }
 
 void ETSAbilityStage::OnCreate(const AAFwk::Want &want) const
@@ -576,7 +579,7 @@ bool ETSAbilityStage::BindNativeMethods()
     return true;
 }
 
-void ETSAbilityStage::SetEtsAbilityStage(const std::shared_ptr<Context> &context)
+void ETSAbilityStage::SetShellContextRef(std::shared_ptr<Context> context)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (context == nullptr) {
@@ -622,10 +625,9 @@ void ETSAbilityStage::SetEtsAbilityStage()
         return;
     }
 
-    ani_object stageCtxObj = ETSAbilityStageContext::CreateEtsAbilityStageContext(env, context);
-    if (stageCtxObj == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "CreateEtsAbilityStageContext failed");
-        return;
+    ani_status status = ANI_OK;
+    if (env->Object_SetFieldByName_Ref(etsAbilityStageObj_->aniObj, "context", shellContextRef_->aniRef) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetFieldByName_Ref context failed");
     }
 }
 
@@ -754,20 +756,6 @@ int32_t ETSAbilityStage::RegisterEtsStartupTask(std::shared_ptr<AppExecFwk::HapM
     if (application == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null application");
         return ERR_INVALID_VALUE;
-    ani_status status = ANI_OK;
-    ani_field contextField;
-    status = env->Class_FindField(etsAbilityStageObj_->aniCls, "context", &contextField);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Class_GetField context failed");
-        return;
-    }
-    ani_ref stageCtxObjRef = nullptr;
-    if (env->GlobalReference_Create(stageCtxObj, &stageCtxObjRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Create stageCtxObj failed");
-        return;
-    }
-    if (env->Object_SetField_Ref(etsAbilityStageObj_->aniObj, contextField, stageCtxObjRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Ref stageCtxObj failed");
     }
     const std::vector<StartupTaskInfo> startupTaskInfos = startupManager->GetStartupTaskInfos(hapModuleInfo->name);
     for (const auto& item : startupTaskInfos) {
@@ -883,6 +871,8 @@ napi_env ETSAbilityStage::GetNapiEnv()
     }
     auto &jsRuntime = static_cast<JsRuntime &>(*jsRuntimePtr);
     return jsRuntime.GetNapiEnv();
+}
+
 bool ETSAbilityStage::OnPrepareTerminate(
     AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult> *callbackInfo,
     bool &isAsync) const

@@ -34,7 +34,6 @@ public:
     static void NativeCheckCallerIsSystemApp(ani_env *env);
 
 private:
-
     void OnRegisterAutoStartupCallback(ani_env *env, ani_string aniType, ani_object callback);
     void OnUnregisterAutoStartupCallback(ani_env *env, ani_string aniType, ani_object callback);
     void OnSetApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback);
@@ -45,7 +44,6 @@ private:
 
     sptr<EtsAbilityAutoStartupCallback> etsAutoStartupCallback_;
     static EtsAbilityAutoStartupManager& GetInstance();
-
 };
 void EtsAbilityAutoStartupManagerInit(ani_env *env);
 } // namespace AbilityRuntime
