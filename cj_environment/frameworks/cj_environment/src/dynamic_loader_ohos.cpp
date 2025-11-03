@@ -96,6 +96,8 @@ static void InitSharedLibsSonames()
         "libohosadaptor.so",
         "libusb_ndk.z.so",
         "libvulkan.so",
+        // openssl
+        "libssl_openssl.z.so",
     };
 
     size_t allowListLength = sizeof(allowList) / sizeof(char*);

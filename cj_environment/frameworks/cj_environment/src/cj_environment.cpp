@@ -46,11 +46,9 @@ const std::string SANDBOX_LIB_PATH = "/data/storage/el1/bundle/libs/" APP_LIB_NA
 const std::string CJ_COMPATIBILITY_PATH = SANDBOX_LIB_PATH + "/runtime";
 const std::string CJ_MOCK_PATH = SANDBOX_LIB_PATH + "/ohos";
 #ifdef APP_USE_ARM
-const std::string CJ_CHIPSDK_PATH = "/system/lib/chipset-pub-sdk:/system/lib/chipset-sdk";
 const std::string CJ_SDK_PATH = "/system/lib/platformsdk/cjsdk";
 const std::string CJ_RUNTIME_PATH = "/system/lib/platformsdk/cjsdk/runtime";
 #else
-const std::string CJ_CHIPSDK_PATH = "/system/lib64/chipset-pub-sdk:/system/lib64/chipset-sdk";
 const std::string CJ_SDK_PATH = "/system/lib64/platformsdk/cjsdk";
 const std::string CJ_RUNTIME_PATH = "/system/lib64/platformsdk/cjsdk/runtime";
 #endif
@@ -236,7 +234,6 @@ bool HasHigherPriorityTaskWrapper()
 CJEnvironment* instance_ = nullptr;
 } // namespace
 
-const char *CJEnvironment::cjChipSDKNSName = "cj_chipsdk";
 const char *CJEnvironment::cjAppNSName = "moduleNs_default";
 const char *CJEnvironment::cjRomSDKNSName = "cj_rom_sdk";
 const char *CJEnvironment::cjSysNSName = "default";
@@ -548,15 +545,6 @@ bool CJEnvironment::HasHigherPriorityTask()
     return false;
 }
 
-void CJEnvironment::InitCJChipSDKNS(const std::string& path)
-{
-#ifdef __OHOS__
-    LOGI("InitCJChipSDKNS: %{public}s", path.c_str());
-    Dl_namespace chip_sdk;
-    DynamicInitNamespace(&chip_sdk, path.c_str(), CJEnvironment::cjChipSDKNSName);
-#endif
-}
-
 // Init app namespace
 void CJEnvironment::InitCJAppNS(const std::string& path)
 {
@@ -565,7 +553,6 @@ void CJEnvironment::InitCJAppNS(const std::string& path)
     Dl_namespace ns;
     DynamicInitNamespace(&ns, path.c_str(), CJEnvironment::cjAppNSName);
     if (nsMode_ == NSMode::APP) {
-        DynamicInherit(&ns, CJEnvironment::cjChipSDKNSName, "libssl_openssl.z.so");
         DynamicInherit(&ns, CJEnvironment::cjAppSDKNSName, "allow_all_shared_libs");
     } else {
         DynamicInherit(&ns, CJEnvironment::cjCompatibilitySDKNSName, "allow_all_shared_libs");
@@ -827,7 +814,6 @@ void CJEnvironment::InitRuntimeNS()
 {
 #ifdef __OHOS__
     if (nsMode_ == NSMode::APP) {
-        InitCJChipSDKNS(CJ_CHIPSDK_PATH);
         InitCJAppSDKNS(CJ_COMPATIBILITY_PATH + ":" + CJ_MOCK_PATH);
     } else {
         switch (CJEnvironment::sanitizerKind) {
@@ -878,9 +864,6 @@ CJEnvMethods* CJEnvironment::CreateEnvMethods()
             // @deprecated
         },
         .initCJSysNS = [](const std::string& path) {
-            // @deprecated
-        },
-        .initCJChipSDKNS = [](const std::string& path) {
             // @deprecated
         },
         .startRuntime = [] {
