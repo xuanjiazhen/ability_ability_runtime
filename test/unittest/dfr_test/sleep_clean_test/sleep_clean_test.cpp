@@ -26,7 +26,7 @@ std::string currentHeapSize = "-1";
 namespace OHOS::system {
 __attribute__((weak)) std::string GetParameter(const std::string& key, const std::string&def)
 {
-    if(key == "const.dfx.nightclean.jsheap") {
+    if (key == "const.dfx.nightclean.jsheap") {
         return currentHeapSize;
     }
     return def;

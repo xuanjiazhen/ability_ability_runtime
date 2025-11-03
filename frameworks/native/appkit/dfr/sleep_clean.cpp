@@ -58,7 +58,7 @@ void SleepClean::HandleAppSaveState(const std::shared_ptr<OHOSApplication> &appl
 bool SleepClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &application)
 {
     string getParamHeapSizeStr = OHOS::system::GetParameter("const.dfx.nightclean.jsheap", "-1");
-    if(getParamHeapSizeStr == "-1") {
+    if (getParamHeapSizeStr == "-1") {
         return false;
     }
     size_t getParamHeapSize = std::stoull(getParamHeapSizeStr) * APP_SAVE_HEAP_SIZE_M;
