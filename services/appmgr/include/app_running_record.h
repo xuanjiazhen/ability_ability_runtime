@@ -1052,7 +1052,10 @@ public:
     inline void SetKillReason(std::string killReason)
     {
         std::lock_guard<ffrt::mutex> lock(killReasonLock_);
-        killReason_ = killReason;
+        if (killReason_ == "")
+        {
+            killReason_ = killReason;
+        }
     }
 
     inline std::string GetKillReason() const
