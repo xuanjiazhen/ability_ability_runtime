@@ -16,7 +16,6 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("embedded_ui_extension_ani") {
-
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -44,22 +43,20 @@ ohos_shared_library("embedded_ui_extension_ani") {
 
   public_configs = []
 
-  sources = [
-    "${ability_runtime_path}/frameworks/ets/ani/embedded_ui_extension_ability/src/ets_embedded_ui_extension.cpp",
-  ]
+  sources = [ "${ability_runtime_path}/frameworks/ets/ani/embedded_ui_extension_ability/src/ets_embedded_ui_extension.cpp" ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/ability/native:ui_extension",
     "${ability_runtime_native_path}/ability/native:ui_extension_ani",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
-    "${ability_runtime_native_path}/ability:ability_context_native",
-    "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
   ]
 
   external_deps = [

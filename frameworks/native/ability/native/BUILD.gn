@@ -948,8 +948,8 @@ ohos_shared_library("ui_ability_ani") {
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:bms_ani_common",
-    "c_utils:utils",
     "cJSON:cjson",
+    "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "ets_runtime:libark_jsruntime",
     "eventhandler:libeventhandler",
@@ -2415,7 +2415,7 @@ ohos_shared_library("ui_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_base/src/ets_ui_extension_base.cpp",
   ]
 
-  public_configs = [":ui_extension_ani_public_config"]
+  public_configs = [ ":ui_extension_ani_public_config" ]
 
   deps = [
     ":abilitykit_native",
@@ -2605,9 +2605,7 @@ config("share_extension_config") {
 ohos_shared_library("share_extension") {
   configs = [ ":share_extension_config" ]
 
-  include_dirs = [
-    "${ability_runtime_path}/frameworks/ets/ani/share_extension_ability/include",
-  ]
+  include_dirs = [ "${ability_runtime_path}/frameworks/ets/ani/share_extension_ability/include" ]
 
   sources = [
     "${ability_runtime_native_path}/ability/native/share_extension_ability/js_share_extension.cpp",
@@ -2715,9 +2713,7 @@ config("action_extension_config") {
 ohos_shared_library("action_extension") {
   configs = [ ":action_extension_config" ]
 
-  include_dirs = [
-    "${ability_runtime_path}/frameworks/ets/ani/action_extension_ability/include",
-  ]
+  include_dirs = [ "${ability_runtime_path}/frameworks/ets/ani/action_extension_ability/include" ]
 
   sources = [
     "${ability_runtime_native_path}/ability/native/action_extension_ability/action_extension.cpp",
@@ -3249,8 +3245,8 @@ ohos_shared_library("auto_fill_extension_ani") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "runtime_core:ani",
-    "window_manager:embeddablewindowstageani_kit",
     "window_manager:embeddablewindowstage_kit",
+    "window_manager:embeddablewindowstageani_kit",
     "window_manager:extensionwindow_napi",
   ]
 
@@ -3300,9 +3296,7 @@ ohos_shared_library("auto_fill_extension_util") {
   ]
 
   if (ability_runtime_auto_fill) {
-    sources += [
-      "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/ets_auto_fill_extension_util.cpp",
-    ]
+    sources += [ "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/ets_auto_fill_extension_util.cpp" ]
   }
 
   subsystem_name = "ability"

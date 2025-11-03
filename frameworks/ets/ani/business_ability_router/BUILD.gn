@@ -29,11 +29,11 @@ ohos_shared_library("businessabilityrouter_ani") {
   include_dirs = [
     "./include",
     "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
-    ]
+  ]
 
   sources = [
     "src/ets_ability_router_mgr.cpp",
-    "src/ets_ability_router_mgr_utils.cpp"
+    "src/ets_ability_router_mgr_utils.cpp",
   ]
 
   configs = [ "${srms_services_path}:srms_config" ]
@@ -41,8 +41,8 @@ ohos_shared_library("businessabilityrouter_ani") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${srms_inner_api_path}:srms_fwk",
   ]
 
