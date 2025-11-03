@@ -39,9 +39,10 @@ public:
     MOCK_METHOD1(KillProcessesInBatch, int(const std::vector<int32_t> &pids));
     MOCK_METHOD4(UpdateApplicationInfoInstalled, int(const std::string&, const int uid, const std::string&, bool));
     MOCK_METHOD3(ForceKillApplication, int32_t(const std::string& appName, const int userId, const int appIndex));
-    MOCK_METHOD3(KillApplication, int32_t(const std::string& bundleName, const bool clearPageStack, int32_t appIndex));
+    MOCK_METHOD4(KillApplication, int32_t(const std::string& bundleName, const bool clearPageStack, int32_t appIndex,
+        const std::string& reason));
     MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
-    MOCK_METHOD3(KillApplicationByUid, int(const std::string&, const int uid, const std::string&));
+    MOCK_METHOD4(KillApplicationByUid, int(const std::string&, const int uid, const std::string&));
     MOCK_METHOD0(IsReady, bool());
     MOCK_METHOD1(AbilityAttachTimeOut, void(const sptr<IRemoteObject>& token));
     MOCK_METHOD2(PrepareTerminate, void(const sptr<IRemoteObject>& token, bool clearMissionFlag));
