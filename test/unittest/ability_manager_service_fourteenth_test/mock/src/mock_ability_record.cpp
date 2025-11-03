@@ -267,7 +267,7 @@ int32_t AbilityRecord::GetUid()
     return uid_;
 }
 
-pid_t AbilityRecord::GetPid()
+pid_t AbilityRecord::GetPid() const
 {
     return pid_;
 }
@@ -1988,6 +1988,11 @@ void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams)
 
 void AbilityRecord::SendTerminateAbilityErrorEvent(int32_t errCode)
 {
+}
+
+bool AbilityRecord::ReportAbilityConnectionRelations()
+{
+    return true;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

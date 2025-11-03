@@ -620,7 +620,10 @@ int32_t AppMgrServiceInner::PreloadApplication(const std::string &bundleName, in
     }
     TAG_LOGD(AAFwkTag::APPMGR, "submit task, bundleName:%{public}s, userId:%{public}d",
         bundleName.c_str(), userId);
-    taskHandler_->SubmitTask(task, PRELOAD_APPLIATION_TASK);
+    taskHandler_->SubmitTask(task, AAFwk::TaskAttribute{
+        .taskName_ = PRELOAD_APPLIATION_TASK,
+        .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
+    });
     return ERR_OK;
 }
 
@@ -1336,7 +1339,7 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
         appRecord->SetMainProcess(false);
         TAG_LOGI(AAFwkTag::APPMGR, "%{public}s will not alive", hapModuleInfo.process.c_str());
     }
-    uint32_t startFlags = (want == nullptr) ? 0 : AppspawnUtil::BuildStartFlags(*want, *abilityInfo);
+    uint64_t startFlags = (want == nullptr) ? 0 : AppspawnUtil::BuildStartFlags(*want, *abilityInfo);
     int32_t bundleIndex = 0;
     if (want != nullptr) {
         (void)AbilityRuntime::StartupUtil::GetAppIndex(*want, bundleIndex);
@@ -1737,9 +1740,7 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
         appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
         bool needNotifyApp = appRunningManager_->IsApplicationFirstForeground(*appRecord);
         OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, false);
-        if (appRecord->GetPreloadMode() != PreloadMode::PRE_LAUNCH) {
-            DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord);
-        }
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "app name(%{public}s), app state(%{public}d)",
             appRecord->GetName().c_str(), static_cast<ApplicationState>(appState));
@@ -2223,7 +2224,8 @@ void AppMgrServiceInner::SendProcessExitEventTask(pid_t pid, const std::string &
         innerService->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     };
     CHECK_POINTER_AND_RETURN_LOG(taskHandler_, "Task handler is nullptr.");
-    taskHandler_->SubmitTaskJust(sendEventTask, PROCESS_EXIT_EVENT_TASK, KILL_PROCESS_DELAYTIME_MICRO_SECONDS);
+    ffrt::submit(std::move(sendEventTask), ffrt::task_attr().name(PROCESS_EXIT_EVENT_TASK)
+        .delay(KILL_PROCESS_DELAYTIME_MICRO_SECONDS));
 }
 
 void AppMgrServiceInner::SendProcessExitEvent(std::shared_ptr<AppRunningRecord> appRecord)
@@ -2988,7 +2990,7 @@ void AppMgrServiceInner::GetRunningProcess(const std::shared_ptr<AppRunningRecor
     info.processType_ = appRecord->GetProcessType();
     info.extensionType_ = appRecord->GetExtensionType();
     info.preloadMode_ = appRecord->GetPreloadMode();
-    info.isDebugApp  = appRecord->IsDebug();
+    info.isDebugApp  = appRecord->GetApplicationInfo()->debug;
     info.isExiting = appRecord->IsTerminating() || appRecord->IsKilling()
         || appRecord->GetRestartAppFlag() || appRecord->IsUserRequestCleaning();
     info.isPreForeground  = appRecord->IsPreForeground();
@@ -4212,7 +4214,7 @@ int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo
         return ERR_NO_INIT;
     }
 
-    uint32_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
+    uint64_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
     CHECK_POINTER_AND_RETURN_VALUE(appInfo, ERR_NO_INIT);
     auto uid = appInfo->uid;
     auto bundleType = appInfo->bundleType;
@@ -4339,8 +4341,8 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
     SetAppInfo(bundleInfo, startMsg);
     SetStartMsgCustomSandboxFlag(startMsg, bundleInfo.applicationInfo.accessTokenId);
     GetKernelPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsMap);
-    TAG_LOGI(AAFwkTag::APPMGR, "apl: %{public}s, %{public}s, startFlags: %{public}d, userId: %{public}d",
-        startMsg.apl.c_str(), bundleInfo.name.c_str(), param.startFlags, userId);
+    TAG_LOGI(AAFwkTag::APPMGR, "apl: %{public}s, %{public}s, startFlags: %{public}llu, userId: %{public}d",
+        startMsg.apl.c_str(), bundleInfo.name.c_str(), static_cast<unsigned long long>(param.startFlags), userId);
 
     autoSync.Sync();
     return ERR_OK;
@@ -4456,7 +4458,7 @@ void AppMgrServiceInner::QueryExtensionSandBox(const std::string &moduleName, co
 }
 
 int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::string &processName,
-    uint32_t startFlags, std::shared_ptr<AppRunningRecord> appRecord, const int uid, const BundleInfo &bundleInfo,
+    uint64_t startFlags, std::shared_ptr<AppRunningRecord> appRecord, const int uid, const BundleInfo &bundleInfo,
     const std::string &bundleName, const int32_t bundleIndex, bool appExistFlag, bool isPreload,
     AppExecFwk::PreloadMode preloadMode, const std::string &moduleName, const std::string &abilityName,
     sptr<IRemoteObject> token, std::shared_ptr<AAFwk::Want> want, ExtensionAbilityType extensionAbilityType)
@@ -5635,7 +5637,7 @@ int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IR
 
     int32_t appIndex = 0;
     (void)AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
-    uint32_t startFlags = AppspawnUtil::BuildStartFlags(want, info.applicationInfo);
+    uint64_t startFlags = AppspawnUtil::BuildStartFlags(want, info.applicationInfo);
     StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->uid, info, appInfo->bundleName,
         appIndex, appExistFlag);
 
@@ -5811,7 +5813,7 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
         appRecord->SendEventForSpecifiedAbility();
         appRecord->SetAppIndex(appIndex);
         appRecord->SetExtensionSandBoxFlag(isExtensionSandBox);
-        uint32_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
+        uint64_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
         StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->uid, bundleInfo, appInfo->bundleName,
             appIndex, appExistFlag);
 
@@ -7082,7 +7084,7 @@ void AppMgrServiceInner::HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo
         return;
     }
 
-    bool needNotifyApp = appRunningManager_->IsApplicationUnfocused(appRecord->GetBundleName());
+    bool needNotifyApp = appRunningManager_->IsApplicationUnfocused(appRecord->GetUid());
     OnAppStateChanged(appRecord, appRecord->GetState(), needNotifyApp, true);
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord, true);
 }
