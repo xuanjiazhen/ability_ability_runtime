@@ -36,6 +36,7 @@ ohos_shared_library("share_extension_ani") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/ability/native:share_extension",
     "${ability_runtime_native_path}/ability/native:ui_extension",
     "${ability_runtime_native_path}/ability/native:ui_extension_ani",

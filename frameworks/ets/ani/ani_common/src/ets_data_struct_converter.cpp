@@ -108,10 +108,10 @@ ani_object CreateEtsLastExitDetailInfo(ani_env* env, const AAFwk::LastExitDetail
     env->Object_SetPropertyByName_Long(object, "timestamp", lastExitDetailInfo.timestamp);
 
     ani_enum_item stateItem {};
+    auto etsProcessState = ConvertToEtsAppProcessState(
+        static_cast<AppExecFwk::AppProcessState>(lastExitDetailInfo.processState), false);
     AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env, ENUMNAME_PROCESS,
-        ConvertToEtsAppProcessState(
-            static_cast<AppExecFwk::AppProcessState>(lastExitDetailInfo.processState), false),
-            stateItem);
+        etsProcessState, stateItem);
     if ((status = env->Object_SetPropertyByName_Ref(object, "processState", stateItem)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "processState failed status:%{public}d", status);
         return nullptr;
