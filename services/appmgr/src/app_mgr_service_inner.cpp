@@ -1314,16 +1314,14 @@ void AppMgrServiceInner::MakeProcessName(
     processName = appInfo->bundleName;
 }
 
-void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunningRecord> appRecord,
-    bool isShellCall, std::shared_ptr<ApplicationInfo> appInfo,
-    std::shared_ptr<AbilityInfo> abilityInfo, const std::string &processName,
+void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunningRecord> appRecord, bool isShellCall,
+    std::shared_ptr<ApplicationInfo> appInfo, std::shared_ptr<AbilityInfo> abilityInfo, const std::string &processName,
     const std::string &specifiedProcessFlag, const BundleInfo &bundleInfo, const HapModuleInfo &hapModuleInfo,
     std::shared_ptr<AAFwk::Want> want, bool appExistFlag, bool isPreload, AppExecFwk::PreloadMode preloadMode,
     sptr<IRemoteObject> token, const std::string &customProcessFlag, bool isStartupHide)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "processName:%{public}s, isPreload:%{public}d",
-        processName.c_str(), isPreload);
+    TAG_LOGI(AAFwkTag::APPMGR, "processName:%{public}s, isPreload:%{public}d", processName.c_str(), isPreload);
     if (!appRecord || !abilityInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord or abilityInfo");
         return;
@@ -1343,6 +1341,8 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     int32_t bundleIndex = 0;
     if (want != nullptr) {
         (void)AbilityRuntime::StartupUtil::GetAppIndex(*want, bundleIndex);
+    } else {
+        TAG_LOGE(AAFwkTag::APPMGR, "startFlags is default");
     }
     if (StartProcess(abilityInfo->applicationName, processName, startFlags, appRecord,
         appInfo->uid, bundleInfo, appInfo->bundleName, bundleIndex, appExistFlag, isPreload, preloadMode,
@@ -1740,9 +1740,7 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
         appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
         bool needNotifyApp = appRunningManager_->IsApplicationFirstForeground(*appRecord);
         OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, false);
-        if (appRecord->GetPreloadMode() != PreloadMode::PRE_LAUNCH) {
-            DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord);
-        }
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "app name(%{public}s), app state(%{public}d)",
             appRecord->GetName().c_str(), static_cast<ApplicationState>(appState));
@@ -2992,7 +2990,7 @@ void AppMgrServiceInner::GetRunningProcess(const std::shared_ptr<AppRunningRecor
     info.processType_ = appRecord->GetProcessType();
     info.extensionType_ = appRecord->GetExtensionType();
     info.preloadMode_ = appRecord->GetPreloadMode();
-    info.isDebugApp  = appRecord->IsDebug();
+    info.isDebugApp  = appRecord->GetApplicationInfo()->debug;
     info.isExiting = appRecord->IsTerminating() || appRecord->IsKilling()
         || appRecord->GetRestartAppFlag() || appRecord->IsUserRequestCleaning();
     info.isPreForeground  = appRecord->IsPreForeground();
@@ -4568,7 +4566,8 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
     }
     #endif
 
-    TAG_LOGI(AAFwkTag::APPMGR, "spawned pname: %{public}s pid: %{public}d", processName.c_str(), pid);
+    TAG_LOGI(AAFwkTag::APPMGR, "spawned pname_%{public}s, pid_%{public}d, idx_%{public}d",
+        processName.c_str(), pid, bundleIndex);
     SetRunningSharedBundleList(bundleName, startMsg.hspList);
     CHECK_POINTER_AND_RETURN_VALUE(appRecord->GetPriorityObject(), ERR_INVALID_VALUE);
     appRecord->GetPriorityObject()->SetPid(pid);

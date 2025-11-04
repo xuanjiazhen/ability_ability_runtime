@@ -2719,5 +2719,22 @@ HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0100, TestSize.Level1)
     auto result = mainThread_->CheckAndUpdateRuntime(abilityRecord);
     EXPECT_EQ(result, true);
 }
+
+/**
+ * @tc.name: SplitString_0600
+ * @tc.desc: SplitString Test
+ * @tc.type: FUNC
+ * @tc.require: issueI581SE
+ */
+HWTEST_F(MainThreadTest, SplitString_0600, TestSize.Level1)
+{
+    std::string moduleNames = "name1,name2,name3";
+    std::vector<std::string> moduleNameList;
+    AbilityBase::SplitString(moduleNames, moduleNameList, 0, ",");
+    EXPECT_TRUE(moduleNameList.size() == 3);
+    EXPECT_TRUE(moduleNameList[0] == "name1");
+    EXPECT_TRUE(moduleNameList[1] == "name2");
+    EXPECT_TRUE(moduleNameList[2] == "name3");
+}
 } // namespace AppExecFwk
 } // namespace OHOS
