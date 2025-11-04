@@ -75,6 +75,11 @@ struct UncatchableTaskInfo {
     int32_t pid;
     std::string processName;
 };
+struct RuntimeUpdataParam {
+    AbilityRuntime::Runtime::Options option;
+    UncatchableTaskInfo uncatchableTaskInfo;
+    std::string hapPath;
+};
 class ContextDeal;
 struct ModuleTestRunner;
 // class Global::Resource::ResourceManager;
@@ -743,6 +748,7 @@ private:
     static std::weak_ptr<OHOSApplication> applicationForDump_;
     bool isDeveloperMode_ = false;
     bool isPluginNamespaceInherited_ = false;
+    RuntimeUpdataParam runtimeUpdataParam_;
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     Rosen::RSSurfaceNode::SharedPtr preloadSurfaceNode_ = nullptr;
     std::shared_ptr<NWeb::NWeb> preloadNWeb_ = nullptr;
@@ -816,6 +822,7 @@ private:
     void RunNativeStartupTask(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData);
     bool GetTestRunnerTypeAndPath(const std::string bundleName, const std::string moduleName,
         AppExecFwk::ModuleTestRunner &tsTestRunner);
+    bool CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);
     void SleepCleanKill();
 
     std::vector<std::string> fileEntries_;
