@@ -139,8 +139,26 @@ public:
                                           const std::string &hostBundleName,
                                           int32_t &recordNum);
 
+    void CheckIsPreloadUIExtensionLoadedById(int32_t extensionRecordId);
+    void CheckIsPreloadUIExtensionDestroyedById(int32_t extensionRecordId);
+    int32_t ClearPreloadedUIExtensionAbility(int32_t extensionRecordId);
+    int32_t ClearAllPreloadUIExtensionRecordForHost(std::string hostBundleName);
+    void RegisterPreloadUIExtensionHostClient(
+        const sptr<IRemoteObject> &callerToken, const std::string &hostBundleName, int32_t hostPid);
+    void UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName, int32_t hostPid);
+
 private:
     inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
+    class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        using PreloadUIExtensionHostClientDiedHandler = std::function<void(const wptr<IRemoteObject> &)>;
+        explicit PreloadUIExtensionHostClientDeathRecipient(PreloadUIExtensionHostClientDiedHandler handler);
+        ~PreloadUIExtensionHostClientDeathRecipient() = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) final;
+
+    private:
+        PreloadUIExtensionHostClientDiedHandler diedHandler_;
+    };
 
 private:
     int32_t userId_;
@@ -148,9 +166,12 @@ private:
     std::set<int32_t> extensionRecordIdSet_;
     std::mutex mutex_;
     std::mutex preloadUIExtensionMapMutex_;
+    std::mutex preloadUIExtensionHostClientMutex_;
     ExtensionAbilityRecordMap extensionRecords_;
     ExtensionAbilityRecordMap terminateRecords_;
     PreLoadUIExtensionMapType preloadUIExtensionMap_;
+    std::map<std::pair<int32_t, std::string>, std::pair<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>>>
+        preloadUIExtensionHostClient_;
 
     void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);
     sptr<IRemoteObject> GetCachedFocusedCallerToken(int32_t extensionRecordId) const;
