@@ -38,6 +38,7 @@ constexpr static char AUTO_FILL_MANAGER_THREAD[] = "AutoFillManager";
 constexpr static uint32_t AUTO_FILL_REQUEST_TIME_OUT_VALUE = 1000;
 constexpr static uint32_t AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID = 0;
 constexpr static uint32_t MILL_TO_MICRO = 1000;
+constexpr static char WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY[] = "ohos.ability.params.AutoFillTriggerType";
 #endif //SUPPORT_GRAPHICS
 } // namespace
 #ifdef SUPPORT_GRAPHICS
@@ -195,6 +196,7 @@ int32_t AutoFillManager::CreateAutoFillExtension(Ace::UIContent *uiContent,
     want.SetParam(WANT_PARAMS_AUTO_FILL_CMD_KEY, static_cast<int32_t>(request.autoFillCommand));
     want.SetParam(WANT_PARAMS_AUTO_FILL_TYPE_KEY, static_cast<int32_t>(request.autoFillType));
     want.SetParam(WANT_PARAMS_VIEW_DATA_KEY, request.viewData.ToJsonString());
+    want.SetParam(WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY, static_cast<int32_t>(request.autoFillTriggerType));
     isSmartAutoFill ? want.SetParam(WANT_PARAMS_EXTENSION_TYPE_KEY, WANT_PARAMS_SMART_EXTENSION_TYPE) :
         want.SetParam(WANT_PARAMS_EXTENSION_TYPE_KEY, WANT_PARAMS_EXTENSION_TYPE);
 
