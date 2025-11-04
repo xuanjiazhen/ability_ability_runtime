@@ -271,7 +271,7 @@ void UIAbilityThread::HandleShareData(const int32_t &uniqueId)
 
 void UIAbilityThread::ScheduleSaveAbilityState()
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleSaveAbilityState");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
         return;
@@ -282,7 +282,7 @@ void UIAbilityThread::ScheduleSaveAbilityState()
 
 void UIAbilityThread::ScheduleRestoreAbilityState(const AppExecFwk::PacMap &state)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleRestoreAbilityState");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
         return;
@@ -292,13 +292,13 @@ void UIAbilityThread::ScheduleRestoreAbilityState(const AppExecFwk::PacMap &stat
 
 void UIAbilityThread::ScheduleUpdateConfiguration(const AppExecFwk::Configuration &config)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleUpdateConfiguration");
     HandleUpdateConfiguration(config);
 }
 
 void UIAbilityThread::HandleUpdateConfiguration(const AppExecFwk::Configuration &config)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "HandleUpdateConfiguration");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
         return;
@@ -311,7 +311,7 @@ bool UIAbilityThread::ScheduleAbilityTransaction(
     const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::UIABILITY, "name:%{public}s,targeState:%{public}d,isNewWant:%{public}d",
+    TAG_LOGI(AAFwkTag::UIABILITY, "%{public}s,targeState:%{public}d,isNewWant:%{public}d",
         want.GetElement().GetAbilityName().c_str(),
         lifeCycleStateInfo.state,
         lifeCycleStateInfo.isNewWant);
@@ -711,7 +711,7 @@ void UIAbilityThread::ScheduleCollaborate(const Want &want)
 void UIAbilityThread::ScheduleAbilityRequestFailure(const std::string &requestId,
     const AppExecFwk::ElementName &element, const std::string &message, int32_t resultCode)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleAbilityRequestFailure called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleAbilityRequestFailure");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
         return;
@@ -738,7 +738,7 @@ void UIAbilityThread::ScheduleAbilityRequestFailure(const std::string &requestId
 void UIAbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId,
     const AppExecFwk::ElementName &element)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleAbilityRequestSuccess called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleAbilityRequestSuccess");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
         return;
