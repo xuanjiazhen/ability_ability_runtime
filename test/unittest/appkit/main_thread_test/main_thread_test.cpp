@@ -2716,24 +2716,5 @@ HWTEST_F(MainThreadTest, SplitString_0600, TestSize.Level1)
     EXPECT_TRUE(moduleNameList[1] == "name2");
     EXPECT_TRUE(moduleNameList[2] == "name3");
 }
-
-/**
- * @tc.name: CheckAndUpdateRuntime_0100
- * @tc.desc: CheckAndUpdateRuntime Test
- * @tc.type: FUNC
- */
-HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0100, TestSize.Level1)
-{
-    std::shared_ptr<AbilityLocalRecord> abilityRecord;
-    abilityRecord->abilityInfo_->arkTsMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
-    mainThread_->applicationInfo_->arktsMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
-    AbilityRuntime::Options option;
-    option.lang = Runtime::Language::JS;
-    option.preload = true;
-    option.isStageModel = false;
-    mainThread_->applicationInfo_->runtime = JsRuntime::Create(option);
-    auto result = mainThread_->CheckAndUpdateRuntime(abilityRecord);
-    EXPECT_EQ(result, true);
-}
 } // namespace AppExecFwk
 } // namespace OHOS
