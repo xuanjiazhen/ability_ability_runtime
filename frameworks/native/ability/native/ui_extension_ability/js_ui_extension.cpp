@@ -55,6 +55,9 @@ namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP = "ohos.ability.params.uiExtensionLaunchTimestamp";
+constexpr size_t STR_MIN_LEN = 1;
+constexpr size_t STR_MAX_LEN = 20;
+constexpr int PARSE_BASE = 10;
 
 bool IsEmbeddableStart(int32_t screenMode)
 {
@@ -1047,11 +1050,8 @@ void JsUIExtension::UnregisterDisplayInfoChangedListener()
 }
 #endif // SUPPORT_GRAPHICS
 
-bool StringToInt64(const std::string& str, int64_t& result) {
-    constexpr size_t STR_MIN_LEN = 1;
-    constexpr size_t STR_MAX_LEN = 20;
-    constexpr int PARSE_BASE = 10;
-
+bool StringToInt64(const std::string& str, int64_t& result) 
+{
     if (str.empty()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Empty string provided to StringToInt64");
         return false;
