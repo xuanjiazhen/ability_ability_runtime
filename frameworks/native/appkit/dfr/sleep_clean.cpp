@@ -64,8 +64,8 @@ bool SleepClean::HandleAppSaveIfHeap(const std::shared_ptr<OHOSApplication> &app
     }
     size_t getParamHeapSize = std::stoull(getParamHeapSizeStr) * APP_SAVE_HEAP_SIZE_M;
     auto appHeapTotalSize = GetHeapSize(application);
-    TAG_LOGI(AAFwkTag::APPDFR, "appHeapTotalSize is %{public}s, %{public}s", 
-        std::to_string(appHeapTotalSize).c_str(), AppfreezeInner::GetInstance()->GetProcessLifeCycle.c_str());
+    TAG_LOGI(AAFwkTag::APPDFR, "%{public}s HEAP_TOTAL_SIZE:%{public}d", 
+        AppfreezeInner::GetInstance()->GetProcessLifeCycle.c_str(), appHeapTotalSize);
     if (appHeapTotalSize < getParamHeapSize) {
         return false;
     }
