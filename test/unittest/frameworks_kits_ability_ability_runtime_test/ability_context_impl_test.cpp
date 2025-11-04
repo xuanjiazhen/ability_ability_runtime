@@ -2814,9 +2814,18 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetMissionWindowIcon_0100,
 {
     ASSERT_TRUE(context_ != nullptr);
     std::shared_ptr<OHOS::Media::PixelMap> windowIcon = nullptr;
+    std::shared_ptr<MyAbilityCallback> abilityCallback = std::make_shared<MyAbilityCallback>();
+    context_->RegisterAbilityCallback(abilityCallback);
     auto ret = context_->SetMissionWindowIcon(windowIcon);
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        EXPECT_EQ(ret, AAFwk::INNER_ERR);
+        EXPECT_EQ(ret, AAFwk::ERR_MAIN_WINDOW_NOT_EXIST);
+    } else {
+        EXPECT_EQ(ret, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
+    }
+    abilityCallback.reset();
+    context_->RegisterAbilityCallback(abilityCallback);
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(ret, ERR_INVALID_VALUE);
     } else {
         EXPECT_EQ(ret, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
     }

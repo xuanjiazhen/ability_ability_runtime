@@ -1036,26 +1036,33 @@ ErrCode AbilityContextImpl::SetMissionIcon(const std::shared_ptr<OHOS::Media::Pi
 
 ErrCode AbilityContextImpl::SetMissionWindowIcon(std::shared_ptr<OHOS::Media::PixelMap> windowIcon)
 {
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto sceneSessionManager = SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
-        if (sceneSessionManager == nullptr) {
-            return ERR_INVALID_VALUE;
-        }
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "scb call, SetMissionWindowIcon");
-        auto err = sceneSessionManager->SetSessionIconForThirdParty(token_, windowIcon);
-        if (err != Rosen::WSError::WS_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, SetMissionWindowIcon err, errcode: %{public}d",
-                static_cast<int32_t>(err));
-            return WSErrorConvertToAAFwkError(err);
-        }
-        auto abilityCallback = abilityCallback_.lock();
-        if (abilityCallback) {
-            abilityCallback->SetMissionIcon(windowIcon);
-        }
-        return ERR_OK;
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "device not support scene board");
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
     }
-    TAG_LOGE(AAFwkTag::CONTEXT, "device not support scene board");
-    return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "scb call, SetMissionWindowIcon");
+    auto abilityCallback = abilityCallback_.lock();
+    if (abilityCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null abilityCallback");
+        return ERR_INVALID_VALUE;
+    }
+    auto err = abilityCallback->SetMissionIcon(windowIcon);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, SetMissionIcon err, errcode: %{public}d",
+            static_cast<int32_t>(err));
+        return AAFwk::ERR_MAIN_WINDOW_NOT_EXIST;
+    }
+    auto sceneSessionManager = SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    if (sceneSessionManager == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    auto windowErr = sceneSessionManager->SetSessionIconForThirdParty(token_, windowIcon);
+    if (windowErr != Rosen::WSError::WS_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, SetMissionWindowIcon err, errcode: %{public}d",
+            static_cast<int32_t>(windowErr));
+        return WSErrorConvertToAAFwkError(windowErr);
+    }
+    return ERR_OK;
 }
 
 ErrCode AbilityContextImpl::SetAbilityInstanceInfo(const std::string& label,
