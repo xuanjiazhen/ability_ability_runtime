@@ -1422,6 +1422,47 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
 }
 #endif
 
+bool GetBundleForUpdataRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+    BundleInfo &bundleInfo)
+{
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
+        return false;
+    }
+    ErrCode ret = bundleMgrHelper->GetBundleInfoForSelf (
+        (static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) +
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) +
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_DISABLE) +
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) +
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_SIGNATURE_INFO) +
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY) +
+#ifdef SUPPORT_GRAPHICS
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION) +
+#endif
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA)), bundleInfo);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "get bundle Info failed: %{public}d", ret);
+        return false;
+    }
+    return true;
+}
+
+bool GetHspListForUpdataRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+    std::string bundleName, HspList &hspList)
+{
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
+        return false;
+    }
+    ErrCode ret = bundleMgrHelper->GetBaseSharedBundleInfos(bundleName, hspList,
+    AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Get base shared bundle infos failed: %{public}d", ret);
+        return false;
+    }
+    return true;
+}
+
 EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::string &bundleName, uint32_t versionCode,
     const std::string &hapPath, std::string &appRunningId, int32_t pid, std::string &processName)
 {
@@ -4244,29 +4285,28 @@ bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
         }
         if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS) {
             HITRACE_METER_NAME(HITRACE_TAG_APP, "Updata Runtime");
-            std::shared_ptr<ContextDeal> contextDeal;
-            auto applicationInfo = GetApplicationInfo();
-            if (!InitCreate(contextDeal, *applicationInfo, *processInfo_)) {
-                TAG_LOGE(AAFwkTag::APPKIT, "InitCreate failed");
+            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
+            if (contextDeal == nullptr) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null contextDeal");
                 return false;
             }
+            contextDeal->SetApplicationInfo(applicationInfo_);
+            contextDeal->SetBundleCodePath(applicationInfo_->codePath);
             auto bundleMgrHelper = contextDeal->GetBundleManager();
             if (bundleMgrHelper == nullptr) {
                 TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
                 return false;
             }
             BundleInfo bundleInfo;
-            if (!GetBundleForLaunchApplication(bundleMgrHelper,
-                runtimeUpdataParam_.uncatchableTaskInfo.bundleName, applicationInfo->appIndex, bundleInfo)) {
-                TAG_LOGE(AAFwkTag::APPKIT, "get bundleInfo failed");
+            if (!GetBundleForUpdataRuntime(bundleMgrHelper, bundleInfo)) {
+                TAG_LOGE(AAFwkTag::APPKIT, "Get bundleInfo failed");
                 return false;
             }
             HspList hspList;
-            ErrCode ret = bundleMgrHelper->GetBaseSharedBundleInfos(
-                runtimeUpdataParam_.uncatchableTaskInfo.bundleName, hspList,
-                AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
-            if (ret != ERR_OK) {
-                TAG_LOGE(AAFwkTag::APPKIT, "Get base shared bundle infos failed: %{public}d", ret);
+            if (!GetHspListForUpdataRuntime(bundleMgrHelper,
+                runtimeUpdataParam_.uncatchableTaskInfo.bundleName, hspList)) {
+                TAG_LOGE(AAFwkTag::APPKIT, "Get hspList failed");
+                return false;
             }
             AppLibPathMap etsAppLibPaths {};
             std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
