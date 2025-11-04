@@ -927,6 +927,21 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_FOREGROUND_APP_CONNECTION_OBSERVER) {
         return UnregisterForegroundAppObserverInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::PRELOAD_UI_EXTENSION_ABILITY_WITH_ID) {
+        return PreloadUIExtensionAbilityWithIdInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::UN_PRELOAD_UI_EXTENSION_ABILITY) {
+        return UnPreloadUIExtensionAbilityInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::CLEAR_ALL_PRELOAD_UI_EXTENSION_ABILITY) {
+        return ClearAllPreloadUIExtensionAbilityInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT) {
+        return RegisterPreloadUIExtensionHostClientInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT) {
+        return UnRegisterPreloadUIExtensionHostClientInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -5113,6 +5128,64 @@ int AbilityManagerStub::StartSelfUIAbilityInCurrentProcessInner(MessageParcel &d
 int AbilityManagerStub::IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply)
 {
     reply.WriteBool(IsRestartAppLimit());
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::PreloadUIExtensionAbilityWithIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
+        return ERR_INVALID_VALUE;
+    }
+    std::string hostBundleName = data.ReadString();
+    int32_t userId = data.ReadInt32();
+    int32_t hostPid = data.ReadInt32();
+    int32_t preloadId;
+    int32_t result = PreloadUIExtensionAbilityWithId(*want, hostBundleName, preloadId, userId, hostPid);
+    reply.WriteInt32(preloadId);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::UnPreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t extensionAbilityId = data.ReadInt32();
+    int32_t userId = data.ReadInt32();
+    int32_t result = UnPreloadUIExtensionAbility(extensionAbilityId, userId);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::ClearAllPreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string hostBundleName = Str16ToStr8(data.ReadString16());
+    int32_t userId = data.ReadInt32();
+    int32_t result = ClearAllPreloadUIExtensionAbility(hostBundleName, userId);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return ERR_INVALID_VALUE;
+    }
+    std::string hostBundleName = data.ReadString();
+    int32_t hostPid = data.ReadInt32();
+    int32_t result = RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::UnRegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string hostBundleName = data.ReadString();
+    int32_t hostPid = data.ReadInt32();
+    int32_t result = UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
+    reply.WriteInt32(result);
     return NO_ERROR;
 }
 } // namespace AAFwk
