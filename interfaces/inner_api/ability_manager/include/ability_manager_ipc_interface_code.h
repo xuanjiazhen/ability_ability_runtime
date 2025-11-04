@@ -689,6 +689,21 @@ enum class AbilityManagerInterfaceCode {
 
     // restart app limit check
     IS_RESTART_APP_LIMIT = 6154,
+
+    // ipc id for preload UIExtension ability by want and receives the preload Id
+    PRELOAD_UI_EXTENSION_ABILITY_WITH_ID = 6155,
+
+    // ipc id for un preload UIExtension ability by want and receives the preload Id
+    UN_PRELOAD_UI_EXTENSION_ABILITY = 6156,
+
+    // ipc id for claer all preload UIExtension ability
+    CLEAR_ALL_PRELOAD_UI_EXTENSION_ABILITY = 6157,
+
+    // register preload UIExtension host client
+    REGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT = 6158,
+
+    // unregister preload UIExtension host client
+    UNREGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT = 6159,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
