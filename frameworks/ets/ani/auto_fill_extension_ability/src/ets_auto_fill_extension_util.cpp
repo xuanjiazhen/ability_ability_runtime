@@ -65,6 +65,9 @@ constexpr const char *RECT_POSITION_TOP = "top";
 constexpr const char *RECT_WIDTH = "width";
 constexpr const char *RECT_HEIGHT = "height";
 constexpr uint32_t PAGE_NODE_COUNT_MAX = 100;
+constexpr const char *WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY = "ability.want.params.AutoFillTriggerType";
+constexpr const char *TRIGGER_TYPE = "triggerType";
+constexpr const char *AUTO_FILL_TRIGGER_TYPE_ENUM_NAME = "Lapplication/AutoFillTriggerType/AutoFillTriggerType;";
 } // namespace
 
 ani_object EtsAutoFillExtensionUtil::WrapFillRequest(ani_env *env, const AAFwk::Want &want)
@@ -381,6 +384,16 @@ ani_object EtsAutoFillExtensionUtil::SetFillRequest(ani_env *env, ani_object obj
         ani_object customValue = WrapCustomData(env, param);
         if ((status = env->Object_SetPropertyByName_Ref(object, CUSTOM_DATA_CUSTOM_DATA, customValue)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "status: %{public}d", status);
+        }
+    }
+
+    if (want.HasParameter(WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY)) {
+        auto type = want.GetIntParam(WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY, -1);
+        ani_enum_item typeItem = nullptr;
+        AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env, AUTO_FILL_TRIGGER_TYPE_ENUM_NAME, type, typeItem);
+        if ((status = env->Object_SetPropertyByName_Ref(object, TRIGGER_TYPE, typeItem)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "status: %{public}d", status);
+            return object;
         }
     }
     return object;
