@@ -93,6 +93,12 @@ enum class AutoFillCommand {
     RELOAD_IN_MODAL
 };
 
+enum class AutoFillTriggerType {
+    AUTO_REQUEST,
+    MANUAL_REQUEST1,
+    PASTE_REQUEST
+};
+
 /**
  * @struct AutoFillRequest
  * AutoFillRequest is used to define the auto fill request parameter structure.
@@ -104,6 +110,7 @@ struct AutoFillRequest {
     AutoFillCustomConfig config;
     std::function<void()> doAfterAsyncModalBinding;
     std::function<void()> onUIExtensionProxyReady;
+    AutoFillTriggerType autoFillTriggerType = AutoFillTriggerType::AUTO_REQUEST;
 };
 
 struct AutoFillResult {

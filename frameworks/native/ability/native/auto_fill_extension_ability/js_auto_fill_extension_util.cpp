@@ -55,6 +55,8 @@ constexpr const char *RECT_POSITION_TOP = "top";
 constexpr const char *RECT_WIDTH = "width";
 constexpr const char *RECT_HEIGHT = "height";
 constexpr uint32_t PAGE_NODE_COUNT_MAX = 100;
+constexpr const char *WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY = "ohos.ability.params.AutoFillTriggerType";
+constexpr const char *TRIGGER_TYPE = "triggerType";
 } // namespace
 
 napi_value JsAutoFillExtensionUtil::WrapViewData(const napi_env env, const AbilityBase::ViewData &viewData)
@@ -306,6 +308,14 @@ napi_value JsAutoFillExtensionUtil::WrapFillRequest(const AAFwk::Want &want, con
         napi_value customValue = nullptr;
         customValue = WrapCustomData(env, param);
         SetPropertyValueByPropertyName(env, jsObject, CUSTOM_DATA_CUSTOM_DATA, customValue);
+    }
+
+    if (want.HasParameter(WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY)) {
+        auto type = want.GetIntParam(WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY, -1);
+        TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Auto fill Trigger type: %{public}d", type);
+
+        napi_value jsValue = AppExecFwk::WrapInt32ToJS(env, type);
+        SetPropertyValueByPropertyName(env, jsObject, TRIGGER_TYPE, jsValue);
     }
     return jsObject;
 }
