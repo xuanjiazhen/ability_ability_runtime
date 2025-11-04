@@ -171,6 +171,36 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
     return ERR_OK;
 }
 
+// uint32_t InsightIntentUtils::ConvertConfigInsightIntentInfo(
+//         InsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo, bool getEntity)
+// {
+//     queryInfo.domain = intentInfo.domain;
+//     queryInfo.intentVersion = intentInfo.intentVersion;
+//     queryInfo.displayDescription = intentInfo.displayDescription;
+//     queryInfo.schema = intentInfo.schema;
+//     queryInfo.icon = intentInfo.icon;
+//     queryInfo.llmDescription = intentInfo.llmDescription;
+//     queryInfo.result = intentInfo.result;
+
+//     for (auto &keyword : intentInfo.keywords) {
+//         queryInfo.keywords.emplace_back(keyword);
+//     }
+
+//     if (getEntity) {
+//         for (auto &entityInfo : intentInfo.entities) {
+//             EntityInfoForQuery insightInfo;
+//             insightInfo.className = entityInfo.className;
+//             insightInfo.entityCategory = entityInfo.entityCategory;
+//             insightInfo.entityId = entityInfo.entityId;
+//             insightInfo.parameters = entityInfo.parameters;
+//             insightInfo.parentClassName = entityInfo.parentClassName;
+//             queryInfo.entities.emplace_back(insightInfo);
+//         }
+//     }
+
+//     return ERR_OK;
+// }
+
 uint32_t InsightIntentUtils::ConvertExtractInsightIntentEntityInfo(
     ExtractInsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo)
 {

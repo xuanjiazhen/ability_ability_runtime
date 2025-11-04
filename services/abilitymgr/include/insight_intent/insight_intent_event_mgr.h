@@ -24,6 +24,12 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+
+// struct InsightIntentAllInfo {
+//     AbilityRuntime::ExtractInsightIntentProfileInfoVec infos = {};
+//     AbilityRuntime::InsightIntentProfileInfoVec profileInfos = {};
+// };
+
 class InsightIntentEventMgr : public std::enable_shared_from_this<InsightIntentEventMgr> {
 public:
     static void UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId);
@@ -32,6 +38,7 @@ public:
     void SubscribeSysEventReceiver();
 private:
     std::shared_ptr<InsightIntentSysEventReceiver> insightIntentSysEventReceiver_ = nullptr;
+    // InsightIntentAllInfo insightIntentAllInfo_;
 
     static void DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName, int32_t userId);
 };

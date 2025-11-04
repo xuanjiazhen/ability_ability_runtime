@@ -46,7 +46,7 @@ InsightIntentDbCache::~InsightIntentDbCache()
 {}
 
 int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
-    const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos)
+    const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos, std::vector<InsightIntentInfo> configInfos)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
     if (userId != userId_) {
@@ -60,6 +60,7 @@ int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const std::string &bund
         ExtractInsightIntentGenericInfo genericInfo = info.genericInfo;
         genericInfos.emplace_back(genericInfo);
     }
+    //需要做配置器意图的genericInfos
     auto it = intentGenericInfos_.find(bundleName);
     if (it != intentGenericInfos_.end()) {
         TAG_LOGW(AAFwkTag::INTENT, "need update, bundleName %{public}s", bundleName.c_str());
@@ -81,7 +82,7 @@ int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const std::string &bund
         return res;
     }
     return DelayedSingleton<InsightRdbStorageMgr>::GetInstance()
-            ->SaveStorageInsightIntentData(bundleName, moduleName, userId, profileInfos);
+            ->SaveStorageInsightIntentData(bundleName, moduleName, userId, profileInfos, configInfos);
 }
 
 int32_t InsightIntentDbCache::DeleteInsightIntentTotalInfo(const std::string &bundleName,
@@ -143,14 +144,15 @@ void InsightIntentDbCache::GetInsightIntentGenericInfo(const std::string &bundle
     }
 }
 
-void InsightIntentDbCache::GetAllInsightIntentInfo(const int32_t userId, std::vector<ExtractInsightIntentInfo> &infos)
+void InsightIntentDbCache::GetAllInsightIntentInfo(const int32_t userId, std::vector<ExtractInsightIntentInfo> &infos,
+    std::vector<InsightIntentInfo> &configInfos)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
     if (userId != userId_) {
         TAG_LOGE(AAFwkTag::INTENT, "The userId %{public}d. is not the cache userId %{public}d.", userId, userId_);
         return;
     }
-    if (DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadInsightIntentInfos(userId, infos) != ERR_OK) {
+    if (DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadInsightIntentInfos(userId, infos, configInfos) != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "LoadIntentData failed");
         return;
     }

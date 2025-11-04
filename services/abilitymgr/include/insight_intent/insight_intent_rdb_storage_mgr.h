@@ -33,7 +33,7 @@ public:
     int32_t LoadInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
         const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &totalInfo);
     int32_t SaveStorageInsightIntentData(const std::string &bundleName, const std::string &moduleName,
-        const int32_t userId, ExtractInsightIntentProfileInfoVec &profileInfos);
+        const int32_t userId, ExtractInsightIntentProfileInfoVec &profileInfos, std::vector<InsightIntentInfo> &configInfos);
     int32_t DeleteStorageInsightIntentData(const std::string &bundleName,
         const std::string &moduleName, const int32_t userId);
     int32_t DeleteStorageInsightIntentByUserId(const int32_t userId);

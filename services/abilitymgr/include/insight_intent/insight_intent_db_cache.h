@@ -39,7 +39,7 @@ public:
     void GetInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
         const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &infos);
     int32_t SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
-        const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos);
+        const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos, std::vector<InsightIntentInfo> configInfos);
     int32_t DeleteInsightIntentTotalInfo(const std::string &bundleName,
         const std::string &moduleName, const int32_t userId);
     int32_t DeleteInsightIntentByUserId(const int32_t userId);

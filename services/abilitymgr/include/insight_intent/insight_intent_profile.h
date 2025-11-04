@@ -58,6 +58,7 @@ struct InsightIntentInfo {
 class InsightIntentProfile {
 public:
     static bool TransformTo(const std::string &profileStr, std::vector<InsightIntentInfo> &infos);
+    static bool ToJson(const InsightIntentInfo &info, nlohmann::json &jsonObject);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

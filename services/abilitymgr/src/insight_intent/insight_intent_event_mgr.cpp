@@ -49,6 +49,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
     std::vector<std::string> moduleNameVec;
     std::string profile;
     AbilityRuntime::ExtractInsightIntentProfileInfoVec infos = {};
+    std::vector<InsightIntentInfo> configIntentInfos = {};
     auto bundleName = elementName.GetBundleName();
     auto moduleName = elementName.GetModuleName();
     if (bundleName.empty() || moduleName.empty()) {
@@ -79,9 +80,16 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
             continue;
         }
 
-        // Transform json string
+        // Transform json string 装饰器意图
         if (!AbilityRuntime::ExtractInsightIntentProfile::TransformTo(profile, infos) ||
             infos.insightIntents.size() == 0) {
+            TAG_LOGW(AAFwkTag::INTENT, "transform profile failed, profile:%{public}s", profile.c_str());
+            DeleteInsightIntent(bundleName, moduleNameLocal, userId);
+            continue;
+        }
+        // Transform json string 配置器意图
+        if (!AbilityRuntime::InsightIntentProfile::TransformTo(profile, configIntentInfos) ||
+            configIntentInfos.size() == 0) {
             TAG_LOGW(AAFwkTag::INTENT, "transform profile failed, profile:%{public}s", profile.c_str());
             DeleteInsightIntent(bundleName, moduleNameLocal, userId);
             continue;
@@ -89,7 +97,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
 
         // save database
         ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
-            bundleName, moduleNameLocal, userId, infos);
+            bundleName, moduleNameLocal, userId, infos, configIntentInfos);
         if (ret != ERR_OK) {
             TAG_LOGW(AAFwkTag::INTENT, "update intent info failed, bundleName: %{public}s, "
                 "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleNameLocal.c_str(), userId);

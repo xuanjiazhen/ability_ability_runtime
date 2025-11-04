@@ -289,5 +289,19 @@ bool InsightIntentProfile::TransformTo(const std::string &profileStr, std::vecto
 
     return TransformToInfos(profileInfos, intentInfos);
 }
+
+bool InsightIntentProfile::ToJson(const InsightIntentInfo &info, nlohmann::json &jsonObject)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "to json");
+    nlohmann::json subJsonObject = info;
+    if (subJsonObject.is_discarded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "bad insight intent info");
+        return false;
+    }
+
+    jsonObject[INSIGHT_INTENTS] = nlohmann::json::array({ subJsonObject });
+    TAG_LOGD(AAFwkTag::INTENT, "to json string: %{public}s", jsonObject.dump().c_str());
+    return true;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
