@@ -77,6 +77,16 @@ int32_t ExtensionRecord::RegisterStateObserver(const std::string &hostBundleName
     return ret;
 }
 
+void ExtensionRecord::DumpInfo()
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "ExtensionRecord DumpInfo");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "isHostSpecified_ %{public}d", isHostSpecified_);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionRecordId_ %{public}d", extensionRecordId_);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "processMode_ %{public}u", processMode_);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "hostPid_ %{public}d", hostPid_);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "hostBundleName_ %{public}s", hostBundleName_.c_str());
+}
+
 bool ExtensionRecord::ContinueToGetCallerToken()
 {
     return false;

@@ -1968,6 +1968,14 @@ public:
      * @return Returns true on being limited.
      */
     bool IsRestartAppLimit();
+
+    ErrCode PreloadUIExtensionAbilityWithId(const Want &want, const std::string &hostBundleName, int32_t &preloadId,
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE);
+    ErrCode UnPreloadUIExtensionAbility(int32_t extensionAbilityId, int32_t userId= DEFAULT_INVAL_VALUE);
+    ErrCode ClearAllPreloadUIExtensionAbility(const std::string &hostBundleName, int32_t userId= DEFAULT_INVAL_VALUE);
+    ErrCode RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken, const std::string &hostBundleName, int32_t hostPid);
+    ErrCode UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName, int32_t hostPid);
+    
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

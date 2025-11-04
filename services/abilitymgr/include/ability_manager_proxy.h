@@ -1901,6 +1901,17 @@ public:
      * @return Returns true on being limited.
      */
     virtual bool IsRestartAppLimit() override;
+
+    virtual int32_t PreloadUIExtensionAbilityWithId(
+        const Want &want, const std::string &hostBundleName, int32_t &preloadId, int32_t userId, int32_t hostPid) override;
+    
+    virtual int32_t UnPreloadUIExtensionAbility(int32_t extensionAbilityId, int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    virtual int32_t ClearAllPreloadUIExtensionAbility(const std::string &hostBundleName,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
+    virtual int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken, const std::string &hostBundleName, int32_t hostPid) override; 
+    virtual int32_t UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName, int32_t hostPid) override; 
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

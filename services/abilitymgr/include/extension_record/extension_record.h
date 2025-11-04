@@ -53,6 +53,8 @@ public:
 
     int32_t RegisterStateObserver(const std::string &hostBundleName);
 
+    void DumpInfo();
+
     bool isHostSpecified_ = false;
     int32_t extensionRecordId_ = INVALID_EXTENSION_RECORD_ID;
     uint32_t processMode_ = 0;
