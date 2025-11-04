@@ -355,6 +355,11 @@ private:
     int32_t SetOnNewWantSkipScenariosInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyStartupExceptionBySCBInner(MessageParcel &data, MessageParcel &reply);
     int32_t PreloadApplicationInner(MessageParcel &data, MessageParcel &reply);
+    int32_t PreloadUIExtensionAbilityWithIdInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnPreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ClearAllPreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnRegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply);
 
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
