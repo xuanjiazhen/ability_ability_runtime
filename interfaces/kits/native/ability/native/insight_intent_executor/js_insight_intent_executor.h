@@ -149,6 +149,7 @@ private:
     std::unique_ptr<NativeReference> contextObj_ = nullptr;
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;
     bool isAsync_ = false;
+    bool isDelayResult_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

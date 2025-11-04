@@ -1426,6 +1426,7 @@ private:
     void PostStartAbilityByCallTimeoutTask(bool isHalf);
     void CancelStartAbilityByCallTimeoutTask() const;
     void SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType);
+    void RemoveExecuteIntent();
     std::atomic<bool> isPreloadStart_ = false;           // is ability started via preload
 
     static std::atomic<int64_t> abilityRecordId;

@@ -44,6 +44,10 @@ public:
      */
     static ani_object StartAbiitySync(ani_env *env, ani_object aniObj, ani_object wantObj);
     static EtsInsightIntentContext *GetContext(ani_env *env, ani_object aniObj);
+    static ani_int DelayInsightIntentResult(ani_env *env, ani_object aniObj);
+    static void SendInsightIntentResult(ani_env *env, ani_object aniObj, ani_int intentId);
+    static void BackToCallerExecuteResult(ani_env *env, ani_object aniObj, ani_int intentId,
+        ani_object executeResultObj, ani_object callbackObj);
 
     std::shared_ptr<InsightIntentContext> GetNativeContext()
     {

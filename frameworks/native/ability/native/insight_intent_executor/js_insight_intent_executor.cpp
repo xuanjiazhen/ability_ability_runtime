@@ -96,6 +96,7 @@ bool JsInsightIntentExecutor::Init(const InsightIntentExecutorInfo& insightInten
         TAG_LOGE(AAFwkTag::INTENT, "Set context property failed");
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
+    context->SetExecuteMode(insightIntentInfo.executeParam->executeMode_);
 
     return true;
 }
@@ -129,6 +130,7 @@ bool JsInsightIntentExecutor::HandleExecuteIntent(
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(executeParam->executeMode_);
     auto name = executeParam->insightIntentName_;
     auto param = executeParam->insightIntentParam_;
+    isDelayResult_ = executeParam->isDelayResult_;
     TAG_LOGI(AAFwkTag::INTENT, "call executor, intentName: %{public}s, mode: %{public}d", name.c_str(), mode);
     switch (mode) {
         case InsightIntentExecuteMode::UIABILITY_FOREGROUND:
@@ -408,6 +410,9 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
         ReplyFailedInner();
         return false;
     }
+    if (isDelayResult_) {
+        return true;
+    }
 
     return HandleResultReturnedFromJsFunc(result);
 }
@@ -469,6 +474,9 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
     if (!CallJsFunctionWithResultInner(funcName, argc, argv, result)) {
         ReplyFailedInner();
         return false;
+    }
+    if (isDelayResult_) {
+        return true;
     }
 
     return HandleResultReturnedFromJsFunc(result);

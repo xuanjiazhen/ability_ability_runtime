@@ -32,5 +32,22 @@ ErrCode InsightIntentContext::StartAbilityByInsightIntent(const AAFwk::Want &wan
     TAG_LOGD(AAFwkTag::INTENT, "end");
     return err;
 }
+
+ErrCode InsightIntentContext::BackToCallerExecuteResult(sptr<IRemoteObject> token_, int32_t insightIntentId,
+    std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> result)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    if (result == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "result is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteInsightIntentDone(token_, insightIntentId, *result);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "ret=%{public}d", ret);
+    }
+    TAG_LOGD(AAFwkTag::INTENT, "end");
+    return ret;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

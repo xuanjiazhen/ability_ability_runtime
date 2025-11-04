@@ -118,7 +118,7 @@ bool EtsInsightIntentExecutor::Init(const InsightIntentExecutorInfo &insightInte
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
-
+    context->SetExecuteMode(insightIntentInfo.executeParam->executeMode_);
     return true;
 }
 
@@ -151,6 +151,7 @@ bool EtsInsightIntentExecutor::HandleExecuteIntent(
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(executeParam->executeMode_);
     auto name = executeParam->insightIntentName_;
     auto param = executeParam->insightIntentParam_;
+    isDelayResult_ = executeParam->isDelayResult_;
     TAG_LOGI(AAFwkTag::INTENT, "call executor, intentName: %{public}s, mode: %{public}d", name.c_str(), mode);
     switch (mode) {
         case InsightIntentExecuteMode::UIABILITY_FOREGROUND:
@@ -344,6 +345,9 @@ bool EtsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
     if (result == nullptr) {
         return false;
     }
+    if (isDelayResult_) {
+        return true;
+    }
 
     ani_boolean isAsync  = false;
     if (env->Object_GetFieldByName_Boolean(etsObj_->aniObj, "isOnExecuteInUIAbilityForegroundModeAsync",
@@ -420,6 +424,9 @@ bool EtsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
         aniWantParams, UIExtensionContentSession);
     if (result == nullptr) {
         return false;
+    }
+    if (isDelayResult_) {
+        return true;
     }
 
     ani_boolean isAsync  = false;

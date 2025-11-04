@@ -18,6 +18,7 @@
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_CONTEXT_H
 
 #include "iremote_object.h"
+#include "insight_intent_execute_result.h"
 #include "want.h"
 
 namespace OHOS {
@@ -40,6 +41,8 @@ public:
      * @return result of StartAbility.
      */
     ErrCode StartAbilityByInsightIntent(const AAFwk::Want &want);
+    ErrCode BackToCallerExecuteResult(sptr<IRemoteObject> token_, int32_t insightIntentId,
+        std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> result);
 
     std::string GetBundleName() const
     {
@@ -51,11 +54,43 @@ public:
         return winMode_;
     }
 
+    sptr<IRemoteObject> GetToken() const
+    {
+        return token_;
+    }
+
+    uint64_t GetIntentId() const
+    {
+        return intentId_;
+    }
+
+    void SetExecuteMode(const int32_t executeMode)
+    {
+        executeMode_ = executeMode;
+    }
+
+    int32_t GetExecuteMode()
+    {
+        return executeMode_;
+    }
+
+    void SetIsDelayResult(const bool isDelayResult)
+    {
+        isDelayResult_ = isDelayResult;
+    }
+
+    bool GetIsDelayResult() const
+    {
+        return isDelayResult_;
+    }
+
 private:
     sptr<IRemoteObject> token_ = nullptr;
     std::string bundleName_ = "";
     int32_t winMode_ = 0;
     uint64_t intentId_ = 0;
+    int32_t executeMode_ = -1;
+    bool isDelayResult_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
