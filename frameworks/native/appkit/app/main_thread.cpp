@@ -4256,13 +4256,23 @@ bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
                 return false;
             }
             BundleInfo bundleInfo;
-            if (!GetBundleForLaunchApplication(bundleMgrHelper,
-                runtimeUpdataParam_.uncatchableTaskInfo.bundleName, applicationInfo->appIndex, bundleInfo)) {
+            ErrCode ret = bundleMgrHelper->GetBundleInfoForSelf(
+                (static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) +
+                static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) +
+                static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_DISABLE) +
+                static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) +
+                static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_SIGNATURE_INFO) +
+                static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY) +
+#ifdef SUPPORT_GRAPHICS
+                static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION) +
+#endif
+                static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA)), bundleInfo);
+            if (!queryResult) {
                 TAG_LOGE(AAFwkTag::APPKIT, "get bundleInfo failed");
                 return false;
             }
             HspList hspList;
-            ErrCode ret = bundleMgrHelper->GetBaseSharedBundleInfos(
+            ret = bundleMgrHelper->GetBaseSharedBundleInfos(
                 runtimeUpdataParam_.uncatchableTaskInfo.bundleName, hspList,
                 AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
             if (ret != ERR_OK) {
