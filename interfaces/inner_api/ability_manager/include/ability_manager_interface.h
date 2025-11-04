@@ -2444,6 +2444,37 @@ public:
     {
         return false;
     }
+
+    /**
+     * Preload UIExtension with want and receives preload Id, send want to ability manager service.
+     *
+     * @param want, the want of the ability to start.
+     * @param hostBundleName, the caller application bundle name.
+     * @param preloadId, the extension ability Id of the ability to start.
+     * @param userId, the extension runs in.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int PreloadUIExtensionAbilityWithId(const Want &want, const std::string &hostBundleName, int32_t &preloadId,
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+
+    virtual int UnPreloadUIExtensionAbility(int32_t extensionAbilityId,
+        int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+
+    virtual int ClearAllPreloadUIExtensionAbility(const std::string &hostBundleName,
+        int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+    
+    virtual int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken, const std::string &hostBundleName, int32_t hostPid) = 0;
+    virtual int32_t UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName, int32_t hostPid) = 0;
+  
 };
 }  // namespace AAFwk
 }  // namespace OHOS
