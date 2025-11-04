@@ -103,7 +103,7 @@ void DetachFinalizeAbilityContext(void* detachedObject, void*)
 
 int64_t RequestCodeFromStringToInt64(const std::string &requestCode)
 {
-    if (requestCode.size() > MAX_REQUEST_CODE_LENGTH) {
+    if (requestCode.size() >    ) {
         TAG_LOGW(AAFwkTag::CONTEXT, "requestCode too long: %{public}s", requestCode.c_str());
         return 0;
     }

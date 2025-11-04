@@ -100,8 +100,7 @@ constexpr const char* PARAM_SEND_RESULT_CALLER_TOKENID = "ohos.anco.param.sendRe
 constexpr const char* PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME = "ohos.anco.param.isNeedUpdateName";
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
 constexpr const char* SPECIFIED_ABILITY_FLAG = "ohos.ability.params.specifiedAbilityFlag";
-constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_HIGH = "ohos.ability.params.uiExtensionLaunchTimestampHigh";
-constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_LOW = "ohos.ability.params.uiExtensionLaunchTimestampLow";
+constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP = "ohos.ability.params.uiExtensionLaunchTimestamp";
 // Developer mode param
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
 constexpr const char* APP_PROVISION_TYPE_DEBUG = "debug";
@@ -4100,10 +4099,8 @@ void AbilityRecord::AddUIExtensionLaunchTimestamp()
 
     if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
         launchTimestamp = (ts.tv_sec * 1000LL) + (ts.tv_nsec / 1000000LL);
-        int32_t high = static_cast<int32_t>(launchTimestamp >> 32);
-        int32_t low = static_cast<int32_t>(launchTimestamp & 0xFFFFFFFFLL);
-        want_.SetParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, high);
-        want_.SetParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW, low);
+        std::string timestampStr = std::to_string(launchTimestamp);
+        want_.SetParam(UIEXTENSION_LAUNCH_TIMESTAMP, timestampStr); 
     } else {
         TAG_LOGE(AAFwkTag::UI_EXT, "clock_gettime failed: %{public}s", strerror(errno));
     }
@@ -4112,8 +4109,7 @@ void AbilityRecord::AddUIExtensionLaunchTimestamp()
 void AbilityRecord::RemoveUIExtensionLaunchTimestamp()
 {
     std::lock_guard guard(wantLock_);
-    want_.RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
-    want_.RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
+    want_.RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP);
 }
 
 bool AbilityRecord::ReportAbilityConnectionRelations()

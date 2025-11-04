@@ -54,8 +54,7 @@ namespace AbilityRuntime {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
-constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_HIGH = "ohos.ability.params.uiExtensionLaunchTimestampHigh";
-constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_LOW = "ohos.ability.params.uiExtensionLaunchTimestampLow";
+constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP = "ohos.ability.params.uiExtensionLaunchTimestamp";
 } // namespace
 napi_value AttachUIExtensionBaseContext(napi_env env, void *value, void*)
 {
@@ -772,13 +771,10 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
         option->SetConstrainedModal(isNotAllow);
     }
     int64_t launchTimestamp = -1;
-    bool hasHigh = want.HasParameter(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
-    bool hasLow = want.HasParameter(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
-    if (hasHigh && hasLow) {
-        int32_t high = want.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1);
-        int32_t low = want.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW, -1);
-        uint64_t temp = (static_cast<uint64_t>(high) << 32) | (static_cast<uint64_t>(low) & 0xFFFFFFFFLL);
-        launchTimestamp = static_cast<int64_t>(temp);
+    std::string timestampStr = want.GetStringParam(UIEXTENSION_LAUNCH_TIMESTAMP);
+    if (!StringToInt64(timestampStr, launchTimestamp)) {
+        launchTimestamp = -1;
+        TAG_LOGW(AAFwkTag::UI_EXT, "Invalid timestamp, using default");
     }
     option->SetStartModalExtensionTimeStamp(launchTimestamp);
     return option;
@@ -818,8 +814,7 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
             return false;
         }
-        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH);
-        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP_LOW);
+        sharedWant->RemoveParam(UIEXTENSION_LAUNCH_TIMESTAMP);
         uiWindow->UpdateExtensionConfig(sharedWant);
         if (!CallJsOnSessionCreate(*sharedWant, sessionInfo, uiWindow, componentId)) {
             return false;
@@ -1165,5 +1160,57 @@ void JsUIExtensionBase::UnregisterDisplayInfoChangedListener()
         context_->GetToken(), jsUIExtensionBaseDisplayListener_);
 }
 #endif // SUPPORT_GRAPHICS
+
+bool StringToInt64(const std::string& str, int64_t& result) {
+    constexpr size_t STR_MIN_LEN = 1;
+    constexpr size_t STR_MAX_LEN = 20;
+    constexpr int PARSE_BASE = 10;
+
+    if (str.empty()) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Empty string provided to StringToInt64");
+        return false;
+    }
+
+    size_t actualLen = str.length();
+    if (actualLen < STR_MIN_LEN || actualLen > STR_MAX_LEN) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Invalid string length for conversion: [%{public}s]", str.c_str());
+        return false;
+    }
+
+    const char* strData = str.c_str();
+    size_t startIndex = 0;
+    
+    if (strData[0] == '+' || strData[0] == '-') {
+        startIndex = 1;
+        if (actualLen == 1) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "String contains only sign character: [%{public}s]", str.c_str());
+            return false;
+        }
+    }
+
+    for (size_t i = startIndex; i < actualLen; ++i) {
+        if (!isdigit(static_cast<unsigned char>(strData[i]))) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Invalid characters in numeric string: [%{public}s]", str.c_str());
+            return false;
+        }
+    }
+
+    char* endPtr = nullptr;
+    errno = 0;
+    int64_t parsedValue = strtoll(strData, &endPtr, PARSE_BASE);
+
+    if (endPtr != strData + actualLen) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Extra characters in numeric string: [%{public}s]", str.c_str());
+        return false;
+    }
+
+    if (errno == ERANGE) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Number out of range: [%{public}s]", str.c_str());
+        return false;
+    }
+
+    result = parsedValue;
+    return true;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

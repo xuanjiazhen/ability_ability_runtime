@@ -242,6 +242,7 @@ private:
 
     sptr<JsUIExtensionBaseDisplayListener> jsUIExtensionBaseDisplayListener_ = nullptr;
 #endif
+    bool StringToInt64(const std::string& str, int64_t& result);    
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
