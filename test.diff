@@ -1,0 +1,1082 @@
+diff --git a/test/unittest/ability_connect_manager_second_test/ability_connect_manager_second_test.cpp b/test/unittest/ability_connect_manager_second_test/ability_connect_manager_second_test.cpp
+index d4b74ccd5c..003d30f75c 100644
+--- a/test/unittest/ability_connect_manager_second_test/ability_connect_manager_second_test.cpp
++++ b/test/unittest/ability_connect_manager_second_test/ability_connect_manager_second_test.cpp
+@@ -625,5 +625,114 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_StartButIsActive
+     TAG_LOGI(AAFwkTag::TEST, "DisconnectRecordForce_StartButIsActiveStatus_001 end");
+ }
+ 
++/*
++ * Feature: AbilityConnectManager
++ * Function: UnPreloadUIExtensionAbilityInner
++ * SubFunction: NA
++ * FunctionPoints: UnPreloadUIExtensionAbilityInner
++ * EnvConditions: NA
++ * CaseDescription: Verify UnPreloadUIExtensionAbilityInner with invalid extensionAbilityId
++ */
++HWTEST_F(AbilityConnectManagerSecondTest, UnPreloadUIExtensionAbilityInner_001, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "UnPreloadUIExtensionAbilityInner_001 start");
++    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
++    EXPECT_NE(connectManager, nullptr);
++
++    int32_t extensionAbilityId = AbilityRuntime::INVALID_EXTENSION_RECORD_ID;
++    auto res = connectManager->UnPreloadUIExtensionAbilityInner(extensionAbilityId);
++    EXPECT_EQ(res, ERR_INVALID_VALUE);
++    
++    TAG_LOGI(AAFwkTag::TEST, "UnPreloadUIExtensionAbilityInner_001 end");
++}
++
++/*
++ * Feature: AbilityConnectManager
++ * Function: ClearAllPreloadUIExtensionAbilityInner
++ * SubFunction: NA
++ * FunctionPoints: ClearAllPreloadUIExtensionAbilityInner
++ * EnvConditions: NA
++ * CaseDescription: Verify ClearAllPreloadUIExtensionAbilityInner with empty hostBundleName
++ */
++HWTEST_F(AbilityConnectManagerSecondTest, ClearAllPreloadUIExtensionAbilityInner_001, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST,"ClearAllPreloadUIExtensionAbilityInner_001 start");
++    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
++    EXPECT_NE(connectManager, nullptr);
++
++    std::string hostBundleName = "";
++    auto res = connectManager->ClearAllPreloadUIExtensionAbilityInner(hostBundleName);
++    EXPECT_EQ(res, ERR_INVALID_VALUE);
++
++    TAG_LOGI(AAFwkTag::TEST,"ClearAllPreloadUIExtensionAbilityInner_001 end");
++}
++
++
++/*
++ * Feature: AbilityConnectManager
++ * Function: ClearAllPreloadUIExtensionAbilityInner
++ * SubFunction: NA
++ * FunctionPoints: ClearAllPreloadUIExtensionAbilityInner
++ * EnvConditions: NA
++ * CaseDescription: Verify ClearAllPreloadUIExtensionAbilityInner with all valid conditions
++ */
++HWTEST_F(AbilityConnectManagerSecondTest, ClearAllPreloadUIExtensionAbilityInner_003, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST,"ClearAllPreloadUIExtensionAbilityInner_003 start");
++    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
++    EXPECT_NE(connectManager, nullptr);
++    std::string hostBundleName = "com.example.test";
++    
++    auto res = connectManager->ClearAllPreloadUIExtensionAbilityInner(hostBundleName);
++    EXPECT_EQ(res, ERR_OK);
++
++    TAG_LOGI(AAFwkTag::TEST,"ClearAllPreloadUIExtensionAbilityInner_003 end");
++}
++
++/*
++ * Feature: AbilityConnectManager
++ * Function: RegisterPreloadUIExtensionHostClient
++ * SubFunction: NA
++ * FunctionPoints: RegisterPreloadUIExtensionHostClient
++ * EnvConditions: NA
++ * CaseDescription: Verify RegisterPreloadUIExtensionHostClient with null callerToken
++ */
++HWTEST_F(AbilityConnectManagerSecondTest, RegisterPreloadUIExtensionHostClient_001, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "RegisterPreloadUIExtensionHostClient_001 start");
++    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
++    EXPECT_NE(connectManager, nullptr);
++
++    sptr<IRemoteObject> callerToken = nullptr;
++    std::string hostBundleName = "com.example.test";
++    int32_t hostPid = 1234;
++    
++    auto res = connectManager->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
++    EXPECT_EQ(res, ERR_INVALID_VALUE);
++
++    TAG_LOGI(AAFwkTag::TEST, "RegisterPreloadUIExtensionHostClient_001 end");
++}
++
++/*
++ * Feature: AbilityConnectManager
++ * Function: UnRegisterPreloadUIExtensionHostClient
++ * SubFunction: NA
++ * FunctionPoints: UnRegisterPreloadUIExtensionHostClient
++ * EnvConditions: NA
++ * CaseDescription: Verify UnRegisterPreloadUIExtensionHostClient with null uiExtensionAbilityRecordMgr_
++ */
++HWTEST_F(AbilityConnectManagerSecondTest, UnRegisterPreloadUIExtensionHostClient_001, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "UnRegisterPreloadUIExtensionHostClient_001 start");
++    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
++    EXPECT_NE(connectManager, nullptr);
++
++    std::string hostBundleName = "com.example.test";
++    int32_t hostPid = 1234;
++    auto res = connectManager->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
++    EXPECT_EQ(res, ERR_OK);
++    TAG_LOGI(AAFwkTag::TEST, "UnRegisterPreloadUIExtensionHostClient_001 end");
++}
++
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/test/unittest/ability_connect_manager_test/ability_connect_manager_test.cpp b/test/unittest/ability_connect_manager_test/ability_connect_manager_test.cpp
+index a73cfc87f0..2fa11af660 100644
+--- a/test/unittest/ability_connect_manager_test/ability_connect_manager_test.cpp
++++ b/test/unittest/ability_connect_manager_test/ability_connect_manager_test.cpp
+@@ -3439,7 +3439,10 @@ HWTEST_F(AbilityConnectManagerTest, PreloadUIExtensionAbilityLocked_0100, TestSi
+     abilityRequest.want.SetElement(providerElement);
+     abilityRequest.abilityInfo.type = AbilityType::EXTENSION;
+     std::string hostBundleName = "com.ohos.uiextensionuser";
+-    auto ret = connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName);
++
++    int32_t preloadId = AbilityRuntime::INVALID_EXTENSION_RECORD_ID;;
++    int32_t hostPid = DEFAULT_INVAL_VALUE;
++    auto ret = connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName, preloadId, hostPid);
+     EXPECT_NE(ret, ERR_OK);
+ }
+ 
+@@ -4051,5 +4054,34 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDon
+     res = connectManager->ScheduleDisconnectAbilityDoneLocked(nullptr);
+     EXPECT_EQ(res, CONNECTION_NOT_EXIST);
+ }
++
++/**
++ * @tc.name: UnPreloadUIExtensionAbilityLocked_0100
++ * @tc.desc: unpreload uiextension ability with invalid id
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityConnectManagerTest, UnPreloadUIExtensionAbilityLocked_0100, TestSize.Level1)
++{
++    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
++    ASSERT_NE(connectManager, nullptr);
++    int32_t extensionAbilityId = AbilityRuntime::INVALID_EXTENSION_RECORD_ID;
++    auto ret = connectManager->UnPreloadUIExtensionAbilityLocked(extensionAbilityId);
++    EXPECT_EQ(ret, ERR_INVALID_VALUE);
++}
++
++/**
++ * @tc.name: ClearAllPreloadUIExtensionAbilityLocked_0100
++ * @tc.desc: clear all preload uiextension ability with empty bundle name
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityConnectManagerTest, ClearAllPreloadUIExtensionAbilityLocked_0100, TestSize.Level1)
++{
++    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
++    ASSERT_NE(connectManager, nullptr);
++
++    std::string hostBundleName = "";
++    auto ret = connectManager->ClearAllPreloadUIExtensionAbilityLocked(hostBundleName);
++    EXPECT_EQ(ret, ERR_INVALID_VALUE);
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/test/unittest/ability_manager_proxy_third_test/ability_manager_proxy_third_test.cpp b/test/unittest/ability_manager_proxy_third_test/ability_manager_proxy_third_test.cpp
+index 1d5e1d381b..ff14e62d2c 100644
+--- a/test/unittest/ability_manager_proxy_third_test/ability_manager_proxy_third_test.cpp
++++ b/test/unittest/ability_manager_proxy_third_test/ability_manager_proxy_third_test.cpp
+@@ -1366,6 +1366,272 @@ HWTEST_F(AbilityManagerProxyTest, RegisterAbilityFirstFrameStateObserver_4000, T
+ 
+     GTEST_LOG_(INFO) << "RegisterAbilityFirstFrameStateObserver_4000 end";
+ }
++
++/**
++ * @tc.name: PreloadUIExtensionAbilityWithId_4100
++ * @tc.desc: PreloadUIExtensionAbilityWithId error and success path
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, PreloadUIExtensionAbilityWithId_4100, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "PreloadUIExtensionAbilityWithId_4100 start";
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
++    Want want;
++    std::string hostBundleName = "bundle.test";
++    int32_t preloadId = 0;
++    int32_t result = proxy_->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, 100, 200);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY_WITH_ID), mock_->code_);
++    EXPECT_NE(result, NO_ERROR);
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
++    result = proxy_->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, 100, 200);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY_WITH_ID), mock_->code_);
++    EXPECT_EQ(result, NO_ERROR);
++
++    GTEST_LOG_(INFO) << "PreloadUIExtensionAbilityWithId_4100 end";
++}
++
++/**
++ * @tc.name: PreloadUIExtensionAbilityWithId_4300
++ * @tc.desc: PreloadUIExtensionAbilityWithId with empty hostBundleName
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, PreloadUIExtensionAbilityWithId_4200, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "PreloadUIExtensionAbilityWithId_4200 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
++    Want want;
++    std::string hostBundleName = "";
++    int32_t preloadId = 0;
++    int32_t userId = 1;
++    int32_t hostPid = 100;
++    int32_t result = proxy_->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, userId, hostPid);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY_WITH_ID), mock_->code_);
++    EXPECT_EQ(result, NO_ERROR);
++
++    GTEST_LOG_(INFO) << "PreloadUIExtensionAbilityWithId_4200 end";
++}
++
++/**
++ * @tc.name: PreloadUIExtensionAbilityWithId_4400
++ * @tc.desc: PreloadUIExtensionAbilityWithId with negative userId
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, PreloadUIExtensionAbilityWithId_4300, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "PreloadUIExtensionAbilityWithId_4300 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
++    Want want;
++    std::string hostBundleName = "com.example.test";
++    int32_t preloadId = 0;
++    int32_t userId = -1;
++    int32_t hostPid = 100;
++    int32_t result = proxy_->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, userId, hostPid);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY_WITH_ID), mock_->code_);
++    EXPECT_EQ(result, NO_ERROR);
++
++    GTEST_LOG_(INFO) << "PreloadUIExtensionAbilityWithId_4300 end";
++}
++
++/**
++ * @tc.name: UnPreloadUIExtensionAbility_4400
++ * @tc.desc: UnPreloadUIExtensionAbility with SendRequest error
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, UnPreloadUIExtensionAbility_4400, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "UnPreloadUIExtensionAbility_4400 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
++    int32_t extensionAbilityId = 100;
++    int32_t userId = 1;
++    int32_t result = proxy_->UnPreloadUIExtensionAbility(extensionAbilityId, userId);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UNPRELOAD_UIEXTENSION_ABILITY), mock_->code_);
++    EXPECT_NE(result, NO_ERROR);
++
++    GTEST_LOG_(INFO) << "UnPreloadUIExtensionAbility_4400 end";
++}
++
++/**
++ * @tc.name: UnPreloadUIExtensionAbility_4500
++ * @tc.desc: UnPreloadUIExtensionAbility with valid parameters
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, UnPreloadUIExtensionAbility_4500, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "UnPreloadUIExtensionAbility_4500 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
++    int32_t extensionAbilityId = 100;
++    int32_t userId = 1;
++    int32_t result = proxy_->UnPreloadUIExtensionAbility(extensionAbilityId, userId);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UNPRELOAD_UIEXTENSION_ABILITY), mock_->code_);
++    EXPECT_EQ(result, NO_ERROR);
++
++    GTEST_LOG_(INFO) << "UnPreloadUIExtensionAbility_4500 end";
++}
++
++/**
++ * @tc.name: ClearAllPreloadUIExtensionAbility_4600
++ * @tc.desc: ClearAllPreloadUIExtensionAbility with SendRequest error
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, ClearAllPreloadUIExtensionAbility_4600, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "ClearAllPreloadUIExtensionAbility_4600 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
++    std::string hostBundleName = "com.example.test";
++    int32_t userId = 1;
++    int32_t result = proxy_->ClearAllPreloadUIExtensionAbility(hostBundleName, userId);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::CLEAR_ALL_PRELOAD_UIEXTENSION_ABILITY), mock_->code_);
++    EXPECT_NE(result, NO_ERROR);
++    GTEST_LOG_(INFO) << "ClearAllPreloadUIExtensionAbility_4600 end";
++}
++
++/**
++ * @tc.name: ClearAllPreloadUIExtensionAbility_4700
++ * @tc.desc: ClearAllPreloadUIExtensionAbility with valid parameters
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, ClearAllPreloadUIExtensionAbility_4700, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "ClearAllPreloadUIExtensionAbility_4700 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
++    std::string hostBundleName = "com.example.test";
++    int32_t userId = 1;
++    int32_t result = proxy_->ClearAllPreloadUIExtensionAbility(hostBundleName, userId);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::CLEAR_ALL_PRELOAD_UIEXTENSION_ABILITY), mock_->code_);
++    EXPECT_EQ(result, NO_ERROR);
++    GTEST_LOG_(INFO) << "ClearAllPreloadUIExtensionAbility_4700 end";
++}
++
++/**
++ * @tc.name: RegisterPreloadUIExtensionHostClient_4800
++ * @tc.desc: RegisterPreloadUIExtensionHostClient with WriteRemoteObject fail, return INNER_ERR
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, RegisterPreloadUIExtensionHostClient_4800, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "RegisterPreloadUIExtensionHostClient_4800 start";
++
++    sptr<IRemoteObject> callerToken = nullptr;
++    std::string hostBundleName = "com.example.test";
++    int32_t hostPid = 100;
++    int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
++    EXPECT_EQ(result, INNER_ERR);
++
++    GTEST_LOG_(INFO) << "RegisterPreloadUIExtensionHostClient_4800 end";
++}
++
++/**
++ * @tc.name: RegisterPreloadUIExtensionHostClient_4900
++ * @tc.desc: RegisterPreloadUIExtensionHostClient with SendRequest error
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, RegisterPreloadUIExtensionHostClient_4900, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "RegisterPreloadUIExtensionHostClient_4900 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
++    sptr<IRemoteObject> callerToken = new (std::nothrow) MockAbilityToken();
++    std::string hostBundleName = "com.example.test";
++    int32_t hostPid = 100;
++    int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
++        mock_->code_);
++    EXPECT_NE(result, NO_ERROR);
++
++    GTEST_LOG_(INFO) << "RegisterPreloadUIExtensionHostClient_4900 end";
++}
++
++/**
++ * @tc.name: RegisterPreloadUIExtensionHostClient_5000
++ * @tc.desc: RegisterPreloadUIExtensionHostClient with valid parameters
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, RegisterPreloadUIExtensionHostClient_5000, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "RegisterPreloadUIExtensionHostClient_5000 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
++    sptr<IRemoteObject> callerToken = new (std::nothrow) MockAbilityToken();
++    std::string hostBundleName = "com.example.test";
++    int32_t hostPid = 100;
++    int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
++        mock_->code_);
++    EXPECT_EQ(result, NO_ERROR);
++
++    GTEST_LOG_(INFO) << "RegisterPreloadUIExtensionHostClient_5000 end";
++}
++
++/**
++ * @tc.name: UnRegisterPreloadUIExtensionHostClient_5100
++ * @tc.desc: UnRegisterPreloadUIExtensionHostClient with SendRequest error
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, UnRegisterPreloadUIExtensionHostClient_5100, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "UnRegisterPreloadUIExtensionHostClient_5100 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
++    std::string hostBundleName = "com.example.test";
++    int32_t hostPid = 100;
++    int32_t result = proxy_->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
++        mock_->code_);
++    EXPECT_NE(result, NO_ERROR);
++
++    GTEST_LOG_(INFO) << "UnRegisterPreloadUIExtensionHostClient_5100 end";
++}
++
++/**
++ * @tc.name: UnRegisterPreloadUIExtensionHostClient_5200
++ * @tc.desc: UnRegisterPreloadUIExtensionHostClient with valid parameters
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerProxyTest, UnRegisterPreloadUIExtensionHostClient_5200, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "UnRegisterPreloadUIExtensionHostClient_5200 start";
++
++    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
++        .Times(1)
++        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
++    std::string hostBundleName = "com.example.test";
++    int32_t hostPid = 100;
++    int32_t result = proxy_->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
++    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
++        mock_->code_);
++    EXPECT_EQ(result, NO_ERROR);
++
++    GTEST_LOG_(INFO) << "UnRegisterPreloadUIExtensionHostClient_5200 end";
++}
+ #endif
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/test/unittest/ability_manager_proxy_third_test/ability_manager_stub_mock.h b/test/unittest/ability_manager_proxy_third_test/ability_manager_stub_mock.h
+index 514bee1045..b87c5945eb 100644
+--- a/test/unittest/ability_manager_proxy_third_test/ability_manager_stub_mock.h
++++ b/test/unittest/ability_manager_proxy_third_test/ability_manager_stub_mock.h
+@@ -381,6 +381,19 @@ public:
+         return 0;
+     }
+ 
++    int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken, 
++        const std::string &hostBundleName, int32_t hostPid) override
++    {
++        return 0;
++    }
++    
++    int32_t UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName, 
++        int32_t hostPid) override
++    {
++        return 0;
++    }
++
++
+ #ifdef ABILITY_COMMAND_FOR_TEST
+     int ForceTimeoutForTest(const std::string& abilityName, const std::string& state) override
+     {
+diff --git a/test/unittest/ability_manager_service_third_test/ability_manager_service_third_test.cpp b/test/unittest/ability_manager_service_third_test/ability_manager_service_third_test.cpp
+index a72328eb02..a894fbf840 100644
+--- a/test/unittest/ability_manager_service_third_test/ability_manager_service_third_test.cpp
++++ b/test/unittest/ability_manager_service_third_test/ability_manager_service_third_test.cpp
+@@ -3018,5 +3018,30 @@ HWTEST_F(AbilityManagerServiceThirdTest, RestartSelfAtomicService_004, TestSize.
+     EXPECT_EQ(abilityMs_->RestartSelfAtomicService(callerRecord->GetToken()), NOT_TOP_ABILITY);
+     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest RestartSelfAtomicService_004 end");
+ }
++
++/*
++ * Feature: AbilityManagerService
++ * Function: PreloadUIExtensionAbilityWithId
++ * FunctionPoints: AbilityManagerService PreloadUIExtensionAbilityWithId
++ */
++HWTEST_F(AbilityManagerServiceThirdTest, PreloadUIExtensionAbilityWithId_001, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityWithId_001 start.");
++    auto abilityMs = std::make_shared<AbilityManagerService>();
++    Want providerWant;
++    AppExecFwk::ElementName providerElement("0", "com.ohos.uiextensionprovider", "UIExtensionProvider", "entry");
++    providerWant.SetElement(providerElement);
++    std::string hostBundleName = "com.ohos.uiextensionuser";
++
++    int32_t preloadId = INVALID_EXTENSION_RECORD_ID;
++    int32_t userId = DEFAULT_INVAL_VALUE;
++    int32_t hostPid = DEFAULT_INVAL_VALUE;
++
++    auto result = abilityMs->PreloadUIExtensionAbilityWithId(providerWant, hostBundleName, preloadId, userId, hostPid);
++
++    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
++    EXPECT_EQ(preloadId, INVALID_EXTENSION_RECORD_ID);
++    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityWithId_001 finish.");
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/test/unittest/ability_manager_stub_test/ability_manager_stub_impl_mock.h b/test/unittest/ability_manager_stub_test/ability_manager_stub_impl_mock.h
+index 9efde331fc..b178d494d4 100644
+--- a/test/unittest/ability_manager_stub_test/ability_manager_stub_impl_mock.h
++++ b/test/unittest/ability_manager_stub_test/ability_manager_stub_impl_mock.h
+@@ -451,6 +451,18 @@ public:
+         return ERR_OK;
+     }
+ 
++    int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken, 
++        const std::string &hostBundleName, int32_t hostPid) override
++    {
++        return ERR_OK;
++    }
++    
++    int32_t UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName, 
++        int32_t hostPid) override
++    {
++        return ERR_OK;
++    }
++
+ #ifdef ABILITY_COMMAND_FOR_TEST
+     int ForceTimeoutForTest(const std::string& abilityName, const std::string& state) override
+     {
+diff --git a/test/unittest/ability_manager_stub_test/ability_manager_stub_test.cpp b/test/unittest/ability_manager_stub_test/ability_manager_stub_test.cpp
+index 82626cedd2..4add3ff191 100644
+--- a/test/unittest/ability_manager_stub_test/ability_manager_stub_test.cpp
++++ b/test/unittest/ability_manager_stub_test/ability_manager_stub_test.cpp
+@@ -4217,5 +4217,139 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSelfUIAbilityInCurrentP
+     auto result = stub_->StartSelfUIAbilityInCurrentProcessInner(data, reply);
+     EXPECT_EQ(result, NO_ERROR);
+ }
++
++/**
++ * @tc.name: PreloadUIExtensionAbilityWithIdInner_0100
++ * @tc.desc: PreloadUIExtensionAbilityWithIdInner
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerStubTest, PreloadUIExtensionAbilityWithIdInner_0100, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin");
++
++    MessageParcel data;
++    MessageParcel reply;
++    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
++    
++    Want want;
++    AppExecFwk::ElementName element("", "com.ohos.uiextensionprovider", 
++        "UIExtensionProvider", "entry");
++    want.SetElement(element);
++    ASSERT_TRUE(data.WriteParcelable(&want));
++    
++    std::string hostBundleName = "com.ohos.uiextensionuser";
++    ASSERT_TRUE(data.WriteString16(Str8ToStr16(hostBundleName)));
++    
++    int32_t userId = DEFAULT_INVAL_VALUE;
++    ASSERT_TRUE(data.WriteInt32(userId));
++    
++    int32_t hostPid = DEFAULT_INVAL_VALUE;
++    ASSERT_TRUE(data.WriteInt32(hostPid));
++    
++    auto result = stub_->PreloadUIExtensionAbilityWithIdInner(data, reply);
++    EXPECT_EQ(result, NO_ERROR);
++
++    TAG_LOGI(AAFwkTag::TEST, "end");
++}
++
++/**
++ * @tc.name: UnPreloadUIExtensionAbilityInner_0100
++ * @tc.desc: UnPreloadUIExtensionAbilityInner
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerStubTest, UnPreloadUIExtensionAbilityInner_0100, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin");
++
++    MessageParcel data;
++    MessageParcel reply;
++    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
++    
++    int32_t extensionAbilityId = 12345;
++    ASSERT_TRUE(data.WriteInt32(extensionAbilityId));
++    
++    int32_t userId = DEFAULT_INVAL_VALUE;
++    ASSERT_TRUE(data.WriteInt32(userId));
++    
++    auto result = stub_->UnPreloadUIExtensionAbilityInner(data, reply);
++    EXPECT_EQ(result, NO_ERROR);
++
++    TAG_LOGI(AAFwkTag::TEST, "end");
++}
++
++/**
++ * @tc.name: ClearAllPreloadUIExtensionAbilityInner_0100
++ * @tc.desc: ClearAllPreloadUIExtensionAbilityInner
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerStubTest, ClearAllPreloadUIExtensionAbilityInner_0100, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin");
++
++    MessageParcel data;
++    MessageParcel reply;
++    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
++    
++    std::string hostBundleName = "com.ohos.uiextensionuser";
++    ASSERT_TRUE(data.WriteString16(Str8ToStr16(hostBundleName)));
++    
++    int32_t userId = DEFAULT_INVAL_VALUE;
++    ASSERT_TRUE(data.WriteInt32(userId));
++    
++    auto result = stub_->ClearAllPreloadUIExtensionAbilityInner(data, reply);
++    EXPECT_EQ(result, NO_ERROR);
++
++    TAG_LOGI(AAFwkTag::TEST, "end");
++}
++
++/**
++ * @tc.name: RegisterPreloadUIExtensionHostClientInner_0100
++ * @tc.desc: RegisterPreloadUIExtensionHostClientInner with invalid token
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerStubTest, RegisterPreloadUIExtensionHostClientInner_0100, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin");
++
++    MessageParcel data;
++    MessageParcel reply;
++    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
++
++    std::string hostBundleName = "com.ohos.uiextensionuser";
++    ASSERT_TRUE(data.WriteString(hostBundleName));
++    
++    int32_t hostPid = 12345;
++    ASSERT_TRUE(data.WriteInt32(hostPid));
++    
++    auto result = stub_->RegisterPreloadUIExtensionHostClientInner(data, reply);
++    EXPECT_EQ(result, ERR_INVALID_VALUE);
++
++    TAG_LOGI(AAFwkTag::TEST, "end");
++}
++
++/**
++ * @tc.name: UnRegisterPreloadUIExtensionHostClientInner_0100
++ * @tc.desc: UnRegisterPreloadUIExtensionHostClientInner
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerStubTest, UnRegisterPreloadUIExtensionHostClientInner_0100, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin");
++
++    MessageParcel data;
++    MessageParcel reply;
++    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
++    
++    std::string hostBundleName = "com.ohos.uiextensionuser";
++    ASSERT_TRUE(data.WriteString(hostBundleName));
++    
++    int32_t hostPid = 12345;
++    ASSERT_TRUE(data.WriteInt32(hostPid));
++    
++    auto result = stub_->UnRegisterPreloadUIExtensionHostClientInner(data, reply);
++    EXPECT_EQ(result, NO_ERROR);
++
++    TAG_LOGI(AAFwkTag::TEST, "end");
++}
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/test/unittest/ui_extension/extension_record_manager_second_test/extension_record_manager_second_test.cpp b/test/unittest/ui_extension/extension_record_manager_second_test/extension_record_manager_second_test.cpp
+index 3c46914734..48fd0f1e80 100644
+--- a/test/unittest/ui_extension/extension_record_manager_second_test/extension_record_manager_second_test.cpp
++++ b/test/unittest/ui_extension/extension_record_manager_second_test/extension_record_manager_second_test.cpp
+@@ -782,5 +782,294 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetHostBundleNameForExtensionId_0200,
+     EXPECT_EQ(extRecordMgr->GetHostBundleNameForExtensionId(extensionRecordId, hostBundleName), ERR_OK);
+     TAG_LOGI(AAFwkTag::TEST, "end.");
+ }
++
++/**
++ * @tc.name: UnPreloadUIExtensionRecordById_0100
++ * @tc.desc: Test UnPreloadUIExtensionRecordById with invalid extensionRecordId.
++ * @tc.type: FUNC
++ * @tc.require: issue
++ */
++HWTEST_F(ExtensionRecordManagerSecondTest, UnPreloadUIExtensionRecordById_0100, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
++    
++    // Test with invalid extensionRecordId (not exist in extensionRecords_)
++    int32_t invalidExtensionRecordId = 9999;
++    EXPECT_EQ(extRecordMgr->UnPreloadUIExtensionRecordById(invalidExtensionRecordId), ERR_INVALID_VALUE);
++    
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
++
++/**
++ * @tc.name: UnPreloadUIExtensionRecordById_0200
++ * @tc.desc: Test UnPreloadUIExtensionRecordById with valid extensionRecordId but not in preload map.
++ * @tc.type: FUNC
++ * @tc.require: issue
++ */
++HWTEST_F(ExtensionRecordManagerSecondTest, UnPreloadUIExtensionRecordById_0200, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    std::string bundleName = "com.example.unittest";
++    std::string moduleName = "entry";
++    std::string name = "MainAbility";
++    std::string hostBundleName = "com.example.host";
++    
++    AAFwk::AbilityRequest abilityRequest;
++    abilityRequest.appInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.name = name;
++    abilityRequest.abilityInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.moduleName = moduleName;
++    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
++    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
++    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
++    
++    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
++    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
++    
++    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
++    
++    int32_t extensionRecordId = 1001;
++    extRecord->extensionRecordId_ = extensionRecordId;
++    extRecord->hostBundleName_ = hostBundleName;
++    abilityRecord->SetUIExtensionAbilityId(extensionRecordId);
++    
++    extRecordMgr->extensionRecords_[extensionRecordId] = extRecord;
++    EXPECT_EQ(extRecordMgr->UnPreloadUIExtensionRecordById(extensionRecordId), ERR_INVALID_VALUE);
++    
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
++
++/**
++ * @tc.name: UnPreloadUIExtensionRecordById_0300
++ * @tc.desc: Test UnPreloadUIExtensionRecordById with empty extensionRecords_.
++ * @tc.type: FUNC
++ * @tc.require: issue
++ */
++HWTEST_F(ExtensionRecordManagerSecondTest, UnPreloadUIExtensionRecordById_0300, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
++    int32_t extensionRecordId = 1;
++    EXPECT_EQ(extRecordMgr->UnPreloadUIExtensionRecordById(extensionRecordId), ERR_INVALID_VALUE);
++    
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
++
++/**
++ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0100
++ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with empty preloadUIExtensionMap_.
++ * @tc.type: FUNC
++ * @tc.require: issue
++ */
++HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0100, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
++    std::string hostBundleName = "com.example.host"; 
++
++    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);    
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
++/**
++ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0200
++ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with non-matching hostBundleName.
++ * @tc.type: FUNC
++ * @tc.require: issue
++ */
++HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0200, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    std::string bundleName = "com.example.unittest";
++    std::string moduleName = "entry";
++    std::string name = "MainAbility";
++    std::string hostBundleName = "com.example.host";
++    
++    AAFwk::AbilityRequest abilityRequest;
++    abilityRequest.appInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.name = name;
++    abilityRequest.abilityInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.moduleName = moduleName;
++    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
++    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
++    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
++    
++    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
++    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
++    extRecord->hostBundleName_ = hostBundleName;
++    extRecord->hostPid_ = IPCSkeleton::GetCallingPid();
++    
++    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
++    
++    auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
++    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
++    
++    std::string differentHostBundleName = "com.example.different";
++    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(differentHostBundleName), ERR_OK);
++    
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
++
++/**
++ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0300
++ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with matching hostBundleName and matching callingPid.
++ * @tc.type: FUNC
++ * @tc.require: issue
++ */
++HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0300, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    std::string bundleName = "com.example.unittest";
++    std::string moduleName = "entry";
++    std::string name = "MainAbility";
++    std::string hostBundleName = "com.example.host";
++    
++    AAFwk::AbilityRequest abilityRequest;
++    abilityRequest.appInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.name = name;
++    abilityRequest.abilityInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.moduleName = moduleName;
++    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
++    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
++    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
++    
++    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
++    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
++    extRecord->hostBundleName_ = hostBundleName;
++    
++    int32_t currentPid = IPCSkeleton::GetCallingPid();
++    extRecord->hostPid_ = currentPid;
++    
++    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
++    
++    auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
++    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
++    
++    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);
++    
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
++
++/**
++ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0400
++ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with matching hostBundleName but non-matching callingPid.
++ * @tc.type: FUNC
++ * @tc.require: issue
++ */
++HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0400, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    std::string bundleName = "com.example.unittest";
++    std::string moduleName = "entry";
++    std::string name = "MainAbility";
++    std::string hostBundleName = "com.example.host";
++    
++    AAFwk::AbilityRequest abilityRequest;
++    abilityRequest.appInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.name = name;
++    abilityRequest.abilityInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.moduleName = moduleName;
++    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
++    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
++    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
++    
++    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
++    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
++    extRecord->hostBundleName_ = hostBundleName;
++    
++    extRecord->hostPid_ = 99999;
++    
++    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
++    
++    auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
++    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
++    
++    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);
++    
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
++
++/**
++ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0500
++ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with multiple records for same host.
++ * @tc.type: FUNC
++ * @tc.require: issue
++ */
++HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0500, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    std::string bundleName = "com.example.unittest";
++    std::string moduleName = "entry";
++    std::string hostBundleName = "com.example.host";
++    
++    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
++    int32_t currentPid = IPCSkeleton::GetCallingPid();
++    
++    for (int i = 0; i < 3; i++) {
++        std::string name = "MainAbility" + std::to_string(i);
++        AAFwk::AbilityRequest abilityRequest;
++        abilityRequest.appInfo.bundleName = bundleName;
++        abilityRequest.abilityInfo.name = name;
++        abilityRequest.abilityInfo.bundleName = bundleName;
++        abilityRequest.abilityInfo.moduleName = moduleName;
++        abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
++        abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
++        abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
++        
++        auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
++        std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
++        extRecord->hostBundleName_ = hostBundleName;
++        
++        extRecord->hostPid_ = (i < 2) ? currentPid : 99999;
++        
++        auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
++        extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
++    }
++    
++    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);
++    
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
++
++/**
++ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0600
++ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with nullptr records in map.
++ * @tc.type: FUNC
++ * @tc.require: issue
++ */
++HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0600, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    std::string bundleName = "com.example.unittest";
++    std::string moduleName = "entry";
++    std::string name = "MainAbility";
++    std::string hostBundleName = "com.example.host";
++    
++    AAFwk::AbilityRequest abilityRequest;
++    abilityRequest.appInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.name = name;
++    abilityRequest.abilityInfo.bundleName = bundleName;
++    abilityRequest.abilityInfo.moduleName = moduleName;
++    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
++    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
++    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
++    
++    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
++    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
++    extRecord->hostBundleName_ = hostBundleName;
++    extRecord->hostPid_ = IPCSkeleton::GetCallingPid();
++    
++    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
++    
++    auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
++    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
++    
++    std::shared_ptr<ExtensionRecord> nullRecord = nullptr;
++    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(nullRecord);
++    
++    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);
++    
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
+ } // namespace AbilityRuntime
+ } // namespace OHOS
+diff --git a/test/unittest/ui_extension_ability_test/ui_extension_preload_test/ui_extension_preload_test.cpp b/test/unittest/ui_extension_ability_test/ui_extension_preload_test/ui_extension_preload_test.cpp
+index c19e877428..f03f02b683 100644
+--- a/test/unittest/ui_extension_ability_test/ui_extension_preload_test/ui_extension_preload_test.cpp
++++ b/test/unittest/ui_extension_ability_test/ui_extension_preload_test/ui_extension_preload_test.cpp
+@@ -63,5 +63,105 @@ HWTEST_F(UIExtensionPreloadTest, PermissionCheck_0100, TestSize.Level1)
+     EXPECT_NE(ret, ERR_OK);
+     TAG_LOGI(AAFwkTag::TEST, "finish.");
+ }
++
++/**
++ * @tc.name: PermissionCheck_002
++ * @tc.desc: Call PreloadUIExtensionAbilityWithId with invalid userId, should return error.
++ * @tc.type: FUNC
++ * @tc.require: I9NW1A
++ */
++HWTEST_F(UIExtensionPreloadTest, PermissionCheck_002, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "start.");
++
++    Want providerWant;
++    AppExecFwk::ElementName providerElement("0", "com.ohos.uiextensionprovider", "UIExtensionProvider", "entry");
++    providerWant.SetElement(providerElement);
++
++    std::string hostBundleName = "com.ohos.uiextensionuser";
++    int32_t preloadId = 0;
++
++    auto ret = AbilityManagerClient::GetInstance()->PreloadUIExtensionAbilityWithId(
++        providerWant, hostBundleName, preloadId, DEFAULT_INVAL_VALUE, 1234);
++
++    EXPECT_NE(ret, ERR_OK);
++
++    TAG_LOGI(AAFwkTag::TEST, "finish.");
++}
++
++/**
++ * @tc.name: PermissionCheck_003
++ * @tc.desc: Call UnPreloadUIExtensionAbility with invalid userId, should return error.
++ * @tc.type: FUNC
++ * @tc.require: I9NW1A
++ */
++HWTEST_F(UIExtensionPreloadTest, PermissionCheck_003, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "start.");
++
++    int32_t extensionAbilityId = 100; 
++    int32_t invalidUserId = DEFAULT_INVAL_VALUE;
++    auto ret = AbilityManagerClient::GetInstance()->UnPreloadUIExtensionAbility(extensionAbilityId, invalidUserId);
++    EXPECT_NE(ret, ERR_OK);
++
++    TAG_LOGI(AAFwkTag::TEST, "finish.");
++}
++
++/**
++ * @tc.name: PermissionCheck_004
++ * @tc.desc: Call ClearAllPreloadUIExtensionAbility with empty hostBundleName, should return error.
++ * @tc.type: FUNC
++ * @tc.require: I9NW1A
++ */
++HWTEST_F(UIExtensionPreloadTest, PermissionCheck_004, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "start.");
++
++    std::string emptyHostBundleName = "";
++    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID; 
++    auto ret = AbilityManagerClient::GetInstance()->ClearAllPreloadUIExtensionAbility(emptyHostBundleName, userId);
++    EXPECT_NE(ret, ERR_OK);
++
++    TAG_LOGI(AAFwkTag::TEST, "finish.");
++}
++
++/**
++ * @tc.name: PermissionCheck_005
++ * @tc.desc: Call RegisterPreloadUIExtensionHostClient with null callerToken, should return error.
++ * @tc.type: FUNC
++ * @tc.require: I9NW1A
++ */
++HWTEST_F(UIExtensionPreloadTest, PermissionCheck_005, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "start.");
++
++    sptr<IRemoteObject> nullCallerToken = nullptr;
++    std::string hostBundleName = "com.ohos.test";
++    int32_t hostPid = 1234;
++    auto ret = AbilityManagerClient::GetInstance()->RegisterPreloadUIExtensionHostClient(
++        nullCallerToken, hostBundleName, hostPid);
++    EXPECT_NE(ret, ERR_OK);
++
++    TAG_LOGI(AAFwkTag::TEST, "finish.");
++}
++
++/**
++ * @tc.name: PermissionCheck_006
++ * @tc.desc: Call UnRegisterPreloadUIExtensionHostClient with invalid hostBundleName, should return error.
++ * @tc.type: FUNC
++ * @tc.require: I9NW1A
++ */
++HWTEST_F(UIExtensionPreloadTest, PermissionCheck_006, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "start.");
++
++    std::string hostBundleName = "com.ohos.test"; 
++    int32_t hostPid = 1234;
++    auto ret = AbilityManagerClient::GetInstance()->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
++    EXPECT_NE(ret, ERR_OK);
++
++    TAG_LOGI(AAFwkTag::TEST, "finish.");
++}
++
+ } // namespace AAFwk
+ } // namespace OHOS

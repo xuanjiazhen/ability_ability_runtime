@@ -139,8 +139,25 @@ public:
                                           const std::string &hostBundleName,
                                           int32_t &recordNum);
 
+    void CheckIsPreloadUIExtensionLoadedById(int32_t extensionRecordId);
+    void CheckIsPreloadUIExtensionDestroyedById(int32_t extensionRecordId);
+    int32_t ClearPreloadedUIExtensionAbility(int32_t extensionRecordId);
+    int32_t ClearAllPreloadUIExtensionRecordForHost(std::string hostBundleName);
+    void RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);
+    void UnRegisterPreloadUIExtensionHostClient();
+
 private:
-    inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
+    inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);  
+    class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        using PreloadUIExtensionHostClientDiedHandler = std::function<void(const wptr<IRemoteObject> &)>;
+        explicit PreloadUIExtensionHostClientDeathRecipient(PreloadUIExtensionHostClientDiedHandler handler);
+        ~PreloadUIExtensionHostClientDeathRecipient() = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) final;
+
+    private:
+        PreloadUIExtensionHostClientDiedHandler diedHandler_;
+    };
 
 private:
     int32_t userId_;
@@ -148,9 +165,13 @@ private:
     std::set<int32_t> extensionRecordIdSet_;
     std::mutex mutex_;
     std::mutex preloadUIExtensionMapMutex_;
+    std::mutex preloadUIExtensionHostClientMutex_;
     ExtensionAbilityRecordMap extensionRecords_;
     ExtensionAbilityRecordMap terminateRecords_;
     PreLoadUIExtensionMapType preloadUIExtensionMap_;
+    sptr<IRemoteObject> preloadUIExtensionHostClientCallerToken_ = nullptr;
+    sptr<IRemoteObject::DeathRecipient> preloadUIExtensionHostClientDeathRecipient_ = nullptr;
+    static constexpr size_t HOST_BUNDLE_NAME_INDEX = 3;
 
     void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);
     sptr<IRemoteObject> GetCachedFocusedCallerToken(int32_t extensionRecordId) const;
@@ -166,6 +187,9 @@ private:
     int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
     int32_t SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
         const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::shared_ptr<ExtensionRecord> &extensionRecord);
+    void UnloadExtensionRecordsByPid(
+        std::vector<std::shared_ptr<ExtensionRecord>> &records,int32_t callingPid,
+        std::vector<std::shared_ptr<ExtensionRecord>> &recordsToUnload);
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
         std::shared_ptr<ExtensionRecord> &record, const std::string &process);
 };

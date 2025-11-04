@@ -1,0 +1,244 @@
+diff --git a/frameworks/ets/ani/ability_manager/src/ets_ability_manager.cpp b/frameworks/ets/ani/ability_manager/src/ets_ability_manager.cpp
+index 8bf836f435..4f89ea029c 100644
+--- a/frameworks/ets/ani/ability_manager/src/ets_ability_manager.cpp
++++ b/frameworks/ets/ani/ability_manager/src/ets_ability_manager.cpp
+@@ -420,7 +420,8 @@ void EtsAbilityManager::NativeOnPreloadedUIExtensionAbilityLoaded(ani_env *env,
+     }
+     ani_vm *vm = nullptr;
+     if (env->GetVM(&vm) != ANI_OK || vm == nullptr) {
+-        TAG_LOGE(AAFwkTag::INTENT, "GetVM failed or null vm");
++        TAG_LOGE(AAFwkTag::INTENT,
++             "ani_env::GetVM failed or returned null ETS Virtual Machine instance");
+         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+         return;
+     }
+@@ -499,7 +500,8 @@ void EtsAbilityManager::NativeOnPreloadedUIExtensionAbilityDestroyed(ani_env *en
+     }
+     ani_vm *vm = nullptr;
+     if (env->GetVM(&vm) != ANI_OK || vm == nullptr) {
+-        TAG_LOGE(AAFwkTag::INTENT, "GetVM failed or null vm");
++        TAG_LOGE(AAFwkTag::INTENT,
++             "ani_env::GetVM failed or returned null ETS Virtual Machine instance");
+         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+         return;
+     }
+diff --git a/frameworks/js/napi/ability_manager/js_ability_manager.cpp b/frameworks/js/napi/ability_manager/js_ability_manager.cpp
+index 06243156f9..d533a9ff88 100644
+--- a/frameworks/js/napi/ability_manager/js_ability_manager.cpp
++++ b/frameworks/js/napi/ability_manager/js_ability_manager.cpp
+@@ -993,7 +993,8 @@ private:
+         }
+         if (!AppExecFwk::IsTypeForNapiValue(env, info.argv[INDEX_ZERO], napi_function)) {
+             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid param");
+-            ThrowInvalidParamError(env, "Parse param callback failed, must be a PreloadedUIExtensionAbilityDestroyedFn.");
++            ThrowInvalidParamError(env, "Parse param callback failed, must be a "
++                                        "PreloadedUIExtensionAbilityDestroyedFn.");
+             return CreateJsUndefined(env);
+         }
+         napi_value newJsFunc = info.argv[INDEX_ZERO];
+@@ -1031,7 +1032,8 @@ private:
+         }
+         if (info.argc == ARGC_ONE && !AppExecFwk::IsTypeForNapiValue(env, info.argv[INDEX_ZERO], napi_function)) {
+             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid param");
+-            ThrowInvalidParamError(env, "Parse param callback failed, must be a PreloadedUIExtensionAbilityDestroyedFn.");
++            ThrowInvalidParamError(env, "Parse param callback failed, must be a "
++                                        "PreloadedUIExtensionAbilityDestroyedFn.");
+             return CreateJsUndefined(env);
+         }
+         auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+diff --git a/services/abilitymgr/include/ability_manager_stub.h b/services/abilitymgr/include/ability_manager_stub.h
+index bc1b3f5aad..9330b91e24 100644
+--- a/services/abilitymgr/include/ability_manager_stub.h
++++ b/services/abilitymgr/include/ability_manager_stub.h
+@@ -405,6 +405,8 @@ private:
+         MessageParcel &reply, MessageOption &option);
+     int OnRemoteRequestInnerTwentyFirst(uint32_t code, MessageParcel &data,
+         MessageParcel &reply, MessageOption &option);
++    int OnRemoteRequestInnerTwentySecond(uint32_t code, MessageParcel &data,
++        MessageParcel &reply, MessageOption &option);
+     int HandleOnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
+         MessageParcel &reply, MessageOption &option);
+     int HandleOnRemoteRequestInnerSecond(uint32_t code, MessageParcel &data,
+diff --git a/services/abilitymgr/include/extension_record/extension_record_manager.h b/services/abilitymgr/include/extension_record/extension_record_manager.h
+index 4d94086513..ec29622d4d 100644
+--- a/services/abilitymgr/include/extension_record/extension_record_manager.h
++++ b/services/abilitymgr/include/extension_record/extension_record_manager.h
+@@ -147,7 +147,7 @@ public:
+     void UnRegisterPreloadUIExtensionHostClient();
+ 
+ private:
+-    inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
++    inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);  
+     class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
+     public:
+         using PreloadUIExtensionHostClientDiedHandler = std::function<void(const wptr<IRemoteObject> &)>;
+@@ -171,6 +171,7 @@ private:
+     PreLoadUIExtensionMapType preloadUIExtensionMap_;
+     sptr<IRemoteObject> preloadUIExtensionHostClientCallerToken_ = nullptr;
+     sptr<IRemoteObject::DeathRecipient> preloadUIExtensionHostClientDeathRecipient_ = nullptr;
++    static constexpr size_t HOST_BUNDLE_NAME_INDEX = 3;
+ 
+     void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);
+     sptr<IRemoteObject> GetCachedFocusedCallerToken(int32_t extensionRecordId) const;
+@@ -186,6 +187,9 @@ private:
+     int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
+     int32_t SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
+         const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::shared_ptr<ExtensionRecord> &extensionRecord);
++    void UnloadExtensionRecordsByPid(
++        std::vector<std::shared_ptr<ExtensionRecord>> &records,int32_t callingPid,
++        std::vector<std::shared_ptr<ExtensionRecord>> &recordsToUnload);
+     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
+         std::shared_ptr<ExtensionRecord> &record, const std::string &process);
+ };
+diff --git a/services/abilitymgr/src/ability_manager_proxy.cpp b/services/abilitymgr/src/ability_manager_proxy.cpp
+index fbc38aaacc..b7c24480df 100644
+--- a/services/abilitymgr/src/ability_manager_proxy.cpp
++++ b/services/abilitymgr/src/ability_manager_proxy.cpp
+@@ -7435,7 +7435,8 @@ int32_t AbilityManagerProxy::RegisterPreloadUIExtensionHostClient(const sptr<IRe
+     }
+     MessageParcel reply;
+     MessageOption option;
+-    int error = SendRequest(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT, data, reply, option);
++    int error = SendRequest(
++    AbilityManagerInterfaceCode::REGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT, data, reply, option);
+     if (error != NO_ERROR) {
+         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+         return error;
+diff --git a/services/abilitymgr/src/ability_manager_stub.cpp b/services/abilitymgr/src/ability_manager_stub.cpp
+index c201385688..9d7eaea1e2 100644
+--- a/services/abilitymgr/src/ability_manager_stub.cpp
++++ b/services/abilitymgr/src/ability_manager_stub.cpp
+@@ -918,15 +918,14 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
+     if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_WITH_PID_RESULT) {
+         return StartSelfUIAbilityWithPidResultInner(data, reply);
+     }
+-    if (interfaceCode == AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY) {
+-        return StartAbilityForPrelaunchInner(data, reply);
+-    }
+-    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_FOREGROUND_APP_CONNECTION_OBSERVER) {
+-        return RegisterForegroundAppObserverInner(data, reply);
+-    }
+-    if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_FOREGROUND_APP_CONNECTION_OBSERVER) {
+-        return UnregisterForegroundAppObserverInner(data, reply);
+-    }
++    return ERR_CODE_NOT_EXIST;
++}
++
++int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageParcel &data,
++    MessageParcel &reply, MessageOption &option)
++{
++    AbilityManagerInterfaceCode interfaceCode = static_cast<AbilityManagerInterfaceCode>(code);
++
+     if (interfaceCode == AbilityManagerInterfaceCode::PRELOAD_UI_EXTENSION_ABILITY_WITH_ID) {
+         return PreloadUIExtensionAbilityWithIdInner(data, reply);
+     }
+@@ -942,6 +941,15 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
+     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT) {
+         return UnRegisterPreloadUIExtensionHostClientInner(data, reply);
+     }
++    if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_FOREGROUND_APP_CONNECTION_OBSERVER) {
++        return UnregisterForegroundAppObserverInner(data, reply);
++    }
++    if (interfaceCode == AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY) {
++        return StartAbilityForPrelaunchInner(data, reply);
++    }
++    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_FOREGROUND_APP_CONNECTION_OBSERVER) {
++        return RegisterForegroundAppObserverInner(data, reply);
++    }
+     return ERR_CODE_NOT_EXIST;
+ }
+ 
+@@ -1068,6 +1076,10 @@ int AbilityManagerStub::HandleOnRemoteRequestInnerThird(uint32_t code, MessagePa
+     if (retCode != ERR_CODE_NOT_EXIST) {
+         return retCode;
+     }
++    retCode = OnRemoteRequestInnerTwentySecond(code, data, reply, option);
++    if (retCode != ERR_CODE_NOT_EXIST) {
++        return retCode;
++    }
+     return ERR_CODE_NOT_EXIST;
+ }
+ 
+diff --git a/services/abilitymgr/src/extension_record/extension_record_manager.cpp b/services/abilitymgr/src/extension_record/extension_record_manager.cpp
+index 986fc35cf0..6317523844 100644
+--- a/services/abilitymgr/src/extension_record/extension_record_manager.cpp
++++ b/services/abilitymgr/src/extension_record/extension_record_manager.cpp
+@@ -953,23 +953,17 @@ int32_t ExtensionRecordManager::ClearAllPreloadUIExtensionRecordForHost(std::str
+     {
+         std::lock_guard<std::mutex> lock(preloadUIExtensionMapMutex_);
+         for (auto it = preloadUIExtensionMap_.begin(); it != preloadUIExtensionMap_.end();) {
+-            if (std::get<3>(it->first) == hostBundleName) {
+-                for (auto recordIt = it->second.begin(); recordIt != it->second.end();) {
+-                    if (*recordIt != nullptr && (*recordIt)->hostPid_ == callingPid) {
+-                        recordsToUnload.push_back(*recordIt);
+-                        recordIt = it->second.erase(recordIt);
+-                    } else {
+-                        ++recordIt;
+-                    }
+-                }
+-                if (it->second.empty()) {
+-                    it = preloadUIExtensionMap_.erase(it);
+-                } else {
+-                    ++it;
+-                }
+-            } else {
++            if (std::get<HOST_BUNDLE_NAME_INDEX>(it->first) != hostBundleName) {
+                 ++it;
++                continue;
++            }
++            UnloadExtensionRecordsByPid(it->second, callingPid, recordsToUnload);
++            if (it->second.empty()) {
++                it = preloadUIExtensionMap_.erase(it);
++                continue;
+             }
++
++            ++it;
+         }
+     }
+     for (const auto &record : recordsToUnload) {
+@@ -980,6 +974,21 @@ int32_t ExtensionRecordManager::ClearAllPreloadUIExtensionRecordForHost(std::str
+     return ERR_OK;
+ }
+ 
++void ExtensionRecordManager::UnloadExtensionRecordsByPid(
++    std::vector<std::shared_ptr<ExtensionRecord>> &records,
++    int32_t callingPid,
++    std::vector<std::shared_ptr<ExtensionRecord>> &recordsToUnload)
++{
++    for (auto recordIt = records.begin(); recordIt != records.end();) {
++        if (*recordIt != nullptr && (*recordIt)->hostPid_ == callingPid) {
++            recordsToUnload.push_back(*recordIt);
++            recordIt = records.erase(recordIt);
++        } else {
++            ++recordIt;
++        }
++    }
++}
++
+ void ExtensionRecordManager::RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken)
+ {
+     std::lock_guard<std::mutex> lock(preloadUIExtensionHostClientMutex_);
+diff --git a/services/abilitymgr/src/ui_extension/preload_ui_extension_execute_callback_proxy.cpp b/services/abilitymgr/src/ui_extension/preload_ui_extension_execute_callback_proxy.cpp
+index 45675f0ba8..1081e635a4 100644
+--- a/services/abilitymgr/src/ui_extension/preload_ui_extension_execute_callback_proxy.cpp
++++ b/services/abilitymgr/src/ui_extension/preload_ui_extension_execute_callback_proxy.cpp
+@@ -19,7 +19,8 @@
+ 
+ namespace OHOS {
+ namespace AAFwk {
+-void PreloadUIExtensionExecuteCallbackProxy::OnLoadedDone(int32_t hostPid, std::string bundleName, int32_t extensionAbilityId)
++void PreloadUIExtensionExecuteCallbackProxy::OnLoadedDone(
++    int32_t hostPid, std::string bundleName, int32_t extensionAbilityId)
+ {
+     MessageParcel data;
+     if (!data.WriteInterfaceToken(IPreloadUIExtensionExecuteCallback::GetDescriptor())) {
+@@ -51,7 +52,8 @@ void PreloadUIExtensionExecuteCallbackProxy::OnLoadedDone(int32_t hostPid, std::
+     }
+ }
+ 
+-void PreloadUIExtensionExecuteCallbackProxy::OnDestroyDone(int32_t hostPid, std::string bundleName, int32_t extensionAbilityId)
++void PreloadUIExtensionExecuteCallbackProxy::OnDestroyDone(
++    int32_t hostPid, std::string bundleName, int32_t extensionAbilityId)
+ {
+     MessageParcel data;
+     if (!data.WriteInterfaceToken(IPreloadUIExtensionExecuteCallback::GetDescriptor())) {
