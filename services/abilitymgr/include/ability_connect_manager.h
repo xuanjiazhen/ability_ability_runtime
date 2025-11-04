@@ -115,20 +115,24 @@ public:
      *
      * @param abilityRequest, Special want for service type's ability.
      * @param hostBundleName, the caller application bundle name.
+     * @param preloadId, the extension ability preload Id.
+     * @param hostPid, the caller hostPid.
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest, std::string &hostBundleName,
-        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
+        int32_t &preloadId, int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
 
     /**
      * PreloadUIExtensionAbilityLocked, preload uiextension ability.
      *
      * @param abilityRequest, Special want for service type's ability.
      * @param hostBundleName, the caller application bundle name.
+     * @param preloadId, the extension ability preload Id.
+     * @param hostPid, the caller hostPid.
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest, std::string &hostBundleName,
-        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
+        int32_t &preloadId, int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
 
     /**
      * Query preload uiextension record.
@@ -400,6 +404,13 @@ public:
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId);
     void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
     void StartSpecifiedProcess(const LoadAbilityContext &context, const std::shared_ptr<AbilityRecord> &abilityRecord);
+    int UnPreloadUIExtensionAbilityLocked(int32_t extensionAbilityId);
+    int UnPreloadUIExtensionAbilityInner(int32_t extensionAbilityId);
+    int ClearAllPreloadUIExtensionAbilityLocked(const std::string &hostBundleName);
+    int ClearAllPreloadUIExtensionAbilityInner(const std::string &hostBundleName);
+    void CheckIsPreloadUIExtensionRecordChangedById(int32_t extensionRecordId, int32_t state);
+    int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);
+    int32_t UnRegisterPreloadUIExtensionHostClient();
 
 private:
     /**
@@ -662,6 +673,12 @@ private:
      */
     void RemoveExtensionDelayDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
 
+    void HandlePreloadUIExtensionDiedTask(const sptr<IRemoteObject> &remote);
+    void OnPreloadUIExtensionDied(const wptr<IRemoteObject> &remote);
+    void RemovePreloadUIExtensionDeathRecipient(const sptr<IRemoteObject> &session);
+    void AddPreloadUIExtensionDeathRecipient(const sptr<IRemoteObject> &session);
+    void HandlePreloadUIExtensionDied(const std::shared_ptr<AbilityRecord> &abilityRecord);
+
 private:
     bool IsNeedToRestart(const std::shared_ptr<AbilityRecord> &abilityRecord,
         const std::string &bundleName, const std::string &abilityName);
@@ -725,6 +742,7 @@ private:
     ServiceMapType serviceMap_;
     RecipientMapType recipientMap_;
     RecipientMapType uiExtRecipientMap_;
+    RecipientMapType preloadUIExtRecipientMap_;
     UIExtensionMapType uiExtensionMap_;
     WindowExtensionMapType windowExtensionMap_;
 
@@ -744,6 +762,7 @@ private:
     std::mutex windowExtensionMapMutex_;
     std::mutex startServiceReqListLock_;
     std::mutex loadAbilityQueueLock_;
+    std::mutex preloadUIExtRecipientMapMutex_;
     std::deque<std::map<int32_t, LoadAbilityContext>> loadAbilityQueue_;
 
     DISALLOW_COPY_AND_MOVE(AbilityConnectManager);
