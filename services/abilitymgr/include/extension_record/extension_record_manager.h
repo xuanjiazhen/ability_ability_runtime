@@ -44,7 +44,7 @@ public:
      * @param extensionRecordId Input extension record id.
      * @return int32_t Generated extension record id.
      */
-    int32_t GenerateExtensionRecordId(const int32_t extensionRecordId);
+    int32_t GenerateExtensionRecordId(const int32_t extensionRecordId, int32_t pid = 0);
 
     /**
      * @brief Add extension record by id, if record exist, replace it.
@@ -139,18 +139,48 @@ public:
                                           const std::string &hostBundleName,
                                           int32_t &recordNum);
 
-private:
-    inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
+    void CheckIsPreloadUIExtensionLoadedById(int32_t extensionRecordId);
+    void CheckIsPreloadUIExtensionDestroyedById(int32_t extensionRecordId);
+    int32_t ClearPreloadedUIExtensionAbility(int32_t extensionRecordId);
+    int32_t ClearAllPreloadUIExtensionRecordForHost(std::string hostBundleName);
+    void RegisterPreloadUIExtensionHostClient(
+        const sptr<IRemoteObject> &callerToken, const std::string &hostBundleName, int32_t hostPid);
+    void UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName, int32_t hostPid);
+    static int32_t GetProcessIdFromRecordId(int32_t recordId);
+    static int32_t GetSequenceFromRecordId(int32_t recordId);
+    static int32_t ReconstructRecordId(int32_t processId, int32_t sequence);
 
 private:
+    inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
+    class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        using PreloadUIExtensionHostClientDiedHandler = std::function<void(const wptr<IRemoteObject> &)>;
+        explicit PreloadUIExtensionHostClientDeathRecipient(PreloadUIExtensionHostClientDiedHandler handler);
+        ~PreloadUIExtensionHostClientDeathRecipient() = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) final;
+
+    private:
+        PreloadUIExtensionHostClientDiedHandler diedHandler_;
+    };
+
+private:
+    static constexpr int32_t PROCESS_ID_BITS = 14;  // 进程ID位数
+    static constexpr int32_t SEQUENCE_BITS = 18;    // 序列号位数
+    static constexpr int32_t MAX_PROCESS_ID = (1 << PROCESS_ID_BITS) - 1;
+    static constexpr int32_t MAX_SEQUENCE = (1 << SEQUENCE_BITS) - 1;
+
     int32_t userId_;
     static std::atomic_int32_t extensionRecordId_;
+    std::unordered_map<int32_t, int32_t> processSequenceMap_;
     std::set<int32_t> extensionRecordIdSet_;
     std::mutex mutex_;
     std::mutex preloadUIExtensionMapMutex_;
+    std::mutex preloadUIExtensionHostClientMutex_;
     ExtensionAbilityRecordMap extensionRecords_;
     ExtensionAbilityRecordMap terminateRecords_;
     PreLoadUIExtensionMapType preloadUIExtensionMap_;
+    std::map<std::pair<int32_t, std::string>, std::pair<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>>>
+        preloadUIExtensionHostClient_;
 
     void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);
     sptr<IRemoteObject> GetCachedFocusedCallerToken(int32_t extensionRecordId) const;
@@ -168,6 +198,7 @@ private:
         const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::shared_ptr<ExtensionRecord> &extensionRecord);
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
         std::shared_ptr<ExtensionRecord> &record, const std::string &process);
+    int32_t GenerateProcessBasedId(int32_t pid);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -1171,7 +1171,7 @@ public:
 
     int RequestModalUIExtensionInner(Want want);
 
-    int PreloadUIExtensionAbilityInner(const Want &want, std::string &bundleName,
+    int PreloadUIExtensionAbilityInner(const Want &want, std::string &bundleName, int32_t &preloadId,
         int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE);
 
     int StartAbilityForOptionWrap(
@@ -2294,6 +2294,12 @@ public:
         TERMINATE_ABILITY_CODE
     };
 
+    enum PreloadUIExtensionStateCode {
+        ABILITY_TO_PRELOAD = 0,
+        ABILITY_PRELOAD_DONE,
+        ABILITY_DESTROY_DONE
+    };
+
 protected:
     /**
      * AbilityMgr's request is done.
@@ -2371,6 +2377,59 @@ protected:
         std::shared_ptr<AbilityRecord> targetService, bool isFromConnect);
 
     static void HandleAutoStartupReadyCallback(const char *key, const char *value, void *context);
+
+    /**
+     * Preload UIExtension with want, send want to ability manager service.
+     *
+     * @param want, the want of the ability to start.
+     * @param hostBundleName, the caller application bundle name.
+     * @param preloadId, the extension ability preload Id.
+     * @param userId, the extension runs in.
+     * @param hostPid, the caller hostPid.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadUIExtensionAbilityWithId(const Want &want, const std::string &hostBundleName,
+        int32_t &preloadId, int32_t userId, int32_t hostPid) override;
+
+    /**
+     * UnPreload UIExtension with want, send want to ability manager service.
+     *
+     * @param extensionAbilityId, the extension ability Id.
+     * @param userId, the extension runs in.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnPreloadUIExtensionAbility(
+        int32_t extensionAbilityId, int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * clear all Preload UIExtension with want, send want to ability manager service.
+     *
+     * @param hostBundleName, the caller application bundle name.
+     * @param userId, the extension runs in.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ClearAllPreloadUIExtensionAbility(
+        const std::string &hostBundleName, int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * @brief Register preload ui extension host client.
+     * @param callerToken Caller ability token.
+     * @param hostBundleName, the caller application bundle name.
+     * @param hostPid, the caller hostPid.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterPreloadUIExtensionHostClient(
+        const sptr<IRemoteObject> &callerToken, const std::string &hostBundleName, int32_t hostPid) override;
+
+    /**
+     * @brief UnRegister preload ui extension host client.
+     * @param hostBundleName, the caller application bundle name.
+     * @param hostPid, the caller hostPid.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName, int32_t hostPid) override;
 
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
