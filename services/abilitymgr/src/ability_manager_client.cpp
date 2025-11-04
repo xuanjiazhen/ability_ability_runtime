@@ -2449,5 +2449,42 @@ bool AbilityManagerClient::IsRestartAppLimit()
     }
     return abms->IsRestartAppLimit();
 }
+
+ErrCode AbilityManagerClient::PreloadUIExtensionAbilityWithId(
+    const Want &want, const std::string &hostBundleName, int32_t &preloadId, int32_t userId, int32_t hostPid)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, userId, hostPid);
+}
+
+ErrCode AbilityManagerClient::UnPreloadUIExtensionAbility(int32_t extensionAbilityId, int32_t userId)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->UnPreloadUIExtensionAbility(extensionAbilityId, userId);
+}
+
+ErrCode AbilityManagerClient::ClearAllPreloadUIExtensionAbility(const std::string &hostBundleName, int32_t userId)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->ClearAllPreloadUIExtensionAbility(hostBundleName, userId);
+}
+
+ErrCode AbilityManagerClient::RegisterPreloadUIExtensionHostClient(
+    const sptr<IRemoteObject> &callerToken, const std::string &hostBundleName, int32_t hostPid)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
+}
+
+ErrCode AbilityManagerClient::UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName, int32_t hostPid)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
+}
 } // namespace AAFwk
 } // namespace OHOS
