@@ -1179,7 +1179,7 @@ bool StringToInt64(const std::string& str, int64_t& result)
 
     const char* strData = str.c_str();
     size_t startIndex = 0;
-    
+
     if (strData[0] == '+' || strData[0] == '-') {
         startIndex = 1;
         if (actualLen == 1) {
@@ -1197,19 +1197,19 @@ bool StringToInt64(const std::string& str, int64_t& result)
 
     char* endPtr = nullptr;
     errno = 0;
-    int64_t parsedValue = strtoll(strData, &endPtr, PARSE_BASE);
+    const long long parsedValue = strtoll(strData, &endPtr, PARSE_BASE);
 
     if (endPtr != strData + actualLen) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Extra characters in numeric string: [%{public}s]", str.c_str());
         return false;
     }
 
-    if (errno == ERANGE) {
+    if (errno == ERANGE || parsedValue < INT64_MIN || parsedValue > INT64_MAX) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Number out of range: [%{public}s]", str.c_str());
         return false;
     }
 
-    result = parsedValue;
+    result = static_cast<int64_t>(parsedValue);
     return true;
 }
 } // namespace AbilityRuntime
