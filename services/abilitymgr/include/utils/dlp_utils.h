@@ -35,6 +35,16 @@ namespace DlpUtils {
 #ifdef WITH_DLP
 using Dlp = Security::DlpPermission::DlpPermissionKit;
 #endif // WITH_DLP
+
+[[maybe_unused]]static bool AccessCheck(const sptr<IRemoteObject> &callerToken, const Want &want)
+{
+#ifdef WITH_DLP
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "CHECK_DLP")
+    return DlpAccessOtherAppsCheck(callerToken, want) && OtherAppsAccessDlpCheck(callerToken, want);
+#endif // WITH_DLP
+    return true;
+}
+
 [[maybe_unused]]static bool DlpAccessOtherAppsCheck(const sptr<IRemoteObject> &callerToken, const Want &want)
 {
 #ifdef WITH_DLP
