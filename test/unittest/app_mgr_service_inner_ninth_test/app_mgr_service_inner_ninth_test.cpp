@@ -1293,6 +1293,12 @@ HWTEST_F(AppMgrServiceInnerNinthTest, ApplicationBackgrounded_007, TestSize.Leve
     EXPECT_TRUE(appRecord->GetApplicationPendingState() == ApplicationPendingState::READY);
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     
+    appRecord->SetState(ApplicationState::APP_STATE_READY);
+    appRecord->SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
+    appMgrServiceInner->ApplicationBackgrounded(testRecordId);
+    EXPECT_TRUE(appRecord->GetApplicationPendingState() == ApplicationPendingState::READY);
+    AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
+
     TAG_LOGI(AAFwkTag::TEST, "ApplicationBackgrounded_007 end");
 }
 
