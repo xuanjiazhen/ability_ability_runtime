@@ -529,12 +529,9 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
 
     DelayedSingleton<AppScheduler>::GetInstance()->NotifyLoadAbilityFinished(options.callingPid,
         GetPid(), options.loadAbilityCallbackId);
-    auto recordCallerInfo = GetCallerInfo();
-    if (recordCallerInfo != nullptr && GetRequestCode() != DEFAULT_REQUEST_CODE) {
-        ForegroundAppConnectionInfo info(recordCallerInfo->callerPid, GetPid(), recordCallerInfo->callerUid, GetUid(),
-            recordCallerInfo->callerBundleName, GetElementName().GetBundleName());
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(
-            info, GetAbilityRecordId());
+    if (ForegroundAppConnectionManager::isForegroundAppConnection(GetAbilityInfo(), GetCallerRecord()) &&
+        GetRequestCode() != DEFAULT_REQUEST_CODE) {
+        ReportAbilityConnectionRelations();
     }
 
     PostForegroundTimeoutTask();

@@ -1219,10 +1219,6 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 
     EventInfo eventInfo = BuildEventInfo(want, userId);
     int result = ERR_OK;
-    if (requestCode != DEFAULT_REQUEST_CODE) {
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
-            IPCSkeleton::GetCallingUid(), want.GetBundle());
-    }
     // prevent the app from dominating the screen
     if (callerToken == nullptr && !IsCallerSceneBoard() && !isSendDialogResult && !isForegroundToRestartApp &&
         AbilityPermissionUtil::GetInstance().IsDominateScreen(want, isPendingWantCaller)) {
@@ -1404,6 +1400,12 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error:%{public}d", result);
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
         return result;
+    }
+
+    if (ForegroundAppConnectionManager::isForegroundAppConnection(abilityRequest.abilityInfo, abilityRecord) &&
+        requestCode != DEFAULT_REQUEST_CODE) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
+            IPCSkeleton::GetCallingUid(), want.GetBundle());
     }
 
     if (specifyTokenId > 0 && callerToken != nullptr) { // for sa specify tokenId and caller token
@@ -2018,10 +2020,6 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     EventInfo eventInfo = BuildEventInfo(want, userId);
-    if (requestCode != DEFAULT_REQUEST_CODE) {
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
-            IPCSkeleton::GetCallingUid(), want.GetBundle());
-    }
     // prevent the app from dominating the screen
     if (callerToken == nullptr && !IsCallerSceneBoard() && !isCallByShortcut &&
         AbilityPermissionUtil::GetInstance().IsDominateScreen(want, isPendingWantCaller)) {
@@ -2185,6 +2183,14 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
         return result;
     }
+
+    auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (ForegroundAppConnectionManager::isForegroundAppConnection(abilityRequest.abilityInfo, callerRecord) &&
+        requestCode != DEFAULT_REQUEST_CODE) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
+            IPCSkeleton::GetCallingUid(), want.GetBundle());
+    }
+
     std::string currentProcessName = startOptions.GetCurrentProcessName();
     if (!currentProcessName.empty()) {
         abilityRequest.specifiedFlag = want.GetStringParam(KEY_SPECIFIED_FLAG);
@@ -6780,14 +6786,6 @@ int AbilityManagerService::AttachAbilityThread(
     auto type = abilityInfo.type;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s", abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str());
-    auto recordCallerInfo = abilityRecord->GetCallerInfo();
-    if (recordCallerInfo != nullptr && abilityRecord->GetRequestCode() != DEFAULT_REQUEST_CODE) {
-        ForegroundAppConnectionInfo info(recordCallerInfo->callerPid, IPCSkeleton::GetCallingPid(),
-            recordCallerInfo->callerUid, IPCSkeleton::GetCallingUid(),
-            recordCallerInfo->callerBundleName, abilityRecord->GetElementName().GetBundleName());
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(info,
-            abilityRecord->GetAbilityRecordId());
-    }
     // force timeout ability for test
     if (IsNeedTimeoutForTest(abilityInfo.name, AbilityRecord::ConvertAbilityState(AbilityState::INITIAL))) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
