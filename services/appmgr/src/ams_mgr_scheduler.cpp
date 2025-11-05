@@ -302,7 +302,7 @@ void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const 
 int32_t AmsMgrScheduler::KillProcessWithAccount(
     const std::string &bundleName, const int accountId, const bool clearPageStack, int32_t appIndex)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "bundle=%{public}s, appIndex=%{public}d, userId=%{public}d, clearPageStack=%{public}d",
+    TAG_LOGI(AAFwkTag::APPMGR, "Kill %{public}s#%{public}d u:%{public}d clearPageStack:%{public}d",
         bundleName.c_str(), appIndex, accountId, clearPageStack);
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -367,7 +367,7 @@ int32_t AmsMgrScheduler::UpdateApplicationInfoInstalled(const std::string &bundl
 
 int32_t AmsMgrScheduler::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "bundleName = %{public}s, clearPageStack = %{public}d",
+    TAG_LOGI(AAFwkTag::APPMGR, "Kill %{public}s clearPageStack:%{public}d",
         bundleName.c_str(), clearPageStack);
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -379,8 +379,8 @@ int32_t AmsMgrScheduler::KillApplication(const std::string &bundleName, bool cle
 int32_t AmsMgrScheduler::ForceKillApplication(const std::string &bundleName,
     const int userId, const int appIndex)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "bundleName=%{public}s,userId=%{public}d,apIndex=%{public}d",
-        bundleName.c_str(), userId, appIndex);
+    TAG_LOGI(AAFwkTag::APPMGR, "Kill %{public}s#%{public}d u:%{public}d",
+        bundleName.c_str(),  appIndex, userId);
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -401,7 +401,7 @@ int32_t AmsMgrScheduler::KillProcessesByAccessTokenId(const uint32_t accessToken
 int32_t AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, const int uid,
     const std::string& reason)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "bundleName = %{public}s, uid = %{public}d", bundleName.c_str(), uid);
+    TAG_LOGI(AAFwkTag::APPMGR, "KillByUid %{public}s u:%{public}d", bundleName.c_str(), uid);
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -410,7 +410,7 @@ int32_t AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, con
 
 int32_t AmsMgrScheduler::NotifyUninstallOrUpgradeApp(const std::string &bundleName, int32_t uid, bool isUpgrade)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "bundleName = %{public}s, uid = %{public}d", bundleName.c_str(), uid);
+    TAG_LOGI(AAFwkTag::APPMGR, "UninstallOrUpgrade %{public}s u:%{public}d", bundleName.c_str(), uid);
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -501,7 +501,7 @@ void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppEx
 
 void AmsMgrScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPKIT, "PrepareTerminateApp");
     if (!IsReady()) {
         TAG_LOGW(AAFwkTag::APPMGR, "not ready");
         return;
