@@ -1164,7 +1164,7 @@ void JsUIExtensionBase::UnregisterDisplayInfoChangedListener()
 }
 #endif // SUPPORT_GRAPHICS
 
-bool StringToInt64(const std::string& str, int64_t& result)
+bool JsUIExtensionBase::StringToInt64(const std::string& str, int64_t& result)
 {
     if (str.empty()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Empty string provided to StringToInt64");
