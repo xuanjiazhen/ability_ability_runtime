@@ -1027,5 +1027,67 @@ bool AppfreezeManager::CheckAppfreezeHappend(int32_t pid, const std::string& eve
     }
     return false;
 }
+
+bool AppfreezeManager::IsBetaVersion()
+{
+    return g_betaVersion;
+}
+
+bool AppfreezeManager::RemoveOldKillInfo()
+{
+    std::lock_guard<std::mutex> mapLock(freezeKillThreadMutex_);
+    if (freezeKillThreadMap_.size() < MAX_CPU_MAP_SIZE) {
+        return true;
+    }
+    int removeCount = 0;
+    uint64_t curTime = AppfreezeUtil::GetMilliseconds();
+    for (auto it = freezeKillThreadMap_.begin(); it != freezeKillThreadMap_.end();) {
+        auto interval = curTime - it->second.occurTime;
+        if (interval > TIME_LIMIT || interval < 0) {
+            it = freezeKillThreadMap_.erase(it);
+            removeCount++;
+        } else {
+            ++it;
+        }
+    }
+    TAG_LOGI(AAFwkTag::APPDFR, "remove old tasks count: %{public}d, "
+        "current tasks count: %{public}zu", removeCount, freezeKillThreadMap_.size());
+    return removeCount != 0;
+}
+
+void AppfreezeManager::InsertKillThread(int32_t killState, int32_t pid, int32_t uid, const std::string& bundleName)
+{
+    if (!RemoveOldKillInfo()) {
+        return;
+    }
+    std::string key = bundleName + KEY_SEPARATOR + pid + KEY_SEPARATOR + uid;
+    std::lock_guard<std::mutex> mapLock(freezeKillThreadMutex_);
+    if (freezeKillThreadMap_.find(key) != freezeKillThreadMap_.end()) {
+        freezeKillThreadMap_[key].killState = killState;
+        freezeKillThreadMap_[key].occurTime = GetFreezeCurrentTime();
+    } else {
+        AppFreezeKillInfo info;
+        info.killState = killState;
+        info.occurTime = GetFreezeCurrentTime();
+        freezeKillThreadMap_[key] = info;
+    }
+    TAG_LOGI(AAFwkTag::APPDFR, "insert or update key: %{public}s", key.c_str());
+}
+
+bool AppfreezeManager::CheckThreadKilled(int32_t pid, int32_t uid, const std::string& bundleName)
+{
+    std::string key = bundleName + KEY_SEPARATOR + pid + KEY_SEPARATOR + uid;
+    std::lock_guard<std::mutex> mapLock(freezeKillThreadMutex_);
+    if (freezeKillThreadMap_.size() == 0) {
+        return false;
+    }
+    auto it = freezeKillThreadMap_.find(key);
+    if (it != freezeKillThreadMap_.end()) {
+        TAG_LOGI(AAFwkTag::APPDFR, "check kill ret, key: %{public}s killState: %{public}s",
+            key.c_str(), it->second.killState);
+        return it->second.killState >= 0;
+    }
+    return false;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
