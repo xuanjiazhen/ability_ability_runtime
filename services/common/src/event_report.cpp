@@ -168,9 +168,9 @@ void EventReport::LogWantAgentNumberEvent(const std::string &name, HiSysEventTyp
         HiSysEvent::Domain::AAFWK,
         name,
         type,
-        EVENT_KEY_CALLER_UID, eventInfo.callerUid,
-        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
-        EVENT_KEY_WANTAGENT_NUMBER, eventInfo.wantAgentNumber);
+        "EVENT_KEY_CALLER_UID", eventInfo.callerUid,
+        "EVENT_KEY_CALLER_BUNDLE_NAME", eventInfo.callerBundleName,
+        "EVENT_KEY_WANTAGENT_NUMBER", eventInfo.wantAgentNumber);
 }
 
 void EventReport::LogTriggerFailedEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
