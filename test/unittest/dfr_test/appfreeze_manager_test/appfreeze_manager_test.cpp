@@ -463,5 +463,45 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetUidByPid_Test001, TestSiz
     ret = AppfreezeUtil::GetUidByPid(1);
     EXPECT_TRUE(ret > 0);
 }
+
+/**
+ * @tc.number: AppfreezeManagerTest InsertKillThread Test
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_InsertKillThread_Test001, TestSize.Level1)
+{
+    int32_t killState = 1;
+    int32_t pid = getpid();
+    int32_t uid = getuid();
+    std::string bundleName = "Test001";
+    appfreezeManager->InsertKillThread(killState, pid, uid, bundleName);
+    EXPECT_TRUE(!appfreezeManager->freezeKillThreadMap_.size() > 0);
+    appfreezeManager->InsertKillThread(killState, pid, uid, bundleName);
+    EXPECT_TRUE(!appfreezeManager->freezeKillThreadMap_.size() > 0);
+    int count = 10; // test value
+    for (int i = 1; i <= count; i++) {
+        pid += i;
+        appfreezeManager->InsertKillThread(killState, pid, uid, bundleName);
+    }
+    while (count >= 0) {
+        count = sleep(count);
+    }
+    pid += i;
+    appfreezeManager->InsertKillThread(killState, pid, uid, bundleName);
+    EXPECT_TRUE(!appfreezeManager->freezeKillThreadMap_.size() > 0);
+    bool ret = appfreezeManager->CheckThreadKilled(pid, uid, bundleName);
+    EXPECT_TRUE(ret);
+    ret = appfreezeManager->IsSkipDetect(killState, pid, uid, bundleName, "test");
+    EXPECT_TRUE(ret);
+    killState = -1;
+    appfreezeManager->InsertKillThread(killState, pid, uid, bundleName);
+    ret = appfreezeManager->CheckThreadKilled(pid, uid, bundleName);
+    EXPECT_TRUE(!ret);
+    ret = appfreezeManager->CheckThreadKilled(10, 10, bundleName);
+    EXPECT_TRUE(!ret);
+    ret = appfreezeManager->IsSkipDetect(killState, pid, uid, bundleName, "test");
+    EXPECT_TRUE(!ret);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
