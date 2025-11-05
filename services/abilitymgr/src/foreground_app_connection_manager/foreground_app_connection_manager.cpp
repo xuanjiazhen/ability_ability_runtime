@@ -17,6 +17,7 @@
 
 #include <chrono>
 
+#include "ui_extension_utils.h"
 #include "foreground_app_connection_data.h"
 #include "foreground_app_connection_errors.h"
 #include "hilog_tag_wrapper.h"
@@ -26,6 +27,29 @@ namespace AAFwk {
 
 ForegroundAppConnectionManager::ForegroundAppConnectionManager() {}
 ForegroundAppConnectionManager::~ForegroundAppConnectionManager() {}
+
+bool ForegroundAppConnectionManager::isForegroundAppConnection(
+    const AppExecFwk::AbilityInfo &targetAbilityInfo, std::shared_ptr<AbilityRecord> callerAbilityRecord)
+{
+    if (callerAbilityRecord == nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "callerAbilityRecord is null");
+        return false;
+    }
+    bool isTargetUIAbility = targetAbilityInfo.type == AppExecFwk::AbilityType::PAGE;
+    bool isTargetUIExtension = UIExtensionUtils::IsUIExtension(targetAbilityInfo.extensionAbilityType);
+    if (!isTargetUIAbility && !isTargetUIExtension) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "target not UIAbility or UIExtension");
+        return false;
+    }
+    bool isCallerUIAbility = callerAbilityRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE;
+    bool isCallerUIExtension = 
+        UIExtensionUtils::IsUIExtension(callerAbilityRecord->GetAbilityInfo().extensionAbilityType);
+    if (!isCallerUIAbility && !isCallerUIExtension) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "caller not UIAbility or UIExtension");
+        return false;
+    }
+    return true;
+}
 
 int32_t ForegroundAppConnectionManager::RegisterObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer)
 {
