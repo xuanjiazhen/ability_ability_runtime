@@ -65,11 +65,6 @@ std::shared_ptr<AppSpawnClient> RemoteClientManager::GetNativeSpawnClient()
 {
     return nullptr;
 }
-
-std::shared_ptr<AppSpawnClient> RemoteClientManager::GetHybridSpawnClient()
-{
-    return nullptr;
-}
 }  // namespace AppExecFwk
 }  // namespace OHOS
  

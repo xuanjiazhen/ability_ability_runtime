@@ -25,8 +25,7 @@ namespace AppExecFwk {
 RemoteClientManager::RemoteClientManager()
     : appSpawnClient_(std::make_shared<AppSpawnClient>()), nwebSpawnClient_(std::make_shared<AppSpawnClient>(true)),
     cjAppSpawnClient_(std::make_shared<AppSpawnClient>("cjappspawn")),
-    nativeSpawnClient_(std::make_shared<AppSpawnClient>("nativespawn")),
-    hybridSpawnClient_(std::make_shared<AppSpawnClient>("hybridspawn"))
+    nativeSpawnClient_(std::make_shared<AppSpawnClient>("nativespawn"))
 {}
 
 RemoteClientManager::~RemoteClientManager()
@@ -74,14 +73,6 @@ std::shared_ptr<AppSpawnClient> RemoteClientManager::GetCJSpawnClient()
 std::shared_ptr<AppSpawnClient> RemoteClientManager::GetNativeSpawnClient()
 {
     return nativeSpawnClient_;
-}
-
-std::shared_ptr<AppSpawnClient> RemoteClientManager::GetHybridSpawnClient()
-{
-    if (hybridSpawnClient_) {
-        return hybridSpawnClient_;
-    }
-    return nullptr;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
