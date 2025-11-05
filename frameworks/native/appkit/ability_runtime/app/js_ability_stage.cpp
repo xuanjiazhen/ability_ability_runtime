@@ -233,7 +233,7 @@ void JsAbilityStage::OnCreate(const AAFwk::Want &want) const
     AbilityStage::OnCreate(want);
 
     if (!jsAbilityStageObj_) {
-        TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        TAG_LOGW(AAFwkTag::APPKIT, "No AbilityStage.js");
         ClearAppPreload();
         return;
     }
@@ -271,7 +271,7 @@ void JsAbilityStage::OnDestroy() const
     AbilityStage::OnDestroy();
 
     if (!jsAbilityStageObj_) {
-        TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        TAG_LOGW(AAFwkTag::APPKIT, "No AbilityStage.js");
         return;
     }
 
@@ -301,7 +301,7 @@ bool JsAbilityStage::OnPrepareTerminate(
     AbilityStage::OnPrepareTerminate(callbackInfo, isAsync);
 
     if (!jsAbilityStageObj_) {
-        TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        TAG_LOGW(AAFwkTag::APPKIT, "No AbilityStage.js");
         return false;
     }
 
@@ -409,7 +409,7 @@ std::string JsAbilityStage::OnAcceptWant(const AAFwk::Want &want,
     auto env = jsRuntime_.GetNapiEnv();
 
     if (!jsAbilityStageObj_) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        TAG_LOGE(AAFwkTag::APPKIT, "No AbilityStage.js");
         return "";
     }
     std::string methodName = "onAcceptWantAsync";
@@ -523,7 +523,7 @@ std::string JsAbilityStage::OnNewProcessRequest(const AAFwk::Want &want,
     auto env = jsRuntime_.GetNapiEnv();
 
     if (!jsAbilityStageObj_) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        TAG_LOGE(AAFwkTag::APPKIT, "No AbilityStage.js");
         return "";
     }
     std::string methodName = "onNewProcessRequestAsync";
@@ -788,7 +788,7 @@ napi_value JsAbilityStage::CallObjectMethod(
 {
     TAG_LOGD(AAFwkTag::APPKIT, "call %{public}s", name);
     if (!jsAbilityStageObj_) {
-        TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        TAG_LOGW(AAFwkTag::APPKIT, "No AbilityStage.js");
         return nullptr;
     }
 
