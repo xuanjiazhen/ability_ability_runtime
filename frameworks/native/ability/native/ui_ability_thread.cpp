@@ -271,7 +271,7 @@ void UIAbilityThread::HandleShareData(const int32_t &uniqueId)
 
 void UIAbilityThread::ScheduleSaveAbilityState()
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleSaveAbilityState");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
         return;
@@ -282,7 +282,7 @@ void UIAbilityThread::ScheduleSaveAbilityState()
 
 void UIAbilityThread::ScheduleRestoreAbilityState(const AppExecFwk::PacMap &state)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleRestoreAbilityState");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
         return;
@@ -292,13 +292,13 @@ void UIAbilityThread::ScheduleRestoreAbilityState(const AppExecFwk::PacMap &stat
 
 void UIAbilityThread::ScheduleUpdateConfiguration(const AppExecFwk::Configuration &config)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleUpdateConfiguration");
     HandleUpdateConfiguration(config);
 }
 
 void UIAbilityThread::HandleUpdateConfiguration(const AppExecFwk::Configuration &config)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "HandleUpdateConfiguration");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
         return;

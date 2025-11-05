@@ -165,7 +165,7 @@ sptr<IAmsMgr> AppMgrProxy::GetAmsMgr()
 
 int32_t AppMgrProxy::ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex, const int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "Called.");
+    TAG_LOGI(AAFwkTag::APPMGR, "ClearUpApplicationData");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -182,7 +182,7 @@ int32_t AppMgrProxy::ClearUpApplicationData(const std::string &bundleName, int32
 
 int32_t AppMgrProxy::ClearUpApplicationDataBySelf(int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "called");
+    TAG_LOGI(AAFwkTag::APPMGR, "ClearUpApplicationDataBySelf");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -958,7 +958,7 @@ int AppMgrProxy::GetRenderProcessTerminationStatus(pid_t renderPid, int &status)
 
 int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfiguration");
+    TAG_LOGI(AAFwkTag::APPMGR, "UpdateConfiguration");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -984,7 +984,7 @@ int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int3
 int32_t AppMgrProxy::UpdateConfigurationByUserIds(
     const Configuration &config, const std::vector<int32_t> userIds)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfiguration");
+    TAG_LOGI(AAFwkTag::APPMGR, "UpdateConfiguration");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -1010,7 +1010,7 @@ int32_t AppMgrProxy::UpdateConfigurationByUserIds(
 int32_t AppMgrProxy::UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo>& appInfos,
     const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfigurationForBackgroundApp");
+    TAG_LOGD(AAFwkTag::APPMGR, "UpdateConfigurationForBackgroundApp");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -1051,7 +1051,7 @@ int32_t AppMgrProxy::UpdateConfigurationForBackgroundApp(const std::vector<Backg
 int32_t AppMgrProxy::UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
     int32_t appIndex)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfigurationByBundleName");
+    TAG_LOGD(AAFwkTag::APPMGR, "UpdateConfigurationByBundleName");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         return ERR_INVALID_DATA;
@@ -1192,7 +1192,7 @@ int32_t AppMgrProxy::UnregisterConfigurationObserver(const sptr<IConfigurationOb
 bool AppMgrProxy::GetAppRunningStateByBundleName(const std::string &bundleName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "GetAppRunningStateByBundleName");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1219,7 +1219,7 @@ bool AppMgrProxy::GetAppRunningStateByBundleName(const std::string &bundleName)
 int32_t AppMgrProxy::NotifyLoadRepairPatch(const std::string &bundleName, const sptr<IQuickFixCallback> &callback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyLoadRepairPatch");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "NotifyLoadRepairPatch, Write interface token failed.");
@@ -1251,7 +1251,7 @@ int32_t AppMgrProxy::NotifyLoadRepairPatch(const std::string &bundleName, const 
 int32_t AppMgrProxy::NotifyHotReloadPage(const std::string &bundleName, const sptr<IQuickFixCallback> &callback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyHotReloadPage");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1317,7 +1317,7 @@ int32_t AppMgrProxy::SetContinuousTaskProcess(int32_t pid, bool isContinuousTask
 int32_t AppMgrProxy::NotifyUnLoadRepairPatch(const std::string &bundleName, const sptr<IQuickFixCallback> &callback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyUnLoadRepairPatch");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Notify unload patch, Write interface token failed.");
@@ -1344,7 +1344,7 @@ int32_t AppMgrProxy::NotifyUnLoadRepairPatch(const std::string &bundleName, cons
 bool AppMgrProxy::IsSharedBundleRunning(const std::string &bundleName, uint32_t versionCode)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "IsSharedBundleRunning");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1410,7 +1410,7 @@ int32_t AppMgrProxy::GetBundleNameByPid(const int pid, std::string &bundleName, 
 
 int32_t AppMgrProxy::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "start");
+    TAG_LOGD(AAFwkTag::APPMGR, "GetRunningProcessInfoByPid");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1437,7 +1437,7 @@ int32_t AppMgrProxy::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFw
 int32_t AppMgrProxy::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
     OHOS::AppExecFwk::RunningProcessInfo &info)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "start");
+    TAG_LOGD(AAFwkTag::APPMGR, "GetRunningProcessInfoByChildProcessPid");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1464,7 +1464,7 @@ int32_t AppMgrProxy::GetRunningProcessInfoByChildProcessPid(const pid_t childPid
 
 int32_t AppMgrProxy::NotifyAppFault(const FaultData &faultData)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "called");
+    TAG_LOGI(AAFwkTag::APPMGR, "NotifyAppFault");
     MessageParcel data;
 
     if (!WriteInterfaceToken(data)) {
@@ -1486,7 +1486,7 @@ int32_t AppMgrProxy::NotifyAppFault(const FaultData &faultData)
 
 int32_t AppMgrProxy::NotifyAppFaultBySA(const AppFaultDataBySA &faultData)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "called");
+    TAG_LOGI(AAFwkTag::APPMGR, "NotifyAppFaultBySA");
     MessageParcel data;
 
     if (!WriteInterfaceToken(data)) {
@@ -1508,7 +1508,7 @@ int32_t AppMgrProxy::NotifyAppFaultBySA(const AppFaultDataBySA &faultData)
 
 bool AppMgrProxy::SetAppFreezeFilter(int32_t pid)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "SetAppFreezeFilter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1590,7 +1590,7 @@ int32_t AppMgrProxy::GetRunningProcessInformation(
 
 int32_t AppMgrProxy::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "ChangeAppGcState");
     MessageParcel data;
     MessageParcel reply;
     if (!WriteInterfaceToken(data)) {
@@ -1617,7 +1617,7 @@ int32_t AppMgrProxy::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
 
 int32_t AppMgrProxy::NotifyPageShow(const sptr<IRemoteObject> &token, const PageStateData &pageStateData)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyPageShow");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -1641,7 +1641,7 @@ int32_t AppMgrProxy::NotifyPageShow(const sptr<IRemoteObject> &token, const Page
 
 int32_t AppMgrProxy::NotifyPageHide(const sptr<IRemoteObject> &token, const PageStateData &pageStateData)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyPageHide");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -1751,7 +1751,7 @@ int32_t AppMgrProxy::UnregisterAppForegroundStateObserver(const sptr<IAppForegro
 int32_t AppMgrProxy::IsApplicationRunning(const std::string &bundleName, bool &isRunning)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "IsApplicationRunning");
     isRunning = false;
     MessageParcel data;
     MessageParcel reply;
@@ -1770,7 +1770,7 @@ int32_t AppMgrProxy::IsApplicationRunning(const std::string &bundleName, bool &i
 int32_t AppMgrProxy::IsAppRunning(const std::string &bundleName, int32_t appCloneIndex, bool &isRunning)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "IsAppRunning");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1791,7 +1791,7 @@ int32_t AppMgrProxy::IsAppRunning(const std::string &bundleName, int32_t appClon
     int32_t userId, bool &isRunning)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "IsAppRunning");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1812,7 +1812,7 @@ int32_t AppMgrProxy::IsAppRunning(const std::string &bundleName, int32_t appClon
 int32_t AppMgrProxy::IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId, bool &isRunning)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "IsAppRunningByBundleNameAndUserId");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1832,7 +1832,7 @@ int32_t AppMgrProxy::IsAppRunningByBundleNameAndUserId(const std::string &bundle
 #ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrProxy::StartChildProcess(pid_t &childPid, const ChildProcessRequest &request)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "StartChildProcess");
     if (request.srcEntry.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Invalid params, srcEntry:%{private}s", request.srcEntry.c_str());
         return ERR_INVALID_VALUE;
@@ -1860,7 +1860,7 @@ int32_t AppMgrProxy::StartChildProcess(pid_t &childPid, const ChildProcessReques
 
 int32_t AppMgrProxy::GetChildProcessInfoForSelf(ChildProcessInfo &info)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "GetChildProcessInfoForSelf");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1880,7 +1880,7 @@ int32_t AppMgrProxy::GetChildProcessInfoForSelf(ChildProcessInfo &info)
 
 void AppMgrProxy::AttachChildProcess(const sptr<IRemoteObject> &childScheduler)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "AttachChildProcess");
     if (!childScheduler) {
         TAG_LOGE(AAFwkTag::APPMGR, "childScheduler is null");
         return;
@@ -1899,7 +1899,7 @@ void AppMgrProxy::AttachChildProcess(const sptr<IRemoteObject> &childScheduler)
 
 void AppMgrProxy::ExitChildProcessSafely()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "ExitChildProcessSafely");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1914,7 +1914,7 @@ void AppMgrProxy::ExitChildProcessSafely()
 
 bool AppMgrProxy::IsFinalAppProcess()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "IsFinalAppProcess");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1935,7 +1935,7 @@ bool AppMgrProxy::IsFinalAppProcess()
 
 int32_t AppMgrProxy::RegisterRenderStateObserver(const sptr<IRenderStateObserver> &observer)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "RegisterRenderStateObserver");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1955,7 +1955,7 @@ int32_t AppMgrProxy::RegisterRenderStateObserver(const sptr<IRenderStateObserver
 
 int32_t AppMgrProxy::UnregisterRenderStateObserver(const sptr<IRenderStateObserver> &observer)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "UnregisterRenderStateObserver");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1975,7 +1975,7 @@ int32_t AppMgrProxy::UnregisterRenderStateObserver(const sptr<IRenderStateObserv
 
 int32_t AppMgrProxy::UpdateRenderState(pid_t renderPid, int32_t state)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "UpdateRenderState");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -1993,7 +1993,7 @@ int32_t AppMgrProxy::UpdateRenderState(pid_t renderPid, int32_t state)
 
 int32_t AppMgrProxy::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "SignRestartAppFlag");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -2025,7 +2025,7 @@ int32_t AppMgrProxy::SignRestartProcess(int32_t pid)
 
 int32_t AppMgrProxy::GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRunningUniqueId)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "GetAppRunningUniqueIdByPid");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -2118,7 +2118,7 @@ int32_t AppMgrProxy::NotifyMemorySizeStateChanged(int32_t memorySizeState)
 
 int32_t AppMgrProxy::SetSupportedProcessCacheSelf(bool isSupport)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "SetSupportedProcessCacheSelf");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -2135,7 +2135,7 @@ int32_t AppMgrProxy::SetSupportedProcessCacheSelf(bool isSupport)
 
 int32_t AppMgrProxy::SetSupportedProcessCache(int32_t pid, bool isSupport)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "SetSupportedProcessCache");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -2189,7 +2189,7 @@ int32_t AppMgrProxy::SetProcessCacheEnable(int32_t pid, bool enable)
 
 void AppMgrProxy::SetAppAssertionPauseState(bool flag)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "SetAppAssertionPauseState");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -2206,7 +2206,7 @@ void AppMgrProxy::SetAppAssertionPauseState(bool flag)
 int32_t AppMgrProxy::CreateNativeChildProcess(const std::string &libName,
     const sptr<IRemoteObject> &callback, const ChildProcessRequest &request)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "CreateNativeChildProcess");
     if (libName.empty() || !callback) {
         TAG_LOGE(AAFwkTag::APPMGR, "Invalid params, libName:%{private}s", libName.c_str());
         return ERR_INVALID_VALUE;
