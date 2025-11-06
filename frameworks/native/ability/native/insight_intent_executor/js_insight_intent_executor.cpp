@@ -21,6 +21,7 @@
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_constant.h"
+#include "insight_intent_delay_result_callback_mgr.h"
 #include "insight_intent_execute_result.h"
 #include "js_insight_intent_context.h"
 #include "js_runtime.h"
@@ -90,12 +91,16 @@ bool JsInsightIntentExecutor::Init(const InsightIntentExecutorInfo& insightInten
 
     auto executorNapiVal = jsObj_->GetNapiValue();
     auto contextNapiVal = contextObj_->GetNapiValue();
+    napi_value jsInstanceId = nullptr;
+    napi_create_int64(env, context->GetIntentId(), &jsInstanceId);
+    napi_set_named_property(env, contextNapiVal, "instanceId", jsInstanceId);
     if (!CheckTypeForNapiValue(env, executorNapiVal, napi_object) ||
         !CheckTypeForNapiValue(env, contextNapiVal, napi_object) ||
         napi_set_named_property(env, executorNapiVal, "context", contextNapiVal) != napi_ok) {
         TAG_LOGE(AAFwkTag::INTENT, "Set context property failed");
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
+    context->SetExecuteMode(insightIntentInfo.executeParam->executeMode_);
 
     return true;
 }
@@ -273,6 +278,27 @@ napi_value JsInsightIntentExecutor::ResolveCbCpp(napi_env env, napi_callback_inf
     return nullptr;
 }
 
+napi_value JsInsightIntentExecutor::ResolveCbCppWithDelay(napi_env env, napi_callback_info info)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    constexpr size_t argc = 1;
+    napi_value argv[argc] = {nullptr};
+    size_t actualArgc = argc;
+    void* data = nullptr;
+    napi_get_cb_info(env, info, &actualArgc, argv, nullptr, &data);
+    auto* callback = static_cast<InsightIntentExecutorAsyncCallback*>(data);
+    napi_value resultJs = argv[0];
+    if (resultJs == nullptr) {
+        JsInsightIntentExecutor::ReplyFailed(callback);
+        return nullptr;
+    }
+    std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> resultCpp =
+        JsInsightIntentExecutor::GetResultFromJs(env, resultJs);
+    resultCpp->isNeedDelayResult = true;
+    JsInsightIntentExecutor::ReplySucceeded(callback, resultCpp);
+    return nullptr;
+}
+
 napi_value JsInsightIntentExecutor::RejectCbCpp(napi_env env, napi_callback_info info)
 {
     TAG_LOGW(AAFwkTag::INTENT, "reject function");
@@ -353,8 +379,14 @@ bool JsInsightIntentExecutor::HandleResultReturnedFromJsFunc(napi_value resultJs
         napi_value then = nullptr;
         napi_get_named_property(env, resultJs, "then", &then);
         napi_value resolveCbJs = nullptr;
-        napi_create_function(env, TMP_NAPI_ANONYMOUS_FUNC, strlen(TMP_NAPI_ANONYMOUS_FUNC),
-            ResolveCbCpp, callback, &resolveCbJs);
+        if(GetContext()->GetDelayReturnMode() == InsightIntentReturnMode::CALLBACK) {
+            napi_create_function(env, TMP_NAPI_ANONYMOUS_FUNC, strlen(TMP_NAPI_ANONYMOUS_FUNC),
+                ResolveCbCpp, callback, &resolveCbJs);
+            InsightIntentDelayResultCallbackMgr::GetInstance().RemoveDelayResultCallback(GetContext()->GetIntentId());
+        } else {
+            napi_create_function(env, TMP_NAPI_ANONYMOUS_FUNC, strlen(TMP_NAPI_ANONYMOUS_FUNC),
+                ResolveCbCppWithDelay, callback, &resolveCbJs);
+        }
         constexpr size_t argcThen = 1;
         napi_value argvThen[argcThen] = { resolveCbJs };
         napi_call_function(env, resultJs, then, argcThen, argvThen, nullptr);
@@ -376,6 +408,12 @@ bool JsInsightIntentExecutor::HandleResultReturnedFromJsFunc(napi_value resultJs
             STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
         }
         TAG_LOGD(AAFwkTag::INTENT, "Call succeed");
+        if(GetContext()->GetDelayReturnMode() == InsightIntentReturnMode::FUNCTION) {
+            TAG_LOGD(AAFwkTag::INTENT, "GetDelayReturnMode FUNCTION");
+            resultCpp->isNeedDelayResult = true;
+        } else {
+            InsightIntentDelayResultCallbackMgr::GetInstance().RemoveDelayResultCallback(GetContext()->GetIntentId());
+        }
         ReplySucceededInner(resultCpp);
     }
     return true;
