@@ -34,6 +34,9 @@
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 
+#include "ani_common_execute_result.h"
+#include "insight_intent_executor_mgr.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
@@ -56,6 +59,8 @@ public:
     static void NativeOn(ani_env *env, ani_string aniType, ani_object aniObserver);
     static void NativeOff(ani_env *env, ani_string aniType, ani_object aniObserver);
     static void GetExtensionRunningInfos(ani_env *env, ani_int upperLimit, ani_object callback);
+    static void BackToCallerExecuteResult(ani_env *env, ani_int intentId,
+        ani_object executeResultObj, ani_object callbackObj);
 private:
     static sptr<AppExecFwk::IAbilityManager> GetAbilityManagerInstance();
     static sptr<AppExecFwk::IAppMgr> GetAppManagerInstance();
@@ -350,6 +355,22 @@ void EtsAbilityManager::GetExtensionRunningInfos(ani_env *env, ani_int upperLimi
         EtsErrorUtil::CreateErrorByNativeErr(env, errcode), extensionArray);
 }
 
+void EtsAbilityManager::BackToCallerExecuteResult(ani_env *env, ani_int intentId,
+    ani_object executeResultObj, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call BackToCallerExecuteResult");
+    auto resultCpp = std::make_shared<AppExecFwk::InsightIntentExecuteResult>();
+    if (!UnwrapExecuteResult(env, executeResultObj, *resultCpp)) {
+        TAG_LOGE(AAFwkTag::MISSION, "UnwrapExecuteResult failed");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+    }
+    if(DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->CheckNeedDelay(intentId)) {
+        TAG_LOGE(AAFwkTag::MISSION, "not deed delay");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+    }
+    DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->BackToCallerExecuteResult(intentId, resultCpp);
+}
+
 void EtsAbilityManagerRegistryInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call EtsAbilityManagerRegistryInit");
@@ -389,6 +410,8 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
         ani_native_function { "nativeOff", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOff) },
         ani_native_function {"nativeGetExtensionRunningInfos", "ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(EtsAbilityManager::GetExtensionRunningInfos)},
+        ani_native_function {"nativeBackToCallerExecuteResult", nullptr,
+            reinterpret_cast<void *>(EtsAbilityManager::BackToCallerExecuteResult)},
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (status != ANI_OK) {

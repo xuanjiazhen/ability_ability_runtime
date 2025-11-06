@@ -27,6 +27,16 @@ class InsightIntentContext {
     hilog.sLogI(domainID, TAG, 'startAbility');
     return this.__context_impl__.startAbility(want, callback);
   }
+
+  delayInsightIntentResult() {
+    hilog.sLogI(domainID, TAG, 'delayInsightIntentResult');
+    return this.__context_impl__.delayInsightIntentResult();
+  }
+
+  sendInsightIntentResult(insightIntentId) {
+    hilog.sLogI(domainID, TAG, 'sendInsightIntentResult');
+    return this.__context_impl__.sendInsightIntentResult(insightIntentId);
+  }
 }
 
 export default InsightIntentContext;

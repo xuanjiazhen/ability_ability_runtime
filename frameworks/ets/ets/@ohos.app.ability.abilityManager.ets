@@ -22,6 +22,7 @@ import { ExtensionRunningInfo } from 'application.ExtensionRunningInfo';
 import _AbilityStateData from 'application.AbilityStateData';
 import Context from 'application.Context';
 import _AbilityForegroundStateObserver from 'application.AbilityForegroundStateObserver';
+import insightIntent from './@ohos.app.ability.insightIntent';
 
 export default namespace abilityManager {
   loadLibraryWithPermissionCheck("ability_manager_ani_kit.z", "@ohos.app.ability.abilityManager")
@@ -35,6 +36,7 @@ export default namespace abilityManager {
   export native function nativeOn(type:string, observer: AbilityForegroundStateObserver): void;
   export native function nativeOff(type:string, observer?: AbilityForegroundStateObserver): void;
   export native function nativeGetExtensionRunningInfos(upperLimit:int, callback:AsyncCallbackWrapper<Array<ExtensionRunningInfo>>) : void;
+  export native function nativeBackToCallerExecuteResult(insightIntentId: int, result:insightIntent.ExecuteResult): Promise<void>;
 
   export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
@@ -156,6 +158,20 @@ export default namespace abilityManager {
     });
   }
 
+  export function backToCallerExecuteResult(insightIntentId: int, result:insightIntent.ExecuteResult) {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        abilityManager.nativeBackToCallerExecuteResult(insightIntentId, result);
+      });
+    });
+  }
 
   export enum AbilityState {
     INITIAL = 0,

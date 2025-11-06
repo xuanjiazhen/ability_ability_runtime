@@ -104,7 +104,7 @@ bool JsInsightIntentEntry::HandleExecuteIntent(
     std::shared_ptr<InsightIntentExecuteParam> executeParam,
     const std::shared_ptr<NativeReference>& pageLoader,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
-    bool& isAsync)
+    bool& isAsync, std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback)
 {
     STATE_PATTERN_NAIVE_ACCEPT(State::INITIALIZED, false);
     state_ = State::EXECUTING;

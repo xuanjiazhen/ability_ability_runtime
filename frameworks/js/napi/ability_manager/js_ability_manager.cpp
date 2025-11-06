@@ -43,6 +43,8 @@
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 
+#include "napi_common_execute_result.h"
+#include "insight_intent_executor_mgr.h"
 namespace OHOS {
 namespace AbilityRuntime {
 using AbilityManagerClient = AAFwk::AbilityManagerClient;
@@ -144,6 +146,10 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsAbilityManager, OnNotifyDebugAssertResult);
     }
 
+    static napi_value BackToCallerExecuteResult(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnBackToCallerExecuteResult);
+    }
 private:
     sptr<OHOS::AbilityRuntime::JSAbilityForegroundStateObserver> observerForeground_ = nullptr;
     sptr<JsQueryERMSObserver> queryERMSObserver_ = nullptr;
@@ -829,6 +835,35 @@ private:
         auto token = uiAbilityContext->GetToken();
         return OnRestartSelfAtomicServiceInner(env, token);
     }
+
+    napi_value OnBackToCallerExecuteResult(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+        if (info.argc < ARGC_TWO) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        int32_t insightIntentId = -1;
+        if (!ConvertFromJsValue(env, info.argv[0], insightIntentId)) {
+            TAG_LOGE(AAFwkTag::MISSION, "Parse insightIntentId failed");
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+            return CreateJsUndefined(env);
+        }
+        auto resultCpp = std::make_shared<AppExecFwk::InsightIntentExecuteResult>();
+        if (!UnwrapExecuteResult(env, info.argv[1], *resultCpp)) {
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            return CreateJsUndefined(env);
+        }
+        if(DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->CheckNeedDelay(insightIntentId)) {
+            TAG_LOGE(AAFwkTag::MISSION, "not deed delay");
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            return CreateJsUndefined(env);
+        }
+        DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->BackToCallerExecuteResult(insightIntentId, resultCpp);
+        return CreateJsUndefined(env);
+    }
+
 };
 } // namespace
 
@@ -864,6 +899,8 @@ napi_value JsAbilityManagerInit(napi_env env, napi_value exportObj)
         env, exportObj, "setResidentProcessEnabled", moduleName, JsAbilityManager::SetResidentProcessEnabled);
     BindNativeFunction(env, exportObj, "queryAtomicServiceStartupRule",
         moduleName, JsAbilityManager::QueryAtomicServiceStartupRule);
+    BindNativeFunction(
+        env, exportObj, "backToCallerExecuteResult", moduleName, JsAbilityManager::BackToCallerExecuteResult);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "end");
     return CreateJsUndefined(env);
 }

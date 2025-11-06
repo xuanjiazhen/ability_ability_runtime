@@ -706,7 +706,8 @@ bool CallExecuteInsightIntent(Runtime& runtime, CJInsightIntentExecutorInfo& exe
 
 void CJUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
-    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
+    std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (executeParam == nullptr) {

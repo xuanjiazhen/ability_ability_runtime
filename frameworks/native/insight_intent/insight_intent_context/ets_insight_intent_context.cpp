@@ -20,11 +20,13 @@
 #include "hitrace_meter.h"
 #include "ani_common_want.h"
 #include "ets_error_utils.h"
+#include "ani_common_execute_result.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char *CONTEXT_CLASS_NAME = "L@ohos/app/ability/InsightIntentContext/InsightIntentContext;";
+constexpr const int FAILED_CODE = -1;
 }
 void EtsInsightIntentContext::Finalizer(ani_env *env, void *data, void *hint)
 {
@@ -48,6 +50,53 @@ ani_object EtsInsightIntentContext::StartAbiitySync(ani_env *env, ani_object ani
     }
 
     return context->StartAbilityInner(env, want);
+}
+
+ani_int EtsInsightIntentContext::DelayInsightIntentResult(ani_env *env, ani_object aniObj)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = GetContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "get etsContext failed.");
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateInvalidParamError(env, "context null"));
+        return FAILED_CODE;
+    }
+    auto nativeContext = context->GetNativeContext();
+    if (nativeContext == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "get nativeContext failed.");
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateInvalidParamError(env, "context null"));
+        return FAILED_CODE;
+    }
+    InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(nativeContext->GetExecuteMode());
+    if (mode != InsightIntentExecuteMode::UIABILITY_FOREGROUND &&
+        mode != InsightIntentExecuteMode::UIEXTENSION_ABILITY) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid execute mode");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return FAILED_CODE;
+    }
+    return nativeContext->GetIntentId();
+}
+
+void EtsInsightIntentContext::SendInsightIntentResult(ani_env *env, ani_object aniObj, ani_int intentId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = GetContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "get context failed.");
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateInvalidParamError(env, "context null"));
+    }
+    auto nativeContext = context->GetNativeContext();
+    if (nativeContext == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "get nativeContext failed.");
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateInvalidParamError(env, "context null"));
+    }
+    InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(nativeContext->GetExecuteMode());
+    if (mode != InsightIntentExecuteMode::UIABILITY_FOREGROUND &&
+        mode != InsightIntentExecuteMode::UIEXTENSION_ABILITY) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid execute mode");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    nativeContext->SetIsDelayResult(true);
 }
 
 EtsInsightIntentContext *EtsInsightIntentContext::GetContext(ani_env *env, ani_object aniObj)
@@ -131,6 +180,10 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> CreateEtsInsightIntentContext(an
     std::array functions = {
         ani_native_function { "nativeStartAbilitySync", nullptr,
             reinterpret_cast<void*>(EtsInsightIntentContext::StartAbiitySync) },
+        ani_native_function { "nativeDelayInsightIntentResult", nullptr,
+            reinterpret_cast<void*>(EtsInsightIntentContext::DelayInsightIntentResult) },
+        ani_native_function { "nativeSendInsightIntentResult", nullptr,
+            reinterpret_cast<void*>(EtsInsightIntentContext::SendInsightIntentResult) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
         if (status != ANI_ALREADY_BINDED) {

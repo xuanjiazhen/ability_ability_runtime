@@ -257,7 +257,8 @@ public:
      */
     void ExecuteInsightIntentRepeateForeground(const Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
-        std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
+        std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
+        std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback = nullptr) override;
 
     /**
      * @brief Execute insight intention when an ability didn't started or in background, schedule it to foreground.

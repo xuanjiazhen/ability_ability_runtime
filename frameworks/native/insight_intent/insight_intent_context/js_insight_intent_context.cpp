@@ -20,6 +20,8 @@
 #include "hitrace_meter.h"
 #include "js_error_utils.h"
 #include "napi_common_want.h"
+#include "insight_intent_constant.h"
+#include "napi_common_execute_result.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -37,6 +39,18 @@ napi_value JsInsightIntentContext::StartAbiity(napi_env env, napi_callback_info 
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentContext, OnStartAbility);
+}
+
+napi_value JsInsightIntentContext::DelayInsightIntentResult(napi_env env, napi_callback_info info)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentContext, OnDelayInsightIntentResult);
+}
+
+napi_value JsInsightIntentContext::SendInsightIntentResult(napi_env env, napi_callback_info info)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentContext, OnSendInsightIntentResult);
 }
 
 napi_value JsInsightIntentContext::OnStartAbility(napi_env env, NapiCallbackInfo& info)
@@ -102,6 +116,59 @@ napi_value JsInsightIntentContext::OnStartAbility(napi_env env, NapiCallbackInfo
     return result;
 }
 
+napi_value JsInsightIntentContext::OnDelayInsightIntentResult(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+
+    auto context = context_.lock();
+
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null context");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return CreateJsUndefined(env);
+    }
+    InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(context->GetExecuteMode());
+    if (mode != InsightIntentExecuteMode::UIABILITY_FOREGROUND &&
+        mode != InsightIntentExecuteMode::UIEXTENSION_ABILITY) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid execute mode");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return CreateJsUndefined(env);
+    }
+    context->SetIsDelayResult(true);
+    napi_value result = nullptr;
+    napi_create_int32(env, context->GetIntentId(), &result);
+    return result;
+}
+
+napi_value JsInsightIntentContext::OnSendInsightIntentResult(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null context");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(context->GetExecuteMode());
+    if (mode != InsightIntentExecuteMode::UIABILITY_FOREGROUND &&
+        mode != InsightIntentExecuteMode::UIEXTENSION_ABILITY) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid execute mode");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    int32_t insightIntentId = -1;
+    if (!ConvertFromJsValue(env, info.argv[0], insightIntentId)) {
+        TAG_LOGE(AAFwkTag::MISSION, "Parse insightIntentId failed");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+    }
+    if (!context->GetIsDelayResult()) {
+        TAG_LOGE(AAFwkTag::MISSION, "not isDelayResult");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    return CreateJsUndefined(env);
+}
+
 napi_value CreateJsInsightIntentContext(napi_env env, const std::shared_ptr<InsightIntentContext>& context)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
@@ -114,6 +181,10 @@ napi_value CreateJsInsightIntentContext(napi_env env, const std::shared_ptr<Insi
     std::string type = "InsightIntentContext";
     napi_set_named_property(env, contextObj, "contextType", CreateJsValue(env, type));
     BindNativeFunction(env, contextObj, "startAbility", CONTEXT_MODULE_NAME, JsInsightIntentContext::StartAbiity);
+    BindNativeFunction(env, contextObj, "delayInsightIntentResult", CONTEXT_MODULE_NAME,
+        JsInsightIntentContext::DelayInsightIntentResult);
+    BindNativeFunction(env, contextObj, "sendInsightIntentResult", CONTEXT_MODULE_NAME,
+        JsInsightIntentContext::SendInsightIntentResult);
     TAG_LOGD(AAFwkTag::INTENT, "end");
     return contextObj;
 }

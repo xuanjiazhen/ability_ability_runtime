@@ -932,7 +932,8 @@ std::unique_ptr<NativeReference> EtsUIAbility::CreateJsAppWindowStage()
 
 void EtsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
-    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
+    std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "ExecuteInsightIntentRepeateForeground called");
     if (executeParam == nullptr) {
@@ -965,7 +966,7 @@ void EtsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
         }
 
         ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
-            etsRuntime_, executeInfo, std::move(callback));
+            etsRuntime_, executeInfo, std::move(callback), delayResultCallback);
         if (!ret) {
             // callback has removed, release in insight intent executor.
             TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
@@ -994,7 +995,7 @@ void EtsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
             return;
         }
         ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
-            *jsRuntime, executeInfo, std::move(callback));
+            *jsRuntime, executeInfo, std::move(callback), delayResultCallback);
         if (!ret) {
             // callback has removed, release in insight intent executor.
             TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");

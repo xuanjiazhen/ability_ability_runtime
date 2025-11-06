@@ -1226,7 +1226,8 @@ const JsRuntime &JsUIAbility::GetJsRuntime()
 
 void JsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
-    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
+    std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (executeParam == nullptr) {
@@ -1257,7 +1258,7 @@ void JsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
     }
 
     ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
-        jsRuntime_, executeInfo, std::move(callback));
+        jsRuntime_, executeInfo, std::move(callback), delayResultCallback);
     if (!ret) {
         // callback has removed, release in insight intent executor.
         TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");

@@ -36,6 +36,8 @@
 
 #define TMP_NAPI_ANONYMOUS_FUNC "_"
 
+#include "insight_intent_executor_mgr.h"
+
 namespace OHOS::AbilityRuntime {
 
 std::shared_ptr<JsInsightIntentExecutor> JsInsightIntentExecutor::Create(JsRuntime& runtime)
@@ -96,6 +98,7 @@ bool JsInsightIntentExecutor::Init(const InsightIntentExecutorInfo& insightInten
         TAG_LOGE(AAFwkTag::INTENT, "Set context property failed");
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
+    context->SetExecuteMode(insightIntentInfo.executeParam->executeMode_);
 
     return true;
 }
@@ -110,7 +113,7 @@ bool JsInsightIntentExecutor::HandleExecuteIntent(
     std::shared_ptr<InsightIntentExecuteParam> executeParam,
     const std::shared_ptr<NativeReference>& pageLoader,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
-    bool& isAsync)
+    bool& isAsync, std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
     STATE_PATTERN_NAIVE_ACCEPT(State::INITIALIZED, false);
@@ -125,10 +128,12 @@ bool JsInsightIntentExecutor::HandleExecuteIntent(
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
     callback_ = std::move(callback);
+    delayResultCallback_ = delayResultCallback;
     bool successful = false;
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(executeParam->executeMode_);
     auto name = executeParam->insightIntentName_;
     auto param = executeParam->insightIntentParam_;
+    insightIntentId_ = executeParam->insightIntentId_;
     TAG_LOGI(AAFwkTag::INTENT, "call executor, intentName: %{public}s, mode: %{public}d", name.c_str(), mode);
     switch (mode) {
         case InsightIntentExecuteMode::UIABILITY_FOREGROUND:
@@ -330,6 +335,9 @@ void JsInsightIntentExecutor::ReplySucceededInner(std::shared_ptr<AppExecFwk::In
     TAG_LOGD(AAFwkTag::INTENT, "called");
     state_ = JsInsightIntentExecutor::State::EXECUTATION_DONE;
     auto* callback = callback_.release();
+    if(GetContext()->GetIsDelayResult()) {
+        DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->AddDelayResultCallback(insightIntentId_, delayResultCallback_);
+    }
     JsInsightIntentExecutor::ReplySucceeded(callback, resultCpp);
 }
 
@@ -349,7 +357,9 @@ bool JsInsightIntentExecutor::HandleResultReturnedFromJsFunc(napi_value resultJs
     if (isPromise) {
         TAG_LOGI(AAFwkTag::INTENT, "Is promise");
         auto* callback = callback_.release();
-
+        if(GetContext()->GetIsDelayResult()) {
+            DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->AddDelayResultCallback(insightIntentId_, delayResultCallback_);
+        }
         napi_value then = nullptr;
         napi_get_named_property(env, resultJs, "then", &then);
         napi_value resolveCbJs = nullptr;

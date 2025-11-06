@@ -42,6 +42,8 @@ template("abilitymanager") {
       "${ability_runtime_native_path}/ability:ability_context_native",
       "${ability_runtime_native_path}/ability/native:ability_business_error",
       "${ability_runtime_native_path}/ability/native:abilitykit_native",
+      "${ability_runtime_native_path}/ability/native:insight_intent_executor",
+      "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     ]
 
     external_deps = [
