@@ -743,9 +743,10 @@ void AppStateObserverManager::HandleOnRenderProcessCreated(const std::shared_ptr
         "processName:%{public}s, renderUid:%{public}d",
         data.bundleName.c_str(), data.pid, data.uid, data.processType, data.processName.c_str(), data.renderUid);
     BundleType bundleType = BundleType::APP;
-    if (renderRecord->GetHostRecord() != nullptr) {
-        bundleType = renderRecord->GetHostRecord()->GetApplicationInfo() != nullptr ?
-            renderRecord->GetHostRecord()->GetApplicationInfo()->bundleType : BundleType::APP;
+    auto hostRecord = renderRecord->GetHostRecord();
+    if (hostRecord) {
+        auto applicationInfo = hostRecord->GetApplicationInfo();
+        bundleType = applicationInfo != nullptr ? applicationInfo->bundleType : BundleType::APP;
     }
     HandleOnProcessCreated(data, bundleType);
 }
@@ -768,9 +769,10 @@ void AppStateObserverManager::HandleOnChildProcessCreated(std::shared_ptr<ChildP
         "processType:%{public}d, processName:%{public}s",
         data.bundleName.c_str(), data.pid, data.uid, data.processType, data.processName.c_str());
     BundleType bundleType = BundleType::APP;
-    if (childRecord->GetHostRecord() != nullptr) {
-        bundleType = childRecord->GetHostRecord()->GetApplicationInfo() != nullptr ?
-            childRecord->GetHostRecord()->GetApplicationInfo()->bundleType : BundleType::APP;
+    auto hostRecord = childRecord->GetHostRecord();
+    if (hostRecord) {
+        auto applicationInfo = hostRecord->GetApplicationInfo();
+        bundleType = applicationInfo != nullptr ? applicationInfo->bundleType : BundleType::APP;
     }
     HandleOnProcessCreated(data, bundleType);
 }
@@ -913,9 +915,10 @@ void AppStateObserverManager::HandleOnRenderProcessDied(const std::shared_ptr<Re
         "Render Process died, bundle:%{public}s, pid:%{public}d, uid:%{public}d, renderUid:%{public}d",
         data.bundleName.c_str(), data.pid, data.uid, data.renderUid);
     BundleType bundleType = BundleType::APP;
-    if (renderRecord->GetHostRecord() != nullptr) {
-        bundleType = renderRecord->GetHostRecord()->GetApplicationInfo() != nullptr ?
-            renderRecord->GetHostRecord()->GetApplicationInfo()->bundleType : BundleType::APP;
+    auto hostRecord = renderRecord->GetHostRecord();
+    if (hostRecord) {
+        auto applicationInfo = hostRecord->GetApplicationInfo();
+        bundleType = applicationInfo != nullptr ? applicationInfo->bundleType : BundleType::APP;
     }
     HandleOnProcessDied(data, bundleType);
 }
@@ -938,9 +941,10 @@ void AppStateObserverManager::HandleOnChildProcessDied(std::shared_ptr<ChildProc
         "processType:%{public}d, processName:%{public}s",
         data.bundleName.c_str(), data.pid, data.uid, data.processType, data.processName.c_str());
     BundleType bundleType = BundleType::APP;
-    if (childRecord->GetHostRecord() != nullptr) {
-        bundleType = childRecord->GetHostRecord()->GetApplicationInfo() != nullptr ?
-            childRecord->GetHostRecord()->GetApplicationInfo()->bundleType : BundleType::APP;
+    auto hostRecord = childRecord->GetHostRecord();
+    if (hostRecord) {
+        auto applicationInfo = hostRecord->GetApplicationInfo();
+        bundleType = applicationInfo != nullptr ? applicationInfo->bundleType : BundleType::APP;
     }
     HandleOnProcessDied(data, bundleType);
 }
