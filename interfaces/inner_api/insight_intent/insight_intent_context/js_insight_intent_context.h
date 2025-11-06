@@ -44,6 +44,10 @@ public:
      */
     static napi_value StartAbiity(napi_env env, napi_callback_info info);
 
+    static napi_value DelayInsightIntentResult(napi_env env, napi_callback_info info);
+
+    static napi_value SendInsightIntentResult(napi_env env, napi_callback_info info);
+
     std::shared_ptr<InsightIntentContext> GetContext()
     {
         return context_.lock();
@@ -51,6 +55,8 @@ public:
 
 private:
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value OnDelayInsightIntentResult(napi_env env, NapiCallbackInfo& info);
+    napi_value OnSendInsightIntentResult(napi_env env, NapiCallbackInfo& info);
 
     std::weak_ptr<InsightIntentContext> context_;
 };

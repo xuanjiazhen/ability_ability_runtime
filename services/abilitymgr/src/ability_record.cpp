@@ -60,6 +60,8 @@
 #include "locale_config.h"
 #endif
 
+#include "insight_intent_execute_manager.h"
+
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
 namespace AAFwk {
@@ -2804,9 +2806,24 @@ void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
     NotifyRemoveShellProcess(CollaboratorType::OTHERS_TYPE);
 }
 
+void AbilityRecord::RemoveExecuteIntent()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    if (!GetWant().HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "insight id not found");
+        return;
+    }
+    const WantParams &wantParams = GetWant().GetParams();
+    auto insightId = wantParams.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID);
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(std::stoi(insightId));
+}
+
 void AbilityRecord::OnProcessDied()
 {
     CancelPrepareTerminate();
+    if (InsightIntentExecuteParam::IsInsightIntentExecute(GetWant())) {
+        RemoveExecuteIntent();
+    }
     std::lock_guard<ffrt::mutex> guard(lock_);
     if (!IsSceneBoard() && scheduler_ != nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnProcessDied: '%{public}s', attached.", abilityInfo_.name.c_str());

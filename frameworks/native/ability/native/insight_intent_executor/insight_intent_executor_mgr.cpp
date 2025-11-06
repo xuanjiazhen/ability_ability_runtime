@@ -31,7 +31,8 @@ InsightIntentExecutorMgr::~InsightIntentExecutorMgr()
 }
 
 bool InsightIntentExecutorMgr::ExecuteInsightIntent(Runtime& runtime, const InsightIntentExecutorInfo& executeInfo,
-    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
+    std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback)
 {
     auto executeParam = executeInfo.executeParam;
     if (callback == nullptr) {
@@ -78,9 +79,10 @@ bool InsightIntentExecutorMgr::ExecuteInsightIntent(Runtime& runtime, const Insi
     bool ret = false;
     if (runtime.GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
         ret = intentExecutor->HandleExecuteIntent(executeParam, executeInfo.etsPageLoader,
-            std::move(callback), isAsync);
+            std::move(callback), isAsync, delayResultCallback);
     } else {
-        ret = intentExecutor->HandleExecuteIntent(executeParam, executeInfo.pageLoader, std::move(callback), isAsync);
+        ret = intentExecutor->HandleExecuteIntent(executeParam, executeInfo.pageLoader, std::move(callback), isAsync,
+        delayResultCallback);
     }
     if (!ret) {
         TAG_LOGE(AAFwkTag::INTENT, "Handle Execute intent failed");
@@ -104,6 +106,28 @@ void InsightIntentExecutorMgr::RemoveInsightIntentExecutor(uint64_t intentId)
     TAG_LOGD(AAFwkTag::INTENT, "called");
     std::lock_guard<std::mutex> lock(mutex_);
     insightIntentExecutors_.erase(intentId);
+}
+
+void InsightIntentExecutorMgr::AddDelayResultCallback(uint64_t intentId,
+    std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    delayResultCallbackMap_[intentId] = delayResultCallback;
+}
+
+bool InsightIntentExecutorMgr::CheckNeedDelay(uint64_t intentId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (delayResultCallbackMap_.find(intentId) != delayResultCallbackMap_.end()) {
+        return true;
+    }
+    return false;
+}
+
+void InsightIntentExecutorMgr::BackToCallerExecuteResult(uint64_t intentId,
+    std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> result) {
+    delayResultCallbackMap_[intentId](*result);
+    delayResultCallbackMap_.erase(intentId);
 }
 
 void InsightIntentExecutorMgr::TriggerCallbackInner(

@@ -77,7 +77,8 @@ public:
         std::shared_ptr<InsightIntentExecuteParam> executeParam,
         const std::shared_ptr<NativeReference>& pageLoader,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
-        bool& isAsync) override;
+        bool& isAsync,
+        std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback = nullptr) override;
 
     inline State GetState() const
     {
@@ -149,6 +150,8 @@ private:
     std::unique_ptr<NativeReference> contextObj_ = nullptr;
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;
     bool isAsync_ = false;
+    uint64_t insightIntentId_;
+    std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback_ = nullptr;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

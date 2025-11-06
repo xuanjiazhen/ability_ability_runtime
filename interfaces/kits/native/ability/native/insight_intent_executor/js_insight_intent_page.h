@@ -64,7 +64,8 @@ public:
         std::shared_ptr<InsightIntentExecuteParam> executeParam,
         const std::shared_ptr<NativeReference>& pageLoader,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
-        bool& isAsync) override;
+        bool& isAsync,
+        std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback = nullptr) override;
 
     /**
      * @brief Set insight intent param to window, window will send to uicontent.

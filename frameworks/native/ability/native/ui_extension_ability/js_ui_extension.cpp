@@ -516,8 +516,25 @@ bool JsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
         return false;
     }
 
+    auto delayResultCallback = [uiExtension, sessionInfo, needForeground, want](AppExecFwk::InsightIntentExecuteResult result) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "Execute insightintent delayResultCallback");
+        if (uiExtension == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtension");
+            return;
+        }
+        InsightIntentExecuteParam executeParam;
+        InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
+        if (DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->CheckNeedDelay(executeParam.insightIntentId_)) {
+            TAG_LOGD(AAFwkTag::UI_EXT, "need delay callback, intentId %{public}llu", executeParam.insightIntentId_);
+            return;
+        }
+        if (result.uris.size() > 0) {
+            uiExtension->ExecuteInsightIntentDone(executeParam.insightIntentId_, result);
+        }
+        uiExtension->PostInsightIntentExecuted(sessionInfo, result, needForeground);
+    };
     int32_t ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
-        jsRuntime_, executorInfo, std::move(executorCallback));
+        jsRuntime_, executorInfo, std::move(executorCallback), delayResultCallback);
     if (!ret) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Execute insight intent failed");
         // callback has removed, release in insight intent executor.

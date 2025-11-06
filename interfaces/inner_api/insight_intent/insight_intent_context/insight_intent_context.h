@@ -51,11 +51,38 @@ public:
         return winMode_;
     }
 
+    uint64_t GetIntentId() const
+    {
+        return intentId_;
+    }
+
+    void SetExecuteMode(const int32_t executeMode)
+    {
+        executeMode_ = executeMode;
+    }
+
+    int32_t GetExecuteMode()
+    {
+        return executeMode_;
+    }
+
+    void SetIsDelayResult(const bool isDelayResult)
+    {
+        isDelayResult_ = isDelayResult;
+    }
+
+    bool GetIsDelayResult() const
+    {
+        return isDelayResult_;
+    }
+
 private:
     sptr<IRemoteObject> token_ = nullptr;
     std::string bundleName_ = "";
     int32_t winMode_ = 0;
     uint64_t intentId_ = 0;
+    int32_t executeMode_ = -1;
+    bool isDelayResult_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -30,6 +30,8 @@
 
 #define ETS_EXPORT __attribute__((visibility("default")))
 
+#include "insight_intent_executor_mgr.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 using State = EtsInsightIntentExecutor::State;
@@ -118,7 +120,7 @@ bool EtsInsightIntentExecutor::Init(const InsightIntentExecutorInfo &insightInte
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
-
+    context->SetExecuteMode(insightIntentInfo.executeParam->executeMode_);
     return true;
 }
 
@@ -132,7 +134,8 @@ bool EtsInsightIntentExecutor::HandleExecuteIntent(
     std::shared_ptr<InsightIntentExecuteParam> executeParam,
     void *pageLoader,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
-    bool &isAsync)
+    bool &isAsync,
+    std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback)
 {
     TAG_LOGD(AAFwkTag::INTENT, "HandleExecuteIntent called");
     STATE_PATTERN_NAIVE_ACCEPT(State::INITIALIZED, false);
@@ -147,6 +150,7 @@ bool EtsInsightIntentExecutor::HandleExecuteIntent(
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
     callback_ = std::move(callback);
+    delayResultCallback_ = delayResultCallback;
     bool ret = false;
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(executeParam->executeMode_);
     auto name = executeParam->insightIntentName_;
@@ -252,6 +256,9 @@ void EtsInsightIntentExecutor::ReplySucceededInner(std::shared_ptr<AppExecFwk::I
     TAG_LOGD(AAFwkTag::INTENT, "EtsInsightIntentExecutor::ReplySucceededInner called");
     state_ = EtsInsightIntentExecutor::State::EXECUTATION_DONE;
     auto* callback = callback_.release();
+    if(GetContext()->GetIsDelayResult()) {
+        DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->AddDelayResultCallback(insightIntentId_, delayResultCallback_);
+    }
     EtsInsightIntentExecutor::ReplySucceeded(callback, resultCpp);
 }
 
@@ -279,6 +286,9 @@ bool EtsInsightIntentExecutor::HandleResultReturnedFromEtsFunc(ani_env *env, ani
     if (isAsync) {
         TAG_LOGI(AAFwkTag::INTENT, "Is promise");
         auto *callback = callback_.release();
+        if(GetContext()->GetIsDelayResult()) {
+            DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->AddDelayResultCallback(insightIntentId_, delayResultCallback_);
+        }
         EtsInsightIntentExecutor::ReplySucceeded(callback, resultCpp);
     } else {
         TAG_LOGI(AAFwkTag::INTENT, "Not promise");

@@ -34,8 +34,13 @@ class InsightIntentExecutorMgr : public std::enable_shared_from_this<InsightInte
 
 public:
     bool ExecuteInsightIntent(Runtime& runtime, const InsightIntentExecutorInfo &executeInfo,
-        std::unique_ptr<InsightIntentExecutorAsyncCallback> callback);
+        std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
+        std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback = nullptr);
     static void TriggerCallbackInner(std::unique_ptr<InsightIntentExecutorAsyncCallback> callback, int32_t errCode);
+    void AddDelayResultCallback(uint64_t intentId,
+        std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback);
+    bool CheckNeedDelay(uint64_t intentId);
+    void BackToCallerExecuteResult(uint64_t intentId, std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> result);
 
 private:
     void AddInsightIntentExecutor(uint64_t intentId, const std::shared_ptr<InsightIntentExecutor>& executor);
@@ -43,6 +48,7 @@ private:
 
     std::mutex mutex_;
     std::map<uint64_t, std::shared_ptr<InsightIntentExecutor>> insightIntentExecutors_;
+    std::map<uint64_t, std::function<void(AppExecFwk::InsightIntentExecuteResult&)>> delayResultCallbackMap_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

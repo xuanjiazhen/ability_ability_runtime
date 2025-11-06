@@ -64,13 +64,15 @@ public:
         std::shared_ptr<InsightIntentExecuteParam> executeParam,
         const std::shared_ptr<NativeReference>& pageLoader,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
-        bool& isAsync) = 0;
+        bool& isAsync,
+        std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback = nullptr) = 0;
 
     virtual bool HandleExecuteIntent(
         std::shared_ptr<InsightIntentExecuteParam> executeParam,
         void *pageLoader,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
-        bool& isAsync) { return false; };
+        bool& isAsync,
+        std::function<void(AppExecFwk::InsightIntentExecuteResult&)> delayResultCallback = nullptr) { return false; };
 
     /**
      * @brief Get current insight intent context.

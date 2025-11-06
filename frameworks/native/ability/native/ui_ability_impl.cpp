@@ -28,6 +28,7 @@
 #include "scene_board_judgement.h"
 #endif
 #include "time_util.h"
+#include "insight_intent_executor_mgr.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -756,13 +757,27 @@ void UIAbilityImpl::ExecuteInsightIntentRepeateForeground(const Want &want,
                 TAG_LOGE(AAFwkTag::UIABILITY, "null ability impl");
                 return;
             }
+            if (DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->CheckNeedDelay(intentId)) {
+                TAG_LOGD(AAFwkTag::UIABILITY, "need delay callback, intentId %{public}" PRIu64"", intentId);
+                return;
+            }
             abilityImpl->ExecuteInsightIntentDone(intentId, result);
             abilityImpl->AbilityTransactionCallback(AAFwk::ABILITY_STATE_FOREGROUND_NEW);
         };
     callback->Push(asyncCallback);
-
+    auto delayResultCallback =
+        [weak = weak_from_this(), intentId = executeParam->insightIntentId_](InsightIntentExecuteResult result) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "execute insightIntent finshed, intentId %{public}" PRIu64"", intentId);
+            auto abilityImpl = weak.lock();
+            if (abilityImpl == nullptr) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "null ability impl");
+                return;
+            }
+            abilityImpl->ExecuteInsightIntentDone(intentId, result);
+            abilityImpl->AbilityTransactionCallback(AAFwk::ABILITY_STATE_FOREGROUND_NEW);
+        };
     // private function, no need check ability_ validity.
-    ability_->ExecuteInsightIntentRepeateForeground(want, executeParam, std::move(callback));
+    ability_->ExecuteInsightIntentRepeateForeground(want, executeParam, std::move(callback), delayResultCallback);
 }
 
 void UIAbilityImpl::ExecuteInsightIntentMoveToForeground(const Want &want,

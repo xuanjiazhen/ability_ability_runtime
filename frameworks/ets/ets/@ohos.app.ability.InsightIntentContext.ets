@@ -14,7 +14,10 @@
  */
 
 import { BusinessError, AsyncCallback } from '@ohos.base';
+import AsyncCallbackWrapper from './utils/AbilityUtils';
+import insightIntent from './@ohos.app.ability.insightIntent';
 import Want from '@ohos.app.ability.Want';
+import InsightIntentExecutor from '@ohos.app.ability.insightIntentDriver.ets'
 
 export default class InsightIntentContext {
   static {
@@ -45,6 +48,8 @@ export default class InsightIntentContext {
   }
 
   public native nativeStartAbilitySync(want: Want): BusinessError;
+  public native nativeDelayInsightIntentResult(): int;
+  public native nativeSendInsightIntentResult(insightIntentId: int): void;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError => {
@@ -75,5 +80,13 @@ export default class InsightIntentContext {
       });
     });
     return p;
+  }
+
+  delayInsightIntentResult() : int {
+    return this.nativeDelayInsightIntentResult();
+  }
+
+  sendInsightIntentResult(insightIntentId: int) : void {
+    return this.nativeSendInsightIntentResult(insightIntentId);
   }
 }
