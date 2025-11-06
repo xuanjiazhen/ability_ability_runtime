@@ -1365,5 +1365,31 @@ int32_t StartupManager::GetUid() const
 {
     return uid_;
 }
+
+int32_t StartupManager::GetStartupTaskManagerIdByManager(const std::shared_ptr<StartupTaskManager> startupTaskManager,
+    uint32_t &id)
+{
+    if (startupTaskManager == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "StartupTaskManager is null");
+        return ERR_STARTUP_INVALID_VALUE;
+    }
+    for (const auto& pair : startupTaskManagerMap_) {
+        if (pair.second == startupTaskManager) { // 比较shared_ptr，即是否指向同一个对象
+            id = pair.first;
+        }
+    }
+    TAG_LOGE(AAFwkTag::STARTUP, "StartupTaskManager not found");
+    return ERR_STARTUP_INTERNAL_ERROR;
+}
+
+int32_t StartupManager::GetStartupTaskManagerById(uint32_t id, std::shared_ptr<StartupTaskManager> &startupTaskManager)
+{
+    auto result = startupTaskManagerMap_.find(id);
+    if (result == startupTaskManagerMap_.end()) {
+        TAG_LOGE(AAFwkTag::STARTUP, "StartupTaskManager id: %{public}u not found", id);
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+    return ERR_OK;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
