@@ -74,6 +74,7 @@ export default class UIExtensionContentSession {
   native terminateSelfSync(callback:AsyncCallbackWrapper<void>): void;
   native terminateSelfWithResultSync(parameter: AbilityResult, callback:AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
+  native loadContentByName(path: string, storage?: LocalStorage): void;
 
   sendData(data: Record<string, Object>): void {
     this.nativeSendData(data);

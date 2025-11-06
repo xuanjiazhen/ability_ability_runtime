@@ -72,6 +72,7 @@ public:
 
     static void NativeSendData(ani_env *env, ani_object obj, ani_object data);
     static void NativeLoadContent(ani_env *env, ani_object obj, ani_string path, ani_object storage);
+    static void NativeLoadContentByName(ani_env *env, ani_object obj, ani_string path, ani_object storage);
     static void NativeTerminateSelf(ani_env *env, ani_object obj, ani_object callback);
     static void NativeSetWindowBackgroundColor(ani_env *env, ani_object obj, ani_string color);
     static int NativeTerminateSelfWithResult(
@@ -111,6 +112,7 @@ private:
         ani_env *env, ani_string aniType, ani_ref aniWantParam, std::string &type, AAFwk::WantParams &wantParam);
     ani_object GetUIExtensionHostWindowProxy(ani_env *env, ani_object object);
     ani_object GetUIExtensionWindowProxy(ani_env *env, ani_object object);
+    void LoadContentByName(ani_env *env, ani_object object, ani_string path, ani_object storage);
 
     sptr<AAFwk::SessionInfo> sessionInfo_;
     sptr<Rosen::Window> uiWindow_;
