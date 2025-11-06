@@ -600,8 +600,9 @@ public:
         const Want &want,
         sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE);
-    
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0);
+
     /**
      * ConnectAbilityWithExtensionType, connect session with specified extentionType ability.
      *
