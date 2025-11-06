@@ -202,6 +202,15 @@ ani_object EtsUIExtensionContentSession::NativeStartAbilityByTypeSync(
     return etsContentSession->StartAbilityByTypeSync(env, type, wantParam, startCallback);
 }
 
+void EtsUIExtensionContentSession::NativeLoadContentByName(ani_env *env, ani_object obj,
+    ani_string path, ani_object storage)
+{
+    auto etsContentSession = EtsUIExtensionContentSession::GetEtsContentSession(env, obj);
+    if (etsContentSession != nullptr) {
+        etsContentSession->LoadContentByName(env, obj, path, storage);
+    }
+}
+
 EtsUIExtensionContentSession::EtsUIExtensionContentSession(
     sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
     std::weak_ptr<AbilityRuntime::Context> &context,
@@ -299,6 +308,9 @@ ani_object EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(ani_
             reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataForResultCallback)},
         ani_native_function {"nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
             reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeStartAbilityByTypeSync)}
+        ani_native_function {"loadContentByName",
+            "Lstd/core/String;Larkui/stateManagement/storage/localStorage/LocalStorage;:V",
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeLoadContentByName)},
     };
     if ((status = env->Class_BindNativeMethods(cls, methods.data(), methods.size())) != ANI_OK
         && status != ANI_ALREADY_BINDED) {
@@ -669,6 +681,37 @@ ani_object EtsUIExtensionContentSession::StartAbilityByTypeSync(
     }
 #endif // SUPPORT_SCREEN
     return aniObject;
+}
+
+void EtsUIExtensionContentSession::LoadContentByName(ani_env *env, ani_object object,
+    ani_string path, ani_object storage)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "LoadContent called");
+    std::string contextPath;
+    if (!OHOS::AppExecFwk::GetStdString(env, path, contextPath)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid param");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error: Path must be a string.");
+        return;
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "contextPath: %{public}s", contextPath.c_str());
+    if (uiWindow_ == nullptr || sessionInfo_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "uiWindow_ or sessionInfo_ is nullptr");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    if (sessionInfo_->isAsyncModalBinding && isFirstTriggerBindModal_) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Trigger binding UIExtension modal window");
+        uiWindow_->TriggerBindModalUIExtension();
+        isFirstTriggerBindModal_ = false;
+    }
+    sptr<IRemoteObject> parentToken = sessionInfo_->parentToken;
+    Rosen::WMError ret = uiWindow_->AniSetUIContentByName(contextPath, env, storage,
+        Rosen::BackupAndRestoreType::NONE, parentToken);
+    if (ret != Rosen::WMError::WM_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "AniSetUIContent failed, ret=%{public}d", ret);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "LoadContent end");
 }
 
 bool EtsUIExtensionContentSession::CheckStartAbilityByTypeParam(
