@@ -1506,6 +1506,7 @@ int32_t AppMgrService::UnregisterAppForegroundStateObserver(const sptr<IAppForeg
 int32_t AppMgrService::IsApplicationRunning(const std::string &bundleName, bool &isRunning)
 {
     if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->IsApplicationRunning(bundleName, isRunning);
@@ -1515,6 +1516,7 @@ int32_t AppMgrService::IsAppRunning(const std::string &bundleName, int32_t appCl
 {
     isRunning = false;
     if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->IsAppRunning(bundleName, appCloneIndex, isRunning);
@@ -1525,9 +1527,21 @@ int32_t AppMgrService::IsAppRunningByBundleNameAndUserId(const std::string &bund
 {
     isRunning = false;
     if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning);
+}
+
+int32_t AppMgrService::IsAppRunning(const std::string &bundleName, int32_t appCloneIndex,
+    int32_t userId, bool &isRunning)
+{
+    isRunning = false;
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->IsAppRunning(bundleName, appCloneIndex, userId, isRunning);
 }
 
 #ifdef SUPPORT_CHILD_PROCESS
@@ -1657,6 +1671,21 @@ int32_t AppMgrService::SignRestartAppFlag(int32_t uid, const std::string &instan
         return ERR_PERMISSION_DENIED;
     }
     return appMgrServiceInner_->SignRestartAppFlag(uid, instanceKey);
+}
+
+int32_t AppMgrService::SignRestartProcess(int32_t pid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    bool isCallingPermission =
+        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
+    if (!isCallingPermission) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
+        return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
+    }
+    return appMgrServiceInner_->SignRestartProcess(pid);
 }
 
 int32_t AppMgrService::GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRunningUniqueId)
@@ -1874,6 +1903,21 @@ int32_t AppMgrService::KillAppSelfWithInstanceKey(const std::string &instanceKey
     return appMgrServiceInner_->KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
 }
 
+int32_t AppMgrService::KillProcessByPidForExit(int32_t pid, const std::string &reason)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    bool isCallingPermission =
+        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
+    if (!isCallingPermission) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
+        return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
+    }
+    return appMgrServiceInner_->KillProcessByPidForExit(pid, reason);
+}
+
 void AppMgrService::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
@@ -2029,6 +2073,26 @@ int32_t AppMgrService::RegisterApplicationStateObserverWithFilter(sptr<IApplicat
         ret = appMgrServiceInner_->RegisterApplicationStateObserver(observer, bundleNameList, defaultAppStateFilter);
     }
     return ret;
+}
+
+void AppMgrService::AllowScbProcessMoveToBackground()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return;
+    }
+    appMgrServiceInner_->AllowScbProcessMoveToBackground();
+}
+
+int32_t AppMgrService::KillChildProcessByPid(int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    return appMgrServiceInner_->KillChildProcessByPid(pid);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

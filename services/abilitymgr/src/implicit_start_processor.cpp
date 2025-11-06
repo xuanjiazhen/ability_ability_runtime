@@ -164,17 +164,13 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
 
         AAFwk::Want targetWant = request.want;
         targetWant.SetElementName(bundle, abilityName);
-        auto callBack = [imp, targetWant, request, userId]() -> int32_t {
-            return imp->ImplicitStartAbilityInner(targetWant, request, userId);
-        };
-        return imp->CallStartAbilityInner(userId, targetWant, callBack, request.callType);
+        return imp->CallStartAbilityInner(userId, targetWant, request, request.callType);
     };
 
-    AAFwk::Want want;
-    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
-    int32_t tokenId = request.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN,
-        static_cast<int32_t>(IPCSkeleton::GetCallingTokenID()));
+    int32_t tokenId = request.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, request.callerAccessTokenId);
     AddIdentity(tokenId, identity);
+    // reset calling indentity
+    IPCSkeleton::SetCallingIdentity(identity);
 
     if (!isAppCloneSelector && request.want.HasParameter(APP_LAUNCH_TRUSTLIST)) {
         TrustlistIntersectionProcess(request, dialogAppInfos, userId);
@@ -182,9 +178,12 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
 
     if (dialogAppInfos.size() == 0 &&
         (request.want.GetFlags() & Want::FLAG_START_WITHOUT_TIPS) == Want::FLAG_START_WITHOUT_TIPS) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "hint dialog generate fail");
-            return ERR_IMPLICIT_START_ABILITY_FAIL;
-        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hint dialog generate fail");
+        return ERR_IMPLICIT_START_ABILITY_FAIL;
+    }
+
+    AAFwk::Want want;
+    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
     if (dialogAppInfos.size() == 0 && AppUtils::GetInstance().IsSelectorDialogDefaultPossion()) {
         ret = sysDialogScheduler->GetSelectorDialogWant(dialogAppInfos, request.want, want, request.callerToken);
         if (ret != ERR_OK && ret != ERR_APP_SELECTOR_NOT_EXISTS) {
@@ -204,7 +203,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         }
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, show tips dialog");
         Want dialogWant = sysDialogScheduler->GetTipsDialogWant(request.callerToken);
-        abilityMgr->StartAbility(dialogWant);
+        IN_PROCESS_CALL_WITHOUT_RET(abilityMgr->StartAbility(dialogWant));
         return ERR_IMPLICIT_START_ABILITY_FAIL;
     } else if (dialogAppInfos.size() == 0 && !AppUtils::GetInstance().IsSelectorDialogDefaultPossion()) {
         std::string type = MatchTypeAndUri(request.want);
@@ -224,14 +223,14 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         }
         std::vector<DialogAppInfo> dialogAllAppInfos;
         genReqParam.isMoreHapList = true;
-        ret = GenerateAbilityRequestByAction(userId, request, dialogAllAppInfos, genReqParam);
+        ret = IN_PROCESS_CALL(GenerateAbilityRequestByAction(userId, request, dialogAllAppInfos, genReqParam));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "request failed");
             return ret;
         }
         if (dialogAllAppInfos.size() == 0) {
-            Want dialogWant = sysDialogScheduler->GetTipsDialogWant(request.callerToken);
-            abilityMgr->StartAbility(dialogWant);
+            Want dialogWant = IN_PROCESS_CALL(sysDialogScheduler->GetTipsDialogWant(request.callerToken));
+            IN_PROCESS_CALL_WITHOUT_RET(abilityMgr->StartAbility(dialogWant));
             return ERR_IMPLICIT_START_ABILITY_FAIL;
         }
         ret = sysDialogScheduler->GetPcSelectorDialogWant(dialogAllAppInfos, request.want, want,
@@ -240,10 +239,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
             TAG_LOGE(AAFwkTag::ABILITYMGR, "GetPcSelectorDialogWant failed");
             return ret;
         }
-        ret = abilityMgr->StartAbility(request.want, request.callerToken);
-        // reset calling indentity
-        IPCSkeleton::SetCallingIdentity(identity);
-        return ret;
+        return IN_PROCESS_CALL(abilityMgr->StartAbility(request.want, request.callerToken));
     }
 
     //There is a default opening method add Only one application supports
@@ -280,10 +276,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
             return DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request,
                 want, userId, dialogAppInfos, needGrantUriPermission);
         }
-        ret = abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr);
-        // reset calling indentity
-        IPCSkeleton::SetCallingIdentity(identity);
-        return ret;
+        return IN_PROCESS_CALL(abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr));
     }
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitQueryInfos success, multiple apps available in pc");
@@ -304,10 +297,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         return DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want, userId,
             dialogAppInfos);
     }
-    ret = abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr);
-    // reset calling indentity
-    IPCSkeleton::SetCallingIdentity(identity);
-    return ret;
+    return IN_PROCESS_CALL(abilityMgr->ImplicitStartAbilityAsCaller(request.want, request.callerToken, nullptr));
 }
 
 std::string ImplicitStartProcessor::MatchTypeAndUri(const AAFwk::Want &want)
@@ -809,7 +799,7 @@ int32_t ImplicitStartProcessor::ImplicitStartAbilityInner(const Want &targetWant
 }
 
 int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
-    const Want &want, const StartAbilityClosure &callBack, const AbilityCallType &callType)
+    const Want &want, const AbilityRequest &request, const AbilityCallType &callType)
 {
     EventInfo eventInfo;
     eventInfo.userId = userId;
@@ -824,7 +814,7 @@ int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s, bundle:%{public}s", eventInfo.abilityName.c_str(),
         eventInfo.bundleName.c_str());
 
-    auto ret = callBack();
+    auto ret = ImplicitStartAbilityInner(want, request, userId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "CallStartAbilityInner failed: %{public}d", ret);
         if (callType == AbilityCallType::INVALID_TYPE) {
@@ -1125,8 +1115,8 @@ void ImplicitStartProcessor::TrustlistIntersectionProcess(const AbilityRequest &
     }
     for (const auto &info : dialogAppInfos) {
         AppExecFwk::BundleInfo curBundleInfo;
-        bool ret = bundleMgrHelper->GetBundleInfo(info.bundleName,
-            AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, curBundleInfo, userId);
+        bool ret = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(info.bundleName,
+            AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, curBundleInfo, userId));
         if (!ret) {
             TAG_LOGW(AAFwkTag::ABILITYMGR,
                 "get bundleInfo failed, bundleName:%{public}s, userId:%{public}d.",

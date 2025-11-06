@@ -76,6 +76,93 @@ sptr<IWantSender> PendingWantManager::GetWantSender(int32_t callingUid, int32_t 
     return GetWantSenderLocked(callingUid, uid, wantSenderInfo.userId, info, callerToken, appIndex);
 }
 
+void SendWantAgentNumberEvent(std::shared_ptr<PendingWantKey> pendingKey, int32_t wantAgentNumber)
+{
+    std::string bundleName = pendingKey->GetBundleName();
+    std::int32_t appIndex = pendingKey->GetAppIndex();
+
+    EventInfo eventInfo;
+    eventInfo.callerBundleName = bundleName;
+    eventInfo.callerUid = appIndex;
+    eventInfo.wantAgentNumber = wantAgentNumber;
+    EventReport::SendWantAgentEvent(EventName::WANTAGENT_NUMBER, HiSysEventType::STATISTIC, eventInfo);
+}
+
+void PendingWantManager::HandleAddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey)
+{
+    if (pendingKey == nullptr) {
+        return;
+    }
+    TAG_LOGD(AAFwkTag::WANTAGENT, "add wantAgent number");
+    std::string bundleName = pendingKey->GetBundleName();
+    std::lock_guard<ffrt::mutex> locker(countMutex_);
+    auto it = wantAgentCount_.find(bundleName);
+    if (it == wantAgentCount_.end()) {
+        wantAgentCount_.insert(std::make_pair(bundleName, AgentCount{1, 1, false}));
+        return;
+    }
+
+    // not first add
+    it->second.currentNumber = it->second.currentNumber + 1;
+    if (it->second.DFXFlag) { // Not First DFX
+        TAG_LOGD(AAFwkTag::WANTAGENT, "wantagent current number: %{public}d", it->second.currentNumber);
+        if ((it->second.currentNumber > WANTAGENT_NUMBER_THRESHOLD) &&
+            (it->second.currentNumber - it->second.latestMinNumber > WANTAGENT_FLOAT_THRESHOLD)) {
+            if (it->second.currentNumber % DFX_INTERVAL == 0) {
+                SendWantAgentNumberEvent(pendingKey, it->second.currentNumber);
+            }
+        }
+    } else { // First DFX
+        if (it->second.currentNumber > WANTAGENT_NUMBER_THRESHOLD) {
+            SendWantAgentNumberEvent(pendingKey, it->second.currentNumber);
+            it->second.DFXFlag = true;
+        }
+    }
+}
+
+void PendingWantManager::AddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey)
+{
+    // check is third-party hap
+    if (PermissionVerification::GetInstance()->IsSystemAppCall() ||
+        PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGD(AAFwkTag::WANTAGENT, "systemCall");
+        return;
+    }
+    HandleAddWantAgentNumber(pendingKey);
+}
+
+void PendingWantManager::HandleReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey)
+{
+    if (pendingKey == nullptr) {
+        return;
+    }
+    TAG_LOGD(AAFwkTag::WANTAGENT, "reduce wantAgent number");
+    std::string bundleName = pendingKey->GetBundleName();
+    std::lock_guard<ffrt::mutex> locker(countMutex_);
+    auto it = wantAgentCount_.find(bundleName);
+    if (it == wantAgentCount_.end()) {
+        TAG_LOGD(AAFwkTag::WANTAGENT, "No WantAgent");
+    } else {
+        if (it->second.currentNumber == 1) {
+            wantAgentCount_.erase(bundleName);
+        } else {
+            it->second.currentNumber = it->second.currentNumber - 1;
+            it->second.latestMinNumber = it->second.currentNumber; // Record Latest Minimum WantAgent Number
+        }
+    }
+}
+
+void PendingWantManager::ReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey)
+{
+    // check is third-party hap
+    if (PermissionVerification::GetInstance()->IsSystemAppCall() ||
+        PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGD(AAFwkTag::WANTAGENT, "systemCall");
+        return;
+    }
+    HandleReduceWantAgentNumber(pendingKey);
+}
+
 sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingUid, const int32_t uid,
     const int32_t userId, WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex)
 {
@@ -117,6 +204,7 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
             return ref;
         }
         MakeWantSenderCanceledLocked(*ref);
+        ReduceWantAgentNumber(ref->GetKey());
         wantRecords_.erase(ref->GetKey());
     }
 
@@ -130,6 +218,7 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
     if (rec != nullptr) {
         rec->SetCallerUid(callingUid);
         pendingKey->SetCode(PendingRecordIdCreate());
+        AddWantAgentNumber(pendingKey);
         wantRecords_.insert(std::make_pair(pendingKey, rec));
         TAG_LOGI(AAFwkTag::WANTAGENT,
             "wantRecords_ size %{public}zu, bundleName=%{public}s, flags=%{public}d, type=%{public}d, code=%{public}d",
@@ -298,6 +387,7 @@ void PendingWantManager::CancelWantSenderLocked(PendingWantRecord &record, bool 
     std::lock_guard<ffrt::mutex> locker(mutex_);
     MakeWantSenderCanceledLocked(record);
     if (cleanAbility) {
+        ReduceWantAgentNumber(record.GetKey());
         wantRecords_.erase(record.GetKey());
     }
 }
@@ -339,7 +429,7 @@ int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<Start
     DistributedClient dmsClient;
     uint32_t accessToken = IPCSkeleton::GetCallingTokenID();
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    result = dmsClient.StartRemoteAbility(want, callingUid, requestCode, accessToken);
+    result = dmsClient.StartRemoteAbility(want, callingUid, requestCode, accessToken, callerTokenId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "StartRemoteAbility failed result = %{public}d", result);
     }
@@ -358,8 +448,8 @@ int32_t PendingWantManager::PendingWantStartAbility(const Want &want, const sptr
 int32_t PendingWantManager::PendingWantStartServiceExtension(Want &want, const sptr<IRemoteObject> &callerToken)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "start service extension");
-    if (!PermissionVerification::GetInstance()->IsSystemAppCall()
-        && !PermissionVerification::GetInstance()->IsSACall()) {
+    if (!PermissionVerification::GetInstance()->IsSystemAppCall() &&
+        !PermissionVerification::GetInstance()->IsSACall()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "non-system app called");
         return ERR_INVALID_VALUE;
     }
@@ -674,6 +764,7 @@ void PendingWantManager::ClearPendingWantRecordTask(const std::string &bundleNam
                 }
             }
             if (hasBundle) {
+                ReduceWantAgentNumber(iter->first);
                 iter = wantRecords_.erase(iter);
                 TAG_LOGI(AAFwkTag::WANTAGENT, "wantRecords_ size %{public}zu", wantRecords_.size());
             } else {

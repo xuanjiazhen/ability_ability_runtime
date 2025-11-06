@@ -422,6 +422,8 @@ private:
         const std::string &startTime, const std::string &url, bool hideFailureTipDialog)
     {
         auto innerErrorCode = std::make_shared<int>(ERR_OK);
+        napi_value result = nullptr;
+        AddFreeInstallObserver(env, want, nullptr, &result, true);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, innerErrorCode, hideFailureTipDialog]() {
             auto context = weak.lock();
             if (!context) {
@@ -462,8 +464,6 @@ private:
             context->OnOpenLinkRequestFailure(requestId, want.GetElement(), jsonObject.dump());
         };
 
-        napi_value result = nullptr;
-        AddFreeInstallObserver(env, want, nullptr, &result, true);
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnOpenLink", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
         
@@ -563,6 +563,8 @@ private:
         std::string startTime)
     {
         auto innerErrorCode = std::make_shared<int>(ERR_OK);
+        napi_value result = nullptr;
+        AddFreeInstallObserver(env, want, nullptr, &result);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, options, innerErrorCode]() {
             auto context = weak.lock();
             if (!context) {
@@ -597,8 +599,6 @@ private:
                 context->OnRequestFailure(options.requestId_, want.GetElement(), jsonObject.dump());
             }
         };
-        napi_value result = nullptr;
-        AddFreeInstallObserver(env, want, nullptr, &result);
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnOpenAtomicService", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
         return result;
@@ -1614,6 +1614,9 @@ napi_value CreateJsServiceExtensionContext(napi_env env, std::shared_ptr<Service
 
     std::unique_ptr<JsServiceExtensionContext> jsContext = std::make_unique<JsServiceExtensionContext>(context);
     napi_wrap(env, object, jsContext.release(), JsServiceExtensionContext::Finalizer, nullptr, nullptr);
+
+    std::string type = "ServiceExtensionContext";
+    napi_set_named_property(env, object, "contextType", CreateJsValue(env, type));
 
     const char *moduleName = "JsServiceExtensionContext";
     BindNativeFunction(env, object, "startAbility", moduleName, JsServiceExtensionContext::StartAbility);

@@ -36,8 +36,10 @@ enum class FaultDataType {
     CJ_ERROR,
     APP_FREEZE,
     CPU_LOAD,
+    SLEEP_CLEAN,
     PERFORMANCE_CONTROL,
-    RESOURCE_CONTROL
+    RESOURCE_CONTROL,
+    BACKGROUND_WARNING
 };
 
 enum AppStatus {
@@ -58,6 +60,7 @@ public:
     static constexpr char APP_INPUT_BLOCK[] = "APP_INPUT_BLOCK";
     static constexpr char BUSSINESS_THREAD_BLOCK_3S[] = "BUSSINESS_THREAD_BLOCK_3S";
     static constexpr char BUSSINESS_THREAD_BLOCK_6S[] = "BUSSINESS_THREAD_BLOCK_6S";
+    static constexpr char BACKGROUND_WARNING[] = "BACKGROUND_WARNING";
 };
 /**
  * @struct FaultData
@@ -94,6 +97,8 @@ struct FaultData : public Parcelable {
     std::string procStatm;
     bool isInForeground;
     bool isEnableMainThreadSample;
+    std::string applicationHeapInfo;
+    std::string processLifeTime;
 };
 
 /**
@@ -127,6 +132,8 @@ struct AppFaultDataBySA : public Parcelable {
     std::string procStatm;
     bool isInForeground;
     bool isEnableMainThreadSample;
+    std::string applicationHeapInfo;
+    std::string processLifeTime;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

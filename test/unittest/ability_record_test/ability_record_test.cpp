@@ -64,6 +64,7 @@ const std::string DLP_BUNDLE_NAME = "com.ohos.dlpmanager";
 const std::string SHELL_ASSISTANT_BUNDLENAME = "com.huawei.shell_assistant";
 const std::string SHOW_ON_LOCK_SCREEN = "ShowOnLockScreen";
 const std::string URI_PERMISSION_TABLE_NAME = "uri_permission";
+constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_HIGH = "ohos.ability.params.uiExtensionLaunchTimestampHigh";
 constexpr pid_t pid_ = 2000;
 }
 class AbilityRecordTest : public testing::TestWithParam<OHOS::AAFwk::AbilityState> {
@@ -1860,7 +1861,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GrantUriPermission_001, TestSize.Level
     EXPECT_NE(abilityRecord, nullptr);
     Want want;
     std::string targetBundleName = "name";
-    abilityRecord->GrantUriPermission(want, targetBundleName, true, 0);
+    abilityRecord->GrantUriPermission(want, targetBundleName, true, 0, false);
 }
 
 /*
@@ -1879,7 +1880,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GrantUriPermission_002, TestSize.Level
     want.SetFlags(1);
     want.SetUri("datashare://ohos.samples.clock/data/storage/el2/base/haps/entry/files/test_A.txt");
     std::string targetBundleName = "name";
-    abilityRecord->GrantUriPermission(want, targetBundleName, false, 0);
+    abilityRecord->GrantUriPermission(want, targetBundleName, false, 0, false);
 }
 
 /*
@@ -1898,7 +1899,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GrantUriPermission_003, TestSize.Level
     want.SetFlags(1);
     want.SetUri("file://com.example.mock/data/storage/el2/base/haps/entry/files/test_A.txt");
     std::string targetBundleName = "name";
-    abilityRecord->GrantUriPermission(want, targetBundleName, false, 0);
+    abilityRecord->GrantUriPermission(want, targetBundleName, false, 0, false);
 }
 
 /*
@@ -1917,7 +1918,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GrantUriPermission_004, TestSize.Level
     want.SetFlags(1);
     want.SetUri("file://ohos.samples.clock/data/storage/el2/base/haps/entry/files/test_A.txt");
     std::string targetBundleName = "name";
-    abilityRecord->GrantUriPermission(want, targetBundleName, false, 0);
+    abilityRecord->GrantUriPermission(want, targetBundleName, false, 0, false);
 }
 
 /*
@@ -1938,7 +1939,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GrantUriPermission_005, TestSize.Level
     want.SetFlags(1);
     want.SetUri("file://ohos.samples.clock/data/storage/el2/base/haps/entry/files/test_A.txt");
     std::string targetBundleName = "name";
-    abilityRecord->GrantUriPermission(want, targetBundleName, false, 0);
+    abilityRecord->GrantUriPermission(want, targetBundleName, false, 0, false);
 }
 
 #ifdef WITH_DLP
@@ -3005,7 +3006,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetPermissionedUriList_001, TestSize.L
     Want want;
     want.SetUri(uri);
     std::vector<std::string> uriVec = { uri };
-    std::vector<bool> checkResults = {};
+    std::vector<CheckResult> checkResults = {};
     auto permissionUris = UriUtils::GetInstance().GetPermissionedUriList(uriVec, checkResults, 0, "target", want);
     EXPECT_EQ(permissionUris.size(), 0);
 }
@@ -3024,7 +3025,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetPermissionedUriList_002, TestSize.L
     Want want;
     want.SetUri(uri);
     std::vector<std::string> uriVec = { uri };
-    std::vector<bool> checkResults = { false };
+    std::vector<CheckResult> checkResults = { CheckResult(false, 0) };
     auto permissionUris = UriUtils::GetInstance().GetPermissionedUriList(uriVec, checkResults, 0, "target", want);
     EXPECT_EQ(permissionUris.size(), 0);
     EXPECT_EQ(want.GetUriString(), "");
@@ -3044,7 +3045,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetPermissionedUriList_003, TestSize.L
     Want want;
     want.SetUri(uri);
     std::vector<std::string> uriVec = { uri };
-    std::vector<bool> checkResults = { false };
+    std::vector<CheckResult> checkResults = { CheckResult(false, 0) };
     auto permissionUris = UriUtils::GetInstance().GetPermissionedUriList(uriVec, checkResults, 0, "target", want);
     EXPECT_EQ(permissionUris.size(), 0);
     EXPECT_EQ(want.GetUriString(), uri);
@@ -3064,7 +3065,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetPermissionedUriList_004, TestSize.L
     Want want;
     want.SetUri(uri);
     std::vector<std::string> uriVec = { uri };
-    std::vector<bool> checkResults = { true };
+    std::vector<CheckResult> checkResults = { CheckResult(true, 0) };
     auto permissionUris = UriUtils::GetInstance().GetPermissionedUriList(uriVec, checkResults, 0, "target", want);
     EXPECT_EQ(permissionUris.size(), 1);
     EXPECT_EQ(want.GetUriString(), uri);
@@ -3085,7 +3086,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetPermissionedUriList_005, TestSize.L
     std::vector<std::string> oriUriVec(1, uri);
     want.SetParam(AbilityConfig::PARAMS_STREAM, oriUriVec);
     std::vector<std::string> uriVec = { uri };
-    std::vector<bool> checkResults = { true };
+    std::vector<CheckResult> checkResults = { CheckResult(true, 0) };
     auto permissionUris = UriUtils::GetInstance().GetPermissionedUriList(uriVec, checkResults, 0, "target", want);
     EXPECT_EQ(permissionUris.size(), 1);
     auto paramStramUris = want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM);
@@ -3109,7 +3110,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetPermissionedUriList_006, TestSize.L
     std::vector<std::string> oriUriVec = { uri2 };
     want.SetParam(AbilityConfig::PARAMS_STREAM, oriUriVec);
     std::vector<std::string> uriVec = { uri1, uri2 };
-    std::vector<bool> checkResults = { true, true };
+    std::vector<CheckResult> checkResults = { CheckResult(true, 0), CheckResult(true, 0) };
     auto permissionUris = UriUtils::GetInstance().GetPermissionedUriList(uriVec, checkResults, 0, "target", want);
     EXPECT_EQ(permissionUris.size(), 2);
     EXPECT_EQ(want.GetUriString(), uri1);
@@ -3281,8 +3282,274 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_ProcessForegroundAbility_003, TestSize
     abilityRecord_->currentState_ = AbilityState::FOREGROUND;
     abilityRecord_->pid_ = pid_;
     abilityRecord_->SetFrozenByPreload(true);
-    abilityRecord_->ProcessForegroundAbility(tokenId);
+    ForegroundOptions options;
+    options.targetGrantBundleName = "com.ohos.demo";
+    abilityRecord_->ProcessForegroundAbility(tokenId, options);
     EXPECT_EQ(abilityRecord_->IsFrozenByPreload(), false);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: AddUIExtensionLaunchTimestamp
+ * SubFunction: AddUIExtensionLaunchTimestamp
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord AddUIExtensionLaunchTimestamp
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_AddUIExtensionLaunchTimestamp_001, TestSize.Level1)
+{
+    EXPECT_NE(abilityRecord_, nullptr);
+    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    sessionInfo->persistentId  = 1;
+    sessionInfo->hostWindowId  = 1;
+    sessionInfo->uiExtensionUsage  = AAFwk::UIExtensionUsage::MODAL;
+    ASSERT_NE(sessionInfo, nullptr);
+    abilityRecord_->SetSessionInfo(sessionInfo);
+    abilityRecord_->AddUIExtensionLaunchTimestamp();
+    EXPECT_NE(abilityRecord_->want_.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1), -1);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: AddUIExtensionLaunchTimestamp
+ * SubFunction: AddUIExtensionLaunchTimestamp
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord AddUIExtensionLaunchTimestamp
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_AddUIExtensionLaunchTimestamp_002, TestSize.Level1)
+{
+    EXPECT_NE(abilityRecord_, nullptr);
+    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    sessionInfo->persistentId  = 1;
+    sessionInfo->hostWindowId  = 1;
+    sessionInfo->uiExtensionUsage  = AAFwk::UIExtensionUsage::EMBEDDED;
+    ASSERT_NE(sessionInfo, nullptr);
+    abilityRecord_->SetSessionInfo(sessionInfo);
+    abilityRecord_->AddUIExtensionLaunchTimestamp();
+    EXPECT_EQ(abilityRecord_->want_.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1), -1);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: RemoveUIExtensionLaunchTimestamp
+ * SubFunction: RemoveUIExtensionLaunchTimestamp
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord RemoveUIExtensionLaunchTimestamp
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_RemoveUIExtensionLaunchTimestamp_001, TestSize.Level1)
+{
+    EXPECT_NE(abilityRecord_, nullptr);
+    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    sessionInfo->persistentId  = 1;
+    sessionInfo->hostWindowId  = 1;
+    sessionInfo->uiExtensionUsage  = AAFwk::UIExtensionUsage::MODAL;
+    ASSERT_NE(sessionInfo, nullptr);
+    abilityRecord_->SetSessionInfo(sessionInfo);
+    abilityRecord_->AddUIExtensionLaunchTimestamp();
+    EXPECT_NE(abilityRecord_->want_.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1), -1);
+    abilityRecord_->RemoveUIExtensionLaunchTimestamp();
+    EXPECT_EQ(abilityRecord_->want_.GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1), -1);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetConnectionReported/IsConnectionReported
+ * SubFunction: SetConnectionReported/IsConnectionReported
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetConnectionReported/IsConnectionReported
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_ConnectionReported_001, TestSize.Level1)
+{
+    EXPECT_NE(abilityRecord_, nullptr);
+    EXPECT_EQ(abilityRecord_->IsConnectionReported(), false);
+    abilityRecord_->SetConnectionReported(true);
+    EXPECT_EQ(abilityRecord_->IsConnectionReported(), true);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: ReportAbilityConnectionRelations
+ * SubFunction: ReportAbilityConnectionRelations
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord ReportAbilityConnectionRelations
+ */
+HWTEST_F(AbilityRecordTest, ReportAbilityConnectionRelations_001, TestSize.Level1)
+{
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->abilityInfo_.type = AbilityType::DATA;
+    abilityRecord_->abilityInfo_.applicationInfo.name = "app";
+    int32_t requestCode = 0;
+    //caller is null
+    abilityRecord_->SetConnectionReported(false);
+    abilityRecord_->callerList_.push_back(nullptr);
+    EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
+    
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = GetAbilityRecord();
+    //caller is not null :0,0,0,0
+    requestCode = 1;
+    abilityRecord_->SetConnectionReported(false);
+    auto callerRecord_1 = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    abilityRecord_->callerList_.push_back(callerRecord_1);
+    EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
+
+    //caller is not null :1,0,0,0
+    abilityRecord_->SetConnectionReported(false);
+    abilityRecord_->SetPid(1);
+    EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
+    
+    //caller is not null :1,1,0,0
+    abilityRecord_->SetConnectionReported(false);
+    abilityRecord_->SetPid(1);
+    abilityRecord_->SetUid(1);
+    EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
+    //caller is not null :1,1,1,0
+    requestCode = 2;
+    abilityRecord_->SetConnectionReported(false);
+    callerAbilityRecord->SetPid(1);
+    auto callerRecord_2 = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    EXPECT_NE(callerRecord_1, nullptr);
+    abilityRecord_->callerList_.push_back(callerRecord_2);
+    //caller is not null :1,1,1,1
+    requestCode = 3;
+    abilityRecord_->SetConnectionReported(false);
+    callerAbilityRecord->SetPid(1);
+    callerAbilityRecord->SetUid(1);
+    auto callerRecord_3 = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    abilityRecord_->callerList_.push_back(callerRecord_3);
+    EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), true);
+
+    //caller is not null :1,0,1,0
+    requestCode = 4;
+    abilityRecord_->SetConnectionReported(false);
+    abilityRecord_->SetPid(1);
+    abilityRecord_->SetUid(0);
+    callerAbilityRecord->SetPid(1);
+    callerAbilityRecord->SetUid(0);
+    auto callerRecord_4 = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    abilityRecord_->callerList_.push_back(callerRecord_4);
+    EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: ReportAbilityConnectionRelations
+ * SubFunction: ReportAbilityConnectionRelations
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord ReportAbilityConnectionRelations
+ */
+HWTEST_F(AbilityRecordTest, ReportAbilityConnectionRelations_002, TestSize.Level1)
+{
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->abilityInfo_.type = AbilityType::DATA;
+    abilityRecord_->abilityInfo_.applicationInfo.name = "app";
+    int32_t requestCode = 0;
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = GetAbilityRecord();
+    //caller is not null :1,0,1,1
+    requestCode = 5;
+    abilityRecord_->SetConnectionReported(false);
+    abilityRecord_->SetPid(1);
+    abilityRecord_->SetUid(0);
+    callerAbilityRecord->SetPid(1);
+    callerAbilityRecord->SetUid(1);
+    auto callerRecord_5 = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    abilityRecord_->callerList_.push_back(callerRecord_5);
+    EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
+
+    //caller is not null :1,1,0,1
+    requestCode = 6;
+    abilityRecord_->SetConnectionReported(false);
+    abilityRecord_->SetPid(1);
+    abilityRecord_->SetUid(1);
+    callerAbilityRecord->SetPid(0);
+    callerAbilityRecord->SetUid(1);
+    auto callerRecord_6 = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    abilityRecord_->callerList_.push_back(callerRecord_6);
+    EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetPromotePriority
+ * SubFunction: SetPromotePriority
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetPromotePriority
+ */
+HWTEST_F(AbilityRecordTest, SetPromotePriority_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetPromotePriority_001 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->uiAbilityProperty_ = nullptr;
+    abilityRecord_->SetPromotePriority(true);
+    EXPECT_NE(abilityRecord_->uiAbilityProperty_, nullptr);
+    EXPECT_TRUE(abilityRecord_->uiAbilityProperty_->promotePriority);
+
+    abilityRecord_->uiAbilityProperty_ = nullptr;
+    abilityRecord_->SetPromotePriority(false);
+    EXPECT_NE(abilityRecord_->uiAbilityProperty_, nullptr);
+    EXPECT_FALSE(abilityRecord_->uiAbilityProperty_->promotePriority);
+    GTEST_LOG_(INFO) << "SetPromotePriority_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetPromotePriority
+ * SubFunction: GetPromotePriority
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord GetPromotePriority
+ */
+HWTEST_F(AbilityRecordTest, ShouldPromotePriority_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ShouldPromotePriority_001 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->uiAbilityProperty_ = nullptr;
+    EXPECT_FALSE(abilityRecord_->GetPromotePriority());
+
+    abilityRecord_->uiAbilityProperty_ = std::make_shared<AbilityRecord::UIAbilityProperty>();
+    EXPECT_FALSE(abilityRecord_->GetPromotePriority());
+
+    abilityRecord_->uiAbilityProperty_->promotePriority = true;
+    abilityRecord_->pid_ = -1;
+    EXPECT_FALSE(abilityRecord_->GetPromotePriority());
+
+    abilityRecord_->pid_ = 1000;
+    EXPECT_TRUE(abilityRecord_->GetPromotePriority());
+    GTEST_LOG_(INFO) << "ShouldPromotePriority_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: PromotePriority
+ * SubFunction: PromotePriority
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord PromotePriority
+ */
+HWTEST_F(AbilityRecordTest, PromotePriority_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "PromotePriority_001 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->isStartedByCall_ = true;
+    EXPECT_TRUE(abilityRecord_->IsStartedByCall());
+
+    abilityRecord_->uiAbilityProperty_ = std::make_shared<AbilityRecord::UIAbilityProperty>();
+    abilityRecord_->uiAbilityProperty_->promotePriority = true;
+    abilityRecord_->pid_ = 1000;
+    EXPECT_TRUE(abilityRecord_->GetPromotePriority());
+
+    abilityRecord_->callerList_.clear();
+    auto callerInfo = std::make_shared<CallerRecord>(100, abilityRecord_);
+    abilityRecord_->callerList_.emplace_back(callerInfo);
+    EXPECT_NE(abilityRecord_->GetCallerInfo(), nullptr);
+
+    abilityRecord_->PromotePriority();
+    GTEST_LOG_(INFO) << "PromotePriority_001 end";
 }
 }  // namespace AAFwk
 }  // namespace OHOS

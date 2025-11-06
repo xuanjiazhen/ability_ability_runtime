@@ -19,7 +19,9 @@
 #include "ani_enum_convert.h"
 #include "running_process_info.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 #include "securec.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -325,8 +327,8 @@ bool GetFieldStringArrayByName(ani_env *env, ani_object object, const char *name
         TAG_LOGE(AAFwkTag::ANI, "%{public}s: undefined", name);
         return false;
     }
-    ani_double length = 0;
-    if ((status = env->Object_GetPropertyByName_Double(reinterpret_cast<ani_object>(arrayObj),
+    ani_int length = 0;
+    if ((status = env->Object_GetPropertyByName_Int(reinterpret_cast<ani_object>(arrayObj),
         "length", &length)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -1451,6 +1453,16 @@ bool IsValidProperty(ani_env *env, ani_ref param)
         return false;
     }
     if (isUndefined || isNull) {
+        return false;
+    }
+    return true;
+}
+
+bool CheckCallerIsSystemApp()
+{
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        TAG_LOGE(AAFwkTag::ANI, "Non-system app forbidden to call");
         return false;
     }
     return true;

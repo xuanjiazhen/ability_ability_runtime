@@ -134,7 +134,7 @@ ErrCode AbilityManagerClient::StartAbility(
 }
 
 ErrCode AbilityManagerClient::StartAbilityByCall(const Want& want, sptr<IAbilityConnection> connect,
-    sptr<IRemoteObject> callerToken, int32_t accountId, bool isSilent)
+    sptr<IRemoteObject> callerToken, int32_t accountId, bool isSilent, bool promotePriority)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient::StartAbilityByCall start");
     if (g_remoteObject == nullptr) {
@@ -145,6 +145,19 @@ ErrCode AbilityManagerClient::StartAbilityByCall(const Want& want, sptr<IAbility
     sptr<IAbilityManager> abms = iface_cast<IAbilityManager>(g_remoteObject);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient::StartAbilityByCall end");
     return abms->StartAbilityByCall(want, connect, callerToken);
+}
+
+ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want& want)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient::StartAbilityForPrelaunch start");
+    if (g_remoteObject == nullptr) {
+        TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient::StartAbilityForPrelaunch fail because remoteObject is null");
+        g_remoteObject =
+            OHOS::DelayedSingleton<AppExecFwk::SysMrgClient>::GetInstance()->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
+    }
+    sptr<IAbilityManager> abms = iface_cast<IAbilityManager>(g_remoteObject);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient::StartAbilityForPrelaunch end");
+    return abms->StartAbilityForPrelaunch(want);
 }
 
 ErrCode AbilityManagerClient::ReleaseCall(

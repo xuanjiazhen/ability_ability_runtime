@@ -72,6 +72,7 @@ public:
     virtual ~UIAbilityLifecycleManager() = default;
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
+    void SignRestartProcess(int32_t pid);
 
     /**
      * StartUIAbility with request.
@@ -82,7 +83,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, uint32_t sceneFlag,
-        bool &isColdStart);
+        bool isRestart, bool &isColdStart);
 
     /**
      * @brief execute after the ability schedule the lifecycle
@@ -197,6 +198,14 @@ public:
      * @param abilityRequest target ability request.
      */
     int ResolveLocked(const AbilityRequest &abilityRequest, std::string &errMsg);
+
+    /**
+     * resolve the call ipc of ability for prelaunch.
+     *
+     * @param abilityRequest target ability request.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest);
 
     /**
      * Call UIAbility by SCB.
@@ -527,6 +536,9 @@ public:
      */
     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
 
+    ErrCode IsUIAbilityAlreadyExist(const std::string &abilityName, const std::string &specifiedFlag,
+        int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
+
 private:
     /**
      * @brief Add starting process ID to tracking list
@@ -663,6 +675,12 @@ private:
      */
     void HandleForegroundFailed(const std::shared_ptr<AbilityRecord> &ability,
         AbilityState state = AbilityState::INITIAL);
+    
+     /**
+     * @brief Handle background for prelaunch
+     * @param abilityRecordabilityRecord The ability record that prelaunch
+     */
+    void HandlePrelaunchBackground(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
     /**
      * @brief Handle foreground timeout for ability
@@ -711,12 +729,6 @@ private:
      * @param abilityRecord The ability record to terminate
      */
     void CompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
-
-    /**
-     * @brief Complete terminate operation with lock
-     * @param abilityRecord The ability record to terminate
-     */
-    void CompleteTerminateLocked(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
     /**
      * @brief Check if token is contained in internal storage
@@ -886,6 +898,8 @@ private:
      */
     int32_t StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
         std::shared_ptr<AbilityRecord> callerAbility);
+    
+    int32_t StartAbilityBySpecified(const AbilityRequest &abilityRequest, int32_t requestId);
 
     /**
      * @brief Set last exit reason for ability
@@ -1218,6 +1232,7 @@ private:
      * @param abilityRequest The ability request
      */
     void RemoveInstanceKey(const AbilityRequest &abilityRequest) const;
+    bool HandleRestartUIAbility(sptr<SessionInfo> sessionInfo);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
@@ -1226,6 +1241,7 @@ private:
     std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> tmpAbilityMap_;
     std::unordered_map<std::shared_ptr<AbilityRecord>, std::list<AbilityRequest>> callRequestCache_;
     std::list<std::shared_ptr<AbilityRecord>> terminateAbilityList_;
+    std::unordered_set<std::shared_ptr<AbilityRecord>> reuseWindowRecords_;
     sptr<IRemoteObject> rootSceneSession_;
     sptr<ISessionHandler> handler_;
     ffrt::mutex statusBarDelegateManagerLock_;

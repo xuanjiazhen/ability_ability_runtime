@@ -35,16 +35,6 @@ constexpr int32_t PARAMETER_ERROR = -1;
 constexpr const char* COMPLETE_DATA_IMPL_CLASS_NAME = "L@ohos/app/ability/wantAgent/wantAgent/CompleteDataImpl;";
 constexpr const char* WANT_AGENT_NAMESPACE = "L@ohos/app/ability/wantAgent/wantAgent;";
 constexpr const char* CLEANER_CLASS = "L@ohos/app/ability/wantAgent/wantAgent/Cleaner;";
-
-bool CheckCallerIsSystemApp()
-{
-    auto selfToken = IPCSkeleton::GetSelfTokenID();
-    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app forbidden to call");
-        return false;
-    }
-    return true;
-}
 } // namespace
 
 TriggerCompleteCallBack::TriggerCompleteCallBack()
@@ -211,6 +201,18 @@ void EtsWantAgent::GetWantAgent(ani_env *env, ani_object info, ani_object call)
     GetInstance().OnGetWantAgent(env, info, call);
 }
 
+ani_object EtsWantAgent::CreateLocalWantAgent(ani_env *env, ani_object info)
+{
+    TAG_LOGD(AAFwkTag::WANTAGENT, "CreateLocalWantAgent called");
+    return GetInstance().OnCreateLocalWantAgent(env, info);
+}
+
+ani_boolean EtsWantAgent::IsLocalWantAgent(ani_env *env, ani_object info)
+{
+    TAG_LOGD(AAFwkTag::WANTAGENT, "IsLocalWantAgent called");
+    return GetInstance().OnIsLocalWantAgent(env, info);
+}
+
 void EtsWantAgent::Clean(ani_env *env, ani_object object)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "Clean called");
@@ -335,7 +337,7 @@ void EtsWantAgent::OnGetWant(ani_env *env, ani_object agent, ani_object call)
         return;
     }
     WantAgent* pWantAgent = nullptr;
-    if (!CheckCallerIsSystemApp()) {
+    if (!AppExecFwk::CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
         EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP,
             AbilityRuntimeErrorUtil::GetErrMessage(ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP));
@@ -414,30 +416,39 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
         params.wants.emplace_back(want);
     }
 
-    ani_boolean isUndefined = true;
+    ani_boolean isActionTypeUndefined = true;
     ani_ref actionTypeRef = nullptr;
-    if (!GetPropertyRef(env, info, "actionType", actionTypeRef, isUndefined)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "actionType GetPropertyRef failed");
-        return PARAMETER_ERROR;
+    GetPropertyRef(env, info, "actionType", actionTypeRef, isActionTypeUndefined);
+    if (!isActionTypeUndefined) {
+        if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
+            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType)) {
+                return PARAMETER_ERROR;
+        }
     }
-    if (!isUndefined) {
-        AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
-            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType);
+    ani_boolean isOperationTypeUndefined = true;
+    GetPropertyRef(env, info, "operationType", actionTypeRef, isOperationTypeUndefined);
+    if (isActionTypeUndefined && !isOperationTypeUndefined) {
+        if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
+            env, reinterpret_cast<ani_enum_item>(actionTypeRef), params.operationType)) {
+                return PARAMETER_ERROR;
+        }
     }
 
-    ani_double dRequestCode = 0.0;
-    if ((status = env->Object_GetPropertyByName_Double(info, "requestCode", &dRequestCode)) != ANI_OK) {
+    ani_int requestCode = 0;
+    if ((status = env->Object_GetPropertyByName_Int(info, "requestCode", &requestCode)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "requestCode GetProperty failed status: %{public}d", status);
         return PARAMETER_ERROR;
     }
-    params.requestCode = dRequestCode;
-
+    params.requestCode = requestCode;
+    if (!isOperationTypeUndefined) {
+        return BUSINESS_ERROR_CODE_OK;
+    }
     ani_ref actionFlagsRef = nullptr;
-    if (!GetPropertyRef(env, info, "actionFlags", actionFlagsRef, isUndefined)) {
+    if (!GetPropertyRef(env, info, "actionFlags", actionFlagsRef, isActionTypeUndefined)) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "actionFlags GetPropertyRef failed");
         return PARAMETER_ERROR;
     }
-    if (!isUndefined) {
+    if (!isActionTypeUndefined) {
         ani_array_ref actionFlagsArr = reinterpret_cast<ani_array_ref>(actionFlagsRef);
         ani_size actionFlagsLen = 0;
         if ((status = env->Array_GetLength(actionFlagsArr, &actionFlagsLen)) != ANI_OK) {
@@ -459,17 +470,17 @@ int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgent
     }
 
     ani_ref extraInfoRef = nullptr;
-    if (!GetPropertyRef(env, info, "extraInfos", extraInfoRef, isUndefined)) {
+    if (!GetPropertyRef(env, info, "extraInfos", extraInfoRef, isActionTypeUndefined)) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfos GetPropertyRef failed");
         return PARAMETER_ERROR;
     }
-    if (isUndefined) {
-        if (!GetPropertyRef(env, info, "extraInfo", extraInfoRef, isUndefined)) {
+    if (isActionTypeUndefined) {
+        if (!GetPropertyRef(env, info, "extraInfo", extraInfoRef, isActionTypeUndefined)) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "extraInfo GetPropertyRef failed");
             return PARAMETER_ERROR;
         }
     }
-    if (!isUndefined) {
+    if (!isActionTypeUndefined) {
         if (!UnwrapWantParams(env, extraInfoRef, params.extraInfo)) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "Convert extraInfo failed");
             return PARAMETER_ERROR;
@@ -527,13 +538,13 @@ void EtsWantAgent::OnTrigger(ani_env *env, ani_object agent, ani_object triggerI
 int32_t EtsWantAgent::GetTriggerInfo(ani_env *env, ani_object triggerInfoObj, TriggerInfo &triggerInfo)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "GetTriggerInfo called");
-    ani_double dCode = 0.0;
-    ani_status status = env->Object_GetPropertyByName_Double(triggerInfoObj, "code", &dCode);
+    ani_int aniCode = 0;
+    ani_status status = env->Object_GetPropertyByName_Int(triggerInfoObj, "code", &aniCode);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "code GetProperty failed status: %{public}d", status);
         return ERR_NOT_OK;
     }
-    const int32_t code = static_cast<int32_t>(dCode);
+    const int32_t code = static_cast<int32_t>(aniCode);
 
     ani_ref wantRef = nullptr;
     ani_boolean isUndefined = true;
@@ -588,7 +599,7 @@ int32_t EtsWantAgent::GetTriggerInfo(ani_env *env, ani_object triggerInfoObj, Tr
     }
     std::shared_ptr<AAFwk::StartOptions> startOptions = nullptr;
     if (!isUndefined) {
-        if (!CheckCallerIsSystemApp()) {
+        if (!AppExecFwk::CheckCallerIsSystemApp()) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
             EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP,
                 AbilityRuntimeErrorUtil::GetErrMessage(ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP));
@@ -657,6 +668,72 @@ void EtsWantAgent::OnGetWantAgent(ani_env *env, ani_object info, ani_object call
     }
 }
 
+ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null env");
+        return nullptr;
+    }
+
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
+        EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
+        return nullptr;
+    }
+    std::shared_ptr<WantAgentParams> parasobj = std::make_shared<WantAgentParams>();
+    int32_t ret = GetWantAgentParam(env, info, *parasobj);
+    if (ret != BUSINESS_ERROR_CODE_OK) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to get wantAgent param");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error! Info must be a WantAgentInfo.");
+        return nullptr;
+    }
+    LocalWantAgentInfo localWantAgentInfo(parasobj->requestCode,
+        static_cast<WantAgentConstant::OperationType>(parasobj->operationType),
+        parasobj->wants);
+    const auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    std::shared_ptr<WantAgent> wantAgent = nullptr;
+    ErrCode result = WantAgentHelper::CreateLocalWantAgent(context, localWantAgentInfo, wantAgent);
+    if (result != ERR_OK || wantAgent == nullptr) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error! CreateLocalWantAgent failed.");
+        return nullptr;
+    }
+    WantAgent *pWantAgent = new (std::nothrow) WantAgent(wantAgent->GetLocalPendingWant());
+    if (pWantAgent == nullptr) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error! New wantAgent failed.");
+        return nullptr;
+    } else {
+        ani_object retObj = WrapWantAgent(env, pWantAgent);
+        if (retObj == nullptr) {
+            delete pWantAgent;
+            pWantAgent = nullptr;
+        }
+        return retObj;
+    }
+}
+
+ani_boolean EtsWantAgent::OnIsLocalWantAgent(ani_env *env, ani_object info)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null env");
+        return false;
+    }
+
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
+        EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
+        return false;
+    }
+    WantAgent* pWantAgent = nullptr;
+    UnwrapWantAgent(env, info, reinterpret_cast<void **>(&pWantAgent));
+    if (pWantAgent == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Parse pWantAgent failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse pWantAgent failed. Agent must be a WantAgent.");
+        return false;
+    }
+    std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(*pWantAgent);
+    return wantAgent->IsLocal();
+}
+
 ani_status BindNativeFunctions(ani_env *env)
 {
     ani_namespace ns = nullptr;
@@ -675,6 +752,10 @@ ani_status BindNativeFunctions(ani_env *env)
         ani_native_function { "nativeTrigger", nullptr, reinterpret_cast<void *>(EtsWantAgent::Trigger) },
         ani_native_function { "nativeGetWant", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetWant) },
         ani_native_function { "nativeGetWantAgent", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetWantAgent) },
+        ani_native_function { "nativeCreateLocalWantAgent", nullptr,
+            reinterpret_cast<void *>(EtsWantAgent::CreateLocalWantAgent) },
+        ani_native_function { "nativeIsLocalWantAgent", nullptr,
+            reinterpret_cast<void *>(EtsWantAgent::IsLocalWantAgent) },
     };
     if ((status = env->Namespace_BindNativeFunctions(ns, functions.data(), functions.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Namespace_BindNativeFunctions failed status: %{public}d", status);

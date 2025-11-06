@@ -110,6 +110,16 @@ public:
     void OnNewWant(const Want &want) override;
 
     /**
+     * @brief Prepare user data of local Ability.
+     * @param reason the reason why framework invoke this function
+     * @param wantParams Indicates the user data to be saved.
+     * @return result code defined in abilityConstants
+     */
+    int32_t OnSaveState(int32_t reason, WantParams &wantParams,
+        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
+        bool &isAsync, AppExecFwk::StateReason stateReason) override;
+
+    /**
      * @brief Called when startAbilityForResult(ohos.aafwk.content.Want,int) is called to start an ability and the
      * result is returned. This method is called only on Page abilities. You can start a new ability to perform some
      * calculations and use setResult (int,ohos.aafwk.content.Want) to return the calculation result. Then the system
@@ -124,6 +134,8 @@ public:
     void OnAbilityResult(int requestCode, int resultCode, const Want &resultData) override;
 
     sptr<IRemoteObject> CallRequest() override;
+
+    void OnAfterFocusedCommon(bool isFocused) override;
 
     static void CreateAndBindContext(const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext,
         const std::unique_ptr<Runtime>& runtime);
@@ -259,11 +271,13 @@ private:
     void GetPageStackFromWant(const Want &want, std::string &pageStack);
     void AbilityContinuationOrRecover(const Want &want);
     void UpdateEtsWindowStage(ani_ref windowStage);
+    std::unique_ptr<NativeReference> CreateJsAppWindowStage();
     inline bool GetInsightIntentExecutorInfo(const Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
-        InsightIntentExecutorInfo& executeInfo);
+        InsightIntentExecutorInfo& executeInfo, std::string arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2);
     
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsWindowStageObj_;
+    std::shared_ptr<NativeReference> jsWindowStageObj_;
     int32_t windowMode_ = 0;
 #endif
 

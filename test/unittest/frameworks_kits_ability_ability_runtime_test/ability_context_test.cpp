@@ -215,6 +215,10 @@ public:
     {
         return "MockAbilityContext for tdd";
     }
+    virtual std::string GetLogFileDir()
+    {
+        return "MockAbilityContext for tdd";
+    }
     virtual sptr<IRemoteObject> GetToken()
     {
         return nullptr;
@@ -372,6 +376,10 @@ public:
     {
         return ERR_OK;
     }
+    virtual ErrCode StartAbilityForPrelaunch(const Want &want)
+    {
+        return ERR_OK;
+    }
     virtual ErrCode ReleaseCall(const std::shared_ptr<CallerCallBack> &callback)
     {
         return ERR_OK;
@@ -454,6 +462,10 @@ public:
         return ERR_OK;
     }
     virtual ErrCode SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap> &icon)
+    {
+        return ERR_OK;
+    }
+    virtual ErrCode SetMissionWindowIcon(std::shared_ptr<OHOS::Media::PixelMap> windowIcon)
     {
         return ERR_OK;
     }
@@ -571,6 +583,17 @@ public:
     }
 
     virtual ErrCode SetOnNewWantSkipScenarios(int32_t scenarios)
+    {
+        return 0;
+    }
+
+    virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool isHaveOptions)
+    {
+        return ERR_OK;
+    }
+
+    virtual ErrCode RestartAppWithWindow(const AAFwk::Want &want)
     {
         return 0;
     }

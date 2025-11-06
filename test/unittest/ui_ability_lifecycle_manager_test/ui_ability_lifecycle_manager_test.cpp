@@ -131,7 +131,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_001, TestSize.Level1)
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, nullptr, 0, isColdStart), ERR_INVALID_VALUE);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, nullptr, 0, false, isColdStart), ERR_INVALID_VALUE);
 }
 
 /**
@@ -147,7 +147,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_002, TestSize.Level1)
     sptr<SessionInfo> sessionInfo(new SessionInfo());
     sessionInfo->sessionToken = new Rosen::Session(info);
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
 }
 
 /**
@@ -169,7 +169,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_003, TestSize.Level1)
     abilityRecord->SetPendingState(AbilityState::FOREGROUND);
     mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, abilityRecord);
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
 }
 
 /**
@@ -189,7 +189,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_004, TestSize.Level1)
     sessionInfo->specifiedFlag = "0";
     abilityRequest.sessionInfo = sessionInfo;
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
 }
 
 /**
@@ -208,7 +208,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_005, TestSize.Level1)
     sessionInfo->reuseDelegatorWindow = true;
     abilityRequest.sessionInfo = sessionInfo;
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
 }
 
 /**
@@ -230,7 +230,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_006, TestSize.Level1)
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, abilityRecord);
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
 }
 
 /**
@@ -253,7 +253,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_007, TestSize.Level1)
     abilityRecord->isReady_ = true;
     mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, abilityRecord);
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
 }
 
 /**
@@ -271,7 +271,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_008, TestSize.Level1)
     sessionInfo->sessionToken = new Rosen::Session(info);
     sessionInfo->isNewWant = false;
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
 }
 
 /**
@@ -292,7 +292,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_009, TestSize.Level1)
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, abilityRecord);
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
 }
 
 /**
@@ -313,7 +313,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_1000, TestSize.Level1)
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, abilityRecord);
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
 }
 
 /**
@@ -337,7 +337,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_1100, TestSize.Level1)
     abilityRecord->SetPreloaded();
     mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, abilityRecord);
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, isColdStart), ERR_OK);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, 0, false, isColdStart), ERR_OK);
     EXPECT_NE(abilityRequest.processOptions, nullptr);
     EXPECT_TRUE(abilityRequest.processOptions->isPreloadStart);
 }
@@ -5595,24 +5595,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_0001, TestSize.Level
 }
 
 /**
- * @tc.name: OnAbilityRequestDone_0001
- * @tc.desc: IsTerminating is true
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, OnAbilityRequestDone_0001, TestSize.Level1)
-{
-    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
-    AbilityRequest request;
-    auto record = AbilityRecord::CreateAbilityRecord(request);
-    record->SetAbilityState(AbilityState::TERMINATING);
-    auto token = record->GetToken();
-    mgr->sessionAbilityMap_[1] = record;
-    int32_t foreground = 2;
-    mgr->OnAbilityRequestDone(token, foreground);
-
-    EXPECT_EQ(record->GetPendingState(), AbilityState::INITIAL);
-}
-
-/**
  * @tc.name: NotifySCBToStartUIAbility_0001
  * @tc.desc: AddStartCallerTimestamp is false
  */
@@ -7037,6 +7019,96 @@ HWTEST_F(UIAbilityLifecycleManagerTest, EnableListForSCBRecovery_001, TestSize.L
 
     EXPECT_TRUE(mgr->isSCBRecovery_);
     EXPECT_TRUE(mgr->coldStartInSCBRecovery_.empty());
+}
+
+/**
+ * @tc.name: IsUIAbilityAlreadyExist_0001
+ * @tc.desc: In STANDARD launch mode if a record with same ability exists return ERROR_UIABILITY_IS_ALREADY_EXIST
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, IsUIAbilityAlreadyExist_0001, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(mgr, nullptr);
+    std::string abilityName = "AbilityA";
+    std::string bundleName = "com.example.test";
+    std::string moduleName = "entry";
+    int32_t appIndex = 0;
+    std::string instanceKey = "ik1";
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = abilityName;
+    abilityRequest.abilityInfo.bundleName = bundleName;
+    abilityRequest.abilityInfo.moduleName = moduleName;
+    abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::STANDARD;
+    abilityRequest.sessionInfo = new SessionInfo();
+    abilityRequest.sessionInfo->instanceKey = instanceKey;
+    auto record = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    record->SetAppIndex(appIndex);
+    record->SetInstanceKey(instanceKey);
+    mgr->sessionAbilityMap_[1] = record;
+
+    auto ret = mgr->IsUIAbilityAlreadyExist(abilityName, "", appIndex, instanceKey, AppExecFwk::LaunchMode::STANDARD);
+    EXPECT_EQ(ret, ERROR_UIABILITY_IS_ALREADY_EXIST);
+}
+
+/**
+ * @tc.name: IsUIAbilityAlreadyExist_0002
+ * @tc.desc: In SPECIFIED launch mode match ability should return ERROR_UIABILITY_IS_ALREADY_EXIST
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, IsUIAbilityAlreadyExist_0002, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(mgr, nullptr);
+    std::string abilityName = "AbilityB";
+    std::string bundleName = "com.example.test";
+    std::string moduleName = "entry";
+    std::string specifiedFlag = "flagX";
+    int32_t appIndex = 2;
+    std::string instanceKey = "ik2";
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = abilityName;
+    abilityRequest.abilityInfo.bundleName = bundleName;
+    abilityRequest.abilityInfo.moduleName = moduleName;
+    abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
+    abilityRequest.sessionInfo = new SessionInfo();
+    abilityRequest.sessionInfo->instanceKey = instanceKey;
+    auto record = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    record->SetAppIndex(appIndex);
+    record->SetInstanceKey(instanceKey);
+    record->SetSpecifiedFlag(specifiedFlag);
+    mgr->sessionAbilityMap_[10] = record;
+
+    auto ret = mgr->IsUIAbilityAlreadyExist(abilityName, specifiedFlag, appIndex, instanceKey,
+        AppExecFwk::LaunchMode::SPECIFIED);
+    EXPECT_EQ(ret, ERROR_UIABILITY_IS_ALREADY_EXIST);
+}
+
+/**
+ * @tc.name: IsUIAbilityAlreadyExist_0003
+ * @tc.desc: Return ERR_OK when no matching record or abilityName differs
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, IsUIAbilityAlreadyExist_0003, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(mgr, nullptr);
+    auto ret = mgr->IsUIAbilityAlreadyExist("NoExistAbility", "flag", 0, "key", AppExecFwk::LaunchMode::STANDARD);
+    EXPECT_EQ(ret, ERR_OK);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "OtherAbility";
+    abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::STANDARD;
+    abilityRequest.sessionInfo = new SessionInfo();
+    abilityRequest.sessionInfo->instanceKey = "key";
+    auto record = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    record->SetAppIndex(0);
+    record->SetInstanceKey("key");
+    mgr->sessionAbilityMap_[5] = record;
+    ret = mgr->IsUIAbilityAlreadyExist("NoExistAbility", "flag", 0, "key", AppExecFwk::LaunchMode::STANDARD);
+    EXPECT_EQ(ret, ERR_OK);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

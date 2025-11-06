@@ -16,7 +16,7 @@
 #include "ani_common_want.h"
 #include "ani_common_cache_mgr.h"
 #include "ani_common_util.h"
-#include "ani_remote_object.h"
+#include "remote_object_taihe_ani.h"
 #include "array_wrapper.h"
 #include "bool_wrapper.h"
 #include "byte_wrapper.h"
@@ -1164,6 +1164,10 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::ANI, "null env");
         return false;
     }
+    AAFwk::WantParams wantParams;
+    if (InnerUnwrapWantParams(env, param, wantParams)) {
+        want.SetParams(wantParams);
+    }
     std::string action;
     if (GetFieldStringByName(env, param, "action", action)) {
         TAG_LOGD(AAFwkTag::ANI, "action %{public}s", action.c_str());
@@ -1199,15 +1203,6 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
             want.AddEntity(valueStringList[i]);
         }
     }
-    TAG_LOGD(AAFwkTag::ANI,
-        "DeviceID %{public}s, BundleName %{public}s, AbilityName %{public}s, ModuleName %{public}s",
-        natElementName.GetDeviceID().c_str(), natElementName.GetBundleName().c_str(),
-        natElementName.GetAbilityName().c_str(), natElementName.GetModuleName().c_str());
-
-    AAFwk::WantParams wantParams;
-    if (InnerUnwrapWantParams(env, param, wantParams)) {
-        want.SetParams(wantParams);
-    }
     return true;
 }
 
@@ -1227,33 +1222,19 @@ bool UnwrapWantParams(ani_env *env, ani_ref param, AAFwk::WantParams &wantParams
         TAG_LOGE(AAFwkTag::ANI, "RecordSerializeTool class null");
         return false;
     }
-    ani_static_method stringifyMethod = nullptr;
-    status = env->Class_FindStaticMethod(cls, "stringifyNoThrow", nullptr, &stringifyMethod);
+    ani_static_method unwrapRecordMethod = nullptr;
+    status = env->Class_FindStaticMethod(cls, "unwrapRecordNoThrow", nullptr, &unwrapRecordMethod);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to get stringifyNoThrow method, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "failed to get unwrapRecordNoThrow method, status: %{public}d", status);
         return false;
     }
-    ani_ref wantParamsAniString;
-    status = env->Class_CallStaticMethod_Ref(cls, stringifyMethod, &wantParamsAniString, param);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to call stringifyNoThrow method, status: %{public}d", status);
+    ani_boolean isSuccess;
+    ani_long wantParamsLong = reinterpret_cast<ani_long>(&wantParams);
+    status = env->Class_CallStaticMethod_Boolean(cls, unwrapRecordMethod, &isSuccess, param, wantParamsLong);
+    if (status != ANI_OK || isSuccess != ANI_TRUE) {
+        TAG_LOGE(AAFwkTag::ANI, "failed to call unwrapRecordNoThrow method, status: %{public}d", status);
         return false;
     }
-    std::string wantParamsString;
-    if (!GetStdString(env, reinterpret_cast<ani_string>(wantParamsAniString), wantParamsString)) {
-        TAG_LOGE(AAFwkTag::ANI, "GetStdString failed");
-        return false;
-    }
-    if (wantParamsString.empty()) {
-        TAG_LOGE(AAFwkTag::ANI, "wantParamsString empty");
-        return false;
-    }
-    nlohmann::json wantParamsJson = nlohmann::json::parse(wantParamsString, nullptr, false);
-    if (wantParamsJson.is_discarded()) {
-        TAG_LOGE(AAFwkTag::ANI, "Failed to parse json string");
-        return false;
-    }
-    from_json(wantParamsJson, wantParams);
     return true;
 }
 
@@ -1376,12 +1357,53 @@ ani_object WrapElementNameInner(ani_env *env, ani_class elementNameObj, ani_obje
     if (!SetFieldStringByName(env, elementNameObj, object, "moduleName", elementNameParam.GetModuleName())) {
         TAG_LOGE(AAFwkTag::ANI, "set moduleName failed");
     }
-    if (!SetFieldStringByName(env, elementNameObj, object, "uri", elementNameParam.GetURI())) {
-        TAG_LOGE(AAFwkTag::ANI, "set uri failed");
+    return object;
+}
+
+ani_object CreateAniWant(ani_env *env, const AAFwk::Want &want)
+{
+    TAG_LOGD(AAFwkTag::ANI, "CreateAniWant called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
     }
-    if (!SetFieldStringByName(env, elementNameObj, object, "shortName", elementNameParam.GetURI())) {
-        TAG_LOGE(AAFwkTag::ANI, "set shortName failed");
+    ani_class cls = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_method method = nullptr;
+    ani_object object = nullptr;
+    if ((status = env->FindClass(ABILITY_WANT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return nullptr;
     }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null wantCls");
+        return nullptr;
+    }
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return nullptr;
+    }
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null object");
+        return nullptr;
+    }
+
+    auto elementName = want.GetElement();
+    SetFieldStringByName(env, cls, object, "deviceId", elementName.GetDeviceID());
+    SetFieldStringByName(env, cls, object, "bundleName", elementName.GetBundleName());
+    SetFieldStringByName(env, cls, object, "abilityName", elementName.GetAbilityName());
+    SetFieldStringByName(env, cls, object, "moduleName", elementName.GetModuleName());
+    SetFieldStringByName(env, cls, object, "uri", want.GetUriString());
+    SetFieldStringByName(env, cls, object, "type", want.GetType());
+    SetFieldIntByName(env, cls, object, "flags", want.GetFlags());
+    SetFieldStringByName(env, cls, object, "action", want.GetAction());
+    InnerWrapWantParams(env, cls, object, want.GetParams());
+    SetFieldArrayStringByName(env, cls, object, "entities", want.GetEntities());
+
     return object;
 }
 

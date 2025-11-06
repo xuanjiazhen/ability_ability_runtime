@@ -683,16 +683,16 @@ void AppStateObserverManager::HandleOnAppProcessCreated(const std::shared_ptr<Ap
         return;
     }
     ProcessData data = WrapProcessData(appRecord);
-    data.isPreload = isPreload;
+    data.isPreload = isPreload || appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH;
     data.isPreloadModule = appRecord->GetPreloadMode() != PreloadMode::PRESS_DOWN;
+    data.preloadMode = static_cast<int32_t>(appRecord->GetPreloadMode());
     if (data.bundleName == XIAOYI_BUNDLE_NAME && data.extensionType == ExtensionAbilityType::SERVICE) {
         TAG_LOGI(AAFwkTag::APPMGR, "change processType to NORMAL");
         data.processType = ProcessType::NORMAL;
     }
     TAG_LOGI(AAFwkTag::APPMGR,
-        "bundle:%{public}s, pid:%{public}d, uid:%{public}d, processType:%{public}d, "
-        "extensionType:%{public}d, processName:%{public}s, renderUid:%{public}d, isTestMode:%{public}d, "
-        "callerPid:%{public}d, callerUid:%{public}d",
+        "b:%{public}s pid:%{public}d u:%{public}d pt:%{public}d et:%{public}d pName:%{public}s ru:%{public}d "
+        "tMode:%{public}d cPid:%{public}d cU:%{public}d",
         data.bundleName.c_str(), data.pid, data.uid, data.processType, data.extensionType, data.processName.c_str(),
         data.renderUid, data.isTestMode, data.callerPid, data.callerUid);
     BundleType bundleType = appRecord->GetApplicationInfo() != nullptr ?

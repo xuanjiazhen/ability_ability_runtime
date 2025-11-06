@@ -70,7 +70,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, uint32_t sceneFlag,
-        bool &isColdStart);
+        bool isRestart, bool &isColdStart);
 
     /**
      * @brief execute after the ability schedule the lifecycle
@@ -192,6 +192,14 @@ public:
      * @param abilityRequest target ability request.
      */
     int ResolveLocked(const AbilityRequest &abilityRequest, std::string &errMsg);
+    
+    /**
+     * resolve the call ipc of ability for prelaunch.
+     *
+     * @param abilityRequest target ability request.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest);
 
     /**
      * Call UIAbility by SCB.
@@ -391,6 +399,9 @@ public:
 
     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
 
+    ErrCode IsUIAbilityAlreadyExist(const std::string &abilityName, const std::string &specifiedFlag,
+        int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
+
 private:
     void AddStartingPid(pid_t pid);
     void RemoveStartingPid(pid_t pid);
@@ -422,7 +433,6 @@ private:
     void PrintTimeOutLog(std::shared_ptr<AbilityRecord> ability, uint32_t msgId, bool isHalf = false);
     void DelayCompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void CompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
-    void CompleteTerminateLocked(const std::shared_ptr<AbilityRecord> &abilityRecord);
     bool IsContainsAbilityInner(const sptr<IRemoteObject> &token) const;
     bool CheckProperties(const std::shared_ptr<AbilityRecord> &abilityRecord, const AbilityRequest &abilityRequest,
         AppExecFwk::LaunchMode launchMode) const;

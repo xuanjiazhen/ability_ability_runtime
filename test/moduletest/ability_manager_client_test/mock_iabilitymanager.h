@@ -281,7 +281,12 @@ public:
         return 0;
     }
     int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
-        const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false) override
+        const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false,
+        bool promotePriority = false) override
+    {
+        return 0;
+    }
+    int StartAbilityForPrelaunch(const Want &want)  override
     {
         return 0;
     }

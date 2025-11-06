@@ -26,6 +26,7 @@
 #ifdef ABILITY_RUNTIME_HITRACE_ENABLE
 #include "hitrace/hitracechain.h"
 #endif
+#include "appfreeze_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -298,17 +299,6 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CatchStack_001, TestSize.Lev
     EXPECT_TRUE(appfreezeManager->catchStackMap_.empty());
 }
 
-/**
- * @tc.number: AppfreezeManagerTest_ParseDecToHex_001
- * @tc.desc: add testcase codecoverage
- * @tc.type: FUNC
- */
-HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_ParseDecToHex_001, TestSize.Level1)
-{
-    std::string ret = appfreezeManager->ParseDecToHex(1234); // test value
-    EXPECT_EQ(ret, "4d2");
-}
-
 #ifdef ABILITY_RUNTIME_HITRACE_ENABLE
 /**
  * @tc.number: AppfreezeManagerTest_GetHitraceInfo_001
@@ -317,7 +307,10 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_ParseDecToHex_001, TestSize.
  */
 HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetHitraceInfo_001, TestSize.Level1)
 {
-    std::string ret = appfreezeManager->GetHitraceInfo();
+    std::string ret = appfreezeManager->ParseDecToHex(1234); // test value
+    EXPECT_EQ(ret, "4d2");
+    ret = appfreezeManager->GetHitraceInfo();
+    ret = appfreezeManager->GetHitraceInfo();
     EXPECT_TRUE(ret.empty());
     OHOS::HiviewDFX::HiTraceChain::Begin("AppfreezeManagerTest_GetHitraceInfo_001", 0);
     appfreezeManager->GetHitraceInfo();
@@ -435,6 +428,40 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetFirstLine_001, TestSize.L
     EXPECT_EQ(ret, "");
     appfreezeManager->GetFirstLine("/data/log/test");
     EXPECT_TRUE(appfreezeManager != nullptr);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest_CheckAppfreezeHappend_001
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_001, TestSize.Level1)
+{
+    bool ret = appfreezeManager->CheckAppfreezeHappend(getpid(), "CheckAppfreezeHappend");
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->CheckAppfreezeHappend(getpid(), "BUSSINESS_THREAD_BLOCK_3S");
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->CheckAppfreezeHappend(getpid(), "BUSSINESS_THREAD_BLOCK_6S");
+    EXPECT_EQ(ret, true);
+    appfreezeManager->CheckAppfreezeHappend(getpid(), "LIFECYCLE_TIMEOUT");
+    appfreezeManager->CheckAppfreezeHappend(getpid(), "THREAD_BLOCK_6S");
+    appfreezeManager->CheckAppfreezeHappend(getpid(), "APP_INPUT_BLOCK");
+    appfreezeManager->CheckAppfreezeHappend(getpid(), "THREAD_BLOCK_3S");
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest GetUidByPid Test
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetUidByPid_Test001, TestSize.Level1)
+{
+    int ret = AppfreezeUtil::GetUidByPid(getpid());
+    EXPECT_TRUE(ret > 0);
+    ret = AppfreezeUtil::GetUidByPid(-1);
+    EXPECT_TRUE(ret < 0);
+    ret = AppfreezeUtil::GetUidByPid(1);
+    EXPECT_TRUE(ret > 0);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

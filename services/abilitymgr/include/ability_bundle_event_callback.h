@@ -47,12 +47,11 @@ public:
 private:
     void HandleUpdatedModuleInfo(const std::string &bundleName, int32_t uid, const std::string &moduleName,
         bool isPlugin);
-    void HandleAppUpgradeCompleted(int32_t uid);
+    void HandleAppUpgradeCompleted(int32_t uid, int32_t installType);
     void HandleRemoveUriPermission(uint32_t tokenId);
     void HandleRestartResidentProcessDependedOnWeb();
 
     DISALLOW_COPY_AND_MOVE(AbilityBundleEventCallback);
-    AbilityEventUtil abilityEventHelper_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AbilityRuntime::AbilityAutoStartupService> abilityAutoStartupService_;
 };

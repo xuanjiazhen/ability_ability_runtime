@@ -24,6 +24,7 @@
 #include "dlp_connection_info.h"
 #endif // WITH_DLP
 #include "iconnection_observer.h"
+#include "iforeground_app_connection.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -60,6 +61,10 @@ public:
     virtual int RegisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
 
     virtual int UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
+
+    virtual int RegisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer);
+
+    virtual int UnregisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer);
 
 #ifdef WITH_DLP
     virtual int GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos);
@@ -172,6 +177,7 @@ private:
 
     // for new version ability (call ability)
     int StartAbilityByCallInner(MessageParcel &data, MessageParcel &reply);
+    int StartAbilityForPrelaunchInner(MessageParcel &data, MessageParcel &reply);
     int CallRequestDoneInner(MessageParcel &data, MessageParcel &reply);
     int ReleaseCallInner(MessageParcel &data, MessageParcel &reply);
     int StartUserInner(MessageParcel &data, MessageParcel &reply);
@@ -230,6 +236,9 @@ private:
 
     int FreeInstallAbilityFromRemoteInner(MessageParcel &data, MessageParcel &reply);
     int AddFreeInstallObserverInner(MessageParcel &data, MessageParcel &reply);
+
+    int32_t RegisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnregisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
 
     int EnableRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
     int SubmitSaveRecoveryInfoInner(MessageParcel &data, MessageParcel &reply);
@@ -405,6 +414,8 @@ private:
     int32_t EnterKioskModeInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExitKioskModeInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetKioskStatusInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartSelfUIAbilityInCurrentProcessInner(MessageParcel &data, MessageParcel &reply);
+    int32_t IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

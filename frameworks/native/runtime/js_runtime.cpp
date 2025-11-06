@@ -21,6 +21,8 @@
 #include <fstream>
 #include <mutex>
 #include <regex>
+#include <string>
+#include <vector>
 
 #include <atomic>
 #include <sys/epoll.h>
@@ -89,6 +91,7 @@ const std::string SANDBOX_ARK_PROIFILE_PATH = "/data/storage/ark-profile";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr const char* PERMISSION_RUN_ANY_CODE = "ohos.permission.RUN_ANY_CODE";
+constexpr const char* PERMISSION_LOAD_INDEPENDENT_LIBRARY = "ohos.permission.kernel.LOAD_INDEPENDENT_LIBRARY";
 
 const std::string CONFIG_PATH = "/etc/system_kits_config.json";
 const std::string SYSTEM_KITS_CONFIG_PATH = "/system/etc/system_kits_config.json";
@@ -97,6 +100,7 @@ const std::string SYSTEM_KITS = "systemkits";
 const std::string NAMESPACE = "namespace";
 const std::string TARGET_OHM = "targetohm";
 const std::string SINCE_VERSION = "sinceVersion";
+const std::string DEFAULT_PLUGIN = "plugin_default_namespace";
 
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 const std::string MERGE_SOURCE_MAP_PATH = "ets/sourceMaps.map";
@@ -918,6 +922,60 @@ void JsRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths, const bool& isSy
     }
 }
 
+void JsRuntime::InheritPluginNamespace(const std::vector<std::string> &moduleNames)
+{
+    auto moduleManager = NativeModuleManager::GetInstance();
+    if (moduleManager == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null moduleManager");
+        return;
+    }
+    std::string currentNamespace;
+    if (!moduleManager->GetLdNamespaceName("default", currentNamespace)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "get current namespace failed");
+        return;
+    }
+
+    for (const auto& item : moduleNames) {
+        if (item.empty()) {
+            continue;
+        }
+        std::string pluginNamespace;
+        if (!moduleManager->GetLdNamespaceName(item, pluginNamespace)) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "get %{public}s pluginNamespace failed", item.c_str());
+            continue;
+        }
+        moduleManager->InheritNamespaceEachOther(currentNamespace, pluginNamespace);
+    }
+}
+
+void JsRuntime::CreatePluginDefaultNamespace(const std::string &lddictionaries)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
+    int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(selfToken,
+        PERMISSION_LOAD_INDEPENDENT_LIBRARY);
+    if (result != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "verify access token failed: %{public}d", result);
+        return;
+    }
+    auto moduleManager = NativeModuleManager::GetInstance();
+    if (moduleManager == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null moduleManager");
+        return;
+    }
+    std::string currentNamespace;
+    if (!moduleManager->GetLdNamespaceName("default", currentNamespace)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "get current namespace failed");
+        return;
+    }
+    std::vector<std::string> appLibPaths;
+    moduleManager->SetAppLibPath(DEFAULT_PLUGIN, appLibPaths, false);
+    std::string pluginDefaultNamespace;
+    moduleManager->GetLdNamespaceName(DEFAULT_PLUGIN, pluginDefaultNamespace);
+    moduleManager->SetLdPermittedPathsForNamespace(pluginDefaultNamespace, lddictionaries);
+    moduleManager->InheritNamespaceEachOther(currentNamespace, pluginDefaultNamespace);
+}
+
 void JsRuntime::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator> operatorObj)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -1315,6 +1373,26 @@ void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary)
     dumpOption.isFullGC = isFullGC;
     dumpOption.isSync = false;
     DFXJSNApi::DumpHeapSnapshot(vm, dumpOption, tid);
+}
+
+size_t JsRuntime::GetHeapTotalSize()
+{
+    auto vm = GetEcmaVm();
+    if (!vm) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null vm");
+        return 0;
+    }
+    return DFXJSNApi::GetHeapTotalSize(vm);
+}
+
+size_t JsRuntime::GetHeapObjectSize()
+{
+    auto vm = GetEcmaVm();
+    if (!vm) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null vm");
+        return 0;
+    }
+    return DFXJSNApi::GetHeapObjectSize(vm);
 }
 
 void JsRuntime::ForceFullGC(uint32_t tid)

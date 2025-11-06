@@ -759,6 +759,12 @@ public:
     virtual int32_t IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
         bool &isRunning) = 0;
 
+    virtual int32_t IsAppRunning(const std::string &bundleName, int32_t appCloneIndex,
+        int32_t userId, bool &isRunning)
+    {
+        return 0;
+    }
+
 #ifdef SUPPORT_CHILD_PROCESS
     /**
      * Start child process, called by ChildProcessManager.
@@ -840,6 +846,17 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief mark a process which is going restart.
+     * @param pid the pid of the process.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SignRestartProcess(int32_t pid)
     {
         return 0;
     }
@@ -992,6 +1009,11 @@ public:
     {
         return 0;
     }
+    
+    virtual int32_t KillProcessByPidForExit(int32_t pid, const std::string &reason)
+    {
+        return 0;
+    }
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) {}
 
@@ -1060,6 +1082,13 @@ public:
     }
 
     virtual void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId) {}
+
+    virtual void AllowScbProcessMoveToBackground() {}
+
+    virtual int32_t KillChildProcessByPid(int32_t pid)
+    {
+        return 0;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

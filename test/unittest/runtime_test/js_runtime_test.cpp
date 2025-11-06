@@ -137,6 +137,25 @@ HWTEST_F(JsRuntimeTest, JsRuntimeTestCreate_0100, TestSize.Level0)
 }
 
 /**
+ * @tc.name: JsRuntimeTestInit_0100
+ * @tc.desc: JsRuntime Test for Init
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeTestInit_0100, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Init_0100 start");
+
+    Runtime::Options options;
+    options.isStageModel = false;
+    options.isTestFramework = false;
+    JsRuntime jsRuntime;
+    bool isInit = jsRuntime.Init(options);
+    EXPECT_EQ(isInit, true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "Init_0100 end");
+}
+
+/**
  * @tc.name: JsRuntimeTestSetAppLibPath_0100
  * @tc.desc: JsRuntime Test for SetAppLibPath
  * @tc.type: FUNC
@@ -256,6 +275,34 @@ HWTEST_F(JsRuntimeTest, JsRuntimeDumpHeapSnapshotTest_0100, TestSize.Level2)
     jsRuntime->DumpHeapSnapshot(false);
     EXPECT_TRUE(jsRuntime != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot end");
+}
+
+/**
+ * @tc.name: JsRuntimeGetHeapTotalSizeTest_0100
+ * @tc.desc: JsRuntime test for GetHeapTotalSize.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeGetHeapTotalSizeTest_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetHeapTotalSize start");
+    std::unique_ptr<JsRuntime> jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
+    size_t ret = jsRuntime->GetHeapTotalSize();
+    EXPECT_TRUE(ret >= 0);
+    TAG_LOGI(AAFwkTag::TEST, "GetHeapTotalSize end");
+}
+
+/**
+ * @tc.name: JsRuntimeGetHeapObjectSizeTest_0100
+ * @tc.desc: JsRuntime test for GetHeapObjectSize.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeGetHeapObjectSizeTest_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetHeapObjectSize start");
+    std::unique_ptr<JsRuntime> jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
+    size_t ret = jsRuntime->GetHeapObjectSize();
+    EXPECT_TRUE(ret >= 0);
+    TAG_LOGI(AAFwkTag::TEST, "GetHeapObjectSize end");
 }
 
 /**

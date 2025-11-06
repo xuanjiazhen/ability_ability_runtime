@@ -135,8 +135,6 @@ ohos_shared_library("ability_manager") {
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
   ]
 
-  public_deps = [ ":ability_connect_callback_stub" ]
-
   deps = [
     ":ability_connect_callback_stub",
     ":ability_start_options",
@@ -148,7 +146,6 @@ ohos_shared_library("ability_manager") {
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
     "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:hitrace_chain_util",
   ]
 
   external_deps = [

@@ -685,6 +685,10 @@ private:
 
     void HandleUpdatePluginInfoInstalled(const ApplicationInfo &pluginAppInfo, const std::string &moduleName);
 
+    bool IsPluginNamespaceInherited();
+
+    std::string ParsePluginDefaultNamespaceLdDictionary();
+
     /**
      * @brief parse app configuration params
      *
@@ -740,6 +744,8 @@ private:
     std::string abilityLibraryType_ = ".so";
     static std::weak_ptr<OHOSApplication> applicationForDump_;
     bool isDeveloperMode_ = false;
+    bool isPluginNamespaceInherited_ = false;
+    std::string pluginDefaultNamespaceLdDictionary_ = "";
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     Rosen::RSSurfaceNode::SharedPtr preloadSurfaceNode_ = nullptr;
     std::shared_ptr<NWeb::NWeb> preloadNWeb_ = nullptr;
@@ -813,6 +819,7 @@ private:
     void RunNativeStartupTask(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData);
     bool GetTestRunnerTypeAndPath(const std::string bundleName, const std::string moduleName,
         AppExecFwk::ModuleTestRunner &tsTestRunner);
+    void SleepCleanKill();
 
     std::vector<std::string> fileEntries_;
     std::vector<std::string> nativeFileEntries_;

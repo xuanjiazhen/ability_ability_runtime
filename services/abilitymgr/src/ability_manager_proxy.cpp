@@ -989,7 +989,8 @@ int AbilityManagerProxy::StartUIExtensionAbility(const sptr<SessionInfo> &extens
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag)
+int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
+    bool isRestart)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start by scb");
@@ -1013,8 +1014,8 @@ int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool
             return INNER_ERR;
         }
     }
-    if (!data.WriteUint32(sceneFlag)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneFlag write fail");
+    if (!data.WriteUint32(sceneFlag) || !data.WriteBool(isRestart)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneFlag or isRestart write fail");
         return INNER_ERR;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::START_UI_ABILITY_BY_SCB, data, reply, option);
@@ -3850,14 +3851,15 @@ int AbilityManagerProxy::UnRegisterMissionListener(const std::string &deviceId,
 }
 
 int AbilityManagerProxy::StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
-    const sptr<IRemoteObject> &callerToken, int32_t accountId, bool isSilent)
+    const sptr<IRemoteObject> &callerToken, int32_t accountId, bool isSilent, bool promotePriority)
 {
     std::string errMsg;
-    return StartAbilityByCallWithErrMsg(want, connect, callerToken, accountId, errMsg, isSilent);
+    return StartAbilityByCallWithErrMsg(want, connect, callerToken, accountId, errMsg, isSilent, promotePriority);
 }
 
 int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
-    const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent)
+    const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent,
+    bool promotePriority)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -3913,6 +3915,12 @@ int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sp
         return ERR_INVALID_VALUE;
     }
 
+    if (!data.WriteBool(promotePriority)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "promotePriority write fail");
+        errMsg = "promotePriority write fail";
+        return ERR_INVALID_VALUE;
+    }
+
     error = SendRequest(AbilityManagerInterfaceCode::START_CALL_ABILITY, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
@@ -3920,6 +3928,32 @@ int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sp
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerProxy::StartAbilityByCall end.");
     errMsg = reply.ReadString();
+    return reply.ReadInt32();
+}
+
+int AbilityManagerProxy::StartAbilityForPrelaunch(const Want &want)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerProxy::StartAbilityForPrelaunch begin.");
+    int error;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "WriteInterfaceToken error");
+        return INNER_ERR;
+    }
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    error = SendRequest(AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerProxy::StartAbilityForPrelaunch end.");
     return reply.ReadInt32();
 }
 
@@ -7261,6 +7295,67 @@ int32_t AbilityManagerProxy::PreloadApplication(const std::string &bundleName, i
     }
 
     return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
+    const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteString(specifiedFlag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag write fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteParcelable(&startOptions)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteBool(hasOptions)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "hasOptions write fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (callerToken) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken and flag write fail");
+            return INNER_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "flag write fail");
+            return INNER_ERR;
+        }
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CURRENT_PROCESS, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+bool AbilityManagerProxy::IsRestartAppLimit()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return false;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::IS_RESTART_APP_LIMIT, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error: %{public}d", ret);
+        return false;
+    }
+
+    return reply.ReadBool();
 }
 } // namespace AAFwk
 } // namespace OHOS

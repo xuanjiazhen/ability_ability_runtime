@@ -483,6 +483,8 @@ enum class AbilityManagerInterfaceCode {
     SUSPEND_EXTENSION_ABILITY = 1141,
     // ipc for resume extionsion ability
     RESUME_EXTENSION_ABILITY = 1142,
+    //ipc for prelaunch
+    START_PRELAUNCH_ABILITY = 1143,
 
     // ipc id 2001-3000 for tools
     // ipc id for dumping state (2001)
@@ -497,6 +499,10 @@ enum class AbilityManagerInterfaceCode {
     GET_DLP_CONNECTION_INFOS = 2504,
     GET_CONNECTION_DATA = 2505,
     COMPLETE_FIRST_FRAME_DRAWING_BY_SCB = 2506,
+
+    //ipc id for foreground app connection observer
+    REGISTER_FOREGROUND_APP_CONNECTION_OBSERVER = 2507,
+    UNREGISTER_FOREGROUND_APP_CONNECTION_OBSERVER = 2508,
 
     GET_TOP_ABILITY = 3000,
     FREE_INSTALL_ABILITY_FROM_REMOTE = 3001,
@@ -677,6 +683,12 @@ enum class AbilityManagerInterfaceCode {
 
     // start self uiability with startOptions and receives the pid
     START_SELF_UI_ABILITY_WITH_PID_RESULT = 6152,
+
+    // start self uiability in current process
+    START_SELF_UI_ABILITY_IN_CURRENT_PROCESS = 6153,
+
+    // restart app limit check
+    IS_RESTART_APP_LIMIT = 6154,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

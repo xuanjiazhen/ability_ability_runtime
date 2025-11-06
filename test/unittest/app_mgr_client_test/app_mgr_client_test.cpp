@@ -187,11 +187,11 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_GetRunningProcessInfoByToken_001, TestSi
 }
 
 /**
- * @tc.name: AppMgrClient_IsMemorySizeSufficent_001
+ * @tc.name: AppMgrClient_IsMemorySizeSufficient_001
  * @tc.desc: can not get the not running process info by AccessTokenID.
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrClientTest, AppMgrClient_IsMemorySizeSufficent_001, TestSize.Level2)
+HWTEST_F(AppMgrClientTest, AppMgrClient_IsMemorySizeSufficient_001, TestSize.Level2)
 {
     AppExecFwk::RunningProcessInfo info;
 
@@ -201,7 +201,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_IsMemorySizeSufficent_001, TestSize.Leve
     auto result = appMgrClient->ConnectAppMgrService();
     EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
 
-    bool res = appMgrClient->IsMemorySizeSufficent();
+    bool res = appMgrClient->IsMemorySizeSufficient();
     EXPECT_EQ(res, true);
 }
 
@@ -1597,8 +1597,25 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_SetProcessCacheEnable_001, TestSize.Leve
 }
 
 /**
- * @tc.name: AppMgrClient_GetConfiguration_001
+ * @tc.name: AppMgrClient_SetProcessCacheEnable_002
  * @tc.desc: SetProcessCacheEnable.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_SetProcessCacheEnable_002, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    ASSERT_NE(appMgrClient, nullptr);
+    auto ret = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(ret, AppMgrResultCode::RESULT_OK);
+    int32_t pid = 1;
+    bool enable = false;
+    auto result = appMgrClient->SetProcessCacheEnable(pid, enable);
+    EXPECT_NE(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
+}
+
+/**
+ * @tc.name: AppMgrClient_GetConfiguration_001
+ * @tc.desc: GetConfiguration.
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrClientTest, AppMgrClient_GetConfiguration_001, TestSize.Level2)

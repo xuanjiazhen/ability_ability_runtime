@@ -20,6 +20,7 @@ import uiExtensionHost from '@ohos.uiExtensionHost';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 import AbilityStartCallback from 'application.AbilityStartCallback';
+import uiExtension from '@ohos.arkui.uiExtension';
 
 class Cleaner {
   static callback(cleaner: Cleaner): void {
@@ -35,6 +36,9 @@ let destroyRegister = new FinalizationRegistry<Cleaner>(Cleaner.callback)
 let unregisterToken = new object()
 
 export default class UIExtensionContentSession {
+  static {
+    loadLibrary("ui_extension_content_session_ani_kit.z");
+  }
   nativeContextSession:long = 0;
   private cleaner: Cleaner | null = null;
   registerCleaner(ptr: long): void {
@@ -50,10 +54,21 @@ export default class UIExtensionContentSession {
     }
     this.registerCleaner(this.nativeContextSession)
   }
+  private static native nativeTransferStatic(input: ESValue): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
+
+  static transferStatic(input: Any): Object {
+    return UIExtensionContentSession.nativeTransferStatic(ESValue.wrap(input));
+  }
+
+  static transferDynamic(input: Object): Any {
+    return UIExtensionContentSession.nativeTransferDynamic(input).unwrap();
+  }
   native nativeSendData(data: Record<string, Object>): void;
   native loadContent(path: string, storage?: LocalStorage): void;
   native setWindowBackgroundColor(color: string): void;
   native getUIExtensionHostWindowProxy(): uiExtensionHost.UIExtensionHostWindowProxy;
+  native getUIExtensionWindowProxy(): uiExtension.WindowProxy;
   native nativeSetReceiveDataCallback(callback: (data: Record<string, Object>) => void): void;
   native nativeSetReceiveDataForResultCallback(callback: (data: Record<string, Object>) => Record<string, Object>): void;
   native terminateSelfSync(callback:AsyncCallbackWrapper<void>): void;

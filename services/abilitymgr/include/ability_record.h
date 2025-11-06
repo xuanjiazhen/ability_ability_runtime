@@ -288,6 +288,7 @@ struct AbilityRequest {
     AppExecFwk::ApplicationInfo appInfo;
     StartOptions startOptions;
     bool hideFailureTipDialog = false;
+    bool promotePriority = false;
     std::pair<bool, LaunchReason> IsContinuation() const
     {
         auto flags = want.GetFlags();
@@ -378,6 +379,7 @@ struct ForegroundOptions {
     uint32_t sceneFlag = 0;
     bool isShellCall = false;
     bool isStartupHide = false;
+    std::string targetGrantBundleName = "";
     pid_t callingPid = -1;
     uint64_t loadAbilityCallbackId = 0;
 };
@@ -642,6 +644,8 @@ public:
     bool IsCompleteFirstFrameDrawing() const;
     bool GetColdStartFlag();
     void SetColdStartFlag(bool isColdStart);
+    bool GetPrelaunchFlag();
+    void SetPrelaunchFlag(bool isPrelaunch);
 #endif
 
     /**
@@ -1045,7 +1049,7 @@ public:
 
     void SetUid(int32_t uid);
     int32_t GetUid();
-    pid_t GetPid();
+    pid_t GetPid() const;
     void SetPid(pid_t pid);
     void SetSwitchingPause(bool state);
     bool IsSwitchingPause();
@@ -1306,8 +1310,30 @@ public:
     void UpdateUIExtensionBindInfo(const WantParams &wantParams);
 
     void SendTerminateAbilityErrorEvent(int32_t errCode);
-protected:
 
+    void AddUIExtensionLaunchTimestamp();
+
+    void RemoveUIExtensionLaunchTimestamp();
+
+    inline void SetConnectionReported(bool isForegroundAppConnectionReported)
+    {
+        isAbilityConnectionReported_.store(isForegroundAppConnectionReported);
+    }
+
+    inline bool IsConnectionReported() const
+    {
+        return isAbilityConnectionReported_.load();
+    }
+
+    bool ReportAbilityConnectionRelations();
+
+    void SetPromotePriority(bool promotePriority);
+
+    bool GetPromotePriority();
+
+    void PromotePriority();
+
+protected:
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
     AbilityState currentState_ = AbilityState::INITIAL;    // current life state
@@ -1321,7 +1347,8 @@ private:
     void GetAbilityTypeString(std::string &typeStr);
     void OnSchedulerDied(const wptr<IRemoteObject> &remote);
 #ifdef SUPPORT_UPMS
-    void GrantUriPermission(Want &want, std::string targetBundleName, bool isSandboxApp, uint32_t tokenId);
+    void GrantUriPermission(Want &want, std::string targetBundleName, bool isSandboxApp, uint32_t tokenId,
+        bool isNotifyCollaborator);
 #endif // SUPPORT_UPMS
     int32_t GetCurrentAccountId() const;
 
@@ -1403,6 +1430,8 @@ private:
     void GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor);
     void SetAbilityStateInner(AbilityState state);
 #endif
+    void PostStartAbilityByCallTimeoutTask(bool isHalf);
+    void CancelStartAbilityByCallTimeoutTask() const;
     void SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType);
     std::atomic<bool> isPreloadStart_ = false;           // is ability started via preload
 
@@ -1515,6 +1544,7 @@ private:
     bool isStartingWindow_ = false;
     bool isCompleteFirstFrameDrawing_ = false;
     bool coldStart_ = false;
+    bool isPrelaunch_ = false;
     uint32_t bgColor_ = 0;
     std::shared_ptr<Media::PixelMap> startingWindowBg_ = nullptr;
 #endif
@@ -1548,6 +1578,11 @@ private:
     std::atomic<int32_t> scenarios_ = 0;
     std::atomic<bool> isPreloaded_ = false;
     std::atomic<bool> isFrozenByPreload_ = false;
+    std::atomic<bool> isAbilityConnectionReported_ = false;
+    struct UIAbilityProperty {
+        bool promotePriority = false;
+    };
+    std::shared_ptr<UIAbilityProperty> uiAbilityProperty_ = nullptr;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
