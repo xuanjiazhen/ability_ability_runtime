@@ -1382,14 +1382,14 @@ HWTEST_F(AbilityManagerProxyTest, PreloadUIExtensionAbilityWithId_4100, TestSize
     std::string hostBundleName = "bundle.test";
     int32_t preloadId = 0;
     int32_t result = proxy_->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, 100, 200);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY_WITH_ID), mock_->code_);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UI_EXTENSION_ABILITY_WITH_ID), mock_->code_);
     EXPECT_NE(result, NO_ERROR);
 
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
     result = proxy_->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, 100, 200);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY_WITH_ID), mock_->code_);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UI_EXTENSION_ABILITY_WITH_ID), mock_->code_);
     EXPECT_EQ(result, NO_ERROR);
 
     GTEST_LOG_(INFO) << "PreloadUIExtensionAbilityWithId_4100 end";
@@ -1413,7 +1413,7 @@ HWTEST_F(AbilityManagerProxyTest, PreloadUIExtensionAbilityWithId_4200, TestSize
     int32_t userId = 1;
     int32_t hostPid = 100;
     int32_t result = proxy_->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, userId, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY_WITH_ID), mock_->code_);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UI_EXTENSION_ABILITY_WITH_ID), mock_->code_);
     EXPECT_EQ(result, NO_ERROR);
 
     GTEST_LOG_(INFO) << "PreloadUIExtensionAbilityWithId_4200 end";
@@ -1437,92 +1437,92 @@ HWTEST_F(AbilityManagerProxyTest, PreloadUIExtensionAbilityWithId_4300, TestSize
     int32_t userId = -1;
     int32_t hostPid = 100;
     int32_t result = proxy_->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId, userId, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY_WITH_ID), mock_->code_);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_UI_EXTENSION_ABILITY_WITH_ID), mock_->code_);
     EXPECT_EQ(result, NO_ERROR);
 
     GTEST_LOG_(INFO) << "PreloadUIExtensionAbilityWithId_4300 end";
 }
 
 /**
- * @tc.name: UnPreloadUIExtensionAbility_4400
- * @tc.desc: UnPreloadUIExtensionAbility with SendRequest error
+ * @tc.name: ClearPreloadedUIExtensionAbility_4400
+ * @tc.desc: ClearPreloadedUIExtensionAbility with SendRequest error
  * @tc.type: FUNC
  */
-HWTEST_F(AbilityManagerProxyTest, UnPreloadUIExtensionAbility_4400, TestSize.Level1)
+HWTEST_F(AbilityManagerProxyTest, ClearPreloadedUIExtensionAbility_4400, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "UnPreloadUIExtensionAbility_4400 start";
+    GTEST_LOG_(INFO) << "ClearPreloadedUIExtensionAbility_4400 start";
 
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
     int32_t extensionAbilityId = 100;
     int32_t userId = 1;
-    int32_t result = proxy_->UnPreloadUIExtensionAbility(extensionAbilityId, userId);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UNPRELOAD_UIEXTENSION_ABILITY), mock_->code_);
+    int32_t result = proxy_->ClearPreloadedUIExtensionAbility(extensionAbilityId, userId);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_PRELOAD_UI_EXTENSION_ABILITY), mock_->code_);
     EXPECT_NE(result, NO_ERROR);
 
-    GTEST_LOG_(INFO) << "UnPreloadUIExtensionAbility_4400 end";
+    GTEST_LOG_(INFO) << "ClearPreloadedUIExtensionAbility_4400 end";
 }
 
 /**
- * @tc.name: UnPreloadUIExtensionAbility_4500
- * @tc.desc: UnPreloadUIExtensionAbility with valid parameters
+ * @tc.name: ClearPreloadedUIExtensionAbility_4500
+ * @tc.desc: ClearPreloadedUIExtensionAbility with valid parameters
  * @tc.type: FUNC
  */
-HWTEST_F(AbilityManagerProxyTest, UnPreloadUIExtensionAbility_4500, TestSize.Level1)
+HWTEST_F(AbilityManagerProxyTest, ClearPreloadedUIExtensionAbility_4500, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "UnPreloadUIExtensionAbility_4500 start";
+    GTEST_LOG_(INFO) << "ClearPreloadedUIExtensionAbility_4500 start";
 
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
     int32_t extensionAbilityId = 100;
     int32_t userId = 1;
-    int32_t result = proxy_->UnPreloadUIExtensionAbility(extensionAbilityId, userId);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UNPRELOAD_UIEXTENSION_ABILITY), mock_->code_);
+    int32_t result = proxy_->ClearPreloadedUIExtensionAbility(extensionAbilityId, userId);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_PRELOAD_UI_EXTENSION_ABILITY), mock_->code_);
     EXPECT_EQ(result, NO_ERROR);
 
-    GTEST_LOG_(INFO) << "UnPreloadUIExtensionAbility_4500 end";
+    GTEST_LOG_(INFO) << "ClearPreloadedUIExtensionAbility_4500 end";
 }
 
 /**
- * @tc.name: ClearAllPreloadUIExtensionAbility_4600
- * @tc.desc: ClearAllPreloadUIExtensionAbility with SendRequest error
+ * @tc.name: ClearPreloadedUIExtensionAbilities_4600
+ * @tc.desc: ClearPreloadedUIExtensionAbilities with SendRequest error
  * @tc.type: FUNC
  */
-HWTEST_F(AbilityManagerProxyTest, ClearAllPreloadUIExtensionAbility_4600, TestSize.Level1)
+HWTEST_F(AbilityManagerProxyTest, ClearPreloadedUIExtensionAbilities_4600, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "ClearAllPreloadUIExtensionAbility_4600 start";
+    GTEST_LOG_(INFO) << "ClearPreloadedUIExtensionAbilities_4600 start";
 
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
     std::string hostBundleName = "com.example.test";
     int32_t userId = 1;
-    int32_t result = proxy_->ClearAllPreloadUIExtensionAbility(hostBundleName, userId);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::CLEAR_ALL_PRELOAD_UIEXTENSION_ABILITY), mock_->code_);
+    int32_t result = proxy_->ClearPreloadedUIExtensionAbilities(hostBundleName, userId);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::CLEAR_ALL_PRELOAD_UI_EXTENSION_ABILITY), mock_->code_);
     EXPECT_NE(result, NO_ERROR);
-    GTEST_LOG_(INFO) << "ClearAllPreloadUIExtensionAbility_4600 end";
+    GTEST_LOG_(INFO) << "ClearPreloadedUIExtensionAbilities_4600 end";
 }
 
 /**
- * @tc.name: ClearAllPreloadUIExtensionAbility_4700
- * @tc.desc: ClearAllPreloadUIExtensionAbility with valid parameters
+ * @tc.name: ClearPreloadedUIExtensionAbilities_4700
+ * @tc.desc: ClearPreloadedUIExtensionAbilities with valid parameters
  * @tc.type: FUNC
  */
-HWTEST_F(AbilityManagerProxyTest, ClearAllPreloadUIExtensionAbility_4700, TestSize.Level1)
+HWTEST_F(AbilityManagerProxyTest, ClearPreloadedUIExtensionAbilities_4700, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "ClearAllPreloadUIExtensionAbility_4700 start";
+    GTEST_LOG_(INFO) << "ClearPreloadedUIExtensionAbilities_4700 start";
 
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
     std::string hostBundleName = "com.example.test";
     int32_t userId = 1;
-    int32_t result = proxy_->ClearAllPreloadUIExtensionAbility(hostBundleName, userId);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::CLEAR_ALL_PRELOAD_UIEXTENSION_ABILITY), mock_->code_);
+    int32_t result = proxy_->ClearPreloadedUIExtensionAbilities(hostBundleName, userId);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::CLEAR_ALL_PRELOAD_UI_EXTENSION_ABILITY), mock_->code_);
     EXPECT_EQ(result, NO_ERROR);
-    GTEST_LOG_(INFO) << "ClearAllPreloadUIExtensionAbility_4700 end";
+    GTEST_LOG_(INFO) << "ClearPreloadedUIExtensionAbilities_4700 end";
 }
 
 /**
@@ -1537,7 +1537,7 @@ HWTEST_F(AbilityManagerProxyTest, RegisterPreloadUIExtensionHostClient_4800, Tes
     sptr<IRemoteObject> callerToken = nullptr;
     std::string hostBundleName = "com.example.test";
     int32_t hostPid = 100;
-    int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
+    int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken);
     EXPECT_EQ(result, INNER_ERR);
 
     GTEST_LOG_(INFO) << "RegisterPreloadUIExtensionHostClient_4800 end";
@@ -1558,9 +1558,9 @@ HWTEST_F(AbilityManagerProxyTest, RegisterPreloadUIExtensionHostClient_4900, Tes
     sptr<IRemoteObject> callerToken = new (std::nothrow) MockAbilityToken();
     std::string hostBundleName = "com.example.test";
     int32_t hostPid = 100;
-    int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
-    mock_->code_);
+    int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT),
+        mock_->code_);
     EXPECT_NE(result, NO_ERROR);
 
     GTEST_LOG_(INFO) << "RegisterPreloadUIExtensionHostClient_4900 end";
@@ -1581,8 +1581,8 @@ HWTEST_F(AbilityManagerProxyTest, RegisterPreloadUIExtensionHostClient_5000, Tes
     sptr<IRemoteObject> callerToken = new (std::nothrow) MockAbilityToken();
     std::string hostBundleName = "com.example.test";
     int32_t hostPid = 100;
-    int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
+    int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT),
         mock_->code_);
     EXPECT_EQ(result, NO_ERROR);
 
@@ -1603,9 +1603,9 @@ HWTEST_F(AbilityManagerProxyTest, UnRegisterPreloadUIExtensionHostClient_5100, T
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
     std::string hostBundleName = "com.example.test";
     int32_t hostPid = 100;
-    int32_t result = proxy_->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
-    mock_->code_);
+    int32_t result = proxy_->UnRegisterPreloadUIExtensionHostClient();
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UNREGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT),
+        mock_->code_);
     EXPECT_NE(result, NO_ERROR);
 
     GTEST_LOG_(INFO) << "UnRegisterPreloadUIExtensionHostClient_5100 end";
@@ -1625,8 +1625,8 @@ HWTEST_F(AbilityManagerProxyTest, UnRegisterPreloadUIExtensionHostClient_5200, T
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
     std::string hostBundleName = "com.example.test";
     int32_t hostPid = 100;
-    int32_t result = proxy_->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
+    int32_t result = proxy_->UnRegisterPreloadUIExtensionHostClient();
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UNREGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT),
         mock_->code_);
     EXPECT_EQ(result, NO_ERROR);
 
