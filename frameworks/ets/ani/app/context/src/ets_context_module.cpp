@@ -117,7 +117,7 @@ ani_object EtsContextModule::GetOrCreateStaticObject(ani_env *aniEnv, ani_object
 
     std::string contextType;
     if (!AppExecFwk::GetStdString(aniEnv, reinterpret_cast<ani_string>(type), contextType)) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "GetStdString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetStdString failed");
         return nullptr;
     }
     TAG_LOGD(AAFwkTag::CONTEXT, "contextType %{public}s", contextType.c_str());
