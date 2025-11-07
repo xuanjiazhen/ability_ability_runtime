@@ -1085,22 +1085,22 @@ public:
 
     inline void SetRssValue(int32_t rssValue)
     {
-        rssValue_ = rssValue;
+        rssValue_.store(rssValue);
     }
 
     inline int32_t GetRssValue() const
     {
-        return rssValue_;
+        return rssValue_.load();
     }
 
     inline void SetPssValue(int32_t pssValue)
     {
-        pssValue_ = pssValue;
+        pssValue_.store(pssValue);
     }
 
     inline int32_t GetPssValue() const
     {
-        return pssValue_;
+        return pssValue_.load();
     }
     inline void SetReasonExist(bool reasonExist)
     {
@@ -1238,7 +1238,7 @@ private:
      * and this flag will remain true until this application is background.
      */
     std::atomic_bool isAbilityForegrounding_ = false;
-    bool isTerminating = false;
+    std::atomic_bool isTerminating = false;
     bool isCaching_ = false;
     bool isLauncherApp_;
     bool isDebugApp_ = false;
@@ -1246,8 +1246,8 @@ private:
     bool isAttachDebug_ = false;
     bool jitEnabled_ = false;
     bool securityFlag_ = false; // render record
-    bool isContinuousTask_ = false;    // Only continuesTask processes can be set to true, please choose carefully
-    bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
+    std::atomic_bool isContinuousTask_ = false; // Only continuesTask processes can be set to true
+    std::atomic_bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isAssertPause_ = false;
     bool isErrorInfoEnhance_ = false;
     bool isNativeStart_ = false;
@@ -1346,8 +1346,8 @@ private:
     std::shared_ptr<Configuration> delayConfiguration_ = std::make_shared<Configuration>();
     std::string killReason_ = "";
     std::atomic_bool isKillPrecedeStart_ = false;
-    int32_t rssValue_ = 0;
-    int32_t pssValue_ = 0;
+    std::atomic<int32_t> rssValue_ = 0;
+    std::atomic<int32_t> pssValue_ = 0;
     bool reasonExist_ = false;
     bool isDebugFromLocal_ = false;
     std::optional<bool> supportMultiProcessDeviceFeature_ = std::nullopt;

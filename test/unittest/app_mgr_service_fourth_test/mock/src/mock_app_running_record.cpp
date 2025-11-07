@@ -797,12 +797,12 @@ bool AppRunningRecord::IsWindowIdsEmpty()
 
 bool AppRunningRecord::IsContinuousTask()
 {
-    return isContinuousTask_;
+    return isContinuousTask_.load();
 }
 
 void AppRunningRecord::SetContinuousTaskAppState(bool isContinuousTask)
 {
-    isContinuousTask_ = isContinuousTask;
+    isContinuousTask_.store(isContinuousTask);
 }
 
 bool AppRunningRecord::GetFocusFlag() const
@@ -1007,12 +1007,12 @@ void AppRunningRecord::SetAssignTokenId(int32_t assignTokenId)
 
 void AppRunningRecord::SetRestartAppFlag(bool isRestartApp)
 {
-    isRestartApp_ = isRestartApp;
+    isRestartApp_.store(isRestartApp);
 }
 
 bool AppRunningRecord::GetRestartAppFlag() const
 {
-    return isRestartApp_;
+    return isRestartApp_.load();
 }
 
 void AppRunningRecord::SetAssertionPauseFlag(bool flag)
@@ -1175,12 +1175,12 @@ bool AppRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()
 
 void AppRunningRecord::SetUserRequestCleaning()
 {
-    isUserRequestCleaning_ = true;
+    isUserRequestCleaning_.store(true);
 }
 
 bool AppRunningRecord::IsUserRequestCleaning() const
 {
-    return isUserRequestCleaning_;
+    return isUserRequestCleaning_.load();
 }
 
 bool AppRunningRecord::IsProcessAttached() const
