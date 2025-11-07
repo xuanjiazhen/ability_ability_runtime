@@ -2121,12 +2121,12 @@ bool AppRunningRecord::IsWindowIdsEmpty()
 
 bool AppRunningRecord::IsContinuousTask()
 {
-    return isContinuousTask_;
+    return isContinuousTask_.load();
 }
 
 void AppRunningRecord::SetContinuousTaskAppState(bool isContinuousTask)
 {
-    isContinuousTask_ = isContinuousTask;
+    isContinuousTask_.store(isContinuousTask);
 }
 
 bool AppRunningRecord::GetFocusFlag() const

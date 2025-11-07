@@ -1246,7 +1246,7 @@ private:
     bool isAttachDebug_ = false;
     bool jitEnabled_ = false;
     bool securityFlag_ = false; // render record
-    bool isContinuousTask_ = false;    // Only continuesTask processes can be set to true, please choose carefully
+    std::atomic_bool isContinuousTask_ = false;    // Only continuesTask processes can be set to true, please choose carefully
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isAssertPause_ = false;
     bool isErrorInfoEnhance_ = false;
