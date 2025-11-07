@@ -451,18 +451,6 @@ public:
         return ERR_OK;
     }
 
-    int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken,
-        const std::string &hostBundleName, int32_t hostPid) override
-    {
-        return ERR_OK;
-    }
-    
-    int32_t UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName,
-        int32_t hostPid) override
-    {
-        return ERR_OK;
-    }
-
 #ifdef ABILITY_COMMAND_FOR_TEST
     int ForceTimeoutForTest(const std::string& abilityName, const std::string& state) override
     {

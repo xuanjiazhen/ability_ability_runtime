@@ -174,6 +174,7 @@ public:
     {
         return 0;
     }
+
 #ifdef ABILITY_COMMAND_FOR_TEST
     int ForceTimeoutForTest(const std::string& abilityName, const std::string& state) override;
 #endif
@@ -356,6 +357,7 @@ public:
     {
         return 0;
     }
+
 #ifdef ABILITY_COMMAND_FOR_TEST
     int ForceTimeoutForTest(const std::string& abilityName, const std::string& state) override;
 #endif
