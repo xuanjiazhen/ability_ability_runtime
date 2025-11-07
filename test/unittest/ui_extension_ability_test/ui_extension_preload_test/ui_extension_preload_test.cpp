@@ -136,7 +136,7 @@ HWTEST_F(UIExtensionPreloadTest, PermissionCheck_005, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "start.");
 
     sptr<IRemoteObject> nullCallerToken = nullptr;
-    std::string hostBundleName = "com.ohos.test";
+    std::string hostBundleName = "com.app";
     int32_t hostPid = 1234;
     auto ret = AbilityManagerClient::GetInstance()->RegisterPreloadUIExtensionHostClient(
         nullCallerToken, hostBundleName, hostPid);
