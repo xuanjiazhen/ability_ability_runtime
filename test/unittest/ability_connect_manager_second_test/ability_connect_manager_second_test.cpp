@@ -676,11 +676,10 @@ HWTEST_F(AbilityConnectManagerSecondTest, ClearAllPreloadUIExtensionAbilityInner
  */
 HWTEST_F(AbilityConnectManagerSecondTest, ClearAllPreloadUIExtensionAbilityInner_003, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST,"ClearAllPreloadUIExtensionAbilityInner_003 start");
+    TAG_LOGI(AAFwkTag::TEST, "ClearAllPreloadUIExtensionAbilityInner_003 start");
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
-    std::string hostBundleName = "com.example.test";
-    
+    std::string hostBundleName = "com.app.test";
     auto res = connectManager->ClearAllPreloadUIExtensionAbilityInner(hostBundleName);
     EXPECT_EQ(res, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "ClearAllPreloadUIExtensionAbilityInner_003 end");
