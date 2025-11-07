@@ -16,9 +16,12 @@
 #include "extension_record_manager.h"
 
 #include "ability_util.h"
-#include "ui_extension_utils.h"
+#include "preload_ui_extension_execute_callback_interface.h"
+#include "preload_ui_extension_execute_callback_proxy.h"
+#include "preload_ui_extension_host_client.h"
 #include "ui_extension_record.h"
 #include "ui_extension_record_factory.h"
+#include "ui_extension_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -36,6 +39,7 @@ ExtensionRecordManager::ExtensionRecordManager(const int32_t userId) : userId_(u
 ExtensionRecordManager::~ExtensionRecordManager()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "deconstructor");
+    UnRegisterPreloadUIExtensionHostClient();
 }
 
 int32_t ExtensionRecordManager::GenerateExtensionRecordId(const int32_t extensionRecordId)
@@ -839,6 +843,190 @@ int32_t ExtensionRecordManager::QueryPreLoadUIExtensionRecord(const AppExecFwk::
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension is not preloaded.");
     recordNum = 0;
     return ERR_OK;
+}
+
+void ExtensionRecordManager::CheckIsPreloadUIExtensionLoadedById(int32_t extensionRecordId)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "CheckIsPreloadUIExtensionLoadedById called, id: %{public}d", extensionRecordId);
+    auto uiExtensionRecord = std::static_pointer_cast<UIExtensionRecord>(GetExtensionRecordById(extensionRecordId));
+    if (uiExtensionRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtensionRecord");
+        return;
+    }
+    auto hostPid = uiExtensionRecord->hostPid_;
+    auto hostBundleName = uiExtensionRecord->hostBundleName_;
+    if (hostPid == 0) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "uiExtensionAbility not preload");
+        return;
+    }
+    if (preloadUIExtensionHostClientCallerToken_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null preloadUIExtensionHostClientCallerToken_");
+        return;
+    }
+    sptr<AAFwk::IPreloadUIExtensionExecuteCallback> remoteCallback =
+        iface_cast<AAFwk::IPreloadUIExtensionExecuteCallback>(preloadUIExtensionHostClientCallerToken_);
+    if (remoteCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null remoteCallback");
+        return;
+    }
+    remoteCallback->OnLoadedDone(hostPid, hostBundleName, extensionRecordId);
+}
+
+void ExtensionRecordManager::CheckIsPreloadUIExtensionDestroyedById(int32_t extensionRecordId)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "CheckIsPreloadUIExtensionDestroyedById called, id: %{public}d", extensionRecordId);
+    auto uiExtensionRecord = std::static_pointer_cast<UIExtensionRecord>(GetExtensionRecordById(extensionRecordId));
+    if (uiExtensionRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtensionRecord");
+        return;
+    }
+    auto hostPid = uiExtensionRecord->hostPid_;
+    auto hostBundleName = uiExtensionRecord->hostBundleName_;
+    if (hostPid == 0) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "uiExtensionAbility not preload");
+        return;
+    }
+    if (preloadUIExtensionHostClientCallerToken_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null preloadUIExtensionHostClientCallerToken_");
+        return;
+    }
+    sptr<AAFwk::IPreloadUIExtensionExecuteCallback> remoteCallback =
+        iface_cast<AAFwk::IPreloadUIExtensionExecuteCallback>(preloadUIExtensionHostClientCallerToken_);
+    if (remoteCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null remoteCallback");
+        return;
+    }
+    remoteCallback->OnDestroyDone(hostPid, hostBundleName, extensionRecordId);
+}
+
+int32_t ExtensionRecordManager::ClearPreloadedUIExtensionAbility(int32_t extensionRecordId)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "ClearPreloadedUIExtensionAbility call, record:%{public}d", extensionRecordId);
+    std::shared_ptr<ExtensionRecord> recordToUnload;
+    bool shouldUnload = false;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto findRecord = extensionRecords_.find(extensionRecordId);
+        if (findRecord == extensionRecords_.end()) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "record: %{public}d not found", extensionRecordId);
+            return AAFwk::ERR_CODE_INVALID_ID;
+        }
+        if (findRecord->second == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "record %{public}d is null", extensionRecordId);
+            extensionRecords_.erase(extensionRecordId);
+            return ERR_INVALID_VALUE;
+        }
+        int32_t callingPid = IPCSkeleton::GetCallingPid();
+        auto hostPid = findRecord->second->hostPid_;
+        if (callingPid != hostPid) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "callingPid: %{public}d not match hostPid: %{public}d", callingPid, hostPid);
+            return AAFwk::ERR_CODE_INVALID_ID;
+        }
+        auto abilityRecord = findRecord->second->abilityRecord_;
+        if (abilityRecord == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "abilityRecord is null for record %{public}d", extensionRecordId);
+            extensionRecords_.erase(extensionRecordId);
+            return ERR_INVALID_VALUE;
+        }
+        auto abilityInfo = abilityRecord->GetAbilityInfo();
+        auto extensionRecordMapKey = std::make_tuple(
+            abilityInfo.name, abilityInfo.bundleName, abilityInfo.moduleName, findRecord->second->hostBundleName_);
+        bool ret = RemovePreloadUIExtensionRecordById(extensionRecordMapKey, extensionRecordId);
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "remove failed for record %{public}d", extensionRecordId);
+            return ERR_INVALID_VALUE;
+        }
+        recordToUnload = findRecord->second;
+        shouldUnload = true;
+    }
+    if (shouldUnload && recordToUnload != nullptr) {
+        recordToUnload->UnloadUIExtensionAbility();
+    }
+    return ERR_OK;
+}
+
+int32_t ExtensionRecordManager::ClearAllPreloadUIExtensionRecordForHost(std::string hostBundleName)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "ClearAllPreloadUIExtensionRecordForHost call");
+    int32_t callingPid = IPCSkeleton::GetCallingPid();
+    std::vector<std::shared_ptr<ExtensionRecord>> recordsToUnload;
+    {
+        std::lock_guard<std::mutex> lock(preloadUIExtensionMapMutex_);
+        for (auto it = preloadUIExtensionMap_.begin(); it != preloadUIExtensionMap_.end();) {
+            if (std::get<HOST_BUNDLE_NAME_INDEX>(it->first) != hostBundleName) {
+                ++it;
+                continue;
+            }
+            UnloadExtensionRecordsByPid(it->second, callingPid, recordsToUnload);
+            if (it->second.empty()) {
+                it = preloadUIExtensionMap_.erase(it);
+                continue;
+            }
+
+            ++it;
+        }
+    }
+    for (const auto &record : recordsToUnload) {
+        if (record != nullptr) {
+            record->UnloadUIExtensionAbility();
+        }
+    }
+    return ERR_OK;
+}
+
+void ExtensionRecordManager::UnloadExtensionRecordsByPid(
+    std::vector<std::shared_ptr<ExtensionRecord>> &records,
+    int32_t callingPid,
+    std::vector<std::shared_ptr<ExtensionRecord>> &recordsToUnload)
+{
+    for (auto recordIt = records.begin(); recordIt != records.end();) {
+        if (*recordIt != nullptr && (*recordIt)->hostPid_ == callingPid) {
+            recordsToUnload.push_back(*recordIt);
+            recordIt = records.erase(recordIt);
+        } else {
+            ++recordIt;
+        }
+    }
+}
+
+void ExtensionRecordManager::RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken)
+{
+    std::lock_guard<std::mutex> lock(preloadUIExtensionHostClientMutex_);
+    preloadUIExtensionHostClientCallerToken_ = callerToken;
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null callerToken");
+        return;
+    }
+    preloadUIExtensionHostClientDeathRecipient_ = new PreloadUIExtensionHostClientDeathRecipient(
+        [self = weak_from_this()](const wptr<IRemoteObject> &remote) {
+            auto extensionRecordManager = self.lock();
+            if (extensionRecordManager != nullptr) {
+                extensionRecordManager->UnRegisterPreloadUIExtensionHostClient();
+            }
+        });
+    callerToken->AddDeathRecipient(preloadUIExtensionHostClientDeathRecipient_);
+}
+
+void ExtensionRecordManager::UnRegisterPreloadUIExtensionHostClient()
+{
+    std::lock_guard<std::mutex> lock(preloadUIExtensionHostClientMutex_);
+    if (preloadUIExtensionHostClientCallerToken_ != nullptr) {
+        preloadUIExtensionHostClientCallerToken_->RemoveDeathRecipient(preloadUIExtensionHostClientDeathRecipient_);
+        preloadUIExtensionHostClientCallerToken_ = nullptr;
+    }
+}
+
+ExtensionRecordManager::PreloadUIExtensionHostClientDeathRecipient::PreloadUIExtensionHostClientDeathRecipient(
+    PreloadUIExtensionHostClientDiedHandler handler)
+    : diedHandler_(handler)
+{}
+
+void ExtensionRecordManager::PreloadUIExtensionHostClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+{
+    TAG_LOGE(AAFwkTag::UI_EXT, "OnRemoteDied");
+    if (diedHandler_) {
+        diedHandler_(remote);
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
