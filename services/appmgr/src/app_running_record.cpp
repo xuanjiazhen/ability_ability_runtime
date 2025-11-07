@@ -52,6 +52,7 @@ constexpr const char *EVENT_KEY_VERSION_NAME = "VERSION_NAME";
 constexpr const char *EVENT_KEY_VERSION_CODE = "VERSION_CODE";
 constexpr const char *EVENT_KEY_BUNDLE_NAME = "BUNDLE_NAME";
 constexpr const char *EVENT_KEY_SUPPORT_STATE = "SUPPORT_STATE";
+constexpr const char* UIEXTENSION_ROOT_HOST_PID = "ability.want.params.uiExtensionRootHostPid";
 constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
     1 << static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::RUN_WITH_MAIN_PROCESS);
 }
@@ -761,6 +762,14 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
         abilityStateData.callerBundleName = ability->GetWant()->GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
         abilityStateData.callerUid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
         abilityStateData.callerPid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_PID, -1);
+        abilityStateData.hostPid = ability->GetWant()->GetIntParam(UIEXTENSION_ROOT_HOST_PID, -1);
+        auto serviceInner = appMgrServiceInner_.lock();
+        if (serviceInner) {
+            auto hostAppRecord = serviceInner->GetAppRunningRecordByPid(abilityStateData.hostPid);
+            if (hostAppRecord) {
+                abilityStateData.hostBundleName = hostAppRecord->GetBundleName();
+            }
+        }
     }
     if (applicationInfo && applicationInfo->bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE) {
         abilityStateData.isAtomicService = true;
