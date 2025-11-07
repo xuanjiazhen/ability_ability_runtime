@@ -1559,8 +1559,8 @@ HWTEST_F(AbilityManagerProxyTest, RegisterPreloadUIExtensionHostClient_4900, Tes
     std::string hostBundleName = "com.example.test";
     int32_t hostPid = 100;
     int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
-    mock_->code_);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT),
+        mock_->code_);
     EXPECT_NE(result, NO_ERROR);
 
     GTEST_LOG_(INFO) << "RegisterPreloadUIExtensionHostClient_4900 end";
@@ -1582,7 +1582,7 @@ HWTEST_F(AbilityManagerProxyTest, RegisterPreloadUIExtensionHostClient_5000, Tes
     std::string hostBundleName = "com.example.test";
     int32_t hostPid = 100;
     int32_t result = proxy_->RegisterPreloadUIExtensionHostClient(callerToken, hostBundleName, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT),
         mock_->code_);
     EXPECT_EQ(result, NO_ERROR);
 
@@ -1604,8 +1604,8 @@ HWTEST_F(AbilityManagerProxyTest, UnRegisterPreloadUIExtensionHostClient_5100, T
     std::string hostBundleName = "com.example.test";
     int32_t hostPid = 100;
     int32_t result = proxy_->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
-    mock_->code_);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT),
+        mock_->code_);
     EXPECT_NE(result, NO_ERROR);
 
     GTEST_LOG_(INFO) << "UnRegisterPreloadUIExtensionHostClient_5100 end";
@@ -1626,7 +1626,7 @@ HWTEST_F(AbilityManagerProxyTest, UnRegisterPreloadUIExtensionHostClient_5200, T
     std::string hostBundleName = "com.example.test";
     int32_t hostPid = 100;
     int32_t result = proxy_->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT), 
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UN_REGISTER_PRELOAD_UIEXTENSION_HOST_CLIENT),
         mock_->code_);
     EXPECT_EQ(result, NO_ERROR);
 

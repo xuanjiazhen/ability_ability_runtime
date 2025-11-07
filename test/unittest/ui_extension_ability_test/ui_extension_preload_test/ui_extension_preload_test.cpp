@@ -154,7 +154,7 @@ HWTEST_F(UIExtensionPreloadTest, PermissionCheck_006, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "start.");
 
-    std::string hostBundleName = "com.ohos.test"; 
+    std::string hostBundleName = "com.ohos.test";
     int32_t hostPid = 1234;
     auto ret = AbilityManagerClient::GetInstance()->UnRegisterPreloadUIExtensionHostClient(hostBundleName, hostPid);
     EXPECT_NE(ret, ERR_OK);
