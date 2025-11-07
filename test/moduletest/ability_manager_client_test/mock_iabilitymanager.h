@@ -441,6 +441,7 @@ public:
     {
         return 0;
     }
+    
     void ScheduleClearRecoveryPageStack() override
     {
         mockFunctionExcuted = true;

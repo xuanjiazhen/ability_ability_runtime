@@ -1134,7 +1134,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, PreloadUIExtensionAbilityInner_001, Tes
     AppExecFwk::ElementName providerElement("0", "com.ohos.uiextensionprovider", "UIExtensionProvider", "entry");
     providerWant.SetElement(providerElement);
     std::string hostBundleName = "com.ohos.uiextensionuser";
-    auto result = abilityMs->PreloadUIExtensionAbilityInner(providerWant, hostBundleName, DEFAULT_INVAL_VALUE);
+    int32_t preloadId = DEFAULT_INVAL_VALUE;
+    auto result = abilityMs->PreloadUIExtensionAbilityInner(providerWant, hostBundleName, preloadId);
     EXPECT_NE(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "finish.");
 }
@@ -3017,31 +3018,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, RestartSelfAtomicService_004, TestSize.
 
     EXPECT_EQ(abilityMs_->RestartSelfAtomicService(callerRecord->GetToken()), NOT_TOP_ABILITY);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest RestartSelfAtomicService_004 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Function: PreloadUIExtensionAbilityWithId
- * FunctionPoints: AbilityManagerService PreloadUIExtensionAbilityWithId
- */
-HWTEST_F(AbilityManagerServiceThirdTest, PreloadUIExtensionAbilityWithId_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityWithId_001 start.");
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    Want providerWant;
-    AppExecFwk::ElementName providerElement("0", "com.ohos.uiextensionprovider", "UIExtensionProvider", "entry");
-    providerWant.SetElement(providerElement);
-    std::string hostBundleName = "com.ohos.uiextensionuser";
-
-    int32_t preloadId = INVALID_EXTENSION_RECORD_ID;
-    int32_t userId = DEFAULT_INVAL_VALUE;
-    int32_t hostPid = DEFAULT_INVAL_VALUE;
-
-    auto result = abilityMs->PreloadUIExtensionAbilityWithId(providerWant, hostBundleName, preloadId, userId, hostPid);
-
-    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
-    EXPECT_EQ(preloadId, INVALID_EXTENSION_RECORD_ID);
-    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityWithId_001 finish.");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
