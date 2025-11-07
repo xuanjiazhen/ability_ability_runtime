@@ -355,7 +355,7 @@ ani_string GetAniString(ani_env *env, const std::string &str)
     ani_string aniStr = nullptr;
     ani_status status = env->String_NewUTF8(str.c_str(), str.size(), &aniStr);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status : %{public}d", status);
         return nullptr;
     }
     return aniStr;

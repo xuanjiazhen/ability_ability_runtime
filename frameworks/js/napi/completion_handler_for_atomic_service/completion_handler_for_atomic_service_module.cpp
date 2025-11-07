@@ -52,7 +52,7 @@ static napi_value AbilityCompletionHandlerForAtomicServiceInit(napi_env env, nap
 {
     napi_value failureCode = InitFailureCodeObject(env);
     if (failureCode == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null failureCode");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null failureCode");
         return nullptr;
     }
 
@@ -62,7 +62,7 @@ static napi_value AbilityCompletionHandlerForAtomicServiceInit(napi_env env, nap
 
     napi_status status = napi_define_properties(env, exports, sizeof(exportObjs) / sizeof(exportObjs[0]), exportObjs);
     if (status != napi_ok) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "define properties failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "define properties failed");
         return nullptr;
     }
 
