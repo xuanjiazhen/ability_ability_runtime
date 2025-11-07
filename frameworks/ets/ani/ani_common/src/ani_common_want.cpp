@@ -51,7 +51,7 @@ bool InnerWrapWantParams(ani_env *env, ani_class wantCls, ani_object wantObject,
 {
     ani_ref wantParamRef = WrapWantParams(env, wantParams);
     if (wantParamRef == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to WrapWantParams");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to WrapWantParams");
         return false;
     }
     return SetFieldRefByName(env, wantCls, wantObject, "parameters", wantParamRef);
@@ -61,7 +61,7 @@ bool InnerWrapWantParamsFD(ani_env *env, ani_class wantCls, ani_object wantObjec
 {
     ani_ref wantParamFDRef = WrapWantParamsFD(env, wantParams);
     if (wantParamFDRef == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to WrapWantParamsFD");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to WrapWantParamsFD");
         return false;
     }
     return SetFieldRefByName(env, wantCls, wantObject, "fds", wantParamFDRef);
@@ -71,7 +71,7 @@ bool InnerUnwrapWantParams(ani_env *env, ani_object wantObject, AAFwk::WantParam
 {
     ani_ref wantParamRef = nullptr;
     if (!GetFieldRefByName(env, wantObject, "parameters", wantParamRef)) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to get want parameter");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to get want parameter");
         return false;
     }
     return UnwrapWantParams(env, wantParamRef, wantParams);
@@ -88,7 +88,7 @@ bool InnerCreateRecordObject(ani_env *env, ani_object &recordObject)
     }
     ani_status status = env->Object_New(recordCls, recordCtorMethod, &recordObject);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New failed: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_New failed: %{public}d", status);
         return false;
     }
     return true;
@@ -106,7 +106,7 @@ bool InnerSetRecord(ani_env *env, ani_object recordObject, ani_string key, ani_o
 
     ani_status status = env->Object_CallMethod_Void(recordObject, recordSetMethod, key, value);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_CallMethod_Void failed status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_CallMethod_Void failed status: %{public}d", status);
         return false;
     }
     return true;
@@ -117,19 +117,19 @@ bool InnerWrapWantParamsString(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IString *ao = AAFwk::IString::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     std::string natValue = AAFwk::String::Unbox(ao);
     ani_string aniValue = GetAniString(env, natValue);
     if (aniValue == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "value GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "value GetAniString failed");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -146,7 +146,7 @@ bool InnerCreateBooleanObject(ani_env *env, ani_boolean value, ani_object &objec
     }
     ani_status status = env->Object_New(cls, ctorMethod, &object, value);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New failed: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_New failed: %{public}d", status);
         return false;
     }
     return true;
@@ -157,19 +157,19 @@ bool InnerWrapWantParamsBool(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IBoolean *ao = AAFwk::IBoolean::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     ani_boolean natValue = AAFwk::Boolean::Unbox(ao);
     ani_object aniValue = nullptr;
     if (!InnerCreateBooleanObject(env, natValue, aniValue)) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to create object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to create object");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -186,7 +186,7 @@ bool InnerCreateShortObject(ani_env *env, ani_short value, ani_object &object)
     }
     ani_status status = env->Object_New(cls, ctorMethod, &object, value);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New failed: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_New failed: %{public}d", status);
         return false;
     }
     return true;
@@ -197,19 +197,19 @@ bool InnerWrapWantParamsShort(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IShort *ao = AAFwk::IShort::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     ani_short natValue = AAFwk::Short::Unbox(ao);
     ani_object aniValue = nullptr;
     if (!InnerCreateShortObject(env, natValue, aniValue)) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to create object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to create object");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -226,7 +226,7 @@ bool InnerCreateIntObject(ani_env *env, ani_int value, ani_object &object)
     }
     ani_status status = env->Object_New(cls, ctorMethod, &object, value);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New failed: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_New failed: %{public}d", status);
         return false;
     }
     return true;
@@ -237,19 +237,19 @@ bool InnerWrapWantParamsInt32(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IInteger *ao = AAFwk::IInteger::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     ani_int natValue = AAFwk::Integer::Unbox(ao);
     ani_object aniValue = nullptr;
     if (!InnerCreateIntObject(env, natValue, aniValue)) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to create object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to create object");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -266,7 +266,7 @@ bool InnerCreateLongObject(ani_env *env, ani_long value, ani_object &object)
     }
     ani_status status = env->Object_New(cls, ctorMethod, &object, value);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New failed: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_New failed: %{public}d", status);
         return false;
     }
     return true;
@@ -277,19 +277,19 @@ bool InnerWrapWantParamsInt64(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::ILong *ao = AAFwk::ILong::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     ani_long natValue = AAFwk::Long::Unbox(ao);
     ani_object aniValue = nullptr;
     if (!InnerCreateLongObject(env, natValue, aniValue)) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to create object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to create object");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -306,7 +306,7 @@ bool InnerCreateFloatObject(ani_env *env, ani_float value, ani_object &object)
     }
     ani_status status = env->Object_New(cls, ctorMethod, &object, value);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New failed: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_New failed: %{public}d", status);
         return false;
     }
     return true;
@@ -317,19 +317,19 @@ bool InnerWrapWantParamsFloat(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IFloat *ao = AAFwk::IFloat::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     ani_float natValue = AAFwk::Float::Unbox(ao);
     ani_object aniValue = nullptr;
     if (!InnerCreateFloatObject(env, natValue, aniValue)) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to create object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to create object");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -346,7 +346,7 @@ bool InnerCreateDoubleObject(ani_env *env, ani_double value, ani_object &object)
     }
     ani_status status = env->Object_New(cls, ctorMethod, &object, value);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New failed: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_New failed: %{public}d", status);
         return false;
     }
     return true;
@@ -357,19 +357,19 @@ bool InnerWrapWantParamsDouble(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IDouble *ao = AAFwk::IDouble::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     ani_double natValue = AAFwk::Double::Unbox(ao);
     ani_object aniValue = nullptr;
     if (!InnerCreateDoubleObject(env, natValue, aniValue)) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to create object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to create object");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -380,19 +380,19 @@ bool InnerWrapWantParamsChar(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IChar *ao = AAFwk::IChar::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     std::string natValue = static_cast<AAFwk::Char *>(ao)->ToString();
     ani_string aniValue = GetAniString(env, natValue);
     if (aniValue == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "value GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "value GetAniString failed");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -403,19 +403,19 @@ bool InnerWrapWantParamsByte(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IByte *ao = AAFwk::IByte::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     ani_int natValue = AAFwk::Byte::Unbox(ao);
     ani_object aniValue = nullptr;
     if (!InnerCreateIntObject(env, natValue, aniValue)) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to create object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to create object");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -426,19 +426,19 @@ bool InnerWrapWantParamsWantParams(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IWantParams *ao = AAFwk::IWantParams::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     AAFwk::WantParams natValue = AAFwk::WantParamWrapper::Unbox(ao);
     ani_ref aniValue = WrapWantParams(env, natValue);
     if (aniValue == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null aniValue");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null aniValue");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, reinterpret_cast<ani_object>(aniValue));
@@ -449,19 +449,19 @@ bool InnerWrapWantParamsRemoteObject(
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     AAFwk::IRemoteObjectWrap *ao = AAFwk::IRemoteObjectWrap::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     auto remoteObject = AAFwk::RemoteObjectWrap::UnBox(ao);
     ani_object aniValue = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
     if (aniValue == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null aniValue");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null aniValue");
         return false;
     }
     return InnerSetRecord(env, recordObject, aniKey, aniValue);
@@ -478,25 +478,25 @@ bool InnerSetArrayString(ani_env *env, ani_object recordObject, ani_string aniKe
     ani_ref undefinedRef = nullptr;
     ani_status status = env->GetUndefined(&undefinedRef);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetUndefined failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetUndefined failed, status: %{public}d", status);
         return false;
     }
     ani_array_ref refArray = nullptr;
     status = env->Array_New_Ref(stringCls, natArray.size(), undefinedRef, &refArray);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_New failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_New failed, status: %{public}d", status);
         return false;
     }
 
     for (size_t i = 0; i < natArray.size(); i++) {
         ani_string aniValue = GetAniString(env, natArray[i]);
         if (aniValue == nullptr) {
-            TAG_LOGE(AAFwkTag::ANI, "value GetAniString failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "value GetAniString failed");
             continue;
         }
         status = env->Array_Set_Ref(refArray, i, aniValue);
         if (status != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ANI, "Array_Set_Ref failed, status: %{public}d", status);
+            TAG_LOGE(AAFwkTag::BRIDGE, "Array_Set_Ref failed, status: %{public}d", status);
         }
     }
 
@@ -508,14 +508,14 @@ bool InnerWrapWantParamsArrayString(ani_env *env, ani_object recordObject, const
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
     std::vector<std::string> natArray;
@@ -536,14 +536,14 @@ bool InnerWrapWantParamsArrayBool(ani_env *env, ani_object recordObject, const s
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
 
@@ -561,14 +561,14 @@ bool InnerWrapWantParamsArrayBool(ani_env *env, ani_object recordObject, const s
     ani_array_boolean aniArray = nullptr;
     ani_status status = env->Array_New_Boolean(natArray.size(), &aniArray);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_New failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_New failed, status: %{public}d", status);
         return false;
     }
 
     auto *aniArrayBuf = reinterpret_cast<ani_boolean *>(natArray.data());
     status = env->Array_SetRegion_Boolean(aniArray, 0, natArray.size(), aniArrayBuf);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_SetRegion_Boolean failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_SetRegion_Boolean failed, status: %{public}d", status);
         return false;
     }
 
@@ -580,14 +580,14 @@ bool InnerWrapWantParamsArrayShort(ani_env *env, ani_object recordObject, const 
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
 
@@ -605,14 +605,14 @@ bool InnerWrapWantParamsArrayShort(ani_env *env, ani_object recordObject, const 
     ani_array_short aniArray = nullptr;
     ani_status status = env->Array_New_Short(natArray.size(), &aniArray);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_New failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_New failed, status: %{public}d", status);
         return false;
     }
 
     auto *aniArrayBuf = reinterpret_cast<ani_short *>(natArray.data());
     status = env->Array_SetRegion_Short(aniArray, 0, natArray.size(), aniArrayBuf);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_SetRegion failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_SetRegion failed, status: %{public}d", status);
         return false;
     }
 
@@ -624,14 +624,14 @@ bool InnerWrapWantParamsArrayInt32(ani_env *env, ani_object recordObject, const 
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
 
@@ -649,14 +649,14 @@ bool InnerWrapWantParamsArrayInt32(ani_env *env, ani_object recordObject, const 
     ani_array_int aniArray = nullptr;
     ani_status status = env->Array_New_Int(natArray.size(), &aniArray);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_New failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_New failed, status: %{public}d", status);
         return false;
     }
 
     auto *aniArrayBuf = reinterpret_cast<ani_int *>(natArray.data());
     status = env->Array_SetRegion_Int(aniArray, 0, natArray.size(), aniArrayBuf);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_SetRegion failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_SetRegion failed, status: %{public}d", status);
         return false;
     }
 
@@ -668,14 +668,14 @@ bool InnerWrapWantParamsArrayInt64(ani_env *env, ani_object recordObject, const 
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
 
@@ -693,14 +693,14 @@ bool InnerWrapWantParamsArrayInt64(ani_env *env, ani_object recordObject, const 
     ani_array_long aniArray = nullptr;
     ani_status status = env->Array_New_Long(natArray.size(), &aniArray);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_New failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_New failed, status: %{public}d", status);
         return false;
     }
 
     auto *aniArrayBuf = reinterpret_cast<ani_long *>(natArray.data());
     status = env->Array_SetRegion_Long(aniArray, 0, natArray.size(), aniArrayBuf);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_SetRegion failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_SetRegion failed, status: %{public}d", status);
         return false;
     }
 
@@ -712,14 +712,14 @@ bool InnerWrapWantParamsArrayFloat(ani_env *env, ani_object recordObject, const 
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
 
@@ -737,14 +737,14 @@ bool InnerWrapWantParamsArrayFloat(ani_env *env, ani_object recordObject, const 
     ani_array_float aniArray = nullptr;
     ani_status status = env->Array_New_Float(natArray.size(), &aniArray);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_New failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_New failed, status: %{public}d", status);
         return false;
     }
 
     auto *aniArrayBuf = reinterpret_cast<ani_float *>(natArray.data());
     status = env->Array_SetRegion_Float(aniArray, 0, natArray.size(), aniArrayBuf);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_SetRegion failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_SetRegion failed, status: %{public}d", status);
         return false;
     }
 
@@ -756,14 +756,14 @@ bool InnerWrapWantParamsArrayByte(ani_env *env, ani_object recordObject, const s
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
 
@@ -781,14 +781,14 @@ bool InnerWrapWantParamsArrayByte(ani_env *env, ani_object recordObject, const s
     ani_array_byte aniArray = nullptr;
     ani_status status = env->Array_New_Byte(natArray.size(), &aniArray);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_New failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_New failed, status: %{public}d", status);
         return false;
     }
 
     auto *aniArrayBuf = reinterpret_cast<ani_byte *>(natArray.data());
     status = env->Array_SetRegion_Byte(aniArray, 0, natArray.size(), aniArrayBuf);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_SetRegion failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_SetRegion failed, status: %{public}d", status);
         return false;
     }
 
@@ -800,14 +800,14 @@ bool InnerWrapWantParamsArrayChar(ani_env *env, ani_object recordObject, const s
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
 
@@ -831,14 +831,14 @@ bool InnerWrapWantParamsArrayDouble(ani_env *env, ani_object recordObject, const
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
 
@@ -856,14 +856,14 @@ bool InnerWrapWantParamsArrayDouble(ani_env *env, ani_object recordObject, const
     ani_array_double aniArray = nullptr;
     ani_status status = env->Array_New_Double(natArray.size(), &aniArray);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_New failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_New failed, status: %{public}d", status);
         return false;
     }
 
     auto *aniArrayBuf = reinterpret_cast<ani_double *>(natArray.data());
     status = env->Array_SetRegion_Double(aniArray, 0, natArray.size(), aniArrayBuf);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_SetRegion failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_SetRegion failed, status: %{public}d", status);
         return false;
     }
 
@@ -881,25 +881,25 @@ bool InnerSetArrayObject(ani_env *env, ani_object recordObject, ani_string aniKe
     ani_ref undefinedRef = nullptr;
     ani_status status = env->GetUndefined(&undefinedRef);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetUndefined failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetUndefined failed, status: %{public}d", status);
         return false;
     }
     ani_array_ref refArray = nullptr;
     status = env->Array_New_Ref(recordCls, natArray.size(), undefinedRef, &refArray);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Array_New failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Array_New failed, status: %{public}d", status);
         return false;
     }
 
     for (size_t i = 0; i < natArray.size(); i++) {
         ani_ref aniValue = WrapWantParams(env, natArray[i]);
         if (aniValue == nullptr) {
-            TAG_LOGE(AAFwkTag::ANI, "value GetAniString failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "value GetAniString failed");
             continue;
         }
         status = env->Array_Set_Ref(refArray, i, aniValue);
         if (status != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ANI, "Array_Set_Ref failed, status: %{public}d", status);
+            TAG_LOGE(AAFwkTag::BRIDGE, "Array_Set_Ref failed, status: %{public}d", status);
         }
     }
 
@@ -911,14 +911,14 @@ bool InnerWrapWantParamsArrayWantParams(ani_env *env, ani_object recordObject, c
 {
     ani_string aniKey = GetAniString(env, key);
     if (aniKey == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "key GetAniString failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "key GetAniString failed");
         return false;
     }
 
     long size = 0;
     ErrCode code = ao->GetLength(size);
     if (code != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "GetLength failed, status: %{public}d", code);
+        TAG_LOGE(AAFwkTag::BRIDGE, "GetLength failed, status: %{public}d", code);
         return false;
     }
 
@@ -941,12 +941,12 @@ bool InnerWrapWantParamsArray(
 {
     AAFwk::IArray *ao = AAFwk::IArray::Query(value);
     if (ao == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null value");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null value");
         return false;
     }
     sptr array(ao);
     if (array == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null array");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null array");
         return false;
     }
 
@@ -978,9 +978,9 @@ bool InnerWrapWantParamsArray(
 
 ani_object WrapWant(ani_env *env, const AAFwk::Want &want)
 {
-    TAG_LOGD(AAFwkTag::ANI, "WrapWant called");
+    TAG_LOGD(AAFwkTag::BRIDGE, "WrapWant called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null env");
         return nullptr;
     }
     ani_class cls = nullptr;
@@ -988,23 +988,23 @@ ani_object WrapWant(ani_env *env, const AAFwk::Want &want)
     ani_method method = nullptr;
     ani_object object = nullptr;
     if ((status = env->FindClass(ABILITY_WANT_CLASS_NAME, &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return nullptr;
     }
     if (cls == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null wantCls");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null wantCls");
         return nullptr;
     }
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return nullptr;
     }
     if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return nullptr;
     }
     if (object == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null object");
         return nullptr;
     }
 
@@ -1030,7 +1030,7 @@ ani_ref WrapWantParamsFD(ani_env *env, const AAFwk::WantParams &wantParams)
     AAFwk::WantParams fds;
     for (auto it = paramList.begin(); it != paramList.end(); it++) {
         if (AAFwk::IWantParams::Query(it->second) == nullptr) {
-            TAG_LOGW(AAFwkTag::ANI, "not wantParam");
+            TAG_LOGW(AAFwkTag::BRIDGE, "not wantParam");
             continue;
         }
         auto value = wantParams.GetParam(it->first);
@@ -1041,7 +1041,7 @@ ani_ref WrapWantParamsFD(ani_env *env, const AAFwk::WantParams &wantParams)
         AAFwk::WantParams wp = AAFwk::WantParamWrapper::Unbox(o);
         auto valueMap = wp.GetParams();
         if (valueMap.size() != PROPERTIES_SIZE) {
-            TAG_LOGD(AAFwkTag::ANI, "not fd");
+            TAG_LOGD(AAFwkTag::BRIDGE, "not fd");
             return nullptr;
         }
         auto typeIt = valueMap.find(AAFwk::TYPE_PROPERTY);
@@ -1054,7 +1054,7 @@ ani_ref WrapWantParamsFD(ani_env *env, const AAFwk::WantParams &wantParams)
         }
         std::string typeString = AAFwk::String::Unbox(strValue);
         if (typeString != AAFwk::FD) {
-            TAG_LOGD(AAFwkTag::ANI, "not fd");
+            TAG_LOGD(AAFwkTag::BRIDGE, "not fd");
             return nullptr;
         }
         auto valueIt = valueMap.find(AAFwk::VALUE_PROPERTY);
@@ -1073,13 +1073,13 @@ ani_ref WrapWantParamsFD(ani_env *env, const AAFwk::WantParams &wantParams)
 ani_ref WrapWantParams(ani_env *env, const AAFwk::WantParams &wantParams)
 {
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null env");
         return nullptr;
     }
 
     ani_object wantParamsRecord = nullptr;
     if (!InnerCreateRecordObject(env, wantParamsRecord)) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to create record object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to create record object");
         return nullptr;
     }
 
@@ -1121,7 +1121,7 @@ bool InnerWrapWantParamsString(
     ani_env *env, ani_object object, const std::string &key, const AAFwk::WantParams &wantParams)
 {
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null env");
         return false;
     }
     auto value = wantParams.GetParam(key);
@@ -1132,7 +1132,7 @@ bool InnerWrapWantParamsString(
 bool UnwrapElementName(ani_env *env, ani_object param, ElementName &elementName)
 {
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null env");
         return false;
     }
     std::string deviceId;
@@ -1159,9 +1159,9 @@ bool UnwrapElementName(ani_env *env, ani_object param, ElementName &elementName)
 
 bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
 {
-    TAG_LOGD(AAFwkTag::ANI, "UnwrapWant called");
+    TAG_LOGD(AAFwkTag::BRIDGE, "UnwrapWant called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null env");
         return false;
     }
     AAFwk::WantParams wantParams;
@@ -1170,25 +1170,25 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
     }
     std::string action;
     if (GetFieldStringByName(env, param, "action", action)) {
-        TAG_LOGD(AAFwkTag::ANI, "action %{public}s", action.c_str());
+        TAG_LOGD(AAFwkTag::BRIDGE, "action %{public}s", action.c_str());
         want.SetAction(action);
     }
 
     std::string uri = "";
     if (GetFieldStringByName(env, param, "uri", uri)) {
-        TAG_LOGD(AAFwkTag::ANI, "uri %{public}s", uri.c_str());
+        TAG_LOGD(AAFwkTag::BRIDGE, "uri %{public}s", uri.c_str());
         want.SetUri(uri);
     }
 
     int32_t flags = 0;
     if (GetFieldIntByName(env, param, "flags", flags)) {
-        TAG_LOGD(AAFwkTag::ANI, "flags %{public}d", flags);
+        TAG_LOGD(AAFwkTag::BRIDGE, "flags %{public}d", flags);
         want.SetFlags(flags);
     }
 
     std::string type = "";
     if (GetFieldStringByName(env, param, "type", type)) {
-        TAG_LOGD(AAFwkTag::ANI, "type %{public}s", type.c_str());
+        TAG_LOGD(AAFwkTag::BRIDGE, "type %{public}s", type.c_str());
         want.SetType(type);
     }
 
@@ -1209,30 +1209,30 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
 bool UnwrapWantParams(ani_env *env, ani_ref param, AAFwk::WantParams &wantParams)
 {
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null env");
         return false;
     }
     ani_status status = ANI_ERROR;
     ani_class cls = nullptr;
     if ((status = env->FindClass(TOOL_CLASS_NAME, &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "FindClass RecordSerializeTool failed, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "FindClass RecordSerializeTool failed, status: %{public}d", status);
         return false;
     }
     if (cls == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "RecordSerializeTool class null");
+        TAG_LOGE(AAFwkTag::BRIDGE, "RecordSerializeTool class null");
         return false;
     }
     ani_static_method unwrapRecordMethod = nullptr;
     status = env->Class_FindStaticMethod(cls, "unwrapRecordNoThrow", nullptr, &unwrapRecordMethod);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to get unwrapRecordNoThrow method, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to get unwrapRecordNoThrow method, status: %{public}d", status);
         return false;
     }
     ani_boolean isSuccess;
     ani_long wantParamsLong = reinterpret_cast<ani_long>(&wantParams);
     status = env->Class_CallStaticMethod_Boolean(cls, unwrapRecordMethod, &isSuccess, param, wantParamsLong);
     if (status != ANI_OK || isSuccess != ANI_TRUE) {
-        TAG_LOGE(AAFwkTag::ANI, "failed to call unwrapRecordNoThrow method, status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "failed to call unwrapRecordNoThrow method, status: %{public}d", status);
         return false;
     }
     return true;
@@ -1242,7 +1242,7 @@ bool GetAbilityResultClass(ani_env *env, ani_class &cls)
 {
     ani_status status = env->FindClass(INNER_CLASS_NAME, &cls);
     if (status != ANI_OK || cls == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return false;
     }
     return true;
@@ -1253,13 +1253,13 @@ bool GetResultCode(ani_env *env, ani_object param, ani_class cls, int &resultCod
     ani_method method = nullptr;
     ani_status status = env->Class_FindMethod(cls, "<get>resultCode", nullptr, &method);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return false;
     }
     ani_int iResultCode = 0;
     status = env->Object_CallMethod_Int(param, method, &iResultCode);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return false;
     }
     resultCode = static_cast<int>(iResultCode);
@@ -1271,18 +1271,18 @@ bool GetWantReference(ani_env *env, ani_object param, ani_class cls, ani_ref &wa
     ani_method method {};
     ani_status status = env->Class_FindMethod(cls, "<get>want", nullptr, &method);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return false;
     }
     status = env->Object_CallMethod_Ref(param, method, &wantRef);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return false;
     }
     ani_boolean isUndefined = ANI_TRUE;
     status = env->Reference_IsUndefined(wantRef, &isUndefined);
     if (status != ANI_OK || isUndefined) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return false;
     }
     return true;
@@ -1290,9 +1290,9 @@ bool GetWantReference(ani_env *env, ani_object param, ani_class cls, ani_ref &wa
 
 bool UnWrapAbilityResult(ani_env *env, ani_object param, int &resultCode, AAFwk::Want &want)
 {
-    TAG_LOGD(AAFwkTag::ANI, "called");
+    TAG_LOGD(AAFwkTag::BRIDGE, "called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null env");
         return false;
     }
     ani_class cls = nullptr;
@@ -1311,9 +1311,9 @@ bool UnWrapAbilityResult(ani_env *env, ani_object param, int &resultCode, AAFwk:
 
 ani_object WrapElementName(ani_env *env, const AppExecFwk::ElementName &elementNameParam)
 {
-    TAG_LOGD(AAFwkTag::ANI, "WrapElementName");
+    TAG_LOGD(AAFwkTag::BRIDGE, "WrapElementName");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null env");
         return nullptr;
     }
     ani_class elementNameObj = nullptr;
@@ -1321,15 +1321,15 @@ ani_object WrapElementName(ani_env *env, const AppExecFwk::ElementName &elementN
     ani_method method = nullptr;
     ani_object object = nullptr;
     if ((status = env->FindClass(ELEMENTNAME_CLASS_NAME, &elementNameObj)) != ANI_OK || elementNameObj == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "FindClass status: %{public}d or null elementNameObj", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "FindClass status: %{public}d or null elementNameObj", status);
         return nullptr;
     }
     if ((status = env->Class_FindMethod(elementNameObj, "<ctor>", ":V", &method)) != ANI_OK || method == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod status: %{public}d or null method", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Class_FindMethod status: %{public}d or null method", status);
         return nullptr;
     }
     if ((status = env->Object_New(elementNameObj, method, &object)) != ANI_OK || object == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New status: %{public}d or null object", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_New status: %{public}d or null object", status);
         return nullptr;
     }
     return WrapElementNameInner(env, elementNameObj, object, elementNameParam);
@@ -1338,33 +1338,33 @@ ani_object WrapElementName(ani_env *env, const AppExecFwk::ElementName &elementN
 ani_object WrapElementNameInner(ani_env *env, ani_class elementNameObj, ani_object object,
     const AppExecFwk::ElementName &elementNameParam)
 {
-    TAG_LOGD(AAFwkTag::ANI, "WrapElementNameInner");
+    TAG_LOGD(AAFwkTag::BRIDGE, "WrapElementNameInner");
     if (env == nullptr || elementNameObj == nullptr || object == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "invalid args");
+        TAG_LOGE(AAFwkTag::BRIDGE, "invalid args");
         return nullptr;
     }
     if (!SetFieldStringByName(env, elementNameObj, object, "bundleName", elementNameParam.GetBundleName())) {
-        TAG_LOGE(AAFwkTag::ANI, "set bundleName failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "set bundleName failed");
         return nullptr;
     }
     if (!SetFieldStringByName(env, elementNameObj, object, "abilityName", elementNameParam.GetAbilityName())) {
-        TAG_LOGE(AAFwkTag::ANI, "set abilityName failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "set abilityName failed");
         return nullptr;
     }
     if (!SetFieldStringByName(env, elementNameObj, object, "deviceId", elementNameParam.GetDeviceID())) {
-        TAG_LOGE(AAFwkTag::ANI, "set deviceId failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "set deviceId failed");
     }
     if (!SetFieldStringByName(env, elementNameObj, object, "moduleName", elementNameParam.GetModuleName())) {
-        TAG_LOGE(AAFwkTag::ANI, "set moduleName failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "set moduleName failed");
     }
     return object;
 }
 
 ani_object CreateAniWant(ani_env *env, const AAFwk::Want &want)
 {
-    TAG_LOGD(AAFwkTag::ANI, "CreateAniWant called");
+    TAG_LOGD(AAFwkTag::BRIDGE, "CreateAniWant called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null env");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null env");
         return nullptr;
     }
     ani_class cls = nullptr;
@@ -1372,23 +1372,23 @@ ani_object CreateAniWant(ani_env *env, const AAFwk::Want &want)
     ani_method method = nullptr;
     ani_object object = nullptr;
     if ((status = env->FindClass(ABILITY_WANT_CLASS_NAME, &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return nullptr;
     }
     if (cls == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null wantCls");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null wantCls");
         return nullptr;
     }
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":", &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return nullptr;
     }
     if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return nullptr;
     }
     if (object == nullptr) {
-        TAG_LOGE(AAFwkTag::ANI, "null object");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null object");
         return nullptr;
     }
 
