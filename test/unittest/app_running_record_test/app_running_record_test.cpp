@@ -44,6 +44,7 @@ constexpr int32_t RECORD_ID = 1;
 constexpr int32_t START_PROCESS_SPECIFY_ABILITY_EVENT_ID = 1;
 constexpr int32_t ADD_ABILITY_STAGE_INFO_EVENT_ID = 2;
 constexpr int32_t TERMINATE_ABILITY_SIZE = 0;
+constexpr const char* UIEXTENSION_ROOT_HOST_PID = "ability.want.params.uiExtensionRootHostPid";
 }
 class AppRunningRecordTest : public testing::Test {
 public:
@@ -1306,6 +1307,50 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetPreForeground_0100, TestSize.
 
     appRunningRecord->SetPreForeground(false);
     EXPECT_EQ(appRunningRecord->IsPreForeground(), false);
+}
+
+/**
+ * @tc.name: AppRunningRecord_FillAbilityStateDataWithWant_0001
+ * @tc.desc: Test FillAbilityStateDataWithWant works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_0001, TestSize.Level1)
+{
+    std::string callerAbilityName = "wantAbilityName";
+    std::string callerBundleName = "wantBundleName";
+    int32_t callerUid = 100;
+    int32_t callerPid = 101;
+    int32_t hostPid   = 102;
+    std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
+    ASSERT_NE(want, nullptr);
+    want->SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, callerAbilityName);
+    want->SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
+    want->SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
+    want->SetParam(Want::PARAM_RESV_CALLER_PID, callerPid);
+    want->SetParam(UIEXTENSION_ROOT_HOST_PID, hostPid);
+
+    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+    sptr<IRemoteObject> token = nullptr;
+    auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
+    abilityRecord->SetWant(want);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    std::shared_ptr<ApplicationInfo> info = nullptr;
+    int32_t recordId = 1;
+    std::string processName = "appRunningRecordProcessName";
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(info, recordId, processName);
+    ASSERT_NE(appRunningRecord, nullptr);
+
+
+    AbilityStateData abilityStateData;
+    appRunningRecord->FillAbilityStateDataWithWant(abilityRecord, abilityStateData);
+
+
+    EXPECT_EQ(abilityStateData.callerAbilityName, callerAbilityName);
+    EXPECT_EQ(abilityStateData.callerBundleName, callerBundleName);
+    EXPECT_EQ(abilityStateData.callerUid, callerUid);
+    EXPECT_EQ(abilityStateData.callerPid, callerPid);
+    EXPECT_EQ(abilityStateData.hostPid, hostPid);
 }
 } // namespace AppExecFwk
 } // namespace OHOS
