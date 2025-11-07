@@ -187,8 +187,7 @@ private:
     int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
     int32_t SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
         const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::shared_ptr<ExtensionRecord> &extensionRecord);
-    void UnloadExtensionRecordsByPid(
-        std::vector<std::shared_ptr<ExtensionRecord>> &records,int32_t callingPid,
+    void UnloadExtensionRecordsByPid(std::vector<std::shared_ptr<ExtensionRecord>> &records,int32_t callingPid,
         std::vector<std::shared_ptr<ExtensionRecord>> &recordsToUnload);
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
         std::shared_ptr<ExtensionRecord> &record, const std::string &process);
