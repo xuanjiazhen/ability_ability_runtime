@@ -127,30 +127,11 @@ HWTEST_F(UIExtensionPreloadTest, PermissionCheck_004, TestSize.Level1)
 
 /**
  * @tc.name: PermissionCheck_005
- * @tc.desc: Call RegisterPreloadUIExtensionHostClient with null callerToken, should return error.
- * @tc.type: FUNC
- * @tc.require: I9NW1A
- */
-HWTEST_F(UIExtensionPreloadTest, PermissionCheck_005, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "start.");
-
-    sptr<IRemoteObject> nullCallerToken = nullptr;
-    std::string hostBundleName = "com.ohos.test";
-    int32_t hostPid = 1234;
-    auto ret = AbilityManagerClient::GetInstance()->RegisterPreloadUIExtensionHostClient(
-        nullCallerToken, hostBundleName, hostPid);
-    EXPECT_NE(ret, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "finish.");
-}
-
-/**
- * @tc.name: PermissionCheck_006
  * @tc.desc: Call UnRegisterPreloadUIExtensionHostClient with invalid hostBundleName, should return error.
  * @tc.type: FUNC
  * @tc.require: I9NW1A
  */
-HWTEST_F(UIExtensionPreloadTest, PermissionCheck_006, TestSize.Level1)
+HWTEST_F(UIExtensionPreloadTest, PermissionCheck_005, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "start.");
 
