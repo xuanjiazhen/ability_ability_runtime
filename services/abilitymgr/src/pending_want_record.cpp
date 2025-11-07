@@ -142,24 +142,29 @@ int32_t PendingWantRecord::ExecuteOperation(
     return res;
 }
 
-int32_t PendingWantRecord::GetAppIndexbyUid(int32_t uid, const std::string bundleName, int32_t &appIndex)
+int32_t PendingWantRecord::GetAppIndexbyUid(int32_t uid, const std::string &bundleName, int32_t &appIndex)
 {
     auto bms = AbilityUtil::GetBundleManagerHelper();
-    std::string getBundleName;
+    std::string bundleNameFromBMS;
 
-    if (IN_PROCESS_CALL(bms->GetNameAndIndexForUid(uid, getBundleName, appIndex)) != ERR_OK) {
+    if (bms == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "bms is null");  
+        return ERR_INVALID_VALUE;
+    }
+
+    if (IN_PROCESS_CALL(bms->GetNameAndIndexForUid(uid, bundleNameFromBMS, appIndex)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "failed get appIndex for bundleName: %{public}s, uid: %{public}d",
             bundleName.c_str(), uid);
         return ERR_INVALID_VALUE;
     }
-    if (getBundleName != bundleName) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "getBundleName: %{public}s not match src BundleName: %{public}s",
-            getBundleName.c_str(), bundleName.c_str());
+    if (bundleNameFromBMS != bundleName) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "bundleNameFromBMS: %{public}s not match src BundleName: %{public}s",
+            bundleNameFromBMS.c_str(), bundleName.c_str());
         return ERR_INVALID_VALUE;
     }
 
-    TAG_LOGD(AAFwkTag::WANTAGENT, "getBundleName: %{public}s, srcBundleName: %{public}s, uid: %{public}d, "
-        "appIndex: %{public}d", getBundleName.c_str(), bundleName.c_str(), uid, appIndex);
+    TAG_LOGD(AAFwkTag::WANTAGENT, "bundleNameFromBMS: %{public}s, srcBundleName: %{public}s, uid: %{public}d, "
+        "appIndex: %{public}d", bundleNameFromBMS.c_str(), bundleName.c_str(), uid, appIndex);
     return ERR_OK;
 }
 
