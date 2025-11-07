@@ -219,12 +219,12 @@ static napi_value NotifyGlobalUnhandledRejectionHandler(napi_env env, napi_callb
 static void ClearGlobalObserverReference(napi_env env)
 {
     std::lock_guard<std::mutex> lock(globalErrorMtx);
-    TAG_LOGI(AAFwkTag::JSNAPI, "Clearing observer refs for env");
+    TAG_LOGI(AAFwkTag::BRIDGE, "Clearing observer refs for env");
     auto it = globalObserverList.begin();
     while (it != globalObserverList.end()) {
         if (it->env == env) {
             if (napi_delete_reference(env, it->ref) != napi_ok) {
-                TAG_LOGW(AAFwkTag::JSNAPI, "Failed to delete observer reference");
+                TAG_LOGW(AAFwkTag::BRIDGE, "Failed to delete observer reference");
             }
             it = globalObserverList.erase(it);
         } else {
@@ -236,12 +236,12 @@ static void ClearGlobalObserverReference(napi_env env)
 static void ClearGlobalPromiseReference(napi_env env)
 {
     std::lock_guard<std::mutex> lock(globalPromiseMtx);
-    TAG_LOGI(AAFwkTag::JSNAPI, "Clearing promise refs for env");
+    TAG_LOGI(AAFwkTag::BRIDGE, "Clearing promise refs for env");
     auto it = globalPromiseList.begin();
     while (it != globalPromiseList.end()) {
         if (it->env == env) {
             if (napi_delete_reference(env, it->ref) != napi_ok) {
-                TAG_LOGW(AAFwkTag::JSNAPI, "Failed to delete promise reference");
+                TAG_LOGW(AAFwkTag::BRIDGE, "Failed to delete promise reference");
             }
             it = globalPromiseList.erase(it);
         } else {
@@ -280,19 +280,19 @@ static std::string GetContent(napi_env env, napi_value exception, const std::str
     napi_value propertyNmae = nullptr;
     std::string property = name;
     if (napi_create_string_utf8(env, property.c_str(), property.size(), &propertyNmae) != napi_ok) {
-        TAG_LOGW(AAFwkTag::JSNAPI, "Create String Failed");
+        TAG_LOGW(AAFwkTag::BRIDGE, "Create String Failed");
     }
     if (napi_get_property(env, exception, propertyNmae, &tempContent) != napi_ok) {
-        TAG_LOGW(AAFwkTag::JSNAPI, "Get Property Failed");
+        TAG_LOGW(AAFwkTag::BRIDGE, "Get Property Failed");
     }
     size_t length = 0;
     if (napi_get_value_string_utf8(env, tempContent, nullptr, 0, &length) != napi_ok) {
-        TAG_LOGW(AAFwkTag::JSNAPI, "Get Content Failed");
+        TAG_LOGW(AAFwkTag::BRIDGE, "Get Content Failed");
     }
     content.reserve(length + 1);
     content.resize(length);
     if (napi_get_value_string_utf8(env, tempContent, content.data(), content.size() + 1, &length) != napi_ok) {
-        TAG_LOGW(AAFwkTag::JSNAPI, "Copy Content Failed");
+        TAG_LOGW(AAFwkTag::BRIDGE, "Copy Content Failed");
     }
     return content;
 }
@@ -302,7 +302,7 @@ static napi_value CreateGlobalObject(napi_env env, WorkItem *item)
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue == nullptr) {
-        TAG_LOGW(AAFwkTag::JSNAPI, "null obj");
+        TAG_LOGW(AAFwkTag::BRIDGE, "null obj");
         return objValue;
     }
     napi_set_named_property(env, objValue, "name", CreateJsValue(env, item->name));
@@ -316,16 +316,16 @@ static napi_value CreateGlobalObject(napi_env env, WorkItem *item)
 static void CallJsFunction(napi_env env, napi_value obj, const char *methodName,
                            napi_value const *argv, size_t argc)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "call func: %{public}s", methodName);
+    TAG_LOGI(AAFwkTag::BRIDGE, "call func: %{public}s", methodName);
     if (obj == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null obj");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null obj");
         return;
     }
 
     napi_value method = nullptr;
     napi_get_named_property(env, obj, methodName, &method);
     if (method == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null method");
+        TAG_LOGE(AAFwkTag::BRIDGE, "null method");
         return;
     }
     napi_value callResult = nullptr;
@@ -336,12 +336,12 @@ static void DoFunctionCallback(uv_work_t *reqwork, int status)
 {
     WorkItem *newItem = static_cast<WorkItem *>(reqwork->data);
     if (newItem == nullptr) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get WorkItem Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Get WorkItem Failed");
         return;
     }
     napi_value global = nullptr;
     if (napi_get_global(newItem->env, &global) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Get Global Failed");
         return;
     }
 
@@ -350,13 +350,13 @@ static void DoFunctionCallback(uv_work_t *reqwork, int status)
 
     napi_value function = nullptr;
     if (napi_get_reference_value(newItem->env, newItem->ref, &function) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Get Callback Failed");
         return;
     }
 
     napi_value result = nullptr;
     if (napi_call_function(newItem->env, global, function, argc, args, &result) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Do Callback Failed");
         return;
     }
     delete newItem;
@@ -368,12 +368,12 @@ static void DoCallbackInRegesterThread(napi_env env, WorkItem &info)
     for (auto iter : globalObserverList) {
         uv_loop_t *loop = nullptr;
         if (napi_get_uv_event_loop(iter.env, &loop) != napi_ok) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "Get Loop Failed");
+            TAG_LOGI(AAFwkTag::BRIDGE, "Get Loop Failed");
             continue;
         }
         WorkItem *item = new (std::nothrow) WorkItem();
         if (item == nullptr) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "new WorkItem Failed");
+            TAG_LOGI(AAFwkTag::BRIDGE, "new WorkItem Failed");
             continue;
         }
         item->env = iter.env;
@@ -403,7 +403,7 @@ static void DoGlobalCallback(napi_env env, napi_value exception, std::string ins
         }
     }
     if (exception == nullptr) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "excepton is nullptr");
+        TAG_LOGI(AAFwkTag::BRIDGE, "excepton is nullptr");
         return;
     }
     std::string name = GetContent(env, exception, "name");
@@ -422,7 +422,7 @@ static napi_value CreateJsErrorObject(napi_env env, std::string &name, std::stri
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue == nullptr) {
-        TAG_LOGW(AAFwkTag::JSNAPI, "null obj");
+        TAG_LOGW(AAFwkTag::BRIDGE, "null obj");
         return objValue;
     }
     napi_set_named_property(env, objValue, "name", CreateJsValue(env, name));
@@ -441,7 +441,7 @@ static void DoMainThreadOnException(napi_env env, std::string name, std::string 
         return;
     }
     if (!observerList.count(env)) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "the thread not on error");
+        TAG_LOGI(AAFwkTag::BRIDGE, "the thread not on error");
         return;
     }
 
@@ -460,7 +460,7 @@ static void DoMainThreadOnUnhandleException(napi_env env, std::string summary)
         return;
     }
     if (!observerList.count(env)) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "the thread not on error");
+        TAG_LOGI(AAFwkTag::BRIDGE, "the thread not on error");
         return;
     }
 
@@ -479,11 +479,11 @@ static void DoWorkThreadCallback(napi_env env, napi_value exception)
         return;
     }
     if (exception == nullptr) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "excepton is nullptr");
+        TAG_LOGI(AAFwkTag::BRIDGE, "excepton is nullptr");
         return;
     }
     if (!observerList.count(env)) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "the thread not on error");
+        TAG_LOGI(AAFwkTag::BRIDGE, "the thread not on error");
         return;
     }
     std::string name = GetContent(env, exception, "name");
@@ -507,12 +507,12 @@ static void DoErrorHandlerCallback(napi_env env, std::string name, std::string m
 {
     std::lock_guard<std::mutex> lock(defaultHandlerMtx);
     if (!defaultHandler.ref) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "not register defaultHandler callback");
+        TAG_LOGI(AAFwkTag::BRIDGE, "not register defaultHandler callback");
         return;
     }
     napi_value global = nullptr;
     if (napi_get_global(defaultHandler.env, &global) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Get Global Failed");
         return;
     }
 
@@ -521,13 +521,13 @@ static void DoErrorHandlerCallback(napi_env env, std::string name, std::string m
 
     napi_value function = nullptr;
     if (napi_get_reference_value(defaultHandler.env, defaultHandler.ref, &function) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Get Callback Failed");
         return;
     }
 
     napi_value result = nullptr;
     if (napi_call_function(defaultHandler.env, global, function, argc, args, &result) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Do Callback Failed");
         return;
     }
 }
@@ -536,12 +536,12 @@ static void FreezeCallback()
 {
     std::lock_guard<std::mutex> lock(freezeMtx);
     if (!freezeObserver.ref) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "not register freeze callback");
+        TAG_LOGI(AAFwkTag::BRIDGE, "not register freeze callback");
         return;
     }
     napi_value global = nullptr;
     if (napi_get_global(freezeObserver.env, &global) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Get Global Failed");
         return;
     }
 
@@ -550,13 +550,13 @@ static void FreezeCallback()
 
     napi_value function = nullptr;
     if (napi_get_reference_value(freezeObserver.env, freezeObserver.ref, &function) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Get Callback Failed");
         return;
     }
 
     napi_value result = nullptr;
     if (napi_call_function(freezeObserver.env, global, function, argc, args, &result) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Do Callback Failed");
         return;
     }
 }
@@ -598,12 +598,12 @@ static void RemoveGlobalRejection(napi_env env, napi_value promise, std::string 
     while (iter != globalUnhandledRejections.end()) {
         napi_value prom = nullptr;
         if (napi_get_reference_value(env, (*iter)->promiseRef, &prom) != napi_ok) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "Get Promise Failed");
+            TAG_LOGI(AAFwkTag::BRIDGE, "Get Promise Failed");
             continue;
         }
         bool isEqual = false;
         if (napi_strict_equals(env, promise, prom, &isEqual) != napi_ok) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "Strict Equals Failed");
+            TAG_LOGI(AAFwkTag::BRIDGE, "Strict Equals Failed");
             continue;
         }
         if (isEqual) {
@@ -620,7 +620,7 @@ static bool PromiseManagerCallback(napi_env env, napi_value *args, std::string i
 {
     int event = -1;
     if (napi_get_value_int32(env, args[INDEX_ZERO], &event) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Event Failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "Get Event Failed");
         return false;
     }
     if (event == static_cast<int32_t>(UnhandledRejectionEvent::REJECT)) {
@@ -645,12 +645,12 @@ static bool GlobalPromiseManagerCallback(
     for (auto iter : globalPromiseList) {
         uv_loop_t *loop = nullptr;
         if (napi_get_uv_event_loop(iter.env, &loop) != napi_ok) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "Get Loop Failed");
+            TAG_LOGI(AAFwkTag::BRIDGE, "Get Loop Failed");
             continue;
         }
         WorkItem *item = new (std::nothrow) WorkItem();
         if (item == nullptr) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "new WorkItem Failed");
+            TAG_LOGI(AAFwkTag::BRIDGE, "new WorkItem Failed");
             continue;
         }
         item->env = iter.env;
@@ -680,7 +680,7 @@ public:
 
     static void Finalizer(napi_env env, void* data, void* hint)
     {
-        TAG_LOGI(AAFwkTag::JSNAPI, "finalizer called");
+        TAG_LOGI(AAFwkTag::BRIDGE, "finalizer called");
         std::unique_ptr<JsErrorManager>(static_cast<JsErrorManager*>(data));
         ClearReference(env);
         ClearGlobalObserverReference(env);
@@ -758,12 +758,12 @@ private:
     napi_value OnFreeze(napi_env env, const size_t argc, napi_value* argv)
     {
         if (!AppExecFwk::EventRunner::IsAppMainThread()) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "not mainThread");
+            TAG_LOGE(AAFwkTag::BRIDGE, "not mainThread");
             ThrowInvalidCallerError(env);
             return CreateJsUndefined(env);
         }
         if (argc != ARGC_TWO) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
             ThrowInvalidNumParametersError(env);
             return CreateJsUndefined(env);
         }
@@ -773,7 +773,7 @@ private:
     napi_value OnOnSetDefaultErrorHandler(napi_env env, napi_value function)
     {
         if (!AppExecFwk::EventRunner::IsAppMainThread()) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "not mainThread");
+            TAG_LOGE(AAFwkTag::BRIDGE, "not mainThread");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_MAIN_THREAD);
             return CreateJsUndefined(env);
         }
@@ -786,7 +786,7 @@ private:
         if (defaultHandler.ref == nullptr) {
             object = nullptr;
         } else if (napi_get_reference_value(env, defaultHandler.ref, &object) != napi_ok) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Get defaultHandler Failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Get defaultHandler Failed");
         }
         if (defaultHandler.ref) {
             napi_delete_reference(env, defaultHandler.ref);
@@ -800,17 +800,17 @@ private:
         defaultHandler.env = env;
         if (!isSetHandler) {
             isSetHandler = true;
-            TAG_LOGI(AAFwkTag::JSNAPI, "change isSetHandler state successfully");
+            TAG_LOGI(AAFwkTag::BRIDGE, "change isSetHandler state successfully");
         }
         return object;
     }
 
     napi_value OnSetDefaultErrorHandler(napi_env env, const size_t argc, napi_value *argv)
     {
-        TAG_LOGD(AAFwkTag::JSNAPI, "called");
+        TAG_LOGD(AAFwkTag::BRIDGE, "called");
         std::string type = ParseParamType(env, argc, argv);
         if (argc != ARGC_ZERO && argc != ARGC_ONE) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
             ThrowInvalidNumParametersError(env);
             return CreateJsUndefined(env);
         }
@@ -820,14 +820,14 @@ private:
 
     napi_value OnOn(napi_env env, const size_t argc, napi_value* argv)
     {
-        TAG_LOGD(AAFwkTag::JSNAPI, "called");
+        TAG_LOGD(AAFwkTag::BRIDGE, "called");
         std::string type = ParseParamType(env, argc, argv);
         if (type == ON_OFF_TYPE_SYNC) {
             return OnOnNew(env, argc, argv);
         }
         if (type == ON_OFF_TYPE_SYNC_LOOP) {
             if (!AppExecFwk::EventRunner::IsAppMainThread()) {
-                TAG_LOGE(AAFwkTag::JSNAPI, "not mainThread");
+                TAG_LOGE(AAFwkTag::BRIDGE, "not mainThread");
                 ThrowInvalidCallerError(env);
                 return CreateJsUndefined(env);
             }
@@ -835,7 +835,7 @@ private:
         }
         if (type == ON_OFF_TYPE_UNHANDLED_REJECTION) {
             if (argc != ARGC_TWO) {
-                TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+                TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
                 ThrowInvalidNumParametersError(env);
                 return CreateJsUndefined(env);
             }
@@ -843,7 +843,7 @@ private:
         }
         if (type == GLOBAL_ON_OFF_TYPE_UNHANDLED_REJECTION) {
             if (argc != ARGC_TWO) {
-                TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+                TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
                 ThrowInvalidNumParametersError(env);
                 return CreateJsUndefined(env);
             }
@@ -851,7 +851,7 @@ private:
         }
         if (type == GLOBAL_ON_OFF_TYPE) {
             if (argc != ARGC_TWO) {
-                TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+                TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
                 ThrowInvalidNumParametersError(env);
                 return CreateJsUndefined(env);
             }
@@ -865,9 +865,9 @@ private:
 
     napi_value OnOnOld(napi_env env, const size_t argc, napi_value* argv)
     {
-        TAG_LOGD(AAFwkTag::JSNAPI, "called");
+        TAG_LOGD(AAFwkTag::BRIDGE, "called");
         if (argc != ARGC_TWO) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
             ThrowTooFewParametersError(env);
             return CreateJsUndefined(env);
         }
@@ -875,7 +875,7 @@ private:
         std::string type;
         if (!ConvertFromJsValue(env, argv[INDEX_ZERO], type) || type != ON_OFF_TYPE) {
             ThrowInvalidParamError(env, "Parameter error: Parse type failed, must be a string error.");
-            TAG_LOGE(AAFwkTag::JSNAPI, "parse type failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "parse type failed");
             return CreateJsUndefined(env);
         }
         std::lock_guard<std::recursive_mutex> lock(errorMtx);
@@ -916,15 +916,15 @@ private:
 
     napi_value OnOnNew(napi_env env, const size_t argc, napi_value* argv)
     {
-        TAG_LOGD(AAFwkTag::JSNAPI, "called");
+        TAG_LOGD(AAFwkTag::BRIDGE, "called");
         if (argc < ARGC_TWO) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
             ThrowTooFewParametersError(env);
             return CreateJsUndefined(env);
         }
 
         if (!CheckTypeForNapiValue(env, argv[INDEX_ONE], napi_object)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid param");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid param");
             ThrowInvalidParamError(env, "Parameter error: Parse observer failed, must be a ErrorObserver.");
             return CreateJsUndefined(env);
         }
@@ -948,7 +948,7 @@ private:
     napi_value OffFreeze(napi_env env, size_t argc, napi_value* argv)
     {
         if (!AppExecFwk::EventRunner::IsAppMainThread()) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "not mainThread");
+            TAG_LOGE(AAFwkTag::BRIDGE, "not mainThread");
             ThrowInvalidCallerError(env);
             return CreateJsUndefined(env);
         }
@@ -957,14 +957,14 @@ private:
 
     napi_value OnOff(napi_env env, size_t argc, napi_value* argv)
     {
-        TAG_LOGD(AAFwkTag::JSNAPI, "called");
+        TAG_LOGD(AAFwkTag::BRIDGE, "called");
         std::string type = ParseParamType(env, argc, argv);
         if (type == ON_OFF_TYPE_SYNC) {
             return OnOffNew(env, argc, argv);
         }
         if (type == ON_OFF_TYPE_SYNC_LOOP) {
             if (!AppExecFwk::EventRunner::IsAppMainThread()) {
-                TAG_LOGE(AAFwkTag::JSNAPI, "not mainThread");
+                TAG_LOGE(AAFwkTag::BRIDGE, "not mainThread");
                 ThrowInvalidCallerError(env);
                 return CreateJsUndefined(env);
             }
@@ -972,7 +972,7 @@ private:
         }
         if (type == ON_OFF_TYPE_UNHANDLED_REJECTION) {
             if (argc != ARGC_TWO && argc != ARGC_ONE) {
-                TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+                TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
                 ThrowInvalidNumParametersError(env);
                 return CreateJsUndefined(env);
             }
@@ -980,7 +980,7 @@ private:
         }
         if (type == GLOBAL_ON_OFF_TYPE_UNHANDLED_REJECTION) {
             if (argc != ARGC_TWO && argc != ARGC_ONE) {
-                TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+                TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
                 ThrowInvalidNumParametersError(env);
                 return CreateJsUndefined(env);
             }
@@ -989,7 +989,7 @@ private:
         }
         if (type == GLOBAL_ON_OFF_TYPE) {
             if (argc != ARGC_TWO && argc != ARGC_ONE) {
-                TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+                TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
                 ThrowInvalidNumParametersError(env);
                 return CreateJsUndefined(env);
             }
@@ -1026,7 +1026,7 @@ private:
         NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &item.ref));
         item.env = env;
         globalObserverList.insert(item);
-        TAG_LOGI(AAFwkTag::JSNAPI, "add observer successfully");
+        TAG_LOGI(AAFwkTag::BRIDGE, "add observer successfully");
         return CreateJsUndefined(env);
     }
 
@@ -1044,7 +1044,7 @@ private:
         if (!freezeCallbackRegistered) {
             AppExecFwk::AppRecovery::GetInstance().SetFreezeCallback(FreezeCallback);
             freezeCallbackRegistered = true;
-            TAG_LOGI(AAFwkTag::JSNAPI, "Freeze callback registered to AppRecovery successfully");
+            TAG_LOGI(AAFwkTag::BRIDGE, "Freeze callback registered to AppRecovery successfully");
         }
         return CreateJsUndefined(env);
     }
@@ -1073,7 +1073,7 @@ private:
         NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &item.ref));
         item.env = env;
         globalPromiseList.insert(item);
-        TAG_LOGI(AAFwkTag::JSNAPI, "add observer successfully");
+        TAG_LOGI(AAFwkTag::BRIDGE, "add observer successfully");
         return CreateJsUndefined(env);
     }
 
@@ -1103,7 +1103,7 @@ private:
                 return res;
             }
         }
-        TAG_LOGI(AAFwkTag::JSNAPI, "remove observer failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "remove observer failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND);
         return CreateJsUndefined(env);
     }
@@ -1113,7 +1113,7 @@ private:
         auto res = CreateJsUndefined(env);
         std::lock_guard<std::mutex> lock(freezeMtx);
         if (freezeObserver.ref == nullptr) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "null freezeObserver");
+            TAG_LOGE(AAFwkTag::BRIDGE, "null freezeObserver");
             return res;
         }
 
@@ -1123,7 +1123,7 @@ private:
             if (freezeCallbackRegistered) {
                 AppExecFwk::AppRecovery::GetInstance().SetFreezeCallback(nullptr);
                 freezeCallbackRegistered = false;
-                TAG_LOGI(AAFwkTag::JSNAPI, "Freeze callback unregistered from AppRecovery successfully");
+                TAG_LOGI(AAFwkTag::BRIDGE, "Freeze callback unregistered from AppRecovery successfully");
             }
             return res;
         }
@@ -1140,11 +1140,11 @@ private:
             if (freezeCallbackRegistered) {
                 AppExecFwk::AppRecovery::GetInstance().SetFreezeCallback(nullptr);
                 freezeCallbackRegistered = false;
-                TAG_LOGI(AAFwkTag::JSNAPI, "Freeze callback unregistered from AppRecovery successfully");
+                TAG_LOGI(AAFwkTag::BRIDGE, "Freeze callback unregistered from AppRecovery successfully");
             }
             return res;
         }
-        TAG_LOGI(AAFwkTag::JSNAPI, "remove observer failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "remove observer failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND);
         return CreateJsUndefined(env);
     }
@@ -1174,31 +1174,31 @@ private:
                 return res;
             }
         }
-        TAG_LOGI(AAFwkTag::JSNAPI, "remove observer failed");
+        TAG_LOGI(AAFwkTag::BRIDGE, "remove observer failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND);
         return CreateJsUndefined(env);
     }
     
     napi_value OnOffOld(napi_env env, size_t argc, napi_value* argv)
     {
-        TAG_LOGD(AAFwkTag::JSNAPI, "called");
+        TAG_LOGD(AAFwkTag::BRIDGE, "called");
         int32_t observerId = -1;
         if (argc != ARGC_TWO && argc != ARGC_THREE) {
             ThrowTooFewParametersError(env);
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
         } else {
             napi_get_value_int32(env, argv[INDEX_ONE], &observerId);
-            TAG_LOGI(AAFwkTag::JSNAPI, "observer:%{public}d", observerId);
+            TAG_LOGI(AAFwkTag::BRIDGE, "observer:%{public}d", observerId);
         }
 
         std::string type;
         if (!ConvertFromJsValue(env, argv[INDEX_ZERO], type) || type != ON_OFF_TYPE) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "parse type failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "parse type failed");
             ThrowInvalidParamError(env, "Parameter error: Parse type failed, must be a string error.");
             return CreateJsUndefined(env);
         }
         NapiAsyncTask::CompleteCallback complete = [observerId](napi_env env, NapiAsyncTask& task, int32_t status) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "complete called");
+            TAG_LOGI(AAFwkTag::BRIDGE, "complete called");
             std::lock_guard<std::recursive_mutex> lock(errorMtx);
             if (!observerList.count(env) || observerId == -1) {
                 task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
@@ -1251,34 +1251,34 @@ private:
                 return res;
             }
         }
-        TAG_LOGE(AAFwkTag::JSNAPI, "remove observer failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "remove observer failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND);
         return res;
     }
 
     napi_value OnOffNew(napi_env env, size_t argc, napi_value* argv)
     {
-        TAG_LOGD(AAFwkTag::JSNAPI, "called");
+        TAG_LOGD(AAFwkTag::BRIDGE, "called");
         if (argc < ARGC_TWO) {
             ThrowTooFewParametersError(env);
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
             return CreateJsUndefined(env);
         }
         int32_t observerId = -1;
         if (!ConvertFromJsValue(env, argv[INDEX_ONE], observerId)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "parse observerId failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "parse observerId failed");
             ThrowInvalidParamError(env, "Parameter error: Parse observerId failed, must be a number.");
             return CreateJsUndefined(env);
         }
         if (observer_ == nullptr) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "null observer");
+            TAG_LOGE(AAFwkTag::BRIDGE, "null observer");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
             return CreateJsUndefined(env);
         }
         if (observer_->RemoveJsObserverObject(observerId, true)) {
-            TAG_LOGD(AAFwkTag::JSNAPI, "success");
+            TAG_LOGD(AAFwkTag::BRIDGE, "success");
         } else {
-            TAG_LOGE(AAFwkTag::JSNAPI, "failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "failed");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_ID);
         }
         if (observer_->IsEmpty()) {
@@ -1291,16 +1291,16 @@ private:
     static void CallJsFunction(napi_env env, napi_value obj, const char* methodName,
         napi_value const* argv, size_t argc)
     {
-        TAG_LOGI(AAFwkTag::JSNAPI, "call func: %{public}s", methodName);
+        TAG_LOGI(AAFwkTag::BRIDGE, "call func: %{public}s", methodName);
         if (obj == nullptr) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "null obj");
+            TAG_LOGE(AAFwkTag::BRIDGE, "null obj");
             return;
         }
 
         napi_value method = nullptr;
         napi_get_named_property(env, obj, methodName, &method);
         if (method == nullptr) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "null method");
+            TAG_LOGE(AAFwkTag::BRIDGE, "null method");
             return;
         }
         napi_value callResult = nullptr;
@@ -1312,15 +1312,15 @@ private:
         std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
             ([number](napi_env env, NapiAsyncTask &task, int32_t status) {
                 if (loopObserver_ == nullptr) {
-                    TAG_LOGE(AAFwkTag::JSNAPI, "null loopObserver_");
+                    TAG_LOGE(AAFwkTag::BRIDGE, "null loopObserver_");
                     return;
                 }
                 if (loopObserver_->env == nullptr) {
-                    TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+                    TAG_LOGE(AAFwkTag::BRIDGE, "null env");
                     return;
                 }
                 if (loopObserver_->observerObject == nullptr) {
-                    TAG_LOGE(AAFwkTag::JSNAPI, "null observer");
+                    TAG_LOGE(AAFwkTag::BRIDGE, "null observer");
                     return;
                 }
                 napi_value jsValue[] = { CreateJsValue(loopObserver_->env, number) };
@@ -1338,28 +1338,28 @@ private:
     napi_value OnSetLoopWatch(napi_env env, size_t argc, napi_value* argv)
     {
         if (argc != ARGC_THREE) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid argc");
             ThrowTooFewParametersError(env);
             return CreateJsUndefined(env);
         }
         if (!CheckTypeForNapiValue(env, argv[INDEX_ONE], napi_number)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid param");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid param");
             ThrowInvalidParamError(env, "Parameter error: Failed to parse timeout, must be a number.");
             return CreateJsUndefined(env);
         }
         if (!CheckTypeForNapiValue(env, argv[INDEX_TWO], napi_object)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid param");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid param");
             ThrowInvalidParamError(env, "Parameter error: Failed to parse observer, must be a LoopObserver.");
             return CreateJsUndefined(env);
         }
         int64_t number;
         if (!ConvertFromJsNumber(env, argv[INDEX_ONE], number)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "parse timeout failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "parse timeout failed");
             ThrowInvalidParamError(env, "Parameter error: Failed to parse timeout, must be a number.");
             return CreateJsUndefined(env);
         }
         if (number <= 0) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "timeout<=0");
+            TAG_LOGE(AAFwkTag::BRIDGE, "timeout<=0");
             ThrowInvalidParamError(env, "Parameter error: The timeout cannot be less than 0.");
             return CreateJsUndefined(env);
         }
@@ -1382,9 +1382,9 @@ private:
         if (loopObserver_) {
             loopObserver_.reset();
             loopObserver_ = nullptr;
-            TAG_LOGI(AAFwkTag::JSNAPI, "success");
+            TAG_LOGI(AAFwkTag::BRIDGE, "success");
         } else {
-            TAG_LOGI(AAFwkTag::JSNAPI, "called");
+            TAG_LOGI(AAFwkTag::BRIDGE, "called");
         }
         return nullptr;
     }
@@ -1403,7 +1403,7 @@ private:
         if (function == nullptr ||
             CheckTypeForNapiValue(env, function, napi_null) ||
             CheckTypeForNapiValue(env, function, napi_undefined)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid func");
+            TAG_LOGE(AAFwkTag::BRIDGE, "invalid func");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
             return false;
         }
@@ -1417,9 +1417,9 @@ private:
 
 napi_value JsErrorManagerInit(napi_env env, napi_value exportObj)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "called");
+    TAG_LOGI(AAFwkTag::BRIDGE, "called");
     if (env == nullptr || exportObj == nullptr) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "null env or exportObj");
+        TAG_LOGI(AAFwkTag::BRIDGE, "null env or exportObj");
         return nullptr;
     }
     std::unique_ptr<JsErrorManager> jsErrorManager = std::make_unique<JsErrorManager>();
@@ -1436,7 +1436,7 @@ napi_value JsErrorManagerInit(napi_env env, napi_value exportObj)
             NotifyGlobalUnhandledRejectionHandler);
     });
 
-    TAG_LOGD(AAFwkTag::JSNAPI, "bind func ready");
+    TAG_LOGD(AAFwkTag::BRIDGE, "bind func ready");
     const char *moduleName = "JsErrorManager";
     BindNativeFunction(env, exportObj, "on", moduleName, JsErrorManager::On);
     BindNativeFunction(env, exportObj, "off", moduleName, JsErrorManager::Off);

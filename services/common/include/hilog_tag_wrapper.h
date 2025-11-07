@@ -57,10 +57,9 @@ enum class AAFwkLogTag : uint32_t {
     JSRUNTIME,
     FA,
     INTENT,
-    JSNAPI,
+    BRIDGE,
     CJRUNTIME,
     ETSRUNTIME,
-    ANI,
 
     DELEGATOR = DEFAULT + 0x30, // 0xD001330
     CONTEXT,
