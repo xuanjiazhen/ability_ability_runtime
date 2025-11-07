@@ -573,7 +573,7 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_HandleUserRequestClean_0
     EXPECT_EQ(ret, false);
 
     auto priorityObject = std::make_shared<PriorityObject>();
-    appRunningRecord->isUserRequestCleaning_= true;
+    appRunningRecord->isUserRequestCleaning_.store(true);
     appRunningRecord->isMainProcess_= false;
     appRunningRecord->priorityObject_ = nullptr;
     ret = appRunningManager_->HandleUserRequestClean(token, targetPid, targetUid);
