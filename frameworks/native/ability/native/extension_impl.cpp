@@ -29,6 +29,8 @@
 namespace OHOS {
 namespace AbilityRuntime {
 const std::string JSON_KEY_ERR_MSG = "errMsg";
+constexpr const char *IS_PRELOADED_UI_EXTENSION_SUCCESS = "ability.want.params.is_preload_ui_extension_ability_success";
+
 ExtensionImpl::~ExtensionImpl()
 {
     TAG_LOGD(AAFwkTag::EXT, "~ExtensionImpl");
@@ -119,6 +121,7 @@ void ExtensionImpl::HandleExtensionTransaction(const Want &want, const AAFwk::Li
     if (ret && !UIExtensionAbilityExecuteInsightIntent(want)) {
         TAG_LOGD(AAFwkTag::EXT, "call abilityms");
         AAFwk::PacMap restoreData;
+        restoreData.PutBooleanValue(IS_PRELOADED_UI_EXTENSION_SUCCESS, extension_->IsPreloadedSuccess());
         AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state, restoreData);
     }
 }

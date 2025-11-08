@@ -141,6 +141,7 @@ public:
 
     void CheckIsPreloadUIExtensionLoadedById(int32_t extensionRecordId);
     void CheckIsPreloadUIExtensionDestroyedById(int32_t extensionRecordId);
+    void CheckIsPreloadUIExtensionSuccess(int32_t extensionRecordId, bool isPreloadedSuccess);
     int32_t ClearPreloadedUIExtensionAbility(int32_t extensionRecordId);
     int32_t ClearAllPreloadUIExtensionRecordForHost(std::string hostBundleName);
     void RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);

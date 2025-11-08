@@ -561,6 +561,7 @@ int32_t ExtensionRecordManager::CreateExtensionRecord(const AAFwk::AbilityReques
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_NULL_OBJECT);
     extensionRecordId = GenerateExtensionRecordId(extensionRecordId);
     extensionRecord->extensionRecordId_ = extensionRecordId;
+    extensionRecord->requestCode_ = abilityRequest.requestCode;
     extensionRecord->hostBundleName_ = hostBundleName;
     abilityRecord->SetOwnerMissionUserId(userId_);
     abilityRecord->SetUIExtensionAbilityId(extensionRecordId);
@@ -897,6 +898,24 @@ void ExtensionRecordManager::CheckIsPreloadUIExtensionDestroyedById(int32_t exte
         return;
     }
     remoteCallback->OnDestroyDone(hostPid, hostBundleName, extensionRecordId);
+}
+
+void ExtensionRecordManager::CheckIsPreloadUIExtensionSuccess(int32_t extensionRecordId, bool isPreloadedSuccess)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "CheckIsPreloadUIExtensionSuccess called, id: %{public}d", extensionRecordId);
+    auto uiExtensionRecord = std::static_pointer_cast<UIExtensionRecord>(GetExtensionRecordById(extensionRecordId));
+    if (uiExtensionRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtensionRecord");
+        return;
+    }
+    auto requestCode = uiExtensionRecord->requestCode_;
+    sptr<AAFwk::IPreloadUIExtensionExecuteCallback> remoteCallback =
+        iface_cast<AAFwk::IPreloadUIExtensionExecuteCallback>(preloadUIExtensionHostClientCallerToken_);
+    if (remoteCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null remoteCallback");
+        return;
+    }
+    remoteCallback->OnPreloadSuccess(requestCode, extensionRecordId, isPreloadedSuccess);
 }
 
 int32_t ExtensionRecordManager::ClearPreloadedUIExtensionAbility(int32_t extensionRecordId)

@@ -84,5 +84,38 @@ void PreloadUIExtensionExecuteCallbackProxy::OnDestroyDone(
         TAG_LOGE(AAFwkTag::UI_EXT, "error: %{public}d", error);
     }
 }
+
+void PreloadUIExtensionExecuteCallbackProxy::OnPreloadSuccess(
+    int32_t requestCode, int32_t extensionAbilityId, bool isPreloadedSuccess)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(IPreloadUIExtensionExecuteCallback::GetDescriptor())) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "interface token write failed");
+        return;
+    }
+    if (!data.WriteInt32(requestCode)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "requestCode Int32 write failed");
+        return;
+    }
+    if (!data.WriteInt32(extensionAbilityId)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "extensionAbilityId Int32 write failed");
+        return;
+    }
+    if (!data.WriteBool(isPreloadedSuccess)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "isPreloadedSuccess Bool write failed");
+        return;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null remote");
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    int error = remote->SendRequest(ON_PRELOAD_UI_EXTENSION_ABILITY_SUCCESS, data, reply, option);
+    if (error != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "error: %{public}d", error);
+    }
+}
 } // namespace AAFwk
 } // namespace OHOS

@@ -562,23 +562,42 @@ void EtsAbilityManager::NativePreloadUIExtensionAbility(ani_env *env, ani_object
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
         return;
     }
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "status: %{public}d", status);
+        return;
+    }
+    ani_ref callbackRef = nullptr;
+    env->GlobalReference_Create(callback, &callbackRef);
+    PreloadTask task = [etsVm, callbackRef](int32_t preloadId, int32_t innerErrCode) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "start async callback");
+        bool isAttachThread = false;
+        ani_env *env = AppExecFwk::AttachAniEnv(etsVm, isAttachThread);
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
+                EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)),
+                nullptr);
+            return;
+        }
+        if (innerErrCode != ERR_OK) {
+            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
+                EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode), nullptr);
+        } else {
+            AppExecFwk::AsyncCallback(
+                env, reinterpret_cast<ani_object>(callbackRef), nullptr, AppExecFwk::CreateInt(env, preloadId));
+        }
+        AppExecFwk::DetachAniEnv(etsVm, isAttachThread);
+    };
     auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
         EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
         return;
     }
-    std::string hostBundleName = context->GetBundleName();
-    int32_t preloadId = 0;
-    ErrCode result =
-        AAFwk::AbilityManagerClient::GetInstance()->PreloadUIExtensionAbilityWithId(want, hostBundleName, preloadId);
-    if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "PreloadUIExtensionAbilityWithId failed, result: %{public}d", result);
-        AppExecFwk::AsyncCallback(
-            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, result), nullptr);
-        return;
-    }
-    AppExecFwk::AsyncCallback(env, callback, nullptr, AppExecFwk::CreateInt(env, preloadId));
+    std::string bundleName = context->GetBundleName();
+    PreloadUIExtensionHostClient::GetInstance()->PreloadUIExtensionAbility(want, bundleName, std::move(task));
 }
 
 void EtsAbilityManager::NativeClearPreloadedUIExtensionAbility(ani_env *env, ani_int preloadId, ani_object callback)

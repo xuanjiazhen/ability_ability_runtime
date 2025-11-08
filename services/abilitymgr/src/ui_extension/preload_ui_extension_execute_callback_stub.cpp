@@ -38,6 +38,8 @@ int32_t PreloadUIExtensionExecuteCallbackStub::OnRemoteRequest(
             return HandleOnLoadedDone(data, reply);
         case ON_PRELOAD_UI_EXTENSION_ABILITY_DESTROY_DONE:
             return HandleOnDestroyDone(data, reply);
+        case ON_PRELOAD_UI_EXTENSION_ABILITY_SUCCESS:
+            return HandleOnPreloadSuccess(data, reply);
         default:
             TAG_LOGW(AAFwkTag::UI_EXT, "Invalid code");
     }
@@ -59,6 +61,15 @@ int32_t PreloadUIExtensionExecuteCallbackStub::HandleOnDestroyDone(MessageParcel
     std::string bundleName = data.ReadString();
     int32_t extensionAbilityId = data.ReadInt32();
     OnDestroyDone(hostPid, bundleName, extensionAbilityId);
+    return ERR_OK;
+}
+
+int32_t PreloadUIExtensionExecuteCallbackStub::HandleOnPreloadSuccess(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t requestCode = data.ReadInt32();
+    int32_t extensionAbilityId = data.ReadInt32();
+    bool isPreloadedSuccess = data.ReadBool();
+    OnPreloadSuccess(requestCode, extensionAbilityId, isPreloadedSuccess);
     return ERR_OK;
 }
 } // namespace AAFwk

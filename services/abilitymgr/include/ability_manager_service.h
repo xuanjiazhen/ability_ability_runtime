@@ -487,7 +487,8 @@ public:
     int RequestModalUIExtension(const Want &want) override;
 
     int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE) override;
+        int32_t requestCode = DEFAULT_INVAL_VALUE, int32_t userId = DEFAULT_INVAL_VALUE,
+        int32_t hostPid = DEFAULT_INVAL_VALUE) override;
 
     int UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::string &bundleName);
 
@@ -1173,20 +1174,14 @@ public:
 
     int RequestModalUIExtensionInner(Want want);
 
-    int PreloadUIExtensionAbilityInner(const Want &want, std::string &bundleName, int32_t &preloadId,
-        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE);
+    int PreloadUIExtensionAbilityInner(const Want &want, std::string &bundleName,
+        int32_t requestCode = DEFAULT_INVAL_VALUE, int32_t userId = DEFAULT_INVAL_VALUE,
+        int32_t hostPid = DEFAULT_INVAL_VALUE);
 
-    int StartAbilityForOptionWrap(
-        const Want &want,
-        const StartOptions &startOptions,
-        const sptr<IRemoteObject> &callerToken,
-        bool isPendingWantCaller,
-        int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE,
-        bool isStartAsCaller = false,
-        uint32_t callerTokenId = 0,
-        bool isImplicit = false,
-        bool isCallByShortcut = false);
+    int StartAbilityForOptionWrap(const Want &want, const StartOptions &startOptions,
+        const sptr<IRemoteObject> &callerToken, bool isPendingWantCaller, int32_t userId = DEFAULT_INVAL_VALUE,
+        int requestCode = DEFAULT_INVAL_VALUE, bool isStartAsCaller = false, uint32_t callerTokenId = 0,
+        bool isImplicit = false, bool isCallByShortcut = false);
 
     int StartAbilityForOptionInner(
         const Want &want,
@@ -2379,19 +2374,6 @@ protected:
         std::shared_ptr<AbilityRecord> targetService, bool isFromConnect);
 
     static void HandleAutoStartupReadyCallback(const char *key, const char *value, void *context);
-
-    /**
-     * Preload UIExtension with want, send want to ability manager service.
-     *
-     * @param want, the want of the ability to start.
-     * @param hostBundleName, the caller application bundle name.
-     * @param preloadId, the extension ability preload Id.
-     * @param userId, the extension runs in.
-     * @param hostPid, the caller hostPid.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t PreloadUIExtensionAbilityWithId(const Want &want, const std::string &hostBundleName,
-        int32_t &preloadId, int32_t userId, int32_t hostPid) override;
 
     /**
      * UnPreload UIExtension with want, send want to ability manager service.
