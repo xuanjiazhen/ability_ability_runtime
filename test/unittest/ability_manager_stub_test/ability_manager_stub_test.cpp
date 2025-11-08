@@ -4219,40 +4219,6 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSelfUIAbilityInCurrentP
 }
 
 /**
- * @tc.name: PreloadUIExtensionAbilityWithIdInner_0100
- * @tc.desc: PreloadUIExtensionAbilityWithIdInner
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerStubTest, PreloadUIExtensionAbilityWithIdInner_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin");
-
-    MessageParcel data;
-    MessageParcel reply;
-    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
-    
-    Want want;
-    AppExecFwk::ElementName element("", "com.ohos.uiextensionprovider",
-        "UIExtensionProvider", "entry");
-    want.SetElement(element);
-    ASSERT_TRUE(data.WriteParcelable(&want));
-    
-    std::string hostBundleName = "com.ohos.uiextensionuser";
-    ASSERT_TRUE(data.WriteString16(Str8ToStr16(hostBundleName)));
-    
-    int32_t userId = DEFAULT_INVAL_VALUE;
-    ASSERT_TRUE(data.WriteInt32(userId));
-    
-    int32_t hostPid = DEFAULT_INVAL_VALUE;
-    ASSERT_TRUE(data.WriteInt32(hostPid));
-    
-    auto result = stub_->PreloadUIExtensionAbilityWithIdInner(data, reply);
-    EXPECT_EQ(result, NO_ERROR);
-
-    TAG_LOGI(AAFwkTag::TEST, "end");
-}
-
-/**
  * @tc.name: UnPreloadUIExtensionAbilityInner_0100
  * @tc.desc: UnPreloadUIExtensionAbilityInner
  * @tc.type: FUNC

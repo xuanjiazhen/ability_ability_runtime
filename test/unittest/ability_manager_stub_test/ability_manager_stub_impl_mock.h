@@ -451,46 +451,6 @@ public:
         return ERR_OK;
     }
 
-    int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken,
-        const std::string &hostBundleName, int32_t hostPid) override
-    {
-        return ERR_OK;
-    }
-    
-    int32_t UnRegisterPreloadUIExtensionHostClient(const std::string &hostBundleName,
-        int32_t hostPid) override
-    {
-        return ERR_OK;
-    }
-
-    int32_t PreloadUIExtensionAbilityWithId(const Want &want, const std::string &hostBundleName,
-        int32_t &preloadId, int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = 0) override
-    {
-        return 0;
-    }
-
-    int32_t ClearPreloadedUIExtensionAbility(
-        int32_t extensionAbilityId, int32_t userId = DEFAULT_INVAL_VALUE) override
-    {
-        return 0;
-    }
-
-    int32_t ClearPreloadedUIExtensionAbilities(
-        const std::string &hostBundleName, int32_t userId = DEFAULT_INVAL_VALUE) override
-    {
-        return 0;
-    }
-
-    int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken) override
-    {
-        return 0;
-    }
-
-    int32_t UnRegisterPreloadUIExtensionHostClient() override
-    {
-        return 0;
-    }
-
 #ifdef ABILITY_COMMAND_FOR_TEST
     int ForceTimeoutForTest(const std::string& abilityName, const std::string& state) override
     {

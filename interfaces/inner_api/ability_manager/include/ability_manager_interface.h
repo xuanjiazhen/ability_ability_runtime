@@ -437,11 +437,13 @@ public:
      *
      * @param want, the want of the ability to start.
      * @param hostBundleName, the caller application bundle name.
+     * @param requestCode the resultCode of the preload ui extension ability to start.
      * @param userId, the extension runs in.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE)
+        int32_t requestCode = DEFAULT_INVAL_VALUE, int32_t userId = DEFAULT_INVAL_VALUE,
+        int32_t hostPid = DEFAULT_INVAL_VALUE)
     {
         return 0;
     }
@@ -2450,19 +2452,6 @@ public:
     }
 
     /**
-     * Preload UIExtension with want, send want to ability manager service.
-     *
-     * @param want, the want of the ability to start.
-     * @param hostBundleName, the caller application bundle name.
-     * @param preloadId, the extension ability preload Id.
-     * @param userId, the extension runs in.
-     * @param hostPid, the caller hostPid.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t PreloadUIExtensionAbilityWithId(const Want &want, const std::string &hostBundleName,
-        int32_t &preloadId, int32_t userId, int32_t hostPid) = 0;
-
-    /**
      * UnPreload UIExtension with want, send want to ability manager service.
      *
      * @param extensionAbilityId, the extension ability Id.
@@ -2470,7 +2459,10 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t ClearPreloadedUIExtensionAbility(
-        int32_t extensionAbilityId, int32_t userId = DEFAULT_INVAL_VALUE) = 0;
+    int32_t extensionAbilityId, int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0; 
+    }
 
     /**
      * clear all Preload UIExtension with want, send want to ability manager service.
@@ -2480,7 +2472,10 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t ClearPreloadedUIExtensionAbilities(
-        const std::string &hostBundleName, int32_t userId = DEFAULT_INVAL_VALUE) = 0;
+    const std::string &hostBundleName, int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
 
     /**
      * @brief Register preload ui extension host client.
@@ -2488,7 +2483,11 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken) = 0;
+    virtual int32_t RegisterPreloadUIExtensionHostClient(
+    const sptr<IRemoteObject> &callerToken)
+    {
+        return 0;
+    }
 
     /**
      * @brief UnRegister preload ui extension host client.
@@ -2496,7 +2495,10 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t UnRegisterPreloadUIExtensionHostClient() = 0;
+    virtual int32_t UnRegisterPreloadUIExtensionHostClient()
+    {
+        return 0;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS

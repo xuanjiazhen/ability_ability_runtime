@@ -15,12 +15,16 @@
 
 #include "preload_ui_extension_host_client.h"
 
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+constexpr int32_t CALLER_TIME_OUT = 5;
+} // namespace
 sptr<PreloadUIExtensionHostClient> PreloadUIExtensionHostClient::instance_ = nullptr;
 std::mutex PreloadUIExtensionHostClient::instanceMutex_;
 std::once_flag PreloadUIExtensionHostClient::singletonFlag_;
@@ -43,7 +47,7 @@ void PreloadUIExtensionHostClient::RegisterPreloadUIExtensionHostClient()
         TAG_LOGD(AAFwkTag::ABILITYMGR, "PreloadUIExtensionHostClient already registered");
         return;
     }
-    if (loadedCallbackMap_.empty() && destroyCallbackMap_.empty()) {
+    if (loadedCallbackMap_.empty() && destroyCallbackMap_.empty() && resultCallbacks_.empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "No callbacks to register, skip registration");
         return;
     }
@@ -63,7 +67,7 @@ void PreloadUIExtensionHostClient::UnRegisterPreloadUIExtensionHostClient()
         TAG_LOGD(AAFwkTag::ABILITYMGR, "PreloadUIExtensionHostClient not registered, skip unregistration");
         return;
     }
-    if (!loadedCallbackMap_.empty() || !destroyCallbackMap_.empty()) {
+    if (!loadedCallbackMap_.empty() || !destroyCallbackMap_.empty() || resultCallbacks_.empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Still have callbacks, skip unregistration (loaded: %zu, destroy: %zu)",
             loadedCallbackMap_.size(), destroyCallbackMap_.size());
         return;
@@ -213,6 +217,41 @@ void PreloadUIExtensionHostClient::RemoveAllDestroyCallback(std::string bundleNa
     }
 }
 
+int32_t PreloadUIExtensionHostClient::GenerateRequestCode()
+{
+    requestCode_ = (requestCode_ == INT32_MAX) ? 0 : (requestCode_ + 1);
+    return requestCode_;
+}
+
+void PreloadUIExtensionHostClient::PreloadUIExtensionAbility(
+    const Want &want, std::string &hostBundleName, PreloadTask &&task)
+{
+    int32_t requestCode;
+    std::shared_ptr<PreloadByCallData> callData;
+    {
+        std::lock_guard lock(requestCodeMutex_);
+        requestCode = GenerateRequestCode();
+        callData = std::make_shared<PreloadByCallData>(std::move(task));
+        resultCallbacks_.emplace(requestCode, callData);
+        if (resultCallbacks_.size() == 1) {
+            RegisterPreloadUIExtensionHostClient();
+        }
+    }
+    ErrCode ret =
+        AAFwk::AbilityManagerClient::GetInstance()->PreloadUIExtensionAbility(want, hostBundleName, requestCode);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "PreloadUIExtensionAbility failed, ret: %{public}d", ret);
+        OnPreloadSuccess(requestCode, -1, false);
+        return;
+    }
+    std::unique_lock lock(callData->mutexlock);
+    if (callData->condition.wait_for(lock, std::chrono::seconds(CALLER_TIME_OUT)) == std::cv_status::timeout) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "PreloadUIExtensionAbility waiting timeout");
+        lock.unlock();
+        OnPreloadSuccess(requestCode, -1, false);
+    }
+}
+
 void PreloadUIExtensionHostClient::OnLoadedDone(int32_t hostPid, std::string bundleName, int32_t extensionAbilityId)
 {
     std::vector<std::shared_ptr<PreloadUIExtensionCallbackInterface>> callbacksToInvoke;
@@ -254,6 +293,40 @@ void PreloadUIExtensionHostClient::OnDestroyDone(int32_t hostPid, std::string bu
         if (callback != nullptr) {
             callback->ProcessOnDestroyDone(extensionAbilityId);
         }
+    }
+}
+
+void PreloadUIExtensionHostClient::OnPreloadSuccess(
+    int32_t requestCode, int32_t extensionAbilityId, bool isPreloadedSuccess)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT,
+        "OnPreloadSuccess called requestCode: %{public}d extensionAbilityId: %{public}d isPreloadedSuccess: %{public}d",
+        requestCode, extensionAbilityId, isPreloadedSuccess);
+    std::shared_ptr<PreloadByCallData> callData;
+    bool needUnregister = false;
+    {
+        std::lock_guard lock(requestCodeMutex_);
+        auto it = resultCallbacks_.find(requestCode);
+        if (it == resultCallbacks_.end()) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "Callback not found for requestCode: %{public}d", requestCode);
+            return;
+        }
+        callData = it->second;
+        resultCallbacks_.erase(it);
+        needUnregister = resultCallbacks_.empty();
+    }
+    if (callData != nullptr && callData->task != nullptr && callData->handler_ != nullptr) {
+        std::lock_guard lock(callData->mutexlock);
+        auto task = [callData, extensionAbilityId, isPreloadedSuccess]() {
+            callData->task(extensionAbilityId,
+                isPreloadedSuccess ? static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)
+                                   : static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+        };
+        callData->handler_->PostTask(task, "OnPreloadSuccess");
+        callData->condition.notify_all();
+    }
+    if (needUnregister) {
+        UnRegisterPreloadUIExtensionHostClient();
     }
 }
 } // namespace AbilityRuntime
