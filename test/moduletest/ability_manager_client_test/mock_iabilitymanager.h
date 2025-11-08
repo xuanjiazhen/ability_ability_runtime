@@ -442,6 +442,20 @@ public:
     {
         return 0;
     }
+    int32_t RegisterPreloadUIExtensionHostClient(
+        const sptr<IRemoteObject> &callerToken,
+        const std::string &hostBundleName,
+        int32_t hostPid) override
+    {
+        return 0;
+    }
+
+    int32_t UnRegisterPreloadUIExtensionHostClient(
+        const std::string &hostBundleName,
+        int32_t hostPid) override
+    {
+        return 0;
+    }
     void ScheduleClearRecoveryPageStack() override
     {
         mockFunctionExcuted = true;
