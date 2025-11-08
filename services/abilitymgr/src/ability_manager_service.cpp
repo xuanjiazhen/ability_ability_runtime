@@ -197,9 +197,6 @@ constexpr const char* PARAM_ANCO_APP_IDENTIFIER = "persist.hmos_fusion_mgr.anco_
 constexpr const char* DMS_CONTINUED_SESSION_ID = "ohos.dms.continueSessionId";
 constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
 constexpr const char* DMS_CALLING_UID = "ohos.dms.callingUid";
-
-constexpr const char* DEBUG_APP = "debugApp";
-constexpr const char* NATIVE_DEBUG = "nativeDebug";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
 constexpr const char* AUTO_FILL_PASSWORD_TYPE = "autoFill/password";
 constexpr const char* AUTO_FILL_SMART_TYPE = "autoFill/smart";
@@ -597,8 +594,8 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
     }
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetElement().GetDeviceID().empty());
-    bool isDebugApp = want.GetBoolParam(DEBUG_APP, false);
-    bool isNativeDebugApp = want.GetBoolParam(NATIVE_DEBUG, false);
+    bool isDebugApp = want.GetBoolParam(AbilityConfig::DEBUG_APP, false);
+    bool isNativeDebugApp = want.GetBoolParam(AbilityConfig::NATIVE_DEBUG, false);
     bool hasWindowOptions = (want.HasParameter(Want::PARAM_RESV_WINDOW_LEFT) ||
         want.HasParameter(Want::PARAM_RESV_WINDOW_TOP) ||
         want.HasParameter(Want::PARAM_RESV_WINDOW_HEIGHT) ||
@@ -1331,7 +1328,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, checkResult, "CheckInstanceKey failed");
             return checkResult;
         }
-        abilityRequest.Voluation(want, requestCode, callerToken);
+        abilityRequest.Valuation(want, requestCode, callerToken);
         if (specifyTokenId > 0 && callerToken != nullptr) { // for sa specify tokenId and caller token
             UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, callerToken);
         } else if (!isStartAsCaller) {
@@ -1643,7 +1640,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode, bool isImplicit)
 {
     EventInfo eventInfo = BuildEventInfo(want, userId);
-    if (want.GetBoolParam(DEBUG_APP, false)) {
+    if (want.GetBoolParam(AbilityConfig::DEBUG_APP, false)) {
         if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_NOT_DEVELOPER_MODE, "not developer Mode");
@@ -1773,7 +1770,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, checkResult, "CheckInstanceKey failed");
             return checkResult;
         }
-        abilityRequest.Voluation(
+        abilityRequest.Valuation(
             want, requestCode, callerToken, std::make_shared<AbilityStartSetting>(abilityStartSetting));
         abilityRequest.callType = AbilityCallType::START_SETTINGS_TYPE;
         CHECK_POINTER_AND_RETURN(implicitStartProcessor_, ERR_IMPLICIT_START_ABILITY_FAIL);
@@ -2137,7 +2134,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, checkResult, "CheckInstanceKey failed");
             return checkResult;
         }
-        abilityRequest.Voluation(want, requestCode, callerToken);
+        abilityRequest.Valuation(want, requestCode, callerToken);
         if (PermissionVerification::GetInstance()->IsSystemAppCall()) {
             bool windowFocused = startOptions.GetWindowFocused();
             abilityRequest.want.SetParam(Want::PARAM_RESV_WINDOW_FOCUSED, windowFocused);
@@ -3878,7 +3875,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "is implicit start action");
-        abilityRequest.Voluation(want, DEFAULT_INVAL_VALUE, callerToken);
+        abilityRequest.Valuation(want, DEFAULT_INVAL_VALUE, callerToken);
         abilityRequest.callType = AbilityCallType::START_EXTENSION_TYPE;
         abilityRequest.extensionType = extensionType;
         CHECK_POINTER_AND_RETURN(implicitStartProcessor_, ERR_IMPLICIT_START_ABILITY_FAIL);
@@ -4253,7 +4250,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     }
 #endif // SUPPORT_GRAPHICS
     AbilityRequest abilityRequest;
-    abilityRequest.Voluation(extensionSessionInfo->want, DEFAULT_INVAL_VALUE, callerToken);
+    abilityRequest.Valuation(extensionSessionInfo->want, DEFAULT_INVAL_VALUE, callerToken);
     abilityRequest.callType = AbilityCallType::START_EXTENSION_TYPE;
     abilityRequest.sessionInfo = extensionSessionInfo;
     result = GenerateEmbeddableUIAbilityRequest(extensionSessionInfo->want, abilityRequest, callerToken, validUserId);
@@ -4685,7 +4682,8 @@ int AbilityManagerService::TerminateAbilityWithFlag(const sptr<IRemoteObject> &t
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetUIAbilityManagerByUserId(ownerUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        return uiAbilityManager->CloseUIAbility(abilityRecord, resultCode, resultWant, false, false);
+        return uiAbilityManager->CloseUIAbility(std::static_pointer_cast<UIAbilityRecord>(abilityRecord),
+            resultCode, resultWant, false, false);
     }
     return ERR_INVALID_VALUE;
 }
@@ -7775,7 +7773,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     if (abilityRecord != nullptr &&
         abilityRecord->GetApplicationInfo().bundleName == want.GetElement().GetBundleName() &&
         abilityRecord->GetAppIndex() == appIndex) {
-        (const_cast<Want &>(want)).SetParam(DEBUG_APP, abilityRecord->IsDebugApp());
+        (const_cast<Want &>(want)).SetParam(AbilityConfig::DEBUG_APP, abilityRecord->IsDebugApp());
     }
 
     request.want = want;
@@ -8005,7 +8003,7 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
         if (abilityRecord->GetAbilityInfo().type == AbilityType::PAGE) {
             auto uiAbilityManager = GetUIAbilityManagerByUserId(abilityRecord->GetOwnerMissionUserId());
             CHECK_POINTER(uiAbilityManager);
-            uiAbilityManager->OnAbilityDied(abilityRecord);
+            uiAbilityManager->OnAbilityDied(std::static_pointer_cast<UIAbilityRecord>(abilityRecord));
             return;
         }
     } else {
@@ -10220,7 +10218,7 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         }
     }
 
-    bool isDebugApp = want.GetBoolParam(DEBUG_APP, false);
+    bool isDebugApp = want.GetBoolParam(AbilityConfig::DEBUG_APP, false);
     if (isDebugApp && bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "release app not support debug");
         return ERR_NOT_IN_APP_PROVISION_MODE;
@@ -10654,7 +10652,7 @@ bool AbilityManagerService::GetDataAbilityUri(const std::vector<AppExecFwk::Abil
 }
 
 void AbilityManagerService::GetAbilityRunningInfo(std::vector<AbilityRunningInfo> &info,
-    std::shared_ptr<AbilityRecord> &abilityRecord)
+    std::shared_ptr<AbilityRecord> abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AbilityRunningInfo runningInfo;
@@ -11120,7 +11118,8 @@ int AbilityManagerService::PrepareTerminateAbility(const sptr<IRemoteObject> &to
 
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-    bool res = uiAbilityManager->PrepareTerminateAbility(abilityRecord, false);
+    bool res = uiAbilityManager->PrepareTerminateAbility(
+        std::static_pointer_cast<UIAbilityRecord>(abilityRecord), false);
     if (!res) {
         callback->DoPrepareTerminate();
         return ERR_OK;
@@ -11165,7 +11164,8 @@ void AbilityManagerService::PrepareTerminateAbilityDone(const sptr<IRemoteObject
     auto iter = prepareTermiationCallbacks_.find(abilityRecordId);
     if (iter == prepareTermiationCallbacks_.end()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, abilityRecordId=%{public}s not found", abilityRecordId.c_str());
-        uiAbilityManager->PrepareTerminateAbilityDone(abilityRecord, isTerminate);
+        uiAbilityManager->PrepareTerminateAbilityDone(
+            std::static_pointer_cast<UIAbilityRecord>(abilityRecord), isTerminate);
         return;
     }
     if (iter->second != nullptr && !isTerminate) {
@@ -11978,7 +11978,7 @@ void AbilityManagerService::CallRequestDone(const sptr<IRemoteObject> &token, co
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetUIAbilityManagerByUserId(abilityRecord->GetOwnerMissionUserId());
         CHECK_POINTER(uiAbilityManager);
-        uiAbilityManager->CallRequestDone(abilityRecord, callStub);
+        uiAbilityManager->CallRequestDone(std::static_pointer_cast<UIAbilityRecord>(abilityRecord), callStub);
         return;
     }
 
