@@ -71,7 +71,6 @@ const char ETS_SYS_NSNAME[] = "ets_system";
 
 constexpr const char* CLASSNAME_STRING = "Lstd/core/String;";
 constexpr const char* CLASSNAME_LINKER = "Lstd/core/AbcRuntimeLinker;";
-constexpr const char* CLASSNAME_COROUTINE = "std.core.Coroutine";
 } // namespace
 
 ETSRuntimeAPI ETSEnvironment::lazyApis_ {};
@@ -534,11 +533,8 @@ bool ETSEnvironment::FinishPreload() {
 
 bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     const std::vector<std::string> &appInnerHspPathList,
-    const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
-    const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner)
+    const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos)
 {
-    InitEventHandler(eventRunner);
-
     std::vector<ani_option> options;
     std::string aotPathString = "";
     if (!aotPath.empty()) {
@@ -559,9 +555,6 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     
     appInnerHspPathList_ = appInnerHspPathList;
     commonHspBundleInfos_ = commonHspBundleInfos;
-
-    PostCoroutineScheduleTask();
-
     return true;
 }
 
@@ -617,10 +610,8 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             ETSEnvironment::GetInstance()->FinishPreload();
         },
         .PostFork = [](void *napiEnv, const std::string &aotPath, const std::vector<std::string> &appInnerHspPathList,
-            const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
-            const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner) {
-            ETSEnvironment::GetInstance()->PostFork(
-                napiEnv, aotPath, appInnerHspPathList, commonHspBundleInfos, eventRunner);
+            const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos) {
+            ETSEnvironment::GetInstance()->PostFork(napiEnv, aotPath, appInnerHspPathList, commonHspBundleInfos);
         },
         .PreloadSystemClass = [](const char *className) {
             ETSEnvironment::GetInstance()->PreloadSystemClass(className);
@@ -722,7 +713,7 @@ int32_t ETSEnvironment::ParseHdcRegisterOption(std::string& option)
 void ETSEnvironment::InitEventHandler(const std::shared_ptr<AppExecFwk::EventRunner> &eventRunner)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "InitEventHandler called");
-    if (eventRunner != nullptr && eventHandler_ == nullptr) {
+    if (eventRunner != nullptr) {
         eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(eventRunner);
     }
 }
@@ -904,35 +895,6 @@ ani_object ETSEnvironment::CreateRuntimeLinker(
 
     return object;
 }
-
-static void ScheduleCoroutine(ani_env *aniEnv)
-{
-    ani_class cls = nullptr;
-    if (aniEnv->FindClass(CLASSNAME_COROUTINE, &cls) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass std.core.Coroutine Failed");
-        return;
-    }
-    ani_static_method schedule {};
-    if (aniEnv->Class_FindStaticMethod(cls, "Schedule", ":", &schedule) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindStaticMethod Schedule failed");
-        return;
-    }
-    if (aniEnv->Class_CallStaticMethod_Void(cls, schedule) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_CallStaticMethod_Void Schedule failed");
-        return;
-    }
-}
-
-void ETSEnvironment::PostCoroutineScheduleTask()
-{
-    auto scheduleTask = []() {
-        auto &etsEnv = GetInstance();
-        ScheduleCoroutine(etsEnv->GetAniEnv());
-        etsEnv->PostCoroutineScheduleTask();
-    };
-    PostTask(scheduleTask, "ScheduleCoroutine", 1);
-}
-
 } // namespace EtsEnv
 } // namespace OHOS
 
