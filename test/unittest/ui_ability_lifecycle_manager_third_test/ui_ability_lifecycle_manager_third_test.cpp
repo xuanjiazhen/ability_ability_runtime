@@ -68,7 +68,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    std::shared_ptr<AbilityRecord> InitAbilityRecord();
+    std::shared_ptr<UIAbilityRecord> InitAbilityRecord();
 };
 
 void UIAbilityLifecycleManagerThirdTest::SetUpTestCase() {}
@@ -102,14 +102,13 @@ public:
     virtual void OnAbilityDisconnectDone(const AppExecFwk::ElementName& element, int resultCode) {};
 };
 
-std::shared_ptr<AbilityRecord> UIAbilityLifecycleManagerThirdTest::InitAbilityRecord()
+std::shared_ptr<UIAbilityRecord> UIAbilityLifecycleManagerThirdTest::InitAbilityRecord()
 {
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    return abilityRecord;
+    return UIAbilityRecord::CreateAbilityRecord(abilityRequest);
 }
 
 class MockIStatusBarDelegate : public OHOS::AbilityRuntime::IStatusBarDelegate {
@@ -218,7 +217,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, FindRecordFromTmpMap_001, TestSize.
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, std::string("InstanceKey"));
     abilityRequest.want.SetParam(ServerConstant::DLP_INDEX, 5);
     
-    auto callerAbilityRecord = std::make_shared<AbilityRecord>(
+    auto callerAbilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     callerAbilityRecord->sessionInfo_ = nullptr;
     callerAbilityRecord->SetAppIndex(5);
@@ -273,7 +272,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, CheckSessionInfo_001, TestSize.Leve
     currentSessionInfo->sessionToken = session->AsObject();
 
     AbilityRequest abilityRequest;
-    auto callerAbilityRecord = std::make_shared<AbilityRecord>(
+    auto callerAbilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     callerAbilityRecord->sessionInfo_ = nullptr;
 
@@ -291,7 +290,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, AbilityWindowConfigTransactionDone_
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
 
     auto token = sptr<Token>::MakeSptr(abilityRecord);
@@ -521,7 +520,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, DispatchBackground_002, TestSize.Le
     DelayedSingleton<AbilityManagerService>::GetInstance()->taskHandler_ = taskHandler;
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->currentState_ = AbilityState::BACKGROUNDING;
 
@@ -549,7 +548,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, UpdateProcessName_002, TestSize.Lev
     abilityRequest.abilityInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.moduleName = "entry";
     abilityRequest.abilityInfo.name = "MainAbility";
-    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    auto abilityRecord = InitAbilityRecord();
     uiAbilityLifecycleManager->UpdateProcessName(abilityRequest, abilityRecord);
     EXPECT_EQ("HeavenlyMe", abilityRecord->GetProcessName());
 }
@@ -566,7 +565,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, UpdateAbilityRecordLaunchReason_005
 
     AbilityRequest abilityRequest;
     abilityRequest.want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, std::string("HeavenlyMe"));
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->lifeCycleStateInfo_.launchParam.launchReasonMessage = "HelloWorld";
 
@@ -589,7 +588,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, UpdateAbilityRecordLaunchReason_006
 
     AbilityRequest abilityRequest;
     abilityRequest.want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, std::string(""));
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->lifeCycleStateInfo_.launchParam.launchReasonMessage = "HelloWorld";
 
@@ -608,7 +607,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MinimizeUIAbility_003, TestSize.Lev
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->SetPendingState(AbilityState::FOREGROUND);
 
@@ -641,7 +640,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, OnStartSpecifiedFailed_002, TestSiz
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     int32_t requestId = 1;
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
 
     uiAbilityLifecycleManager->hookSpecifiedMap_ = {
@@ -670,7 +669,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, OnStartSpecifiedFailed_003, TestSiz
     int32_t requestId_2 = 2;
     list.push_back(std::make_shared<SpecifiedRequest>(requestId_2, abilityRequest));
 
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(specifiedRequest->persistentId, abilityRecord);
 
@@ -690,7 +689,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, OnStartSpecifiedProcessResponse_003
 
     int32_t requestId = 10;
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
 
     abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED;
@@ -718,7 +717,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, OnStartSpecifiedProcessResponse_004
 
     int32_t requestId = 10;
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
 
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SINGLETON;
@@ -768,7 +767,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, OnAcceptWantResponse_001, TestSize.
     int32_t requestId = 1;
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
 
@@ -797,7 +796,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, OnAcceptWantResponse_002, TestSize.
     int32_t requestId = 1;
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
 
     uiAbilityLifecycleManager->hookSpecifiedMap_ = {
@@ -822,7 +821,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveAbilityToFront_001, TestSize.Le
 
     AbilityRequest abilityRequest;
     abilityRequest.processOptions = std::make_shared<ProcessOptions>();
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
@@ -847,7 +846,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveAbilityToFront_002, TestSize.Le
 
     AbilityRequest abilityRequest;
     abilityRequest.processOptions = std::make_shared<ProcessOptions>();
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
@@ -873,7 +872,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveAbilityToFront_003, TestSize.Le
     AbilityRequest abilityRequest;
     abilityRequest.processOptions = std::make_shared<ProcessOptions>();
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
     abilityRecord->want_.SetParam(Want::PARAM_RESV_WINDOW_MODE,
@@ -902,7 +901,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveAbilityToFront_004, TestSize.Le
     AbilityRequest abilityRequest;
     abilityRequest.processOptions = std::make_shared<ProcessOptions>();
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
     abilityRecord->want_.SetParam(Want::PARAM_RESV_WINDOW_MODE,
@@ -928,7 +927,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, CallRequestDone_001, TestSize.Level
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
 
     auto mockCallStub = sptr<MockIRemoteObject>::MakeSptr();
@@ -953,10 +952,10 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, CallRequestDone_002, TestSize.Level
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 
     AbilityRequest abilityRequest;
-    auto abilityRecord1 = std::make_shared<AbilityRecord>(
+    auto abilityRecord1 = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     
-    auto abilityRecord2 = std::make_shared<AbilityRecord>(
+    auto abilityRecord2 = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
 
 
@@ -993,7 +992,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveMissionToFront_001, TestSize.Le
     uiAbilityLifecycleManager->rootSceneSession_ = rootSceneSession;
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
 
@@ -1027,7 +1026,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveMissionToFront_002, TestSize.Le
     uiAbilityLifecycleManager->rootSceneSession_ = rootSceneSession;
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
 
@@ -1065,7 +1064,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveMissionToFront_003, TestSize.Le
     uiAbilityLifecycleManager->rootSceneSession_ = rootSceneSession;
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
     abilityRecord->sessionInfo_->want.RemoveParam(Want::PARAM_RESV_DISPLAY_ID);
@@ -1104,7 +1103,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveMissionToFront_004, TestSize.Le
     uiAbilityLifecycleManager->rootSceneSession_ = rootSceneSession;
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
     abilityRecord->sessionInfo_->want.RemoveParam(Want::PARAM_RESV_DISPLAY_ID);
@@ -1181,7 +1180,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, UpdateSessionInfoBySCB_002, TestSiz
     std::vector<int32_t> sessionIds = {};
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
     uiAbilityLifecycleManager->sessionAbilityMap_ = {
@@ -1224,7 +1223,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, PopAndGetNextSpecified_001, TestSiz
     int32_t requestId2 = 2;
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
 
     auto specifiedRequestPtr = std::make_shared<SpecifiedRequest>(requestId1, abilityRequest);
@@ -1275,7 +1274,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleColdAcceptWantDone_001, TestS
 
     int32_t requestId1 = 1;
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
 
     auto specifiedRequestPtr = std::make_shared<SpecifiedRequest>(requestId1, abilityRequest);
@@ -1328,7 +1327,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleColdAcceptWantDone_003, TestS
 
     int32_t requestId1 = 1;
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->specifiedFlag_ = "HeavenlyMe";
 
@@ -1358,7 +1357,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleColdAcceptWantDone_004, TestS
 
     int32_t requestId1 = 1;
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->specifiedFlag_.clear();
 
@@ -1460,7 +1459,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, NotifyStartupExceptionBySCB_001, Te
     abilityRequest.abilityInfo.bundleName = "BundleName";
     abilityRequest.abilityInfo.moduleName = "ModuleName";
     
-    auto callerAbilityRecord = std::make_shared<AbilityRecord>(
+    auto callerAbilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     int32_t requestId = 1;
     mgr->tmpAbilityMap_ = {{requestId, callerAbilityRecord}};
@@ -1485,9 +1484,6 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, NotifyStartupExceptionBySCB_002, Te
     int32_t requestId2 = 2;
 
     AbilityRequest abilityRequest;
-    auto abilityRecord = std::make_shared<AbilityRecord>(
-        abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
-
     auto specifiedRequestPtr = std::make_shared<SpecifiedRequest>(requestId1, abilityRequest);
     specifiedRequestPtr->requestId = 1;
     auto specifiedRequest2Ptr = std::make_shared<SpecifiedRequest>(requestId2, abilityRequest);
@@ -1538,12 +1534,12 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleRestartUIAbility_0100, TestSi
 
     mgr->sessionAbilityMap_.emplace(0, nullptr);
     AbilityRequest abilityRequest;
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     mgr->sessionAbilityMap_.emplace(1, abilityRecord);
     auto sessionInfo2 = sptr<SessionInfo>::MakeSptr();
     sessionInfo2->sessionToken = session2->AsObject();
     abilityRequest.sessionInfo = sessionInfo2;
-    auto abilityRecord2 = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord2 = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     mgr->sessionAbilityMap_.emplace(2, abilityRecord2);
     EXPECT_FALSE(mgr->HandleRestartUIAbility(sessionInfo));
 
@@ -1569,7 +1565,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, SignRestartProcess_001, TestSize.Le
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     mgr->sessionAbilityMap_.emplace(pid, abilityRecord);
     mgr->SignRestartProcess(pid);
     EXPECT_FALSE(abilityRecord->GetRestartAppFlag());
