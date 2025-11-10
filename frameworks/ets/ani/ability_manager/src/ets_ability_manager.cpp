@@ -20,30 +20,41 @@
 #include "ability_manager_client.h"
 #include "ability_manager_errors.h"
 #include "ability_manager_interface.h"
+#include "accesstoken_kit.h"
 #include "ani_base_context.h"
 #include "ani_common_ability_state_data.h"
+#include "ani_common_util.h"
 #include "ani_common_want.h"
 #include "app_mgr_interface.h"
+#include "application_context.h"
 #include "ets_ability_foreground_state_observer.h"
 #include "ets_ability_manager_utils.h"
 #include "ets_error_utils.h"
+#include "ets_preload_ui_extension_callback_client.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "permission_constants.h"
+#include "preload_ui_extension_host_client.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char* ETS_ABILITY_MANAGER_NAMESPACE = "L@ohos/app/ability/abilityManager/abilityManager;";
-constexpr const char* ETS_ABILITY_MANAGER_SIGNATURE_ARRAY = ":Lescompat/Array;";
-constexpr const char* ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK = "Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char* ETS_ABILITY_MANAGER_SIGNATURE_VOID = ":V";
+constexpr const char *ETS_ABILITY_MANAGER_NAMESPACE = "L@ohos/app/ability/abilityManager/abilityManager;";
+constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_ARRAY = ":Lescompat/Array;";
+constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK = "Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_VOID = ":V";
 constexpr const char *ON_OFF_TYPE_ABILITY_FOREGROUND_STATE = "abilityForegroundState";
+constexpr const char *ON_OFF_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE = "C{std.core.Function1}:";
+constexpr const char *PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE =
+    "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE = "ILutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITIES_SIGNATURE = "Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
 constexpr int32_t ERR_FAILURE = -1;
-}
+} // namespace
 
 class EtsAbilityManager final {
 public:
@@ -51,18 +62,31 @@ public:
     static void GetForegroundUIAbilitiesCallBack(ani_env *env, ani_object callbackObj);
     static void GetTopAbility(ani_env *env, ani_object callback);
     static void CheckSystemApp(ani_env *env);
+    static void CheckPreloadUIExtensionAbilityPermission(ani_env *env);
     static void GetAbilityRunningInfos(ani_env *env, ani_object callback);
     static void IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj, ani_string aniAppId, ani_object callbackObj);
     static void NativeOn(ani_env *env, ani_string aniType, ani_object aniObserver);
     static void NativeOff(ani_env *env, ani_string aniType, ani_object aniObserver);
     static void GetExtensionRunningInfos(ani_env *env, ani_int upperLimit, ani_object callback);
+    static void NativeOnPreloadedUIExtensionAbilityLoaded(ani_env *env, ani_fn_object callback);
+    static void NativeOffPreloadedUIExtensionAbilityLoaded(ani_env *env, ani_fn_object callback);
+    static void NativeOnPreloadedUIExtensionAbilityDestroyed(ani_env *env, ani_fn_object callback);
+    static void NativeOffPreloadedUIExtensionAbilityDestroyed(ani_env *env, ani_fn_object callback);
+    static void NativePreloadUIExtensionAbility(ani_env *env, ani_object aniWant, ani_object callback);
+    static void NativeClearPreloadedUIExtensionAbility(ani_env *env, ani_int preloadId, ani_object callback);
+    static void NativeClearPreloadedUIExtensionAbilities(ani_env *env, ani_object callback);
+
 private:
     static sptr<AppExecFwk::IAbilityManager> GetAbilityManagerInstance();
     static sptr<AppExecFwk::IAppMgr> GetAppManagerInstance();
     static sptr<AbilityRuntime::ETSAbilityForegroundStateObserver> observerForeground_;
+    static std::vector<std::pair<ani_ref, int32_t>> loadedCallback_;
+    static std::vector<std::pair<ani_ref, int32_t>> destroyCallback_;
 };
 
 sptr<AbilityRuntime::ETSAbilityForegroundStateObserver> EtsAbilityManager::observerForeground_ = nullptr;
+std::vector<std::pair<ani_ref, int32_t>> EtsAbilityManager::loadedCallback_ = {};
+std::vector<std::pair<ani_ref, int32_t>> EtsAbilityManager::destroyCallback_ = {};
 
 sptr<AppExecFwk::IAbilityManager> EtsAbilityManager::GetAbilityManagerInstance()
 {
@@ -158,6 +182,21 @@ void EtsAbilityManager::CheckSystemApp(ani_env *env)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not system app");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
         return;
+    }
+}
+
+void EtsAbilityManager::CheckPreloadUIExtensionAbilityPermission(ani_env *env)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    auto callerToken = IPCSkeleton::GetCallingTokenID();
+    int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        callerToken, AAFwk::PermissionConstants::PERMISSION_PRELOAD_UI_EXTENSION_ABILITY);
+    if (result != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "VerifyAccessToken fail");
+        EtsErrorUtil::ThrowNoPermissionError(env, AAFwk::PermissionConstants::PERMISSION_PRELOAD_UI_EXTENSION_ABILITY);
     }
 }
 
@@ -350,6 +389,254 @@ void EtsAbilityManager::GetExtensionRunningInfos(ani_env *env, ani_int upperLimi
         EtsErrorUtil::CreateErrorByNativeErr(env, errcode), extensionArray);
 }
 
+void EtsAbilityManager::NativeOnPreloadedUIExtensionAbilityLoaded(ani_env *env, ani_fn_object callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NativeOnPreloadedUIExtensionAbilityLoaded");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    for (const auto &cb : loadedCallback_) {
+        ani_boolean isEquals = ANI_FALSE;
+        env->Reference_StrictEquals(callback, cb.first, &isEquals);
+        if (isEquals) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "callback already exists");
+            return;
+        }
+    }
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    std::string bundleName = context->GetBundleName();
+    ani_ref callbackRef = nullptr;
+    ani_status status = env->GlobalReference_Create(callback, &callbackRef);
+    if (status != ANI_OK || callbackRef == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GlobalReference_Create failed or null callbackRef, status: %{public}d", status);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    ani_vm *vm = nullptr;
+    if (env->GetVM(&vm) != ANI_OK || vm == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "ani_env::GetVM failed or returned null ETS Virtual Machine instance");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    auto client = std::make_shared<EtsPreloadUIExtensionCallbackClient>(vm, callbackRef);
+    int32_t key = PreloadUIExtensionHostClient::GetInstance()->AddLoadedCallback(client, bundleName);
+    loadedCallback_.push_back({ callbackRef, key });
+}
+
+void EtsAbilityManager::NativeOffPreloadedUIExtensionAbilityLoaded(ani_env *env, ani_fn_object callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NativeOffPreloadedUIExtensionAbilityLoaded");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    std::string bundleName = context->GetBundleName();
+    ani_boolean isUndefined = true;
+    env->Reference_IsUndefined(callback, &isUndefined);
+    if (isUndefined) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "callback is undefined");
+        if (loadedCallback_.empty()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "null callback");
+            return;
+        }
+        PreloadUIExtensionHostClient::GetInstance()->RemoveAllLoadedCallback(bundleName);
+        loadedCallback_.clear();
+        return;
+    }
+    auto it = std::find_if(loadedCallback_.begin(), loadedCallback_.end(), [&](const auto &cb) {
+        ani_boolean isEquals = ANI_FALSE;
+        env->Reference_StrictEquals(callback, cb.first, &isEquals);
+        return isEquals;
+    });
+    if (it == loadedCallback_.end()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callback not found");
+        return;
+    }
+    PreloadUIExtensionHostClient::GetInstance()->RemoveLoadedCallback(it->second, bundleName);
+    loadedCallback_.erase(it);
+}
+
+void EtsAbilityManager::NativeOnPreloadedUIExtensionAbilityDestroyed(ani_env *env, ani_fn_object callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NativeOnPreloadedUIExtensionAbilityDestroyed");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    for (const auto &cb : destroyCallback_) {
+        ani_boolean isEquals = ANI_FALSE;
+        env->Reference_StrictEquals(callback, cb.first, &isEquals);
+        if (isEquals) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "callback already exists");
+            return;
+        }
+    }
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    std::string bundleName = context->GetBundleName();
+    ani_ref callbackRef = nullptr;
+    ani_status status = env->GlobalReference_Create(callback, &callbackRef);
+    if (status != ANI_OK || callbackRef == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GlobalReference_Create failed or null callbackRef, status: %{public}d", status);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    ani_vm *vm = nullptr;
+    if (env->GetVM(&vm) != ANI_OK || vm == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "ani_env::GetVM failed or returned null ETS Virtual Machine instance");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    auto client = std::make_shared<EtsPreloadUIExtensionCallbackClient>(vm, callbackRef);
+    int32_t key = PreloadUIExtensionHostClient::GetInstance()->AddDestroyCallback(client, bundleName);
+    destroyCallback_.push_back({ callbackRef, key });
+}
+
+void EtsAbilityManager::NativeOffPreloadedUIExtensionAbilityDestroyed(ani_env *env, ani_fn_object callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NativeOffPreloadedUIExtensionAbilityDestroyed");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    std::string bundleName = context->GetBundleName();
+    ani_boolean isUndefined = true;
+    env->Reference_IsUndefined(callback, &isUndefined);
+    if (isUndefined) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "callback is undefined");
+        if (destroyCallback_.empty()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "null callback");
+            return;
+        }
+        PreloadUIExtensionHostClient::GetInstance()->RemoveAllDestroyCallback(bundleName);
+        destroyCallback_.clear();
+        return;
+    }
+    auto it = std::find_if(destroyCallback_.begin(), destroyCallback_.end(), [&](const auto &cb) {
+        ani_boolean isEquals = ANI_FALSE;
+        env->Reference_StrictEquals(callback, cb.first, &isEquals);
+        return isEquals;
+    });
+    if (it == destroyCallback_.end()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callback not found");
+        return;
+    }
+    PreloadUIExtensionHostClient::GetInstance()->RemoveDestroyCallback(it->second, bundleName);
+    destroyCallback_.erase(it);
+}
+
+void EtsAbilityManager::NativePreloadUIExtensionAbility(ani_env *env, ani_object aniWant, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NativePreloadUIExtensionAbility");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, aniWant, want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to parse want");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
+        return;
+    }
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "status: %{public}d", status);
+        return;
+    }
+    ani_ref callbackRef = nullptr;
+    env->GlobalReference_Create(callback, &callbackRef);
+    PreloadTask task = [etsVm, callbackRef](int32_t preloadId, int32_t innerErrCode) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "start async callback");
+        bool isAttachThread = false;
+        ani_env *env = AppExecFwk::AttachAniEnv(etsVm, isAttachThread);
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
+                EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)),
+                nullptr);
+            return;
+        }
+        if (innerErrCode != ERR_OK) {
+            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
+                EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode), nullptr);
+        } else {
+            AppExecFwk::AsyncCallback(
+                env, reinterpret_cast<ani_object>(callbackRef), nullptr, AppExecFwk::CreateInt(env, preloadId));
+        }
+        AppExecFwk::DetachAniEnv(etsVm, isAttachThread);
+    };
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    std::string bundleName = context->GetBundleName();
+    PreloadUIExtensionHostClient::GetInstance()->PreloadUIExtensionAbility(want, bundleName, std::move(task));
+}
+
+void EtsAbilityManager::NativeClearPreloadedUIExtensionAbility(ani_env *env, ani_int preloadId, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NativeClearPreloadedUIExtensionAbility");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    ErrCode result = AAFwk::AbilityManagerClient::GetInstance()->ClearPreloadedUIExtensionAbility(preloadId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ClearPreloadedUIExtensionAbility failed, result: %{public}d", result);
+        AppExecFwk::AsyncCallback(
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, result), nullptr);
+    }
+}
+
+void EtsAbilityManager::NativeClearPreloadedUIExtensionAbilities(ani_env *env, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NativeClearPreloadedUIExtensionAbilities");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    std::string hostBundleName = context->GetBundleName();
+    ErrCode result = AAFwk::AbilityManagerClient::GetInstance()->ClearPreloadedUIExtensionAbilities(hostBundleName);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ClearPreloadedUIExtensionAbilities failed, result: %{public}d", result);
+        AppExecFwk::AsyncCallback(
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, result), nullptr);
+    }
+}
+
 void EtsAbilityManagerRegistryInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call EtsAbilityManagerRegistryInit");
@@ -368,18 +655,16 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
         return;
     }
     std::array methods = {
-        ani_native_function {
-            "nativeGetForegroundUIAbilities", ETS_ABILITY_MANAGER_SIGNATURE_ARRAY,
-            reinterpret_cast<void *>(EtsAbilityManager::GetForegroundUIAbilities)
-        },
-        ani_native_function {
-            "getForegroundUIAbilitiesCallback", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
-            reinterpret_cast<void *>(EtsAbilityManager::GetForegroundUIAbilitiesCallBack)
-        },
-        ani_native_function {"nativeGetTopAbility", ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK,
-            reinterpret_cast<void *>(EtsAbilityManager::GetTopAbility)},
-        ani_native_function {"nativeCheckSystemApp", ETS_ABILITY_MANAGER_SIGNATURE_VOID,
-            reinterpret_cast<void *>(EtsAbilityManager::CheckSystemApp)},
+        ani_native_function { "nativeGetForegroundUIAbilities", ETS_ABILITY_MANAGER_SIGNATURE_ARRAY,
+            reinterpret_cast<void *>(EtsAbilityManager::GetForegroundUIAbilities) },
+        ani_native_function { "getForegroundUIAbilitiesCallback", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsAbilityManager::GetForegroundUIAbilitiesCallBack) },
+        ani_native_function { "nativeGetTopAbility", ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK,
+            reinterpret_cast<void *>(EtsAbilityManager::GetTopAbility) },
+        ani_native_function { "nativeCheckSystemApp", ETS_ABILITY_MANAGER_SIGNATURE_VOID,
+            reinterpret_cast<void *>(EtsAbilityManager::CheckSystemApp) },
+        ani_native_function { "nativeCheckPreloadUIExtensionAbilityPermission", ETS_ABILITY_MANAGER_SIGNATURE_VOID,
+            reinterpret_cast<void *>(EtsAbilityManager::CheckPreloadUIExtensionAbilityPermission) },
         ani_native_function { "nativeGetAbilityRunningInfos", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(EtsAbilityManager::GetAbilityRunningInfos) },
         ani_native_function { "nativeIsEmbeddedOpenAllowed",
@@ -387,8 +672,27 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::IsEmbeddedOpenAllowed) },
         ani_native_function { "nativeOn", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOn) },
         ani_native_function { "nativeOff", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOff) },
-        ani_native_function {"nativeGetExtensionRunningInfos", "ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
-            reinterpret_cast<void *>(EtsAbilityManager::GetExtensionRunningInfos)},
+        ani_native_function { "nativeGetExtensionRunningInfos", "ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsAbilityManager::GetExtensionRunningInfos) },
+        ani_native_function { "nativeOnPreloadedUIExtensionAbilityLoaded",
+            ON_OFF_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE,
+            reinterpret_cast<void *>(EtsAbilityManager::NativeOnPreloadedUIExtensionAbilityLoaded) },
+        ani_native_function { "nativeOffPreloadedUIExtensionAbilityLoaded",
+            ON_OFF_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE,
+            reinterpret_cast<void *>(EtsAbilityManager::NativeOffPreloadedUIExtensionAbilityLoaded) },
+        ani_native_function { "nativeOnPreloadedUIExtensionAbilityDestroyed",
+            ON_OFF_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE,
+            reinterpret_cast<void *>(EtsAbilityManager::NativeOnPreloadedUIExtensionAbilityDestroyed) },
+        ani_native_function { "nativeOffPreloadedUIExtensionAbilityDestroyed",
+            ON_OFF_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE,
+            reinterpret_cast<void *>(EtsAbilityManager::NativeOffPreloadedUIExtensionAbilityDestroyed) },
+        ani_native_function { "nativePreloadUIExtensionAbility", PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE,
+            reinterpret_cast<void *>(EtsAbilityManager::NativePreloadUIExtensionAbility) },
+        ani_native_function { "nativeClearPreloadedUIExtensionAbility", CLEAR_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE,
+            reinterpret_cast<void *>(EtsAbilityManager::NativeClearPreloadedUIExtensionAbility) },
+        ani_native_function { "nativeClearPreloadedUIExtensionAbilities",
+            CLEAR_PRELOAD_UI_EXTENSION_ABILITIES_SIGNATURE,
+            reinterpret_cast<void *>(EtsAbilityManager::NativeClearPreloadedUIExtensionAbilities) },
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (status != ANI_OK) {
