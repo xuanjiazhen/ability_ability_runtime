@@ -271,7 +271,7 @@ public:
     {
         return 0;
     }
-
+    
     void CompleteFirstFrameDrawing(const sptr<IRemoteObject>& abilityToken) override {}
 
     void CallRequestDone(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callStub) override {}
