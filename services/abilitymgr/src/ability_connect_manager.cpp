@@ -3960,14 +3960,15 @@ int AbilityConnectManager::ClearAllPreloadUIExtensionAbilityInner(const std::str
     return ERR_OK;
 }
 
-void AbilityConnectManager::CheckIsPreloadUIExtensionRecordChangedById(int32_t extensionRecordId, int32_t state, bool isPreloadedSuccess)
+void AbilityConnectManager::CheckIsPreloadUIExtensionRecordChangedById(
+        int32_t extensionRecordId, int32_t state, bool isPreloadedSuccess)
 {
     CHECK_POINTER(uiExtensionAbilityRecordMgr_);
     if (state == AbilityState::INITIAL) {
         uiExtensionAbilityRecordMgr_->CheckIsPreloadUIExtensionDestroyedById(extensionRecordId);
     } else if (state == AbilityState::INACTIVATING) {
         uiExtensionAbilityRecordMgr_->CheckIsPreloadUIExtensionLoadedById(extensionRecordId);
-    } else if (state == AbilityState::INACTIVE ) {
+    } else if (state == AbilityState::INACTIVE) {
         uiExtensionAbilityRecordMgr_->CheckIsPreloadUIExtensionSuccess(extensionRecordId, isPreloadedSuccess);
     }
 }

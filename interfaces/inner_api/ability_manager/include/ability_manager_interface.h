@@ -2457,7 +2457,7 @@ public:
     virtual int32_t ClearPreloadedUIExtensionAbility(
     int32_t extensionAbilityId, int32_t userId = DEFAULT_INVAL_VALUE)
     {
-        return 0; 
+        return 0;
     }
 
     /**

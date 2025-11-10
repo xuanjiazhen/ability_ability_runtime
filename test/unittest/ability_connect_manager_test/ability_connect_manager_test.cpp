@@ -3442,7 +3442,8 @@ HWTEST_F(AbilityConnectManagerTest, PreloadUIExtensionAbilityLocked_0100, TestSi
 
     int32_t preloadId = AbilityRuntime::INVALID_EXTENSION_RECORD_ID;;
     int32_t hostPid = DEFAULT_INVAL_VALUE;
-    auto ret = connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName, ERR_PRELOAD_APP_DATA_ABILITIES_FAILED);
+    auto ret = connectManager->PreloadUIExtensionAbilityLocked(
+        abilityRequest, hostBundleName, ERR_PRELOAD_APP_DATA_ABILITIES_FAILED);
     EXPECT_NE(ret, ERR_OK);
 }
 

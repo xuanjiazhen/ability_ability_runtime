@@ -33,7 +33,6 @@ private:
     int32_t HandleOnLoadedDone(MessageParcel &data, MessageParcel &reply);
     int32_t HandleOnDestroyDone(MessageParcel &data, MessageParcel &reply);
     int32_t HandleOnPreloadSuccess(MessageParcel &data, MessageParcel &reply);
-
 };
 } // namespace AAFwk
 } // namespace OHOS
