@@ -782,5 +782,75 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetHostBundleNameForExtensionId_0200,
     EXPECT_EQ(extRecordMgr->GetHostBundleNameForExtensionId(extensionRecordId, hostBundleName), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
+
+/**
+ * @tc.name: ClearPreloadedUIExtensionAbility_0100
+ * @tc.desc: Test clear with invalid extensionRecordId (not found in extensionRecords_)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, ClearPreloadedUIExtensionAbility_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    int32_t invalidId = 9999;
+    EXPECT_EQ(extRecordMgr->ClearPreloadedUIExtensionAbility(invalidId), AAFwk::ERR_CODE_INVALID_ID);
+}
+
+/**
+ * @tc.name: ClearPreloadedUIExtensionAbility_0200
+ * @tc.desc: Test clear when record exists but is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, ClearPreloadedUIExtensionAbility_0200, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    int32_t id = 1001;
+    extRecordMgr->extensionRecords_[id] = nullptr;
+    EXPECT_EQ(extRecordMgr->ClearPreloadedUIExtensionAbility(id), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: ClearPreloadedUIExtensionAbility_0300
+ * @tc.desc: Test clear when callingPid != hostPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, ClearPreloadedUIExtensionAbility_0300, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    AAFwk::AbilityRequest req;
+    req.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    auto abilityRec = AAFwk::AbilityRecord::CreateAbilityRecord(req);
+    auto extRec = std::make_shared<ExtensionRecord>(abilityRec);
+    extRec->hostPid_ = 12345;
+    int id = 1001;
+    extRecordMgr->extensionRecords_[id] = extRec;
+    EXPECT_EQ(extRecordMgr->ClearPreloadedUIExtensionAbility(id), AAFwk::ERR_CODE_INVALID_ID);
+}
+
+/**
+ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0100
+ * @tc.desc: Empty preloadUIExtensionMap_
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost("any.host"), ERR_OK);
+}
+
+/**
+ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0200
+ * @tc.desc: Map contains entry for different bundleName, should not unload
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0200, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    auto rec = std::make_shared<ExtensionRecord>(nullptr);
+    rec->hostBundleName_ = "com.example.host";
+    rec->hostPid_ = IPCSkeleton::GetCallingPid();
+
+    auto key = std::make_tuple("AbilityA", "bundleA", "moduleA", "com.example.host");
+    extRecordMgr->preloadUIExtensionMap_[key].push_back(rec);
+
+    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost("other.host"), ERR_OK);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
