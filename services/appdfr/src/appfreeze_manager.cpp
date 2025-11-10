@@ -301,11 +301,18 @@ int AppfreezeManager::LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::
         return -1;
     }
     if (!g_betaVersion && info.eventName == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
-        int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "HIVIEW_HALF_FREEZE_LOG",
-            HiviewDFX::HiSysEvent::EventType::FAULT, "PID", info.pid, "PACKAGE_NAME", info.bundleName);
-        TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write HIVIEW_HALF_FREEZE_LOG, pid:%{public}d, packageName:%{public}s,"
+        int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
+            HiviewDFX::HiSysEvent::EventType::FAULT, "PID", info.pid, "PACKAGE_NAME", info.bundleName,
+            "DUMP_TRACE", true);
+        TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:%{public}s,"
             " ret:%{public}d", info.pid, info.bundleName.c_str(), ret);
     }
+    if (g_betaVersion && info.eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
+        HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
+            HiviewDFX::HiSysEvent::EventType::FAULT, "PID", info.pid, "PACKAGE_NAME", info.bundleName,
+            "DUMP_TRACE", false);
+    }
+
     TAG_LOGD(AAFwkTag::APPDFR, "called %{public}s, name_ %{public}s", info.bundleName.c_str(), name_.c_str());
     HITRACE_METER_FMT(HITRACE_TAG_APP, "LifecycleTimeoutHandle:%{public}s bundleName:%{public}s",
         info.eventName.c_str(), info.bundleName.c_str());
