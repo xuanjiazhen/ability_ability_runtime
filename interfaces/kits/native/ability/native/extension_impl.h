@@ -64,7 +64,6 @@ public:
     virtual void HandleExtensionTransaction(const Want &want, const AAFwk::LifeCycleStateInfo &targetState,
         sptr<AAFwk::SessionInfo> sessionInfo = nullptr);
 
-
     /**
      * @brief Process lifecycle state transition for the Extension.
      * This method executes lifecycle operations (Start, Stop, Foreground, Background)
