@@ -22,9 +22,26 @@
 
 #include "preload_ui_extension_callback_interface.h"
 #include "preload_ui_extension_execute_callback_stub.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+using PreloadTask = std::function<void(int32_t, int32_t)>;
+using Want = AAFwk::Want;
+struct PreloadByCallData {
+    PreloadByCallData(PreloadTask &&callTask) : task(std::move(callTask))
+    {
+        handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+    }
+    PreloadByCallData(const PreloadByCallData &) = delete;
+    PreloadByCallData &operator=(const PreloadByCallData &) = delete;
+
+    PreloadTask task;
+    std::mutex mutexlock;
+    std::condition_variable condition;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_;
+};
+
 class PreloadUIExtensionHostClient : public AAFwk::PreloadUIExtensionExecuteCallbackStub {
 public:
     using PreloadUIExtensionCallbackMap = std::map<std::pair<int32_t, std::string>,
@@ -41,8 +58,11 @@ public:
     int32_t RemoveDestroyCallback(int32_t key, std::string bundleName);
     void RemoveAllLoadedCallback(std::string bundleName);
     void RemoveAllDestroyCallback(std::string bundleName);
+    void PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName, PreloadTask &&task);
+    int32_t GenerateRequestCode();
     void OnLoadedDone(int32_t hostPid, std::string bundleName, int32_t extensionAbilityId) override;
     void OnDestroyDone(int32_t hostPid, std::string bundleName, int32_t extensionAbilityId) override;
+    void OnPreloadSuccess(int32_t requestCode, int32_t extensionAbilityId, bool isPreloadedSuccess) override;
 
 private:
     void RegisterPreloadUIExtensionHostClient();
@@ -51,14 +71,18 @@ private:
     static std::mutex instanceMutex_;
     static std::once_flag singletonFlag_;
     bool isRegistered_ = false;
-    std::atomic<int32_t> key_{0};
+    std::atomic<int32_t> key_ = 0;
     static sptr<PreloadUIExtensionHostClient> instance_;
     mutable std::mutex preloadUIExtensionLoadedCallbackMutex_;
     mutable std::mutex preloadUIExtensionDestroyCallbackMutex_;
     mutable std::mutex registrationMutex_;
+    mutable std::mutex requestCodeMutex_;
+    std::atomic<int32_t> requestCode_ = 0;
+    std::map<int, std::shared_ptr<PreloadByCallData>> resultCallbacks_;
 
     PreloadUIExtensionCallbackMap loadedCallbackMap_;
     PreloadUIExtensionCallbackMap destroyCallbackMap_;
+    PreloadTask resultPreloadId;
     DISALLOW_COPY_AND_MOVE(PreloadUIExtensionHostClient);
 };
 } // namespace AbilityRuntime

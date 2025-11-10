@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <memory>
 #include <regex>
+#include <future>
 
 #include "ability_business_error.h"
 #include "ability_manager_client.h"
@@ -1087,30 +1088,27 @@ private:
             ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
             return CreateJsUndefined(env);
         }
-        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
-        auto extensionId = std::make_shared<int32_t>(0);
-        NapiAsyncTask::ExecuteCallback execute = [want, innerErrCode, extensionId]() {
-            auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
-            if (context == nullptr) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
-                *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
-                return;
-            }
-            std::string bundleName = context->GetBundleName();
-            *innerErrCode =
-                AbilityManagerClient::GetInstance()->PreloadUIExtensionAbilityWithId(want, bundleName, *extensionId);
-        };
-        NapiAsyncTask::CompleteCallback complete = [innerErrCode, extensionId](
-                                                       napi_env env, NapiAsyncTask &task, int32_t status) {
-            if (*innerErrCode == ERR_OK) {
-                task.Resolve(env, CreateJsValue(env, *extensionId));
-            } else {
-                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
-            }
-        };
         napi_value result = nullptr;
-        NapiAsyncTask::ScheduleHighQos("JsApplicationContextUtils::OnPreloadUIExtensionAbility", env,
-            CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+        std::unique_ptr<NapiAsyncTask> uAsyncTask =
+            CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
+        std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uAsyncTask);
+        PreloadTask task = [env, asyncTask](int32_t preloadId, int32_t innerErrCode) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "start async callback");
+            HandleScope handleScope(env);
+            if (innerErrCode == ERR_OK) {
+                asyncTask->Resolve(env, CreateJsValue(env, preloadId));
+            } else {
+                asyncTask->Reject(env, CreateJsErrorByNativeErr(env, innerErrCode));
+            }
+        };
+        auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            return CreateJsUndefined(env);
+        }
+        std::string bundleName = context->GetBundleName();
+        PreloadUIExtensionHostClient::GetInstance()->PreloadUIExtensionAbility(want, bundleName, std::move(task));
         return result;
     }
 

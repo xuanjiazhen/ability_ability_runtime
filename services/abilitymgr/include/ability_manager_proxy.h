@@ -326,10 +326,12 @@ public:
      * @param want, the want of the ability to start.
      * @param hostBundleName, the caller application bundle name.
      * @param userId, the extension runs in.
+     * @param requestCode the resultCode of the preload ui extension ability to start.
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE) override;
+        int32_t requestCode = DEFAULT_INVAL_VALUE, int32_t userId = DEFAULT_INVAL_VALUE,
+        int32_t hostPid = DEFAULT_INVAL_VALUE) override;
 
     /**
      * Change the visibility state of an UIAbility.
@@ -1901,19 +1903,6 @@ public:
      * @return Returns true on being limited.
      */
     virtual bool IsRestartAppLimit() override;
-
-    /**
-     * Preload UIExtension with want, send want to ability manager service.
-     *
-     * @param want, the want of the ability to start.
-     * @param hostBundleName, the caller application bundle name.
-     * @param preloadId, the extension ability preload Id.
-     * @param userId, the extension runs in.
-     * @param hostPid, the caller hostPid.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t PreloadUIExtensionAbilityWithId(const Want &want, const std::string &hostBundleName,
-        int32_t &preloadId, int32_t userId, int32_t hostPid) override;
 
     /**
      * UnPreload UIExtension with want, send want to ability manager service.

@@ -56,6 +56,7 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_HIGH = "ohos.ability.params.uiExtensionLaunchTimestampHigh";
 constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_LOW = "ohos.ability.params.uiExtensionLaunchTimestampLow";
+constexpr const char* IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 
 bool IsEmbeddableStart(int32_t screenMode)
 {
@@ -279,6 +280,7 @@ void JsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> se
         launchParam.launchReason = AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT;
     }
     int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
+    SetPreloadedSuccess(want.GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false));
     if (IsEmbeddableStart(screenMode)) {
         napi_value argv[] = {napiWant, CreateJsLaunchParam(env, launchParam) };
         CallObjectMethod("onCreate", argv, ARGC_TWO);
@@ -797,12 +799,14 @@ napi_value JsUIExtension::CallObjectMethod(const char *name, napi_value const *a
     }
     if (withResult) {
         napi_value result = nullptr;
-        napi_call_function(env, obj, method, argc, argv, &result);
+        napi_status status = napi_call_function(env, obj, method, argc, argv, &result);
+        SetPreloadedSuccess(IsPreloadedSuccess() && status == napi_ok);
         return handleEscape.Escape(result);
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "JsUIExtension CallFunction(%{public}s), success", name);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    napi_call_function(env, obj, method, argc, argv, nullptr);
+    napi_status status = napi_call_function(env, obj, method, argc, argv, nullptr);
+    SetPreloadedSuccess(IsPreloadedSuccess() && status == napi_ok);
     return nullptr;
 }
 
