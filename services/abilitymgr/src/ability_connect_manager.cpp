@@ -565,15 +565,15 @@ int32_t AbilityConnectManager::GetOrCreateTargetServiceRecord(
     return ERR_OK;
 }
 
-int AbilityConnectManager::PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest,
-    std::string &hostBundleName, int32_t &preloadId, int32_t hostPid)
+int AbilityConnectManager::PreloadUIExtensionAbilityLocked(
+    const AbilityRequest &abilityRequest, std::string &hostBundleName, int32_t hostPid)
 {
     std::lock_guard guard(serialMutex_);
-    return PreloadUIExtensionAbilityInner(abilityRequest, hostBundleName, preloadId, hostPid);
+    return PreloadUIExtensionAbilityInner(abilityRequest, hostBundleName, hostPid);
 }
 
-int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest,
-    std::string &hostBundleName, int32_t &preloadId, int32_t hostPid)
+int AbilityConnectManager::PreloadUIExtensionAbilityInner(
+    const AbilityRequest &abilityRequest, std::string &hostBundleName, int32_t hostPid)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (!UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType)) {
@@ -587,9 +587,9 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
     }
     std::shared_ptr<ExtensionRecord> extensionRecord = nullptr;
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
-    preloadId = INVALID_EXTENSION_RECORD_ID;
+    int32_t extensionRecordId = INVALID_EXTENSION_RECORD_ID;
     ret = uiExtensionAbilityRecordMgr_->CreateExtensionRecord(abilityRequest, hostBundleName,
-        extensionRecord, preloadId, hostPid);
+        extensionRecord, extensionRecordId, hostPid);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "CreateExtensionRecord ERR");
         return ret;
@@ -3960,13 +3960,15 @@ int AbilityConnectManager::ClearAllPreloadUIExtensionAbilityInner(const std::str
     return ERR_OK;
 }
 
-void AbilityConnectManager::CheckIsPreloadUIExtensionRecordChangedById(int32_t extensionRecordId, int32_t state)
+void AbilityConnectManager::CheckIsPreloadUIExtensionRecordChangedById(int32_t extensionRecordId, int32_t state, bool isPreloadedSuccess)
 {
     CHECK_POINTER(uiExtensionAbilityRecordMgr_);
     if (state == AbilityState::INITIAL) {
         uiExtensionAbilityRecordMgr_->CheckIsPreloadUIExtensionDestroyedById(extensionRecordId);
     } else if (state == AbilityState::INACTIVATING) {
         uiExtensionAbilityRecordMgr_->CheckIsPreloadUIExtensionLoadedById(extensionRecordId);
+    } else if (state == AbilityState::INACTIVE ) {
+        uiExtensionAbilityRecordMgr_->CheckIsPreloadUIExtensionSuccess(extensionRecordId, isPreloadedSuccess);
     }
 }
 

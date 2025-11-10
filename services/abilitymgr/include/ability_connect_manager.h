@@ -115,24 +115,22 @@ public:
      *
      * @param abilityRequest, Special want for service type's ability.
      * @param hostBundleName, the caller application bundle name.
-     * @param preloadId, the extension ability preload Id.
      * @param hostPid, the caller hostPid.
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest, std::string &hostBundleName,
-        int32_t &preloadId, int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
+        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
 
     /**
      * PreloadUIExtensionAbilityLocked, preload uiextension ability.
      *
      * @param abilityRequest, Special want for service type's ability.
      * @param hostBundleName, the caller application bundle name.
-     * @param preloadId, the extension ability preload Id.
      * @param hostPid, the caller hostPid.
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest, std::string &hostBundleName,
-        int32_t &preloadId, int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
+        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
 
     /**
      * Query preload uiextension record.
@@ -408,7 +406,7 @@ public:
     int UnPreloadUIExtensionAbilityInner(int32_t extensionAbilityId);
     int ClearAllPreloadUIExtensionAbilityLocked(const std::string &hostBundleName);
     int ClearAllPreloadUIExtensionAbilityInner(const std::string &hostBundleName);
-    void CheckIsPreloadUIExtensionRecordChangedById(int32_t extensionRecordId, int32_t state);
+    void CheckIsPreloadUIExtensionRecordChangedById(int32_t extensionRecordId, int32_t state, bool isPreloadedSuccess);
     int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);
     int32_t UnRegisterPreloadUIExtensionHostClient();
 

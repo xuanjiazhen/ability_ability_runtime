@@ -925,10 +925,6 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     MessageParcel &reply, MessageOption &option)
 {
     AbilityManagerInterfaceCode interfaceCode = static_cast<AbilityManagerInterfaceCode>(code);
-
-    if (interfaceCode == AbilityManagerInterfaceCode::PRELOAD_UI_EXTENSION_ABILITY_WITH_ID) {
-        return PreloadUIExtensionAbilityWithIdInner(data, reply);
-    }
     if (interfaceCode == AbilityManagerInterfaceCode::UN_PRELOAD_UI_EXTENSION_ABILITY) {
         return UnPreloadUIExtensionAbilityInner(data, reply);
     }
@@ -1579,9 +1575,10 @@ int AbilityManagerStub::PreloadUIExtensionAbilityInner(MessageParcel &data, Mess
         return ERR_INVALID_VALUE;
     }
     std::string hostBundleName = Str16ToStr8(data.ReadString16());
+    int32_t requestCode = data.ReadInt32();
     int32_t userId = data.ReadInt32();
     int32_t hostPid = data.ReadInt32();
-    int32_t result = PreloadUIExtensionAbility(*want, hostBundleName, userId, hostPid);
+    int32_t result = PreloadUIExtensionAbility(*want, hostBundleName, requestCode, userId, hostPid);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -5140,23 +5137,6 @@ int AbilityManagerStub::StartSelfUIAbilityInCurrentProcessInner(MessageParcel &d
 int AbilityManagerStub::IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply)
 {
     reply.WriteBool(IsRestartAppLimit());
-    return NO_ERROR;
-}
-
-int32_t AbilityManagerStub::PreloadUIExtensionAbilityWithIdInner(MessageParcel &data, MessageParcel &reply)
-{
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
-    if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
-        return ERR_INVALID_VALUE;
-    }
-    std::string hostBundleName = data.ReadString();
-    int32_t userId = data.ReadInt32();
-    int32_t hostPid = data.ReadInt32();
-    int32_t preloadId;
-    int32_t result = PreloadUIExtensionAbilityWithId(*want, hostBundleName, preloadId, userId, hostPid);
-    reply.WriteInt32(preloadId);
-    reply.WriteInt32(result);
     return NO_ERROR;
 }
 

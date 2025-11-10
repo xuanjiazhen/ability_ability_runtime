@@ -27,10 +27,12 @@ public:
 
     virtual void OnLoadedDone(int32_t hostPid, std::string bundleName, int32_t extensionAbilityId) = 0;
     virtual void OnDestroyDone(int32_t hostPid, std::string bundleName, int32_t extensionAbilityId) = 0;
+    virtual void OnPreloadSuccess(int32_t requestCode, int32_t extensionAbilityId, bool isPreloadedSuccess) = 0;
 
     enum {
         ON_PRELOAD_UI_EXTENSION_ABILITY_LOADED_DONE = 1,
         ON_PRELOAD_UI_EXTENSION_ABILITY_DESTROY_DONE = 2,
+        ON_PRELOAD_UI_EXTENSION_ABILITY_SUCCESS = 3,
     };
 };
 } // namespace AAFwk
