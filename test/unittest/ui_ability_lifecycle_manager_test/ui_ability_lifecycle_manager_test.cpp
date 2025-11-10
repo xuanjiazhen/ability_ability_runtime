@@ -2681,7 +2681,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MoveAbilityToFront_001, TestSize.Level1)
     specifiedRequest.abilityRequest.appInfo.bundleName = "com.example.unittest";
     specifiedRequest.abilityRequest.abilityInfo.name = "MainAbility";
     specifiedRequest.abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(specifiedRequest.abilityRequest);
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(specifiedRequest.abilityRequest);
     res = uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, abilityRecord, nullptr);
     EXPECT_EQ(res, ERR_OK);
 
@@ -2709,7 +2709,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MoveAbilityToFront_002, TestSize.Level1)
     specifiedRequest.abilityRequest.abilityInfo.name = "MainAbility";
     specifiedRequest.abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     specifiedRequest.abilityRequest.isStartInSplitMode = true;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(specifiedRequest.abilityRequest);
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(specifiedRequest.abilityRequest);
     res = uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, abilityRecord, nullptr);
     EXPECT_EQ(res, ERR_OK);
 
