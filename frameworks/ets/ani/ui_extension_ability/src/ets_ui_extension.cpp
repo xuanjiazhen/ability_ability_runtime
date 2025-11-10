@@ -691,6 +691,7 @@ bool EtsUIExtension::CallObjectMethod(bool withResult, const char *name, const c
     TAG_LOGD(AAFwkTag::UI_EXT, "CallObjectMethod %{public}s", name);
     if (etsObj_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "etsObj_ nullptr");
+        SetPreloadedSuccess(false);
         return false;
     }
 
@@ -699,6 +700,7 @@ bool EtsUIExtension::CallObjectMethod(bool withResult, const char *name, const c
     ani_method method = nullptr;
     if ((status = env->Class_FindMethod(etsObj_->aniCls, name, signature, &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        SetPreloadedSuccess(false);
         return false;
     }
     env->ResetError();

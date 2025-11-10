@@ -68,8 +68,8 @@ int32_t PreloadUIExtensionExecuteCallbackStub::HandleOnPreloadSuccess(MessagePar
 {
     int32_t requestCode = data.ReadInt32();
     int32_t extensionAbilityId = data.ReadInt32();
-    bool isPreloadedSuccess = data.ReadBool();
-    OnPreloadSuccess(requestCode, extensionAbilityId, isPreloadedSuccess);
+    int32_t innerErrCode = data.ReadInt32();
+    OnPreloadSuccess(requestCode, extensionAbilityId, innerErrCode);
     return ERR_OK;
 }
 } // namespace AAFwk

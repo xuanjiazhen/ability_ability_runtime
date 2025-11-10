@@ -31,7 +31,7 @@ public:
 
     void OnLoadedDone(int32_t hostPid, std::string bundleName, int32_t extensionAbilityId) override;
     void OnDestroyDone(int32_t hostPid, std::string bundleName, int32_t extensionAbilityId) override;
-    void OnPreloadSuccess(int32_t requestCode, int32_t extensionAbilityId, bool isPreloadedSuccess) override;
+    void OnPreloadSuccess(int32_t requestCode, int32_t extensionAbilityId, int32_t innerErrCode) override;
 
 private:
     static inline BrokerDelegator<PreloadUIExtensionExecuteCallbackProxy> delegator_;

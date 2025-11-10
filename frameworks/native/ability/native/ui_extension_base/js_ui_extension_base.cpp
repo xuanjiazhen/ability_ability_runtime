@@ -917,12 +917,14 @@ napi_value JsUIExtensionBase::CallObjectMethod(const char *name, napi_value cons
     TAG_LOGD(AAFwkTag::UI_EXT, "CallObjectMethod(%{public}s), begin", name);
     if (!jsObj_) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Not found .js file");
+        SetPreloadedSuccess(false);
         return nullptr;
     }
     napi_env env = jsRuntime_.GetNapiEnv();
     napi_value obj = jsObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "get object failed");
+        SetPreloadedSuccess(false);
         return nullptr;
     }
     HandleEscape handleEscape(jsRuntime_);
@@ -930,6 +932,7 @@ napi_value JsUIExtensionBase::CallObjectMethod(const char *name, napi_value cons
     napi_get_named_property(env, obj, name, &method);
     if (!CheckTypeForNapiValue(env, method, napi_function)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "get '%{public}s' object failed", name);
+        SetPreloadedSuccess(false);
         return nullptr;
     }
     if (withResult) {

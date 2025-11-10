@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr int32_t CALLER_TIME_OUT = 5;
+constexpr int32_t CALLER_TIME_OUT = 3;
 } // namespace
 sptr<PreloadUIExtensionHostClient> PreloadUIExtensionHostClient::instance_ = nullptr;
 std::mutex PreloadUIExtensionHostClient::instanceMutex_;
@@ -241,14 +241,14 @@ void PreloadUIExtensionHostClient::PreloadUIExtensionAbility(
         AAFwk::AbilityManagerClient::GetInstance()->PreloadUIExtensionAbility(want, hostBundleName, requestCode);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "PreloadUIExtensionAbility failed, ret: %{public}d", ret);
-        OnPreloadSuccess(requestCode, -1, false);
+        OnPreloadSuccess(requestCode, -1, ret);
         return;
     }
     std::unique_lock lock(callData->mutexlock);
     if (callData->condition.wait_for(lock, std::chrono::seconds(CALLER_TIME_OUT)) == std::cv_status::timeout) {
         TAG_LOGE(AAFwkTag::UI_EXT, "PreloadUIExtensionAbility waiting timeout");
         lock.unlock();
-        OnPreloadSuccess(requestCode, -1, false);
+        OnPreloadSuccess(requestCode, -1, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
     }
 }
 
@@ -297,11 +297,11 @@ void PreloadUIExtensionHostClient::OnDestroyDone(int32_t hostPid, std::string bu
 }
 
 void PreloadUIExtensionHostClient::OnPreloadSuccess(
-    int32_t requestCode, int32_t extensionAbilityId, bool isPreloadedSuccess)
+    int32_t requestCode, int32_t extensionAbilityId, int32_t innerErrCode)
 {
     TAG_LOGD(AAFwkTag::UI_EXT,
-        "OnPreloadSuccess called requestCode: %{public}d extensionAbilityId: %{public}d isPreloadedSuccess: %{public}d",
-        requestCode, extensionAbilityId, isPreloadedSuccess);
+        "OnPreloadSuccess called requestCode: %{public}d extensionAbilityId: %{public}d innerErrCode: %{public}d",
+        requestCode, extensionAbilityId, innerErrCode);
     std::shared_ptr<PreloadByCallData> callData;
     bool needUnregister = false;
     {
@@ -317,10 +317,8 @@ void PreloadUIExtensionHostClient::OnPreloadSuccess(
     }
     if (callData != nullptr && callData->task != nullptr && callData->handler_ != nullptr) {
         std::lock_guard lock(callData->mutexlock);
-        auto task = [callData, extensionAbilityId, isPreloadedSuccess]() {
-            callData->task(extensionAbilityId,
-                isPreloadedSuccess ? static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)
-                                   : static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+        auto task = [callData, extensionAbilityId, innerErrCode]() {
+            callData->task(extensionAbilityId, innerErrCode);
         };
         callData->handler_->PostTask(task, "OnPreloadSuccess");
         callData->condition.notify_all();

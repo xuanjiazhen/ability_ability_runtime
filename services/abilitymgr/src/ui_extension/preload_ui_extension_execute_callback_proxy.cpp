@@ -86,7 +86,7 @@ void PreloadUIExtensionExecuteCallbackProxy::OnDestroyDone(
 }
 
 void PreloadUIExtensionExecuteCallbackProxy::OnPreloadSuccess(
-    int32_t requestCode, int32_t extensionAbilityId, bool isPreloadedSuccess)
+    int32_t requestCode, int32_t extensionAbilityId, int32_t innerErrCode)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(IPreloadUIExtensionExecuteCallback::GetDescriptor())) {
@@ -101,8 +101,8 @@ void PreloadUIExtensionExecuteCallbackProxy::OnPreloadSuccess(
         TAG_LOGE(AAFwkTag::UI_EXT, "extensionAbilityId Int32 write failed");
         return;
     }
-    if (!data.WriteBool(isPreloadedSuccess)) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "isPreloadedSuccess Bool write failed");
+    if (!data.WriteInt32(innerErrCode)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "innerErrCode Int32 write failed");
         return;
     }
     sptr<IRemoteObject> remote = Remote();

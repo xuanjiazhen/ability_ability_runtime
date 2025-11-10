@@ -779,6 +779,7 @@ napi_value JsUIExtension::CallObjectMethod(const char *name, napi_value const *a
 
     if (!jsObj_) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Not found UIExtension.js");
+        SetPreloadedSuccess(false);
         return nullptr;
     }
 
@@ -788,6 +789,7 @@ napi_value JsUIExtension::CallObjectMethod(const char *name, napi_value const *a
     napi_value obj = jsObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "get object failed");
+        SetPreloadedSuccess(false);
         return nullptr;
     }
 
@@ -795,6 +797,7 @@ napi_value JsUIExtension::CallObjectMethod(const char *name, napi_value const *a
     napi_get_named_property(env, obj, name, &method);
     if (!CheckTypeForNapiValue(env, method, napi_function)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "get '%{public}s' from UIExtension object failed", name);
+        SetPreloadedSuccess(false);
         return nullptr;
     }
     if (withResult) {

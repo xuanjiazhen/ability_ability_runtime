@@ -915,7 +915,10 @@ void ExtensionRecordManager::CheckIsPreloadUIExtensionSuccess(int32_t extensionR
         TAG_LOGE(AAFwkTag::UI_EXT, "null remoteCallback");
         return;
     }
-    remoteCallback->OnPreloadSuccess(requestCode, extensionRecordId, isPreloadedSuccess);
+    remoteCallback->OnPreloadSuccess(requestCode, extensionRecordId, isPreloadedSuccess ? ERR_OK : AAFwk::INNER_ERR);
+    if (!isPreloadedSuccess) {
+        ClearPreloadedUIExtensionAbility(extensionRecordId);
+    }
 }
 
 int32_t ExtensionRecordManager::ClearPreloadedUIExtensionAbility(int32_t extensionRecordId)
