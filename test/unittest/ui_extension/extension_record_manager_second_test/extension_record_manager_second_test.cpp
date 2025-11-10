@@ -784,292 +784,73 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetHostBundleNameForExtensionId_0200,
 }
 
 /**
- * @tc.name: UnPreloadUIExtensionRecordById_0100
- * @tc.desc: Test UnPreloadUIExtensionRecordById with invalid extensionRecordId.
+ * @tc.name: ClearPreloadedUIExtensionAbility_0100
+ * @tc.desc: Test clear with invalid extensionRecordId (not found in extensionRecords_)
  * @tc.type: FUNC
- * @tc.require: issue
  */
-HWTEST_F(ExtensionRecordManagerSecondTest, UnPreloadUIExtensionRecordById_0100, TestSize.Level1)
+HWTEST_F(ExtensionRecordManagerSecondTest, ClearPreloadedUIExtensionAbility_0100, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
-    
-    // Test with invalid extensionRecordId (not exist in extensionRecords_)
-    int32_t invalidExtensionRecordId = 9999;
-    EXPECT_EQ(extRecordMgr->UnPreloadUIExtensionRecordById(invalidExtensionRecordId), ERR_INVALID_VALUE);
-    
-    TAG_LOGI(AAFwkTag::TEST, "end.");
+    int32_t invalidId = 9999;
+    EXPECT_EQ(extRecordMgr->ClearPreloadedUIExtensionAbility(invalidId), AAFwk::ERR_CODE_INVALID_ID);
 }
 
 /**
- * @tc.name: UnPreloadUIExtensionRecordById_0200
- * @tc.desc: Test UnPreloadUIExtensionRecordById with valid extensionRecordId but not in preload map.
+ * @tc.name: ClearPreloadedUIExtensionAbility_0200
+ * @tc.desc: Test clear when record exists but is nullptr
  * @tc.type: FUNC
- * @tc.require: issue
  */
-HWTEST_F(ExtensionRecordManagerSecondTest, UnPreloadUIExtensionRecordById_0200, TestSize.Level1)
+HWTEST_F(ExtensionRecordManagerSecondTest, ClearPreloadedUIExtensionAbility_0200, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    std::string bundleName = "com.example.unittest";
-    std::string moduleName = "entry";
-    std::string name = "MainAbility";
-    std::string hostBundleName = "com.example.host";
-    
-    AAFwk::AbilityRequest abilityRequest;
-    abilityRequest.appInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.name = name;
-    abilityRequest.abilityInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.moduleName = moduleName;
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
-    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
-    
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
-    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
-    
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
-    
-    int32_t extensionRecordId = 1001;
-    extRecord->extensionRecordId_ = extensionRecordId;
-    extRecord->hostBundleName_ = hostBundleName;
-    abilityRecord->SetUIExtensionAbilityId(extensionRecordId);
-    
-    extRecordMgr->extensionRecords_[extensionRecordId] = extRecord;
-    EXPECT_EQ(extRecordMgr->UnPreloadUIExtensionRecordById(extensionRecordId), ERR_INVALID_VALUE);
-    
-    TAG_LOGI(AAFwkTag::TEST, "end.");
+    int32_t id = 1001;
+    extRecordMgr->extensionRecords_[id] = nullptr;
+    EXPECT_EQ(extRecordMgr->ClearPreloadedUIExtensionAbility(id), ERR_INVALID_VALUE);
 }
 
 /**
- * @tc.name: UnPreloadUIExtensionRecordById_0300
- * @tc.desc: Test UnPreloadUIExtensionRecordById with empty extensionRecords_.
+ * @tc.name: ClearPreloadedUIExtensionAbility_0300
+ * @tc.desc: Test clear when callingPid != hostPid
  * @tc.type: FUNC
- * @tc.require: issue
  */
-HWTEST_F(ExtensionRecordManagerSecondTest, UnPreloadUIExtensionRecordById_0300, TestSize.Level1)
+HWTEST_F(ExtensionRecordManagerSecondTest, ClearPreloadedUIExtensionAbility_0300, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
-    int32_t extensionRecordId = 1;
-    EXPECT_EQ(extRecordMgr->UnPreloadUIExtensionRecordById(extensionRecordId), ERR_INVALID_VALUE);
-    
-    TAG_LOGI(AAFwkTag::TEST, "end.");
+    AAFwk::AbilityRequest req;
+    req.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    auto abilityRec = AAFwk::AbilityRecord::CreateAbilityRecord(req);
+    auto extRec = std::make_shared<ExtensionRecord>(abilityRec);
+    extRec->hostPid_ = 12345;
+    int id = 1001;
+    extRecordMgr->extensionRecords_[id] = extRec;
+    EXPECT_EQ(extRecordMgr->ClearPreloadedUIExtensionAbility(id), AAFwk::ERR_CODE_INVALID_ID);
 }
 
 /**
  * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0100
- * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with empty preloadUIExtensionMap_.
- * @tc.type: FUNC
- * @tc.require: issue
+ * @tc.desc: Empty preloadUIExtensionMap_
  */
 HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0100, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
-    std::string hostBundleName = "com.example.host";
-    
-    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "end.");
+    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost("any.host"), ERR_OK);
 }
+
 /**
  * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0200
- * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with non-matching hostBundleName.
- * @tc.type: FUNC
- * @tc.require: issue
+ * @tc.desc: Map contains entry for different bundleName, should not unload
  */
 HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0200, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    std::string bundleName = "com.example.unittest";
-    std::string moduleName = "entry";
-    std::string name = "MainAbility";
-    std::string hostBundleName = "com.example.host";
-    
-    AAFwk::AbilityRequest abilityRequest;
-    abilityRequest.appInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.name = name;
-    abilityRequest.abilityInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.moduleName = moduleName;
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
-    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
-    
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
-    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
-    extRecord->hostBundleName_ = hostBundleName;
-    extRecord->hostPid_ = IPCSkeleton::GetCallingPid();
-    
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
-    
-    auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
-    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
-    
-    std::string differentHostBundleName = "com.example.different";
-    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(differentHostBundleName), ERR_OK);
-    
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
+    auto rec = std::make_shared<ExtensionRecord>(nullptr);
+    rec->hostBundleName_ = "com.example.host";
+    rec->hostPid_ = IPCSkeleton::GetCallingPid();
 
-/**
- * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0300
- * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with matching hostBundleName and matching callingPid.
- * @tc.type: FUNC
- * @tc.require: issue
- */
-HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0300, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    std::string bundleName = "com.example.unittest";
-    std::string moduleName = "entry";
-    std::string name = "MainAbility";
-    std::string hostBundleName = "com.example.host";
-    
-    AAFwk::AbilityRequest abilityRequest;
-    abilityRequest.appInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.name = name;
-    abilityRequest.abilityInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.moduleName = moduleName;
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
-    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
-    
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
-    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
-    extRecord->hostBundleName_ = hostBundleName;
-    
-    int32_t currentPid = IPCSkeleton::GetCallingPid();
-    extRecord->hostPid_ = currentPid;
-    
-    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
-    
-    auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
-    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
-    
-    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);
-    
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
+    auto key = std::make_tuple("AbilityA", "bundleA", "moduleA", "com.example.host");
+    extRecordMgr->preloadUIExtensionMap_[key].push_back(rec);
 
-/**
- * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0400
- * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with matching hostBundleName but non-matching callingPid.
- * @tc.type: FUNC
- * @tc.require: issue
- */
-HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0400, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    std::string bundleName = "com.example.unittest";
-    std::string moduleName = "entry";
-    std::string name = "MainAbility";
-    std::string hostBundleName = "com.example.host";
-    
-    AAFwk::AbilityRequest abilityRequest;
-    abilityRequest.appInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.name = name;
-    abilityRequest.abilityInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.moduleName = moduleName;
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
-    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
-    
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
-    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
-    extRecord->hostBundleName_ = hostBundleName;
-    
-    extRecord->hostPid_ = 99999;
-    
-    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
-    
-    auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
-    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
-    
-    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);
-    
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
-
-/**
- * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0500
- * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with multiple records for same host.
- * @tc.type: FUNC
- * @tc.require: issue
- */
-HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0500, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    std::string bundleName = "com.example.unittest";
-    std::string moduleName = "entry";
-    std::string hostBundleName = "com.example.host";
-    
-    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
-    int32_t currentPid = IPCSkeleton::GetCallingPid();
-    
-    for (int i = 0; i < 3; i++) {
-        std::string name = "MainAbility" + std::to_string(i);
-        AAFwk::AbilityRequest abilityRequest;
-        abilityRequest.appInfo.bundleName = bundleName;
-        abilityRequest.abilityInfo.name = name;
-        abilityRequest.abilityInfo.bundleName = bundleName;
-        abilityRequest.abilityInfo.moduleName = moduleName;
-        abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-        abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
-        abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
-        
-        auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
-        std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
-        extRecord->hostBundleName_ = hostBundleName;
-        
-        extRecord->hostPid_ = (i < 2) ? currentPid : 99999;
-        
-        auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
-        extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
-    }
-    
-    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);
-    
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
-
-/**
- * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0600
- * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with nullptr records in map.
- * @tc.type: FUNC
- * @tc.require: issue
- */
-HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0600, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    std::string bundleName = "com.example.unittest";
-    std::string moduleName = "entry";
-    std::string name = "MainAbility";
-    std::string hostBundleName = "com.example.host";
-    
-    AAFwk::AbilityRequest abilityRequest;
-    abilityRequest.appInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.name = name;
-    abilityRequest.abilityInfo.bundleName = bundleName;
-    abilityRequest.abilityInfo.moduleName = moduleName;
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::UI;
-    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
-    
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
-    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
-    extRecord->hostBundleName_ = hostBundleName;
-    extRecord->hostPid_ = IPCSkeleton::GetCallingPid();
-    
-    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
-    
-    auto mapKey = std::make_tuple(name, bundleName, moduleName, hostBundleName);
-    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(extRecord);
-    
-    std::shared_ptr<ExtensionRecord> nullRecord = nullptr;
-    extRecordMgr->preloadUIExtensionMap_[mapKey].push_back(nullRecord);
-    
-    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost(hostBundleName), ERR_OK);
-    
-    TAG_LOGI(AAFwkTag::TEST, "end.");
+    EXPECT_EQ(extRecordMgr->ClearAllPreloadUIExtensionRecordForHost("other.host"), ERR_OK);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
