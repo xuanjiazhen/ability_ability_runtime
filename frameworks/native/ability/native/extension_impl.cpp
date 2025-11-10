@@ -85,10 +85,8 @@ void ExtensionImpl::HandleExtensionTransaction(
         TAG_LOGE(AAFwkTag::EXT, "lifecycle state equal");
         return;
     }
-
     SetLaunchParam(targetState.launchParam);
     bool ret = ProcessLifecycleStateTransition(want, targetState, sessionInfo);
-
     if (ret && !UIExtensionAbilityExecuteInsightIntent(want)) {
         TAG_LOGD(AAFwkTag::EXT, "call abilityms");
         AAFwk::PacMap restoreData;

@@ -56,7 +56,6 @@ public:
 
     /**
      * @brief Connect the Extension. and Calling information back to Extension.
-     *
      * @param want The Want object to connect to.
      * @param targetState The terget state.
      * @param sessionInfo  Indicates the sessionInfo.
@@ -68,14 +67,11 @@ public:
 
     /**
      * @brief Process lifecycle state transition for the Extension.
-     *
      * This method executes lifecycle operations (Start, Stop, Foreground, Background)
      * based on the target state, and returns whether the transition should continue.
-     *
      * @param want        The Want object representing the request parameters.
      * @param targetState The target lifecycle state information for the Extension.
      * @param sessionInfo Indicates the session info to be used during the transition.
-     * 
      * @return true  if the lifecycle transition succeeded and can continue;
      * @return false if the transition was interrupted or the state is invalid.
      */
