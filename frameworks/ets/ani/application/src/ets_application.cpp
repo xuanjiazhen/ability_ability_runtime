@@ -27,6 +27,7 @@
 #include "permission_verification.h"
 #include "application_env.h"
 #include "ani_enum_convert.h"
+#include "app_mgr_client.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -305,6 +306,137 @@ ani_enum_item EtsApplication::GetAppPreloadType(ani_env *env)
     return appPreloadTypeItem;
 }
 
+void EtsApplication::ExitMasterProcessRole(ani_env *env, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "ExitMasterProcessRole Call");
+    int32_t errCode = ERR_OK;
+    errCode = OHOS::DelayedSingleton<OHOS::AppExecFwk::AppMgrClient>::GetInstance()->ExitMasterProcessRole();
+    if (errCode == ERR_OK) {
+        AppExecFwk::AsyncCallback(
+            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
+    }
+    AppExecFwk::AsyncCallback(
+        env, callback, nullptr, nullptr);
+}
+
+void EtsApplication::CreatePluginModuleContextForHostBundleCheck(ani_env *env, ani_object contextObj,
+    ani_string pluginBundleName, ani_string pluginModuleName, ani_string hostBundleName, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ConnectUIServiceExtensionCheck called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
+        return;
+    }
+
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no system app");
+        EtsErrorUtil::ThrowNotSystemAppError(env);
+        return;
+    }
+
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no permission");
+        EtsErrorUtil::ThrowNoPermissionError(env, PERMISSION_GET_BUNDLE_INFO);
+        return;
+    }
+
+    std::string stdPluginBundleName = "";
+    std::string stdPluginModuleName = "";
+    std::string stdHostBundleName = "";
+    if (!AppExecFwk::GetStdString(env, pluginBundleName, stdPluginBundleName)
+        || !AppExecFwk::GetStdString(env, pluginModuleName, stdPluginModuleName)
+        || !AppExecFwk::GetStdString(env, hostBundleName, stdHostBundleName)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
+        EtsErrorUtil::ThrowInvalidParamError(env,
+            "Parse param failed, moduleName and pluginBundleName must be string.");
+        return;
+    }
+    
+    ani_boolean stageMode = false;
+    ani_status status = IsStageContext(env, contextObj, stageMode);
+    if (status != ANI_OK || !stageMode) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must be a context of stageMode.");
+        return;
+    }
+
+    auto context = GetStageModeContext(env, contextObj);
+    if (context == nullptr) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must not be nullptr.");
+        return;
+    }
+
+    auto inputContextPtr = Context::ConvertTo<Context>(context);
+    if (inputContextPtr == nullptr) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must be a context.");
+        return;
+    }
+
+    auto moduleContext = std::make_shared<std::shared_ptr<Context>>();
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    if (contextImpl == nullptr) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "create context failed.");
+        return;
+    }
+}
+
+void EtsApplication::CreatePluginModuleContextForHostBundle(ani_env *env, ani_object contextObj,
+    ani_string pluginBundleName, ani_string pluginModuleName, ani_string hostBundleName, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "CreatePluginModuleContextForHostBundle Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no system app");
+        return;
+    }
+
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no permission");
+        return;
+    }
+
+    std::string stdPluginBundleName = "";
+    std::string stdPluginModuleName = "";
+    std::string stdHostBundleName = "";
+    if (!AppExecFwk::GetStdString(env, pluginBundleName, stdPluginBundleName)
+        || !AppExecFwk::GetStdString(env, pluginModuleName, stdPluginModuleName)
+        || !AppExecFwk::GetStdString(env, hostBundleName, stdHostBundleName)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
+        return;
+    }
+    
+    ani_boolean stageMode = false;
+    ani_status status = IsStageContext(env, contextObj, stageMode);
+    if (status != ANI_OK || !stageMode) {
+        return;
+    }
+
+    auto context = GetStageModeContext(env, contextObj);
+    if (context == nullptr) {
+        return;
+    }
+
+    auto inputContextPtr = Context::ConvertTo<Context>(context);
+    if (inputContextPtr == nullptr) {
+        return;
+    }
+
+    auto moduleContext = std::make_shared<std::shared_ptr<Context>>();
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    if (contextImpl == nullptr) {
+        return;
+    }
+
+    contextImpl->SetProcessName(context->GetProcessName());
+    *moduleContext = contextImpl->CreateTargetPluginContext(stdHostBundleName, stdPluginBundleName,
+        stdPluginModuleName, inputContextPtr);
+
+    SetCreateCompleteCallback(env, moduleContext, callback);
+}
+
 void ApplicationInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ApplicationInit Call");
@@ -342,6 +474,25 @@ void ApplicationInit(ani_env *env)
             ":L@ohos/app/ability/application/application/AppPreloadType;",
             reinterpret_cast<void *>(EtsApplication::GetAppPreloadType)
         },
+        ani_native_function {
+            "nativeExitMasterProcessRole",
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsApplication::ExitMasterProcessRole)
+        },
+        ani_native_function {
+            "nativeCreatePluginModuleContextForHostBundle",
+            "Lapplication/Context/Context;Lstd/core/String;"
+            "Lstd/core/String;Lstd/core/String;"
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsApplication::CreatePluginModuleContextForHostBundle)
+        },
+        ani_native_function {
+            "nativeCreatePluginModuleContextForHostBundleCheck",
+            "Lapplication/Context/Context;Lstd/core/String;"
+            "Lstd/core/String;Lstd/core/String;:V",
+            reinterpret_cast<void *>(EtsApplication::CreatePluginModuleContextForHostBundleCheck)
+        },
+        
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (status != ANI_OK) {
