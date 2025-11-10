@@ -300,16 +300,26 @@ int AppfreezeManager::LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::
         && info.eventName != AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING) {
         return -1;
     }
+
+    std::string faultTimeStr = "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
     if (!g_betaVersion && info.eventName == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
-        int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "HIVIEW_HALF_FREEZE_LOG",
+        int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
             HiviewDFX::HiSysEvent::EventType::FAULT, "PID", info.pid, "PACKAGE_NAME", info.bundleName);
-        TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write HIVIEW_HALF_FREEZE_LOG, pid:%{public}d, packageName:%{public}s,"
+        TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:%{public}s,"
             " ret:%{public}d", info.pid, info.bundleName.c_str(), ret);
     }
+
+    AppFaultDataBySA faultDataSA;
+    if (g_betaVersion && info.eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
+        int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
+            HiviewDFX::HiSysEvent::EventType::FAULT, "PID", info.pid, "PACKAGE_NAME", info.bundleName,
+            "FAULT_TIME", faultTimeStr);
+        faultDataSA.errorObject.message = (ret == 0) ? "\nFREEZE_HALF_HIVIEW_LOG write success\n" : "";
+    }
+
     TAG_LOGD(AAFwkTag::APPDFR, "called %{public}s, name_ %{public}s", info.bundleName.c_str(), name_.c_str());
     HITRACE_METER_FMT(HITRACE_TAG_APP, "LifecycleTimeoutHandle:%{public}s bundleName:%{public}s",
         info.eventName.c_str(), info.bundleName.c_str());
-    AppFaultDataBySA faultDataSA;
     if (info.eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
         std::ifstream statmStream("/proc/" + std::to_string(info.pid) + "/statm");
         if (statmStream) {
@@ -320,7 +330,7 @@ int AppfreezeManager::LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::
         }
     }
     faultDataSA.errorObject.name = info.eventName;
-    faultDataSA.errorObject.message = info.msg;
+    faultDataSA.errorObject.message = faultTimeStr + info.msg + faultDataSA.errorObject.message;
     faultDataSA.faultType = FaultDataType::APP_FREEZE;
     faultDataSA.timeoutMarkers = "notifyFault" + std::to_string(info.pid) +
                                  "-" + std::to_string(AbilityRuntime::TimeUtil::CurrentTimeMillis());
