@@ -271,5 +271,51 @@ HWTEST_F(AutoFillManagerTest, AutoFillManager_RemoveTaskAndExtensionCallback_010
 
     TAG_LOGI(AAFwkTag::TEST, "AutoFillManager_RemoveTaskAndExtensionCallback_Test end");
 }
+
+/*
+ * Feature: AutoFillManager
+ * Function: CreateAutoFillExtension
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify that the return value of CreateAutoFillExtension is abnormal.
+ */
+HWTEST_F(AutoFillManagerTest, CreateAutoFillExtension_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, CreateAutoFillExtension_0100, TestSize.Level1";
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+    Ace::ModalUIExtensionCallbacks callback;
+    AbilityRuntime::AutoFill::AutoFillRequest request;
+    request.autoFillTriggerType =  AbilityRuntime::AutoFill::AutoFillTriggerType::MANUAL_REQUEST;
+    AbilityRuntime::AutoFill::AutoFillWindowType autoFillWindowType = AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW;
+    Ace::MockUIContent *uicontent = new Ace::MockUIContent();
+    EXPECT_CALL(*uicontent, CreateCustomPopupUIExtension(_, _, _)).WillOnce(Return(0));
+    auto result = manager.CreateAutoFillExtension(uicontent, request, callback, autoFillWindowType,true);
+    EXPECT_EQ(result, 0);
+    delete uicontent;
+}
+
+/*
+ * Feature: AutoFillManager
+ * Function: CreateAutoFillExtension
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify that the return value of CreateAutoFillExtension is abnormal.
+ */
+HWTEST_F(AutoFillManagerTest, CreateAutoFillExtension_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, CreateAutoFillExtension_0200, TestSize.Level1";
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+    Ace::ModalUIExtensionCallbacks callback;
+    AbilityRuntime::AutoFill::AutoFillRequest request;
+    request.autoFillTriggerType =  AbilityRuntime::AutoFill::AutoFillTriggerType::UNSPECIFIED;
+    AbilityRuntime::AutoFill::AutoFillWindowType autoFillWindowType = AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW;
+    Ace::MockUIContent *uicontent = new Ace::MockUIContent();
+    EXPECT_CALL(*uicontent, CreateCustomPopupUIExtension(_, _, _)).WillOnce(Return(2));
+    auto result = manager.CreateAutoFillExtension(uicontent, request, callback, autoFillWindowType,true);
+    EXPECT_EQ(result, 2);
+    delete uicontent;
+}
 } // namespace AppExecFwk
 } // namespace OHOS
