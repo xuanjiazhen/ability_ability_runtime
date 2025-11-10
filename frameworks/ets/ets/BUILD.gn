@@ -1823,6 +1823,38 @@ ohos_prebuilt_etc("ability_ability_abc_etc") {
   deps = [ ":ability_ability_abc" ]
 }
 
+generate_static_abc("ability_runtime_kiosk_manager_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.kioskManager.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_kiosk_manager_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_kiosk_manager_abc_etc") {
+  source = "$target_out_dir/ability_runtime_kiosk_manager_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_kiosk_manager_abc" ]
+}
+
+generate_static_abc("ability_runtime_kiosk_status_abc") {
+  base_url = "./"
+  files = [ "./application/KioskStatus.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_kiosk_status_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_kiosk_status_abc_etc") {
+  source = "$target_out_dir/ability_runtime_kiosk_status_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_kiosk_status_abc" ]
+}
+
 generate_static_abc("ability_runtime_interop_ability_lifecycle_callback_abc") {
   base_url = "./"
   files = [ "./@ohos.app.ability.InteropAbilityLifecycleCallback.ets" ]
@@ -1905,6 +1937,8 @@ group("ets_packages") {
     ":ability_runtime_insight_intent_driver_abc_etc",
     ":ability_runtime_insight_intent_executor_abc_etc",
     ":ability_runtime_interop_ability_lifecycle_callback_abc_etc",
+    ":ability_runtime_kiosk_manager_abc_etc",
+    ":ability_runtime_kiosk_status_abc_etc",
     ":ability_runtime_mission_info_abc_etc",
     ":ability_runtime_mission_listener_abc_etc",
     ":ability_runtime_mission_snapshot_abc_etc",
