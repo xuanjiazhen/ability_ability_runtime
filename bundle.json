@@ -32,7 +32,8 @@
         "ability_runtime_app_no_response_bundlename",
         "ability_runtime_start_window_options_with_pixelmap",
         "ability_runtime_check_internet_permission",
-        "ability_runtime_no_screen"
+        "ability_runtime_no_screen",
+        "ability_runtime_forbidstart_enable"
       ],
       "adapted_system_type": [
           "standard"
@@ -113,7 +114,6 @@
             "webview",
             "window_manager",
             "zlib",
-            "skia",
             "hiperf"
   ],
           "third_party": [
@@ -416,6 +416,15 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/interfaces/inner_api/connectionobs_manager:connection_obs_manager"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/foreground_app_obs_manager/include",
+              "header_files": [
+                "foreground_app_connection_client.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/foreground_app_obs_manager:foreground_app_obs_manager"
           },
           {
             "header": {
