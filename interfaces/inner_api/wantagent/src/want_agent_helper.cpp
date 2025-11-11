@@ -24,6 +24,8 @@
 #include "want_agent_client.h"
 #include "want_sender_info.h"
 #include "want_sender_interface.h"
+#include "multi_app_utils.h"
+#include "permission_verification.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -465,11 +467,19 @@ std::string WantAgentHelper::ToString(const std::shared_ptr<WantAgent> &agent)
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid param");
         return "";
     }
+    //add appIndex to support Dual Apps
+    int32_t appIndex = 0;
+    int32_t uid = 0;
+    std::string bundleName = info->bundleName;
+    GetUid(agent, uid);
+    OHOS::AAFwk::MultiAppUtils::GetRunningMultiAppIndex(bundleName, uid, appIndex);
+
     nlohmann::json jsonObject;
     jsonObject["requestCode"] = (*info.get()).requestCode;
     jsonObject["operationType"] = (*info.get()).type;
     jsonObject["flags"] = (*info.get()).flags;
     jsonObject["userId"] = (*info.get()).userId;
+    jsonObject["appIndex"] = appIndex;
 
     nlohmann::json wants = nlohmann::json::array();
     for (auto &wantInfo : (*info.get()).allWants) {
@@ -535,8 +545,17 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
             }
         }
     }
-    WantAgentInfo info(requestCode, operationType, flagsVec, wants, extraInfo);
 
+    if (OHOS::AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        int32_t appIndex = 0;
+        if (jsonObject.contains("appIndex") && jsonObject["appIndex"].is_number_integer()) {
+            userId = jsonObject.at("appIndex").get<int>();
+            WantAgentInfo info(requestCode, appIndex, operationType, flagsVec, wants, extraInfo);
+            return GetWantAgent(info, userId, uid);
+        }
+    }
+    
+    WantAgentInfo info(requestCode, operationType, flagsVec, wants, extraInfo);
     return GetWantAgent(info, userId, uid);
 }
 
