@@ -780,6 +780,10 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
 void AppRunningRecord::FillAbilityStateDataWithWant(const std::shared_ptr<AbilityRunningRecord> &ability,
     AbilityStateData &abilityStateData)
 {
+    if (ability == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null ability");
+        return;
+    }
     if (ability->GetWant() != nullptr) {
         abilityStateData.callerAbilityName = ability->GetWant()->GetStringParam(Want::PARAM_RESV_CALLER_ABILITY_NAME);
         abilityStateData.callerBundleName = ability->GetWant()->GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);

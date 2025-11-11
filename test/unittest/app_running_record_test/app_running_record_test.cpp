@@ -1355,11 +1355,11 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_000
     std::weak_ptr<AppMgrServiceInner> inner = appMgrServiceInner;
     appRunningRecord->SetAppMgrServiceInner(inner);
 
-
+    // exec func
     AbilityStateData abilityStateData;
     appRunningRecord->FillAbilityStateDataWithWant(abilityRecord, abilityStateData);
 
-
+    // check params
     EXPECT_EQ(abilityStateData.callerAbilityName, callerAbilityName);
     EXPECT_EQ(abilityStateData.callerBundleName, callerBundleName);
     EXPECT_EQ(abilityStateData.callerUid, callerUid);
@@ -1400,11 +1400,11 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_000
     auto appRunningRecord = std::make_shared<AppRunningRecord>(info, recordId, processName);
     ASSERT_NE(appRunningRecord, nullptr);
 
-
+    // exec func
     AbilityStateData abilityStateData;
     appRunningRecord->FillAbilityStateDataWithWant(abilityRecord, abilityStateData);
 
-
+    // check params
     EXPECT_EQ(abilityStateData.callerAbilityName, callerAbilityName);
     EXPECT_EQ(abilityStateData.callerBundleName, callerBundleName);
     EXPECT_EQ(abilityStateData.callerUid, callerUid);
@@ -1457,11 +1457,11 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_000
     std::weak_ptr<AppMgrServiceInner> inner = appMgrServiceInner;
     appRunningRecord->SetAppMgrServiceInner(inner);
 
-
+    // exec func
     AbilityStateData abilityStateData;
     appRunningRecord->FillAbilityStateDataWithWant(abilityRecord, abilityStateData);
 
-
+    // check params
     EXPECT_EQ(abilityStateData.callerAbilityName, callerAbilityName);
     EXPECT_EQ(abilityStateData.callerBundleName, callerBundleName);
     EXPECT_EQ(abilityStateData.callerUid, callerUid);
@@ -1488,11 +1488,35 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_000
     auto appRunningRecord = std::make_shared<AppRunningRecord>(info, recordId, processName);
     ASSERT_NE(appRunningRecord, nullptr);
 
-
+    // exec func
     AbilityStateData abilityStateData;
     appRunningRecord->FillAbilityStateDataWithWant(abilityRecord, abilityStateData);
 
+    // check params
+    EXPECT_EQ(abilityStateData.callerAbilityName, "");
+    EXPECT_EQ(abilityStateData.callerBundleName, "");
+    EXPECT_EQ(abilityStateData.hostPid, 0);
+    EXPECT_EQ(abilityStateData.hostBundleName, "");
+}
 
+/**
+ * @tc.name: AppRunningRecord_FillAbilityStateDataWithWant_0005
+ * @tc.desc: Test FillAbilityStateDataWithWant works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_0005, TestSize.Level1)
+{
+    std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
+    int32_t recordId = RECORD_ID;
+    std::string processName = "appRunningRecordProcessName";
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(info, recordId, processName);
+    ASSERT_NE(appRunningRecord, nullptr);
+
+    // exec func
+    AbilityStateData abilityStateData;
+    appRunningRecord->FillAbilityStateDataWithWant(nullptr, abilityStateData);
+
+    // check params
     EXPECT_EQ(abilityStateData.callerAbilityName, "");
     EXPECT_EQ(abilityStateData.callerBundleName, "");
     EXPECT_EQ(abilityStateData.hostPid, 0);
