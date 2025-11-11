@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 import { AsyncCallback } from '@ohos.base';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import { BusinessError } from '@ohos.base';
@@ -99,6 +100,8 @@ export default class ServiceExtensionContext extends ExtensionContext {
   native nativeStartUIServiceExtensionAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
 
   native nativeWantCheck(want: Want): void;
+
+  native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<void>, options?: AtomicServiceOptions): void;
 
   terminateSelf(callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -232,6 +235,21 @@ export default class ServiceExtensionContext extends ExtensionContext {
       });
       taskpool.execute((): void => {
         this.nativeStartUIServiceExtensionAbility(want, myCall);
+      });
+    });
+  }
+
+  openAtomicService(appId: string, options?: AtomicServiceOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeOpenAtomicService(appId, asyncCall, options);
       });
     });
   }
