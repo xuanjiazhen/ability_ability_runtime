@@ -22,7 +22,11 @@ namespace AAFwk {
 namespace {
 constexpr int64_t CLEAN_INTERVAL_MS = 60000; // 60s
 constexpr int64_t EXTENSION_LIMIT_INTERVAL_MS = 1000; // 1s
-constexpr int32_t EXTENSION_MAX_LIMIT = 20;
+const std::vector<std::pair<int32_t, std::string>> EXTENSION_TIERS = {
+    {20, "TIER_20"},
+    {50, "TIER_50"}, 
+    {100, "TIER_100"}
+};
 constexpr int64_t REPORT_LIMIT_INTERVAL_MS = 5000; // 5s
 constexpr int32_t REPORT_MAX_LIMIT = 1;
 }
@@ -33,11 +37,36 @@ RateLimiter &RateLimiter::GetInstance()
     return instance;
 }
 
-bool RateLimiter::CheckExtensionLimit(int32_t uid)
+RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
 {
     CleanCallMap();
-    return CheckSingleLimit(uid, extensionCallMap_, extensionCallMapLock_, EXTENSION_LIMIT_INTERVAL_MS,
-        EXTENSION_MAX_LIMIT);
+    int64_t currentTimeMillis = CurrentTimeMillis();
+    int64_t timeBefore = currentTimeMillis - EXTENSION_LIMIT_INTERVAL_MS;
+    
+    std::lock_guard<std::mutex> guard(extensionCallMapLock_);
+    auto& timestamps = extensionCallMap_[uid];
+    
+    // 清理过期时间戳
+    auto it = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
+    timestamps.erase(timestamps.begin(), it);
+    
+    // 检查各个挡位
+    int currentCount = timestamps.size();
+    LimitResult result{false, 0, ""};
+    
+    for (const auto& [limit, tierName] : EXTENSION_TIERS) {
+        if (currentCount >= limit) {
+            result = {true, limit, tierName};
+            break;
+        }
+    }
+    
+    // 如果没有触发限流，记录当前时间
+    if (!result.limited) {
+        timestamps.emplace_back(currentTimeMillis);
+    }
+    
+    return result;
 }
 
 bool RateLimiter::CheckReportLimit(int32_t uid)

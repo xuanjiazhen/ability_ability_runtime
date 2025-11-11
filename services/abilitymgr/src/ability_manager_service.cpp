@@ -1174,7 +1174,10 @@ void AbilityManagerService::CheckExtensionRateLimit()
         return;
     }
     auto uid = IPCSkeleton::GetCallingUid();
-    if (!RateLimiter::GetInstance().CheckExtensionLimit(uid)) {
+    auto limitResult = RateLimiter::GetInstance().CheckExtensionLimit(uid);
+    if (limitResult.limited) {
+        TAG_LOGI("Rate limited triggered, tier: %s, limit: %d", 
+                limitResult.tierName.c_str(), limitResult.triggeredLimit);
         return;
     }
     TAG_LOGE(AAFwkTag::SERVICE_EXT, "Reach max request limit, uid:%{public}d", uid);

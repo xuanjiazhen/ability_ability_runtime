@@ -27,6 +27,11 @@ namespace OHOS {
 namespace AAFwk {
 class RateLimiter {
 public:
+    struct LimitResult {
+        bool limited;
+        int32_t triggeredLimit;
+        std::string tierName;
+    };
     static RateLimiter &GetInstance();
 
     ~RateLimiter() = default;
