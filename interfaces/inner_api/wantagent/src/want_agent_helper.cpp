@@ -24,6 +24,8 @@
 #include "want_agent_client.h"
 #include "want_sender_info.h"
 #include "want_sender_interface.h"
+#include "multi_app_utils.h"
+#include "permission_verification.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -470,6 +472,7 @@ std::string WantAgentHelper::ToString(const std::shared_ptr<WantAgent> &agent)
     jsonObject["operationType"] = (*info.get()).type;
     jsonObject["flags"] = (*info.get()).flags;
     jsonObject["userId"] = (*info.get()).userId;
+    jsonObject["appIndex"] = (*info.get()).appIndex;
 
     nlohmann::json wants = nlohmann::json::array();
     for (auto &wantInfo : (*info.get()).allWants) {
@@ -497,12 +500,11 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
         TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse json string");
         return nullptr;
     }
-    int requestCode = -1;
+    int requestCode = -1, userId = -1;
     if (jsonObject.contains("requestCode") && jsonObject["requestCode"].is_number_integer()) {
         requestCode = jsonObject.at("requestCode").get<int>();
     }
 
-    int userId = -1;
     if (jsonObject.contains("userId") && jsonObject["userId"].is_number_integer()) {
         userId = jsonObject.at("userId").get<int>();
     }
@@ -513,7 +515,6 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     }
 
     std::vector<WantAgentConstant::Flags> flagsVec = ParseFlags(jsonObject);
-
     std::vector<std::shared_ptr<AAFwk::Want>> wants = {};
     if (jsonObject.contains("wants") && jsonObject["wants"].is_array()) {
         for (auto &wantObj : jsonObject.at("wants")) {
@@ -535,8 +536,15 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
             }
         }
     }
-    WantAgentInfo info(requestCode, operationType, flagsVec, wants, extraInfo);
 
+    int32_t appIndex = 0;
+    if (OHOS::AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        if (jsonObject.contains("appIndex") && jsonObject["appIndex"].is_number_integer()) {
+            appIndex = jsonObject.at("appIndex").get<int>();
+        }
+    }
+    
+    WantAgentInfo info(requestCode, appIndex, operationType, flagsVec, wants, extraInfo);
     return GetWantAgent(info, userId, uid);
 }
 
