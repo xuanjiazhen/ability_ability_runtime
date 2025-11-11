@@ -42,6 +42,26 @@ WantAgentInfo::WantAgentInfo(int requestCode, const WantAgentConstant::Operation
     }
 }
 
+WantAgentInfo::WantAgentInfo(int requestCode, int32_t appIndex,
+    const WantAgentConstant::OperationType &operationType, WantAgentConstant::Flags flag,
+    std::vector<std::shared_ptr<Want>> &wants, const std::shared_ptr<WantParams> &extraInfo)
+{
+    requestCode_ = requestCode;
+    operationType_ = operationType;
+    appIndex_ = appIndex;
+    flags_.push_back(flag);
+    if (!wants.empty()) {
+        for (auto want : wants) {
+            if (want != nullptr) {
+                wants_.push_back(std::make_shared<Want>(*want));
+            }
+        }
+    }
+    if (extraInfo != nullptr) {
+        extraInfo_ = std::make_shared<WantParams>(*extraInfo);
+    }
+}
+
 WantAgentInfo::WantAgentInfo(int requestCode, const WantAgentConstant::OperationType &operationType,
     const std::vector<WantAgentConstant::Flags> &flags, std::vector<std::shared_ptr<Want>> &wants,
     const std::shared_ptr<WantParams> &extraInfo, int userId)
