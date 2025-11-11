@@ -183,7 +183,13 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
     pendingKey->SetFlags(wantSenderInfo.flags);
     pendingKey->SetUserId(wantSenderInfo.userId);
     pendingKey->SetType(wantSenderInfo.type);
-    pendingKey->SetAppIndex(appIndex);
+    // add support for dual apps
+    if (AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        pendingKey->SetAppIndex(wantSenderInfo.appIndex);
+    } else {
+        pendingKey->SetAppIndex(appIndex);
+    }
+
     if (wantSenderInfo.allWants.size() > 0) {
         pendingKey->SetRequestWant(wantSenderInfo.allWants.back().want);
         pendingKey->SetRequestResolvedType(wantSenderInfo.allWants.back().resolvedTypes);
