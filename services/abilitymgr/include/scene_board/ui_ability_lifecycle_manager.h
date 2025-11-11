@@ -72,6 +72,7 @@ public:
     virtual ~UIAbilityLifecycleManager() = default;
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
+    void SignRestartProcess(int32_t pid);
 
     /**
      * StartUIAbility with request.
@@ -674,6 +675,12 @@ private:
      */
     void HandleForegroundFailed(const std::shared_ptr<AbilityRecord> &ability,
         AbilityState state = AbilityState::INITIAL);
+    
+     /**
+     * @brief Handle background for prelaunch
+     * @param abilityRecordabilityRecord The ability record that prelaunch
+     */
+    void HandlePrelaunchBackground(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
     /**
      * @brief Handle foreground timeout for ability
@@ -722,12 +729,6 @@ private:
      * @param abilityRecord The ability record to terminate
      */
     void CompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
-
-    /**
-     * @brief Complete terminate operation with lock
-     * @param abilityRecord The ability record to terminate
-     */
-    void CompleteTerminateLocked(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
     /**
      * @brief Check if token is contained in internal storage

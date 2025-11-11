@@ -25,6 +25,7 @@
 #include "app_exit_reason_data_manager.h"
 #include "assert_fault_callback_death_mgr.h"
 #include "extension_ability_info.h"
+#include "foreground_app_connection_manager.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "int_wrapper.h"
@@ -316,6 +317,11 @@ void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<AbilityRecor
             abilityRecord->SetWant(abilityRequest.want);
             abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken());
+            if (!abilityRecord->IsConnectionReported() && ForegroundAppConnectionManager::IsForegroundAppConnection(
+                abilityRecord->GetAbilityInfo(), abilityRecord->GetCallerRecord())) {
+                abilityRecord->ReportAbilityConnectionRelations();
+                abilityRecord->SetConnectionReported(true);
+            }
             return;
         }
     }
@@ -1024,6 +1030,11 @@ int AbilityConnectManager::AttachAbilityThreadLocked(
         && !abilityRecord->GetWant().GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
         abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
         DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token);
+        if (!abilityRecord->IsConnectionReported() && ForegroundAppConnectionManager::IsForegroundAppConnection(
+            abilityRecord->GetAbilityInfo(), abilityRecord->GetCallerRecord())) {
+            abilityRecord->ReportAbilityConnectionRelations();
+            abilityRecord->SetConnectionReported(true);
+        }
     } else {
         TAG_LOGD(AAFwkTag::EXT, "Inactivate");
         abilityRecord->Inactivate();
@@ -3635,6 +3646,20 @@ void AbilityConnectManager::SignRestartAppFlag(int32_t uid, const std::string &i
         }
     }
     AbilityCacheManager::GetInstance().SignRestartAppFlag(uid, instanceKey);
+}
+
+void AbilityConnectManager::SignRestartProcess(int32_t pid)
+{
+    {
+        std::lock_guard lock(serviceMapMutex_);
+        for (auto &[key, abilityRecord] : serviceMap_) {
+            if (abilityRecord == nullptr || abilityRecord->GetPid() != pid) {
+                continue;
+            }
+            abilityRecord->SetRestartAppFlag(true);
+        }
+    }
+    AbilityCacheManager::GetInstance().SignRestartProcess(pid);
 }
 
 bool AbilityConnectManager::AddToServiceMap(const std::string &key, std::shared_ptr<AbilityRecord> abilityRecord)

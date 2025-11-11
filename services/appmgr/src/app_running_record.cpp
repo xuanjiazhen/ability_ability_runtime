@@ -866,7 +866,7 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
         TAG_LOGE(AAFwkTag::APPMGR, "can not find ability record");
         return;
     }
-    if (state == AbilityState::ABILITY_STATE_CREATE && preloadMode_ != PreloadMode::PRE_LAUNCH) {
+    if (state == AbilityState::ABILITY_STATE_CREATE) {
         StateChangedNotifyObserver(
             abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE), true, false);
         return;
@@ -961,8 +961,9 @@ void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRec
     moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_BACKGROUND);
     StateChangedNotifyObserver(
         ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_BACKGROUND), true, false);
-    if (curState_ != ApplicationState::APP_STATE_FOREGROUND && curState_ != ApplicationState::APP_STATE_CACHED) {
-        TAG_LOGW(AAFwkTag::APPMGR, "wrong state");
+    if (curState_ != ApplicationState::APP_STATE_FOREGROUND && curState_ != ApplicationState::APP_STATE_CACHED &&
+        curState_ != ApplicationState::APP_STATE_READY) {
+        TAG_LOGW(AAFwkTag::APPMGR, "wrong state: %{public}d", curState_);
         return;
     }
     int32_t foregroundSize = 0;
@@ -1062,10 +1063,8 @@ void AppRunningRecord::PopForegroundingAbilityTokens()
         auto moduleRecord = GetModuleRunningRecordByToken(*iter);
         if (moduleRecord != nullptr) {
             moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_FOREGROUND);
-            if (preloadMode_ != PreloadMode::PRE_LAUNCH) {
-                StateChangedNotifyObserver(
-                    ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
-            }
+            StateChangedNotifyObserver(
+                ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
         } else {
             TAG_LOGW(AAFwkTag::APPMGR, "null moduleRecord");
         }
