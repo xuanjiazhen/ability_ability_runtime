@@ -48,10 +48,8 @@ namespace AAFwk {
 using namespace DataShare;
 using namespace Security::AccessToken;
 using namespace AppExecFwk;
-static constexpr const char *SCHEME_RDB = "rdb://";
-static constexpr const char *SCHEME_SP = "sharepreferences://";
-static constexpr const char *RDB_REPORT = "RelationalDatabase";
-static constexpr const char *PREFERENCES_REPORT = "preferences";
+static constexpr const char *SCHEME_RDB = "rdb";
+static constexpr const char *SCHEME_SP = "sharepreferences";
 static constexpr const char *DIALOG_APP = "com.ohos.pasteboarddialog";
 static constexpr const char *PROGRESS_ABILITY = "PasteboardProgressAbility";
 static constexpr const char *PROMPT_TEXT = "PromptText_PasteBoard_Local";
@@ -467,9 +465,9 @@ int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbili
         }
     }
     if (uriInner.GetScheme() == SCHEME_RDB) {
-        VerifyUriPermission(uriInner, callingToken, callingUserId, RDB_REPORT + info.errMsg);
+        VerifyUriPermission(uriInner, callingToken, callingUserId, "RelationalDatabase:Register");
     } else if (uriInner.GetScheme() == SCHEME_SP) {
-        VerifyUriPermission(uriInner, callingToken, callingUserId, PREFERENCES_REPORT + info.errMsg);
+        VerifyUriPermission(uriInner, callingToken, callingUserId, "Preferences:Register");
     }
     status = ConstructRegisterObserver(uri, dataObserver, token, userId, pid);
     if (status != NO_ERROR) {
@@ -506,9 +504,9 @@ int DataObsMgrService::UnregisterObserver(const Uri &uri, sptr<IDataAbilityObser
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     int32_t callingUserId = GetCallingUserId(tokenId);
     if (uriInner.GetScheme() == SCHEME_RDB) {
-        VerifyUriPermission(uriInner, tokenId, callingUserId, RDB_REPORT + info.errMsg);
+        VerifyUriPermission(uriInner, tokenId, callingUserId, "RelationalDatabase:Unregister");
     } else if (uriInner.GetScheme() == SCHEME_SP) {
-        VerifyUriPermission(uriInner, tokenId, callingUserId, PREFERENCES_REPORT + info.errMsg);
+        VerifyUriPermission(uriInner, tokenId, callingUserId, "Preferences:Unregister");
     }
     auto [success, observerNode] = ConstructObserverNode(dataObserver, userId, tokenId, 0);
     if (!success) {
@@ -621,9 +619,9 @@ int32_t DataObsMgrService::NotifyChangeInner(Uri &uri, int32_t userId, DataObsOp
     }
     Uri uriStr = uri;
     if (uri.GetScheme() == SCHEME_RDB) {
-        VerifyUriPermission(uriStr, tokenId, callingUserId, RDB_REPORT + info.errMsg);
+        VerifyUriPermission(uriStr, tokenId, callingUserId, "RelationalDatabase:Notify");
     } else if (uri.GetScheme() == SCHEME_SP) {
-        VerifyUriPermission(uriStr, tokenId, callingUserId, PREFERENCES_REPORT + info.errMsg);
+        VerifyUriPermission(uriStr, tokenId, callingUserId, "Preferences:Notify");
     }
     std::string readPermission = DataSharePermission::NO_PERMISSION;
     if (checkPermission) {
