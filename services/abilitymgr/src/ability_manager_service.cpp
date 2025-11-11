@@ -5717,6 +5717,76 @@ int AbilityManagerService::UnRegisterMissionListener(const std::string &deviceId
     return dmsClient.UnRegisterMissionListener(Str8ToStr16(deviceId), listener->AsObject());
 }
 
+<<<<<<< HEAD
+=======
+int32_t AbilityManagerService::GetUidByCloneBundleInfo(
+    std::string &bundleName, int32_t callerUid, int32_t userId, int32_t &appIndex) const
+{
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, -1);
+    AppExecFwk::BundleInfo bundleInfo;
+    MultiAppUtils::GetRunningMultiAppIndex(bundleName, callerUid, appIndex);
+    if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(
+        bundleName, static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+        appIndex, bundleInfo, userId)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundle info for %{public}s", bundleName.c_str());
+        return -1;
+    }
+    return bundleInfo.uid;
+}
+
+sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderInfo &wantSenderInfo,
+    const sptr<IRemoteObject> &callerToken, int32_t uid, int32_t callerUid, int32_t callerUserId)
+{
+    bool isSpecifyUserId = wantSenderInfo.userId >= 0;
+    std::string bundleName = "";
+    if (!wantSenderInfo.allWants.empty()) {
+        bundleName = wantSenderInfo.allWants.back().want.GetElement().GetBundleName();
+    }
+    bool isSACall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
+    bool isSystemApp = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
+
+    int32_t userId = -1;
+    int32_t appUid = -1;
+    int32_t appIndex = 0;
+    if (isSACall || callerUserId == U0_USER_ID) {
+        if (isSpecifyUserId) {
+            userId = wantSenderInfo.userId;
+            appIndex = wantSenderInfo.appIndex;
+            appUid = (uid >= 0) ? uid : GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+        } else if (uid >= 0) {
+            if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+                GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "getOsAccountLocalIdFromUid failed uid=%{public}d", callerUid);
+                return nullptr;
+            }
+            appUid = uid;
+        } else {
+            userId = callerUserId;
+            appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+        }
+    } else if (isSystemApp) {
+        userId = isSpecifyUserId ? wantSenderInfo.userId : callerUserId;
+        appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+    } else {
+        userId = callerUserId;
+        appUid = callerUid;
+    }
+    std::shared_ptr<PendingWantManager> pendingWantManager = GetPendingWantManagerByUserId(userId);
+    CHECK_POINTER_AND_RETURN(pendingWantManager, nullptr);
+    if (!CheckSenderWantInfo(appUid, wantSenderInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "check bundleName failed for appUid: %{public}d", appUid);
+        return nullptr;
+    }
+    const_cast<WantSenderInfo&>(wantSenderInfo).userId = userId;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, appIndex: %{public}d, isSystemApp: %{public}d, "
+        "isSACall: %{public}d, userId: %{public}d, appUid: %{public}d", bundleName.c_str(), appIndex, isSystemApp,
+        isSACall, userId, appUid);
+
+    return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
+}
+
+>>>>>>> 4115548689 (add support dual apps)
 sptr<IWantSender> AbilityManagerService::GetWantSender(
     const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken,
     int32_t uid)
@@ -5760,6 +5830,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
                 appUid = bundleInfo.uid;
             }
         } else {
+            appIndex = wantSenderInfo.appIndex;
             appUid = uid;
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR,

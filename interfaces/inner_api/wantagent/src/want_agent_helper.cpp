@@ -19,8 +19,11 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "local_pending_want.h"
+#include "multi_app_utils.h"
 #include "want_params_wrapper.h"
+#include "multi_app_utils.h"
 #include "pending_want.h"
+#include "permission_verification.h"
 #include "want_agent_client.h"
 #include "want_sender_info.h"
 #include "want_sender_interface.h"
@@ -173,6 +176,7 @@ std::shared_ptr<WantAgent> WantAgentHelper::GetWantAgent(const WantAgentInfo &pa
     wantSenderInfo.flags = FlagsTransformer(paramsInfo.GetFlags());
     wantSenderInfo.type = static_cast<int32_t>(paramsInfo.GetOperationType());
     wantSenderInfo.userId = userId;
+    wantSenderInfo.appIndex = paramsInfo.GetAppIndex();
     sptr<IWantSender> target = nullptr;
     WantAgentClient::GetInstance().GetWantSender(wantSenderInfo, nullptr, target, uid);
     if (target == nullptr) {
@@ -468,6 +472,7 @@ std::string WantAgentHelper::ToString(const std::shared_ptr<WantAgent> &agent)
     jsonObject["requestCode"] = (*info.get()).requestCode;
     jsonObject["operationType"] = (*info.get()).type;
     jsonObject["flags"] = (*info.get()).flags;
+    jsonObject["appIndex"] = (*info.get()).appIndex;
 
     nlohmann::json wants = nlohmann::json::array();
     for (auto &wantInfo : (*info.get()).allWants) {
@@ -506,7 +511,6 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     }
 
     std::vector<WantAgentConstant::Flags> flagsVec = ParseFlags(jsonObject);
-
     std::vector<std::shared_ptr<AAFwk::Want>> wants = {};
     if (jsonObject.contains("wants") && jsonObject["wants"].is_array()) {
         for (auto &wantObj : jsonObject.at("wants")) {
@@ -528,9 +532,18 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
             }
         }
     }
-    WantAgentInfo info(requestCode, operationType, flagsVec, wants, extraInfo);
 
+<<<<<<< HEAD
     return GetWantAgent(info, INVLID_WANT_AGENT_USER_ID, uid);
+=======
+    int32_t appIndex = 0;
+    if (jsonObject.contains("appIndex") && jsonObject["appIndex"].is_number_integer()) {
+        appIndex = jsonObject.at("appIndex").get<int>();
+    }
+    
+    WantAgentInfo info(requestCode, appIndex, operationType, flagsVec, wants, extraInfo);
+    return GetWantAgent(info, userId, uid);
+>>>>>>> 4115548689 (add support dual apps)
 }
 
 std::vector<WantAgentConstant::Flags> WantAgentHelper::ParseFlags(nlohmann::json jsonObject)
