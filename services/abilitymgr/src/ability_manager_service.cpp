@@ -5760,6 +5760,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
                 appUid = bundleInfo.uid;
             }
         } else {
+            appIndex = wantSenderInfo.appIndex;
             appUid = uid;
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR,
