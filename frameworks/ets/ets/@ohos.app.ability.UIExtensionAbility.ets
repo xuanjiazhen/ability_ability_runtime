@@ -17,7 +17,6 @@ import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import ExtensionAbility from '@ohos.app.ability.ExtensionAbility';
 import Want from '@ohos.app.ability.Want';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
-import UIExtensionContext from 'application.UIExtensionContext';
 import { AbilityUtils } from './utils/AbilityUtils';
 
 export default class UIExtensionAbility extends ExtensionAbility {
@@ -32,8 +31,6 @@ export default class UIExtensionAbility extends ExtensionAbility {
     }
     return false;
   }
-
-  context: UIExtensionContext = {};
 
   onCreate(launchParam: AbilityConstant.LaunchParam): void {}
 
