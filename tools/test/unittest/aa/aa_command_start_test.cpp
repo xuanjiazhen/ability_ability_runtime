@@ -43,10 +43,6 @@ const std::string STRING_STATE_OFF = "off";
 const std::string STRING_STATE_OFF_INVALID = "invalid_off";
 const std::string STRING_INVALID_PARAMETER_INTEGER_OPTION = "invalid parameter invalid_integer for integer option";
 const std::string STRING_INVALID_PARAMETER_BOOL_OPTION = "invalid parameter invalid_bool for bool option";
-const std::string STRING_INVALID_NUMBER_INTEGER_OPTION = "invalid number of parameters for option --pi";
-const std::string STRING_INVALID_NUMBER_BOOL_OPTION = "invalid number of parameters for option --pb";
-const std::string STRING_INVALID_NUMBER_STRING_OPTION = "invalid number of parameters for option --ps";
-const std::string STRING_INVALID_NUMBER_NULL_STRING_OPTION = "invalid number of parameters for option --psn";
 const std::string STRING_ACTION = "action";
 const std::string STRING_URI = "https://valid.uri.com";
 const std::string STRING_TYPE = "type";
@@ -1004,10 +1000,10 @@ HWTEST_F(AaCommandStartTest, Aa_Command_Start_3800, Function | MediumTest | Leve
         (char*)STRING_PARAMETER_VALUE_STRING_INVALID.c_str(),
         (char*)"",
     };
-    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    int argc = sizeof(argv) / sizeof(argv[0]);
 
     AbilityManagerShellCommand cmd(argc, argv);
-    EXPECT_EQ(cmd.ExecCommand(), STRING_INVALID_NUMBER_STRING_OPTION + "\n" + HELP_MSG_START);
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG_NO_OPTION + "\n" + HELP_MSG_START);
 }
 
 /**
@@ -1035,10 +1031,10 @@ HWTEST_F(AaCommandStartTest, Aa_Command_Start_3900, Function | MediumTest | Leve
         (char*)STRING_PARAMETER_VALUE_INTEGER_INVALID.c_str(),
         (char*)"",
     };
-    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    int argc = sizeof(argv) / sizeof(argv[0]);
 
     AbilityManagerShellCommand cmd(argc, argv);
-    EXPECT_EQ(cmd.ExecCommand(), STRING_INVALID_NUMBER_INTEGER_OPTION + "\n" + HELP_MSG_START);
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG_NO_OPTION + "\n" + HELP_MSG_START);
 }
 
 /**
@@ -1066,10 +1062,10 @@ HWTEST_F(AaCommandStartTest, Aa_Command_Start_4000, Function | MediumTest | Leve
         (char*)STRING_PARAMETER_VALUE_BOOL_INVALID.c_str(),
         (char*)"",
     };
-    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    int argc = sizeof(argv) / sizeof(argv[0]);
 
     AbilityManagerShellCommand cmd(argc, argv);
-    EXPECT_EQ(cmd.ExecCommand(), STRING_INVALID_NUMBER_BOOL_OPTION + "\n" + HELP_MSG_START);
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG_NO_OPTION + "\n" + HELP_MSG_START);
 }
 /**
  * @tc.number: Aa_Command_Start_4100
@@ -1095,8 +1091,8 @@ HWTEST_F(AaCommandStartTest, Aa_Command_Start_4100, Function | MediumTest | Leve
         (char*)STRING_PARAMETER_VALUE_STRING_INVALID.c_str(),
         (char*)"",
     };
-    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    int argc = sizeof(argv) / sizeof(argv[0]);
 
     AbilityManagerShellCommand cmd(argc, argv);
-    EXPECT_EQ(cmd.ExecCommand(), STRING_INVALID_NUMBER_NULL_STRING_OPTION + "\n" + HELP_MSG_START);
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG_NO_OPTION + "\n" + HELP_MSG_START);
 }

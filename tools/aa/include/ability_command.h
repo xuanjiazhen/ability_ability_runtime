@@ -250,7 +250,6 @@ private:
     ErrCode RunAsDetachDebugCommand();
     ErrCode RunAsSendMemoryLevelCommand();
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
-    bool CheckParameters(int target);
     ErrCode ParseParam(ParametersInteger& pi);
     ErrCode ParseParam(ParametersString& ps, bool isNull);
     ErrCode ParseParam(ParametersBool& pb);
