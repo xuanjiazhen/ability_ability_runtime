@@ -28,6 +28,7 @@
 #include "app_scheduler_host.h"
 #include "application_impl.h"
 #include "assert_fault_task_thread.h"
+#include "bundle_mgr_helper.h"
 #include "common_event_subscriber.h"
 #include "event_handler.h"
 #include "extension_config_mgr.h"
@@ -693,6 +694,12 @@ private:
     bool IsPluginNamespaceInherited();
 
     std::string ParsePluginDefaultNamespaceLdDictionary();
+
+    bool GetBundleForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+        BundleInfo &bundleInfo);
+
+    bool GetHspListForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+        std::string bundleName, HspList &hspList);
 
     /**
      * @brief parse app configuration params
