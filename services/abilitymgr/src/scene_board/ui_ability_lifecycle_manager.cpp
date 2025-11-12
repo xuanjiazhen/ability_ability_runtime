@@ -1710,6 +1710,13 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         "hasStartWindow:%{public}d, backgroundColor:%{public}s, hideStartWindow: %{public}d",
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
         hasStartWindow, backgroundColor.c_str(), sessionInfo->hideStartWindow);
+    if (abilityRequest.isTargetPlugin) {
+        sessionInfo->isTargetPlugin = abilityRequest.isTargetPlugin;
+        sessionInfo->hostBundleName = Token::GetAbilityRecordByToken(abilityRequest.callerToken) ?
+            Token::GetAbilityRecordByToken(abilityRequest.callerToken)->GetAbilityInfo().bundleName : "";
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isTargetPlugin:%{public}d, callerBundleName:%{public}s ",
+            sessionInfo->isTargetPlugin, sessionInfo->hostBundleName.c_str());
+    }
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
