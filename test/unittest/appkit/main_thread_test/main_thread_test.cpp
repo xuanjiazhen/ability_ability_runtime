@@ -2796,5 +2796,60 @@ HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0300, TestSize.Level1)
     mainThread_->SetRuntimeLang(appInfo, options);
     EXPECT_TRUE(mainThread_->CheckAndUpdateRuntime(abilityRecord));
 }
+
+/**
+ * @tc.name: GetBundleForUpdateRuntime_0100
+ * @tc.desc: GetBundleForUpdateRuntime Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, GetBundleForUpdateRuntime_0100, TestSize.Level1)
+{
+    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
+    contextDeal->SetApplicationInfo(applicationInfo_);
+    contextDeal->SetBundleCodePath(applicationInfo_->codePath);
+    auto bundleMgrHelper = contextDeal->GetBundleManager();
+    BundleInfo bundleInfo;
+    EXPECT_TRUE(mainThread_->GetBundleForUpdateRuntime(bundleMgrHelper, bundleInfo));
+}
+
+/**
+ * @tc.name: GetBundleForUpdateRuntime_0200
+ * @tc.desc: GetBundleForUpdateRuntime Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, GetBundleForUpdateRuntime_0200, TestSize.Level1)
+{
+    auto bundleMgrHelper = nullptr;
+    BundleInfo bundleInfo;
+    EXPECT_FALSE(mainThread_->GetBundleForUpdateRuntime(bundleMgrHelper, bundleInfo));
+}
+
+/**
+ * @tc.name: GetHspListForUpdateRuntime_0100
+ * @tc.desc: GetHspListForUpdateRuntime Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, GetHspListForUpdateRuntime_0100, TestSize.Level1)
+{
+    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
+    contextDeal->SetApplicationInfo(applicationInfo_);
+    contextDeal->SetBundleCodePath(applicationInfo_->codePath);
+    auto bundleMgrHelper = contextDeal->GetBundleManager();
+    BundleInfo bundleInfo;
+    EXPECT_TRUE(mainThread_->GetHspListForUpdateRuntime(bundleMgrHelper, "com.ohos.myapplication", bundleInfo));
+}
+
+/**
+ * @tc.name: GetHspListForUpdateRuntime_0200
+ * @tc.desc: GetHspListForUpdateRuntime Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, GetHspListForUpdateRuntime_0200, TestSize.Level1)
+{
+    auto bundleMgrHelper = nullptr;
+    BundleInfo bundleInfo;
+    EXPECT_FALSE(mainThread_->GetHspListForUpdateRuntime(bundleMgrHelper, "com.ohos.myapplication", bundleInfo));
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

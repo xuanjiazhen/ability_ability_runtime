@@ -694,6 +694,12 @@ private:
 
     std::string ParsePluginDefaultNamespaceLdDictionary();
 
+    bool GetBundleForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+        BundleInfo &bundleInfo);
+
+    bool GetHspListForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+        std::string bundleName, HspList &hspList);
+
     /**
      * @brief parse app configuration params
      *
