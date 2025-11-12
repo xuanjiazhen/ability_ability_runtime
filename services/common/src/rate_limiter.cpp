@@ -50,14 +50,38 @@ RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
     auto it = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
     timestamps.erase(timestamps.begin(), it);
     
-    // 检查各个挡位
     int currentCount = timestamps.size();
     LimitResult result{false, 0, ""};
     
-    for (const auto& [limit, tierName] : EXTENSION_TIERS) {
-        if (currentCount >= limit) {
-            result = {true, limit, tierName};
-            break;
+    // 检查挡位触发状态
+    {
+        std::lock_guard<std::mutex> tierGuard(tierTriggerTimesLock_);
+        auto& userTiers = tierTriggerTimes_[uid];
+        
+        // 清理该用户的过期挡位触发记录
+        auto tierIt = userTiers.begin();
+        while (tierIt != userTiers.end()) {
+            if (tierIt->second < timeBefore) {
+                tierIt = userTiers.erase(tierIt);
+            } else {
+                ++tierIt;
+            }
+        }
+        
+        // 从高到低检查挡位（优先触发高挡位）
+        for (auto tierIt = EXTENSION_TIERS.rbegin(); tierIt != EXTENSION_TIERS.rend(); ++tierIt) {
+            const auto& [limit, tierName] = *tierIt;
+            
+            if (currentCount >= limit) {
+                // 检查这个挡位是否在当前时间窗口内已经触发过
+                auto triggerIt = userTiers.find(limit);
+                if (triggerIt == userTiers.end() || triggerIt->second < timeBefore) {
+                    // 该挡位在当前秒内未触发过，可以触发
+                    result = {true, limit, tierName};
+                    userTiers[limit] = currentTimeMillis; // 记录触发时间
+                    break;
+                }
+            }
         }
     }
     
@@ -105,6 +129,31 @@ void RateLimiter::CleanCallMap()
     }
     CleanSingleCallMap(extensionCallMap_, extensionCallMapLock_, EXTENSION_LIMIT_INTERVAL_MS);
     CleanSingleCallMap(reportCallMap_, reportCallMapLock_, REPORT_LIMIT_INTERVAL_MS);
+    CleanTierTriggerTimes(currentTimeMillis);
+}
+
+void RateLimiter::CleanTierTriggerTimes(int64_t currentTimeMillis) {
+    std::lock_guard<std::mutex> guard(tierTriggerTimesLock_);
+    int64_t timeBefore = currentTimeMillis - EXTENSION_LIMIT_INTERVAL_MS;
+    
+    auto it = tierTriggerTimes_.begin();
+    while (it != tierTriggerTimes_.end()) {
+        auto& userTiers = it->second;
+        auto tierIt = userTiers.begin();
+        while (tierIt != userTiers.end()) {
+            if (tierIt->second < timeBefore) {
+                tierIt = userTiers.erase(tierIt);
+            } else {
+                ++tierIt;
+            }
+        }
+        
+        if (userTiers.empty()) {
+            it = tierTriggerTimes_.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void RateLimiter::CleanSingleCallMap(std::unordered_map<int32_t, std::vector<int64_t>> &callMap, std::mutex &mapLock,
