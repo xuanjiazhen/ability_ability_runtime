@@ -48,6 +48,7 @@ private:
     void CleanCallMap();
     void CleanSingleCallMap(std::unordered_map<int32_t, std::vector<int64_t>> &callMap, std::mutex &mapLock,
         int64_t limitInterval);
+    void CleanTierTriggerTimes(int64_t currentTimeMillis);
     int64_t CurrentTimeMillis();
 
     int64_t lastCleanTimeMillis_ = 0;
@@ -56,6 +57,8 @@ private:
     std::mutex extensionCallMapLock_;
     std::unordered_map<int32_t, std::vector<int64_t>> reportCallMap_;
     std::mutex reportCallMapLock_;
+    std::unordered_map<int32_t, std::unordered_map<int32_t, int64_t>> tierTriggerTimes_;
+    std::mutex tierTriggerTimesLock_;
 
     DISALLOW_COPY_AND_MOVE(RateLimiter);
 };
