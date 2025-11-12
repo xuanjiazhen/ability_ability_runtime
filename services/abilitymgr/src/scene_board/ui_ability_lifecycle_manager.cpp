@@ -1737,6 +1737,13 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         hasStartWindow, backgroundColor.c_str(), sessionInfo->hideStartWindow);
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
+        if (abilityRequest.isTargetPlugin) {
+            sessionInfo->isTargetPlugin = abilityRequest.isTargetPlugin;
+            std::string callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
+            sessionInfo->callerBundleName = callerBundleName;
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "isTargetPlugin:%{public}d, callerBundleName:%{public}s ",
+            sessionInfo->isTargetPlugin, sessionInfo->callerBundleName);
+        }
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
         CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
         CHECK_POINTER_AND_RETURN(callerSessionInfo->sessionToken, ERR_INVALID_VALUE);

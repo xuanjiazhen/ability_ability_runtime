@@ -250,6 +250,7 @@ struct AbilityRequest {
     bool uriReservedFlag = false;
     bool isFromIcon = false;
     bool isShellCall = false;
+    bool isTargetPlugin = false;
     // ERMS embedded atomic service
     bool isQueryERMS = false;
     bool isEmbeddedAllowed = false;
