@@ -55,6 +55,7 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 namespace {
 constexpr const char* UIEXTENSION_CLASS_NAME = "L@ohos/app/ability/UIExtensionAbility/UIExtensionAbility;";
+constexpr const char* IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 
 void OnDestroyPromiseCallback(ani_env* env, ani_object aniObj)
 {
@@ -274,6 +275,7 @@ void EtsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> s
         return;
     }
     int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
+    SetPreloadedSuccess(want.GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false));
     if (!IsEmbeddableStart(screenMode)) {
         CallObjectMethod(false, "onCreate", signature, launchParamObj);
     }
@@ -689,6 +691,7 @@ bool EtsUIExtension::CallObjectMethod(bool withResult, const char *name, const c
     TAG_LOGD(AAFwkTag::UI_EXT, "CallObjectMethod %{public}s", name);
     if (etsObj_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "etsObj_ nullptr");
+        SetPreloadedSuccess(false);
         return false;
     }
 
@@ -697,6 +700,7 @@ bool EtsUIExtension::CallObjectMethod(bool withResult, const char *name, const c
     ani_method method = nullptr;
     if ((status = env->Class_FindMethod(etsObj_->aniCls, name, signature, &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        SetPreloadedSuccess(false);
         return false;
     }
     env->ResetError();
@@ -704,7 +708,9 @@ bool EtsUIExtension::CallObjectMethod(bool withResult, const char *name, const c
         ani_boolean res = ANI_FALSE;
         va_list args;
         va_start(args, signature);
-        if ((status = env->Object_CallMethod_Boolean(etsObj_->aniObj, method, &res, args)) != ANI_OK) {
+        status = env->Object_CallMethod_Boolean(etsObj_->aniObj, method, &res, args);
+        SetPreloadedSuccess(IsPreloadedSuccess() && status == ANI_OK);
+        if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
             etsRuntime_.HandleUncaughtError();
         }
@@ -713,7 +719,9 @@ bool EtsUIExtension::CallObjectMethod(bool withResult, const char *name, const c
     }
     va_list args;
     va_start(args, signature);
-    if ((status = env->Object_CallMethod_Void_V(etsObj_->aniObj, method, args)) != ANI_OK) {
+    status = env->Object_CallMethod_Void_V(etsObj_->aniObj, method, args);
+    SetPreloadedSuccess(IsPreloadedSuccess() && status == ANI_OK);
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         etsRuntime_.HandleUncaughtError();
         return false;
