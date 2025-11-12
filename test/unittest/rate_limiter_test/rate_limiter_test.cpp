@@ -67,7 +67,7 @@ HWTEST_F(RateLimiterTest, CheckExtensionLimitTest_0100, TestSize.Level2)
     auto &rateLimiter = RateLimiter::GetInstance();
     auto uid = 20010001;
     auto isLimit = rateLimiter.CheckExtensionLimit(uid);
-    EXPECT_FALSE(isLimit);
+    EXPECT_FALSE(isLimit.limited);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckExtensionLimitTest_0100 end.");
 }
@@ -87,7 +87,7 @@ HWTEST_F(RateLimiterTest, CheckExtensionLimitTest_0200, TestSize.Level2)
         rateLimiter.CheckExtensionLimit(uid);
     }
     auto isLimit = rateLimiter.CheckExtensionLimit(uid);
-    EXPECT_TRUE(isLimit);
+    EXPECT_TRUE(isLimit.limited);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckExtensionLimitTest_0200 end.");
 }

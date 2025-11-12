@@ -36,7 +36,7 @@ public:
 
     ~RateLimiter() = default;
 
-    bool CheckExtensionLimit(int32_t uid);
+    RateLimiter::LimitResult CheckExtensionLimit(int32_t uid);
     bool CheckReportLimit(int32_t uid);
 
 private:
