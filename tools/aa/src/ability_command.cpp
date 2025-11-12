@@ -43,8 +43,6 @@ using TerminateReason = AbilityStartWithWaitObserverUtil::TerminateReason;
 namespace {
 constexpr size_t PARAM_LENGTH = 1024;
 constexpr int INDEX_OFFSET = 3;
-constexpr int EXTRA_ARGUMENTS_FOR_KEY_VALUE_PAIR = 1;
-constexpr int EXTRA_ARGUMENTS_FOR_NULL_STRING = 0;
 constexpr int OPTION_PARAMETER_VALUE_OFFSET = 1;
 
 constexpr int OPTION_PARAMETER_INTEGER = 257;
@@ -1174,31 +1172,26 @@ bool AbilityManagerShellCommand::CheckPerfCmdString(
     return true;
 }
 
-bool AbilityManagerShellCommand::CheckParameters(int extraArguments)
-{
-    if (optind + extraArguments >= argc_) return false;
-    int index = optind + 1; // optind is the index of 'start' which is right behind optarg
-    int count = 0;
-    while (index < argc_ && argv_[index][0] != '-') {
-        count++;
-        index++;
-    }
-    return count == extraArguments;
-}
-
 // parse integer parameters
 ErrCode AbilityManagerShellCommand::ParseParam(ParametersInteger& pi)
 {
     std::string key = optarg;
-    std::string intString = argv_[optind + OPTION_PARAMETER_VALUE_OFFSET];
-    if (!std::regex_match(intString, std::regex(STRING_TEST_REGEX_INTEGER_NUMBERS))) {
+    char *tmp = argv_[optind + OPTION_PARAMETER_VALUE_OFFSET];
+    std::string intString  = tmp;
+    argv_[optind + OPTION_PARAMETER_VALUE_OFFSET] = argv_[optind];
+    argv_[optind] = tmp;
+    ++optind;
+    int32_t intValue = 0;
+    auto res = std::from_chars(intString.c_str(), intString.c_str() + intString.size(), intValue);
+    if (res.ec != std::errc()) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "stoi(%{public}s) failed", intString.c_str());
         resultReceiver_.append("invalid parameter ");
         resultReceiver_.append(intString);
         resultReceiver_.append(" for integer option\n");
 
         return OHOS::ERR_INVALID_VALUE;
     }
-    pi[key] = atoi(argv_[optind + OPTION_PARAMETER_VALUE_OFFSET]);
+    pi[key] = intValue;
     return OHOS::ERR_OK;
 }
 
@@ -1207,11 +1200,15 @@ ErrCode AbilityManagerShellCommand::ParseParam(ParametersString& ps, bool isNull
 {
     std::string key = optarg;
     std::string value = "";
-    if (!isNull)
-        value = argv_[optind + OPTION_PARAMETER_VALUE_OFFSET];
+    if (!isNull) {
+        char *tmp = argv_[optind + OPTION_PARAMETER_VALUE_OFFSET];
+        value = tmp;
+        argv_[optind + OPTION_PARAMETER_VALUE_OFFSET] = argv_[optind];
+        argv_[optind] = tmp;
+        ++optind;
+    }
 
     ps[key] = value;
-
     return OHOS::ERR_OK;
 }
 
@@ -1219,7 +1216,11 @@ ErrCode AbilityManagerShellCommand::ParseParam(ParametersString& ps, bool isNull
 ErrCode AbilityManagerShellCommand::ParseParam(ParametersBool& pb)
 {
     std::string key = optarg;
-    std::string boolString = argv_[optind + OPTION_PARAMETER_VALUE_OFFSET];
+    char *tmp = argv_[optind + OPTION_PARAMETER_VALUE_OFFSET];
+    std::string boolString  = tmp;
+    argv_[optind + OPTION_PARAMETER_VALUE_OFFSET] = argv_[optind];
+    argv_[optind] = tmp;
+    ++optind;
     std::transform(boolString.begin(), boolString.end(), boolString.begin(), ::tolower);
     bool value;
     if (boolString == "true" || boolString == "t") {
@@ -1228,14 +1229,12 @@ ErrCode AbilityManagerShellCommand::ParseParam(ParametersBool& pb)
         value = false;
     } else {
         resultReceiver_.append("invalid parameter ");
-        resultReceiver_.append(argv_[optind + OPTION_PARAMETER_VALUE_OFFSET]);
+        resultReceiver_.append(boolString);
         resultReceiver_.append(" for bool option\n");
-
         return OHOS::ERR_INVALID_VALUE;
     }
 
     pb[key] = value;
-
     return OHOS::ERR_OK;
 }
 
@@ -1585,7 +1584,7 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
     int windowWidth = 0;
     bool hasWindowWidth = false;
 
-    while (true) {
+    while (result == ERR_OK) {
         counter++;
 
         option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
@@ -1599,7 +1598,7 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
 
         if (option == -1) {
             // When scanning the first argument
-            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0 || optind != argc_ - 1) {
                 // 'aa start' with no option: aa start
                 // 'aa start' with a wrong argument: aa start xxx
                 // 'aa stop-service' with no option: aa stop-service
@@ -1930,60 +1929,26 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
             }
             case OPTION_PARAMETER_INTEGER: {
                 // 'aa start --pi xxx'
-                if (!CheckParameters(EXTRA_ARGUMENTS_FOR_KEY_VALUE_PAIR)) {
-                    resultReceiver_.append("invalid number of parameters for option --pi\n");
-                    result = OHOS::ERR_INVALID_VALUE;
-                    break;
-                }
-
                 // parse option arguments into a key-value map
                 result = ParseParam(parametersInteger);
-
-                optind++;
-
                 break;
             }
             case OPTION_PARAMETER_STRING: {
                 // 'aa start --ps xxx'
-                if (!CheckParameters(EXTRA_ARGUMENTS_FOR_KEY_VALUE_PAIR)) {
-                    resultReceiver_.append("invalid number of parameters for option --ps\n");
-                    result = OHOS::ERR_INVALID_VALUE;
-                    break;
-                }
-
                 // parse option arguments into a key-value map
                 result = ParseParam(parametersString);
-
-                optind++;
-
                 break;
             }
             case OPTION_PARAMETER_BOOL: {
                 // 'aa start --pb xxx'
-                if (!CheckParameters(EXTRA_ARGUMENTS_FOR_KEY_VALUE_PAIR)) {
-                    resultReceiver_.append("invalid number of parameters for option --pb\n");
-                    result = OHOS::ERR_INVALID_VALUE;
-                    break;
-                }
-
                 // parse option arguments into a key-value map
                 result = ParseParam(parametersBool);
-
-                optind++;
-
                 break;
             }
             case OPTION_PARAMETER_NULL_STRING: {
                 // 'aa start --psn xxx'
-                if (!CheckParameters(EXTRA_ARGUMENTS_FOR_NULL_STRING)) {
-                    resultReceiver_.append("invalid number of parameters for option --psn\n");
-                    result = OHOS::ERR_INVALID_VALUE;
-                    break;
-                }
-
                 // parse option arguments into a key-value map
                 result = ParseParam(parametersString, true);
-
                 break;
             }
             case OPTION_WINDOW_LEFT: {
