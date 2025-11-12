@@ -17,6 +17,9 @@
 #define OHOS_ABILITY_RUNTIME_SCREEN_UNLOCK_INTERCEPTOR
 
 #include "ability_interceptor_interface.h"
+#include "cpp/mutex.h"
+#include <unordered_set>
+#include <string>
 
 namespace OHOS {
 namespace AAFwk {
@@ -31,6 +34,7 @@ public:
     };
 private:
     void QueryTargetAbilityInfo(const AbilityInterceptorParam &param, AppExecFwk::AbilityInfo &targetAbilityInfo);
+    void RecordExtensionEventWhenScreenUnlock(const AbilityInterceptorParam &param, const AppExecFwk::AbilityInfo &targetAbilityInfo);
 };
 } // namespace AAFwk
 } // namespace OHOS
