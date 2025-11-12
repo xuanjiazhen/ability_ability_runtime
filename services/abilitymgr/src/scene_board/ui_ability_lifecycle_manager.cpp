@@ -1736,6 +1736,12 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
         hasStartWindow, backgroundColor.c_str(), sessionInfo->hideStartWindow);
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
+    if (abilityRequest.isTargetPlugin) {
+        sessionInfo->isTargetPlugin = abilityRequest.isTargetPlugin;
+        sessionInfo->callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isTargetPlugin:%{public}d, callerBundleName:%{public}s ",
+            sessionInfo->isTargetPlugin, sessionInfo->callerBundleName.c_str());
+        }
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
         CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
