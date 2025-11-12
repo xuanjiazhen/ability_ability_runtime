@@ -122,7 +122,7 @@ HWTEST_F(AbilityCommandSecondTest, Ability_Command_Second_Test_0300, Function | 
         (char*)"--wl",
         (char*)"123",
     };
-    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    int argc = sizeof(argv) / sizeof(argv[0]);
     AbilityManagerShellCommand cmd(argc, argv);
     Want want;
     std::string windowMode;
@@ -144,7 +144,7 @@ HWTEST_F(AbilityCommandSecondTest, Ability_Command_Second_Test_0400, Function | 
         (char*)"--wt",
         (char*)"123",
     };
-    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    int argc = sizeof(argv) / sizeof(argv[0]);
     AbilityManagerShellCommand cmd(argc, argv);
     Want want;
     std::string windowMode;
@@ -166,7 +166,7 @@ HWTEST_F(AbilityCommandSecondTest, Ability_Command_Second_Test_0500, Function | 
         (char*)"--wh",
         (char*)"123",
     };
-    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    int argc = sizeof(argv) / sizeof(argv[0]);
     AbilityManagerShellCommand cmd(argc, argv);
     Want want;
     std::string windowMode;
@@ -187,7 +187,7 @@ HWTEST_F(AbilityCommandSecondTest, Ability_Command_Second_Test_0600, Function | 
         (char*)"--ww",
         (char*)"123",
     };
-    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    int argc = sizeof(argv) / sizeof(argv[0]);
     AbilityManagerShellCommand cmd(argc, argv);
     Want want;
     std::string windowMode;
