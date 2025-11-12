@@ -1711,6 +1711,12 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
         hasStartWindow, backgroundColor.c_str(), sessionInfo->hideStartWindow);
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
+    if (abilityRequest.isTargetPlugin) {
+        sessionInfo->isTargetPlugin = abilityRequest.isTargetPlugin;
+        sessionInfo->hostBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isTargetPlugin:%{public}d, callerBundleName:%{public}s ",
+            sessionInfo->isTargetPlugin, sessionInfo->hostBundleName.c_str());
+    }
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
         CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
@@ -1738,6 +1744,12 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         return ERR_INVALID_VALUE;
     }
     auto callerRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
+    if (abilityRequest.isTargetPlugin) {
+        sessionInfo->isTargetPlugin = abilityRequest.isTargetPlugin;
+        sessionInfo->hostBundleName = callerRecord ? callerRecord->GetAbilityInfo().bundleName : "";
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isTargetPlugin:%{public}d, callerBundleName:%{public}s ",
+            sessionInfo->isTargetPlugin, sessionInfo->hostBundleName.c_str());
+    }
     if (callerRecord != nullptr) {
         auto requestId = abilityRequest.want.GetStringParam(KEY_REQUEST_ID);
         if (!requestId.empty()) {
