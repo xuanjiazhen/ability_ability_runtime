@@ -1424,7 +1424,7 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
 }
 #endif
 
-bool GetBundleForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+bool MainThread::GetBundleForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
     BundleInfo &bundleInfo)
 {
     if (bundleMgrHelper == nullptr) {
@@ -1441,7 +1441,7 @@ bool GetBundleForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper
     return true;
 }
 
-bool GetHspListForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+bool MainThread::GetHspListForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
     std::string bundleName, HspList &hspList)
 {
     if (bundleMgrHelper == nullptr) {
