@@ -80,7 +80,6 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam param)
             targetAbilityInfo.applicationInfo.bundleName.empty()) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Cannot find targetAbilityInfo, element uri: %{public}s/%{public}s",
                 param.want.GetElement().GetBundleName().c_str(), param.want.GetElement().GetAbilityName().c_str());
-            RecordExtensionEventWhenScreenUnlock(param, targetAbilityInfo);
             return ERR_OK;
         }
     }
