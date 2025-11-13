@@ -20,6 +20,9 @@
 
 namespace OHOS {
 namespace AAFwk {
+class UIAbilityRecord;
+using UIAbilityRecordPtr = std::shared_ptr<UIAbilityRecord>;
+
 class UIAbilityRecord : public AbilityRecord {
 public:
     UIAbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
