@@ -87,6 +87,7 @@ private:
     std::string processName_;
     std::string entryFunc_;
     std::string entryParams_;
+    ffrt::mutex schedulerLock_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

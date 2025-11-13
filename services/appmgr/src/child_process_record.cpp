@@ -134,11 +134,13 @@ std::shared_ptr<AppRunningRecord> ChildProcessRecord::GetHostRecord() const
 
 void ChildProcessRecord::SetScheduler(const sptr<IChildScheduler> &scheduler)
 {
+    std::lock_guard schedulerLock(schedulerLock_);
     scheduler_ = scheduler;
 }
 
 sptr<IChildScheduler> ChildProcessRecord::GetScheduler() const
 {
+    std::lock_guard schedulerLock(schedulerLock_);
     return scheduler_;
 }
 

@@ -10993,8 +10993,10 @@ int32_t AppMgrServiceInner::KillChildProcessByPid(int32_t pid)
         TAG_LOGE(AAFwkTag::APPMGR, "fail, pid:%{public}d, ret:%{public}d", pid, ret);
         return ret;
     }
-    appRecord->RemoveChildProcessRecord(childRecord);
-    DelayedSingleton<AppStateObserverManager>::GetInstance()->OnChildProcessDied(childRecord);
+    if (childRecord && childRecord->GetScheduler() == nullptr) {
+        appRecord->RemoveChildProcessRecord(childRecord);
+        OnChildProcessDied(childRecord);
+    }
     return ERR_OK;
 }
 } // namespace AppExecFwk
