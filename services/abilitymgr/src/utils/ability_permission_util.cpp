@@ -130,7 +130,7 @@ bool AbilityPermissionUtil::IsDominateScreen(const Want &want, bool isPendingWan
     return false;
 }
 
-int32_t AbilityPermissionUtil::CheckMultiInstanceAndAppClone(Want &want, int32_t userId, int32_t appIndex,
+int32_t AbilityPermissionUtil::CheckMultiInstanceAndAppClone(Want &want, int32_t userId,
     sptr<IRemoteObject> callerToken, bool isScbCall)
 {
     auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
@@ -143,14 +143,13 @@ int32_t AbilityPermissionUtil::CheckMultiInstanceAndAppClone(Want &want, int32_t
             return ERR_OK;
         }
         if (appInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::UNSPECIFIED) {
-            if (!instanceKey.empty() || isCreating ||
-                (appIndex != 0 && appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX)) {
+            if (!instanceKey.empty() || isCreating || want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support multi-instance or appClone");
                 return ERR_MULTI_APP_NOT_SUPPORTED;
             }
         }
         if (appInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE) {
-            if (appIndex != 0) {
+            if (want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support appClone");
                 return ERR_NOT_SUPPORT_APP_CLONE;
             }

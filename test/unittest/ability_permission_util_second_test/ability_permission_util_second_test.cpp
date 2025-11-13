@@ -172,6 +172,7 @@ HWTEST_F(AbilityPermissionUtilSecondTest, AbilityPermissionUtil_CheckMultiInstan
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone0100 start");
     Want want;
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1);
     StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
     StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName = "bundleName";
     StartAbilityUtils::startAbilityInfo->abilityInfo.name = "name";
@@ -181,7 +182,7 @@ HWTEST_F(AbilityPermissionUtilSecondTest, AbilityPermissionUtil_CheckMultiInstan
     StartAbilityUtils::startAbilityInfo->abilityInfo.extensionAbilityType = ExtensionAbilityType::SERVICE;
     StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.multiAppMode.multiAppModeType =
         AppExecFwk::MultiAppModeType::UNSPECIFIED;
-    int32_t result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 1, 1, nullptr, false);
+    int32_t result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 1, nullptr, false);
     EXPECT_EQ(result, ERR_MULTI_APP_NOT_SUPPORTED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone0100 end");
 }
@@ -196,6 +197,7 @@ HWTEST_F(AbilityPermissionUtilSecondTest, AbilityPermissionUtil_CheckMultiInstan
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone0200 start");
     Want want;
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1);
     StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
     StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName = "bundleName";
     StartAbilityUtils::startAbilityInfo->abilityInfo.name = "name";
@@ -205,7 +207,7 @@ HWTEST_F(AbilityPermissionUtilSecondTest, AbilityPermissionUtil_CheckMultiInstan
     StartAbilityUtils::startAbilityInfo->abilityInfo.extensionAbilityType = ExtensionAbilityType::SERVICE;
     StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.multiAppMode.multiAppModeType =
        AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
-    int32_t result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 1, 1, nullptr, false);
+    int32_t result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 1, nullptr, false);
     EXPECT_EQ(result, ERR_NOT_SUPPORT_APP_CLONE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone0200 end");
 }
@@ -229,7 +231,7 @@ HWTEST_F(AbilityPermissionUtilSecondTest, AbilityPermissionUtil_CheckMultiInstan
     StartAbilityUtils::startAbilityInfo->abilityInfo.extensionAbilityType = ExtensionAbilityType::SERVICE;
     StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.multiAppMode.multiAppModeType =
        AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
-    int32_t result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 1, 0, nullptr, false);
+    int32_t result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 1, nullptr, false);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone0300 end");
 }

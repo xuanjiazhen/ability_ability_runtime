@@ -83,22 +83,6 @@ auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
     FreezeUtil::GetInstance().DeleteLifecycleEvent(token->AsObject());
 };
-
-bool CompareTwoRequest(const AbilityRequest &left, const AbilityRequest &right)
-{
-    int32_t leftIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(left.want, leftIndex);
-    int32_t rightIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(right.want, rightIndex);
-
-    auto LeftInstanceKey = left.want.GetStringParam(Want::APP_INSTANCE_KEY);
-    auto RightInstanceKey = right.want.GetStringParam(Want::APP_INSTANCE_KEY);
-
-    return leftIndex == rightIndex && LeftInstanceKey == RightInstanceKey &&
-        left.abilityInfo.name == right.abilityInfo.name &&
-        left.abilityInfo.bundleName == right.abilityInfo.bundleName &&
-        left.abilityInfo.moduleName == right.abilityInfo.moduleName;
-}
 }
 
 UIAbilityLifecycleManager::UIAbilityLifecycleManager(int32_t userId): userId_(userId) {}
@@ -425,8 +409,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
 std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromTmpMap(
     const AbilityRequest &abilityRequest)
 {
-    int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    int32_t appIndex = abilityRequest.abilityInfo.appIndex;
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     for (const auto &[requestId, abilityRecord] : tmpAbilityMap_) {
         if (abilityRecord) {
@@ -2874,7 +2857,7 @@ int UIAbilityLifecycleManager::ReleaseCallLocked(
 
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
 
-    auto abilityRecords = GetAbilityRecordsByNameInner(element);
+    auto abilityRecords = GetAbilityRecordsByNameInner(element, -1);
     auto isExist = [connect] (const std::shared_ptr<AbilityRecord> &abilityRecord) {
         if (abilityRecord == nullptr) {
             return false;
@@ -2904,7 +2887,7 @@ void UIAbilityLifecycleManager::OnCallConnectDied(const std::shared_ptr<CallReco
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
 
     AppExecFwk::ElementName element = callRecord->GetTargetServiceName();
-    auto abilityRecords = GetAbilityRecordsByNameInner(element);
+    auto abilityRecords = GetAbilityRecordsByNameInner(element, -1);
     auto isExist = [callRecord] (const std::shared_ptr<AbilityRecord> &abilityRecord) {
         if (abilityRecord == nullptr) {
             return false;
@@ -2922,14 +2905,14 @@ void UIAbilityLifecycleManager::OnCallConnectDied(const std::shared_ptr<CallReco
 }
 
 std::vector<std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetAbilityRecordsByName(
-    const AppExecFwk::ElementName &element)
+    const AppExecFwk::ElementName &element, int32_t appIndex)
 {
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    return GetAbilityRecordsByNameInner(element);
+    return GetAbilityRecordsByNameInner(element, appIndex);
 }
 
 std::vector<std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetAbilityRecordsByNameInner(
-    const AppExecFwk::ElementName &element)
+    const AppExecFwk::ElementName &element, int32_t appIndex)
 {
     std::vector<std::shared_ptr<AbilityRecord>> records;
     for (const auto& [first, second] : sessionAbilityMap_) {
@@ -2938,8 +2921,10 @@ std::vector<std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetAbilit
             abilityInfo.name, abilityInfo.moduleName);
         AppExecFwk::ElementName localElementNoModuleName(abilityInfo.deviceId,
             abilityInfo.bundleName, abilityInfo.name);
-        if (localElement == element || localElementNoModuleName == element) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "find element %{public}s", localElement.GetURI().c_str());
+        if ((localElement == element || localElementNoModuleName == element) &&
+            (appIndex == -1 || abilityInfo.appIndex == appIndex)) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "find element %{public}s, appIndex:%{public}d",
+                localElement.GetURI().c_str(), appIndex);
             records.push_back(second);
         }
     }
@@ -3941,8 +3926,7 @@ void UIAbilityLifecycleManager::EnableListForSCBRecovery()
 
 std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromSessionMap(const AbilityRequest &abilityRequest)
 {
-    int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    int32_t appIndex = abilityRequest.abilityInfo.appIndex;
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     for (const auto &[sessionId, abilityRecord] : sessionAbilityMap_) {
         if (abilityRecord) {
