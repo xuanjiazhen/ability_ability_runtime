@@ -102,6 +102,7 @@
 #include "string_wrapper.h"
 #include "support_system_ability_permission.h"
 #include "time_util.h"
+#include "tokenid_kit.h"
 #include "ui_extension_utils.h"
 #include "ui_service_extension_connection_constants.h"
 #include "unlock_screen_manager.h"
@@ -589,7 +590,8 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
     abilityMgr->StartAutoStartupApps(userId);
 }
 
-int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode)
+int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -658,7 +660,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
 }
 
 int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
-    int32_t userId, int requestCode)
+    int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
     return StartAbilityWithRemoveIntentFlag(want, callerToken, userId, requestCode, true);
 }
@@ -5135,7 +5137,8 @@ int32_t AbilityManagerService::ConnectAbility(
 
 int32_t AbilityManagerService::ConnectAbilityCommon(
     const Want &want, const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken,
-    AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly)
+    AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly,
+    uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());

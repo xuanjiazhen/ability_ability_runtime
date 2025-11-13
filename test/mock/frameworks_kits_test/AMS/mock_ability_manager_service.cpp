@@ -35,7 +35,8 @@ MockAbilityManagerService::MockAbilityManagerService() : abilityScheduler_(nullp
 MockAbilityManagerService::~MockAbilityManagerService()
 {}
 
-int MockAbilityManagerService::StartAbility(const Want& want, int32_t userId, int requestCode)
+int MockAbilityManagerService::StartAbility(
+    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
     GTEST_LOG_(INFO) << "MockAbilityManagerService::StartAbility called";
     curstate_ = AbilityLifeCycleState::ABILITY_STATE_INITIAL;
@@ -68,7 +69,7 @@ int MockAbilityManagerService::StartAbility(const Want& want, int32_t userId, in
 }
 
 int MockAbilityManagerService::StartAbility(const Want& want, const sptr<IRemoteObject>& callerToken,
-    int32_t userId, int requestCode)
+    int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
     return 0;
 }
