@@ -18,8 +18,8 @@
 
 #include <mutex>
 #include "ability_connect_callback_interface.h"
-#include "ability_record.h"
 #include "extension_config.h"
+#include "extension_record_base.h"
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -36,7 +36,7 @@ enum class ConnectionState { INIT, CONNECTING, CONNECTED, DISCONNECTING, DISCONN
  */
 class ConnectionRecord : public std::enable_shared_from_this<ConnectionRecord> {
 public:
-    ConnectionRecord(const sptr<IRemoteObject> &callerToken, const std::shared_ptr<AbilityRecord> &targetService,
+    ConnectionRecord(const sptr<IRemoteObject> &callerToken, const std::shared_ptr<ExtensionRecordBase> &targetService,
         const sptr<IAbilityConnection> &connCallback, std::shared_ptr<AbilityConnectManager> abilityConnectManager);
     virtual ~ConnectionRecord();
 
@@ -49,7 +49,7 @@ public:
      * @return Return the connect record.
      */
     static std::shared_ptr<ConnectionRecord> CreateConnectionRecord(const sptr<IRemoteObject> &callerToken,
-        const std::shared_ptr<AbilityRecord> &targetService, const sptr<IAbilityConnection> &connCallback,
+        const std::shared_ptr<ExtensionRecordBase> &targetService, const sptr<IAbilityConnection> &connCallback,
         std::shared_ptr<AbilityConnectManager> abilityConnectManager);
 
     static int32_t CallOnAbilityConnectDone(sptr<IAbilityConnection> callback,
@@ -78,9 +78,9 @@ public:
     /**
      * get the ability record from connection record.
      *
-     * @return AbilityRecord.
+     * @return ExtensionRecordBase.
      */
-    std::shared_ptr<AbilityRecord> GetAbilityRecord() const;
+    std::shared_ptr<ExtensionRecordBase> GetAbilityRecord() const;
 
     sptr<IAbilityConnection> GetAbilityConnectCallback() const;
 
@@ -180,7 +180,7 @@ private:
     int recordId_ = 0;                                  // record id
     ConnectionState state_;                         // service connection state
     sptr<IRemoteObject> callerToken_ = nullptr;               // from:caller token
-    std::shared_ptr<AbilityRecord> targetService_ = nullptr;  // target:service need to be connected
+    std::shared_ptr<ExtensionRecordBase> targetService_ = nullptr;  // target:service need to be connected
 
     mutable std::mutex callbackMutex_;
     sptr<IAbilityConnection> connCallback_ = nullptr;         // service connect callback

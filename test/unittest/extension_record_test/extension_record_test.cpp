@@ -80,7 +80,7 @@ HWTEST_F(ExtensionRecordTest, UnloadUIExtensionAbility_001, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.fuzzTest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AbilityType::DATA;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = ExtensionRecordBase::CreateAbilityRecord(abilityRequest);
     auto Info = std::make_shared<AbilityRuntime::ExtensionRecord>(abilityRecord);
     Info->hostBundleName_ = "ExtensionRecordTest";
     Info->UnloadUIExtensionAbility();

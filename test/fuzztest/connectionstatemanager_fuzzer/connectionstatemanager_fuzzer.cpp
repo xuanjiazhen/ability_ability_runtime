@@ -27,7 +27,7 @@
 #undef protected
 #undef private
 
-#include "ability_record.h"
+#include "extension_record_base.h"
 #include "continuous_task_callback_info.h"
 
 using namespace OHOS::AAFwk;
@@ -83,14 +83,14 @@ uint32_t GetU32Data(const char* ptr)
     return (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
 }
 
-std::shared_ptr<AbilityRecord> GetFuzzAbilityRecord()
+std::shared_ptr<ExtensionRecordBase> GetFuzzAbilityRecord()
 {
     sptr<Token> token = nullptr;
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.bundleName = "com.example.fuzzTest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AbilityType::DATA;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = ExtensionRecordBase::CreateAbilityRecord(abilityRequest);
     if (!abilityRecord) {
         return nullptr;
     }
@@ -100,7 +100,7 @@ std::shared_ptr<AbilityRecord> GetFuzzAbilityRecord()
 sptr<Token> GetFuzzAbilityToken()
 {
     sptr<Token> token = nullptr;
-    std::shared_ptr<AbilityRecord> abilityRecord = GetFuzzAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetFuzzAbilityRecord();
     if (abilityRecord) {
         token = abilityRecord->GetToken();
     }
@@ -148,7 +148,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     observerDeathRecipient->OnRemoteDied(remote);
 
     // fuzz for ConnectionRecord
-    std::shared_ptr<AbilityRecord> targetService = GetFuzzAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> targetService = GetFuzzAbilityRecord();
     auto connectionRecord = std::make_shared<ConnectionRecord>(token, targetService, connect, nullptr);
     connectionRecord->CreateConnectionRecord(token, targetService, connect, nullptr);
     ConnectionState state = ConnectionState::CONNECTED;
@@ -207,7 +207,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     connectionStateManager->HandleDataAbilityDied(dataAbility);
     connectionStateManager->HandleDataAbilityCallerDied(int32Param);
 #ifdef WITH_DLP
-    std::shared_ptr<AbilityRecord> dlpManger = GetFuzzAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> dlpManger = GetFuzzAbilityRecord();
     connectionStateManager->AddDlpManager(dlpManger);
     connectionStateManager->RemoveDlpManager(dlpManger);
     connectionStateManager->AddDlpAbility(dlpManger);
