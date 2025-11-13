@@ -333,7 +333,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, MinimizeUIExtensionAbility_001, TestS
     AppExecFwk::ApplicationInfo appInfo;
     appInfo.accessTokenId = ONE;
     abilityRequest.appInfo = appInfo;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<AbilityRecord> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
     extensionSessionInfo->callerToken = abilityRecord->GetToken();
     IPCSkeleton::SetCallingTokenID(ONE);
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
@@ -376,7 +376,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, MinimizeUIExtensionAbility_002, TestS
     AppExecFwk::ApplicationInfo appInfo;
     appInfo.accessTokenId = ONE;
     abilityRequest.appInfo = appInfo;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<AbilityRecord> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
     extensionSessionInfo->callerToken = abilityRecord->GetToken();
     IPCSkeleton::SetCallingTokenID(ONE);
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
@@ -615,7 +615,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, TerminateUIExtensionAbility_001, Test
     AppExecFwk::ApplicationInfo appInfo;
     appInfo.accessTokenId = ONE;
     abilityRequest.appInfo = appInfo;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<AbilityRecord> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
     extensionSessionInfo->callerToken = abilityRecord->GetToken();
     IPCSkeleton::SetCallingTokenID(ONE);
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);

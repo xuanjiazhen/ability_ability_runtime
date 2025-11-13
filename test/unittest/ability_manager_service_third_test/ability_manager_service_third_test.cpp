@@ -1096,7 +1096,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, UnloadUIExtensionAbility_001, TestSize.
     AppExecFwk::ElementName providerElement("0", "com.ohos.uiextensionprovider", "UIExtensionProvider", "entry");
     abilityRequest.want.SetElement(providerElement);
     abilityRequest.abilityInfo.type = AbilityType::EXTENSION;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
     int32_t hostPid = 0;
     auto result = abilityMs->UnloadUIExtensionAbility(abilityRecord, hostPid);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
