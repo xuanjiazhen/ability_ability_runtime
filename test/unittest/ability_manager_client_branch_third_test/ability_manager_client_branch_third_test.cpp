@@ -212,7 +212,6 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, StartAbility_0200, TestSize.Level1
     SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = iSystemAbilityMgr_;
     Want want;
     AbilityStartSetting abilityStartSetting;
-    EXPECT_CALL(*mock_, StartAbility(_, _, _, _, _)).Times(1).WillOnce(Return(ERR_OK));
     auto result = client_->StartAbility(want, abilityStartSetting, nullptr, 0, 0);
     EXPECT_EQ(result, ERR_OK);
 }

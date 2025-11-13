@@ -155,7 +155,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StartAbility(const Want &want, int requestCode = DEFAULT_INVAL_VALUE,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0);
 
     /**
      * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
@@ -178,7 +178,8 @@ public:
         const Want &want,
         sptr<IRemoteObject> callerToken,
         int requestCode = DEFAULT_INVAL_VALUE,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0);
 
     /**
      * StartAbility by insight intent, send want to ability manager service.
@@ -600,7 +601,8 @@ public:
         const Want &want,
         sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0);
     
     /**
      * ConnectAbilityWithExtensionType, connect session with specified extentionType ability.

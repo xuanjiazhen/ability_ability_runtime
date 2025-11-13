@@ -140,7 +140,8 @@ ErrCode AbilityManagerClient::ScheduleCommandAbilityWindowDone(
     return abms->ScheduleCommandAbilityWindowDone(token, sessionInfo, winCmd, abilityCmd);
 }
 
-ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, int32_t userId)
+ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, int32_t userId,
+    uint64_t specifiedFullTokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
@@ -166,7 +167,7 @@ ErrCode AbilityManagerClient::StartAbilityWithWait(Want &want, sptr<IAbilityStar
 }
 
 ErrCode AbilityManagerClient::StartAbility(
-    const Want &want, sptr<IRemoteObject> callerToken, int requestCode, int32_t userId)
+    const Want &want, sptr<IRemoteObject> callerToken, int requestCode, int32_t userId, uint64_t specifiedFullTokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
@@ -577,14 +578,17 @@ ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConn
 }
 
 ErrCode AbilityManagerClient::ConnectAbility(
-    const Want &want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+    const Want &want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId,
+    uint64_t specifiedFullTokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d",
-        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
-    return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId);
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d, specifiedFullTokenId:%{pulic}llu",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId,
+        specifiedFullTokenId);
+    return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId,
+        false, specifiedFullTokenId);
 }
 
 ErrCode AbilityManagerClient::ConnectAbilityWithExtensionType(
