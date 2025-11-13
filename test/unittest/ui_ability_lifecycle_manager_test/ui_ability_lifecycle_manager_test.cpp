@@ -56,7 +56,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    std::shared_ptr<UIAbilityRecord> InitAbilityRecord();
+    UIAbilityRecordPtr InitAbilityRecord();
 };
 
 void UIAbilityLifecycleManagerTest::SetUpTestCase() {}
@@ -111,13 +111,13 @@ public:
     virtual void OnAbilityDisconnectDone(const AppExecFwk::ElementName& element, int resultCode) {};
 };
 
-std::shared_ptr<UIAbilityRecord> UIAbilityLifecycleManagerTest::InitAbilityRecord()
+UIAbilityRecordPtr UIAbilityLifecycleManagerTest::InitAbilityRecord()
 {
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     return abilityRecord;
 }
 
@@ -560,7 +560,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, UpdateAbilityRecordLaunchReason_001, Tes
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(mgr, nullptr);
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     mgr->UpdateAbilityRecordLaunchReason(abilityRequest, abilityRecord);
     EXPECT_NE(mgr, nullptr);
 }
@@ -645,7 +645,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, EraseAbilityRecord_001, TestSize.Level1)
 {
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(mgr, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     mgr->EraseAbilityRecord(abilityRecord);
     EXPECT_NE(mgr, nullptr);
 }
@@ -674,7 +674,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, EraseAbilityRecord_002, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, DispatchState_001, TestSize.Level1)
 {
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     EXPECT_EQ(mgr->DispatchState(abilityRecord, AbilityState::INITIAL), ERR_INVALID_VALUE);
 }
 
@@ -686,7 +686,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, DispatchState_001, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, DispatchState_002, TestSize.Level1)
 {
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     EXPECT_EQ(mgr->DispatchState(abilityRecord, AbilityState::FOREGROUND), ERR_INVALID_VALUE);
 }
 
@@ -698,7 +698,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, DispatchState_002, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, DispatchState_003, TestSize.Level1)
 {
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     EXPECT_EQ(mgr->DispatchState(abilityRecord, AbilityState::FOREGROUND_FAILED), ERR_INVALID_VALUE);
 }
 
@@ -710,7 +710,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, DispatchState_003, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, DispatchState_004, TestSize.Level1)
 {
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     int state = 130;
     EXPECT_EQ(mgr->DispatchState(abilityRecord, state), ERR_INVALID_VALUE);
 }
@@ -788,7 +788,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleForegroundFailed_001, TestSize.Lev
 {
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(mgr, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     mgr->HandleForegroundFailed(abilityRecord, AbilityState::FOREGROUND_FAILED);
     EXPECT_NE(mgr, nullptr);
 }
@@ -829,7 +829,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MinimizeUIAbility_001, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, MinimizeUIAbility_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::BACKGROUND;
     EXPECT_EQ(uiAbilityLifecycleManager->MinimizeUIAbility(abilityRecord, false, 0), ERR_OK);
     uiAbilityLifecycleManager.reset();
@@ -843,7 +843,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MinimizeUIAbility_002, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, MinimizeUIAbility_003, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::FOREGROUND;
     EXPECT_EQ(uiAbilityLifecycleManager->MinimizeUIAbility(abilityRecord, false, 0), ERR_OK);
     uiAbilityLifecycleManager.reset();
@@ -871,7 +871,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MoveToBackground_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uiAbilityLifecycleManager->MoveToBackground(abilityRecord);
     uiAbilityLifecycleManager.reset();
 }
@@ -899,7 +899,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrintTimeOutLog_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 0;
     uiAbilityLifecycleManager->PrintTimeOutLog(abilityRecord, msgId);
     uiAbilityLifecycleManager.reset();
@@ -914,7 +914,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrintTimeOutLog_003, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 1;
     uiAbilityLifecycleManager->PrintTimeOutLog(abilityRecord, msgId);
     uiAbilityLifecycleManager.reset();
@@ -929,7 +929,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrintTimeOutLog_004, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 2;
     uiAbilityLifecycleManager->PrintTimeOutLog(abilityRecord, msgId);
     uiAbilityLifecycleManager.reset();
@@ -944,7 +944,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrintTimeOutLog_005, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 3;
     uiAbilityLifecycleManager->PrintTimeOutLog(abilityRecord, msgId);
     uiAbilityLifecycleManager.reset();
@@ -959,7 +959,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrintTimeOutLog_006, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 4;
     uiAbilityLifecycleManager->PrintTimeOutLog(abilityRecord, msgId);
     uiAbilityLifecycleManager.reset();
@@ -974,7 +974,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrintTimeOutLog_007, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 5;
     uiAbilityLifecycleManager->PrintTimeOutLog(abilityRecord, msgId);
     uiAbilityLifecycleManager.reset();
@@ -989,7 +989,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrintTimeOutLog_008, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 6;
     uiAbilityLifecycleManager->PrintTimeOutLog(abilityRecord, msgId);
     uiAbilityLifecycleManager.reset();
@@ -1004,7 +1004,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CompleteBackground_001, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::FOREGROUND;
     uiAbilityLifecycleManager->CompleteBackground(abilityRecord);
     uiAbilityLifecycleManager.reset();
@@ -1018,7 +1018,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CompleteBackground_001, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, CompleteBackground_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::BACKGROUNDING;
     abilityRecord->SetPendingState(AbilityState::FOREGROUND);
     uiAbilityLifecycleManager->CompleteBackground(abilityRecord);
@@ -1035,7 +1035,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CompleteBackground_003, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::BACKGROUNDING;
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
     uiAbilityLifecycleManager->CompleteBackground(abilityRecord);
@@ -1086,7 +1086,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CompleteBackground_006, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, CloseUIAbility_001, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->SetTerminatingState();
     abilityRecord->currentState_ = AbilityState::BACKGROUND;
     EXPECT_EQ(uiAbilityLifecycleManager->CloseUIAbility(abilityRecord, -1, nullptr, false, false), ERR_OK);
@@ -1101,7 +1101,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CloseUIAbility_001, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, CloseUIAbility_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     EXPECT_EQ(uiAbilityLifecycleManager->CloseUIAbility(abilityRecord, -1, nullptr, false, false), ERR_INVALID_VALUE);
     uiAbilityLifecycleManager.reset();
 }
@@ -1114,7 +1114,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CloseUIAbility_002, TestSize.Level1)
 HWTEST_F(UIAbilityLifecycleManagerTest, CloseUIAbility_003, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     Want want;
     EXPECT_EQ(uiAbilityLifecycleManager->CloseUIAbility(abilityRecord, -1, &want, false, false), ERR_INVALID_VALUE);
     uiAbilityLifecycleManager.reset();
@@ -1204,7 +1204,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, DelayCompleteTerminate_001, TestSize.Lev
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uiAbilityLifecycleManager->DelayCompleteTerminate(abilityRecord);
     uiAbilityLifecycleManager.reset();
 }
@@ -1218,7 +1218,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CompleteTerminate_001, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::BACKGROUND;
     uiAbilityLifecycleManager->CompleteTerminate(abilityRecord);
     uiAbilityLifecycleManager.reset();
@@ -1233,7 +1233,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CompleteTerminate_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::TERMINATING;
     uiAbilityLifecycleManager->CompleteTerminate(abilityRecord);
     uiAbilityLifecycleManager.reset();
@@ -1248,7 +1248,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnTimeOut_001, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 0;
     int64_t abilityRecordId = 0;
     uiAbilityLifecycleManager->OnTimeOut(msgId, abilityRecordId);
@@ -1264,7 +1264,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnTimeOut_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 0;
     int64_t abilityRecordId = 0;
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
@@ -1281,7 +1281,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnTimeOut_003, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 5;
     int64_t abilityRecordId = 0;
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
@@ -1298,7 +1298,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnTimeOut_004, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uint32_t msgId = 6;
     int64_t abilityRecordId = 0;
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(msgId, abilityRecord);
@@ -1315,7 +1315,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, NotifySCBToHandleException_001, TestSize
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> record = nullptr;
+    UIAbilityRecordPtr record = nullptr;
     uiAbilityLifecycleManager->NotifySCBToHandleException(record,
         static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_LOAD_TIMEOUT), "handleLoadTimeout");
     uiAbilityLifecycleManager.reset();
@@ -1330,7 +1330,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, NotifySCBToHandleException_002, TestSize
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uiAbilityLifecycleManager->NotifySCBToHandleException(abilityRecord,
         static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_LOAD_TIMEOUT), "handleLoadTimeout");
     uiAbilityLifecycleManager.reset();
@@ -1462,7 +1462,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleLoadTimeout_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uiAbilityLifecycleManager->HandleLoadTimeout(abilityRecord);
     uiAbilityLifecycleManager.reset();
 }
@@ -1546,7 +1546,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleForegroundTimeout_002, TestSize.Le
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::TERMINATING;
     uiAbilityLifecycleManager->HandleForegroundTimeout(abilityRecord);
     uiAbilityLifecycleManager.reset();
@@ -1561,7 +1561,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleForegroundTimeout_003, TestSize.Le
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::FOREGROUNDING;
     uiAbilityLifecycleManager->HandleForegroundTimeout(abilityRecord);
     uiAbilityLifecycleManager.reset();
@@ -1649,7 +1649,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAbilityDied_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uiAbilityLifecycleManager->OnAbilityDied(abilityRecord);
     uiAbilityLifecycleManager.reset();
 }
@@ -2494,7 +2494,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAcceptWantResponse_002, TestSize.Level
     abilityRequest.specifiedFlag = flag;
     want.SetParam(DLP_INDEX, 1);
     abilityRequest.want = want;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->abilityInfo_.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
     abilityRecord->abilityInfo_.moduleName = "entry";
     abilityRecord->SetAppIndex(1);
@@ -2502,7 +2502,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAcceptWantResponse_002, TestSize.Level
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
     uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag, 0);
 
-    std::shared_ptr<UIAbilityRecord> callerAbility = InitAbilityRecord();
+    UIAbilityRecordPtr callerAbility = InitAbilityRecord();
     abilityRequest.callerToken = callerAbility->GetToken()->AsObject();
     uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag, 0);
     uiAbilityLifecycleManager.reset();
@@ -2681,7 +2681,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MoveAbilityToFront_001, TestSize.Level1)
     specifiedRequest.abilityRequest.appInfo.bundleName = "com.example.unittest";
     specifiedRequest.abilityRequest.abilityInfo.name = "MainAbility";
     specifiedRequest.abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(specifiedRequest.abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(specifiedRequest.abilityRequest);
     res = uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, abilityRecord, nullptr);
     EXPECT_EQ(res, ERR_OK);
 
@@ -2709,7 +2709,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MoveAbilityToFront_002, TestSize.Level1)
     specifiedRequest.abilityRequest.abilityInfo.name = "MainAbility";
     specifiedRequest.abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     specifiedRequest.abilityRequest.isStartInSplitMode = true;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(specifiedRequest.abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(specifiedRequest.abilityRequest);
     res = uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, abilityRecord, nullptr);
     EXPECT_EQ(res, ERR_OK);
 
@@ -2732,7 +2732,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, SendSessionInfoToSCB_0100, TestSize.Leve
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<UIAbilityRecord> callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     int res = uiAbilityLifecycleManager->SendSessionInfoToSCB(callerAbility, sessionInfo);
     EXPECT_EQ(res, ERR_OK);
 
@@ -2776,7 +2776,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, SendSessionInfoToSCB_0200, TestSize.Leve
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<UIAbilityRecord> callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     int res = uiAbilityLifecycleManager->SendSessionInfoToSCB(callerAbility, sessionInfo);
     EXPECT_EQ(res, ERR_OK);
     EXPECT_FALSE(sessionInfo->want.HasParameter(KEY_REQUEST_ID));
@@ -2803,9 +2803,9 @@ HWTEST_F(UIAbilityLifecycleManagerTest, SendSessionInfoToSCB_0300, TestSize.Leve
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<UIAbilityRecord> callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     sessionInfo->callerToken = callerAbility->GetToken();
-    std::shared_ptr<UIAbilityRecord> caller = nullptr;
+    UIAbilityRecordPtr caller = nullptr;
     int res = uiAbilityLifecycleManager->SendSessionInfoToSCB(caller, sessionInfo);
     EXPECT_EQ(res, ERR_OK);
     EXPECT_FALSE(sessionInfo->want.HasParameter(KEY_REQUEST_ID));
@@ -2832,7 +2832,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, SendSessionInfoToSCBInSplitMode_0100, Te
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<UIAbilityRecord> callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     abilityRequest.primaryWindowId = 1;
     int res = uiAbilityLifecycleManager->SendSessionInfoToSCBInSplitMode(abilityRequest.primaryWindowId, callerAbility,
         sessionInfo);
@@ -2852,7 +2852,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartAbilityBySpecifed_001, TestSize.Lev
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
     AbilityRequest request;
     SpecifiedRequest specifiedRequest(0, request);
-    std::shared_ptr<UIAbilityRecord> callerAbility = nullptr;
+    UIAbilityRecordPtr callerAbility = nullptr;
     uiAbilityLifecycleManager->StartAbilityBySpecifed(specifiedRequest, callerAbility);
     uiAbilityLifecycleManager.reset();
 }
@@ -2869,7 +2869,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartAbilityBySpecifed_0200, TestSize.Le
     AbilityRequest request;
     SpecifiedRequest specifiedRequest(0, request);
     specifiedRequest.requestListId = 0;
-    std::shared_ptr<UIAbilityRecord> callerAbility = nullptr;
+    UIAbilityRecordPtr callerAbility = nullptr;
     uiAbilityLifecycleManager->StartAbilityBySpecifed(specifiedRequest, callerAbility);
     uiAbilityLifecycleManager.reset();
 }
@@ -2898,7 +2898,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityStateByPersistentId_002, TestS
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->SetPendingState(AbilityState::INITIAL);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(100, abilityRecord);
     int32_t persistentId = 100;
@@ -2925,7 +2925,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, UpdateProcessName_001, TestSize.Level1)
     abilityRequest.abilityInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.moduleName = "entry";
     abilityRequest.abilityInfo.name = "MainAbility";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uiAbilityLifecycleManager->UpdateProcessName(abilityRequest, abilityRecord);
     EXPECT_EQ("com.example.unittest:entry:MainAbility:0", abilityRecord->GetProcessName());
 }
@@ -3769,7 +3769,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrepareTerminateAbility_001, TestSize.Le
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     bool boolValue = uiAbilityLifecycleManager->PrepareTerminateAbility(abilityRecord, false);
     EXPECT_FALSE(boolValue);
 }
@@ -3783,7 +3783,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrepareTerminateAbility_002, TestSize.Le
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     bool boolValue = uiAbilityLifecycleManager->PrepareTerminateAbility(abilityRecord, false);
     EXPECT_FALSE(boolValue);
 }
@@ -3845,7 +3845,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_001, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.state = AppState::TERMINATED;
@@ -3867,7 +3867,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_002, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.state = AppState::END;
@@ -3889,7 +3889,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_003, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "com.example.unittest";
     info.state = AppState::TERMINATED;
@@ -3911,7 +3911,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_004, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "com.example.unittest";
     info.state = AppState::END;
@@ -3933,7 +3933,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_005, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "com.example.unittest";
     info.state = AppState::COLD_START;
@@ -3955,7 +3955,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_006, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.state = AppState::COLD_START;
@@ -3977,7 +3977,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_007, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "com.example.unittest";
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
@@ -3998,7 +3998,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_008, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
@@ -4019,7 +4019,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_009, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.bundleName = "com.example.unittest";
@@ -4045,7 +4045,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_010, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.bundleName = "com.example.unittest1";
@@ -4067,7 +4067,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_011, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.bundleName = "com.example.unittest";
@@ -4093,7 +4093,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_012, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.bundleName = "com.example.unittest1";
@@ -4115,7 +4115,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_013, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.bundleName = "com.example.unittest";
@@ -4141,7 +4141,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_014, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.bundleName = "com.example.unittest1";
@@ -4163,7 +4163,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_015, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.bundleName = "com.example.unittest";
@@ -4188,7 +4188,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAppStateChanged_016, TestSize.Level1)
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.process = "AbilityProcess";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     info.processName = "AbilityProcess";
     info.bundleName = "com.example.unittest1";
@@ -4208,7 +4208,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, UninstallApp_001, TestSize.Level1)
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     AppInfo info;
     std::string bundleName = "com.example.unittest";
     int32_t uid = 0;
@@ -4226,7 +4226,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRunningInfos_001, TestSize.Lev
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     std::vector<AbilityRunningInfo> info;
     bool isPerm = true;
@@ -4245,7 +4245,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRunningInfos_002, TestSize.Lev
     ASSERT_NE(uiAbilityLifecycleManager, nullptr);
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     std::vector<AbilityRunningInfo> info;
     bool isPerm = false;
@@ -4281,7 +4281,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MoveMissionToFront_002, TestSize.Level1)
     uiAbilityLifecycleManager->rootSceneSession_ = new Rosen::Session(info);
     int32_t sessionId = 100;
     std::shared_ptr<StartOptions> startOptions;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     EXPECT_EQ(uiAbilityLifecycleManager->MoveMissionToFront(sessionId, startOptions), ERR_INVALID_VALUE);
 }
@@ -4409,7 +4409,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, DispatchTerminate_001, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     EXPECT_EQ(uiAbilityLifecycleManager->DispatchTerminate(abilityRecord), ERR_INVALID_VALUE);
 }
 
@@ -4422,7 +4422,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, DispatchTerminate_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::INITIAL;
     EXPECT_EQ(uiAbilityLifecycleManager->DispatchTerminate(abilityRecord), INNER_ERR);
 }
@@ -4436,7 +4436,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, DispatchTerminate_003, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->currentState_ = AbilityState::TERMINATING;
     EXPECT_EQ(uiAbilityLifecycleManager->DispatchTerminate(abilityRecord), ERR_INVALID_VALUE);
 }
@@ -4450,7 +4450,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, DispatchBackground_001, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     EXPECT_EQ(uiAbilityLifecycleManager->DispatchBackground(abilityRecord), ERR_INVALID_VALUE);
 }
 
@@ -4463,7 +4463,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, DispatchBackground_002, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<UIAbilityRecord> abilityRecord = nullptr;
+    UIAbilityRecordPtr abilityRecord = nullptr;
     EXPECT_EQ(uiAbilityLifecycleManager->DispatchBackground(abilityRecord), ERR_INVALID_VALUE);
 }
 
@@ -4551,7 +4551,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ResolveAbility_001, TestSize.Level1)
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> targetAbility = nullptr;
+    UIAbilityRecordPtr targetAbility = nullptr;
     EXPECT_EQ(uiAbilityLifecycleManager->ResolveAbility(targetAbility, abilityRequest),
         ResolveResultType::NG_INNER_ERROR);
 }
@@ -4755,7 +4755,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_001, TestS
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
     int64_t callerRequestCode = 0;
@@ -4777,7 +4777,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_002, TestS
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
     int64_t callerRequestCode = 1;
@@ -4799,7 +4799,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_003, TestS
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
     int32_t requestCode = 1;
@@ -4808,7 +4808,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_003, TestS
     int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
 
     // not support back to caller
-    std::shared_ptr<UIAbilityRecord> callerAbilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr callerAbilityRecord = InitAbilityRecord();
     callerAbilityRecord->pid_ = pid;
     auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
     newCallerRecord->AddHistoryRequestCode(requestCode);
@@ -4831,7 +4831,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_004, TestS
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
     int32_t requestCode = 1;
@@ -4862,7 +4862,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_005, TestS
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
     int32_t requestCode = 1;
@@ -4870,7 +4870,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_005, TestS
     bool backFlag = true;
     int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
 
-    std::shared_ptr<UIAbilityRecord> callerAbilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr callerAbilityRecord = InitAbilityRecord();
     callerAbilityRecord->pid_ = pid;
     auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
     newCallerRecord->AddHistoryRequestCode(requestCode);
@@ -4897,7 +4897,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_006, TestS
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
     int32_t requestCode = 1;
@@ -4905,7 +4905,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_006, TestS
     bool backFlag = true;
     int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
 
-    std::shared_ptr<UIAbilityRecord> callerAbilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr callerAbilityRecord = InitAbilityRecord();
     callerAbilityRecord->pid_ = pid;
     auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
     newCallerRecord->AddHistoryRequestCode(requestCode);
@@ -5220,7 +5220,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ProcessColdStartBranch_0100, TestSize.Le
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
     sptr<SessionInfo> sessionInfo = new SessionInfo();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
 
     bool isColdStart = false;
     bool ret = mgr->ProcessColdStartBranch(abilityRequest, sessionInfo, abilityRecord, isColdStart);
@@ -5236,7 +5236,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ProcessColdStartBranch_0200, TestSize.Le
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
     sptr<SessionInfo> sessionInfo = new SessionInfo();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
 
     bool isColdStart = true;
     abilityRecord->isHook_ = false;
@@ -5261,7 +5261,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ProcessColdStartBranch_0300, TestSize.Le
     AbilityRequest abilityRequest;
     sptr<SessionInfo> sessionInfo = new SessionInfo();
     sessionInfo->requestId = 1;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->isHook_ = true;
 
     bool isColdStart = true;
@@ -5286,7 +5286,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ProcessColdStartBranch_0400, TestSize.Le
     AbilityRequest abilityRequest;
     sptr<SessionInfo> sessionInfo = new SessionInfo();
     sessionInfo->requestId = 1;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->isHook_ = true;
 
     bool isColdStart = true;
@@ -5580,7 +5580,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, AddCallerRecord_0002, TestSize.Level1)
 {
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     AbilityRequest request;
-    std::shared_ptr<UIAbilityRecord> record = UIAbilityRecord::CreateAbilityRecord(request);
+    UIAbilityRecordPtr record = UIAbilityRecord::CreateAbilityRecord(request);
 
     mgr->AddCallerRecord(request, nullptr, record);
     EXPECT_NE(record, nullptr);
@@ -5890,7 +5890,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BatchNotifySCBPendingActivations_0003, T
     int32_t requestId = 1;
 
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
@@ -5945,7 +5945,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BatchNotifySCBPendingActivations_0005, T
     int32_t requestId = 1;
 
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
@@ -5974,7 +5974,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BatchNotifySCBPendingActivations_0006, T
     int32_t requestId = 1;
 
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
@@ -6007,7 +6007,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BatchNotifySCBPendingActivations_0007, T
     int32_t requestId = 1;
 
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
@@ -6040,7 +6040,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BatchNotifySCBPendingActivations_0008, T
     int32_t requestId = 1;
 
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
@@ -6138,7 +6138,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleAbilitiesRequestDone_0004, TestSiz
     abilitiesRequest->doneCount = 0;
 
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
@@ -6168,7 +6168,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleAbilitiesRequestDone_0005, TestSiz
     abilitiesRequest->doneCount = 0;
 
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
@@ -6199,7 +6199,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleAbilitiesRequestDone_0006, TestSiz
     abilitiesRequest->doneCount = 0;
 
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
@@ -6254,7 +6254,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleAbilitiesRequestDone_0008, TestSiz
     abilitiesRequest->sessionInfoList.emplace_back(requestId, sessionInfo);
     abilitiesRequest->doneCount = 0;
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
@@ -6283,7 +6283,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleAbilitiesRequestDone_0009, TestSiz
     abilitiesRequest->sessionInfoList.emplace_back(requestId, sessionInfo);
     abilitiesRequest->doneCount = 50;
     AbilityRequest abilityRequest;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     abilitiesRequest->callerToken = callerToken;
