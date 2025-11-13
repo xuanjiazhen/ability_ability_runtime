@@ -102,6 +102,7 @@
 #include "string_wrapper.h"
 #include "support_system_ability_permission.h"
 #include "time_util.h"
+#include "tokenid_kit.h"
 #include "ui_extension_utils.h"
 #include "ui_service_extension_connection_constants.h"
 #include "unlock_screen_manager.h"
@@ -589,7 +590,31 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
     abilityMgr->StartAutoStartupApps(userId);
 }
 
-int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode)
+bool AbilityManagerService::CheckSpecifiedFullTokenIdValid(uint64_t specifiedFullTokenId)
+{
+    if (specifiedFullTokenId == 0) {
+        return false;
+    }
+    bool isSystemApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(specifiedFullTokenId);
+    uint32_t specifyTokenId = static_cast<uint32_t>(specifiedFullTokenId);
+    bool isSACall = AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId);
+    bool isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCallByTokenId(specifyTokenId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "isSystemApp: %{public}d, isSACall: %{public}d, isShellCall: %{public}d",
+        static_cast<int>(isSystemApp), static_cast<int>(isSACall), static_cast<int>(isShellCall));
+    if (isSystemApp || isSACall || isShellCall) {
+        return true;
+    }
+    if (!PermissionVerification::GetInstance()->VerifyCallingPermission(
+        PermissionConstants::PERMISSION_DISTRIBUTED_DATASYNC, specifyTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission %{public}s verification failed",
+            PermissionConstants::PERMISSION_DISTRIBUTED_DATASYNC);
+        return false;
+    }
+    return true;
+}
+
+int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -641,6 +666,10 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         TAG_LOGE(AAFwkTag::ABILITYMGR, "window options not supported");
         return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
     }
+    if (!CheckSpecifiedFullTokenIdValid(specifiedFullTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "specified full token is permission deny");
+        return CHECK_PERMISSION_FAILED;
+    }
     InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(want));
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
     EventInfo eventInfo = BuildEventInfo(want, userId);
@@ -658,8 +687,12 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
 }
 
 int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
-    int32_t userId, int requestCode)
+    int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
+    if (!CheckSpecifiedFullTokenIdValid(specifiedFullTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "specified full token is permission deny");
+        return CHECK_PERMISSION_FAILED;
+    }
     return StartAbilityWithRemoveIntentFlag(want, callerToken, userId, requestCode, true);
 }
 
@@ -5135,7 +5168,8 @@ int32_t AbilityManagerService::ConnectAbility(
 
 int32_t AbilityManagerService::ConnectAbilityCommon(
     const Want &want, const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken,
-    AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly)
+    AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly,
+    uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -5157,6 +5191,11 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
     }
     EventInfo eventInfo = BuildEventInfo(want, userId);
 	eventInfo.lifeCycle = LIFE_CYCLE_CONNECT;
+
+    if(!CheckSpecifiedFullTokenIdValid(specifiedFullTokenId)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "specified full token is permission deny");
+        return CHECK_PERMISSION_FAILED;
+    }
 
     int result;
 #ifdef WITH_DLP
