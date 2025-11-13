@@ -40,6 +40,7 @@ RateLimiter &RateLimiter::GetInstance()
 RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
 {
     CleanCallMap();
+    
     int64_t currentTimeMillis = CurrentTimeMillis();
     int64_t timeBefore = currentTimeMillis - EXTENSION_LIMIT_INTERVAL_MS;
     
@@ -59,14 +60,7 @@ RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
         auto& userTiers = tierTriggerTimes_[uid];
         
         // 清理该用户的过期挡位触发记录
-        auto tierIt = userTiers.begin();
-        while (tierIt != userTiers.end()) {
-            if (tierIt->second < timeBefore) {
-                tierIt = userTiers.erase(tierIt);
-            } else {
-                ++tierIt;
-            }
-        }
+        CleanUserTierTriggerTimes(userTiers, timeBefore);
         
         // 从高到低检查挡位（优先触发高挡位）
         for (auto tierIt = EXTENSION_TIERS.rbegin(); tierIt != EXTENSION_TIERS.rend(); ++tierIt) {
@@ -128,26 +122,50 @@ void RateLimiter::CleanCallMap()
         }
         lastCleanTimeMillis_ = currentTimeMillis;
     }
+    
     CleanSingleCallMap(extensionCallMap_, extensionCallMapLock_, EXTENSION_LIMIT_INTERVAL_MS);
     CleanSingleCallMap(reportCallMap_, reportCallMapLock_, REPORT_LIMIT_INTERVAL_MS);
     CleanTierTriggerTimes(currentTimeMillis);
 }
 
-void RateLimiter::CleanTierTriggerTimes(int64_t currentTimeMillis) {
+void RateLimiter::CleanReportCallMap()
+{
+    int64_t timeBefore = CurrentTimeMillis() - REPORT_LIMIT_INTERVAL_MS;
+    std::lock_guard<std::mutex> guard(reportCallMapLock_);
+    auto it = reportCallMap_.begin();
+    while (it != reportCallMap_.end()) {
+        auto &userTiers = it->second;
+        auto tierIt = userTiers.begin();
+        while (tierIt != userTiers.end()) {
+            auto &timestamps = tierIt->second;
+            auto eraseIt = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
+            timestamps.erase(timestamps.begin(), eraseIt);
+            
+            if (timestamps.empty()) {
+                tierIt = userTiers.erase(tierIt);
+            } else {
+                ++tierIt;
+            }
+        }
+        
+        if (userTiers.empty()) {
+            it = reportCallMap_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+
+void RateLimiter::CleanTierTriggerTimes(int64_t currentTimeMillis)
+{
     std::lock_guard<std::mutex> guard(tierTriggerTimesLock_);
     int64_t timeBefore = currentTimeMillis - EXTENSION_LIMIT_INTERVAL_MS;
     
     auto it = tierTriggerTimes_.begin();
     while (it != tierTriggerTimes_.end()) {
         auto& userTiers = it->second;
-        auto tierIt = userTiers.begin();
-        while (tierIt != userTiers.end()) {
-            if (tierIt->second < timeBefore) {
-                tierIt = userTiers.erase(tierIt);
-            } else {
-                ++tierIt;
-            }
-        }
+        CleanUserTierTriggerTimes(userTiers, timeBefore);
         
         if (userTiers.empty()) {
             it = tierTriggerTimes_.erase(it);
@@ -157,28 +175,37 @@ void RateLimiter::CleanTierTriggerTimes(int64_t currentTimeMillis) {
     }
 }
 
-void RateLimiter::CleanSingleCallMap(std::unordered_map<int32_t, std::vector<int64_t>> &callMap, std::mutex &mapLock,
-    int64_t limitInterval)
+void RateLimiter::CleanUserTierTriggerTimes(std::unordered_map<int32_t, int64_t>& userTiers, int64_t timeBefore)
 {
+    auto tierIt = userTiers.begin();
+    while (tierIt != userTiers.end()) {
+        if (tierIt->second < timeBefore) {
+            tierIt = userTiers.erase(tierIt);
+        } else {
+            ++tierIt;
+        }
+    }
+}
+
+void RateLimiter::CleanSingleCallMap(std::unordered_map<int32_t, std::vector<int64_t>>& callMap, 
+                                    std::mutex& mapLock, int64_t limitInterval) {
     int64_t timeBefore = CurrentTimeMillis() - limitInterval;
     std::lock_guard<std::mutex> guard(mapLock);
+    
     auto it = callMap.begin();
     while (it != callMap.end()) {
-        bool allExpired = true;
-        for (const auto &timestamp : it->second) {
-            if (timestamp >= timeBefore) {
-                allExpired = false;
-                break;
-            }
-        }
+        auto& timestamps = it->second;
         
-        if (allExpired) {
+        // 使用二分查找清理过期时间戳
+        auto eraseIt = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
+        timestamps.erase(timestamps.begin(), eraseIt);
+        
+        if (timestamps.empty()) {
             it = callMap.erase(it);
         } else {
             ++it;
         }
     }
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "CleanSingleCallMap end, size:%{public}zu", callMap.size());
 }
 
 int64_t RateLimiter::CurrentTimeMillis()
