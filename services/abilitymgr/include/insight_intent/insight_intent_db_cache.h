@@ -33,13 +33,19 @@ public:
         std::vector<ExtractInsightIntentGenericInfo> &genericInfos);
     void GetInsightIntentGenericInfo(const std::string &bundleName, const std::string &moduleName,
         const std::string &intentName, ExtractInsightIntentGenericInfo &genericInfos);
-    void GetAllInsightIntentInfo(const int32_t userId, std::vector<ExtractInsightIntentInfo> &infos);
+    void GetAllInsightIntentInfo(const int32_t userId, std::vector<ExtractInsightIntentInfo> &infos, std::vector<InsightIntentInfo> &configInfos);
     void GetInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
         std::vector<ExtractInsightIntentInfo> &infos);
+    void GetConfigInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
+        std::vector<InsightIntentInfo> &infos);
+    void GetAllConfigInsightIntentInfo(
+        const int32_t userId, std::vector<InsightIntentInfo> &configInfos);
     void GetInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
         const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &infos);
+    void GetConfigInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
+        const std::string &intentName, const int32_t userId, InsightIntentInfo &info);
     int32_t SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
-        const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos);
+        const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos, std::vector<InsightIntentInfo> configInfos);
     int32_t DeleteInsightIntentTotalInfo(const std::string &bundleName,
         const std::string &moduleName, const int32_t userId);
     int32_t DeleteInsightIntentByUserId(const int32_t userId);
@@ -47,6 +53,7 @@ private:
     int32_t userId_ = -1;
     mutable std::mutex genericInfosMutex_;
     std::map<std::string, std::vector<ExtractInsightIntentGenericInfo>> intentGenericInfos_;
+    std::map<std::string, std::vector<InsightIntentGenericInfo>> configIntentGenericInfos_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -28,9 +28,9 @@ InsightRdbStorageMgr::~InsightRdbStorageMgr()
 }
 
 int32_t InsightRdbStorageMgr::LoadInsightIntentInfos(const int32_t userId,
-    std::vector<ExtractInsightIntentInfo> &totalInfos)
+    std::vector<ExtractInsightIntentInfo> &totalInfos, std::vector<InsightIntentInfo> &configInfos)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load all intent total infos");
+    TAG_LOGE(AAFwkTag::INTENT, "InsightRdbStorageMgr load all intent total infos");
     std::unordered_map<std::string, std::string> value;
     std::string key = std::to_string(userId).append("/");
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
@@ -38,7 +38,37 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfos(const int32_t userId,
         TAG_LOGE(AAFwkTag::INTENT, "get entries error");
         return ERR_INVALID_VALUE;
     }
-    Transform(value, totalInfos);
+    Transform(value, totalInfos, configInfos);
+    return ERR_OK;
+}
+
+int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfos(const int32_t userId,
+    std::vector<InsightIntentInfo> &configInfos)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load config intent total infos");
+    std::unordered_map<std::string, std::string> value;
+    std::string key = std::to_string(userId).append("/");
+    bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
+    if (!result) {
+        TAG_LOGE(AAFwkTag::INTENT, "get entries error");
+        return ERR_INVALID_VALUE;
+    }
+    TransformConfigIntent(value, configInfos);
+    return ERR_OK;
+}
+
+int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
+    std::vector<InsightIntentInfo> &totalInfos)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "load intent total infos by bundleName, %{public}s", bundleName.c_str());
+    std::unordered_map<std::string, std::string> value;
+    std::string key = std::to_string(userId).append("/").append(bundleName).append("/");
+    bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
+    if (!result) {
+        TAG_LOGE(AAFwkTag::INTENT, "get entries error");
+        return ERR_INVALID_VALUE;
+    }
+    TransformConfigIntent(value, totalInfos);
     return ERR_OK;
 }
 
@@ -53,7 +83,8 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfoByName(const std::string &bun
         TAG_LOGE(AAFwkTag::INTENT, "get entries error");
         return ERR_INVALID_VALUE;
     }
-    Transform(value, totalInfos);
+    std::vector<InsightIntentInfo> configInfos;
+    Transform(value, totalInfos, configInfos);
     return ERR_OK;
 }
 
@@ -82,9 +113,49 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfo(const std::string &bundleNam
     return ERR_OK;
 }
 
-void InsightRdbStorageMgr::Transform(std::unordered_map<std::string, std::string> value,
-    std::vector<ExtractInsightIntentInfo> &totalInfos)
+int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
+    const std::string &intentName, const int32_t userId, InsightIntentInfo &totalInfo)
 {
+    TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load intent total info");
+    std::string value;
+    std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
+        .append(moduleName).append("/").append(intentName);
+    bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryData(key, value);
+    if (!result) {
+        TAG_LOGW(AAFwkTag::INTENT, "get entries error");
+        return ERR_INVALID_VALUE;
+    }
+    std::vector<InsightIntentInfo> configIntentInfos;
+    if (!InsightIntentProfile::TransformTo(value, configIntentInfos)) {
+        TAG_LOGE(AAFwkTag::INTENT, "error key: %{private}s", key.c_str());
+        DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->DeleteData(key);
+    }
+    for (const auto &configInfo : configIntentInfos) {
+        totalInfo = configInfo;
+    }
+    return ERR_OK;
+}
+
+
+void InsightRdbStorageMgr::TransformConfigIntent(std::unordered_map<std::string, std::string> value,
+    std::vector<InsightIntentInfo> &configInfos)
+{
+    for (const auto &item : value) {
+        std::vector<InsightIntentInfo> configIntentInfos;
+        if (!InsightIntentProfile::TransformTo(item.second, configIntentInfos)) {
+            TAG_LOGE(AAFwkTag::INTENT, "error key: %{private}s", item.first.c_str());
+            DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->DeleteData(item.first);
+        }
+        for (const auto &configIntentInfo : configIntentInfos) {
+            configInfos.emplace_back(configIntentInfo);
+        }
+    }
+}
+
+void InsightRdbStorageMgr::Transform(std::unordered_map<std::string, std::string> value,
+    std::vector<ExtractInsightIntentInfo> &totalInfos, std::vector<InsightIntentInfo> &configInfos)
+{
+    TAG_LOGE(AAFwkTag::INTENT, "Transform 1111111111");
     for (const auto &item : value) {
         ExtractInsightIntentProfileInfoVec profileInfos;
         if (!ExtractInsightIntentProfile::TransformTo(item.second, profileInfos)) {
@@ -99,10 +170,20 @@ void InsightRdbStorageMgr::Transform(std::unordered_map<std::string, std::string
             totalInfos.emplace_back(totalInfo);
         }
     }
+    for (const auto &item : value) {
+        std::vector<InsightIntentInfo> configIntentInfos;
+        if (!InsightIntentProfile::TransformTo(item.second, configIntentInfos)) {
+            TAG_LOGE(AAFwkTag::INTENT, "error key: %{private}s", item.first.c_str());
+            DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->DeleteData(item.first);
+        }
+        for (const auto &configIntentInfo : configIntentInfos) {
+            configInfos.emplace_back(configIntentInfo);
+        }
+    }
 }
 
 int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bundleName, const std::string &moduleName,
-    const int32_t userId, ExtractInsightIntentProfileInfoVec &profileInfos)
+    const int32_t userId, ExtractInsightIntentProfileInfoVec &profileInfos, std::vector<InsightIntentInfo> &configInfos)
 {
     std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     for (auto profileInfo : profileInfos.insightIntents) {
@@ -110,6 +191,21 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bu
             .append(moduleName).append("/").append(profileInfo.intentName);
         nlohmann::json jsonObject;
         if (!ExtractInsightIntentProfile::ToJson(profileInfo, jsonObject)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertData(key, jsonObject.dump());
+        if (!result) {
+            TAG_LOGE(AAFwkTag::INTENT, "InsertData error, key: %{private}s", key.c_str());
+        }
+    }
+    for (auto configInfo : configInfos) {
+        std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
+            .append(moduleName).append("/").append(configInfo.intentName);
+        nlohmann::json jsonObject;
+        configInfo.moduleName = moduleName;
+        configInfo.bundleName = bundleName;
+        if (!InsightIntentProfile::ToJson(configInfo, jsonObject)) {
             TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
             return ERR_INVALID_VALUE;
         }

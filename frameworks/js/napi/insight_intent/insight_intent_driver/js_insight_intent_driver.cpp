@@ -169,18 +169,24 @@ private:
             return CreateJsUndefined(env);
         }
         GetInsightIntentFlag flag;
+        if (info.argv[INDEX_ZERO] == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "flag argc");
+        }
         if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], flag) ||
             (flag != GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT &&
             flag != GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT &&
+            flag != GetInsightIntentFlag::GET_CONFIG_INTENT_INFO &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO | GetInsightIntentFlag::GET_ENTITY_INFO) &&
             flag != (GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO) &&
             flag != (GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO))) {
-            TAG_LOGE(AAFwkTag::INTENT, "Parse flag failed");
+            TAG_LOGE(AAFwkTag::INTENT, "Parse flag failed %{public}d", flag);
             ThrowInvalidParamError(env, "Parse param flag failed, flag must be GetInsightIntentFlag.");
             return CreateJsUndefined(env);
         }
         auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
         auto infos = std::make_shared<std::vector<InsightIntentInfoForQuery>>();
         NapiAsyncTask::ExecuteCallback execute = [infos, flag, innerErrorCode]() {
+            TAG_LOGE(AAFwkTag::INTENT, "Parse flag failed %{public}d", flag);
             *innerErrorCode = AbilityManagerClient::GetInstance()->GetAllInsightIntentInfo(flag, *infos);
         };
         NapiAsyncTask::CompleteCallback complete =
@@ -340,6 +346,8 @@ static napi_value InitGetInsightIntentFlagObject(napi_env env)
         env, napiObject, "GET_SUMMARY_INSIGHT_INTENT", GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT));
     NAPI_CALL(env, SetEnumItem(
         env, napiObject, "GET_ENTITY_INFO", GetInsightIntentFlag::GET_ENTITY_INFO));
+    NAPI_CALL(env, SetEnumItem(
+        env, napiObject, "GET_CONFIG_INTENT_INFO", GetInsightIntentFlag::GET_CONFIG_INTENT_INFO)); 
 
     return napiObject;
 }

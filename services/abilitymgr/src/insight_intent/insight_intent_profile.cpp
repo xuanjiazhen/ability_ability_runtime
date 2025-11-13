@@ -40,6 +40,12 @@ const std::string INSIGHT_INTENT_FORM = "form";
 const std::string INSIGHT_INTENT_ABILITY = "ability";
 const std::string INSIGHT_INTENT_EXECUTE_MODE = "executeMode";
 const std::string INSIGHT_INTENT_FORM_NAME = "formName";
+const std::string INSIGHT_INTENT_DISPLAY_NAME = "displayName";
+const std::string INSIGHT_INTENT_DISPLAY_DESCRIPTION = "displayDescription";
+const std::string INSIGHT_INTENT_ICON = "icon";
+const std::string INSIGHT_INTENT_KEYWORDS = "keywords";
+const std::string INSIGHT_INTENT_BUNDLE_NAME = "bundleName";
+const std::string INSIGHT_INTENT_MODULE_NAME = "moduleName";
 
 const std::map<std::string, ExecuteMode> executeModeMap = {
     {"foreground", ExecuteMode::UI_ABILITY_FOREGROUND},
@@ -70,6 +76,12 @@ struct InsightIntentProfileInfo {
     std::string intentVersion;
     std::string srcEntry;
     std::string arkTSMode;
+    std::string displayName;
+    std::string icon;
+    std::string displayDescription;
+    std::string bundleName;
+    std::string moduleName;
+    std::vector<std::string> keywords;
     UIAbilityProfileInfo uiAbilityProfileInfo;
     UIExtensionProfileInfo uiExtensionProfileInfo;
     ServiceExtensionProfileInfo serviceExtensionProfileInfo;
@@ -171,6 +183,44 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
         insightIntentInfo.arkTSMode,
         false,
         g_parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_DISPLAY_NAME,
+        insightIntentInfo.displayName,
+        false,
+        g_parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_DISPLAY_DESCRIPTION,
+        insightIntentInfo.displayDescription,
+        false,
+        g_parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ICON,
+        insightIntentInfo.icon,
+        false,
+        g_parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_BUNDLE_NAME,
+        insightIntentInfo.bundleName,
+        false,
+        g_parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_MODULE_NAME,
+        insightIntentInfo.moduleName,
+        false,
+        g_parseResult);
+    AppExecFwk::GetValueIfFindKey<std::vector<std::string>>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_KEYWORDS,
+        insightIntentInfo.keywords,
+        JsonType::ARRAY,
+        false,
+        g_parseResult,
+        ArrayType::STRING);
     AppExecFwk::GetValueIfFindKey<UIAbilityProfileInfo>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_UI_ABILITY,
@@ -230,6 +280,12 @@ bool TransformToInsightIntentInfo(const InsightIntentProfileInfo &insightIntent,
     info.intentVersion = insightIntent.intentVersion;
     info.srcEntry = insightIntent.srcEntry;
     info.arkTSMode = insightIntent.arkTSMode;
+    info.displayName = insightIntent.displayName;
+    info.bundleName = insightIntent.bundleName;
+    info.moduleName = insightIntent.moduleName;
+    info.displayDescription = insightIntent.displayDescription;
+    info.icon = insightIntent.icon;
+    info.keywords.assign(insightIntent.keywords.begin(), insightIntent.keywords.end());
 
     info.uiAbilityIntentInfo.abilityName = insightIntent.uiAbilityProfileInfo.abilityName;
     for (const auto &executeMode: insightIntent.uiAbilityProfileInfo.supportExecuteMode) {
@@ -247,6 +303,10 @@ bool TransformToInsightIntentInfo(const InsightIntentProfileInfo &insightIntent,
     info.serviceExtensionIntentInfo.abilityName = insightIntent.serviceExtensionProfileInfo.abilityName;
     info.formIntentInfo.abilityName = insightIntent.formProfileInfo.abilityName;
     info.formIntentInfo.formName = insightIntent.formProfileInfo.formName;
+    info.genericInfo.bundleName = insightIntent.bundleName;
+    info.genericInfo.displayName = insightIntent.displayName;
+    info.genericInfo.intentName = insightIntent.intentName;
+    info.genericInfo.moduleName = insightIntent.moduleName;
     return true;
 }
 
@@ -272,6 +332,7 @@ bool InsightIntentProfile::TransformTo(const std::string &profileStr, std::vecto
         TAG_LOGE(AAFwkTag::INTENT, "discarded jsonObject");
         return false;
     }
+    TAG_LOGE(AAFwkTag::INTENT, "jsonObject : %{public}s", jsonObject.dump().c_str());
 
     InsightIntentProfileInfoVec profileInfos;
     {
@@ -288,6 +349,89 @@ bool InsightIntentProfile::TransformTo(const std::string &profileStr, std::vecto
     }
 
     return TransformToInfos(profileInfos, intentInfos);
+}
+
+void to_json(nlohmann::json& jsonObject, const UIAbilityIntentInfo& info)
+{
+    // if (info.abilityName.empty()) {
+    //     jsonObject = nlohmann::json();
+    //     return;
+    // }
+    std::vector<std::string> modes;
+    for (auto m : info.supportExecuteMode) {
+        if (m == ExecuteMode::UI_ABILITY_FOREGROUND) modes.emplace_back("foreground");
+        else if (m == ExecuteMode::UI_ABILITY_BACKGROUND) modes.emplace_back("background");
+    }
+    jsonObject = {
+        {INSIGHT_INTENT_ABILITY, info.abilityName},
+        {INSIGHT_INTENT_EXECUTE_MODE, modes}
+    };
+}
+
+void to_json(nlohmann::json& jsonObject, const UIExtensionIntentInfo& info)
+{
+    // if (info.abilityName.empty()) { jsonObject = nlohmann::json(); return; }
+    jsonObject = {{INSIGHT_INTENT_ABILITY, info.abilityName}};
+}
+
+void to_json(nlohmann::json& jsonObject, const ServiceExtensionIntentInfo& info)
+{
+    // if (info.abilityName.empty()) { jsonObject = nlohmann::json(); return; }
+    jsonObject = {{INSIGHT_INTENT_ABILITY, info.abilityName}};
+}
+
+void to_json(nlohmann::json& jsonObject, const FormIntentInfo& info)
+{
+    // if (info.abilityName.empty() && info.formName.empty()) {
+    //     jsonObject = nlohmann::json();
+    //     return;
+    // }
+    // jsonObject = nlohmann::json();
+    // if (!info.abilityName.empty()) jsonObject[INSIGHT_INTENT_ABILITY] = info.abilityName;
+    // if (!info.formName.empty())    jsonObject[INSIGHT_INTENT_FORM_NAME] = info.formName;
+    jsonObject = nlohmann::json {
+        {INSIGHT_INTENT_ABILITY, info.abilityName},
+        {INSIGHT_INTENT_FORM_NAME, info.formName}
+    };
+}
+
+void to_json(nlohmann::json& jsonObject, const InsightIntentInfo& info)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "InsightIntentInfo to json");
+
+    jsonObject = nlohmann::json {
+        {INSIGHT_INTENT_BUNDLE_NAME, info.bundleName},
+        {INSIGHT_INTENT_MODULE_NAME, info.moduleName},
+        {INSIGHT_INTENT_NAME, info.intentName},
+        {INSIGHT_INTENT_DOMAIN, info.intentDomain},
+        {INSIGHT_INTENT_VERSION, info.intentVersion},
+        {INSIGHT_INTENT_ARKTS_MODE, info.arkTSMode},
+        {INSIGHT_INTENT_SRC_ENTRY, info.srcEntry},
+        {INSIGHT_INTENT_DISPLAY_NAME, info.displayName},
+        {INSIGHT_INTENT_DISPLAY_DESCRIPTION, info.displayDescription},
+        {INSIGHT_INTENT_ICON, info.icon},
+        {INSIGHT_INTENT_KEYWORDS, info.keywords},
+        {INSIGHT_INTENT_UI_ABILITY, info.uiAbilityIntentInfo},
+        {INSIGHT_INTENT_UI_EXTENSION, info.uiExtensionIntentInfo},
+        {INSIGHT_INTENT_SERVICE_EXTENSION, info.serviceExtensionIntentInfo},
+        {INSIGHT_INTENT_FORM, info.formIntentInfo}
+    };
+    TAG_LOGE(AAFwkTag::INTENT, "InsightIntentInfo to json success");
+    TAG_LOGE(AAFwkTag::INTENT, "jsonObject : %{public}s", jsonObject.dump().c_str());
+}
+
+bool InsightIntentProfile::ToJson(const InsightIntentInfo &info, nlohmann::json &jsonObject)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "to json");
+    nlohmann::json subJsonObject = info;
+    if (subJsonObject.is_discarded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "bad insight intent info");
+        return false;
+    }
+
+    jsonObject[INSIGHT_INTENTS] = nlohmann::json::array({ subJsonObject });
+    TAG_LOGD(AAFwkTag::INTENT, "to json string: %{public}s", jsonObject.dump().c_str());
+    return true;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

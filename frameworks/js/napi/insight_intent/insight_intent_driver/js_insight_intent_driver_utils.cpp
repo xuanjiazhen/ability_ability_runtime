@@ -74,6 +74,32 @@ napi_value CreateEntryInfoForQuery(napi_env env, const EntryInfoForQuery &info)
     return objValue;
 }
 
+napi_value CreateUiAbilityInfoForQuery(napi_env env, const UIAbilityIntentInfoForQuery &info)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    napi_set_named_property(env, objValue, "abilityName", CreateJsValue(env, info.abilityName));
+    TAG_LOGE(AAFwkTag::INTENT, "supportExecuteMode size: %{public}d", info.supportExecuteMode.size());
+    napi_set_named_property(env, objValue, "executeMode", CreateNativeArray(env, info.supportExecuteMode));
+    return objValue;
+}
+
+napi_value CreateUiExtensionInfoForQuery(napi_env env, const UIExtensionIntentInfoForQuery &info)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    napi_set_named_property(env, objValue, "abilityName", CreateJsValue(env, info.abilityName));
+    return objValue;
+}
+
+napi_value CreateServiceExtensionInfoForQuery(napi_env env, const ServiceExtensionIntentInfoForQuery &info)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    napi_set_named_property(env, objValue, "abilityName", CreateJsValue(env, info.abilityName));
+    return objValue;
+}
+
 napi_value CreateFunctionInfoForQuery(napi_env env, const FunctionInfoForQuery &info)
 {
     napi_value objValue = nullptr;
@@ -198,21 +224,72 @@ napi_value CreateInsightIntentInfoForQuery(napi_env env, const InsightIntentInfo
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
-    napi_set_named_property(env, objValue, "bundleName", CreateJsValue(env, info.bundleName));
-    napi_set_named_property(env, objValue, "moduleName", CreateJsValue(env, info.moduleName));
-    napi_set_named_property(env, objValue, "intentName", CreateJsValue(env, info.intentName));
-    napi_set_named_property(env, objValue, "domain", CreateJsValue(env, info.domain));
-    napi_set_named_property(env, objValue, "intentVersion", CreateJsValue(env, info.intentVersion));
-    napi_set_named_property(env, objValue, "displayName", CreateJsValue(env, info.displayName));
-    napi_set_named_property(env, objValue, "displayDescription", CreateJsValue(env, info.displayDescription));
-    napi_set_named_property(env, objValue, "schema", CreateJsValue(env, info.schema));
-    napi_set_named_property(env, objValue, "icon", CreateJsValue(env, info.icon));
-    napi_set_named_property(env, objValue, "llmDescription", CreateJsValue(env, info.llmDescription));
-    napi_set_named_property(env, objValue, "intentType", CreateJsValue(env, info.intentType));
-    napi_set_named_property(env, objValue, "parameters", CreateInsightIntentInfoParam(env, info.parameters));
-    napi_set_named_property(env, objValue, "result", CreateInsightIntentInfoResult(env, info.result));
-    napi_set_named_property(env, objValue, "keywords", CreateNativeArray(env, info.keywords));
-    napi_set_named_property(env, objValue, "entities", CreateEntityInfoForArray(env, info.entities));
+    auto status = napi_set_named_property(env, objValue, "bundleName", CreateJsValue(env, info.bundleName));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.bundleName: %{public}s", info.bundleName.c_str());
+    status = napi_set_named_property(env, objValue, "moduleName", CreateJsValue(env, info.moduleName));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.moduleName: %{public}s", info.moduleName.c_str());
+    status = napi_set_named_property(env, objValue, "intentName", CreateJsValue(env, info.intentName));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.intentName: %{public}s", info.intentName.c_str());
+    status = napi_set_named_property(env, objValue, "domain", CreateJsValue(env, info.domain));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.intentDomain: %{public}s", info.domain.c_str());
+    status = napi_set_named_property(env, objValue, "intentVersion", CreateJsValue(env, info.intentVersion));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.intentVersion: %{public}s", info.intentVersion.c_str());
+    status = napi_set_named_property(env, objValue, "displayName", CreateJsValue(env, info.displayName));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    status = napi_set_named_property(env, objValue, "displayDescription", CreateJsValue(env, info.displayDescription));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    status = napi_set_named_property(env, objValue, "schema", CreateJsValue(env, info.schema));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    status = napi_set_named_property(env, objValue, "icon", CreateJsValue(env, info.icon));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    status = napi_set_named_property(env, objValue, "llmDescription", CreateJsValue(env, info.llmDescription));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    status = napi_set_named_property(env, objValue, "intentType", CreateJsValue(env, info.intentType));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    status = napi_set_named_property(env, objValue, "parameters", CreateInsightIntentInfoParam(env, info.parameters));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    status = napi_set_named_property(env, objValue, "result", CreateInsightIntentInfoResult(env, info.result));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    status = napi_set_named_property(env, objValue, "keywords", CreateNativeArray(env, info.keywords));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    status = napi_set_named_property(env, objValue, "entities", CreateEntityInfoForArray(env, info.entities));
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}d", status);
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "set executeMode property failed with %{public}s", info.intentType.c_str());
     if (info.intentType == INSIGHT_INTENTS_TYPE_LINK) {
         napi_set_named_property(env, objValue, "subIntentInfo", CreateLinkInfoForQuery(env, info.linkInfo));
     } else if (info.intentType == INSIGHT_INTENTS_TYPE_PAGE) {
@@ -225,8 +302,47 @@ napi_value CreateInsightIntentInfoForQuery(napi_env env, const InsightIntentInfo
         napi_set_named_property(env, objValue, "subIntentInfo", CreateFormInfoForQuery(env, info.formInfo));
     } else {
         napi_value objVal = nullptr;
-        napi_create_object(env, &objValue);
+        napi_create_object(env, &objVal);
         napi_set_named_property(env, objValue, "subIntentInfo", objVal);
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "CreateInsightIntentInfoForQuery end");
+    if (objValue == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "CreateInsightIntentInfoForQuery objValue nullptr");
+    }
+    return objValue;
+}
+
+napi_value CreateConfigInsightIntentInfoForQuery(napi_env env, const InsightIntentInfoForQuery &info)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    napi_set_named_property(env, objValue, "bundleName", CreateJsValue(env, info.bundleName));
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.bundleName: %{public}s", info.bundleName.c_str());
+    napi_set_named_property(env, objValue, "moduleName", CreateJsValue(env, info.moduleName));
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.moduleName: %{public}s", info.moduleName.c_str());
+    napi_set_named_property(env, objValue, "intentName", CreateJsValue(env, info.intentName));
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.intentName: %{public}s", info.intentName.c_str());
+    napi_set_named_property(env, objValue, "domain", CreateJsValue(env, info.domain));
+    napi_set_named_property(env, objValue, "srcEntry", CreateJsValue(env, info.srcEntry));
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.intentDomain: %{public}s", info.domain.c_str());
+    napi_set_named_property(env, objValue, "intentVersion", CreateJsValue(env, info.intentVersion));
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.intentVersion: %{public}s", info.intentVersion.c_str());
+    napi_set_named_property(env, objValue, "displayName", CreateJsValue(env, info.displayName));
+    napi_set_named_property(env, objValue, "displayDescription", CreateJsValue(env, info.displayDescription));
+    napi_set_named_property(env, objValue, "schema", CreateJsValue(env, info.schema));
+    napi_set_named_property(env, objValue, "icon", CreateJsValue(env, info.icon));
+    napi_set_named_property(env, objValue, "llmDescription", CreateJsValue(env, info.llmDescription));
+    napi_set_named_property(env, objValue, "parameters", CreateInsightIntentInfoParam(env, info.parameters));
+    napi_set_named_property(env, objValue, "result", CreateInsightIntentInfoResult(env, info.result));
+    napi_set_named_property(env, objValue, "keywords", CreateNativeArray(env, info.keywords));
+    napi_set_named_property(env, objValue, "entities", CreateEntityInfoForArray(env, info.entities));
+    napi_set_named_property(env, objValue, "uiAbility", CreateUiAbilityInfoForQuery(env, info.uiAbilityIntentInfo));
+    napi_set_named_property(env, objValue, "uiExtension", CreateUiExtensionInfoForQuery(env, info.uiExtensionIntentInfo));
+    napi_set_named_property(env, objValue, "serviceExtension", CreateServiceExtensionInfoForQuery(env, info.serviceExtensionIntentInfo));
+    // napi_set_named_property(env, objValue, "form", CreateFormInfoForQuery(env, info.formIntentInfo));
+    TAG_LOGE(AAFwkTag::INTENT, "CreateInsightIntentInfoForQuery end");
+    if (objValue == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "CreateInsightIntentInfoForQuery objValue nullptr");
     }
     return objValue;
 }
@@ -237,6 +353,11 @@ napi_value CreateInsightIntentInfoForQueryArray(napi_env env, const std::vector<
     napi_create_array_with_length(env, infos.size(), &arrayValue);
     uint32_t index = 0;
     for (const auto &info : infos) {
+        if (info.isConfig) {
+            TAG_LOGE(AAFwkTag::INTENT, "CreateInsightIntentInfoForQueryArray isConfig");
+            napi_set_element(env, arrayValue, index++, CreateConfigInsightIntentInfoForQuery(env, info));
+            continue;
+        }
         napi_set_element(env, arrayValue, index++, CreateInsightIntentInfoForQuery(env, info));
     }
     return arrayValue;

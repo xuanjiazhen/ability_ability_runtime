@@ -36,6 +36,7 @@ namespace OHOS::AbilityRuntime {
     constexpr char INSIGHT_INTENT_BUNDLE_NAME[] = "bundleName";
     constexpr char INSIGHT_INTENT_MODULE_NAME[] = "moduleName";
     constexpr char INSIGHT_INTENT_INTENT_NAME[] = "intentName";
+    constexpr char INSIGHT_INTENT_SRCENTRY[] = "srcEntry";
     constexpr char INSIGHT_INTENT_DOMAIN[] = "domain";
     constexpr char INSIGHT_INTENT_INTENT_VERSION[] = "intentVersion";
     constexpr char INSIGHT_INTENT_DISPLAY_NAME[] = "displayName";
@@ -58,7 +59,14 @@ namespace OHOS::AbilityRuntime {
     constexpr char INSIGHT_INTENT_ENTITY_ID[] = "entityId";
     constexpr char INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME[] = "parentClassName";
     constexpr char INSIGHT_INTENT_ENTITY_PARAMETERS[] = "parameters";
-
+    constexpr char INSIGHT_INTENT_ISCONFIG[] = "isConfig";
+    // constexpr char INSIGHT_INTENT_UI_ABILITY[] = "uiAbility";
+    constexpr char INSIGHT_INTENT_UI_EXTENSION[] = "uiExtension";
+    constexpr char INSIGHT_INTENT_SERVICE_EXTENSION[] = "serviceExtension";
+    constexpr char INSIGHT_INTENT_FORM[] = "form";
+    constexpr char INSIGHT_INTENT_ABILITY[] = "ability";
+    // constexpr char INSIGHT_INTENT_EXECUTE_MODE[] = "executeMode";
+    // constexpr char INSIGHT_INTENT_FORM_NAME[] = "formName";
     enum class InsightIntentExecuteMode {
         UIABILITY_FOREGROUND,
         UIABILITY_BACKGROUND,
@@ -80,6 +88,7 @@ namespace OHOS::AbilityRuntime {
         GET_ENTITY_INFO = 4,
         GET_FULL_INSIGHT_INTENT_ENTITY = 5,
         GET_SUMMARY_INSIGHT_INTENT_ENTITY = 6,
+        GET_CONFIG_INTENT_INFO = 8,
     };
 
     enum class InsightIntentType : uint8_t {

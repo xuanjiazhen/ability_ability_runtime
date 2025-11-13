@@ -48,6 +48,11 @@ bool CheckAbilityName(const InsightIntentInfo &info, const std::string &abilityN
     }
     return matched;
 }
+
+const std::map<std::string, ExecuteMode> executeModeMap = {
+    {"foreground", ExecuteMode::UI_ABILITY_FOREGROUND},
+    {"background", ExecuteMode::UI_ABILITY_BACKGROUND}
+};
 } // namespace
 
 uint32_t InsightIntentUtils::GetSrcEntry(const AppExecFwk::ElementName &elementName, const std::string &intentName,
@@ -99,6 +104,7 @@ uint32_t InsightIntentUtils::GetSrcEntry(const AppExecFwk::ElementName &elementN
     TAG_LOGE(AAFwkTag::INTENT, "get srcEntry failed");
     return AAFwk::ERR_INSIGHT_INTENT_START_INVALID_COMPONENT;
 }
+
 uint32_t InsightIntentUtils::ConvertExtractInsightIntentGenericInfo(
     ExtractInsightIntentGenericInfo &genericInfo, InsightIntentInfoForQuery &queryInfo)
 {
@@ -167,6 +173,46 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
             queryInfo.entities.emplace_back(insightInfo);
         }
     }
+
+    return ERR_OK;
+}
+
+uint32_t InsightIntentUtils::ConvertConfigInsightIntentInfo(
+        InsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo, bool getEntity)
+{
+    queryInfo.isConfig = true;
+    queryInfo.bundleName = intentInfo.genericInfo.bundleName;
+    queryInfo.moduleName = intentInfo.genericInfo.moduleName;
+    queryInfo.intentName = intentInfo.genericInfo.intentName;
+    queryInfo.srcEntry = intentInfo.srcEntry;
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.intentName: %{public}s", queryInfo.intentName.c_str());
+    queryInfo.displayName = intentInfo.genericInfo.displayName;
+    queryInfo.domain = intentInfo.intentDomain;
+    TAG_LOGE(AAFwkTag::INTENT, "ConvertConfigInsightIntentInfo queryInfo.intentDomain: %{public}s", queryInfo.domain.c_str());
+    queryInfo.intentVersion = intentInfo.intentVersion;
+    queryInfo.displayDescription = intentInfo.displayDescription;
+    queryInfo.icon = intentInfo.icon;
+
+    for (auto &keyword : intentInfo.keywords) {
+        queryInfo.keywords.emplace_back(keyword);
+    }
+
+    queryInfo.uiAbilityIntentInfo.abilityName = intentInfo.uiAbilityIntentInfo.abilityName;
+    queryInfo.uiAbilityIntentInfo.supportExecuteMode = intentInfo.uiAbilityIntentInfo.supportExecuteMode;
+    // for (const auto &executeMode: intentInfo.uiAbilityIntentInfo.supportExecuteMode) {
+    //     auto mode = std::find_if(std::begin(executeModeMap), std::end(executeModeMap),
+    //         [&executeMode](const auto &item) {
+    //             return item.first == executeMode;
+    //         });
+    //     if (mode == executeModeMap.end()) {
+    //         continue;
+    //     }
+    //     queryInfo.uiAbilityIntentInfo.supportExecuteMode.emplace_back(mode->second);
+    // }
+    queryInfo.uiExtensionIntentInfo.abilityName = intentInfo.uiExtensionIntentInfo.abilityName;
+    queryInfo.serviceExtensionIntentInfo.abilityName = intentInfo.serviceExtensionIntentInfo.abilityName;
+    queryInfo.formIntentInfo.abilityName = intentInfo.formIntentInfo.abilityName;
+    queryInfo.formIntentInfo.formName = intentInfo.formIntentInfo.formName;
 
     return ERR_OK;
 }
