@@ -71,7 +71,11 @@ namespace AbilityConstant {
   export enum MemoryLevel {
     MEMORY_LEVEL_MODERATE = 0,
     MEMORY_LEVEL_LOW = 1,
-    MEMORY_LEVEL_CRITICAL = 2
+    MEMORY_LEVEL_CRITICAL = 2,
+    MEMORY_LEVEL_UI_HIDDEN = 3,
+    MEMORY_LEVEL_BACKGROUND = 4,
+    MEMORY_LEVEL_BG_MODERATE = 5,
+    MEMORY_LEVEL_BG_COMPLETE = 6
   }
 
   export enum WindowMode {
