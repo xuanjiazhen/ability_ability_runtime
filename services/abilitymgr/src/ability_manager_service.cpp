@@ -3673,7 +3673,7 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(
     return result;
 }
 
-int AbilityManagerService::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord,
+int AbilityManagerService::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::ExtensionRecordBase> &abilityRecord,
     pid_t &hostPid)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
@@ -4675,7 +4675,7 @@ int AbilityManagerService::TerminateUIExtensionAbility(const sptr<SessionInfo> &
     CHECK_POINTER_AND_RETURN(extensionSessionInfo, ERR_INVALID_VALUE);
     auto abilityRecord = Token::GetAbilityRecordByToken(extensionSessionInfo->callerToken);
     std::shared_ptr<AbilityConnectManager> connectManager;
-    std::shared_ptr<AbilityRecord> targetRecord;
+    std::shared_ptr<ExtensionRecordBase> targetRecord;
     GetConnectManagerAndUIExtensionBySessionInfo(extensionSessionInfo, connectManager, targetRecord, true);
     CHECK_POINTER_AND_RETURN(targetRecord, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(connectManager, ERR_INVALID_VALUE);
@@ -4743,7 +4743,7 @@ int AbilityManagerService::CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject
     }
 
     std::shared_ptr<AbilityConnectManager> connectManager;
-    std::shared_ptr<AbilityRecord> targetRecord;
+    std::shared_ptr<ExtensionRecordBase> targetRecord;
     GetConnectManagerAndUIExtensionBySessionInfo(sessionInfo, connectManager, targetRecord, true);
     if (connectManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null, ability: %{public}s/%{public}s",
@@ -4762,7 +4762,8 @@ int AbilityManagerService::CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject
 
     // notify caller sync detach
     sessionProxy->NotifyExtensionDetachToDisplay();
-    connectManager->TerminateAbilityWindowLocked(abilityRecord, sessionInfo);
+    connectManager->TerminateAbilityWindowLocked(std::static_pointer_cast<ExtensionRecordBase>(abilityRecord),
+        sessionInfo);
     return ERR_OK;
 }
 
@@ -5003,7 +5004,7 @@ int AbilityManagerService::MinimizeUIExtensionAbility(const sptr<SessionInfo> &e
     }
 
     std::shared_ptr<AbilityConnectManager> connectManager;
-    std::shared_ptr<AbilityRecord> targetRecord;
+    std::shared_ptr<ExtensionRecordBase> targetRecord;
     GetConnectManagerAndUIExtensionBySessionInfo(extensionSessionInfo, connectManager, targetRecord);
     CHECK_POINTER_AND_RETURN(targetRecord, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(connectManager, ERR_INVALID_VALUE);
@@ -7996,11 +7997,11 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
 
     auto userId = abilityRecord->GetOwnerMissionUserId();
     auto connectManager = GetConnectManagerByUserId(userId);
-    if (connectManager) {
-        connectManager->OnAbilityDied(abilityRecord);
+    if (connectManager && abilityRecord->GetAbilityRecordType() == AbilityRecordType::EXTENSION_ABILITY) {
+        connectManager->OnAbilityDied(std::static_pointer_cast<ExtensionRecordBase>(abilityRecord));
         return;
     } else {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager not found");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "no connectManager, type: %{public}d", abilityRecord->GetAbilityRecordType());
     }
 
     auto dataAbilityManager = GetDataAbilityManagerByToken(abilityRecord->GetToken());
@@ -11331,7 +11332,7 @@ AAFwk::PermissionVerification::VerificationInfo AbilityManagerService::CreateVer
 }
 
 int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
-    std::shared_ptr<AbilityRecord> targetService, bool isFromConnect)
+    std::shared_ptr<ExtensionRecordBase> targetService, bool isFromConnect)
 {
     int32_t result = CheckCallServiceExtensionPermission(abilityRequest);
     if (result != ERR_OK) {
@@ -12416,7 +12417,7 @@ bool AbilityManagerService::CheckCollaboratorType(int32_t type)
 }
 
 void AbilityManagerService::GetConnectManagerAndUIExtensionBySessionInfo(const sptr<SessionInfo> &sessionInfo,
-    std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<AbilityRecord> &targetAbility,
+    std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<ExtensionRecordBase> &targetAbility,
     bool needCheck)
 {
     targetAbility = nullptr;
@@ -13201,7 +13202,7 @@ void AbilityManagerService::OnStartProcessFailed(const std::vector<sptr<IRemoteO
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null connectManager");
                 continue;
             }
-            connectManager->OnLoadAbilityFailed(abilityRecord);
+            connectManager->OnLoadAbilityFailed(std::static_pointer_cast<ExtensionRecordBase>(abilityRecord));
         }
     }
 }
