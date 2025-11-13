@@ -32,14 +32,18 @@ namespace AbilityRuntime {
 void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName,
     int32_t userId)
 {
-    std::vector<ExtractInsightIntentInfo> intentInfos;
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(
-        bundleName, userId, intentInfos);
-    if (!intentInfos.empty()) {
-        TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
-            bundleName, moduleName, userId);
-    }
+    TAG_LOGD(AAFwkTag::INTENT, "delete insight intent with bundleName: %{public}s", bundleName.c_str());
+
+    ffrt::submit([] () {
+        std::vector<ExtractInsightIntentInfo> intentInfos;
+        DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(
+            bundleName, userId, intentInfos);
+        if (!intentInfos.empty()) {
+            TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
+            DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
+                bundleName, moduleName, userId);
+        }
+    });
 
     return;
 }
