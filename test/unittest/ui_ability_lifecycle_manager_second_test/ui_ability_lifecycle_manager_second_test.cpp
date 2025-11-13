@@ -60,7 +60,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    std::shared_ptr<UIAbilityRecord> InitAbilityRecord();
+    UIAbilityRecordPtr InitAbilityRecord();
 };
 
 void UIAbilityLifecycleManagerSecondTest::SetUpTestCase() {}
@@ -94,13 +94,13 @@ public:
     virtual void OnAbilityDisconnectDone(const AppExecFwk::ElementName& element, int resultCode) {};
 };
 
-std::shared_ptr<UIAbilityRecord> UIAbilityLifecycleManagerSecondTest::InitAbilityRecord()
+UIAbilityRecordPtr UIAbilityLifecycleManagerSecondTest::InitAbilityRecord()
 {
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     return abilityRecord;
 }
 
@@ -120,7 +120,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, HandleLegacyAcceptWantDone_001, Te
     sptr<SessionInfo> sessionInfo(new SessionInfo());
     sessionInfo->persistentId = 100;
     abilityRequest.sessionInfo = sessionInfo;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->collaboratorType_ = CollaboratorType::RESERVE_TYPE;
     mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, abilityRecord);
     bool reuse = false;
@@ -154,12 +154,12 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, FindRecordFromSessionMap_001, Test
 
     (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
-    std::unordered_map<int32_t, std::shared_ptr<UIAbilityRecord>> sessionAbilityMap_;
+    std::unordered_map<int32_t, UIAbilityRecordPtr> sessionAbilityMap_;
 
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     mgr->sessionAbilityMap_[sessionId] = abilityRecord;
 
     const auto info = abilityRecord->GetAbilityInfo();
@@ -341,7 +341,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, TryProcessHookModule_002, TestSize
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
 
     abilityRequest.appInfo.bundleName = "com.example.unittest";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     abilityRecord->SetIsHook(true);
     abilityRecord->SetHookOff(true);
     uiAbilityLifecycleManager->sessionAbilityMap_[sessionId] = abilityRecord;
@@ -366,7 +366,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, TryProcessHookModule_003, TestSize
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
 
     abilityRequest.appInfo.bundleName = "com.example.unittest";
-    std::shared_ptr<UIAbilityRecord> abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    UIAbilityRecordPtr abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     abilityRecord->SetIsHook(true);
     uiAbilityLifecycleManager->sessionAbilityMap_[sessionId] = abilityRecord;
     auto specifiedRequest = std::make_shared<AAFwk::SpecifiedRequest>(100, abilityRequest);
@@ -724,7 +724,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, BackToCallerAbilityWithResult_008,
 HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetLastExitReason_001, TestSize.Level1)
 {
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
-    std::shared_ptr<UIAbilityRecord> abilityRecord = InitAbilityRecord();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
     abilityRecord->abilityInfo_.bundleName = "not empty";
     abilityRecord->sessionInfo_ = nullptr;
 
@@ -1119,7 +1119,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, RecordPidKilling_001, TestSize.Lev
     auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->pid_ = 1;
-    std::unordered_map<int32_t, std::shared_ptr<UIAbilityRecord>> sessionAbilityMap =
+    std::unordered_map<int32_t, UIAbilityRecordPtr> sessionAbilityMap =
     {
         {1, abilityRecord},
     };
@@ -1149,7 +1149,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, AbilityWindowConfigTransactionDone
     auto token = sptr<Token>::MakeSptr(abilityRecord);
     abilityRecord->token_ = token;
     
-    std::list<std::shared_ptr<UIAbilityRecord>> terminateAbilityList_ =
+    std::list<UIAbilityRecordPtr> terminateAbilityList_ =
     {
         abilityRecord,
     };
