@@ -22,6 +22,7 @@ enum MemoryLevel {
     MEMORY_LEVEL_MODERATE = 0,
     MEMORY_LEVEL_LOW = 1,
     MEMORY_LEVEL_CRITICAL = 2,
+    MEMORY_LEVEL_TEST = 3,
 };
 
 enum MemoryState : int {
