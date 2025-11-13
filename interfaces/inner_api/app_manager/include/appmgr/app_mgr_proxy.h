@@ -637,6 +637,9 @@ public:
      */
     int32_t IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId, bool &isRunning) override;
 
+    int32_t IsAppRunning(const std::string &bundleName, int32_t appCloneIndex,
+        int32_t userId, bool &isRunning) override;
+
 #ifdef SUPPORT_CHILD_PROCESS
     /**
      * Start child process, called by ChildProcessManager.
@@ -732,6 +735,14 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t SignRestartAppFlag(int32_t uid, const std::string &instanceKey) override;
+
+    /**
+     * @brief mark a process which is going restart.
+     * @param pid the pid of the process.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SignRestartProcess(int32_t pid) override;
 
     /**
      * Get appRunningUniqueId by pid.
@@ -835,6 +846,7 @@ public:
 
     virtual int32_t KillAppSelfWithInstanceKey(const std::string &instanceKey, bool clearPageStack,
         const std::string& reason) override;
+    int32_t KillProcessByPidForExit(int32_t pid, const std::string &reason) override;
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) override;
 
@@ -901,6 +913,10 @@ public:
         const std::vector<std::string> &bundleNameList = {},
         const AppStateFilter &appStateFilter = AppStateFilter(),
         bool isUsingFilter = false) override;
+    
+    void AllowScbProcessMoveToBackground() override;
+
+    int32_t KillChildProcessByPid(int32_t pid) override;
 
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);

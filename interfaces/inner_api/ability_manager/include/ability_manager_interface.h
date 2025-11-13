@@ -489,9 +489,12 @@ public:
      *
      * @param sessionInfo the session info of the ability to start.
      * @param isColdStart the session info of the ability is or not cold start.
+     * @param sceneFlag scene flag.
+     * @param isRestart whether kill old process and start the ability in new process.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0)
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0,
+        bool isRestart = false)
     {
         return 0;
     }
@@ -1108,10 +1111,12 @@ public:
      * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
      * @param isSilent, whether show window when start fail.
+     * @param promotePriority, whether to promote priority for sa.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
-        const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false) = 0;
+        const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false,
+        bool promotePriority = false) = 0;
 
     /**
      * Start Ability, connect session with common ability.
@@ -1122,10 +1127,12 @@ public:
      * @param accountId Indicates the account to start.
      * @param errMsg Out parameter, indicates the failed reason.
      * @param isSilent, whether show window when start fail.
+     * @param promotePriority, whether to promote priority for sa.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
-        const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent = false)
+        const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent = false,
+        bool promotePriority = false)
     {
         return 0;
     };
@@ -2431,6 +2438,15 @@ public:
         const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken)
     {
         return ERR_OK;
+    }
+
+    /**
+     * Check if the app is restart-limited.
+     * @return Returns true on being limited.
+     */
+    virtual bool IsRestartAppLimit()
+    {
+        return false;
     }
 };
 }  // namespace AAFwk

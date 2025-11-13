@@ -297,6 +297,12 @@ group("unittest") {
       "cache_process_manager_test:unittest",
       "call_record_test:unittest",
       "capi_ability_runtime_application_context_test:unittest",
+      "child_process_record_first_test:unittest",
+      "child_process_record_fifth_test:unittest",
+      "child_process_record_fourth_test:unittest",
+      "child_process_record_second_test:unittest",
+      "child_process_record_sixth_test:unittest",
+      "child_process_record_third_test:unittest",
       "cj_ability_connect_callback_object_test:unittest",
       "cj_ability_context_object_test:unittest",
       "cj_ability_delegator_args_test:unittest",
@@ -376,6 +382,8 @@ group("unittest") {
       "free_install_manager_third_test:unittest",
       "free_install_observer_manager_test:unittest",
       "freeze_util_test:unittest",
+      "foreground_app_connection_manager_test:unittest",
+      "foreground_app_connection_test:unittest",
       "hidden_start_observer_manager_test:unittest",
       "hidden_start_utils_test:unittest",
       "hitrace_chain_utils_test:unittest",
@@ -584,7 +592,6 @@ group("unittest") {
 
     if (ability_runtime_upms) {
       deps += [
-        "file_permission_manager_test:unittest",
         "file_uri_distribution_utils_test:unittest",
         "uri_perm_mgr_test:unittest",
         "uri_permission_manager_test:unittest",

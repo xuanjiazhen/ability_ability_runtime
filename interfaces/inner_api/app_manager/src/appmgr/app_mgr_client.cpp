@@ -1418,7 +1418,7 @@ int32_t AppMgrClient::NotifyMemorySizeStateChanged(int32_t memorySizeState)
     return service->NotifyMemorySizeStateChanged(memorySizeState);
 }
 
-bool AppMgrClient::IsMemorySizeSufficent() const
+bool AppMgrClient::IsMemorySizeSufficient() const
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
@@ -1430,7 +1430,7 @@ bool AppMgrClient::IsMemorySizeSufficent() const
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
         return true;
     }
-    return amsService->IsMemorySizeSufficent();
+    return amsService->IsMemorySizeSufficient();
 }
 
 bool AppMgrClient::IsNoRequireBigMemory() const
@@ -1765,6 +1765,21 @@ void AppMgrClient::SetSpecifiedProcessRequestId(int32_t recordId, int32_t reques
     service->SetSpecifiedProcessRequestId(recordId, requestId);
 }
 
+void AppMgrClient::AllowScbProcessMoveToBackground()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return;
+    }
+    service->AllowScbProcessMoveToBackground();
+}
+
 int32_t AppMgrClient::QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles)
 {
     if (mgrHolder_ == nullptr) {
@@ -1803,10 +1818,25 @@ int32_t AppMgrClient::RegisterApplicationStateObserverWithFilter(sptr<IApplicati
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
     return service->RegisterApplicationStateObserverWithFilter(observer,
         bundleNameList, appStateFilter, isUsingFilter);
+}
+
+int32_t AppMgrClient::KillChildProcessByPid(int32_t pid)
+{
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->KillChildProcessByPid(pid);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

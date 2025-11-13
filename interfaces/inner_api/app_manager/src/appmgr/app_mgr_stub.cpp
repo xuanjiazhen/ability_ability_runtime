@@ -252,6 +252,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleIsTerminatingByPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_SPECIFIED_MODULE_LOADED):
             return HandleIsSpecifiedModuleLoaded(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::SIGN_RESTART_PROCESS):
+            return HandleSignRestartProcess(data, reply);
     }
     return INVALID_FD;
 }
@@ -370,6 +372,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleSaveBrowserChannel(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_APP_RUNNING):
             return HandleIsAppRunning(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::IS_APP_RUNNING_BY_USER_ID):
+            return HandleIsAppRunningByUserId(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::CHECK_CALLING_IS_USER_TEST_MODE):
             return HandleCheckCallingIsUserTestMode(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::NOTIFY_PROCESS_DEPENDED_ON_WEB):
@@ -416,6 +420,12 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleQueryRunningSharedBundles(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_SPECIFIED_PROCESS_REQUEST_ID):
             return HandleSetSpecifiedProcessRequestId(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::ALLOW_SCB_PROCESS_MOVE_TO_BACKGROUND):
+            return HandleAllowScbProcessMoveToBackground(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::KILL_PROCESS_BY_PID_FOR_EXIT):
+            return HandleKillProcessByPidForExit(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::KILL_CHILD_PROCESS_BY_PID):
+            return HandleKillChildProcessByPid(data, reply);
     }
     return INVALID_FD;
 }
@@ -1589,6 +1599,24 @@ int32_t AppMgrStub::HandleIsAppRunningByBundleNameAndUserId(MessageParcel &data,
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleIsAppRunningByUserId(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    std::string bundleName = data.ReadString();
+    bool isRunning = false;
+    int32_t appCloneIndex = data.ReadInt32();
+    int32_t userId = data.ReadInt32();
+    int32_t result = IsAppRunning(bundleName, appCloneIndex, userId, isRunning);
+    if (!reply.WriteBool(isRunning)) {
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 #ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrStub::HandleStartChildProcess(MessageParcel &data, MessageParcel &reply)
 {
@@ -1734,6 +1762,17 @@ int32_t AppMgrStub::HandleSignRestartAppFlag(MessageParcel &data, MessageParcel 
     auto uid = data.ReadInt32();
     auto instanceKey = data.ReadString();
     auto ret = SignRestartAppFlag(uid, instanceKey);
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
+        return IPC_STUB_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleSignRestartProcess(MessageParcel &data, MessageParcel &reply)
+{
+    auto uid = data.ReadInt32();
+    auto ret = SignRestartProcess(uid);
     if (!reply.WriteInt32(ret)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
         return IPC_STUB_ERR;
@@ -2005,6 +2044,18 @@ int32_t AppMgrStub::HandleKillAppSelfWithInstanceKey(MessageParcel &data, Messag
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleKillProcessByPidForExit(MessageParcel &data, MessageParcel &reply)
+{
+    auto pid = data.ReadInt32();
+    auto reason = data.ReadString();
+    auto result = KillProcessByPidForExit(pid, reason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleUpdateInstanceKeyBySpecifiedId(MessageParcel &data, MessageParcel &reply)
 {
     auto specifiedId = data.ReadInt32();
@@ -2164,6 +2215,26 @@ int32_t AppMgrStub::HandleRegisterApplicationStateObserverWithFilter(MessageParc
     int32_t result = RegisterApplicationStateObserverWithFilter(callback,
         bundleNameList, *appStateFilter, isUsingFilter);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleAllowScbProcessMoveToBackground(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    AllowScbProcessMoveToBackground();
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleKillChildProcessByPid(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleKillChildProcessByPid call");
+    pid_t pid = data.ReadInt32();
+
+    int32_t result = KillChildProcessByPid(pid);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
+        return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
+    }
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

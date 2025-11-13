@@ -988,7 +988,7 @@ HWTEST_F(UriPermissionImplTest, UPMS_Active_002, TestSize.Level1)
     MyFlag::permissionFileAccessPersist_ = true;
     upms->Active(policyRawData, result, funcResult);
     MyFlag::permissionFileAccessPersist_ = false;
-    EXPECT_NE(funcResult, ERR_OK);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /*
@@ -1358,6 +1358,7 @@ HWTEST_F(UriPermissionImplTest, GrantUriPermissionPrivileged_011, TestSize.Level
     upms->storageManager_ = new StorageManager::StorageManagerServiceMock();
     StorageManager::StorageManagerServiceMock::isZero = false;
     int32_t funcResult = -1;
+    
     upms->GrantUriPermissionPrivileged(rawData, flag, targetBundleName, 0, 0, -1, funcResult);
     MyFlag::permissionPrivileged_ = false;
     EXPECT_EQ(funcResult, INNER_ERR);

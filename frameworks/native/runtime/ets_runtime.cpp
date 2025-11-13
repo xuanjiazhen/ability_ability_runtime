@@ -15,6 +15,7 @@
 
 #include "ets_runtime.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <dlfcn.h>
 #include <filesystem>
@@ -32,7 +33,7 @@
 #include "hybrid_js_module_reader.h"
 #include "nocopyable.h"
 #include "parameters.h"
-#include "static_core/plugins/ets/runtime/ets_namespace_manager.h"
+#include "ets/runtime/ets_namespace_manager.h"
 
 #ifdef SUPPORT_SCREEN
 #include "ace_forward_compatibility.h"
@@ -64,6 +65,13 @@ constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
 
 const char *ETS_ENV_LIBNAME = "libets_environment.z.so";
 const char *ETS_ENV_REGISTER_FUNCS = "OHOS_ETS_ENV_RegisterFuncs";
+
+static void HandleOhmUrlBase(std::string &base)
+{
+    // <dir1>/<dir2>/  =>  <dir1>.<dir2>.
+    std::replace(base.begin(), base.end(), '/', '.');
+}
+
 ETSEnvFuncs *g_etsEnvFuncs = nullptr;
 
 bool RegisterETSEnvFuncs()
@@ -123,18 +131,19 @@ private:
 std::shared_ptr<EtsAppLibNamespaceMgr> g_etsAppLibNamespaceMgr;
 } // namespace
 
-std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
+std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options,
+    std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreFork begin");
     std::unique_ptr<ETSRuntime> instance = std::make_unique<ETSRuntime>();
 
-    if (!instance->Initialize(options, jsRuntime)) {
+    if (!instance->Initialize(options, jsRuntime, isMove)) {
         return std::unique_ptr<ETSRuntime>();
     }
     return instance;
 }
 
-bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
+bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "PostFork begin");
     codePath_ = options.codePath;
@@ -144,28 +153,32 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<JsRuntime> &js
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or PostFork");
         return false;
     }
-
+    napi_env napiEnv = nullptr;
     if (jsRuntime != nullptr) {
-        jsRuntime_ = std::move(jsRuntime);
-    }
-    if (jsRuntime_ != nullptr) {
-        auto vm = static_cast<JsRuntime *>(jsRuntime_.get())->GetEcmaVm();
+        napiEnv = static_cast<AbilityRuntime::JsRuntime *>(jsRuntime.get())->GetNapiEnv();
+        auto vm = static_cast<JsRuntime *>(jsRuntime.get())->GetEcmaVm();
         panda::JSNApi::SetHostResolveBufferTrackerForHybridApp(
             vm, HybridJsModuleReader(options.bundleName, options.hapPath, options.isUnique));
+    }
+
+    if (isMove) {
+        if (jsRuntime != nullptr) {
+            jsRuntime_ = std::move(jsRuntime);
+        }
     }
 
     std::string aotFilePath = "";
     if (!options.arkNativeFilePath.empty()) {
         aotFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + options.moduleName + ".an";
     }
-    napi_env napiEnv = static_cast<AbilityRuntime::JsRuntime *>(jsRuntime_.get())->GetNapiEnv();
 
     g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), aotFilePath, options.appInnerHspPathList,
-        options.commonHspBundleInfos);
+        options.commonHspBundleInfos, options.eventRunner);
     return true;
 }
 
-std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
+std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
+    std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
     if (!RegisterETSEnvFuncs()) {
@@ -193,11 +206,11 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, std::uniq
     if (preloadedInstance && preloadedInstance->GetLanguage() == Runtime::Language::ETS) {
         instance.reset(static_cast<ETSRuntime *>(preloadedInstance.release()));
     } else {
-        instance = PreFork(options, jsRuntime);
+        instance = PreFork(options, jsRuntime, isMove);
     }
 
     if (instance != nullptr && !options.preload) {
-        instance->PostFork(options, jsRuntime);
+        instance->PostFork(options, jsRuntime, isMove);
     }
     return instance;
 }
@@ -265,7 +278,7 @@ void ETSRuntime::SetExtensionApiCheckCallback(
     g_etsEnvFuncs->SetExtensionApiCheckCallback(cb);
 }
 
-bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
+bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called");
     if (options.lang != GetLanguage()) {
@@ -273,8 +286,10 @@ bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<JsRuntime> &
         return false;
     }
 
-    if (jsRuntime != nullptr) {
-        jsRuntime_ = std::move(jsRuntime);
+    if (isMove) {
+        if (jsRuntime != nullptr) {
+            jsRuntime_ = std::move(jsRuntime);
+        }
     }
     if (!CreateEtsEnv(options)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "CreateEtsEnv failed");
@@ -477,6 +492,7 @@ std::string ETSRuntime::HandleOhmUrlSrcEntry(const std::string &srcEntry)
         return fileName;
     }
     std::string base = srcEntry.substr(0, lastSlashPos + 1);
+    HandleOhmUrlBase(base);
     std::string fileName = srcEntry.substr(lastSlashPos + 1);
     HandleOhmUrlFileName(fileName);
     return base + fileName;
@@ -486,11 +502,11 @@ void ETSRuntime::HandleOhmUrlFileName(std::string &fileName)
 {
     size_t colonPos = fileName.rfind(':');
     if (colonPos != std::string::npos) {
-        // <fileName>:<className>  =>  <fileName>/<className>
-        fileName.replace(colonPos, 1, "/");
+        // <fileName>:<className>  =>  <fileName>.<className>
+        fileName.replace(colonPos, 1, ".");
     } else {
-        // <fileName>  =>  <fileName>/<fileName>
-        fileName = fileName + "/" + fileName;
+        // <fileName>  =>  <fileName>.<fileName>
+        fileName = fileName + "." + fileName;
     }
 }
 
@@ -609,6 +625,11 @@ void ETSRuntime::StopDebugMode()
         return;
     }
     g_etsEnvFuncs->StopDebugMode(vm);
+}
+
+void ETSRuntime::SetJsRuntime(std::unique_ptr<AbilityRuntime::Runtime> &jsRuntime)
+{
+    jsRuntime_ = std::move(jsRuntime);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

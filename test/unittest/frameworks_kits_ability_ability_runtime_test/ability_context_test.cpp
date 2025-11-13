@@ -465,6 +465,10 @@ public:
     {
         return ERR_OK;
     }
+    virtual ErrCode SetMissionWindowIcon(std::shared_ptr<OHOS::Media::PixelMap> windowIcon)
+    {
+        return ERR_OK;
+    }
     virtual ErrCode SetAbilityInstanceInfo(const std::string& label,
         std::shared_ptr<OHOS::Media::PixelMap> icon)
     {
@@ -587,6 +591,11 @@ public:
         const AAFwk::StartOptions &startOptions, bool isHaveOptions)
     {
         return ERR_OK;
+    }
+
+    virtual ErrCode RestartAppWithWindow(const AAFwk::Want &want)
+    {
+        return 0;
     }
 private:
     std::unique_ptr<NativeReference> mockContentStorage_ = nullptr;

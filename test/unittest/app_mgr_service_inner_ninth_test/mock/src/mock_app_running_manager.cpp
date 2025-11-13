@@ -100,6 +100,12 @@ int32_t AppRunningManager::IsAppRunningByBundleNameAndUserId(const std::string &
     return AAFwk::MyStatus::GetInstance().isAppRunningByBundleName_;
 }
 
+int32_t AppRunningManager::IsAppRunningByBundleName(const std::string &bundleName, int32_t appCloneIndex,
+    int32_t userId, bool &isRunning)
+{
+    return ERR_OK;
+}
+
 int32_t AppRunningManager::GetAllAppRunningRecordCountByBundleName(const std::string &bundleName)
 {
     return AAFwk::MyStatus::GetInstance().getAllAppRunningRecordCount_;
@@ -346,7 +352,7 @@ bool AppRunningManager::IsApplicationFirstFocused(const AppRunningRecord &focuse
     return true;
 }
 
-bool AppRunningManager::IsApplicationUnfocused(const std::string &bundleName)
+bool AppRunningManager::IsApplicationUnfocused(const int32_t uid)
 {
     return true;
 }
@@ -548,6 +554,16 @@ bool AppRunningManager::CheckMasterProcessAppRunningRecordIsExist(
     const std::string &appName, const AppExecFwk::AbilityInfo &abilityInfo, const int uid)
 {
     return false;
+}
+
+bool AppRunningManager::ProcessExitByPid(int32_t, const KillProcessConfig &)
+{
+    return AAFwk::MyStatus::GetInstance().exitByPidstatus_;
+}
+
+int32_t AppRunningManager::SignRestartProcess(int32_t)
+{
+    return AAFwk::MyStatus::GetInstance().signRestartProcessStatus_;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

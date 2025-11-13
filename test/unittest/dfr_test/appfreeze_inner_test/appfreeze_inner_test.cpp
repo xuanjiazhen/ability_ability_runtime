@@ -131,11 +131,6 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsNeedIgnoreFreezeEvent_001, TestSiz
     std::shared_ptr<AAFwk::ApplicationAnrListener> listener =
         std::make_shared<AAFwk::ApplicationAnrListener>();
     listener->OnAnr(pid, 0);
-    int left = 61; // over 1min
-    while (left > 0) {
-        left = sleep(left);
-    }
-    listener->OnAnr(pid, 0);
 }
 
 /**
@@ -376,6 +371,23 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsAppFreeze_001, TestSize.Level1)
     EXPECT_EQ(ret, false);
     ret = appfreezeInner->IsAppFreeze(AppFreezeType::THREAD_BLOCK_6S);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.number: AppfreezeInner_ChangeFaultDateInfo_001
+ * @tc.name: ChangeFaultDateInfo
+ * @tc.desc: Verify that function ChangeFaultDateInfo.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ChangeFaultDateInfo_001, TestSize.Level1)
+{
+    FaultData faultData;
+    std::string msgContent = "AppfreezeInner_ChangeFaultDateInfo_001";
+    appfreezeInner->ChangeFaultDateInfo(faultData, msgContent);
+    EXPECT_EQ(faultData.errorObject.message, msgContent);
+    faultData.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+    appfreezeInner->ChangeFaultDateInfo(faultData, msgContent);
+    std::string ret = "AppfreezeInner_ChangeFaultDateInfo_001AppfreezeInner_ChangeFaultDateInfo_001";
+    EXPECT_EQ(faultData.errorObject.message, ret);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

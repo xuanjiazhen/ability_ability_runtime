@@ -56,6 +56,7 @@ constexpr const char *ON_SAVE_REQUEST_METHOD_NAME =
 constexpr const char *ON_FILL_REQUEST_METHOD_NAME =
     "L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;"
     "Lapplication/AutoFillRequest/FillRequest;Lapplication/AutoFillRequest/FillRequestCallback;:V";
+constexpr const char *ON_UPDATE_REQUEST_METHOD_NAME = "Lapplication/AutoFillRequest/UpdateRequest;:V";
 }
 
 EtsAutoFillExtension *EtsAutoFillExtension::Create(const std::unique_ptr<Runtime> &runtime)
@@ -359,7 +360,7 @@ void EtsAutoFillExtension::UpdateRequest(const AAFwk::WantParams &wantParams)
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null request");
         return;
     }
-    CallObjectMethod(false, "onUpdateRequest", ":V", request);
+    CallObjectMethod(false, "onUpdateRequest", ON_UPDATE_REQUEST_METHOD_NAME, request);
 }
 
 int32_t EtsAutoFillExtension::OnReloadInModal(const sptr<AAFwk::SessionInfo> &sessionInfo,
@@ -652,17 +653,23 @@ void EtsAutoFillExtension::ProcessRequest(const AAFwk::Want &want, sptr<AAFwk::S
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null env");
         return;
     }
-    ani_object request = EtsAutoFillExtensionUtil::WrapFillRequest(env, want);
-    if (request == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null request");
-        return;
-    }
+    ani_object request = nullptr;
     ani_object callback = nullptr;
     auto cmdValue = want.GetIntParam(WANT_PARAMS_AUTO_FILL_CMD, 0);
     if (cmdValue == AutoFillCommand::SAVE) {
+        request = EtsAutoFillExtensionUtil::WrapSaveRequest(env, want);
+        if (request == nullptr) {
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null request");
+            return;
+        }
         callback = EtsSaveRequestCallback::CreateEtsSaveRequestCallback(env, sessionInfo, uiWindow);
         CallObjectMethod(false, "onSaveRequest", ON_SAVE_REQUEST_METHOD_NAME, nativeContentSession, request, callback);
     } else if (cmdValue == AutoFillCommand::FILL || cmdValue == AutoFillCommand::RELOAD_IN_MODAL) {
+        request = EtsAutoFillExtensionUtil::WrapFillRequest(env, want);
+        if (request == nullptr) {
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null request");
+            return;
+        }
         callback = EtsFillRequestCallback::CreateEtsFillRequestCallback(env, sessionInfo, uiWindow);
         CallObjectMethod(false, "onFillRequest", ON_FILL_REQUEST_METHOD_NAME, nativeContentSession, request, callback);
     } else {

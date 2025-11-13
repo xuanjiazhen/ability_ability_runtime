@@ -989,7 +989,8 @@ int AbilityManagerProxy::StartUIExtensionAbility(const sptr<SessionInfo> &extens
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag)
+int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
+    bool isRestart)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start by scb");
@@ -1013,8 +1014,8 @@ int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool
             return INNER_ERR;
         }
     }
-    if (!data.WriteUint32(sceneFlag)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneFlag write fail");
+    if (!data.WriteUint32(sceneFlag) || !data.WriteBool(isRestart)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneFlag or isRestart write fail");
         return INNER_ERR;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::START_UI_ABILITY_BY_SCB, data, reply, option);
@@ -3850,14 +3851,15 @@ int AbilityManagerProxy::UnRegisterMissionListener(const std::string &deviceId,
 }
 
 int AbilityManagerProxy::StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
-    const sptr<IRemoteObject> &callerToken, int32_t accountId, bool isSilent)
+    const sptr<IRemoteObject> &callerToken, int32_t accountId, bool isSilent, bool promotePriority)
 {
     std::string errMsg;
-    return StartAbilityByCallWithErrMsg(want, connect, callerToken, accountId, errMsg, isSilent);
+    return StartAbilityByCallWithErrMsg(want, connect, callerToken, accountId, errMsg, isSilent, promotePriority);
 }
 
 int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
-    const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent)
+    const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent,
+    bool promotePriority)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -3910,6 +3912,12 @@ int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sp
     if (!data.WriteBool(isSilent)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "isSilent write fail");
         errMsg = "isSilent write fail";
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteBool(promotePriority)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "promotePriority write fail");
+        errMsg = "promotePriority write fail";
         return ERR_INVALID_VALUE;
     }
 
@@ -7331,6 +7339,23 @@ int32_t AbilityManagerProxy::StartSelfUIAbilityInCurrentProcess(const Want &want
         return ret;
     }
     return reply.ReadInt32();
+}
+
+bool AbilityManagerProxy::IsRestartAppLimit()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return false;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::IS_RESTART_APP_LIMIT, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error: %{public}d", ret);
+        return false;
+    }
+
+    return reply.ReadBool();
 }
 } // namespace AAFwk
 } // namespace OHOS

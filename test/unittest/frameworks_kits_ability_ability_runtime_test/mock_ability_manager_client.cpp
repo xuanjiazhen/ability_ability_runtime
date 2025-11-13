@@ -196,7 +196,8 @@ ErrCode AbilityManagerClient::StartUIExtensionAbility(sptr<SessionInfo> extensio
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag)
+ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
+    bool isRestart)
 {
     return ERR_OK;
 }
@@ -493,7 +494,7 @@ ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbility
 }
 
 ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect,
-    sptr<IRemoteObject> callToken, int32_t accountId, bool isSilent)
+    sptr<IRemoteObject> callToken, int32_t accountId, bool isSilent, bool promotePriority)
 {
     return ERR_OK;
 }
@@ -504,7 +505,7 @@ ErrCode StartAbilityForPrelaunch(const Want &want)
 }
 
 ErrCode AbilityManagerClient::StartAbilityByCallWithErrMsg(const Want &want, sptr<IAbilityConnection> connect,
-    sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent)
+    sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent, bool promotePriority)
 {
     return ERR_OK;
 }

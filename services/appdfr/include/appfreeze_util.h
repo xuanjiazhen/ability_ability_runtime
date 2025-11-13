@@ -27,6 +27,10 @@ public:
     static constexpr const char* const EVENTLOG_PATH = "/data/log/eventlog";
     static constexpr int64_t SEC_TO_MILLISEC = 1000;
     static constexpr int32_t CPU_COUNT_SUBTRACT = 1;
+    static constexpr int TIME_LIMIT = 10000; // 10s
+    static constexpr const char* const KEY_SEPARATOR = "-";
+    static constexpr size_t MAX_MAP_SIZE = 10;
+
     AppfreezeUtil();
     ~AppfreezeUtil();
 
@@ -36,6 +40,7 @@ public:
     static std::string RoundToTwoDecimals(float value);
     static int GetCpuCount();
     static std::string FreezePathToRealPath(const std::string& filePath);
+    static int32_t GetUidByPid(const int32_t pid);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -72,6 +72,63 @@ HWTEST_F(DumpRuntimeHelperTest, DumpJsHeap_0100, Function | MediumTest | Level1)
 }
 
 /**
+ * @tc.number: DumpCjHeap_0100
+ * @tc.name: DumpCjHeap
+ * @tc.desc: Test whether DumpCjHeap and are called normally.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpCjHeap_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpCjHeap_0100 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::CjHeapDumpInfo info;
+    info.pid = 1;
+    info.needGc = false;
+    info.needSnapshot = true;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    helper->DumpCjHeap(info);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpCjHeap_0100 end";
+}
+
+/**
+ * @tc.number: DumpCjHeap_0200
+ * @tc.name: DumpCjHeap
+ * @tc.desc: Test whether DumpCjHeap and are called normally.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpCjHeap_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpCjHeap_0200 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::CjHeapDumpInfo info;
+    info.pid = 1;
+    info.needGc = true;
+    info.needSnapshot = false;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    helper->DumpCjHeap(info);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpCjHeap_0200 end";
+}
+
+/**
+ * @tc.number: DumpCjHeap_0300
+ * @tc.name: DumpCjHeap
+ * @tc.desc: Test whether DumpCjHeap and are called normally.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpCjHeap_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpCjHeap_0300 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::CjHeapDumpInfo info;
+    info.pid = 1;
+    info.needGc = false;
+    info.needSnapshot = false;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    helper->DumpCjHeap(info);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpCjHeap_0300 end";
+}
+
+/**
  * @tc.number: CheckOomdumpSwitch_0100
  * @tc.name: CheckOomdumpSwitch
  * @tc.desc: Test the function of CheckOomdumpSwitch.
@@ -85,6 +142,84 @@ HWTEST_F(DumpRuntimeHelperTest, CheckOomdumpSwitch_0100, Function | MediumTest |
     OHOS::system::SetParameter("hiview.oomdump.switch", "unknown");
     EXPECT_TRUE(DumpRuntimeHelper::CheckOomdumpSwitch());
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CheckOomdumpSwitch_0100 end";
+}
+
+class CreateDirTest : public ::testing::Test {
+protected:
+    CreateDirTest()
+    {
+    }
+
+    ~CreateDirTest()
+    {
+    }
+
+    void SetUp() override
+    {
+        std::string testDir = "/data/local/tmp/test_dir";
+        RemoveTestDir(testDir);
+    }
+
+    void TearDown() override
+    {
+        std::string testDir = "/data/local/tmp/test_dir";
+        RemoveTestDir(testDir);
+    }
+
+    void CreateTestDir(const std::string& path)
+    {
+        if (DumpRuntimeHelper::IsFileExists(path)) {
+            return;
+        }
+        constexpr mode_t defaultLogDirMode = 0770;
+        if (mkdir(path.c_str(), defaultLogDirMode) != 0) {
+            perror("mkdir failed");
+        }
+    }
+
+    void RemoveTestDir(const std::string& path)
+    {
+        if (DumpRuntimeHelper::IsFileExists(path)) {
+            if (rmdir(path.c_str()) != 0) {
+                perror("rmdir failed");
+            }
+        }
+    }
+};
+
+/**
+ * @tc.number: CreateDir_0100
+ * @tc.name: CreateDir_FileExists
+ * @tc.desc: Test CreateDir when directory already exists.
+ */
+HWTEST_F(CreateDirTest, CreateDir_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "CreateDirTest CreateDir_0100 start";
+
+    std::string testDir = "/data/local/tmp/test_dir";
+    CreateTestDir(testDir);
+    EXPECT_TRUE(DumpRuntimeHelper::IsFileExists(testDir));
+    EXPECT_TRUE(DumpRuntimeHelper::CreateDir(testDir));
+
+    GTEST_LOG_(INFO) << "CreateDirTest CreateDir_0100 end";
+}
+
+/**
+ * @tc.number: CreateDir_0200
+ * @tc.name: CreateDir_CreateSuccess
+ * @tc.desc: Test CreateDir when directory is created successfully.
+ */
+HWTEST_F(CreateDirTest, CreateDir_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "CreateDirTest CreateDir_0200 start";
+
+    std::string testDir = "/data/local/tmp/test_dir";
+    RemoveTestDir(testDir);
+    EXPECT_FALSE(DumpRuntimeHelper::IsFileExists(testDir));
+    EXPECT_TRUE(DumpRuntimeHelper::CreateDir(testDir));
+    EXPECT_TRUE(DumpRuntimeHelper::IsFileExists(testDir));
+    RemoveTestDir(testDir);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CreateDir_0200 end";
 }
 }
 }

@@ -155,6 +155,9 @@ public:
      */
     int32_t CheckAppCloneRunningRecordIsExistByBundleName(const std::string &bundleName,
         int32_t appCloneIndex, bool &isRunning);
+    
+    int32_t IsAppRunningByBundleName(const std::string &bundleName, int32_t appCloneIndex,
+        int32_t userId, bool &isRunning);
 
     /**
      * Check whether the process of the application under the specified user exists.
@@ -330,6 +333,7 @@ public:
         bool clearPageStack);
     bool ProcessExitByTokenIdAndInstance(uint32_t accessTokenId, const std::string &instanceKey, std::list<pid_t> &pids,
         bool clearPageStack);
+    bool ProcessExitByPid(int32_t pid, const KillProcessConfig &config);
     bool GetPidsByUserId(int32_t userId, std::list<pid_t> &pids);
     bool GetProcessInfosByUserId(int32_t userId, std::list<SimpleProcessInfo> &processInfos);
 
@@ -352,7 +356,7 @@ public:
     bool IsApplicationBackground(const AppRunningRecord &backgroundingRecord);
     bool NeedNotifyAppStateChangeWhenProcessDied(std::shared_ptr<AppRunningRecord> currentAppRecord);
     bool IsApplicationFirstFocused(const AppRunningRecord &foregroundingRecord);
-    bool IsApplicationUnfocused(const std::string &bundleName);
+    bool IsApplicationUnfocused(int32_t uid);
 #ifdef SUPPORT_SCREEN
     void OnWindowVisibilityChanged(const std::vector<sptr<OHOS::Rosen::WindowVisibilityInfo>> &windowVisibilityInfos);
 #endif //SUPPORT_SCREEN
@@ -392,6 +396,7 @@ public:
     int32_t GetAllAppRunningRecordCountByBundleName(const std::string &bundleName);
 
     int32_t SignRestartAppFlag(int32_t uid, const std::string &instanceKey);
+    int32_t SignRestartProcess(int32_t pid);
 
     int32_t GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRunningUniqueId);
 

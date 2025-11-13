@@ -433,9 +433,12 @@ public:
      *
      * @param sessionInfo the session info of the ability to start.
      * @param isColdStart the session info of the ability is or not cold start.
+     * @param sceneFlag scene flag.
+     * @param isRestart whether kill old process and start the ability in new process.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0);
+    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0,
+        bool isRestart = false);
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -974,10 +977,12 @@ public:
      * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
      * @param isSilent, whether show window when start fail.
+     * @param promotePriority, whether to promote priority for sa.
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect,
-        sptr<IRemoteObject> callToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false);
+        sptr<IRemoteObject> callToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false,
+        bool promotePriority = false);
 
     /**
      * Start Ability, connect session with common ability.
@@ -988,10 +993,12 @@ public:
      * @param accountId Indicates the account to start.
      * @param errMsg Out parameter, indicates the failed reason.
      * @param isSilent, whether show window when start fail.
+     * @param promotePriority, whether to promote priority for sa.
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t StartAbilityByCallWithErrMsg(const Want &want, sptr<IAbilityConnection> connect,
-        sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent = false);
+        sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent = false,
+        bool promotePriority = false);
 
     /**
      * Start Ability for prelaunch
@@ -1950,7 +1957,7 @@ public:
     ErrCode PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex);
 
     /**
-     * Preload application.
+     * Start self UIAbility in current process.
      * @param want Ability want.
      * @param specifiedFlag specified flag.
      * @param startOptions Indicates the options used to start.
@@ -1960,6 +1967,11 @@ public:
     ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken);
 
+    /**
+     * Check if the app is restart-limited.
+     * @return Returns true on being limited.
+     */
+    bool IsRestartAppLimit();
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

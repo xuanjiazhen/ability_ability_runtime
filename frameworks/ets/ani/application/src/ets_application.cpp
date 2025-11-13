@@ -86,22 +86,20 @@ bool SetNativeContextLong(ani_env *env, std::shared_ptr<Context> context, ani_cl
     }
     ani_status status = ANI_ERROR;
     ani_method method {};
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "J:V", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         return false;
     }
-    if ((status = env->Object_New(cls, method, &contextObj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
-        return false;
-    }
-    ani_field field = nullptr;
-    if ((status = env->Class_FindField(cls, "nativeContext", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
-        return false;
-    }
-    auto workContext = new (std::nothrow) std::weak_ptr<Context>(context);
+
+    std::unique_ptr<EtsBaseContext> eteBaseContext = std::make_unique<EtsBaseContext>(context);
+    auto workContext = new (std::nothrow) std::weak_ptr<Context>(eteBaseContext->GetContext());
     if (workContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "workContext nullptr");
+        return false;
+    }
+    if ((status = env->Object_New(cls, method, &contextObj, (ani_long)(eteBaseContext.release()))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
+        delete workContext;
         return false;
     }
     ani_long nativeContextLong = reinterpret_cast<ani_long>(workContext);
@@ -247,9 +245,9 @@ void EtsApplication::CreateBundleContext(ani_env *env,
     SetCreateCompleteCallback(env, bundleContext, callback);
 }
 
-ani_object EtsApplication::GetApplicationContext(ani_env *env)
+ani_object GetApplicationContextInstance(ani_env *env)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "GetApplicationContext Call");
+    TAG_LOGD(AAFwkTag::APPKIT, "GetApplicationContextInstance Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return nullptr;
@@ -270,6 +268,27 @@ ani_object EtsApplication::GetApplicationContext(ani_env *env)
         return applicationContextObject;
     }
     return reinterpret_cast<ani_object>(etsReference->aniRef);
+}
+
+ani_object EtsApplication::GetApplicationContext(ani_env *env)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetApplicationContext Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+
+    auto applicationContext = ApplicationContext::GetInstance();
+    ani_object applicationContextObject =
+        EtsApplicationContextUtils::CreateEtsApplicationContext(env, applicationContext);
+    if (applicationContextObject == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContextObject");
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        ani_ref result = nullptr;
+        env->GetNull(&result);
+        return static_cast<ani_object>(result);
+    }
+    return applicationContextObject;
 }
 
 ani_enum_item EtsApplication::GetAppPreloadType(ani_env *env)

@@ -94,6 +94,12 @@ int32_t AppRunningManager::IsAppRunningByBundleNameAndUserId(const std::string &
     return ERR_OK;
 }
 
+int32_t AppRunningManager::IsAppRunningByBundleName(const std::string &bundleName, int32_t appCloneIndex,
+    int32_t userId, bool &isRunning)
+{
+    return ERR_OK;
+}
+
 int32_t AppRunningManager::GetAllAppRunningRecordCountByBundleName(const std::string &bundleName)
 {
     return 0;
@@ -337,7 +343,7 @@ bool AppRunningManager::IsApplicationFirstFocused(const AppRunningRecord &focuse
     return true;
 }
 
-bool AppRunningManager::IsApplicationUnfocused(const std::string &bundleName)
+bool AppRunningManager::IsApplicationUnfocused(const int32_t uid)
 {
     return true;
 }

@@ -18,6 +18,7 @@
 #include <native_engine/native_engine.h>
 
 #include "ability_manager_client.h"
+#include "app_utils.h"
 #include "application_configuration_manager.h"
 #include "configuration_convertor.h"
 #include "bindable_sub_thread.h"
@@ -33,6 +34,7 @@
 #include "string_wrapper.h"
 #ifdef SUPPORT_SCREEN
 #include "session/host/include/zidl/session_interface.h"
+#include "session_manager_lite.h"
 #include "scene_board_judgement.h"
 #include "ui_content.h"
 #endif // SUPPORT_SCREEN
@@ -40,6 +42,27 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+#ifdef SUPPORT_SCREEN
+static std::unordered_map<Rosen::WSError, int32_t> SCB_TO_MISSION_ERROR_CODE_MAP {
+    { Rosen::WSError::WS_ERROR_INVALID_PARAM, AAFwk::INVALID_PARAMETERS_ERR },
+    { Rosen::WSError::WS_ERROR_DEVICE_NOT_SUPPORT, AAFwk::ERR_CAPABILITY_NOT_SUPPORT },
+    { Rosen::WSError::WS_ERROR_INVALID_WINDOW, AAFwk::ERR_MAIN_WINDOW_NOT_EXIST },
+    { Rosen::WSError::WS_ERROR_IPC_FAILED, AAFwk::INNER_ERR },
+};
+
+ErrCode WSErrorConvertToAAFwkError(Rosen::WSError err)
+{
+    if (SCB_TO_MISSION_ERROR_CODE_MAP.count(err)) {
+        return SCB_TO_MISSION_ERROR_CODE_MAP[err];
+    }
+    return static_cast<int32_t>(err);
+}
+#endif // SUPPORT_SCREEN
+} // namespace
+#ifdef SUPPORT_SCREEN
+using OHOS::Rosen::SessionManagerLite;
+#endif // SUPPORT_SCREEN
 const size_t AbilityContext::CONTEXT_TYPE_ID(std::hash<const char*> {} ("AbilityContext"));
 constexpr const char* START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
 constexpr const char* UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExtensionTargetType";
@@ -246,7 +269,7 @@ ErrCode AbilityContextImpl::StartAbilityWithAccount(
 
 ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, int requestCode, RuntimeTask&& task)
 {
-    TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    TAG_LOGI(AAFwkTag::CONTEXT, "AMC, ForResult code:%{public}d", requestCode);
     resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode, -1);
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
@@ -259,7 +282,7 @@ ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, int r
 ErrCode AbilityContextImpl::StartAbilityForResultWithAccount(
     const AAFwk::Want& want, const int accountId, int requestCode, RuntimeTask&& task)
 {
-    TAG_LOGD(AAFwkTag::CONTEXT, "accountId:%{private}d", accountId);
+    TAG_LOGI(AAFwkTag::CONTEXT, "AMC, ForResult code:%{public}d, userId:%{public}d", requestCode, accountId);
     resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode, accountId);
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
@@ -1011,6 +1034,30 @@ ErrCode AbilityContextImpl::SetMissionIcon(const std::shared_ptr<OHOS::Media::Pi
     return err;
 }
 
+ErrCode AbilityContextImpl::SetMissionWindowIcon(std::shared_ptr<OHOS::Media::PixelMap> windowIcon)
+{
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sceneSessionManager = SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        if (sceneSessionManager == nullptr) {
+            return ERR_INVALID_VALUE;
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "scb call, SetMissionWindowIcon");
+        auto err = sceneSessionManager->SetSessionIconForThirdParty(token_, windowIcon);
+        if (err != Rosen::WSError::WS_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, SetMissionWindowIcon err, errcode: %{public}d",
+                static_cast<int32_t>(err));
+            return WSErrorConvertToAAFwkError(err);
+        }
+        auto abilityCallback = abilityCallback_.lock();
+        if (abilityCallback) {
+            abilityCallback->SetMissionIcon(windowIcon);
+        }
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::CONTEXT, "device not support scene board");
+    return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+}
+
 ErrCode AbilityContextImpl::SetAbilityInstanceInfo(const std::string& label,
     std::shared_ptr<OHOS::Media::PixelMap> icon)
 {
@@ -1520,6 +1567,65 @@ ErrCode AbilityContextImpl::SetOnNewWantSkipScenarios(int32_t scenarios)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     return AAFwk::AbilityManagerClient::GetInstance()->SetOnNewWantSkipScenarios(token_, scenarios);
+}
+
+#ifdef SUPPORT_SCREEN
+int32_t AbilityContextImpl::TransferRestartWSError(Rosen::WSError srcError)
+{
+    std::map<Rosen::WSError, int32_t> codeMap {
+        {Rosen::WSError::WS_OK, ERR_OK},
+        {Rosen::WSError::WS_ERROR_INVALID_OPERATION, AAFwk::ERR_RESTART_APP_INCORRECT_ABILITY},
+        {Rosen::WSError::WS_ERROR_INVALID_PERMISSION, AAFwk::ERR_ABILITY_NOT_FOREGROUND}
+    };
+    auto it = codeMap.find(srcError);
+    if (it != codeMap.end()) {
+        return it->second;
+    }
+    return ERR_INVALID_VALUE;
+}
+#endif
+
+ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (abilityInfo_ == nullptr || abilityInfo_->bundleName.empty() || abilityInfo_->name.empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid ability info");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto element = want.GetElement();
+    TAG_LOGI(AAFwkTag::CONTEXT, "RestartAppWithWindow: %{public}s, appIndex: %{public}d",
+        abilityInfo_->bundleName.c_str(), abilityInfo_->appIndex);
+    if (element.GetBundleName().empty() || element.GetBundleName() != abilityInfo_->bundleName ||
+        element.GetAbilityName().empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid bundleName or abilityName");
+        return AAFwk::ERR_RESTART_APP_INCORRECT_ABILITY;
+    }
+    if (AAFwk::AbilityManagerClient::GetInstance()->IsRestartAppLimit()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "reach restarting limit");
+        return AAFwk::ERR_RESTART_APP_FREQUENT;
+    }
+#ifdef SUPPORT_SCREEN
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() ||
+        !AAFwk::AppUtils::GetInstance().IsSupportRestartAppWithWindow()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    auto ifaceSessionToken = iface_cast<Rosen::ISession>(GetSessionToken());
+    if (ifaceSessionToken == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null session");
+        return ERR_INVALID_VALUE;
+    }
+    auto wantCopy = std::make_shared<Want>(want);
+    wantCopy->SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, abilityInfo_->appIndex);
+    TAG_LOGI(AAFwkTag::CONTEXT, "scb call, restartApp");
+    auto ret = ifaceSessionToken->RestartApp(wantCopy);
+    if (ret != Rosen::WSError::WS_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "scb call, RestartApp err: %{public}d", ret);
+    }
+    return TransferRestartWSError(ret);
+#else
+    return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+#endif
 }
 
 ErrCode AbilityContextImpl::AddCompletionHandlerForAtomicService(const std::string &requestId,
