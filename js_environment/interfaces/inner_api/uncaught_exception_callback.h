@@ -49,8 +49,28 @@ public:
     void operator()(napi_value obj);
 
     void operator()(panda::TryCatch& trycatch);
+  
+    void operator()(const panda::UncatchableErrorInfo& errorInfo);
+
+    void ProcessErrorInfo(
+    const std::string& errorName,
+    const std::string& errorMsg,
+    const std::string& errorStack,
+    const std::string& errorCode,
+    bool isOOM = false);
+
+    void ProcessStackTraceAndExtensions(
+    const std::string& errorStack,
+    bool isOOM,
+    std::string& summary);
 
     void CallbackTask(napi_value& obj);
+
+    /*
+    * @brief Callback only for OOM error, triggers js crash.
+    * @param errorInfo The error information defined in jsnapi_expo.h.
+    */
+    void CallbackTaskOOM(const panda::UncatchableErrorInfo& errorInfo);
 
     void HandleAndLogIfNotJsError(napi_value obj);
 

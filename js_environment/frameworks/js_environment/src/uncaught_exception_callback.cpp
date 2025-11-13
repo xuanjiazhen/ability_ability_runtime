@@ -83,29 +83,46 @@ void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
     }
 }
 
-void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
+void NapiUncaughtExceptionCallback::operator()(const panda::UncatchableErrorInfo& errorInfo)
 {
-    HandleAndLogIfNotJsError(obj);
-    std::string errorMsg = GetNativeStrFromJsTaggedObj(obj, "message");
-    std::string errorName = GetNativeStrFromJsTaggedObj(obj, "name");
-    std::string errorStack = GetNativeStrFromJsTaggedObj(obj, "stack");
+    CallbackTaskOOM(errorInfo);
+}
+
+void NapiUncaughtExceptionCallback::ProcessErrorInfo(
+    const std::string& errorName,
+    const std::string& errorMsg,
+    const std::string& errorStack,
+    const std::string& errorCode,
+    bool isOOM = false)
+{
     std::string summary = "Error name:" + errorName + "\n";
     summary += "Error message:" + errorMsg + "\n";
+    if (!errorCode.empty()) {
+        summary += "Error code:" + errorCode + "\n";
+    }
+
+    if (errorStack.empty()) {
+        TAG_LOGE(AAFwkTag::JSENV, "errorStack is empty");
+        return;
+    }
+
+    ProcessStackTraceAndExtensions(errorStack, isOOM, summary);
+
     const JsEnv::ErrorObject errorObj = {
         .name = errorName,
         .message = errorMsg,
         .stack = errorStack
     };
-    bool hasProperty = false;
-    napi_has_named_property(env_, obj, "code", &hasProperty);
-    if (hasProperty) {
-        std::string errorCode = GetNativeStrFromJsTaggedObj(obj, "code");
-        summary += "Error code:" + errorCode + "\n";
+    if (uncaughtTask_) {
+        uncaughtTask_(summary, errorObj);
     }
-    if (errorStack.empty()) {
-        TAG_LOGE(AAFwkTag::JSENV, "errorStack is empty");
-        return;
-    }
+}
+
+void NapiUncaughtExceptionCallback::ProcessStackTraceAndExtensions(
+    const std::string& errorStack,
+    bool isOOM,
+    std::string& summary)
+{
     if (errorStack.find(BACKTRACE) != std::string::npos) {
         summary += "Stacktrace:\n" + GetFuncNameAndBuildId(errorStack);
         std::string submitterStack = GetSubmitterStackLocal();
@@ -115,22 +132,50 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
         }
     } else {
         summary += "Stacktrace:\n" + errorStack;
-        NativeEngine *engine = reinterpret_cast<NativeEngine*>(env_);
-        std::string stackTraceStr;
-        engine->GetHybridStackTraceForCrash(env_, stackTraceStr);
-        if (!stackTraceStr.empty()) {
-            summary += "HybridStack:\n" + stackTraceStr;
+        if (!isOOM) {
+            NativeEngine* engine = reinterpret_cast<NativeEngine*>(env_);
+            std::string stackTraceStr;
+            engine->GetHybridStackTraceForCrash(env_, stackTraceStr);
+            if (!stackTraceStr.empty()) {
+                summary += "HybridStack:\n" + stackTraceStr;
+            }
         }
     }
+
 #ifdef SUPPORT_GRAPHICS
     std::string str = Ace::UIContent::GetCurrentUIStackInfo();
     if (!str.empty()) {
         summary.append(str);
     }
 #endif // SUPPORT_GRAPHICS
-    if (uncaughtTask_) {
-        uncaughtTask_(summary, errorObj);
+}
+
+void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
+{
+    HandleAndLogIfNotJsError(obj);
+    
+    std::string errorMsg = GetNativeStrFromJsTaggedObj(obj, "message");
+    std::string errorName = GetNativeStrFromJsTaggedObj(obj, "name");
+    std::string errorStack = GetNativeStrFromJsTaggedObj(obj, "stack");
+    std::string errorCode;
+    
+    bool hasProperty = false;
+    napi_has_named_property(env_, obj, "code", &hasProperty);
+    if (hasProperty) {
+        errorCode = GetNativeStrFromJsTaggedObj(obj, "code");
     }
+      
+    ProcessErrorInfo(errorName, errorMsg, errorStack, errorCode);
+}
+
+void NapiUncaughtExceptionCallback::CallbackTaskOOM(const panda::UncatchableErrorInfo& errorInfo)
+{
+    std::string errorName = errorInfo.errorName;
+    std::string errorMsg = errorInfo.errorMsg;
+    std::string errorStack = errorInfo.errorStack;
+    std::string errorCode = errorInfo.errorCode;
+    
+    ProcessErrorInfo(errorName, errorMsg, errorStack, errorCode, true);
 }
 
 void NapiUncaughtExceptionCallback::HandleAndLogIfNotJsError(napi_value obj)
