@@ -58,6 +58,7 @@
       *EcologicalRuleInterceptor*;
       *ExtensionPermissionsUtil*;
       *DataAbilityManager*;
+      *ExtensionRecordBase*;
       *FreeInstallManager*;
       *FreeInstallObserverManager*;
       *ForegroundAppConnectionManager*;
