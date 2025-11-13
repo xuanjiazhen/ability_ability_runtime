@@ -40,7 +40,7 @@ void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, c
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
             bundleName, moduleName, userId);
     }
-
+    
     return;
 }
 
@@ -127,16 +127,18 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
-        bundleName, moduleName, userId);
-    if (ret != ERR_OK) {
-        TAG_LOGW(AAFwkTag::INTENT, "delete intent info failed, bundleName: %{public}s, "
-            "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
-        return;
-    }
+    ffrt::submit([bundleName, moduleName, userId] () {
+        ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
+            bundleName, moduleName, userId);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::INTENT, "delete intent info failed, bundleName: %{public}s, "
+                "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
+            return;
+        }
 
-    TAG_LOGI(AAFwkTag::INTENT, "delete intent info success, bundleName: %{public}s, "
-        "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
+        TAG_LOGI(AAFwkTag::INTENT, "delete intent info success, bundleName: %{public}s, "
+            "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
+    })
 }
 
 void InsightIntentEventMgr::SubscribeSysEventReceiver()
