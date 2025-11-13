@@ -338,6 +338,11 @@ void ApplicationInit(ani_env *env)
             reinterpret_cast<void *>(EtsApplication::GetApplicationContext)
         },
         ani_native_function {
+            "nativeGetApplicationContextInstance",
+            ":Lapplication/ApplicationContext/ApplicationContext;",
+            reinterpret_cast<void *>(EtsApplication::GetApplicationContextInstance)
+        },
+        ani_native_function {
             "nativeGetAppPreloadType",
             ":L@ohos/app/ability/application/application/AppPreloadType;",
             reinterpret_cast<void *>(EtsApplication::GetAppPreloadType)
