@@ -152,7 +152,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, GetExtensionByIdFromTerminatingMap_001
     EXPECT_NE(connectManager, nullptr);
     int64_t abilityRecordId = 1;
 
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest_);
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest_);
     connectManager->terminatingExtensionList_.push_back(nullptr);
     auto res = connectManager->GetExtensionByIdFromTerminatingMap(abilityRecordId);
     EXPECT_EQ(res, nullptr);
@@ -468,7 +468,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_ConnectRecordIsN
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 
@@ -504,7 +504,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_ConnectRecordIsL
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 
@@ -533,7 +533,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_ConnectRecordIsL
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 
@@ -565,7 +565,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_StartButNotActiv
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 
@@ -601,7 +601,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_StartButIsActive
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 

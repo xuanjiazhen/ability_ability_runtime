@@ -822,7 +822,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     std::shared_ptr<AbilityConnectManager> connectManager = nullptr;
-    std::shared_ptr<AbilityRecord> targetAbility = nullptr;
+    std::shared_ptr<ExtensionAbilityBase> targetAbility = nullptr;
     abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, true);
     EXPECT_EQ(connectManager, nullptr);
     TAG_LOGI(AAFwkTag::TEST,
@@ -856,7 +856,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
     abilityMs_->subManagersHelper_->currentConnectManager_ = mockCurrentConnectManager;
 
     std::shared_ptr<AbilityConnectManager> connectManager = nullptr;
-    std::shared_ptr<AbilityRecord> targetAbility = nullptr;
+    std::shared_ptr<ExtensionAbilityBase> targetAbility = nullptr;
     abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, true);
     EXPECT_NE(connectManager, nullptr);
     EXPECT_NE(targetAbility, nullptr);
@@ -890,7 +890,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
     abilityMs_->subManagersHelper_->currentConnectManager_ = mockCurrentConnectManager;
 
     std::shared_ptr<AbilityConnectManager> connectManager = nullptr;
-    std::shared_ptr<AbilityRecord> targetAbility = nullptr;
+    std::shared_ptr<ExtensionAbilityBase> targetAbility = nullptr;
     abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(
         MockSessionInfo(0), connectManager, targetAbility, false);
     EXPECT_NE(connectManager, nullptr);
@@ -926,7 +926,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
     abilityMs_->subManagersHelper_->currentConnectManager_ = mockCurrentConnectManager;
 
     std::shared_ptr<AbilityConnectManager> connectManager = nullptr;
-    std::shared_ptr<AbilityRecord> targetAbility = nullptr;
+    std::shared_ptr<ExtensionAbilityBase> targetAbility = nullptr;
     abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, true);
     EXPECT_NE(connectManager, nullptr);
     EXPECT_EQ(targetAbility, nullptr);
@@ -960,7 +960,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
     abilityMs_->subManagersHelper_->currentConnectManager_ = mockCurrentConnectManager;
 
     std::shared_ptr<AbilityConnectManager> connectManager = nullptr;
-    std::shared_ptr<AbilityRecord> targetAbility = nullptr;
+    std::shared_ptr<ExtensionAbilityBase> targetAbility = nullptr;
     abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, false);
     EXPECT_NE(connectManager, nullptr);
     EXPECT_EQ(targetAbility, nullptr);
@@ -985,7 +985,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     std::shared_ptr<AbilityConnectManager> connectManager = nullptr;
-    std::shared_ptr<AbilityRecord> targetAbility = nullptr;
+    std::shared_ptr<ExtensionAbilityBase> targetAbility = nullptr;
     abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, false);
     EXPECT_EQ(connectManager, nullptr);
     EXPECT_EQ(targetAbility, nullptr);
