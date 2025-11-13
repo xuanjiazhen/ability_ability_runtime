@@ -28,6 +28,7 @@ namespace OHOS {
 namespace AppExecFwk {
 ani_object WrapWant(ani_env *env, const AAFwk::Want &want);
 bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want);
+bool UnwrapElementName(ani_env *env, ani_object param, ElementName &elementName);
 
 ani_ref WrapWantParams(ani_env *env, const AAFwk::WantParams &wantParams);
 bool UnwrapWantParams(ani_env *env, ani_ref param, AAFwk::WantParams &wantParams);

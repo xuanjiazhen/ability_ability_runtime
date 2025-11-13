@@ -1154,6 +1154,11 @@ bool UnwrapElementName(ani_env *env, ani_object param, ElementName &elementName)
     if (GetFieldStringByName(env, param, "moduleName", moduleName)) {
         elementName.SetModuleName(moduleName);
     }
+
+    int32_t appIndex = 0;
+    if (GetFieldIntByName(env, param, "appIndex", appIndex)) {
+        elementName.SetAppIndex(appIndex);
+    }
     return true;
 }
 
