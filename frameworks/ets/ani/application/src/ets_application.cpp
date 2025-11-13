@@ -245,7 +245,7 @@ void EtsApplication::CreateBundleContext(ani_env *env,
     SetCreateCompleteCallback(env, bundleContext, callback);
 }
 
-ani_object GetApplicationContextInstance(ani_env *env)
+ani_object EtsApplication::GetApplicationContextInstance(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "GetApplicationContextInstance Call");
     if (env == nullptr) {
@@ -336,6 +336,11 @@ void ApplicationInit(ani_env *env)
             "nativeGetApplicationContext",
             ":Lapplication/ApplicationContext/ApplicationContext;",
             reinterpret_cast<void *>(EtsApplication::GetApplicationContext)
+        },
+        ani_native_function {
+            "nativeGetApplicationContextInstance",
+            ":Lapplication/ApplicationContext/ApplicationContext;",
+            reinterpret_cast<void *>(EtsApplication::GetApplicationContextInstance)
         },
         ani_native_function {
             "nativeGetAppPreloadType",
