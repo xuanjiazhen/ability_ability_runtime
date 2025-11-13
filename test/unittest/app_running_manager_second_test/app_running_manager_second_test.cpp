@@ -1052,6 +1052,7 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_IsApplicationFirstForegr
     record->extensionType_ = AppExecFwk::ExtensionAbilityType::SERVICE;
     record->SetAppIndex(1);
     record->SetState(ApplicationState::APP_STATE_FOREGROUND);
+    record->SetUid(1);
 
     /**
      * @tc.steps: step1. Initialize AppRunningManager instance
@@ -1059,6 +1060,7 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_IsApplicationFirstForegr
      */
     AppRunningRecord foregroundingRecord(appInfo_, 1, PROCESS_NAME);
     foregroundingRecord.SetAppIndex(1);
+    foregroundingRecord->SetUid(1);
     foregroundingRecord.extensionType_ = AppExecFwk::ExtensionAbilityType::SERVICE;
     auto ret = appRunningManager->IsApplicationFirstForeground(foregroundingRecord);
     EXPECT_FALSE(ret);
