@@ -183,6 +183,14 @@ static napi_value InitMemoryLevelObject(napi_env env)
         static_cast<int>(MemoryLevel::MEMORY_LEVEL_LOW)));
     NAPI_CALL(env, SetEnumItem(env, object, "MEMORY_LEVEL_CRITICAL",
         static_cast<int>(MemoryLevel::MEMORY_LEVEL_CRITICAL)));
+    NAPI_CALL(env, SetEnumItem(env, object, "MEMORY_LEVEL_UI_HIDDEN",
+        static_cast<int>(MemoryLevel::MEMORY_LEVEL_UI_HIDDEN)));
+    NAPI_CALL(env, SetEnumItem(env, object, "MEMORY_LEVEL_BACKGROUND",
+        static_cast<int>(MemoryLevel::MEMORY_LEVEL_BACKGROUND)));
+    NAPI_CALL(env, SetEnumItem(env, object, "MEMORY_LEVEL_BG_MODERATE",
+        static_cast<int>(MemoryLevel::MEMORY_LEVEL_BG_MODERATE)));
+    NAPI_CALL(env, SetEnumItem(env, object, "MEMORY_LEVEL_BG_COMPLETE",
+        static_cast<int>(MemoryLevel::MEMORY_LEVEL_BG_COMPLETE)));
 
     return object;
 }

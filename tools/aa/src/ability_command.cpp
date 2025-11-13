@@ -1039,7 +1039,11 @@ ErrCode AbilityManagerShellCommand::RunAsSendMemoryLevelCommand()
 
     if (!(inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_MODERATE ||
         inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_CRITICAL ||
-        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_LOW)) {
+        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_LOW ||
+        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_UI_HIDDEN ||
+        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_BACKGROUND ||
+        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_BG_MODERATE ||
+        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_BG_COMPLETE)) {
         TAG_LOGE(AAFwkTag::APPMGR, "level value error. Valid values: 0-2 (0: Moderate, 1: Low, 2: Critical)");
         resultReceiver_.append(STRING_SEND_MEMORY_LEVEL_NG + "\n");
         resultReceiver_.append(GetMessageFromCode(INVALID_LEVEL));

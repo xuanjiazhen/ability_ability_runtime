@@ -2877,7 +2877,11 @@ int32_t AppMgrServiceInner::NotifyMemoryLevel(int32_t level)
     }
     if (!(level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_MODERATE ||
         level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_CRITICAL ||
-        level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_LOW)) {
+        level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_LOW ||
+        level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_UI_HIDDEN ||
+        level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_BACKGROUND ||
+        level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_BG_MODERATE ||
+        level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_BG_COMPLETE)) {
         TAG_LOGE(AAFwkTag::APPMGR, "level value error");
         return ERR_INVALID_VALUE;
     }
