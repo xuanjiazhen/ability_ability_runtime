@@ -36,6 +36,7 @@ struct GrantUriPermissionInfo {
     uint32_t flag = 0;
     int32_t collaboratorType = 0;
     bool isNotifyCollaborator = false;
+    std::string targetAbilityName = "";
 };
 
 class UriUtils {
