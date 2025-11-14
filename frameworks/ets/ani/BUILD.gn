@@ -23,6 +23,7 @@ group("ani_packages") {
     "${ability_runtime_path}/frameworks/ets/ani/action_extension_ability:action_extension_ani",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/ani_mission_manager:missionmanager_ani",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_observer:ani_observer",
     "${ability_runtime_path}/frameworks/ets/ani/ani_wantagent_common:ani_wantagent_common",
     "${ability_runtime_path}/frameworks/ets/ani/app/ability_context:ability_context_ani_kit",
     "${ability_runtime_path}/frameworks/ets/ani/app/ability_stage_context:ability_stage_context_ani_kit",

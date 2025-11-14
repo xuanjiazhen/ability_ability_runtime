@@ -1257,6 +1257,16 @@ void EtsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
     }
 }
 
+void EtsUIAbility::RemoveShareRouterByBundleType(const Want &want)
+{
+    auto abilityInfo = abilityContext_ ? abilityContext_->GetAbilityInfo() : nullptr;
+    if (abilityInfo == nullptr ||
+        abilityInfo->applicationInfo.bundleType != OHOS::AppExecFwk::BundleType::ATOMIC_SERVICE) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "not atomicService");
+        const_cast<Want &>(want).RemoveParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+    }
+    return;
+}
 void EtsUIAbility::ExecuteInsightIntentBackground(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)

@@ -100,6 +100,7 @@ export default class UIExtensionContext extends ExtensionContext {
   private native nativeDisconnectUIServiceExtensionAbility(proxy: UIServiceProxy, callback:AsyncCallbackWrapper<void>): void;
   private native nativeWantCheck(want: Want): void;
   private native nativeDisconnectUIServiceExtensionCheck(proxy: UIServiceProxy) : void;
+  private native nativeStartUIAbilities(wantList: Array<Want>, callback: AsyncCallbackWrapper<void>): void;
   private native nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId: int, secondaryWant: Want, callback:AsyncCallbackWrapper<void>) : void;
   private native nativeOpenLinkSync(link: string, syncCallback:AsyncCallbackWrapper<void>,
     options?: OpenLinkOptions, callback?: AsyncCallbackWrapper<AbilityResult>): void;
@@ -423,6 +424,21 @@ export default class UIExtensionContext extends ExtensionContext {
       });
       taskpool.execute((): void => {
         this.nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId, secondaryWant, myCall);
+      });
+    });
+  }
+
+  startUIAbilities(wantList: Array<Want>): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartUIAbilities(wantList, myCall);
       });
     });
   }
