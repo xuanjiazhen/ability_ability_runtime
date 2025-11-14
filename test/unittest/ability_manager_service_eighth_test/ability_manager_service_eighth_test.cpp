@@ -579,15 +579,17 @@ HWTEST_F(AbilityManagerServiceEighthTest, TerminateUIServiceExtensionAbility_001
     abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     token = abilityRecord->GetToken();
+    auto connectManager = std::make_shared<AbilityConnectManager>(1);
+    connectManager->sceneBoardTokenId_ = 1;
+    connectManager->serviceMap_.emplace(bundleName, abilityRecord);
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(1, connectManager));
+    IPCSkeleton::SetCallingTokenID(0);
     EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
         .WillRepeatedly(Return(true));
     result = abilityMs_->TerminateUIServiceExtensionAbility(token);
     EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
 
     IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(1);
-    connectManager->sceneBoardTokenId_ = 1;
-    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(1, connectManager));
     IPCSkeleton::SetCallingTokenID(1);
     result = abilityMs_->TerminateUIServiceExtensionAbility(token);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
