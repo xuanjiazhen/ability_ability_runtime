@@ -241,6 +241,7 @@ constexpr int32_t START_AUTO_START_APP_RETRY_MAX_TIMES = 5;
 constexpr int32_t RETRY_COUNT = 20;
 constexpr const char* LIFE_CYCLE_STATE_FOREGROUND_DONE = "foreground done";
 constexpr const char* LIFE_CYCLE_STATE_BACKGROUND_DONE = "background done";
+constexpr std::string UEA_PRELOAD_CALLER_APP_CLONE_INDEX = "ohos.extra.param.key.UEA.preloadCallerAppCloneIndex";
 
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
     "share", "action", "navigation", "mail", "finance", "flight", "express", "photoEditor"
@@ -3643,6 +3644,25 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(const Want &want, std:
     TAG_LOGD(AAFwkTag::UI_EXT, "PreloadUIExtension called, elementName: %{public}s/%{public}s",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
     int32_t validUserId = GetValidUserId(userId);
+    
+    if (want.HasParameter(UEA_PRELOAD_CALLER_APP_CLONE_INDEX)) {
+        int32_t preloadCallerAppCloneIndex = want.GetIntParam(UEA_PRELOAD_CALLER_APP_CLONE_INDEX, 0);
+        if (!want.HasParameter(Want::APP_CLONE_INDEX) || want.GetIntParam(Want::APP_CLONE_INDEX, 0) !=
+            preloadCallerAppCloneIndex) {
+                auto bms = AbilityUtil::GetBundleManagerHelper();
+                if (!bms) {
+                    TAG_LOGE(AAFwkTag::UI_EXT, "bms null");
+                    return ERR_INVALID_VALUE;
+                }
+                AppExecFwk::ExtensionAbilityInfo extensionInfo;
+                IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneExtensionAbilityInfoWithAppIndex(want.GetElement(),
+                    AbilityInfoFlag::GET_ABILITY_INFO_DEFAULT, 0, extensionInfo, validUserId));
+                if (extensionInfo.type == AppExecFwk::ExtensionAbilityType::EMBEDDED_UI) {
+                    (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, preloadCallerAppCloneIndex);
+                }
+            }
+    }
+
     AbilityRequest abilityRequest;
     ErrCode result = ERR_OK;
     EventInfo eventInfo = BuildEventInfo(want, userId);
@@ -7848,6 +7868,11 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord != nullptr) {
         request.callerTokenRecordId = abilityRecord->GetRecordId();
+        std::string extensionTypeStr = want.GetStringParam(UIEXTENSION_TYPE_KEY);
+        if (AppExecFwk::ConvertToExtensionAbilityType(extensionTypeStr) ==
+            AppExecFwk::ExtensionAbilityType::EMBEDDED_UI) {
+            (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, abilityRecord->GetAppIndex());
+        }
     }
     if (abilityRecord && abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX &&
         abilityRecord->GetApplicationInfo().bundleName == want.GetElement().GetBundleName()) {
