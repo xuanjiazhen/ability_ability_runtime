@@ -7848,6 +7848,11 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord != nullptr) {
         request.callerTokenRecordId = abilityRecord->GetRecordId();
+        std::string extensionTypeStr = want.GetStringParam(UIEXTENSION_TYPE_KEY);
+        if (AppExecFwk::ConvertToExtensionAbilityType(extensionTypeStr) ==
+            AppExecFwk::ExtensionAbilityType::EMBEDDED_UI) {
+            (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, abilityRecord->GetAppIndex());
+        }
     }
     if (abilityRecord && abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX &&
         abilityRecord->GetApplicationInfo().bundleName == want.GetElement().GetBundleName()) {
