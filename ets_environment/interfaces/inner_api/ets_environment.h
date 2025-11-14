@@ -39,6 +39,7 @@ namespace EtsEnv {
 struct ETSRuntimeAPI {
     ani_status (*ANI_GetCreatedVMs)(ani_vm **vms_buffer, ani_size vms_buffer_length, ani_size *result);
     ani_status (*ANI_CreateVM)(const ani_options *options, uint32_t version, ani_vm **result);
+    ani_status (*ANI_RegisterExternalScheduler)(ani_vm *vm, ani_external_scheduler_poster poster);
 };
 
 using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
@@ -93,6 +94,7 @@ private:
     bool LoadRuntimeApis();
     bool LoadSymbolCreateVM(void *handle, ETSRuntimeAPI &apis);
     bool LoadSymbolANIGetCreatedVMs(void *handle, ETSRuntimeAPI &apis);
+    bool LoadSymbolANIRegisterExternalScheduler(void *handle, ETSRuntimeAPI &apis);
     bool LoadBootPathFile(std::string &bootfiles);
     std::string GetBuildId(std::string stack);
     EtsEnv::ETSErrorObject GetETSErrorObject();
