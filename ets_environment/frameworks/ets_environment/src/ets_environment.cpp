@@ -55,6 +55,7 @@ namespace EtsEnv {
 namespace {
 const char ETS_CREATE_VM[] = "ANI_CreateVM";
 const char ETS_ANI_GET_CREATEDVMS[] = "ANI_GetCreatedVMs";
+const char ETS_ANI_REGISTER_EXTERNAL_SCHEDULER[] = "ANI_RegisterExternalScheduler";
 const char ETS_LIB_PATH[] = "libets_interop_js_napi.z.so";
 const char BOOT_PATH[] = "/system/framework/bootpath.json";
 const char BACKTRACE[] = "=====================Backtrace========================";
@@ -62,6 +63,7 @@ static const std::string DEBUGGER = "@Debugger";
 
 using CreateVMETSRuntimeType = ani_status (*)(const ani_options *options, uint32_t version, ani_vm **result);
 using ANIGetCreatedVMsType = ani_status (*)(ani_vm **vms_buffer, ani_size vms_buffer_length, ani_size *result);
+using ANIRegisterExternalScheduler = ani_status (*)(ani_vm *vm, ani_external_scheduler_poster poster);
 using DebuggerPostTask = std::function<void(std::function<void()> &&)>;
 
 const char ETS_SDK_NSNAME[] = "ets_sdk";
@@ -70,6 +72,8 @@ const char ETS_SYS_NSNAME[] = "ets_system";
 constexpr const char* CLASSNAME_LINKER = "std.core.AbcRuntimeLinker";
 constexpr const char* CLASSNAME_COROUTINE = "std.core.Coroutine";
 } // namespace
+
+static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs);
 
 using namespace arkts::ani_signature;
 
@@ -138,7 +142,8 @@ bool ETSEnvironment::LoadRuntimeApis()
     }
 
     if (!LoadSymbolCreateVM(dso, lazyApis_) ||
-        !LoadSymbolANIGetCreatedVMs(dso, lazyApis_)) {
+        !LoadSymbolANIGetCreatedVMs(dso, lazyApis_) ||
+        !LoadSymbolANIRegisterExternalScheduler(dso, lazyApis_)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "load symbol failed");
         return false;
     }
@@ -200,6 +205,18 @@ bool ETSEnvironment::LoadSymbolANIGetCreatedVMs(void *handle, ETSRuntimeAPI &api
         return false;
     }
     apis.ANI_GetCreatedVMs = reinterpret_cast<ANIGetCreatedVMsType>(symbol);
+
+    return true;
+}
+
+bool ETSEnvironment::LoadSymbolANIRegisterExternalScheduler(void *handle, ETSRuntimeAPI &apis)
+{
+    auto symbol = dlsym(handle, ETS_ANI_REGISTER_EXTERNAL_SCHEDULER);
+    if (symbol == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "runtime api not found: %{public}s", ETS_ANI_REGISTER_EXTERNAL_SCHEDULER);
+        return false;
+    }
+    apis.ANI_RegisterExternalScheduler = reinterpret_cast<ANIRegisterExternalScheduler>(symbol);
 
     return true;
 }
@@ -554,6 +571,8 @@ void ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     ark::ets::ETSAni::Postfork(env, options);
     appInnerHspPathList_ = appInnerHspPathList;
     commonHspBundleInfos_ = commonHspBundleInfos;
+
+    lazyApis_.ANI_RegisterExternalScheduler(&vmEntry_.aniVm_, PostTaskWrapper);
     PostCoroutineScheduleTask();
 }
 
@@ -876,6 +895,11 @@ ani_object ETSEnvironment::CreateRuntimeLinker(
     return object;
 }
 
+static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs)
+{
+    ETSEnvironment::GetInstance()::PostTask([task, data]() { task(data); }, taskName, delayMs);
+}
+
 static void ScheduleCoroutine(ani_env *aniEnv)
 {
     ani_class cls = nullptr;
@@ -896,12 +920,13 @@ static void ScheduleCoroutine(ani_env *aniEnv)
 
 void ETSEnvironment::PostCoroutineScheduleTask()
 {
+    static constexpr uint64_t COROUTINE_SCHEDULE_PERIODIC_TIME = 100;
     auto scheduleTask = []() {
         auto &etsEnv = GetInstance();
         ScheduleCoroutine(etsEnv->GetAniEnv());
         etsEnv->PostCoroutineScheduleTask();
     };
-    PostTask(scheduleTask, "ScheduleCoroutine", 1);
+    PostTask(scheduleTask, "ScheduleCoroutinePeriodically", COROUTINE_SCHEDULE_PERIODIC_TIME);
 }
 
 } // namespace EtsEnv
