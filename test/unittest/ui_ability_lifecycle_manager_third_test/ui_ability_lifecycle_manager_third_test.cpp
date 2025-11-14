@@ -1602,7 +1602,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAbilityRecordReused_002, Test
     SessionInfo sessionInfo;
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     abilityRecord->sessionInfo_ = nullptr;
     EXPECT_EQ(mgr->HandleAbilityRecordReused(abilityRecord, sessionInfo, abilityRequest), nullptr);
 }
@@ -1622,7 +1622,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAbilityRecordReused_003, Test
     sessionInfo.sessionToken = session->AsObject();
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     auto sessionInfo2 = sptr<SessionInfo>::MakeSptr();
     auto session2 = sptr<Rosen::Session>::MakeSptr(Rosen::SessionInfo());
     sessionInfo2->sessionToken = session2->AsObject();
@@ -1645,7 +1645,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAbilityRecordReused_004, Test
     sessionInfo.sessionToken = session->AsObject();
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     auto sessionInfo2 = sptr<SessionInfo>::MakeSptr();
     sessionInfo2->sessionToken = session->AsObject();
     abilityRecord->sessionInfo_ = sessionInfo2;
@@ -1669,7 +1669,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAbilityRecordReused_005, Test
     sessionInfo.sessionToken = session->AsObject();
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     auto sessionInfo2 = sptr<SessionInfo>::MakeSptr();
     sessionInfo2->sessionToken = session->AsObject();
     abilityRecord->sessionInfo_ = sessionInfo2;
