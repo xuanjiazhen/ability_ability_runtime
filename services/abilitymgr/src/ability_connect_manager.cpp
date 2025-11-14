@@ -505,11 +505,17 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
 void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abilityRequest,
     AbilityRecord &targetService)
 {
+    bool fromRestart = false;
+    if (abilityRequest.restartCount > -1) {
+        fromRestart = true;
+    }
     if (abilityRequest.abilityInfo.name == AbilityConfig::LAUNCHER_ABILITY_NAME) {
         targetService.SetLauncherRoot();
-        targetService.SetRestartTime(abilityRequest.restartTime);
-        targetService.SetRestartCount(abilityRequest.restartCount);
-    } else if (IsAbilityNeedKeepAlive(targetService.shared_from_this())) {
+        if (fromRestart) {
+            targetService.SetRestartTime(abilityRequest.restartTime);
+            targetService.SetRestartCount(abilityRequest.restartCount);
+        }
+    } else if (IsAbilityNeedKeepAlive(targetService.shared_from_this()) && fromRestart) {
         targetService.SetRestartTime(abilityRequest.restartTime);
         targetService.SetRestartCount(abilityRequest.restartCount);
     }
