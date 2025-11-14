@@ -52,6 +52,7 @@ constexpr size_t INDEX_TWO = 2;
 constexpr int32_t ERROR_CODE_ONE = 1;
 constexpr double FOUNT_SIZE = 0.0;
 const char* MD_NAME = "JsApplicationContextUtils";
+constexpr const char* UEA_PRELOAD_CALLER_APP_CLONE_INDEX = "param.key.UEA.preloadCallerAppCloneIndex";
 }  // namespace
 
 napi_value JsApplicationContextUtils::CreateBundleContext(napi_env env, napi_callback_info info)
@@ -822,6 +823,14 @@ napi_value JsApplicationContextUtils::OnPreloadUIExtensionAbility(napi_env env, 
             "Parse param want failed, want must be Want.");
         return CreateJsUndefined(env);
     }
+
+    auto context = applicationContext_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        ThrowInvalidParamError(env, "null context");
+        return CreateJsUndefined(env);
+    }
+    want.SetParam(UEA_PRELOAD_CALLER_APP_CLONE_INDEX, context->GetCurrentAppCloneIndex());
 
     auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
     NapiAsyncTask::ExecuteCallback execute = [applicationContext = applicationContext_, want, innerErrCode]() {
