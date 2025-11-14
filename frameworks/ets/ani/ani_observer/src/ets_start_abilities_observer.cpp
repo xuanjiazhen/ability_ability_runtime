@@ -34,9 +34,6 @@ EtsStartAbilitiesObserver& EtsStartAbilitiesObserver::GetInstance()
 EtsStartAbilitiesObserver::~EtsStartAbilitiesObserver()
 {
     ani_env *env = nullptr;
-    ani_status status = ANI_ERROR;
-    ani_option interopEnabled { "--interop=disable", nullptr };
-    ani_options aniArgs { 1, &interopEnabled };
     if (etsVm_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null etsVm_");
         return;
@@ -126,7 +123,7 @@ void EtsStartAbilitiesObserver::CallCallback(ani_object callback, int32_t result
             return;
         }
     }
-    if(env == nullptr) {
+    if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null env");
         return;
     }
