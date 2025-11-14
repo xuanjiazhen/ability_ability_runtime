@@ -41,6 +41,14 @@ export default namespace application {
 
   export native function nativeGetAppPreloadType(): AppPreloadType;
 
+  export native function nativeExitMasterProcessRole(callback: AsyncCallbackWrapper<void>): void;
+
+  export native function nativeCreatePluginModuleContextForHostBundle(context: Context, pluginBundleName: string,
+    pluginModuleName: string, hostBundleName: string, callback: AsyncCallbackWrapper<Context>): void;
+
+  export native function nativeCreatePluginModuleContextForHostBundleCheck(context: Context, pluginBundleName: string,
+    pluginModuleName: string, hostBundleName: string): void;
+
   export native function nativeCreateModuleContextCheck(context: Context, moduleName: string, bundleName?: string): void;
   export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
     application.nativeCreateModuleContextCheck(context, moduleName);
@@ -124,5 +132,41 @@ export default namespace application {
 
   export function getAppPreloadType(): AppPreloadType {
     return nativeGetAppPreloadType();
+  }
+
+  export function exitMasterProcessRole(): Promise<void> {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=> {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+            application.nativeExitMasterProcessRole(myCall);
+        });
+      });
+    return p;
+  }
+
+  export function createPluginModuleContextForHostBundle(context: Context, pluginBundleName: string,
+    pluginModuleName: string, hostBundleName: string): Promise<Context> {
+    application.nativeCreatePluginModuleContextForHostBundleCheck(context, pluginBundleName, pluginModuleName, hostBundleName);
+    let p =
+      new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
+          if (err == null || err.code == 0) {
+            resolve(data as Context);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          application.nativeCreatePluginModuleContextForHostBundle(context, pluginBundleName, pluginModuleName, hostBundleName, myCall);
+        });
+      });
+    return p;
   }
 }
