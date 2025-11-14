@@ -41,29 +41,39 @@ EtsStartAbilitiesObserver::~EtsStartAbilitiesObserver()
         TAG_LOGE(AAFwkTag::ABILITY, "null etsVm_");
         return;
     }
-    if ((etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "status: %{public}d", status);
+
+    bool isAttachThread = false;
+    env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "null env");
         return;
     }
+
     for (auto it = etsObserverObjectList_.begin(); it != etsObserverObjectList_.end(); it++) {
         env->GlobalReference_Delete(it->second);
     }
-    if ((status = etsVm_->DetachCurrentThread()) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "status: %{public}d", status);
-    }
+
+    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
 }
 
 void EtsStartAbilitiesObserver::AddObserver(ani_env *env, const std::string &requestKey, ani_object callback)
 {
     if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "null env");
         return;
     }
-    if (etsVm_ == nullptr) {
-        ani_status status = ANI_ERROR;
-        if ((status = env->GetVM(&etsVm_)) != ANI_OK || etsVm_ == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITY, "status: %{public}d", status);
+
+    {
+        std::lock_guard lock(etsVmLock_);
+        if (etsVm_ == nullptr) {
+            ani_status status = ANI_ERROR;
+            if ((status = env->GetVM(&etsVm_)) != ANI_OK || etsVm_ == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITY, "status: %{public}d", status);
+                return;
+            }
         }
     }
+
     ani_ref global = nullptr;
     ani_status status = ANI_ERROR;
     if ((status = env->GlobalReference_Create(callback, &global)) != ANI_OK) {
@@ -82,13 +92,11 @@ void EtsStartAbilitiesObserver::HandleFinished(const std::string &requestKey, in
 void EtsStartAbilitiesObserver::HandleFinishedInner(const std::string &requestKey, int32_t resultCode)
 {
     ani_ref callbackRef = nullptr;
-    if (etsVm_ != nullptr) {
-        std::lock_guard lock(etsObserverObjectListLock_);
-        auto it = etsObserverObjectList_.find(requestKey);
-        if (it != etsObserverObjectList_.end()) {
-            callbackRef = std::move(it->second);
-            etsObserverObjectList_.erase(it);
-        }
+    std::lock_guard lock(etsObserverObjectListLock_);
+    auto it = etsObserverObjectList_.find(requestKey);
+    if (it != etsObserverObjectList_.end()) {
+        callbackRef = std::move(it->second);
+        etsObserverObjectList_.erase(it);
     }
     if (callbackRef) {
         CallCallback(static_cast<ani_object>(callbackRef), resultCode);
@@ -104,16 +112,25 @@ void EtsStartAbilitiesObserver::CallCallback(ani_object callback, int32_t result
         TAG_LOGE(AAFwkTag::ABILITY, "null callback");
         return;
     }
-    if (etsVm_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "null etsVm");
-        return;
-    }
+
     ani_env *env = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Failed to getEnv, status: %{public}d", status);
+    {
+        std::lock_guard lock(etsVmLock_);
+        if (etsVm_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITY, "null etsVm");
+            return;
+        }
+        ani_status status = ANI_ERROR;
+        if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Failed to getEnv, status: %{public}d", status);
+            return;
+        }
+    }
+    if(env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "null env");
         return;
     }
+
     ani_object aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
     if (resultCode != ERR_OK) {
         aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, resultCode);

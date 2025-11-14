@@ -525,12 +525,8 @@ void EtsApplication::ExitMasterProcessRole(ani_env *env, ani_object callback)
     TAG_LOGD(AAFwkTag::APPKIT, "ExitMasterProcessRole Call");
     int32_t errCode = ERR_OK;
     errCode = OHOS::DelayedSingleton<OHOS::AppExecFwk::AppMgrClient>::GetInstance()->ExitMasterProcessRole();
-    if (errCode == ERR_OK) {
-        AppExecFwk::AsyncCallback(
-            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
-    }
-    AppExecFwk::AsyncCallback(
-        env, callback, nullptr, nullptr);
+    AppExecFwk::AsyncCallback(env, callback,
+        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
 }
 
 void EtsApplication::CreatePluginModuleContextForHostBundleCheck(ani_env *env, ani_object contextObj,
@@ -584,13 +580,6 @@ void EtsApplication::CreatePluginModuleContextForHostBundleCheck(ani_env *env, a
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must be a context.");
         return;
     }
-
-    auto moduleContext = std::make_shared<std::shared_ptr<Context>>();
-    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
-    if (contextImpl == nullptr) {
-        EtsErrorUtil::ThrowInvalidParamError(env, "create context failed.");
-        return;
-    }
 }
 
 void EtsApplication::CreatePluginModuleContextForHostBundle(ani_env *env, ani_object contextObj,
@@ -625,22 +614,26 @@ void EtsApplication::CreatePluginModuleContextForHostBundle(ani_env *env, ani_ob
     ani_boolean stageMode = false;
     ani_status status = IsStageContext(env, contextObj, stageMode);
     if (status != ANI_OK || !stageMode) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid IsStageContext");
         return;
     }
 
     auto context = GetStageModeContext(env, contextObj);
     if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid context");
         return;
     }
 
     auto inputContextPtr = Context::ConvertTo<Context>(context);
     if (inputContextPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid inputContextPtr");
         return;
     }
 
     auto moduleContext = std::make_shared<std::shared_ptr<Context>>();
     std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
     if (contextImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid contextImpl");
         return;
     }
 

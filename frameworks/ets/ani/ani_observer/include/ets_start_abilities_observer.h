@@ -41,6 +41,7 @@ private:
     void CallCallback(ani_object callback, int32_t resultCode);
 
     std::mutex etsObserverObjectListLock_;
+    std::mutex etsVmLock_;
     ani_vm *etsVm_ = nullptr;
     std::map<std::string, ani_ref> etsObserverObjectList_;
 };
