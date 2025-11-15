@@ -16,7 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_EXTENSION_ABILITY_CONNECT_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_UI_EXTENSION_ABILITY_CONNECT_MANAGER_H
 
-#include "ability_connect_manager_base.h"
+#include "base_extension_connect_manager.h"
 #include "ui_extension/ui_extension_ability_connect_info.h"
 
 namespace OHOS {
