@@ -119,7 +119,7 @@ HWTEST_F(AbilityPermissionUtilTest, AbilityPermissionUtil_CheckMultiInstanceAndA
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone_0100 start");
     Want want;
-    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, 0, nullptr, false);
+    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, nullptr, false);
     EXPECT_EQ(result, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone_0100 end");
@@ -138,7 +138,7 @@ HWTEST_F(AbilityPermissionUtilTest, AbilityPermissionUtil_CheckMultiInstanceAndA
     Want want;
     std::string instanceKey = "app_instance_0";
     want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
-    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, 0, nullptr, false);
+    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, nullptr, false);
     EXPECT_EQ(result, ERR_MULTI_INSTANCE_NOT_SUPPORTED);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone_0200 end");
@@ -156,7 +156,7 @@ HWTEST_F(AbilityPermissionUtilTest, AbilityPermissionUtil_CheckMultiInstanceAndA
     AppUtils::isSupportMultiInstance = false;
     Want want;
     want.SetParam(Want::CREATE_APP_INSTANCE_KEY, true);
-    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, 0, nullptr, false);
+    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, nullptr, false);
     EXPECT_EQ(result, ERR_MULTI_INSTANCE_NOT_SUPPORTED);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone_0300 end");
@@ -175,7 +175,7 @@ HWTEST_F(AbilityPermissionUtilTest, AbilityPermissionUtil_CheckMultiInstanceAndA
     StartAbilityUtils::retGetApplicationInfo = false;
     Want want;
     want.SetParam(Want::CREATE_APP_INSTANCE_KEY, true);
-    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, 0, nullptr, false);
+    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, nullptr, false);
     EXPECT_EQ(result, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone_0400 end");
@@ -195,7 +195,7 @@ HWTEST_F(AbilityPermissionUtilTest, AbilityPermissionUtil_CheckMultiInstanceAndA
     StartAbilityUtils::retApplicationInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::UNSPECIFIED;
     Want want;
     want.SetParam(Want::CREATE_APP_INSTANCE_KEY, true);
-    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, 0, nullptr, false);
+    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, nullptr, false);
     EXPECT_EQ(result, ERR_MULTI_APP_NOT_SUPPORTED);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone_0500 end");
@@ -214,7 +214,8 @@ HWTEST_F(AbilityPermissionUtilTest, AbilityPermissionUtil_CheckMultiInstanceAndA
     StartAbilityUtils::retGetApplicationInfo = true;
     StartAbilityUtils::retApplicationInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::UNSPECIFIED;
     Want want;
-    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, 1, nullptr, false);
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1);
+    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, nullptr, false);
     EXPECT_EQ(result, ERR_MULTI_APP_NOT_SUPPORTED);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone_0600 end");
@@ -233,7 +234,8 @@ HWTEST_F(AbilityPermissionUtilTest, AbilityPermissionUtil_CheckMultiInstanceAndA
     StartAbilityUtils::retGetApplicationInfo = true;
     StartAbilityUtils::retApplicationInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
     Want want;
-    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, 1, nullptr, false);
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1);
+    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, nullptr, false);
     EXPECT_EQ(result, ERR_NOT_SUPPORT_APP_CLONE);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone_0700 end");
@@ -255,7 +257,7 @@ HWTEST_F(AbilityPermissionUtilTest, AbilityPermissionUtil_CheckMultiInstanceAndA
     StartAbilityUtils::retApplicationInfo.multiAppMode.maxCount = maxCount;
     Want want;
     want.SetParam(Want::CREATE_APP_INSTANCE_KEY, true);
-    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, 0, nullptr, false);
+    auto result = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(want, 100, nullptr, false);
     EXPECT_EQ(result, AbilityPermissionUtil::GetInstance().CheckMultiInstance(want, nullptr, maxCount, false));
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil_CheckMultiInstanceAndAppClone_0800 end");
