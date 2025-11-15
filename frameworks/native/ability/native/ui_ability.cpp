@@ -20,6 +20,7 @@
 #include "configuration_convertor.h"
 #include "display_util.h"
 #include "display_info.h"
+#include "insight_intent_delay_result_callback_mgr.h"
 #ifdef SUPPORT_SCREEN
 #include "distributed_client.h"
 #endif
