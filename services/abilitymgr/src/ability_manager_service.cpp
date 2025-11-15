@@ -2831,8 +2831,9 @@ int32_t AbilityManagerService::OpenAtomicService(AAFwk::Want& want, const StartO
 {
     auto accessTokenId = IPCSkeleton::GetCallingTokenID();
     auto type = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(accessTokenId);
-    if (type != Security::AccessToken::TypeATokenTypeEnum::TOKEN_HAP) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not hap");
+    if (type != Security::AccessToken::TypeATokenTypeEnum::TOKEN_HAP &&
+        !PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not hap or foundation");
         return CHECK_PERMISSION_FAILED;
     }
     want.SetParam(AAFwk::SCREEN_MODE_KEY, AAFwk::ScreenMode::JUMP_SCREEN_MODE);
@@ -14720,7 +14721,8 @@ ErrCode AbilityManagerService::OpenLinkInner(const Want& want, sptr<IRemoteObjec
     std::string callerBundleName;
     Want convertedWant = want;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "hideFailureTipDialog: %{public}d", hideFailureTipDialog);
-    if (!WantUtils::IsShortUrl(want) || WantUtils::GetCallerBundleName(callerBundleName) != ERR_OK) {
+    if (!WantUtils::IsShortUrl(want) || (WantUtils::GetCallerBundleName(callerBundleName) != ERR_OK &&
+        !PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME))) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability by default");
         int retCode = StartAbilityWithRemoveIntentFlag(
             want, callerToken, userId, requestCode, removeInsightIntentFlag, hideFailureTipDialog);
