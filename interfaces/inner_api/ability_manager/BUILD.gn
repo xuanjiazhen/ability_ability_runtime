@@ -348,10 +348,7 @@ ohos_shared_library("process_options") {
 
   sources =
       [ "${ability_runtime_services_path}/abilitymgr/src/process_options.cpp" ]
-  deps = [
-    "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
-  ]
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -383,10 +380,7 @@ ohos_shared_library("start_window_option") {
   sources = [
     "${ability_runtime_services_path}/abilitymgr/src/start_window_option.cpp",
   ]
-  deps = [
-    "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
-  ]
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
