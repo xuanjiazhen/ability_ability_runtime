@@ -146,6 +146,7 @@ ohos_shared_library("ability_manager") {
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -229,6 +230,7 @@ ohos_shared_library("ability_start_options") {
   deps = [
     ":process_options",
     ":start_window_option",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -346,7 +348,10 @@ ohos_shared_library("process_options") {
 
   sources =
       [ "${ability_runtime_services_path}/abilitymgr/src/process_options.cpp" ]
-
+  deps = [
+    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -378,7 +383,10 @@ ohos_shared_library("start_window_option") {
   sources = [
     "${ability_runtime_services_path}/abilitymgr/src/start_window_option.cpp",
   ]
-
+  deps = [
+    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -413,7 +421,7 @@ ohos_shared_library("ability_connect_callback_stub") {
   sources = [ "${ability_runtime_services_path}/abilitymgr/src/ability_connect_callback_stub.cpp" ]
 
   public_configs = [ ":ability_manager_public_config" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

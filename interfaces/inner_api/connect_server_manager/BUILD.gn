@@ -49,7 +49,7 @@ ohos_shared_library("connect_server_manager") {
   branch_protector_ret = "pac_ret"
 
   sources = [ "src/connect_server_manager.cpp" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ets_runtime:libark_jsruntime",
     "hilog:libhilog",

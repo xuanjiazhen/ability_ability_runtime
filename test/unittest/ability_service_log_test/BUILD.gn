@@ -26,7 +26,7 @@ ohos_unittest("ability_service_log_test") {
 
   cflags = []
 
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [ "hilog:libhilog" ]
 }

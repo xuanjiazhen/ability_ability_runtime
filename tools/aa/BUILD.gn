@@ -94,7 +94,10 @@ ohos_executable("aa") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = [ ":tools_aa_source_set" ]
+  deps = [
+    ":tools_aa_source_set",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:base",

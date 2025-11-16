@@ -37,6 +37,7 @@ ohos_moduletest("ability_command_module_test") {
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -60,6 +61,7 @@ ohos_moduletest("test_observer_module_test") {
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -79,7 +81,10 @@ ohos_moduletest("shell_command_result_module_test") {
 
   configs = [ ":tools_ability_delegator_config" ]
 
-  deps = [ "${ability_runtime_path}/tools/aa:tools_aa_source_set" ]
+  deps = [
+    "${ability_runtime_path}/tools/aa:tools_aa_source_set",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:configuration",

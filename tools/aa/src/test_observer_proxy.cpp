@@ -14,23 +14,23 @@
  */
 
 #include "test_observer_proxy.h"
-#include "hilog_tag_wrapper.h"
+#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
 TestObserverProxy::TestObserverProxy(const sptr<IRemoteObject>& object) : IRemoteProxy<ITestObserver>(object)
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "created");
+    HILOG_INFO("created");
 }
 
 TestObserverProxy::~TestObserverProxy()
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "destroyed");
+    HILOG_INFO("destroyed");
 }
 
 void TestObserverProxy::TestStatus(const std::string& msg, const int64_t& resultCode)
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "start");
+    HILOG_INFO("start");
 
     MessageParcel data;
     MessageParcel reply;
@@ -41,26 +41,26 @@ void TestObserverProxy::TestStatus(const std::string& msg, const int64_t& result
     }
 
     if (!data.WriteString(msg)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "WriteString msg failed");
+        HILOG_ERROR("WriteString msg failed");
         return;
     }
 
     if (!data.WriteInt64(resultCode)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Write resultCode failed");
+        HILOG_ERROR("Write resultCode failed");
         return;
     }
 
     int32_t result = SendTransactCmd(
         static_cast<uint32_t>(ITestObserver::Message::AA_TEST_STATUS), data, reply, option);
     if (result != OHOS::NO_ERROR) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "SendRequest error: %{public}d", result);
+        HILOG_ERROR("SendRequest error: %{public}d", result);
         return;
     }
 }
 
 void TestObserverProxy::TestFinished(const std::string& msg, const int64_t& resultCode)
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "start");
+    HILOG_INFO("start");
 
     MessageParcel data;
     MessageParcel reply;
@@ -71,19 +71,19 @@ void TestObserverProxy::TestFinished(const std::string& msg, const int64_t& resu
     }
 
     if (!data.WriteString(msg)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "WriteString msg failed");
+        HILOG_ERROR("WriteString msg failed");
         return;
     }
 
     if (!data.WriteInt64(resultCode)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Write resultCode failed");
+        HILOG_ERROR("Write resultCode failed");
         return;
     }
 
     int32_t result = SendTransactCmd(
         static_cast<uint32_t>(ITestObserver::Message::AA_TEST_FINISHED), data, reply, option);
     if (result != OHOS::NO_ERROR) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "SendRequest error: %{public}d", result);
+        HILOG_ERROR("SendRequest error: %{public}d", result);
         return;
     }
 }
@@ -91,7 +91,7 @@ void TestObserverProxy::TestFinished(const std::string& msg, const int64_t& resu
 ShellCommandResult TestObserverProxy::ExecuteShellCommand(
     const std::string& cmd, const int64_t timeoutSec)
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "start");
+    HILOG_INFO("start");
 
     ShellCommandResult result;
     MessageParcel data;
@@ -103,24 +103,24 @@ ShellCommandResult TestObserverProxy::ExecuteShellCommand(
     }
 
     if (!data.WriteString(cmd)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "WriteString cmd failed");
+        HILOG_ERROR("WriteString cmd failed");
         return result;
     }
 
     if (!data.WriteInt64(timeoutSec)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Write timeoutSec failed");
+        HILOG_ERROR("Write timeoutSec failed");
         return result;
     }
 
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(ITestObserver::Message::AA_EXECUTE_SHELL_COMMAND), data, reply, option);
     if (ret != OHOS::NO_ERROR) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "SendRequest error: %{public}d", ret);
+        HILOG_ERROR("SendRequest error: %{public}d", ret);
         return result;
     }
     ShellCommandResult* resultPtr = reply.ReadParcelable<ShellCommandResult>();
     if (!resultPtr) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Read result failed");
+        HILOG_ERROR("Read result failed");
         return result;
     }
     result = *resultPtr;
@@ -135,7 +135,7 @@ int32_t TestObserverProxy::SendTransactCmd(uint32_t code, MessageParcel &data,
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "null remote");
+        HILOG_ERROR("null remote");
         return ERR_NULL_OBJECT;
     }
 

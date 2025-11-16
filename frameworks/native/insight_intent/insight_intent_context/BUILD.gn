@@ -38,6 +38,7 @@ ohos_shared_library("insightintentcontext") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -82,6 +83,7 @@ ohos_shared_library("cj_insightintentcontext") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:cj_insight_intent_executor",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

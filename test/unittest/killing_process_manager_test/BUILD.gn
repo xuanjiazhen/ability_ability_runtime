@@ -37,7 +37,10 @@ ohos_unittest("killing_process_manager_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = [ "${ability_runtime_services_path}/common:task_handler_wrap" ]
+  deps = [
+    "${ability_runtime_services_path}/common:task_handler_wrap",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "c_utils:utils",

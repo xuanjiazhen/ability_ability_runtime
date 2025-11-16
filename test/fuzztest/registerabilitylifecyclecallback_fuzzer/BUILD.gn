@@ -37,7 +37,10 @@ ohos_fuzztest("RegisterAbilityLifecycleCallbackFuzzTest") {
 
   configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
 
-  deps = [ "${ability_runtime_native_path}/appkit:app_context" ]
+  deps = [
+    "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:want",

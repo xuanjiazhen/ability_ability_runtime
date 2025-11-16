@@ -66,6 +66,7 @@ ohos_unittest("cj_ability_stage_test") {
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_path}/cj_environment/frameworks/cj_environment:cj_environment",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

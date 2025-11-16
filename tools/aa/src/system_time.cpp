@@ -15,7 +15,7 @@
 
 #include "system_time.h"
 
-#include "hilog_tag_wrapper.h"
+#include "hilog_wrapper.h"
 #include "inner_event.h"
 
 namespace OHOS {
@@ -24,7 +24,7 @@ using namespace OHOS::AppExecFwk;
 
 int64_t SystemTime::GetNowSysTime()
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "enter");
+    HILOG_INFO("enter");
 
     InnerEvent::TimePoint nowSys = InnerEvent::Clock::now();
     auto epoch = nowSys.time_since_epoch();

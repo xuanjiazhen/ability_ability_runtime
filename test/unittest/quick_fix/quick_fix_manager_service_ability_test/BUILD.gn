@@ -28,7 +28,7 @@ ohos_unittest("quick_fix_manager_service_ability_test") {
     "quick_fix_manager_service_ability_test.cpp",
   ]
 
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   configs = [ "${ability_runtime_services_path}/common:common_config" ]
 

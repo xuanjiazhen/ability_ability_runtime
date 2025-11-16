@@ -36,6 +36,7 @@ ohos_unittest("js_insight_intent_page_test") {
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

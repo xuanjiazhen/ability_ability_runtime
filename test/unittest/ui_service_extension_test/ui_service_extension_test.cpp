@@ -28,6 +28,7 @@
 #include "mock_ability_token.h"
 #include "mock_ability_manager_service.h"
 #include "ability_handler.h"
+#include "hilog_tag_wrapper.h"
 #include "ohos_application.h"
 #include "runtime.h"
 

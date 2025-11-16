@@ -40,6 +40,7 @@ ohos_unittest("app_mgr_service_inner_tdd_second_test") {
 
   deps = [
     "${ability_runtime_services_path}/appmgr:libappms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
 

@@ -41,6 +41,7 @@ ohos_moduletest("quick_fix_manager_module_test") {
 
   deps = [
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/quickfixmgr:quickfixms_static",
   ]
 
