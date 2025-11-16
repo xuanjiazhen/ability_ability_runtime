@@ -61,7 +61,6 @@ ohos_fuzztest("AbilityMgrJumpInterceptorFuzzTest") {
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:hilog_tag_wrapper",
-    "${ability_runtime_services_path}/common:task_handler_wrap",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 

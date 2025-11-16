@@ -42,7 +42,6 @@ ohos_fuzztest("AbilityAppPreloaderFuzzTest") {
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/appmgr:libappms",
     "${ability_runtime_services_path}/common:hilog_tag_wrapper",
-    "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
 
   external_deps = [
