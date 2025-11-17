@@ -406,9 +406,8 @@ public:
     int UnPreloadUIExtensionAbilityInner(int32_t extensionAbilityId);
     int ClearAllPreloadUIExtensionAbilityLocked(const std::string &hostBundleName);
     int ClearAllPreloadUIExtensionAbilityInner(const std::string &hostBundleName);
-    void CheckIsPreloadUIExtensionRecordChangedById(int32_t extensionRecordId, int32_t state, bool isPreloadedSuccess);
     int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);
-    int32_t UnRegisterPreloadUIExtensionHostClient(int32_t key = DEFAULT_INVAL_VALUE);
+    int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid);
 
 private:
     /**
@@ -671,12 +670,6 @@ private:
      */
     void RemoveExtensionDelayDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
 
-    void HandlePreloadUIExtensionDiedTask(const sptr<IRemoteObject> &remote);
-    void OnPreloadUIExtensionDied(const wptr<IRemoteObject> &remote);
-    void RemovePreloadUIExtensionDeathRecipient(const sptr<IRemoteObject> &session);
-    void AddPreloadUIExtensionDeathRecipient(const sptr<IRemoteObject> &session);
-    void HandlePreloadUIExtensionDied(const std::shared_ptr<AbilityRecord> &abilityRecord);
-
 private:
     bool IsNeedToRestart(const std::shared_ptr<AbilityRecord> &abilityRecord,
         const std::string &bundleName, const std::string &abilityName);
@@ -740,7 +733,6 @@ private:
     ServiceMapType serviceMap_;
     RecipientMapType recipientMap_;
     RecipientMapType uiExtRecipientMap_;
-    RecipientMapType preloadUIExtRecipientMap_;
     UIExtensionMapType uiExtensionMap_;
     WindowExtensionMapType windowExtensionMap_;
 
