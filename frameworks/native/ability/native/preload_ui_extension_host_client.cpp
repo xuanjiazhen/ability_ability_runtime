@@ -185,12 +185,6 @@ void PreloadUIExtensionHostClient::PreloadUIExtensionAbility(
         OnPreloadSuccess(requestCode, -1, ret);
         return;
     }
-    std::unique_lock lock(callData->mutexlock);
-    if (callData->condition.wait_for(lock, std::chrono::seconds(CALLER_TIME_OUT)) == std::cv_status::timeout) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "PreloadUIExtensionAbility waiting timeout");
-        lock.unlock();
-        OnPreloadSuccess(requestCode, -1, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
-    }
 }
 
 void PreloadUIExtensionHostClient::OnLoadedDone(int32_t extensionAbilityId)
@@ -254,7 +248,6 @@ void PreloadUIExtensionHostClient::OnPreloadSuccess(
             callData->task(extensionAbilityId, innerErrCode);
         };
         callData->handler_->PostTask(task, "OnPreloadSuccess");
-        callData->condition.notify_all();
     }
     if (needUnregister) {
         UnRegisterPreloadUIExtensionHostClient();

@@ -1010,14 +1010,7 @@ void EtsAbilityManager::NativeClearPreloadedUIExtensionAbilities(ani_env *env, a
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
-    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
-        EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
-        return;
-    }
-    std::string hostBundleName = context->GetBundleName();
-    ErrCode result = AAFwk::AbilityManagerClient::GetInstance()->ClearPreloadedUIExtensionAbilities(hostBundleName);
+    ErrCode result = AAFwk::AbilityManagerClient::GetInstance()->ClearPreloadedUIExtensionAbilities();
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ClearPreloadedUIExtensionAbilities failed, result: %{public}d", result);
         AppExecFwk::AsyncCallback(
