@@ -1561,6 +1561,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     AppExecFwk::HapModuleInfo entryHapModuleInfo;
     if (!bundleInfo.hapModuleInfos.empty()) {
         for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
+            hapList_.push_back(hapModuleInfo);
             if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::ENTRY) {
                 findEntryHapModuleInfo = true;
                 entryHapModuleInfo = hapModuleInfo;
@@ -3599,17 +3600,42 @@ bool MainThread::GetHqfFileAndHapPath(const std::string &bundleName,
     }
 
     for (auto hapInfo : bundleInfo.hapModuleInfos) {
-        if ((processInfo_ != nullptr) && (processInfo_->GetProcessName() == hapInfo.process) &&
-            (!hapInfo.hqfInfo.hqfFilePath.empty())) {
+        if (processInfo_ != nullptr || hapInfo.hqfInfo.hqfFilePath.empty()) {
+            break;
+        }
+        if (processInfo_->GetProcessName() == hapInfo.process) {
             std::string resolvedHapPath(AbilityBase::GetLoadPath(hapInfo.hapPath));
             std::string resolvedHqfFile(AbilityBase::GetLoadPath(hapInfo.hqfInfo.hqfFilePath));
-            TAG_LOGD(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s, processName: %{private}s, "
+            TAG_LOGE(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s, processName: %{private}s, "
                 "hqf file: %{private}s, hap path: %{private}s", bundleName.c_str(), hapInfo.moduleName.c_str(),
                 hapInfo.process.c_str(), resolvedHqfFile.c_str(), resolvedHapPath.c_str());
             fileMap.push_back(std::pair<std::string, std::string>(resolvedHqfFile, resolvedHapPath));
+            break;
         }
-    }
+        int32_t index;
+        if (!application_->GetAppCloneIndex(index)) {
+            break; // return?
+        }
+        TAG_LOGE(AAFwkTag::APPKIT, "GetCurrentAppCloneIndex = %{public}d", index);
+        char charDigit = index + '0';
+        std::string processName = processInfo_->GetProcessName() + charDigit;
+        if (processName == hapInfo.process) {
+            //判断此Process需要什么包？？？
+            switch (hapInfo.moduleType)
+            {
+            case ModuleType::FEATURE:
+                /* code */
+            case ModuleType::ENTRY:
+                /* code */
+                break;
+            default:
+                break;
+            }
+            
+        }
 
+
+    }
     return true;
 }
 
