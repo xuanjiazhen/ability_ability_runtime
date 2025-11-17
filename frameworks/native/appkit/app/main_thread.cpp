@@ -2051,30 +2051,27 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
     bool isUncatchable)
 {
     wptr<MainThread> weak = this;
-    uncatchableTask = [weak, bundleName = uncatchableTaskInfo.bundleName,
-        versionCode = uncatchableTaskInfo.versionCode, appRunningId = uncatchableTaskInfo.appRunningId,
-        pid = uncatchableTaskInfo.pid, processName = uncatchableTaskInfo.processName, isUncatchable]
+    uncatchableTask = [weak, isUncatchable, &uncatchableTaskInfo, this]
         (std::string summary, const JsEnv::ErrorObject errorObject) {
         auto appThread = weak.promote();
         if (appThread == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
-        time_t timet;
-        time(&timet);
-        std::string lifeTime = GetProcessLifeCycleByPid(pid);
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, "JS_ERROR",
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_KEY_PACKAGE_NAME, bundleName,
-            EVENT_KEY_VERSION, std::to_string(versionCode), EVENT_KEY_TYPE, JSCRASH_TYPE, EVENT_KEY_HAPPEN_TIME, timet,
-            EVENT_KEY_REASON, errorObject.name, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, summary,
-            EVENT_KEY_PNAME, processName, EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId,
-            EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()),
-            EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName(), EVENT_KEY_PROCESS_LIFETIME, lifeTime);
+        ReportJsError(uncatchableTaskInfo, summary, errorObject.name);
 
         ErrorObject appExecErrorObj = { errorObject.name, errorObject.message, errorObject.stack};
         auto napiEnv = (static_cast<AbilityRuntime::JsRuntime&>(*appThread->application_->GetRuntime())).GetNapiEnv();
         AAFwk::ExitReason exitReason = { REASON_JS_ERROR, errorObject.name };
         AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
+        AppExecFwk::ApplicationDataManager::GetInstance().SetIsUncatchable(isUncatchable);
+        if (NapiErrorManager::GetInstance()->NotifyUncaughtException(napiEnv, summary,
+            appExecErrorObj.name, appExecErrorObj.message, appExecErrorObj.stack)) {
+            TAG_LOGI(AAFwkTag::APPKIT, "Complete all callbacks");
+            if (!isUncatchable) {
+                return;
+            }
+        }
         if (!isUncatchable && NapiErrorManager::GetInstance()->NotifyUncaughtException(napiEnv, summary,
             appExecErrorObj.name, appExecErrorObj.message, appExecErrorObj.stack)) {
             return;
@@ -2086,21 +2083,45 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
 
         // if app's callback has been registered, let app decide whether exit or not.
         TAG_LOGE(AAFwkTag::APPKIT, "\n%{public}s is about to exit due to RuntimeError\nError type:%{public}s\n"
-            "%{public}s", bundleName.c_str(), errorObject.name.c_str(), summary.c_str());
+            "%{public}s", uncatchableTaskInfo.bundleName.c_str(), errorObject.name.c_str(), summary.c_str());
         bool foreground = false;
         if (appThread->applicationImpl_ && appThread->applicationImpl_->GetState() ==
             ApplicationImpl::APP_STATE_FOREGROUND) {
             foreground = true;
         }
-        int result = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
-            HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName,
-            EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId, EVENT_KEY_REASON, "JsError",
-            "MSG", KILL_REASON, "FOREGROUND", foreground, "IS_UNCATCHABLE", isUncatchable);
-        TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL],"
-            " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
-            result, pid, processName.c_str(), KILL_REASON, foreground, isUncatchable);
+        ReportProcessKill(uncatchableTaskInfo, foreground, isUncatchable);
         _exit(JS_ERROR_EXIT);
     };
+}
+
+void MainThread::ReportJsError(const UncatchableTaskInfo &uncatchableTaskInfo, const std::string& summary,
+    const std::string& errorName)
+{
+    time_t timet;
+    time(&timet);
+    std::string lifeTime = GetProcessLifeCycleByPid(uncatchableTaskInfo.pid);
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, "JS_ERROR",
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_KEY_PACKAGE_NAME, uncatchableTaskInfo.bundleName,
+        EVENT_KEY_VERSION, std::to_string(uncatchableTaskInfo.versionCode), EVENT_KEY_TYPE, JSCRASH_TYPE,
+        EVENT_KEY_HAPPEN_TIME, timet, EVENT_KEY_REASON, errorName, EVENT_KEY_JSVM, JSVM_TYPE,
+        EVENT_KEY_SUMMARY, summary, EVENT_KEY_PNAME, uncatchableTaskInfo.processName,
+        EVENT_KEY_APP_RUNING_UNIQUE_ID, uncatchableTaskInfo.appRunningId,
+        EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()),
+        EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName(), EVENT_KEY_PROCESS_LIFETIME, lifeTime);
+}
+
+void MainThread::ReportProcessKill(const UncatchableTaskInfo &uncatchableTaskInfo, bool foreground,
+    bool isUncatchable)
+{
+    int32_t pid = uncatchableTaskInfo.pid;
+    std::string processName = uncatchableTaskInfo.processName;
+    int result = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
+        HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName,
+        EVENT_KEY_APP_RUNING_UNIQUE_ID, uncatchableTaskInfo.appRunningId, EVENT_KEY_REASON, "JsError",
+        "MSG", KILL_REASON, "FOREGROUND", foreground, "IS_UNCATCHABLE", isUncatchable);
+    TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL],"
+        " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
+        result, pid, processName.c_str(), KILL_REASON, foreground, isUncatchable);
 }
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)

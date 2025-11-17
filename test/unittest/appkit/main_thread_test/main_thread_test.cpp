@@ -2812,5 +2812,47 @@ HWTEST_F(MainThreadTest, GetBundleAndHspListForUpdateRuntime_0100, TestSize.Leve
     HspList hsplist;
     EXPECT_TRUE(mainThread_->GetHspListForUpdateRuntime(bundleInfo, "com.ohos.myapplication", hsplist));
 }
+
+/**
+ * @tc.name: ReportJsError_0100
+ * @tc.desc: ReportJsError Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, ReportJsError_0100, TestSize.Level1)
+{
+    EXPECT_TRUE(!mainThread_);
+    int32_t pid = getpid();
+    std::string testValue = "ReportJsError_0100";
+    UncatchableTaskInfo info = {
+        .bundleName = testValue,
+        .versionCode = 12,
+        .appRunningId = testValue,
+        .pid = pid,
+        .processName = testValue
+    };
+    mainThread_->ReportJsError(info, testValue, testValue);
+}
+
+/**
+ * @tc.name: ReportProcessKill_0100
+ * @tc.desc: ReportProcessKill Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, ReportProcessKill_0100, TestSize.Level1)
+{
+    EXPECT_TRUE(!mainThread_);
+    int32_t pid = getpid();
+    std::string testValue = "ReportProcessKill_0100";
+    UncatchableTaskInfo info = {
+        .bundleName = testValue,
+        .versionCode = 12,
+        .appRunningId = testValue,
+        .pid = pid,
+        .processName = testValue
+    };
+    mainThread_->ReportProcessKill(info, true, true);
+    mainThread_->ReportProcessKill(info, false, false);
+    mainThread_->ReportProcessKill(info, false, true);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -708,6 +708,12 @@ private:
 
     void HandleConfigByPlugin(Configuration &config, BundleInfo &bundleInfo);
 
+    void ReportJsError(const UncatchableTaskInfo &uncatchableTaskInfo, const std::string& summary,
+        const std::string& errorName);
+
+    void ReportProcessKill(const UncatchableTaskInfo &uncatchableTaskInfo, bool foreground,
+        bool isUncatchable);
+
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     void HandleNWebPreload();
 #endif
