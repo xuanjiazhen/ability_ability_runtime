@@ -143,7 +143,7 @@ public:
     {
         return 0;
     }
-
+ 
     /**
      * StartAbility with want, send want to ability manager service.
      *
@@ -155,7 +155,8 @@ public:
     virtual int StartAbility(
         const Want &want,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) = 0;
+        int requestCode = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0) = 0;
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -170,7 +171,8 @@ public:
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) = 0;
+        int requestCode = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0) = 0;
 
     /**
      * StartAbilityWithSpecifyTokenId with want and specialId, send want to ability manager service.
@@ -725,7 +727,8 @@ public:
         const sptr<IRemoteObject> &callerToken,
         AppExecFwk::ExtensionAbilityType extensionType,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        bool isQueryExtensionOnly = false)
+        bool isQueryExtensionOnly = false,
+        uint64_t specifiedFullTokenId = 0)
     {
         return 0;
     }

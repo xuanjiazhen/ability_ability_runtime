@@ -160,7 +160,8 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbility(
-        const Want &want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE) override;
+        const Want &want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0) override;
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -175,7 +176,8 @@ public:
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) override;
+        int requestCode = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0) override;
 
     /**
      * Start Self UIAbility In Current Process.
@@ -692,7 +694,8 @@ public:
         const sptr<IRemoteObject> &callerToken,
         AppExecFwk::ExtensionAbilityType extensionType,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        bool isQueryExtensionOnly = false) override;
+        bool isQueryExtensionOnly = false,
+        uint64_t specifiedFullTokenId = 0) override;
 
     virtual int ConnectUIExtensionAbility(
         const Want &want,
@@ -2371,7 +2374,7 @@ protected:
      * @return Returns whether the caller is allowed to start AppServiceExtension.
      */
     int32_t CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
-        std::shared_ptr<AbilityRecord> targetService, bool isFromConnect);
+        std::shared_ptr<AbilityRecord> targetService, bool isFromConnect, uint32_t specifyTokenId = 0);
 
     static void HandleAutoStartupReadyCallback(const char *key, const char *value, void *context);
 
@@ -2429,7 +2432,8 @@ private:
         AppExecFwk::ExtensionAbilityType extensionType,
         const sptr<SessionInfo> &sessionInfo = nullptr,
         bool isQueryExtensionOnly = false,
-        sptr<UIExtensionAbilityConnectInfo> connectInfo = nullptr);
+        sptr<UIExtensionAbilityConnectInfo> connectInfo = nullptr,
+        uint64_t specifiedFullTokenId = 0);
     int DisconnectLocalAbility(const sptr<IAbilityConnection> &connect);
     int ConnectRemoteAbility(Want &want, const sptr<IRemoteObject> &callerToken, const sptr<IRemoteObject> &connect);
     int DisconnectRemoteAbility(const sptr<IRemoteObject> &connect);
@@ -2570,7 +2574,8 @@ private:
     bool CheckOneSkillPermission(const AppExecFwk::Skill &skill, uint32_t tokenId);
 
     int CheckStaticCfgPermission(const AppExecFwk::AbilityRequest &abilityRequest, bool isStartAsCaller,
-        uint32_t callerTokenId, bool isData = false, bool isSaCall = false, bool isImplicit = false);
+        uint32_t callerTokenId, bool isData = false, bool isSaCall = false, bool isImplicit = false,
+        uint64_t specifyTokenId = 0);
 
     int CheckPermissionForUIService(AppExecFwk::ExtensionAbilityType extensionType,
         const Want &want, const AbilityRequest &abilityRequest);
@@ -2620,7 +2625,7 @@ private:
      * @param abilityRequest, abilityRequest.
      * @return Returns whether the caller is allowed to start Service.
      */
-    int CheckCallServicePermission(const AbilityRequest &abilityRequest);
+    int CheckCallServicePermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId = 0);
 
     /**
      * Check if Caller is allowed to start DataAbility(FA)
@@ -2636,7 +2641,7 @@ private:
      * @param abilityRequest, abilityRequest.
      * @return Returns whether the caller is allowed to start ServiceExtension.
      */
-    int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest);
+    int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId = 0);
 
 #ifdef SUPPORT_AUTO_FILL
     /**
