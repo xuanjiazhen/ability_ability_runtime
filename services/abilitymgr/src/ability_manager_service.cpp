@@ -620,7 +620,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         if (userId == DEFAULT_INVAL_VALUE) {
             userId = GetValidUserId(userId);
         }
-        if ((err = StartAbilityUtils::CheckAppProvisionMode(want, userId)) != ERR_OK) {
+        if ((err = StartAbilityUtils::CheckAppProvisionMode(want, userId, nullptr)) != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkAppProvisionMode returns errcode=%{public}d", err);
             return err;
         }
@@ -1647,7 +1647,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         if (userId == DEFAULT_INVAL_VALUE) {
             userId = GetValidUserId(userId);
         }
-        if ((err = StartAbilityUtils::CheckAppProvisionMode(want, userId)) != ERR_OK) {
+        if ((err = StartAbilityUtils::CheckAppProvisionMode(want, userId, callerToken)) != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkAppProvisionMode returns errcode=%{public}d", err);
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, err, "checkAppProvisionMode failed");
             return err;
@@ -1904,7 +1904,7 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     int32_t ret = ERR_OK;
-    if ((ret = StartOptionsUtils::CheckProcessOptions(want, options, userId)) != ERR_OK) {
+    if ((ret = StartOptionsUtils::CheckProcessOptions(want, options, callerToken, userId)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check process oprions failed: %{public}d", ret);
         return ret;
     }
@@ -2202,7 +2202,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
         auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        auto abilityRecords = uiAbilityManager->GetAbilityRecordsByName(want.GetElement());
+        auto abilityRecords = uiAbilityManager->GetAbilityRecordsByName(want.GetElement(), appIndex);
         if (!abilityRecords.empty() && abilityRecords[0] &&
             !startOptions.processOptions->isRestartKeepAlive &&
             !ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode) &&
@@ -3693,7 +3693,7 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(const Want &want, std:
 }
 
 int AbilityManagerService::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord,
-    std::string &hostBundleName)
+    pid_t &hostPid)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
@@ -3702,7 +3702,7 @@ int AbilityManagerService::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk:
         TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null");
         return ERR_INVALID_VALUE;
     }
-    return connectManager->UnloadUIExtensionAbility(abilityRecord, hostBundleName);
+    return connectManager->UnloadUIExtensionAbility(abilityRecord, hostPid);
 }
 
 int AbilityManagerService::RequestModalUIExtension(const Want &want)
@@ -5958,6 +5958,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
     if (isSACall || callerUserId == U0_USER_ID) {
         if (isSpecifyUserId) {
             userId = wantSenderInfo.userId;
+            appIndex = wantSenderInfo.appIndex;
             appUid = (uid >= 0) ? uid : GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
         } else if (uid >= 0) {
             if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
@@ -6035,6 +6036,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
                 appUid = bundleInfo.uid;
             }
         } else {
+            appIndex = wantSenderInfo.appIndex;
             appUid = uid;
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR,
@@ -7756,11 +7758,10 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
         (const_cast<Want &>(want)).SetParam(DLP_PARAMS_SECURITY_FLAG, abilityRecord->GetSecurityFlag());
     }
 
-    int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
     if (abilityRecord != nullptr &&
         abilityRecord->GetApplicationInfo().bundleName == want.GetElement().GetBundleName() &&
-        abilityRecord->GetAppIndex() == appIndex) {
+        (!want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY) ||
+        want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0) == abilityRecord->GetAppIndex())) {
         (const_cast<Want &>(want)).SetParam(DEBUG_APP, abilityRecord->IsDebugApp());
     }
 
@@ -7776,7 +7777,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     auto abilityInfo = StartAbilityUtils::startAbilityInfo;
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetElement().GetBundleName()) {
         int32_t appIndex = 0;
-        if (!AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex)) {
+        if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         Want localWant = want;
@@ -7883,7 +7884,7 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
     auto abilityInfo = StartAbilityUtils::startAbilityInfo;
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetElement().GetBundleName()) {
         int32_t appIndex = 0;
-        if (!AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex)) {
+        if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         abilityInfo = StartAbilityInfo::CreateStartExtensionInfo(want, userId, appIndex);
@@ -15258,7 +15259,7 @@ int32_t AbilityManagerService::UnregisterHiddenStartObserver(const sptr<IHiddenS
 
 int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                                              const std::string &moduleName,
-                                                             const std::string &hostBundleName,
+                                                             const int32_t hostPid,
                                                              int32_t &recordNum,
                                                              int32_t userId)
 {
@@ -15277,7 +15278,7 @@ int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(const AppExecFwk::E
       return ERR_INVALID_VALUE;
   }
   return connectManager->QueryPreLoadUIExtensionRecordInner(
-      element, moduleName, hostBundleName, recordNum);
+      element, moduleName, hostPid, recordNum);
 }
 
 int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
