@@ -415,6 +415,10 @@ private:
      */
     void LoadOnNewProcessEnableList();
 
+    void LoadAppTransferList();
+
+    bool InAppTransferList(const std::string &bundleName);
+
     /**
      * AppUtils, private constructor.
      *
@@ -475,6 +479,8 @@ private:
     std::mutex residentWhiteListMutex_;
     DeviceConfiguration<std::vector<std::string>> onNewProcessEnableList_ = {false, {}};
     std::mutex onNewProcessEnableListMutex_;
+    DeviceConfiguration<std::vector<std::string>> appTransferList_ = {false, {}};
+    std::mutex appTransferListMutex_;
     DISALLOW_COPY_AND_MOVE(AppUtils);
 };
 }  // namespace AAFwk
