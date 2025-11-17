@@ -79,7 +79,8 @@ bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const
     }
     return false;
 }
-bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName) const
+bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName,
+    const uint32_t specifyTokenId) const
 {
     return !!(MyFlag::flag_);
 }

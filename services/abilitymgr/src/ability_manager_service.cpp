@@ -100,6 +100,7 @@
 #include "string_wrapper.h"
 #include "support_system_ability_permission.h"
 #include "time_util.h"
+#include "tokenid_kit.h"
 #include "ui_extension_utils.h"
 #include "ui_service_extension_connection_constants.h"
 #include "unlock_screen_manager.h"
@@ -587,7 +588,8 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
     abilityMgr->StartAutoStartupApps(userId);
 }
 
-int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode)
+int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -656,14 +658,14 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
 }
 
 int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
-    int32_t userId, int requestCode)
+    int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
-    return StartAbilityWithRemoveIntentFlag(want, callerToken, userId, requestCode, true);
+    return StartAbilityWithRemoveIntentFlag(want, callerToken, userId, requestCode, true, specifiedFullTokenId);
 }
 
 int AbilityManagerService::StartAbilityWithRemoveIntentFlag(const Want &want, const sptr<IRemoteObject> &callerToken,
-    int32_t userId, int requestCode, bool removeInsightIntentFlag,
-    bool hideFailureTipDialog, bool isFreeInstallFromService)
+    int32_t userId, int requestCode, bool removeInsightIntentFlag, bool hideFailureTipDialog,
+    bool isFreeInstallFromService, uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -680,11 +682,13 @@ int AbilityManagerService::StartAbilityWithRemoveIntentFlag(const Want &want, co
 #ifdef SUPPORT_SCREEN
     DmsUtil::GetInstance().UpdateFlagForCollaboration(want);
 #endif
-    return StartAbilityByFreeInstall(want, callerToken, userId, requestCode, hideFailureTipDialog, isFreeInstallFromService);
+    return StartAbilityByFreeInstall(want, callerToken, userId, requestCode, hideFailureTipDialog,
+        isFreeInstallFromService, specifiedFullTokenId);
 }
 
 int32_t AbilityManagerService::StartAbilityByFreeInstall(const Want &want, sptr<IRemoteObject> callerToken,
-    int32_t userId, int32_t requestCode, bool hideFailureTipDialog, bool isFreeInstallFromService)
+    int32_t userId, int32_t requestCode, bool hideFailureTipDialog, bool isFreeInstallFromService,
+    uint64_t specifiedFullTokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     bool startWithAccount = want.GetBoolParam(START_ABILITY_TYPE, false);
@@ -705,8 +709,10 @@ int32_t AbilityManagerService::StartAbilityByFreeInstall(const Want &want, sptr<
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Start ability come, ability is %{public}s, userId is %{public}d",
         want.GetElement().GetAbilityName().c_str(), userId);
+    uint32_t specifyTokenId = static_cast<uint32_t>(specifiedFullTokenId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt StartAbilityByFreeInstall specifyTokenId: %{public}u", specifyTokenId);
     StartAbilityWrapParam startAbilityWrapParam = {
-        want, callerToken, requestCode, false, userId, false, 0, false, false, false, false,
+        want, callerToken, requestCode, false, userId, false, specifyTokenId, false, false, false, false,
         hideFailureTipDialog, isFreeInstallFromService};
     int32_t ret = StartAbilityWrap(startAbilityWrapParam);
     if (ret != ERR_OK) {
@@ -1083,7 +1089,7 @@ int AbilityManagerService::CheckExtensionCallPermission(const Want& want, const 
             "cannot start, use startServiceExtensionAbility");
         return ERR_WRONG_INTERFACE_CALL;
     }
-    int result = CheckCallServicePermission(abilityRequest);
+    int result = CheckCallServicePermission(abilityRequest, specifyTokenId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check permission failed");
     }
@@ -1091,11 +1097,11 @@ int AbilityManagerService::CheckExtensionCallPermission(const Want& want, const 
 }
 
 int AbilityManagerService::CheckServiceCallPermission(const AbilityRequest& abilityRequest,
-    const AppExecFwk::AbilityInfo& abilityInfo)
+    const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR,
         "Check call service or extension permission, name is %{public}s.", abilityInfo.name.c_str());
-    int result = CheckCallServicePermission(abilityRequest);
+    int result = CheckCallServicePermission(abilityRequest, specifyTokenId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check permission failed");
     }
@@ -1155,7 +1161,7 @@ int AbilityManagerService::CheckCallPermission(const Want& want, const AppExecFw
         return CheckExtensionCallPermission(want, abilityRequest, specifyTokenId);
     }
     if (type == AppExecFwk::AbilityType::SERVICE) {
-        return CheckServiceCallPermission(abilityRequest, abilityInfo);
+        return CheckServiceCallPermission(abilityRequest, abilityInfo, specifyTokenId);
     }
     if ((callerBundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName() &&
         AppUtils::GetInstance().IsSupportAncoApp()) ||
@@ -5129,7 +5135,8 @@ int32_t AbilityManagerService::ConnectAbility(
 
 int32_t AbilityManagerService::ConnectAbilityCommon(
     const Want &want, const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken,
-    AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly)
+    AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly,
+    uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -5442,7 +5449,7 @@ int AbilityManagerService::DisconnectAbility(sptr<IAbilityConnection> connect)
 int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32_t userId,
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken,
     AppExecFwk::ExtensionAbilityType extensionType, const sptr<SessionInfo> &sessionInfo,
-    bool isQueryExtensionOnly, sptr<UIExtensionAbilityConnectInfo> connectInfo)
+    bool isQueryExtensionOnly, sptr<UIExtensionAbilityConnectInfo> connectInfo, uint64_t specifiedFullTokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
@@ -5497,7 +5504,8 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "validUserId : %{public}d, singleton is : %{public}d",
         validUserId, static_cast<int>(abilityInfo.applicationInfo.singleton));
 
-    result = CheckStaticCfgPermission(abilityRequest, false, -1);
+    uint32_t specifyTokenId = static_cast<uint32_t>(specifiedFullTokenId);
+    result = CheckStaticCfgPermission(abilityRequest, false, -1, false, false, false, specifyTokenId);
     if (result != AppExecFwk::Constants::PERMISSION_GRANTED) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "checkStaticCfgPermission error, result=%{public}d", result);
         return ERR_STATIC_CFG_PERMISSION;
@@ -5515,7 +5523,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
         // Cause window has used this api, don't check it when type is window.
         if (targetExtensionType != AppExecFwk::ExtensionAbilityType::WINDOW &&
             !PermissionVerification::GetInstance()->VerifyCallingPermission(
-                PermissionConstants::PERMISSION_CONNECT_UI_EXTENSION_ABILITY)) {
+                PermissionConstants::PERMISSION_CONNECT_UI_EXTENSION_ABILITY, specifyTokenId)) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "permission %{public}s verification failed",
                 PermissionConstants::PERMISSION_CONNECT_UI_EXTENSION_ABILITY);
             return ERR_PERMISSION_DENIED;
@@ -5550,7 +5558,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
 
     if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
         auto targetService = connectManager->GetServiceRecordByAbilityRequest(abilityRequest);
-        result = CheckCallAppServiceExtensionPermission(abilityRequest, targetService, true);
+        result = CheckCallAppServiceExtensionPermission(abilityRequest, targetService, true, specifyTokenId);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "CheckCallAppServiceExtensionPermission result: %{public}d", result);
     } else {
         result = CheckCallServicePermission(abilityRequest);
@@ -5562,7 +5570,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
 
     ReportAppConnectOtherExtensionEvent(abilityInfo, want);
 
-    if (!ExtensionPermissionsUtil::CheckSAPermission(targetExtensionType)) {
+    if (!ExtensionPermissionsUtil::CheckSAPermission(targetExtensionType, specifyTokenId)) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "SA doesn't have target extension permission");
         return CHECK_PERMISSION_FAILED;
     }
@@ -10497,8 +10505,9 @@ int AbilityManagerService::CheckStaticCfgPermissionForSkill(const AppExecFwk::Ab
 }
 
 int AbilityManagerService::CheckStaticCfgPermission(const AppExecFwk::AbilityRequest &abilityRequest,
-    bool isStartAsCaller, uint32_t callerTokenId, bool isData, bool isSaCall, bool isImplicit)
+    bool isStartAsCaller, uint32_t callerTokenId, bool isData, bool isSaCall, bool isImplicit, uint32_t specifyTokenId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt CheckStaticCfgPermission enter, specifyTokenId: %{public}u", specifyTokenId);
     auto abilityInfo = abilityRequest.abilityInfo;
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (AppUtils::GetInstance().IsSupportAncoApp() &&
@@ -10519,6 +10528,12 @@ int AbilityManagerService::CheckStaticCfgPermission(const AppExecFwk::AbilityReq
     if (!isData) {
         isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     }
+    if (specifyTokenId != 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt CheckStaticCfgPermission isSaCall, specifyTokenId: %{public}u",
+            specifyTokenId);
+        isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt CheckStaticCfgPermission isSaCall: %{public}d", static_cast<int>(isSaCall));
+    }
     if (isSaCall) {
         // do not need check static config permission when start ability by SA
         return AppExecFwk::Constants::PERMISSION_GRANTED;
@@ -10527,6 +10542,9 @@ int AbilityManagerService::CheckStaticCfgPermission(const AppExecFwk::AbilityReq
     uint32_t tokenId;
     if (isStartAsCaller) {
         tokenId = callerTokenId;
+    } else if (specifyTokenId != 0) {
+        tokenId = specifyTokenId;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt CheckStaticCfgPermission != 0, tokenId: %{public}u", tokenId);
     } else {
         tokenId = IPCSkeleton::GetCallingTokenID();
     }
@@ -11253,7 +11271,7 @@ bool AbilityManagerService::GetAnimationFlag()
 
 #endif
 
-int AbilityManagerService::CheckCallServicePermission(const AbilityRequest &abilityRequest)
+int AbilityManagerService::CheckCallServicePermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId)
 {
     if (abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid()) ==
         AppUtils::GetInstance().GetCollaboratorBrokerUID() &&
@@ -11270,7 +11288,7 @@ int AbilityManagerService::CheckCallServicePermission(const AbilityRequest &abil
         if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE ||
             extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE ||
             extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
-            return CheckCallServiceExtensionPermission(abilityRequest);
+            return CheckCallServiceExtensionPermission(abilityRequest, specifyTokenId);
         } else {
             return CheckCallOtherExtensionPermission(abilityRequest);
         }
@@ -11343,13 +11361,13 @@ AAFwk::PermissionVerification::VerificationInfo AbilityManagerService::CreateVer
 }
 
 int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
-    std::shared_ptr<AbilityRecord> targetService, bool isFromConnect)
+    std::shared_ptr<AbilityRecord> targetService, bool isFromConnect, uint32_t specifyTokenId)
 {
     int32_t result = CheckCallServiceExtensionPermission(abilityRequest);
     if (result != ERR_OK) {
         return result;
     }
-    if (AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+    if (AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId)) {
         return ERR_OK;
     }
     if (!AppUtils::GetInstance().IsSupportAppServiceExtension()) {
@@ -11372,7 +11390,8 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
     return ERR_OK;
 }
 
-int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest)
+int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest,
+    uint32_t specifyTokenId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "begin");
 
@@ -11381,6 +11400,7 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
     verificationInfo.visible = abilityRequest.abilityInfo.visible;
     verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
     verificationInfo.isBackgroundCall = false;
+    verificationInfo.specifyTokenId = specifyTokenId;
     if (isParamStartAbilityEnable_) {
         bool stopContinuousTaskFlag = ShouldPreventStartAbility(abilityRequest);
         if (stopContinuousTaskFlag) {
