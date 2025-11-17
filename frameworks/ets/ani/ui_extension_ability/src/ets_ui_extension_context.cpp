@@ -60,6 +60,8 @@ constexpr const char *SIGNATURE_OPEN_LINK = "Lstd/core/String;Lutils/AbilityUtil
     "L@ohos/app/ability/OpenLinkOptions/OpenLinkOptions;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
+constexpr const char* JSON_KEY_ERR_MSG = "errMsg";
+constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 
 static bool CheckUrl(std::string &urlValue)
 {
@@ -863,6 +865,13 @@ void EtsUIExtensionContext::OpenLinkInner(ani_env *env, ani_object aniObj, ani_s
     if (haveOptionsParm) {
         TAG_LOGD(AAFwkTag::UI_EXT, "OpenLink Have option");
         AppExecFwk::UnWrapOpenLinkOptions(env, optionsObj, openLinkOptions, want);
+        OnRequestResult onRequestSucc;
+        OnRequestResult onRequestFail;
+        ani_ref refCompletionHandler = nullptr;
+        if (AppExecFwk::UnwrapCommonCompletionHandler(env, optionsObj, refCompletionHandler,
+            onRequestSucc, onRequestFail)) {
+            AddCompletionHandlerForOpenLink(env, refCompletionHandler, want, onRequestSucc, onRequestFail);
+        }
     }
     want.SetUri(link);
     std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
@@ -887,6 +896,11 @@ void EtsUIExtensionContext::OpenLinkInner(ani_env *env, ani_object aniObj, ani_s
     if (ErrCode == AAFwk::ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK) {
         aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ERR_OK));
     } else {
+        std::string requestId = want.GetStringParam(KEY_REQUEST_ID);
+        nlohmann::json jsonObject = nlohmann::json {
+            { JSON_KEY_ERR_MSG, "Failed to call openLink." }
+        };
+        context->OnOpenLinkRequestFailure(requestId, want.GetElement(), jsonObject.dump());
         aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ErrCode));
     }
     AppExecFwk::AsyncCallback(env, myCallbackobj, aniObject, nullptr);
@@ -932,6 +946,27 @@ void EtsUIExtensionContext::CreateOpenLinkTask(ani_env *env, const ani_object ca
     };
     requestCode = context->GenerateCurRequestCode();
     context->InsertResultCallbackTask(requestCode, std::move(task));
+}
+
+void EtsUIExtensionContext::AddCompletionHandlerForOpenLink(ani_env *env, ani_ref refCompletionHandler,
+    AAFwk::Want &want, OnRequestResult &onRequestSucc, OnRequestResult &onRequestFail)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "AddCompletionHandlerForOpenLink called");
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        return;
+    }
+    uint64_t time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+    std::string requestId = std::to_string(time);
+    if (context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "add completionHandler failed");
+        env->GlobalReference_Delete(refCompletionHandler);
+        return;
+    }
+    want.RemoveParam(KEY_REQUEST_ID);
+    want.SetParam(KEY_REQUEST_ID, requestId);
 }
 
 void EtsUIExtensionContext::OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
