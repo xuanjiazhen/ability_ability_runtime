@@ -945,6 +945,16 @@ std::shared_ptr<AppRunningRecord> AppRunningRecord::GetParentAppRecord()
     return parentAppRecord_.lock();
 }
 
+void AppRunningRecord::SetProcessType(ProcessType processType)
+{
+    processType_ = processType;
+}
+
+void AppRunningRecord::SetExtensionType(ExtensionAbilityType extensionType)
+{
+    extensionType_ = extensionType;
+}
+
 int32_t AppRunningRecord::ChangeAppGcState(int32_t state, uint64_t tid)
 {
     return AAFwk::MyStatus::GetInstance().changeAppGcState_;
