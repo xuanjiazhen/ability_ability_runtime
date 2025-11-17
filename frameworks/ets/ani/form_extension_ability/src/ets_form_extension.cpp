@@ -649,7 +649,14 @@ void ETSFormExtension::OnStop()
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetFieldByName status: %{public}d", status);
         return;
     }
-    
+
+    ani_boolean isUndefined = ANI_FALSE;
+    env->Reference_IsUndefined(nameRef, &isUndefined);
+    if (isUndefined == ANI_TRUE) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "onStop is undefined");
+        return;
+    }
+
     ani_ref result;
     status = env->FunctionalObject_Call(static_cast<ani_fn_object>(nameRef), 0, nullptr, &result);
     if (status != ANI_OK) {
@@ -813,6 +820,14 @@ FormState ETSFormExtension::OnAcquireFormState(const Want &want)
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetFieldByName status: %{public}d", status);
         return AppExecFwk::FormState::DEFAULT;
     }
+
+    ani_boolean isUndefined = ANI_FALSE;
+    env->Reference_IsUndefined(nameRef, &isUndefined);
+    if (isUndefined == ANI_TRUE) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "onAcquireFormState is undefined");
+        return AppExecFwk::FormState::DEFAULT;
+    }
+
     ani_ref argv[] = { wantRef };
     ani_ref result;
     status = env->FunctionalObject_Call(static_cast<ani_fn_object>(nameRef), 1, argv, &result);
