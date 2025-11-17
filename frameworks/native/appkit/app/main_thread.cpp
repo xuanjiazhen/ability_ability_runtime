@@ -1561,6 +1561,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     AppExecFwk::HapModuleInfo entryHapModuleInfo;
     if (!bundleInfo.hapModuleInfos.empty()) {
         for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
+            hapList_.push_back(hapModuleInfo);
             if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::ENTRY) {
                 findEntryHapModuleInfo = true;
                 entryHapModuleInfo = hapModuleInfo;
@@ -3599,17 +3600,63 @@ bool MainThread::GetHqfFileAndHapPath(const std::string &bundleName,
     }
 
     for (auto hapInfo : bundleInfo.hapModuleInfos) {
-        if ((processInfo_ != nullptr) && (processInfo_->GetProcessName() == hapInfo.process) &&
-            (!hapInfo.hqfInfo.hqfFilePath.empty())) {
+        if (processInfo_ == nullptr || hapInfo.hqfInfo.hqfFilePath.empty()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "processInfo_ != nullptr || hapInfo.hqfInfo.hqfFilePath.empty()");
+            break;
+        }
+        
+        if (processInfo_->GetProcessName() == hapInfo.process) {
+            TAG_LOGE(AAFwkTag::APPKIT, "processInfo_->GetProcessName() == hapInfo.process");
             std::string resolvedHapPath(AbilityBase::GetLoadPath(hapInfo.hapPath));
             std::string resolvedHqfFile(AbilityBase::GetLoadPath(hapInfo.hqfInfo.hqfFilePath));
-            TAG_LOGD(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s, processName: %{private}s, "
+            TAG_LOGE(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s, processName: %{private}s, "
+                "hqf file: %{private}s, hap path: %{private}s", bundleName.c_str(), hapInfo.moduleName.c_str(),
+                hapInfo.process.c_str(), resolvedHqfFile.c_str(), resolvedHapPath.c_str());
+            fileMap.push_back(std::pair<std::string, std::string>(resolvedHqfFile, resolvedHapPath));
+            break;
+        }
+
+        int32_t appCloneIndex;
+        if (application_ == nullptr || !application_->GetAppCloneIndex(appCloneIndex)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null application_ or GetAppCloneIndex failed");
+            return false;
+        }
+        std::string processName = hapInfo.process + std::to_string(appCloneIndex)[0];
+        if (processInfo_->GetProcessName() == processName) {
+            if (application_ == nullptr) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null application_");
+                return false;
+            }
+            auto &runtime = application_->GetRuntime();
+            if (runtime == nullptr) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+                return false;
+            }
+            if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS &&
+                hapInfo.moduleType == ModuleType::FEATURE) {
+                TAG_LOGE(AAFwkTag::APPKIT, "illegal hap");
+                break;
+            }
+
+            // if (hapList_.size() == 0) {
+            //     TAG_LOGE(AAFwkTag::APPKIT, "no load hap");
+            //     break;
+            // }
+            // for (auto it: hapList_){
+            //     if (it == hapInfo) {
+            //         TAG_LOGE(AAFwkTag::APPKIT, "hap ");
+            //         break;
+            //     }
+            // }
+            // hapList_.push_back(hapInfo);
+            std::string resolvedHapPath(AbilityBase::GetLoadPath(hapInfo.hapPath));
+            std::string resolvedHqfFile(AbilityBase::GetLoadPath(hapInfo.hqfInfo.hqfFilePath));
+            TAG_LOGE(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s, processName: %{private}s, "
                 "hqf file: %{private}s, hap path: %{private}s", bundleName.c_str(), hapInfo.moduleName.c_str(),
                 hapInfo.process.c_str(), resolvedHqfFile.c_str(), resolvedHapPath.c_str());
             fileMap.push_back(std::pair<std::string, std::string>(resolvedHqfFile, resolvedHapPath));
         }
     }
-
     return true;
 }
 
