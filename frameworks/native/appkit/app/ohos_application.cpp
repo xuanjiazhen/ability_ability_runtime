@@ -1275,5 +1275,15 @@ bool OHOSApplication::UpdateETSRuntime(AbilityRuntime::Runtime::Options &option)
     runtime_ = std::move(etsRuntime);
     return true;
 }
+
+bool OHOSApplication::GetAppCloneIndex(int32_t &index)
+{
+    if (abilityRuntimeContext_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null abilityRuntimeContext_");
+        return false;
+    }
+    index = abilityRuntimeContext_->GetCurrentAppCloneIndex();
+    return true;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
