@@ -152,6 +152,13 @@ public:
     virtual void OnProcessBindingRelationChanged(const ProcessBindData &processBindData) override;
 
     /**
+     * Will be called when process type to normal.
+     *
+     * @param processData Process data.
+     */
+    virtual void OnProcessTypeChanged(const ProcessData &processData) override;
+
+    /**
      * Will be called when the process keepalive state change.
      *
      * @param processData Process data.
