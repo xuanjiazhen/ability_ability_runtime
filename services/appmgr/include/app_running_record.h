@@ -796,6 +796,10 @@ public:
     ExtensionAbilityType GetExtensionType() const;
     ProcessType GetProcessType() const;
 
+    void SetProcessType(ProcessType processType);
+
+    void SetExtensionType(ExtensionAbilityType extensionType);
+
     /**
      * Notify Fault Data
      *
