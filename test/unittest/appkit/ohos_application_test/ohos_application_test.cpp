@@ -1387,5 +1387,21 @@ HWTEST_F(OHOSApplicationTest, UpdateETSRuntime_0200, TestSize.Level1)
     EXPECT_FALSE(ohosApplication_->UpdateETSRuntime(option));
     GTEST_LOG_(INFO) << "UpdateETSRuntime_0200 end.";
 }
+
+/*
+* @tc.number: GetAppCloneIndex_0100
+* @tc.name: GetAppCloneIndex
+* @tc.desc: Verify function GetAppCloneIndex
+*/
+HWTEST_F(OHOSApplicationTest, GetAppCloneIndex_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetAppCloneIndex_0100 start.";
+    std::shared_ptr<AbilityRuntime::ApplicationContext> abilityRuntimeContext =
+        std::make_shared<AbilityRuntime::ApplicationContext>();
+    ohosApplication_->SetApplicationContext(abilityRuntimeContext);
+    int32_t index;
+    EXPECT_TRUE(ohosApplication_->GetAppCloneIndex(index));
+    GTEST_LOG_(INFO) << "GetAppCloneIndex_0100 end.";
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
