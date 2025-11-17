@@ -33,6 +33,7 @@
 #include "app_mgr_util.h"
 #include "application_util.h"
 #include "assert_fault_callback_death_mgr.h"
+#include "collaborator_util.h"
 #include "concurrent_task_client.h"
 #include "config_policy_utils.h"
 #include "connection_state_manager.h"
@@ -1344,19 +1345,8 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
         return result;
     }
 #endif
-    std::string identifier = system::GetParameter(PARAM_ANCO_APP_IDENTIFIER, "");
-    std::string targetBundleName = want.GetBundle();
-    if (!identifier.empty() && !targetBundleName.empty() && identifier.find(targetBundleName) != std::string::npos) {
-        auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
-        if (collaborator != nullptr) {
-            Want tempWant = want;
-            int32_t ret = collaborator->UpdateTargetIfNeed(tempWant);
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateTargetIfNeed end,ret:%{public}d", ret);
-            (const_cast<Want &>(want)).SetElement(tempWant.GetElement());
-        } else {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateTargetIfNeed error due to collaborator is nullptr");
-        }
-    }
+    auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
+    CollaboratorUtil::UpdateTargetIfNeed(collaborator, want);
     result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     std::string callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
@@ -1546,15 +1536,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, std::string(""));
             abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, std::string(""));
         }
-        if (StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
-            auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
-            if (collaborator != nullptr) {
-                int32_t ret = collaborator->UpdateCallerIfNeed(abilityRequest.want);
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateCallerIfNeed end,ret:%{public}d", ret);
-            } else {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateCallerIfNeed error due to collaborator is nullptr");
-            }
-        }
+        CollaboratorUtil::HandleCallerIfNeed(callerToken, callerBundleName, collaborator, abilityRequest.want);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         result = uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
