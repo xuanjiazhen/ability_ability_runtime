@@ -1090,14 +1090,7 @@ private:
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnClearPreloadedUIExtensionAbilities called");
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [innerErrCode]() {
-            auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
-            if (context == nullptr) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
-                *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
-                return;
-            }
-            std::string bundleName = context->GetBundleName();
-            *innerErrCode = AbilityManagerClient::GetInstance()->ClearPreloadedUIExtensionAbilities(bundleName);
+            *innerErrCode = AbilityManagerClient::GetInstance()->ClearPreloadedUIExtensionAbilities();
         };
 
         NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {

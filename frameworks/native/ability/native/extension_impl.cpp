@@ -29,7 +29,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 const std::string JSON_KEY_ERR_MSG = "errMsg";
-constexpr const char *IS_PRELOADED_UI_EXTENSION_SUCCESS = "ability.want.params.is_preload_ui_extension_ability_success";
 
 ExtensionImpl::~ExtensionImpl()
 {
@@ -72,27 +71,58 @@ void ExtensionImpl::Init(const std::shared_ptr<AppExecFwk::OHOSApplication> &app
  * @param sessionInfo  Indicates the sessionInfo.
  *
  */
-void ExtensionImpl::HandleExtensionTransaction(
-    const Want &want, const AAFwk::LifeCycleStateInfo &targetState,
+void ExtensionImpl::HandleExtensionTransaction(const Want &want, const AAFwk::LifeCycleStateInfo &targetState,
     sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::EXT, "%{public}s; %{public}d; %{public}d; %{public}d",
         want.GetElement().GetAbilityName().c_str(), lifecycleState_, targetState.state, targetState.isNewWant);
-
     if (lifecycleState_ == targetState.state) {
         TAG_LOGE(AAFwkTag::EXT, "lifecycle state equal");
         return;
     }
     SetLaunchParam(targetState.launchParam);
-    bool ret = ProcessLifecycleStateTransition(want, targetState, sessionInfo);
+    bool ret = true;
+    switch (targetState.state) {
+        case AAFwk::ABILITY_STATE_INITIAL: {
+            bool isAsyncCallback = false;
+            if (lifecycleState_ != AAFwk::ABILITY_STATE_INITIAL) {
+                Stop(isAsyncCallback, want, sessionInfo);
+            }
+            if (isAsyncCallback) {
+                ret = false;
+            }
+            break;
+        }
+        case AAFwk::ABILITY_STATE_INACTIVE: {
+            if (lifecycleState_ == AAFwk::ABILITY_STATE_INITIAL) {
+                Start(want, sessionInfo);
+            }
+            break;
+        }
+        case AAFwk::ABILITY_STATE_FOREGROUND_NEW: {
+            if (lifecycleState_ == AAFwk::ABILITY_STATE_INITIAL) {
+                Start(want, sessionInfo);
+            }
+            Foreground(want, sessionInfo);
+            break;
+        }
+        case AAFwk::ABILITY_STATE_BACKGROUND_NEW: {
+            Background(want, sessionInfo);
+            break;
+        }
+        default: {
+            ret = false;
+            TAG_LOGE(AAFwkTag::EXT, "error state");
+            break;
+        }
+    }
     if (ret && !UIExtensionAbilityExecuteInsightIntent(want)) {
         TAG_LOGD(AAFwkTag::EXT, "call abilityms");
         AAFwk::PacMap restoreData;
-        restoreData.PutBooleanValue(IS_PRELOADED_UI_EXTENSION_SUCCESS, extension_->IsPreloadedSuccess());
-        AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-            token_, targetState.state, restoreData);
+        AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state, restoreData);
     }
+}
 }
 
 bool ExtensionImpl::ProcessLifecycleStateTransition(
