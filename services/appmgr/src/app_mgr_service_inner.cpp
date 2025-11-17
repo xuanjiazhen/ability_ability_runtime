@@ -1072,6 +1072,12 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             TAG_LOGD(AAFwkTag::APPMGR, "appRecord SetMainElementRunning");
             appRecord->SetMainElementRunning(loadParam->isMainElementRunning);
         }
+        if (appRecord->GetProcessType() == ProcessType::EXTENSION &&
+            appRecord->GetExtensionType() != abilityInfo->extensionAbilityType) {
+            appRecord->SetProcessType(ProcessType::NORMAL);
+            appRecord->SetExtensionType(abilityInfo->extensionAbilityType);
+            DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessTypeChanged(appRecord);
+        }
         ReportEventToRSS(*abilityInfo, appRecord);
         appRunningManager_->UpdateConfigurationDelayed(appRecord);
         if (!isProcCache) {

@@ -761,13 +761,9 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
     if (applicationInfo && applicationInfo->bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE) {
         abilityStateData.isAtomicService = true;
     }
-    bool isUIExtension = AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType);
-    if (isUIExtension) {
-        if (!isAbility) {
-            abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
-        } else {
-            abilityStateData.isInnerNotify = true;
-        }
+    abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
+    if (isAbility) {
+        abilityStateData.isInnerNotify = true;
     }
     abilityStateData.processType = static_cast<int32_t>(processType_);
     abilityStateData.preloadMode = static_cast<int32_t>(preloadMode_);
@@ -1533,6 +1529,7 @@ void AppRunningRecord::SetProcessAndExtensionType(
         TAG_LOGE(AAFwkTag::APPMGR, "null abilityInfo");
         return;
     }
+    std::lock_guard lock(appInfosLock_);
     extensionType_ = abilityInfo->extensionAbilityType;
     preloadModuleName_ = abilityInfo->moduleName;
     if (extensionType_ == ExtensionAbilityType::UNSPECIFIED) {
@@ -2181,11 +2178,13 @@ ProcessChangeReason AppRunningRecord::GetProcessChangeReason() const
 
 ExtensionAbilityType AppRunningRecord::GetExtensionType() const
 {
+    std::lock_guard lock(appInfosLock_);
     return extensionType_;
 }
 
 ProcessType AppRunningRecord::GetProcessType() const
 {
+    std::lock_guard lock(appInfosLock_);
     return processType_;
 }
 
@@ -2217,6 +2216,16 @@ void AppRunningRecord::SetParentAppRecord(std::shared_ptr<AppRunningRecord> appR
 std::shared_ptr<AppRunningRecord> AppRunningRecord::GetParentAppRecord()
 {
     return parentAppRecord_.lock();
+}
+
+void AppRunningRecord::SetProcessType(ProcessType processType)
+{
+    processType_ = processType;
+}
+
+void AppRunningRecord::SetExtensionType(ExtensionAbilityType extensionType)
+{
+    extensionType_ = extensionType;
 }
 
 int32_t AppRunningRecord::ChangeAppGcState(int32_t state, uint64_t tid)
