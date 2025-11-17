@@ -708,6 +708,9 @@ private:
 
     void HandleConfigByPlugin(Configuration &config, BundleInfo &bundleInfo);
 
+    void ReportProcessKill(int32_t pid, const std::string& processName, const std::string& appRunningId,
+        bool foreground, bool isUncatchable);
+
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     void HandleNWebPreload();
 #endif

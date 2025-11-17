@@ -2812,5 +2812,21 @@ HWTEST_F(MainThreadTest, GetBundleAndHspListForUpdateRuntime_0100, TestSize.Leve
     HspList hsplist;
     EXPECT_TRUE(mainThread_->GetHspListForUpdateRuntime(bundleInfo, "com.ohos.myapplication", hsplist));
 }
+
+/**
+ * @tc.name: ReportProcessKill_0100
+ * @tc.desc: ReportProcessKill Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, ReportProcessKill_0100, TestSize.Level1)
+{
+    EXPECT_TRUE(!mainThread_);
+    int32_t pid = getpid();
+    std::string processName = "ReportProcessKill_0100";
+    std::string appRunningId = "ReportProcessKill_0100";
+    mainThread_->ReportProcessKill(pid, processName, appRunningId, true, true);
+    mainThread_->ReportProcessKill(pid, processName, appRunningId, false, false);
+    mainThread_->ReportProcessKill(pid, processName, appRunningId, false, true);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
