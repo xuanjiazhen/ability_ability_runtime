@@ -33,6 +33,7 @@
 #include "app_mgr_util.h"
 #include "application_util.h"
 #include "assert_fault_callback_death_mgr.h"
+#include "collaborator_util.h"
 #include "concurrent_task_client.h"
 #include "config_policy_utils.h"
 #include "connection_state_manager.h"
@@ -1546,15 +1547,9 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, std::string(""));
             abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, std::string(""));
         }
-        if (StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
-            auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
-            if (collaborator != nullptr) {
-                int32_t ret = collaborator->UpdateCallerIfNeed(abilityRequest.want);
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateCallerIfNeed end,ret:%{public}d", ret);
-            } else {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateCallerIfNeed error due to collaborator is nullptr");
-            }
-        }
+        auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
+        CollaboratorUtil::UpdateCallerIfNeed(callerToken, collaborator, abilityRequest.want);
+        CollaboratorUtil::RemoveCallerIfNeed(callerToken, callerBundleName, collaborator, abilityRequest.want);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         result = uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
