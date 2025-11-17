@@ -1554,6 +1554,14 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             } else {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateCallerIfNeed error due to collaborator is nullptr");
             }
+        } else if (AppUtils.InAppTransferList(callerBundleName)) {
+            auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
+            if (collaborator != nullptr) {
+                int32_t ret = collaborator->RemoveCallerIfNeed(abilityRequest.want);
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoveCallerIfNeed end,ret:%{public}d", ret);
+            } else {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoveCallerIfNeed error due to collaborator is nullptr");
+            }
         }
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
