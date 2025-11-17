@@ -166,6 +166,13 @@ public:
      */
     virtual void OnProcessPreForegroundChanged(const PreloadProcessData &preloadProcessData) {};
 
+    /**
+     * Will be called when process type to normal.
+     *
+     * @param processData Process data.
+     */
+    virtual void OnProcessTypeChanged(const ProcessData &processData) {};
+
     enum class Message {
         TRANSACT_ON_FOREGROUND_APPLICATION_CHANGED = 0,
         TRANSACT_ON_ABILITY_STATE_CHANGED,
