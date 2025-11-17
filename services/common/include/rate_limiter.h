@@ -37,7 +37,7 @@ public:
     ~RateLimiter() = default;
 
     RateLimiter::LimitResult CheckExtensionLimit(int32_t uid);
-    bool CheckReportLimit(int32_t uid);
+    bool CheckReportLimit(int32_t uid, int32_t triggeredTier);
 
 private:
     RateLimiter() = default;
@@ -60,6 +60,8 @@ private:
     std::mutex reportCallMapLock_;
     std::unordered_map<int32_t, std::unordered_map<int32_t, int64_t>> tierTriggerTimes_;
     std::mutex tierTriggerTimesLock_;
+    std::unordered_map<int32_t, std::unordered_map<int32_t, std::vector<int64_t>>> tierReportCallMap_;
+    std::mutex tierReportCallMapLock_;
 
     DISALLOW_COPY_AND_MOVE(RateLimiter);
 };

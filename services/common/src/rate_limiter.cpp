@@ -87,9 +87,26 @@ RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
     return result;
 }
 
-bool RateLimiter::CheckReportLimit(int32_t uid)
+bool RateLimiter::CheckReportLimit(int32_t uid, int32_t triggeredTier)
 {
-    return CheckSingleLimit(uid, reportCallMap_, reportCallMapLock_, REPORT_LIMIT_INTERVAL_MS, REPORT_MAX_LIMIT);
+    std::lock_guard<std::mutex> guard(tierReportCallMapLock_);
+    auto& userTierReports = tierReportCallMap_[uid];
+    auto& timestamps = userTierReports[triggeredTier];
+    
+    int64_t currentTimeMillis = CurrentTimeMillis();
+    int64_t timeBefore = currentTimeMillis - REPORT_LIMIT_INTERVAL_MS;
+    
+    // 清理过期时间戳
+    auto it = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
+    timestamps.erase(timestamps.begin(), it);
+    
+    if (timestamps.size() >= static_cast<size_t>(REPORT_MAX_LIMIT)) {
+        return true;
+    }
+    
+    timestamps.emplace_back(currentTimeMillis);
+    return false;
+
 }
 
 bool RateLimiter::CheckSingleLimit(int32_t uid, std::unordered_map<int32_t, std::vector<int64_t>> &callMap,
