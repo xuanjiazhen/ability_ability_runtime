@@ -44,6 +44,7 @@ ohos_shared_library("dialog_request_info_ani_kit") {
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   cflags = []

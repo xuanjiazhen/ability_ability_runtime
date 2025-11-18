@@ -20,7 +20,10 @@ ohos_shared_library("wantconstant_napi") {
     "${ability_runtime_napi_path}/wantConstant/want_constant.cpp",
   ]
 
-  deps = [ "${ability_runtime_path}/frameworks/simulator/osal:simulator_osal" ]
+  deps = [
+    "${ability_runtime_path}/frameworks/simulator/osal:simulator_osal",
+    "${ability_runtime_services_path}/common:app_util",
+  ]
 
   external_deps = [
     "hilog:libhilog",

@@ -30,7 +30,10 @@ ohos_fuzztest("DeepLinkReserveConfigFuzzTest") {
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
   cflags = []
-  deps = [ "${ability_runtime_services_path}/abilitymgr:abilityms" ]
+  deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "c_utils:utils",

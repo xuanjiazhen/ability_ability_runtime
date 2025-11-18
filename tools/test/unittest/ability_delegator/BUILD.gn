@@ -37,6 +37,7 @@ ohos_unittest("ability_command_test") {
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -65,6 +66,7 @@ ohos_unittest("ability_command_second_test") {
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -93,6 +95,7 @@ ohos_unittest("ability_command_third_test") {
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -116,6 +119,7 @@ ohos_unittest("test_observer_test") {
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -133,7 +137,10 @@ ohos_unittest("test_observer_proxy_test") {
 
   sources = [ "test_observer_proxy_test.cpp" ]
 
-  deps = [ "${ability_runtime_path}/tools/aa:tools_aa_source_set" ]
+  deps = [
+    "${ability_runtime_path}/tools/aa:tools_aa_source_set",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "googletest:gmock_main",
@@ -151,7 +158,10 @@ ohos_unittest("test_observer_stub_test") {
     "test_observer_stub_test.cpp",
   ]
 
-  deps = [ "${ability_runtime_path}/tools/aa:tools_aa_source_set" ]
+  deps = [
+    "${ability_runtime_path}/tools/aa:tools_aa_source_set",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "googletest:gmock_main",
@@ -168,7 +178,10 @@ ohos_unittest("shell_command_result_test") {
 
   configs = [ ":tools_ability_delegator_config" ]
 
-  deps = [ "${ability_runtime_path}/tools/aa:tools_aa_source_set" ]
+  deps = [
+    "${ability_runtime_path}/tools/aa:tools_aa_source_set",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:configuration",
