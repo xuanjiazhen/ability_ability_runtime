@@ -11111,8 +11111,7 @@ int AbilityManagerService::PrepareTerminateAbility(const sptr<IRemoteObject> &to
 
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-    bool res = uiAbilityManager->PrepareTerminateAbility(
-        std::static_pointer_cast<UIAbilityRecord>(abilityRecord), false);
+    bool res = uiAbilityManager->PrepareTerminateAbility(abilityRecord, false);
     if (!res) {
         callback->DoPrepareTerminate();
         return ERR_OK;
