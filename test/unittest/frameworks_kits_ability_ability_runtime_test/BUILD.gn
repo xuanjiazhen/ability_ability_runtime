@@ -48,6 +48,7 @@ ohos_unittest("ability_context_impl_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -109,6 +110,7 @@ ohos_unittest("ability_context_impl_second_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -216,6 +218,7 @@ ohos_unittest("local_call_container_ut_test") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -253,6 +256,7 @@ ohos_unittest("local_call_record_ut_test") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -291,6 +295,7 @@ ohos_unittest("dialog_callback_test") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:dialog_request_callback",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -324,6 +329,7 @@ ohos_unittest("ability_context_impl_new_test") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

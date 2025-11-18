@@ -40,7 +40,7 @@ ohos_shared_library("js_environment") {
   configs = [ ":js_environment_config" ]
 
   public_configs = [ ":public_js_environment_config" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "c_utils:utils",
     "ets_runtime:libark_jsruntime",

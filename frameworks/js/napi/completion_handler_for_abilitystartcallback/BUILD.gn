@@ -27,7 +27,7 @@ ohos_shared_library("completionhandlerforabilitystartcallback") {
 
   sources = [ "completion_handler_for_abilitystartcallback_module.cpp" ]
 
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [
     "c_utils:utils",

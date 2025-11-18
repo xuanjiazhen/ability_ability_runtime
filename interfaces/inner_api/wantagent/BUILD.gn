@@ -74,6 +74,7 @@ ohos_shared_library("wantagent_innerkits") {
     "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 

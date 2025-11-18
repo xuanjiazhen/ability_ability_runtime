@@ -55,7 +55,10 @@ ohos_unittest("shell_cmd_result_unittest") {
   configs = [ ":unittest_include_dir" ]
   configs += [ "${ability_runtime_services_path}/common:common_config" ]
 
-  deps = [ "${ability_runtime_native_path}/appkit:appkit_delegator" ]
+  deps = [
+    "${ability_runtime_native_path}/appkit:appkit_delegator",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -73,7 +76,10 @@ ohos_unittest("ability_delegator_args_unittest") {
   configs = [ ":unittest_include_dir" ]
   configs += [ "${ability_runtime_services_path}/common:common_config" ]
 
-  deps = [ "${ability_runtime_native_path}/appkit:appkit_delegator" ]
+  deps = [
+    "${ability_runtime_native_path}/appkit:appkit_delegator",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:want",
@@ -99,6 +105,7 @@ ohos_unittest("iability_monitor_unittest") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -131,6 +138,7 @@ ohos_unittest("ability_delegator_unittest") {
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -167,7 +175,10 @@ ohos_unittest("delegator_thread_unittest") {
   configs = [ ":unittest_include_dir" ]
   configs += [ "${ability_runtime_services_path}/common:common_config" ]
 
-  deps = [ "${ability_runtime_native_path}/appkit:appkit_delegator" ]
+  deps = [
+    "${ability_runtime_native_path}/appkit:appkit_delegator",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "eventhandler:libeventhandler",
@@ -196,6 +207,7 @@ ohos_unittest("ability_delegator_registry_unittest") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -233,6 +245,7 @@ ohos_unittest("js_test_runner_unittest") {
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

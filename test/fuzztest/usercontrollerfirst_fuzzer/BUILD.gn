@@ -57,6 +57,7 @@ ohos_fuzztest("UserControllerFirstFuzzTest") {
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 

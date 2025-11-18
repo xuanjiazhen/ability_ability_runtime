@@ -63,6 +63,7 @@ ohos_shared_library("perm_verification") {
 
   deps = [
     ":app_util",
+    ":hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -98,7 +99,7 @@ ohos_shared_library("task_handler_wrap") {
     "src/queue_task_handler_wrap.cpp",
     "src/task_handler_wrap.cpp",
   ]
-
+  deps = [ ":hilog_tag_wrapper" ]
   external_deps = [
     "ffrt:libffrt",
     "hilog:libhilog",
@@ -125,7 +126,7 @@ ohos_shared_library("app_util") {
     "src/rate_limiter.cpp",
     "src/hitrace_chain_utils.cpp",
   ]
-
+  deps = [ ":hilog_tag_wrapper" ]
   external_deps = [
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
@@ -186,7 +187,10 @@ ohos_shared_library("user_controller") {
 
   sources = [ "src/user_controller/user_controller.cpp" ]
 
-  deps = [ "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper", ]
+  deps = [
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -209,6 +213,32 @@ ohos_shared_library("user_controller") {
   }
 
   innerapi_tags = [ "platformsdk_indirect" ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("hilog_tag_wrapper") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":common_config" ]
+  include_dirs = [ "include" ]
+
+  sources = [
+    "src/hilog_tag_wrapper.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

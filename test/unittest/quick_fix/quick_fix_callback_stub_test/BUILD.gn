@@ -31,7 +31,7 @@ ohos_unittest("quick_fix_callback_stub_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [
     "ability_base:want",

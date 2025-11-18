@@ -32,7 +32,7 @@ ohos_unittest("quickfix_callback_test") {
   sources = [ "js_quickfix_callback_test.cpp" ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [
     "ability_runtime:runtime",
@@ -54,7 +54,7 @@ ohos_unittest("runtime_test") {
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [
     "ability_base:extractortool",
@@ -79,7 +79,7 @@ ohos_unittest("hybrid_js_module_reader_test") {
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [
     "ability_base:extractortool",
@@ -112,7 +112,7 @@ ohos_unittest("js_runtime_test") {
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_runtime:js_environment",
     "ability_runtime:runtime",
@@ -154,7 +154,7 @@ ohos_unittest("js_runtime_first_test") {
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_runtime:js_environment",
     "ability_runtime:runtime",
@@ -189,7 +189,7 @@ ohos_unittest("hdc_register_test") {
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -210,7 +210,7 @@ ohos_unittest("ohos_js_environment_test") {
   sources = [ "ohos_js_environment_test.cpp" ]
 
   configs = []
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_runtime:js_environment",
     "ability_runtime:runtime",
@@ -238,7 +238,7 @@ ohos_unittest("js_worker_test") {
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [
     "ability_base:extractortool",
@@ -286,6 +286,7 @@ ohos_unittest("ets_runtime_test") {
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
   deps = [
     "${ability_runtime_innerkits_path}/connect_server_manager:connect_server_manager",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

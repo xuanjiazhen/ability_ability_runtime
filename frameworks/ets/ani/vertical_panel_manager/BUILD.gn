@@ -49,6 +49,7 @@ ohos_shared_library("vertical_panel_manager_ani_kit") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

@@ -44,6 +44,7 @@ ohos_shared_library("businessabilityrouter_ani") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${srms_inner_api_path}:srms_fwk",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
