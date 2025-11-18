@@ -2258,9 +2258,7 @@ ohos_shared_library("dialog_request_callback") {
   ]
 
   public_configs = [ ":dialog_request_callback_public_config" ]
-  deps = [ "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
-  ]
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
