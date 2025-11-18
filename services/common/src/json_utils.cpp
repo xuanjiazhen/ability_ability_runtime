@@ -187,8 +187,6 @@ void JsonUtils::JsonToUnorderedStrSet(const nlohmann::json &jsonObject, const st
 std::string JsonUtils::DecodeUnicodeEscapes(const std::string& input)
 {
     std::string result = input;
-
-    // 解析%uXXXX格式的Unicode转义
     std::regex unicodeRegex("%u([0-9a-fA-F]{4})");
     std::smatch match;
 
@@ -196,17 +194,19 @@ std::string JsonUtils::DecodeUnicodeEscapes(const std::string& input)
         std::string hexStr = match[1].str();
         char32_t unicodeChar = std::stoul(hexStr, nullptr, 16);
 
-        // 转换为UTF-8
+        const int UTF8_2_BYTE_HEAD = 0xC0;
+        const int UTF8_2_BYTE_TAIL = 0x80;
+        const int UTF8_2_BYTE_MASK = 0x3F;
         std::string utf8Char;
         if (unicodeChar <= 0x7F) {
             utf8Char = static_cast<char>(unicodeChar);
         } else if (unicodeChar <= 0x7FF) {
-            utf8Char += static_cast<char>(0xC0 | (unicodeChar >> 6));
-            utf8Char += static_cast<char>(0x80 | (unicodeChar & 0x3F));
+            utf8Char += static_cast<char>(UTF8_2_BYTE_HEAD | (unicodeChar >> 6));
+            utf8Char += static_cast<char>(UTF8_2_BYTE_TAIL | (unicodeChar & UTF8_2_BYTE_MASK));
         } else if (unicodeChar <= 0xFFFF) {
             utf8Char += static_cast<char>(0xE0 | (unicodeChar >> 12));
-            utf8Char += static_cast<char>(0x80 | ((unicodeChar >> 6) & 0x3F));
-            utf8Char += static_cast<char>(0x80 | (unicodeChar & 0x3F));
+            utf8Char += static_cast<char>(UTF8_2_BYTE_TAIL | ((unicodeChar >> 6) & UTF8_2_BYTE_MASK));
+            utf8Char += static_cast<char>(UTF8_2_BYTE_TAIL | (unicodeChar & UTF8_2_BYTE_MASK));
         }
 
         result.replace(match.position(), match.length(), utf8Char);
