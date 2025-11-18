@@ -188,8 +188,8 @@ ohos_shared_library("user_controller") {
   sources = [ "src/user_controller/user_controller.cpp" ]
 
   deps = [
+    ":hilog_tag_wrapper",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
