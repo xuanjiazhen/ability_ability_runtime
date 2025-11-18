@@ -113,7 +113,7 @@ struct AbilityRequest {
 
     void Dump(std::vector<std::string> &state);
 
-    void Valuation(const Want &srcWant, int srcRequestCode,
+    void Voluation(const Want &srcWant, int srcRequestCode,
         const sptr<IRemoteObject> &srcCallerToken, const std::shared_ptr<AbilityStartSetting> srcStartSetting = nullptr,
         int srcCallerUid = -1);
 };

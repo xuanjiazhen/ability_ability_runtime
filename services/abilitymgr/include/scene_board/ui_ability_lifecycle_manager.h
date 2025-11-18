@@ -1004,7 +1004,7 @@ private:
      * @brief Terminate session for ability
      * @param abilityRecord The ability record
      */
-    void TerminateSession(UIAbilityRecordPtr abilityRecord);
+    void TerminateSession(std::shared_ptr<AbilityRecord> abilityRecord);
 
     /**
      * @brief Start ability with persistent ID (distributed)

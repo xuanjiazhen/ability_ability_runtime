@@ -28,5 +28,10 @@ std::shared_ptr<UIAbilityRecord> UIAbilityRecord::CreateAbilityRecord(const Abil
     abilityRecord->Init(abilityRequest);
     return abilityRecord;
 }
+
+AbilityRecordType UIAbilityRecord::GetAbilityRecordType()
+{
+    return AbilityRecordType::UI_ABILITY;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

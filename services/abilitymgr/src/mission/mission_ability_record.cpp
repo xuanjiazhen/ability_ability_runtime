@@ -28,5 +28,10 @@ std::shared_ptr<MissionAbilityRecord> MissionAbilityRecord::CreateAbilityRecord(
     abilityRecord->Init(abilityRequest);
     return abilityRecord;
 }
+
+AbilityRecordType MissionAbilityRecord::GetAbilityRecordType()
+{
+    return AbilityRecordType::MISSION_ABILITY;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
