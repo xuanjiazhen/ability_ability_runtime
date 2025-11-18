@@ -182,6 +182,7 @@ private:
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
         std::shared_ptr<ExtensionRecord> &record, const std::string &process);
     sptr<AAFwk::IPreloadUIExtensionExecuteCallback> GetRemoteCallback(int32_t extensionRecordId);
+};
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_MANAGER_H

@@ -39,8 +39,6 @@ ExtensionRecordManager::ExtensionRecordManager(const int32_t userId) : userId_(u
 ExtensionRecordManager::~ExtensionRecordManager()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "deconstructor");
-    int32_t callerPid = IPCSkeleton::GetCallingPid();
-    UnRegisterPreloadUIExtensionHostClient(callerPid);
 }
 
 int32_t ExtensionRecordManager::GenerateExtensionRecordId(const int32_t extensionRecordId)
@@ -922,7 +920,6 @@ int32_t ExtensionRecordManager::ClearPreloadedUIExtensionAbility(int32_t extensi
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "ClearPreloadedUIExtensionAbility call, record:%{public}d", extensionRecordId);
     std::shared_ptr<ExtensionRecord> recordToUnload;
-    bool shouldUnload = false;
     std::shared_ptr<AAFwk::AbilityRecord> abilityRecord;
     auto hostPid = 0;
     {
@@ -959,8 +956,8 @@ int32_t ExtensionRecordManager::ClearPreloadedUIExtensionAbility(int32_t extensi
         TAG_LOGE(AAFwkTag::UI_EXT, "remove failed for record %{public}d", extensionRecordId);
         return ERR_INVALID_VALUE;
     }
-    shouldUnload = true;
-    if (shouldUnload && recordToUnload != nullptr) {
+
+    if (recordToUnload != nullptr) {
         recordToUnload->UnloadUIExtensionAbility();
     }
     return ERR_OK;
