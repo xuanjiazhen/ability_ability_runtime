@@ -38,7 +38,10 @@ ohos_unittest("ability_record_mgr_test") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  deps = [ "${ability_runtime_native_path}/ability/native:abilitykit_utils" ]
+  deps = [
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_runtime:abilitykit_native",

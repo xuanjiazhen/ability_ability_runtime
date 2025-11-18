@@ -20,7 +20,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "hilog_tag_wrapper.h"
+#include "hilog_wrapper.h"
 #include "shell_command_config_loader.h"
 
 using namespace std::chrono_literals;
@@ -34,10 +34,10 @@ ShellCommandExecutor::ShellCommandExecutor(const std::string& cmd, const int64_t
 
 ShellCommandResult ShellCommandExecutor::WaitWorkDone()
 {
-    TAG_LOGD(AAFwkTag::AA_TOOL, "enter");
+    HILOG_DEBUG("enter");
 
     if (!DoWork()) {
-        TAG_LOGI(AAFwkTag::AA_TOOL, "Failed cmd: \"%{public}s\"", cmd_.data());
+        HILOG_INFO("Failed cmd: \"%{public}s\"", cmd_.data());
         return cmdResult_;
     }
 
@@ -47,7 +47,7 @@ ShellCommandResult ShellCommandExecutor::WaitWorkDone()
     if (timeoutSec_ <= 0) {
         cvWork_.wait(workLock, condition);
     } else if (!cvWork_.wait_for(workLock, timeoutSec_ * 1s, condition)) {
-        TAG_LOGW(AAFwkTag::AA_TOOL, "cmd timed out! cmd : \"%{public}s\", timeoutSec : %{public}" PRId64,
+        HILOG_WARN("cmd timed out! cmd : \"%{public}s\", timeoutSec : %{public}" PRId64,
             cmd_.data(), timeoutSec_);
         std::cout << "Warning! Command execution timed out! cmd : " << cmd_ << ", timeoutSec : " << timeoutSec_
             << std::endl;
@@ -61,44 +61,44 @@ ShellCommandResult ShellCommandExecutor::WaitWorkDone()
         return realResult;
     }
 
-    TAG_LOGI(AAFwkTag::AA_TOOL, "cmd complete, cmd : \"%{public}s\", exitCode : %{public}d",
+    HILOG_INFO("cmd complete, cmd : \"%{public}s\", exitCode : %{public}d",
         cmd_.data(), cmdResult_.exitCode);
     return cmdResult_;
 }
 
 bool ShellCommandExecutor::DoWork()
 {
-    TAG_LOGD(AAFwkTag::AA_TOOL, "enter");
+    HILOG_DEBUG("enter");
 
     if (cmd_.empty()) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid cmd_");
+        HILOG_ERROR("Invalid cmd_");
         return false;
     }
 
     if (!handler_) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid handler_");
+        HILOG_ERROR("Invalid handler_");
         return false;
     }
     
     if (!CheckCommand()) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid command");
+        HILOG_ERROR("Invalid command");
         return false;
     }
 
     auto self(shared_from_this());
     handler_->PostTask([this, self]() {
-        TAG_LOGI(AAFwkTag::AA_TOOL, "DoWork task begin, cmd: \"%{public}s\"", cmd_.data());
+        HILOG_INFO("DoWork task begin, cmd: \"%{public}s\"", cmd_.data());
 
         FILE* file = popen(cmd_.c_str(), "r");
         if (!file) {
-            TAG_LOGE(AAFwkTag::AA_TOOL, "popen failed, cmd: \"%{public}s\"", cmd_.data());
+            HILOG_ERROR("popen failed, cmd: \"%{public}s\"", cmd_.data());
 
             {
                 std::unique_lock<std::mutex> workLock(mtxWork_);
                 isDone_ = true;
             }
             cvWork_.notify_one();
-            TAG_LOGI(AAFwkTag::AA_TOOL, "DoWork task end, cmd: \"%{public}s\"", cmd_.data());
+            HILOG_INFO("DoWork task end, cmd: \"%{public}s\"", cmd_.data());
             return;
         }
 
@@ -119,7 +119,7 @@ bool ShellCommandExecutor::DoWork()
             isDone_ = true;
         }
         cvWork_.notify_one();
-        TAG_LOGI(AAFwkTag::AA_TOOL, "DoWork task end, cmd: \"%{public}s\"", cmd_.data());
+        HILOG_INFO("DoWork task end, cmd: \"%{public}s\"", cmd_.data());
     });
 
     return true;

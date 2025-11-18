@@ -32,7 +32,7 @@ ohos_unittest("json_utils_test") {
     "${ability_runtime_path}/services/common/src/json_utils.cpp",
     "json_utils_test.cpp",
   ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "c_utils:utils",
     "config_policy:configpolicy_util",

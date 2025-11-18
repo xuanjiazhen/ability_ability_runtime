@@ -170,6 +170,7 @@ ohos_shared_library("abilitykit_utils") {
   deps = [
     ":configuration_helper",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   configs = [ ":abilitykit_utils_exceptions" ]
@@ -245,7 +246,7 @@ ohos_shared_library("configuration_helper") {
     "${ability_runtime_native_path}/ability/native/resource_config_helper.cpp",
   ]
 
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [
     "ability_base:configuration",
@@ -361,6 +362,7 @@ ohos_shared_library("abilitykit_native") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -500,6 +502,7 @@ ohos_shared_library("cj_abilitykit_native_ffi") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_path}/frameworks/cj/ffi/context:cj_context_ffi",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
   external_deps = [
     "ace_engine:ace_uicontent",
@@ -589,6 +592,7 @@ ohos_shared_library("extensionkit_native") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -657,6 +661,7 @@ ohos_shared_library("cj_extensionkit_native") {
     "${ability_runtime_native_path}/ability:cj_ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -717,6 +722,7 @@ ohos_shared_library("insight_intent_executor") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = []
@@ -772,6 +778,7 @@ ohos_shared_library("insight_intent_executor_ani") {
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = []
@@ -830,6 +837,7 @@ ohos_shared_library("cj_insight_intent_executor") {
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -940,6 +948,7 @@ ohos_shared_library("ui_ability_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1047,6 +1056,7 @@ ohos_shared_library("uiabilitykit_native") {
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1153,6 +1163,7 @@ ohos_shared_library("ability_thread") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1228,6 +1239,7 @@ ohos_shared_library("ets_form_extension") {
       "${ability_runtime_native_path}/ability/native:ability_business_error",
       "${ability_runtime_native_path}/appkit:app_context",
       "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+      "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ]
 
     external_deps = [
@@ -1289,6 +1301,7 @@ ohos_shared_library("form_extension") {
       "${ability_runtime_native_path}/ability/native:ability_business_error",
       "${ability_runtime_native_path}/appkit:app_context",
       "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+      "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ]
 
     external_deps = [
@@ -1354,6 +1367,7 @@ ohos_shared_library("cj_form_extension") {
       "${ability_runtime_native_path}/ability:cj_ability_context_native",
       "${ability_runtime_native_path}/appkit:app_context",
       "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+      "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ]
 
     external_deps = [
@@ -1399,6 +1413,7 @@ ohos_shared_library("form_extension_module") {
   deps = [
     ":form_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1462,6 +1477,7 @@ ohos_shared_library("service_extension") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1537,6 +1553,7 @@ ohos_shared_library("app_service_extension_ani") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1609,6 +1626,7 @@ ohos_shared_library("service_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/caller_complex:caller_complex_ani",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1673,6 +1691,7 @@ ohos_shared_library("ui_service_extension_connection") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1721,6 +1740,7 @@ ohos_shared_library("ui_service_extension_connection_ani") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1800,6 +1820,7 @@ ohos_shared_library("ui_service_extension") {
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1900,6 +1921,7 @@ ohos_shared_library("ui_service_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2060,6 +2082,7 @@ ohos_shared_library("continuation_ipc") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2104,6 +2127,7 @@ ohos_shared_library("data_ability_helper") {
   deps = [
     ":abilitykit_native",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2238,7 +2262,7 @@ ohos_shared_library("dialog_request_callback") {
   ]
 
   public_configs = [ ":dialog_request_callback_public_config" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
@@ -2341,6 +2365,7 @@ ohos_shared_library("ui_extension") {
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2440,6 +2465,7 @@ ohos_shared_library("ui_extension_ani") {
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2521,6 +2547,7 @@ ohos_shared_library("cj_ui_extension") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2568,6 +2595,7 @@ ohos_shared_library("ui_extension_module") {
     ":ui_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2630,6 +2658,7 @@ ohos_shared_library("share_extension") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2682,6 +2711,7 @@ ohos_shared_library("cj_share_extension") {
     "${ability_runtime_native_path}/ability:cj_ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2738,6 +2768,7 @@ ohos_shared_library("action_extension") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2790,6 +2821,7 @@ ohos_shared_library("cj_action_extension") {
     "${ability_runtime_native_path}/ability:cj_ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2821,6 +2853,7 @@ ohos_shared_library("share_extension_module") {
   deps = [
     ":share_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2857,7 +2890,10 @@ ohos_shared_library("auto_startup_callback") {
     "${ability_runtime_native_path}/ability/native/auto_startup_callback/auto_startup_callback_stub.cpp",
   ]
 
-  deps = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   configs = [ "${ability_runtime_services_path}/common:common_config" ]
 
@@ -2885,6 +2921,7 @@ ohos_shared_library("action_extension_module") {
   deps = [
     ":action_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3012,6 +3049,7 @@ ohos_shared_library("embedded_ui_extension") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/frameworks/native/ability/native:cj_form_extension",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3069,6 +3107,7 @@ ohos_shared_library("cj_embedded_ui_extension") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
     "${ability_runtime_path}/frameworks/native/ability/native:cj_form_extension",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3112,6 +3151,7 @@ ohos_shared_library("embedded_ui_extension_module") {
   deps = [
     ":embedded_ui_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3168,6 +3208,7 @@ ohos_shared_library("auto_fill_extension") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/frameworks/native/ability/native:cj_form_extension",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3238,6 +3279,7 @@ ohos_shared_library("auto_fill_extension_ani") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3293,6 +3335,7 @@ ohos_shared_library("auto_fill_extension_util") {
     ":abilitykit_native",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3319,6 +3362,7 @@ ohos_shared_library("auto_fill_extension_module") {
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3392,6 +3436,7 @@ ohos_shared_library("photo_editor_extension") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3454,6 +3499,7 @@ ohos_shared_library("cj_photo_editor_extension") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3498,6 +3544,7 @@ ohos_shared_library("photo_editor_extension_module") {
   deps = [
     ":photo_editor_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3567,6 +3614,7 @@ ohos_shared_library("app_service_extension") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3624,6 +3672,7 @@ ohos_shared_library("app_service_extension_module") {
   deps = [
     ":app_service_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
