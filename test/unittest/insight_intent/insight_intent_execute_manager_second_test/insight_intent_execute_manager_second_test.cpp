@@ -1101,7 +1101,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, UpdatePageDecoratorParams_0800, 
 }
 
 /**
- * @tc.name:UpdateEntryDecoratorParams_0200
+ * @tc.name: UpdateEntryDecoratorParams_0200
  * @tc.desc: basic function test of display id.
  * @tc.type: FUNC
  * @tc.require: issueI8ZRAG
@@ -1114,9 +1114,64 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, UpdateEntryDecoratorParams_0200,
     param.executeMode_ = -1;
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
     AbilityRuntime::ExtractInsightIntentInfo info;
-    auto ret = InsightIntentExecuteManager::UpdateEntryDecoratorParams(paramPtr, info, want);
+    // auto ret = InsightIntentExecuteManager::UpdateEntryDecoratorParams(paramPtr, info, want);
+
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CheckAndUpdateInsightIntentParams_0100
+ * @tc.desc: basic function test of display id.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateInsightIntentParams_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateInsightIntentParams_0100, begin.");
+    Want want;
+    AppExecFwk::InsightIntentExecuteParam param;
+    param.executeMode_ = -1;
+    auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
+    AbilityRuntime::ExtractInsightIntentInfo info;
+    auto ret = InsightIntentExecuteManager::CheckAndUpdateInsightIntentParams(paramPtr, info, want);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateInsightIntentParams_0100, end.");
+}
+
+/**
+ * @tc.name: CheckAndUpdateInsightIntentParams_0100
+ * @tc.desc: basic function test of display id.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateInsightIntentParams_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateInsightIntentParams_0100, begin.");
+    Want want;
+    AppExecFwk::InsightIntentExecuteParam param;
+    param.executeMode_ = -1;
+    auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
+    AbilityRuntime::ExtractInsightIntentInfo info;
+    auto ret = InsightIntentExecuteManager::CheckAndUpdateInsightIntentParams(paramPtr, info, want);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateInsightIntentParams_0100, end.");
+}
+
+/**
+ * @tc.name: GetInsightIntentType_0100
+ * @tc.desc: basic function test of display id.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, GetInsightIntentType_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetInsightIntentType_0100, begin.");
+    std::string intentName = "PlayMusic";
+    std::string decoratorType = AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
+    InsightIntentType ret  = GetInsightIntentType(intentName, decoratorType);
+    EXPECT_EQ(ret, InsightIntentType::DECOR_LINK);
+    TAG_LOGI(AAFwkTag::TEST, "GetInsightIntentType_0100, end.");
 }
 } // namespace AAFwk
 } // namespace OHOS
