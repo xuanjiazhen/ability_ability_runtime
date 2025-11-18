@@ -227,6 +227,11 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
     }
 }
 
+AbilityRecordType AbilityRecord::GetAbilityRecordType()
+{
+    return AbilityRecordType::BASE_ABILITY;
+}
+
 void AbilityRecord::SetUid(int32_t uid)
 {
     uid_ = uid;

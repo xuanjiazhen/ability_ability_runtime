@@ -637,7 +637,7 @@ void UIAbilityLifecycleManager::BatchCloseUIAbility(
 {
 }
 
-void UIAbilityLifecycleManager::TerminateSession(UIAbilityRecordPtr abilityRecord)
+void UIAbilityLifecycleManager::TerminateSession(std::shared_ptr<AbilityRecord> abilityRecord)
 {
 }
 
