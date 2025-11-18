@@ -165,5 +165,53 @@ HWTEST_F(FilePermissionManagerTest, GetPathPolicyInfoFromUri_001, TestSize.Level
     EXPECT_EQ(strRes, true);
 }
 
+/*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckDocsUriPermission
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_001, TestSize.Level1)
+{
+    std::string appDataPath = "/storage/Users/currentUser/appdata/test_A.txt";
+    bool hasFileManagerPermission = false;
+    bool hasSandboxManagerPermission = false;
+    bool ret = FilePermissionManager::CheckDocsUriPermission(hasFileManagerPermission, hasSandboxManagerPermission,
+        appDataPath);
+    ASSERT_FALSE(ret);
+}
+
+/*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckDocsUriPermission
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_002, TestSize.Level1)
+{
+    std::string appDataPath = "/storage/Users/currentUser/test/test_A.txt";
+    bool hasFileManagerPermission = false;
+    bool hasSandboxManagerPermission = false;
+    bool ret = FilePermissionManager::CheckDocsUriPermission(hasFileManagerPermission, hasSandboxManagerPermission,
+        appDataPath);
+    ASSERT_FALSE(ret);
+}
+
+/*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckDocsUriPermission
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_003, TestSize.Level1)
+{
+    std::string appDataPath = "/test/Users/currentUser/test/test_A.txt";
+    bool hasFileManagerPermission = false;
+    bool hasSandboxManagerPermission = false;
+    bool ret = FilePermissionManager::CheckDocsUriPermission(hasFileManagerPermission, hasSandboxManagerPermission,
+        appDataPath);
+    ASSERT_FALSE(ret);
+}
+
 }
 }
