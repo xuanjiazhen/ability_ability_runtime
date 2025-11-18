@@ -29,6 +29,8 @@ public:
         const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode);
     
     static std::shared_ptr<UIAbilityRecord> CreateAbilityRecord(const AbilityRequest &abilityRequest);
+
+    AbilityRecordType GetAbilityRecordType() override;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

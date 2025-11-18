@@ -3474,7 +3474,7 @@ void UIAbilityLifecycleManager::HandleAbilityStageOnPrepareTerminationTimeout(
     TAG_LOGE(AAFwkTag::ABILITYMGR, "handle abilityStage.onPrepareTermination timeout, token size=%{public}zu",
         tokens.size());
     for (auto token: tokens) {
-        TerminateSession(std::static_pointer_cast<UIAbilityRecord>(Token::GetAbilityRecordByToken(token)));
+        TerminateSession(Token::GetAbilityRecordByToken(token));
     }
     auto iter = std::find_if(prepareTerminateByPidRecords_.begin(), prepareTerminateByPidRecords_.end(),
         [pid, _moduleName = moduleName](const std::shared_ptr<PrepareTerminateByPidRecord> &record) {
@@ -3528,7 +3528,7 @@ std::vector<sptr<IRemoteObject>> UIAbilityLifecycleManager::PrepareTerminateAppA
         // Terminate immediately by default
         TAG_LOGI(AAFwkTag::ABILITYMGR, "PrepareTerminate immediately");
         for (auto token: tokens) {
-            TerminateSession(std::static_pointer_cast<UIAbilityRecord>(Token::GetAbilityRecordByToken(token)));
+            TerminateSession(Token::GetAbilityRecordByToken(token));
         }
     }
     return remainingTokens;
@@ -3559,7 +3559,7 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
     TAG_LOGI(AAFwkTag::ABILITYMGR, "prepare terminate app");
     IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->BlockProcessCacheByPids(pids));
     for (const auto &pid : pids) {
-        std::unordered_set<UIAbilityRecordPtr> abilitysToTerminate;
+        std::unordered_set<std::shared_ptr<UIAbilityRecord>> abilitysToTerminate;
         std::vector<sptr<IRemoteObject>> tokens;
         IN_PROCESS_CALL_WITHOUT_RET(
             DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(pid, tokens));
@@ -3569,7 +3569,7 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "terminate blocked");
                 continue;
             }
-            abilitysToTerminate.emplace(std::static_pointer_cast<UIAbilityRecord>(abilityRecord));
+            abilitysToTerminate.emplace(abilityRecord);
         }
         for (const auto &abilityRecord : abilitysToTerminate) {
             TerminateSession(abilityRecord);
@@ -3655,7 +3655,7 @@ void UIAbilityLifecycleManager::BatchCloseUIAbility(
     }
 }
 
-void UIAbilityLifecycleManager::TerminateSession(UIAbilityRecordPtr abilityRecord)
+void UIAbilityLifecycleManager::TerminateSession(std::shared_ptr<AbilityRecord> abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
     auto sessionInfo = abilityRecord->GetSessionInfo();
