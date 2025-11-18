@@ -1850,7 +1850,7 @@ napi_value JsAbilityContext::ConnectExtensionAbilityCommon(napi_env env, NapiCal
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
     }
-    
+
     std::string proNameNotFilter = "";
     auto selfToken = IPCSkeleton::GetSelfTokenID();
     if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken) &&

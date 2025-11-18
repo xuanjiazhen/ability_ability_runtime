@@ -61,9 +61,9 @@ AppRecovery::~AppRecovery()
 
 static void SigQuitHandler(int signal)
 {
-    g_blocked = true;
+    g_blocked.store(true, std::memory_order_seq_cst);
     std::lock_guard<std::mutex> lock(g_mutex);
-    g_blocked = false;
+    g_blocked.store(false, std::memory_order_seq_cst);
 }
 
 static bool BlockMainThreadLocked()
@@ -92,7 +92,7 @@ static bool BlockMainThreadLocked()
             left -= ret;
         }
 
-        if (g_blocked) {
+        if (g_blocked.load(std::memory_order_acquire)) {
             return true;
         }
     }
@@ -132,7 +132,7 @@ bool AppRecovery::AddAbility(std::shared_ptr<AbilityRuntime::UIAbility> ability,
             TAG_LOGE(AAFwkTag::RECOVERY, "DeleteInValidMissionFiles failed");
         }
     }
- 
+
     if (isEnable_ && !abilityRecoverys_.empty() && !abilityInfo->recoverable) {
         TAG_LOGE(AAFwkTag::RECOVERY, "recoverable is false");
         return false;
@@ -257,7 +257,7 @@ bool AppRecovery::ScheduleRecoverApp(StateReason reason)
         TAG_LOGE(AAFwkTag::RECOVERY, "not recover app");
         return false;
     }
-    
+
     if (!isEnable_) {
         if (OHOS::system::GetParameter("const.dfx.sub_health_recovery.enable", "") == "true") {
             DoRecoverMainApp(reason);
@@ -352,7 +352,7 @@ void AppRecovery::DoRecoverMainApp(StateReason reason)
     }
     abilityMgr->ScheduleRecoverAbility(token, reason, want);
 }
- 
+
 void AppRecovery::DoSaveAppState(StateReason reason, uintptr_t ability)
 {
     TAG_LOGD(AAFwkTag::RECOVERY, "begin");

@@ -241,18 +241,44 @@ bool ApplicationCleaner::RemoveDir(const std::string &tempPath)
     if (tempPath.empty()) {
         return false;
     }
+    std::string realPath;
+    if (!OHOS::PathToRealPath(tempPath, realPath)) {
+        TAG_LOGW(AAFwkTag::APPKIT, "PathToRealPath failed: %{public}s", tempPath.c_str());
+        return false;
+    }
+    if (realPath.find("../") != std::string::npos ||
+        realPath.find("..\\") != std::string::npos) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Path contains traversal patterns");
+        return false;
+    }
+
+    int dirFd = open(OHOS::ExtractFilePath(realPath).c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW);
+    if (dirFd == -1) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to open parent directory");
+        return false;
+    }
+
+    struct stat statBuf;
+    std::string fileName = OHOS::ExtractFileName(realPath);
+    if (fstatat(dirFd, fileName.c_str(), &statBuf, AT_SYMLINK_NOFOLLOW) == 0 &&
+        S_ISLNK(statBuf.st_mode)) {
+        TAG_LOGD(AAFwkTag::APPKIT, "Path is a symbolic link, skip it");
+        close(dirFd);
+        return false;
+    }
+    close(dirFd);
     struct stat buf = {};
-    if (stat(tempPath.c_str(), &buf) != 0) {
+    if (stat(realPath.c_str(), &buf) != 0) {
         TAG_LOGW(AAFwkTag::APPKIT, "obtain file properties failed");
         return false;
     }
 
     if (S_ISREG(buf.st_mode)) {
-        return OHOS::RemoveFile(tempPath);
+        return OHOS::RemoveFile(realPath);
     }
 
     if (S_ISDIR(buf.st_mode)) {
-        return OHOS::ForceRemoveDirectory(tempPath);
+        return OHOS::ForceRemoveDirectory(realPath);
     }
 
     return false;

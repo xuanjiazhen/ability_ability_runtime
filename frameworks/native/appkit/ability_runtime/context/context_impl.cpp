@@ -159,6 +159,7 @@ bool ContextImpl::PrintDrawnCompleted()
 void ContextImpl::CreateDirIfNotExistWithCheck(const std::string &dirPath, const mode_t &mode, bool checkExist)
 {
     if (checkExist) {
+        std::lock_guard<std::mutex> globalLock(checkedDirSetLock_);
         CreateDirIfNotExist(dirPath, mode);
         return;
     }

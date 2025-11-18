@@ -37,12 +37,46 @@ bool JsonUtils::LoadConfiguration(const std::string& path, nlohmann::json& jsonB
 
 std::string JsonUtils::GetConfigPath(const std::string& path, const std::string& defaultPath)
 {
+    if (!IsValidConfigFileName(path)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid config path: %{public}s", path.c_str());
+        return defaultPath;
+    }
+
     char buf[MAX_PATH_LEN] = { 0 };
     char *configPath = GetOneCfgFile(path.c_str(), buf, MAX_PATH_LEN);
     if (configPath == nullptr || configPath[0] == '\0' || strlen(configPath) > MAX_PATH_LEN) {
         return defaultPath;
     }
     return configPath;
+}
+
+bool JsonUtils::IsValidConfigFileName(const std::string& fileName)
+{
+    const std::string dangerousChars = "../\\:*?\"<>|";
+    if (fileName.find_first_of(dangerousChars) != std::string::npos) {
+        return false;
+    }
+
+    std::vector<std::string> traversalPatterns = {
+        "../", "..\\", "%2e%2e", "%2E%2E", "%2e%2e%2f", "%2E%2E%2F",
+        "..;/", "..;\\", "%c0%af", "%c1%9c", "%c0%ae%c0%ae", "%c1%9c%c1%9c",
+        "..%2f", "..%2F", "..%5c", "..%5C", "0x2e0x2e", "0x2E0x2E",
+        "%uff0e", "%uFF0E", "%ef%bc%8e", "%EF%BC%8E"
+    };
+
+    for (const auto& pattern : traversalPatterns) {
+        if (fileName.find(pattern) != std::string::npos) {
+            return false;
+        }
+    }
+
+    std::string decodedFileName = DecodeUnicodeEscapes(fileName);
+    if (decodedFileName != fileName) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Unicode encoding detected, validating decoded string");
+        return IsValidConfigFileName(decodedFileName);
+    }
+
+    return true;
 }
 
 bool JsonUtils::ReadFileInfoJson(const std::string &filePath, nlohmann::json &jsonBuf)
@@ -148,6 +182,37 @@ void JsonUtils::JsonToUnorderedStrSet(const nlohmann::json &jsonObject, const st
         auto str = itemJson.get<std::string>();
         set.emplace(str);
     }
+}
+
+std::string JsonUtils::DecodeUnicodeEscapes(const std::string& input)
+{
+    std::string result = input;
+
+    // 解析%uXXXX格式的Unicode转义
+    std::regex unicodeRegex("%u([0-9a-fA-F]{4})");
+    std::smatch match;
+
+    while (std::regex_search(result, match, unicodeRegex)) {
+        std::string hexStr = match[1].str();
+        char32_t unicodeChar = std::stoul(hexStr, nullptr, 16);
+
+        // 转换为UTF-8
+        std::string utf8Char;
+        if (unicodeChar <= 0x7F) {
+            utf8Char = static_cast<char>(unicodeChar);
+        } else if (unicodeChar <= 0x7FF) {
+            utf8Char += static_cast<char>(0xC0 | (unicodeChar >> 6));
+            utf8Char += static_cast<char>(0x80 | (unicodeChar & 0x3F));
+        } else if (unicodeChar <= 0xFFFF) {
+            utf8Char += static_cast<char>(0xE0 | (unicodeChar >> 12));
+            utf8Char += static_cast<char>(0x80 | ((unicodeChar >> 6) & 0x3F));
+            utf8Char += static_cast<char>(0x80 | (unicodeChar & 0x3F));
+        }
+
+        result.replace(match.position(), match.length(), utf8Char);
+    }
+
+    return result;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

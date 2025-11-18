@@ -184,6 +184,13 @@ std::string MissionDataStorage::GetMissionSnapshotPath(int32_t missionId, bool i
 
 bool MissionDataStorage::CheckFileNameValid(const std::string &fileName)
 {
+    if (fileName.find("../") != std::string::npos ||
+        fileName.find("..\\") != std::string::npos ||
+        fileName.find("%2e%2e") != std::string::npos) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Path traversal attempt detected in filename: %{public}s", fileName.c_str());
+        return false;
+    }
+
     std::string fileNameExcludePath = OHOS::ExtractFileName(fileName);
     if (fileNameExcludePath.find(MISSION_JSON_FILE_PREFIX) != 0) {
         return false;
@@ -382,7 +389,7 @@ std::unique_ptr<Media::PixelMap> MissionDataStorage::GetPixelMap(int missionId, 
         return nullptr;
     }
     uint32_t errCode = 0;
-    
+
     size_t bufferSize = 0;
     const std::string fileName = filePath;
     std::unique_ptr<uint8_t[]> buffer = MissionDataStorage::ReadFileToBuffer(fileName, bufferSize);
