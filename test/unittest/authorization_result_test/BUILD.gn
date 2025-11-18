@@ -25,7 +25,10 @@ ohos_unittest("authorization_result_test") {
 
   configs = [ "${ability_runtime_test_path}/mock/services_abilitymgr_test:aafwk_mock_config" ]
   cflags = []
-  deps = [ "${ability_runtime_native_path}/ability/native:abilitykit_native" ]
+  deps = [
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_runtime:ability_context_native",

@@ -40,7 +40,7 @@ ohos_unittest("multi_app_utils_test") {
     "src/mock_app_mgr_service.cpp",
     "src/mock_app_mgr_utils.cpp",
   ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_base:want",
     "ability_runtime:app_manager",

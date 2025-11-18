@@ -51,7 +51,7 @@ ohos_shared_library("foreground_app_obs_manager") {
 
   public_configs = [ ":foreground_app_obs_manager_public_config" ]
 
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [
     "ability_base:want",

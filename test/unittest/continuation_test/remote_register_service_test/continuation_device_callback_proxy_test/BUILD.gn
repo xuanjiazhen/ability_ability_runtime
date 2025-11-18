@@ -45,7 +45,10 @@ ohos_unittest("continuation_device_callback_proxy_test") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  deps = [ "${ability_runtime_native_path}/ability/native:continuation_ipc" ]
+  deps = [
+    "${ability_runtime_native_path}/ability/native:continuation_ipc",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:want",

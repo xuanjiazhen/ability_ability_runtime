@@ -94,6 +94,7 @@ ohos_unittest("ability_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -155,6 +156,7 @@ ohos_unittest("ability_lifecycle_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -193,6 +195,7 @@ ohos_unittest("ability_lifecycle_executor_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -245,6 +248,7 @@ ohos_unittest("ability_context_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -290,6 +294,7 @@ ohos_unittest("page_ability_impl_test") {
       "${ability_runtime_native_path}/ability/native:abilitykit_utils",
       "${ability_runtime_native_path}/appkit:app_context",
       "${ability_runtime_native_path}/appkit:appkit_native",
+      "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ]
 
     external_deps = [
@@ -332,6 +337,7 @@ ohos_unittest("service_ability_impl_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -374,6 +380,7 @@ ohos_unittest("scene_created_test") {
       "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
       "${ability_runtime_native_path}/ability/native:abilitykit_native",
       "${ability_runtime_native_path}/appkit:app_context",
+      "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ]
 
     external_deps = [
@@ -428,6 +435,7 @@ ohos_unittest("data_ability_helper_test") {
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -497,6 +505,7 @@ ohos_unittest("data_ability_helper_impl_test") {
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
   external_deps = [
     "ability_base:base",
@@ -543,6 +552,7 @@ ohos_unittest("data_ability_operation_test") {
   deps = [
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -593,6 +603,7 @@ ohos_unittest("ability_impl_active_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -650,6 +661,7 @@ ohos_unittest("ability_impl_test") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_path}/services/abilitymgr:abilityms_target",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -716,6 +728,7 @@ ohos_unittest("ui_ability_impl_test") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_path}/services/abilitymgr:abilityms_target",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -794,6 +807,7 @@ ohos_unittest("ability_thread_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
   ]
 
@@ -881,6 +895,7 @@ ohos_unittest("fa_ability_thread_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
   ]
 
@@ -941,6 +956,7 @@ ohos_unittest("extension_ability_thread_test") {
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1007,6 +1023,7 @@ ohos_unittest("ui_ability_thread_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
   ]
 
@@ -1068,6 +1085,7 @@ ohos_unittest("service_extension_module_loader_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:service_extension",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1121,6 +1139,7 @@ ohos_unittest("ability_process_test") {
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1171,6 +1190,7 @@ ohos_unittest("extension_test") {
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1225,6 +1245,7 @@ ohos_unittest("extension_second_test") {
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1277,6 +1298,7 @@ ohos_unittest("form_extension_test") {
     "${ability_runtime_native_path}/ability/native:form_extension",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1330,6 +1352,7 @@ ohos_unittest("ability_thread_call_request_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1378,6 +1401,7 @@ ohos_unittest("form_extension_provider_client_test") {
       "${ability_runtime_native_path}/ability/native:abilitykit_native",
       "${ability_runtime_native_path}/ability/native:form_extension",
       "${ability_runtime_native_path}/appkit:app_context",
+      "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ]
 
     external_deps = [
@@ -1443,6 +1467,7 @@ ohos_unittest("data_ability_impl_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1520,6 +1545,7 @@ ohos_unittest("data_ability_impl_file_secondpart_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1588,6 +1614,7 @@ ohos_unittest("data_ability_impl_file_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1658,6 +1685,7 @@ ohos_unittest("ability_thread_dataability_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1724,7 +1752,10 @@ ohos_unittest("data_uri_utils_test") {
     "data_uri_utils_test.cpp",
   ]
 
-  deps = [ "${ability_runtime_native_path}/appkit:app_context" ]
+  deps = [
+    "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:extractortool",
@@ -1764,6 +1795,7 @@ ohos_unittest("extension_impl_test") {
     "${ability_runtime_native_path}/ability/native:form_extension",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1820,6 +1852,7 @@ ohos_unittest("ability_permission_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1853,7 +1886,10 @@ ohos_unittest("task_handler_client_test") {
 
   configs = [ ":module_private_config" ]
 
-  deps = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:extractortool",
@@ -1900,6 +1936,7 @@ ohos_unittest("ui_ability_test") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_path}/services/abilitymgr:abilityms_target",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -1947,7 +1984,10 @@ ohos_unittest("data_ability_result_test") {
 
   configs = [ ":module_private_config" ]
 
-  deps = [ "${ability_runtime_native_path}/ability/native:abilitykit_native" ]
+  deps = [
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:extractortool",
@@ -1996,6 +2036,7 @@ ohos_unittest("form_host_client_test") {
       "${ability_runtime_native_path}/appkit:app_context",
       "${ability_runtime_native_path}/appkit:appkit_manager_helper",
       "${ability_runtime_native_path}/appkit:appkit_native",
+      "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ]
 
     external_deps = [
@@ -2054,6 +2095,7 @@ ohos_unittest("continuation_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2107,7 +2149,7 @@ ohos_unittest("ability_transaction_callback_info_test") {
   sources = [ "ability_transaction_callback_info_test.cpp" ]
 
   configs = [ ":module_private_config" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_base:base",
     "ability_base:configuration",
@@ -2149,6 +2191,7 @@ ohos_unittest("reserse_continuation_scheduler_primary_stub_test") {
       "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
       "${ability_runtime_native_path}/ability/native:abilitykit_native",
       "${ability_runtime_native_path}/appkit:app_context",
+      "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ]
 
     external_deps = [
@@ -2192,6 +2235,7 @@ ohos_unittest("reserse_continuation_scheduler_primary_proxy_test") {
       "${ability_runtime_native_path}/ability/native:abilitykit_utils",
       "${ability_runtime_native_path}/appkit:app_context",
       "${ability_runtime_path}/utils/global/freeze:freeze_util",
+      "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ]
 
     external_deps = [
@@ -2234,6 +2278,7 @@ ohos_unittest("distributed_client_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2282,6 +2327,7 @@ ohos_unittest("ability_window_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2357,6 +2403,7 @@ ohos_unittest("ability_handler_test") {
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2421,6 +2468,7 @@ ohos_unittest("ability_impl_factory_test") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2483,6 +2531,7 @@ ohos_unittest("ability_loader_test") {
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/ability/native:uiabilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2524,6 +2573,7 @@ ohos_unittest("ability_local_record_test") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2563,6 +2613,7 @@ ohos_unittest("reverse_continuation_scheduler_replica_proxy_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:continuation_ipc",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2603,6 +2654,7 @@ ohos_unittest("reverse_continuation_scheduler_replica_stub_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:continuation_ipc",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2649,6 +2701,7 @@ ohos_unittest("ability_connection_manager_test") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2695,7 +2748,7 @@ ohos_unittest("abilityruntime_test") {
   sources = [ "ability_runtime_test.cpp" ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_runtime:runtime",
     "c_utils:utils",
@@ -2728,6 +2781,7 @@ ohos_unittest("form_extension_module_loader_test") {
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:form_extension",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2764,6 +2818,7 @@ ohos_unittest("action_extension_module_loader_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:action_extension",
     "${ability_runtime_native_path}/ability/native:ui_extension",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2808,6 +2863,7 @@ ohos_unittest("action_extension_test") {
     "${ability_runtime_native_path}/ability/native:ui_extension",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2854,6 +2910,7 @@ ohos_unittest("share_extension_module_loader_test") {
     "${ability_runtime_native_path}/ability/native:ui_extension",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2898,6 +2955,7 @@ ohos_unittest("share_extension_test") {
     "${ability_runtime_native_path}/ability/native:ui_extension",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2941,6 +2999,7 @@ ohos_unittest("auto_fill_extension_module_loader_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -2986,6 +3045,7 @@ ohos_unittest("auto_fill_extension_test") {
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3035,6 +3095,7 @@ ohos_unittest("embedded_ui_extension_module_loader_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:embedded_ui_extension",
     "${ability_runtime_native_path}/ability/native:ui_extension",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3078,6 +3139,7 @@ ohos_unittest("embedded_ui_extension_test") {
     "${ability_runtime_native_path}/ability/native:ui_extension",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3122,6 +3184,7 @@ ohos_unittest("app_module_checker_test") {
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3166,6 +3229,7 @@ ohos_unittest("app_service_extension_module_loader_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:app_service_extension",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3225,6 +3289,7 @@ ohos_unittest("js_ui_extension_Callback_test") {
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3275,6 +3340,7 @@ ohos_unittest("dialog_request_callback_test") {
   deps = [
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:dialog_request_callback",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
@@ -3334,6 +3400,7 @@ ohos_unittest("ability_second_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

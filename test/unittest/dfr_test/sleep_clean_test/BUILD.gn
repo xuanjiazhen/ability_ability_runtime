@@ -49,6 +49,7 @@ ohos_unittest("sleep_clean_test") {
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
 

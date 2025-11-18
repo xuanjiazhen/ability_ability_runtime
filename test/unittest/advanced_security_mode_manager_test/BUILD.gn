@@ -31,7 +31,10 @@ ohos_unittest("advanced_security_mode_manager_test") {
     "advanced_security_mode_manager_test.cpp",
   ]
 
-  deps = [ "${ability_runtime_services_path}/appmgr:libappms" ]
+  deps = [
+    "${ability_runtime_services_path}/appmgr:libappms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "googletest:gtest_main",
