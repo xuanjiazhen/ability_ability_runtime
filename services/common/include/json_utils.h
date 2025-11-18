@@ -70,7 +70,7 @@ public:
      */
     bool IsEqual(nlohmann::json &jsonObject, const std::string &key,
         const std::string &value, bool checkEmpty = false);
-    
+
     /**
      * IsEqual, check if json object contains certain key.
      *
@@ -112,6 +112,8 @@ public:
 private:
     std::string GetConfigPath(const std::string& path, const std::string& defaultPath);
     bool ReadFileInfoJson(const std::string &filePath, nlohmann::json &jsonBuf);
+    bool IsValidConfigFileName(const std::string& fileName);
+    std::string DecodeUnicodeEscapes(const std::string& input);
     JsonUtils() = default;
     DISALLOW_COPY_AND_MOVE(JsonUtils);
 };
