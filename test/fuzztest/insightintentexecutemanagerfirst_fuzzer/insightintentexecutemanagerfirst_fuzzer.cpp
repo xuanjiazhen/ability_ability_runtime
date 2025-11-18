@@ -73,7 +73,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->GetMainElementName(param);
     DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->UpdatePageDecoratorParams(param, info, want);
     DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->UpdateEntryDecoratorParams(param, info, want);
-    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateDecoratorParams(param,
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateInsightIntentParams(param,
         decoratorInfo, want);
 
     return true;
