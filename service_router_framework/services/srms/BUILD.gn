@@ -47,6 +47,7 @@ ohos_shared_library("libsrms") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${srms_inner_api_path}:srms_fwk",
   ]
   deps += [ "${srms_inner_api_path}:service_router_mgr_stub" ]

@@ -56,6 +56,7 @@ ohos_shared_library("uri_permission_mgr") {
   deps = [
     ":uri_permission_manager_interface",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

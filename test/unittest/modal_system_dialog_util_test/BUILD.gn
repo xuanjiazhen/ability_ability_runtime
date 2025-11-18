@@ -42,7 +42,7 @@ ohos_unittest("modal_system_dialog_util_test") {
     "mock/src/mock_parameters.cpp",
     "modal_system_dialog_util_test.cpp",
   ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_base:base",
     "ability_base:configuration",

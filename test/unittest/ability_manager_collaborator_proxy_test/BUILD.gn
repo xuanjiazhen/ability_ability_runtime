@@ -36,7 +36,10 @@ ohos_unittest("ability_manager_collaborator_proxy_test") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  deps = [ "${ability_runtime_services_path}/abilitymgr:abilityms" ]
+  deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:configuration",

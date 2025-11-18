@@ -22,6 +22,8 @@ ohos_shared_library("wantconstant") {
     "want_constant.cpp",
   ]
 
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
+
   external_deps = [
     "hilog:libhilog",
     "napi:ace_napi",
@@ -45,7 +47,7 @@ ohos_shared_library("wantconstant_napi") {
     "native_module.cpp",
     "want_constant.cpp",
   ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "hilog:libhilog",
     "napi:ace_napi",

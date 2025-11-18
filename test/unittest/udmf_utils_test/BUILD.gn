@@ -35,7 +35,7 @@ ohos_unittest("udmf_utils_test") {
     "udmf_utils_test.cpp",
   ]
 
-  deps = []
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
 
   external_deps = [
     "ability_base:want",
