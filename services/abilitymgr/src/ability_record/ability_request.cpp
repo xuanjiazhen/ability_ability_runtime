@@ -43,7 +43,7 @@ void AbilityRequest::Dump(std::vector<std::string> &state)
     state.push_back(dumpInfo);
 }
 
-void AbilityRequest::Valuation(const Want &srcWant, int srcRequestCode,
+void AbilityRequest::Voluation(const Want &srcWant, int srcRequestCode,
     const sptr<IRemoteObject> &srcCallerToken, const std::shared_ptr<AbilityStartSetting> srcStartSetting,
     int srcCallerUid)
 {
