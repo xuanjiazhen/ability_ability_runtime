@@ -120,9 +120,11 @@ private:
 
     static int32_t AddWantUirsAndFlagsFromParam(
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want);
-    static int32_t CheckAndUpdateDecoratorParams(
+    static int32_t CheckAndUpdateInsightIntentParams(
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+        Want &want);
+    static int32_t UpdateNoDecoratorIntentParams(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         Want &want);
     static int32_t UpdateFuncDecoratorParams(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         AbilityRuntime::ExtractInsightIntentInfo &info, Want &want);
