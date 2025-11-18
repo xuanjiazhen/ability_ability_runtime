@@ -143,12 +143,16 @@ void InsightIntentDbCache::GetInsightIntentGenericInfo(const std::string &bundle
     }
 }
 
-void InsightIntentDbCache::GetAllInsightIntentInfo(const int32_t userId, std::vector<ExtractInsightIntentInfo> &infos)
+void InsightIntentDbCache::GetAllInsightIntentInfo(const int32_t userId, std::vector<ExtractInsightIntentInfo> &infos,
+    std::vector<InsightIntentInfo> &configInfos)
 {
     ExtractInsightIntentInfo info;
+    InsightIntentInfo cfg;
+    cfg.intentName = "configIntent";
     info.decoratorClass = "decoratorClass";
     info.decoratorFile = "decoratorFile";
     infos.emplace_back(info);
+    configInfos.emplace_back(cfg);
 }
 
 void InsightIntentDbCache::GetInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,

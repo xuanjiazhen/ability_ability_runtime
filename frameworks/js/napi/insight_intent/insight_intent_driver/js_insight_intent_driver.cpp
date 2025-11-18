@@ -172,6 +172,11 @@ private:
         if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], flag) ||
             (flag != GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT &&
             flag != GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT &&
+            flag != GetInsightIntentFlag::GET_CONFIG_INTENT_INFO &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO | GetInsightIntentFlag::GET_ENTITY_INFO) &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO | GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO |
+                GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO) &&
             flag != (GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO) &&
             flag != (GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO))) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse flag failed");
@@ -215,6 +220,11 @@ private:
         if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], flag) ||
             (flag != GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT &&
             flag != GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT &&
+            flag != GetInsightIntentFlag::GET_CONFIG_INTENT_INFO &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO | GetInsightIntentFlag::GET_ENTITY_INFO) &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO | GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO |
+                GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO) &&
             flag != (GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO) &&
             flag != (GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO))) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse flag failed");
@@ -271,6 +281,11 @@ private:
         if (!ConvertFromJsValue(env, info.argv[INDEX_THREE], flag) ||
             (flag != GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT &&
             flag != GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT &&
+            flag != GetInsightIntentFlag::GET_CONFIG_INTENT_INFO &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO | GetInsightIntentFlag::GET_ENTITY_INFO) &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO | GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) &&
+            flag != (GetInsightIntentFlag::GET_CONFIG_INTENT_INFO |
+                GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO) &&
             flag != (GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO) &&
             flag != (GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO))) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse flag failed");
@@ -287,7 +302,11 @@ private:
         NapiAsyncTask::CompleteCallback complete =
             [innerErrorCode, intentInfo](napi_env env, NapiAsyncTask &task, int32_t status) {
                 if (*innerErrorCode == 0) {
-                    task.ResolveWithNoError(env, CreateInsightIntentInfoForQuery(env, *intentInfo));
+                    if (intentInfo->isConfig) {
+                        task.ResolveWithNoError(env, CreateConfigInsightIntentInfoForQuery(env, *intentInfo));
+                    } else {
+                        task.ResolveWithNoError(env, CreateInsightIntentInfoForQuery(env, *intentInfo));
+                    }
                 } else {
                     task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*innerErrorCode)));
                 }
@@ -340,6 +359,8 @@ static napi_value InitGetInsightIntentFlagObject(napi_env env)
         env, napiObject, "GET_SUMMARY_INSIGHT_INTENT", GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT));
     NAPI_CALL(env, SetEnumItem(
         env, napiObject, "GET_ENTITY_INFO", GetInsightIntentFlag::GET_ENTITY_INFO));
+    NAPI_CALL(env, SetEnumItem(
+        env, napiObject, "GET_CONFIG_INTENT_INFO", GetInsightIntentFlag::GET_CONFIG_INTENT_INFO)); 
 
     return napiObject;
 }

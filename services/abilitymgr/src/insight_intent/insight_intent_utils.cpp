@@ -99,6 +99,7 @@ uint32_t InsightIntentUtils::GetSrcEntry(const AppExecFwk::ElementName &elementN
     TAG_LOGE(AAFwkTag::INTENT, "get srcEntry failed");
     return AAFwk::ERR_INSIGHT_INTENT_START_INVALID_COMPONENT;
 }
+
 uint32_t InsightIntentUtils::ConvertExtractInsightIntentGenericInfo(
     ExtractInsightIntentGenericInfo &genericInfo, InsightIntentInfoForQuery &queryInfo)
 {
@@ -166,6 +167,43 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
             insightInfo.parentClassName = entityInfo.parentClassName;
             queryInfo.entities.emplace_back(insightInfo);
         }
+    }
+
+    return ERR_OK;
+}
+
+uint32_t InsightIntentUtils::ConvertConfigInsightIntentInfo(
+        InsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo, bool getEntity)
+{
+    queryInfo.isConfig = true;
+    queryInfo.bundleName = intentInfo.bundleName;
+    queryInfo.moduleName = intentInfo.moduleName;
+    queryInfo.intentName = intentInfo.intentName;
+    queryInfo.srcEntry = intentInfo.srcEntry;
+    queryInfo.displayName = intentInfo.displayName;
+    queryInfo.domain = intentInfo.intentDomain;
+    queryInfo.intentVersion = intentInfo.intentVersion;
+    queryInfo.displayDescription = intentInfo.displayDescription;
+    queryInfo.icon = intentInfo.icon;
+
+    for (auto &keyword : intentInfo.keywords) {
+        queryInfo.keywords.emplace_back(keyword);
+    }
+    for (auto &inputParams : intentInfo.inputParams) {
+        queryInfo.inputParams.emplace_back(inputParams);
+    }
+    for (auto &outputParams : intentInfo.outputParams) {
+        queryInfo.outputParams.emplace_back(outputParams);
+    }
+
+    queryInfo.uiAbilityIntentInfo.abilityName = intentInfo.uiAbilityIntentInfo.abilityName;
+    queryInfo.uiAbilityIntentInfo.supportExecuteMode = intentInfo.uiAbilityIntentInfo.supportExecuteMode;
+    queryInfo.uiExtensionIntentInfo.abilityName = intentInfo.uiExtensionIntentInfo.abilityName;
+    queryInfo.serviceExtensionIntentInfo.abilityName = intentInfo.serviceExtensionIntentInfo.abilityName;
+    queryInfo.formIntentInfo.abilityName = intentInfo.formIntentInfo.abilityName;
+    queryInfo.formIntentInfo.formName = intentInfo.formIntentInfo.formName;
+    if (getEntity) {
+        queryInfo.cfgEntities = intentInfo.cfgEntities;
     }
 
     return ERR_OK;

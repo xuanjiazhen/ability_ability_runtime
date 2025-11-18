@@ -88,16 +88,25 @@ HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_001, TestSize.Level0
             bundleName, moduleName, intentName, genericInfo);
 
     std::vector<ExtractInsightIntentInfo> genericInfos2;
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentInfo(100, genericInfos2);
+    std::vector<InsightIntentInfo> configInfos;
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentInfo(100, genericInfos2, configInfos);
     EXPECT_EQ(genericInfos2.empty(), true);
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentInfo(userId, genericInfos2);
+    EXPECT_EQ(configInfos.empty(), true);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentInfo(userId, genericInfos2, configInfos);
     EXPECT_EQ(genericInfos2.empty(), false);
+    EXPECT_EQ(configInfos.empty(), false);
     std::vector<ExtractInsightIntentInfo> genericInfos3;
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(bundleName, 100, genericInfos3);
     EXPECT_EQ(genericInfos3.empty(), true);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(bundleName,
         userId, genericInfos3);
     EXPECT_EQ(genericInfos3.empty(), false);
+    std::vector<InsightIntentInfo> configInfos2;
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfoByName(bundleName, 100, configInfos2);
+    EXPECT_EQ(configInfos2.empty(), true);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfoByName(bundleName,
+        userId, configInfos2);
+    EXPECT_EQ(configInfos2.empty(), false);
     ExtractInsightIntentInfo intentInfo;
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
         bundleName, moduleName, intentName, 100, intentInfo);

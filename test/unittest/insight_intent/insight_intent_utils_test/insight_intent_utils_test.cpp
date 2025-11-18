@@ -471,5 +471,91 @@ HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentEntityInfo_0100, Tes
 
     TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentEntityInfo_0100 end");
 }
+
+/**
+ * @tc.name: ConvertConfigInsightIntentInfo_0100
+ * @tc.desc: basic function test of convert info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertConfigInsightIntentInfo_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,  "InsightIntentUtilsTest ConvertConfigInsightIntentInfo_0100 start");
+    AbilityRuntime::InsightIntentUtils utils;
+    InsightIntentInfoForQuery queryInfo;
+    intentInfo.bundleName = "bundle.cfg";
+    intentInfo.moduleName = "entry";
+    intentInfo.intentName = "PlayMedia";
+    intentInfo.srcEntry = "EntryAbility";
+    intentInfo.intentDomain = "media";
+    intentInfo.intentVersion = "1.0";
+    intentInfo.displayDescription = "desc";
+    intentInfo.icon = "icon.png";
+    intentInfo.keywords = {"music", "video"};
+    bool getEntity = false;
+    auto result = utils.ConvertConfigInsightIntentInfo(intentInfo, queryInfo, getEntity);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(queryInfo.isConfig);
+    EXPECT_EQ(queryInfo.bundleName, intentInfo.bundleName);
+    EXPECT_EQ(queryInfo.moduleName, intentInfo.moduleName);
+    EXPECT_EQ(queryInfo.intentName, intentInfo.intentName);
+    EXPECT_EQ(queryInfo.srcEntry, intentInfo.srcEntry);
+    EXPECT_EQ(queryInfo.domain, intentInfo.intentDomain);
+    EXPECT_EQ(queryInfo.intentVersion, intentInfo.intentVersion);
+    EXPECT_EQ(queryInfo.displayDescription, intentInfo.displayDescription);
+    EXPECT_EQ(queryInfo.icon, intentInfo.icon);
+    ASSERT_EQ(queryInfo.keywords.size(), intentInfo.keywords.size());
+    EXPECT_EQ(queryInfo.keywords[0], "music");
+    EXPECT_EQ(queryInfo.keywords[1], "video");
+    TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertConfigInsightIntentInfo_0100 end.");
+}
+
+/**
+ * @tc.name: ConvertConfigInsightIntentInfo_0200
+ * @tc.desc: basic function test of convert info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertConfigInsightIntentInfo_0200, TestSize.Level1)
+{
+    AbilityRuntime::InsightIntentUtils utils;
+    InsightIntentInfoForQuery queryInfo;
+    InsightIntentInfo intentInfo;
+    intentInfo.uiAbilityIntentInfo.abilityName = "UIAbility";
+    intentInfo.uiAbilityIntentInfo.supportExecuteMode = {"foreground", "background"};
+    intentInfo.uiExtensionIntentInfo.abilityName = "UIExtension";
+    intentInfo.serviceExtensionIntentInfo.abilityName = "ServiceExtension";
+
+    uint32_t ret = utils.ConvertConfigInsightIntentInfo(intentInfo, queryInfo, false);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(queryInfo.uiAbilityIntentInfo.abilityName, "UIAbility");
+    ASSERT_EQ(queryInfo.uiAbilityIntentInfo.supportExecuteMode.size(), 2);
+    EXPECT_EQ(queryInfo.uiAbilityIntentInfo.supportExecuteMode[0], "foreground");
+    EXPECT_EQ(queryInfo.uiAbilityIntentInfo.supportExecuteMode[1], "background");
+    EXPECT_EQ(queryInfo.uiExtensionIntentInfo.abilityName, "UIExtension");
+    EXPECT_EQ(queryInfo.serviceExtensionIntentInfo.abilityName, "ServiceExtension");
+}
+
+/**
+ * @tc.name: ConvertConfigInsightIntentInfo_0300
+ * @tc.desc: basic function test of convert info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertConfigInsightIntentInfo_0300, TestSize.Level1)
+{
+    AbilityRuntime::InsightIntentUtils utils;
+    InsightIntentInfoForQuery queryInfo;
+    InsightIntentInfo intentInfo;
+    intentInfo.formIntentInfo.abilityName = "FormAbility";
+    intentInfo.formIntentInfo.formName = "MusicForm";
+    // add dummy entity to show it is ignored
+    intentInfo.entities.push_back(InsightIntentEntityInfo { .className = "EntityClass" });
+
+    uint32_t ret = utils.ConvertConfigInsightIntentInfo(intentInfo, queryInfo, true);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(queryInfo.formIntentInfo.abilityName, "FormAbility");
+    EXPECT_EQ(queryInfo.formIntentInfo.formName, "MusicForm");
+    EXPECT_TRUE(queryInfo.entities.empty());
+}
 } // namespace AAFwk
 } // namespace OHOS
