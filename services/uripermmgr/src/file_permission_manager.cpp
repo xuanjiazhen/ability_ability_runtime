@@ -14,6 +14,8 @@
  */
 #include "file_permission_manager.h"
 
+#include <dlfcn.h>
+
 #include "accesstoken_kit.h"
 #include "file_uri.h"
 #include "hilog_tag_wrapper.h"
