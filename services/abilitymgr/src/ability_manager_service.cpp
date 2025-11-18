@@ -1317,7 +1317,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, checkResult, "CheckInstanceKey failed");
             return checkResult;
         }
-        abilityRequest.Valuation(want, requestCode, callerToken);
+        abilityRequest.Voluation(want, requestCode, callerToken);
         if (specifyTokenId > 0 && callerToken != nullptr) { // for sa specify tokenId and caller token
             UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, callerToken);
         } else if (!isStartAsCaller) {
@@ -1760,7 +1760,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, checkResult, "CheckInstanceKey failed");
             return checkResult;
         }
-        abilityRequest.Valuation(
+        abilityRequest.Voluation(
             want, requestCode, callerToken, std::make_shared<AbilityStartSetting>(abilityStartSetting));
         abilityRequest.callType = AbilityCallType::START_SETTINGS_TYPE;
         CHECK_POINTER_AND_RETURN(implicitStartProcessor_, ERR_IMPLICIT_START_ABILITY_FAIL);
@@ -2117,7 +2117,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, checkResult, "CheckInstanceKey failed");
             return checkResult;
         }
-        abilityRequest.Valuation(want, requestCode, callerToken);
+        abilityRequest.Voluation(want, requestCode, callerToken);
         if (PermissionVerification::GetInstance()->IsSystemAppCall()) {
             bool windowFocused = startOptions.GetWindowFocused();
             abilityRequest.want.SetParam(Want::PARAM_RESV_WINDOW_FOCUSED, windowFocused);
@@ -3872,7 +3872,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "is implicit start action");
-        abilityRequest.Valuation(want, DEFAULT_INVAL_VALUE, callerToken);
+        abilityRequest.Voluation(want, DEFAULT_INVAL_VALUE, callerToken);
         abilityRequest.callType = AbilityCallType::START_EXTENSION_TYPE;
         abilityRequest.extensionType = extensionType;
         CHECK_POINTER_AND_RETURN(implicitStartProcessor_, ERR_IMPLICIT_START_ABILITY_FAIL);
@@ -4244,7 +4244,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     }
 #endif // SUPPORT_GRAPHICS
     AbilityRequest abilityRequest;
-    abilityRequest.Valuation(extensionSessionInfo->want, DEFAULT_INVAL_VALUE, callerToken);
+    abilityRequest.Voluation(extensionSessionInfo->want, DEFAULT_INVAL_VALUE, callerToken);
     abilityRequest.callType = AbilityCallType::START_EXTENSION_TYPE;
     abilityRequest.sessionInfo = extensionSessionInfo;
     result = GenerateEmbeddableUIAbilityRequest(extensionSessionInfo->want, abilityRequest, callerToken, validUserId);
@@ -11111,8 +11111,7 @@ int AbilityManagerService::PrepareTerminateAbility(const sptr<IRemoteObject> &to
 
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-    bool res = uiAbilityManager->PrepareTerminateAbility(
-        std::static_pointer_cast<UIAbilityRecord>(abilityRecord), false);
+    bool res = uiAbilityManager->PrepareTerminateAbility(abilityRecord, false);
     if (!res) {
         callback->DoPrepareTerminate();
         return ERR_OK;

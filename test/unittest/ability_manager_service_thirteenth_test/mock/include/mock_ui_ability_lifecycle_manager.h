@@ -485,7 +485,7 @@ private:
     std::shared_ptr<StatusBarDelegateManager> GetStatusBarDelegateManager();
     int32_t DoProcessAttachment(UIAbilityRecordPtr abilityRecord);
     void BatchCloseUIAbility(const std::unordered_set<UIAbilityRecordPtr>& abilitySet);
-    void TerminateSession(UIAbilityRecordPtr abilityRecord);
+    void TerminateSession(std::shared_ptr<AbilityRecord> abilityRecord);
     int StartWithPersistentIdByDistributed(const AbilityRequest &abilityRequest, int32_t persistentId);
     void CheckCallerFromBackground(UIAbilityRecordPtr callerAbility, sptr<SessionInfo> &sessionInfo);
     int32_t DoCallerProcessAttachment(UIAbilityRecordPtr abilityRecord);

@@ -200,7 +200,6 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
 
     lifecycleDeal_ = std::make_unique<LifecycleDeal>();
     token_ = sptr<Token>::MakeSptr(weak_from_this());
-
     if (abilityInfo_.applicationInfo.isLauncherApp) {
         isLauncherAbility_ = true;
     }
@@ -225,6 +224,11 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         keepAliveBundle_ = true;
     }
+}
+
+AbilityRecordType AbilityRecord::GetAbilityRecordType()
+{
+    return AbilityRecordType::BASE_ABILITY;
 }
 
 void AbilityRecord::SetUid(int32_t uid)

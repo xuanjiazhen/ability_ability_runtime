@@ -49,6 +49,12 @@ enum class AbilityVisibilityState {
     UNSPECIFIED,
 };
 
+enum class AbilityRecordType {
+    BASE_ABILITY,
+    UI_ABILITY,
+    MISSION_ABILITY,
+};
+
 /**
  * @class Token
  * Token is identification of ability and used to interact with kit and wms.

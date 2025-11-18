@@ -85,6 +85,7 @@ public:
      * Init ability record.
      */
     virtual void Init(const AbilityRequest &abilityRequest);
+    virtual AbilityRecordType GetAbilityRecordType();
 
     /**
      * load UI ability.
