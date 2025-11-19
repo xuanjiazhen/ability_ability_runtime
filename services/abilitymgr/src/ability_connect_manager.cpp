@@ -718,6 +718,8 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     targetService->SetSessionInfo(sessionInfo);
     connectRecordList.push_back(connectRecord);
     AddConnectObjectToMap(connectObject, connectRecordList, isCallbackConnected);
+    HandleConnectionCountIncrement(connectRecord->GetCallerPid(), abilityRequest.abilityInfo.bundleName,
+        abilityRequest.abilityInfo.name);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_CONNECT_EXTENSION);
 
     if (UIExtensionUtils::IsWindowExtension(targetService->GetAbilityInfo().extensionAbilityType)
@@ -750,6 +752,47 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
         targetService->SaveConnectWant(abilityRequest.want);
     }
     return ret;
+}
+
+void AbilityConnectManager::HandleConnectionCountIncrement(int32_t pid, const std::string &bundleName,
+    const std::string &abilityName)
+{
+    if (AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        return;
+    }
+    std::lock_guard<std::mutex> guard(callerPidConnectionCountMapMutex_);
+    auto it = callerPidConnectionCountMap_.find(pid);
+    int32_t currentCount = (it != callerPidConnectionCountMap_.end()) ? it->second : 0;
+    int32_t newCount = currentCount + 1;
+    callerPidConnectionCountMap_[pid] = newCount;
+    for (const auto& threshold : thresholds_) {
+        if (currentCount < threshold && newCount >= threshold) {
+            EventInfo eventInfo;
+            eventInfo.abilityName = abilityName;
+            eventInfo.callerBundleName = bundleName;
+            eventInfo.moduleName = "ReachLilmit";
+            eventInfo.extensionType = threshold;
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "sendEventReport, pid: %{public}d, threshold: %{public}d", pid, threshold);
+            EventReport::SendStartAbilityOtherExtensionEvent(EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
+            break;
+        }
+    }
+}
+
+void AbilityConnectManager::DecrementConnectionCountAndCleanup(int32_t pid) {
+    if (AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        return;
+    }
+    std::lock_guard<std::mutex> guard(callerPidConnectionCountMapMutex_);
+    auto it = callerPidConnectionCountMap_.find(pid);
+    if (it == callerPidConnectionCountMap_.end()) {
+        return;
+    }
+    int32_t &currentCount = it->second;
+    currentCount--;
+    if (currentCount == 0) {
+        callerPidConnectionCountMap_.erase(it);
+    }
 }
 
 void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<AbilityRecord> &targetService,
@@ -2284,6 +2327,9 @@ void AbilityConnectManager::TerminateDone(const std::shared_ptr<AbilityRecord> &
 
 void AbilityConnectManager::RemoveConnectionRecordFromMap(std::shared_ptr<ConnectionRecord> connection)
 {
+    if (connection != nullptr) {
+        DecrementConnectionCountAndCleanup(connection->GetCallerPid());
+    }
     std::lock_guard lock(connectMapMutex_);
     for (auto &connectCallback : connectMap_) {
         auto &connectList = connectCallback.second;
@@ -2388,6 +2434,7 @@ void AbilityConnectManager::HandleCallBackDiedTask(const sptr<IRemoteObject> &co
             ConnectListType connectRecordList = it->second;
             for (auto &connRecord : connectRecordList) {
                 CHECK_POINTER_CONTINUE(connRecord);
+                DecrementConnectionCountAndCleanup(connRecord->GetCallerPid());
                 connRecord->ClearConnCallBack();
             }
         } else {

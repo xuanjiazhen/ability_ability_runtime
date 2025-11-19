@@ -1077,5 +1077,6 @@ HWTEST_F(AbilityConnectManagerFourthTest, SignRestartProcess_001, TestSize.Level
     connectManager->SignRestartProcess(pid);
     EXPECT_TRUE(abilityRecord->GetRestartAppFlag());
 }
+
 }  // namespace AAFwk
 }  // namespace OHOS

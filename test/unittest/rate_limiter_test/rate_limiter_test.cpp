@@ -183,5 +183,6 @@ HWTEST_F(RateLimiterTest, CleanCallMapTest_0200, TestSize.Level2)
 
     TAG_LOGI(AAFwkTag::TEST, "CleanCallMapTest_0200 end.");
 }
+
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -714,6 +714,9 @@ private:
 
     void UpdateUIExtensionBindInfo(
         const std::shared_ptr<AbilityRecord> &abilityRecord, std::string callerBundleName, int32_t notifyProcessBind);
+
+    void HandleConnectionCountIncrement(int32_t pid, const std::string &bundleName, const std::string &abilityName);
+    void DecrementConnectionCountAndCleanup(int32_t pid);
 private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";
@@ -727,6 +730,7 @@ private:
     RecipientMapType uiExtRecipientMap_;
     UIExtensionMapType uiExtensionMap_;
     WindowExtensionMapType windowExtensionMap_;
+    std::map<int32_t, int32_t> callerPidConnectionCountMap_;
 
     std::list<std::shared_ptr<AbilityRecord>> terminatingExtensionList_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
@@ -744,7 +748,9 @@ private:
     std::mutex windowExtensionMapMutex_;
     std::mutex startServiceReqListLock_;
     std::mutex loadAbilityQueueLock_;
+    std::mutex callerPidConnectionCountMapMutex_;
     std::deque<std::map<int32_t, LoadAbilityContext>> loadAbilityQueue_;
+    std::vector<int32_t> thresholds_ = {50, 100, 200, 500};
 
     DISALLOW_COPY_AND_MOVE(AbilityConnectManager);
 };

@@ -1176,10 +1176,9 @@ void AbilityManagerService::CheckExtensionRateLimit(const std::string &abilityNa
     auto uid = IPCSkeleton::GetCallingUid();
     auto limitResult = RateLimiter::GetInstance().CheckExtensionLimit(uid);
     if (!limitResult.limited) {
-        TAG_LOGI(AAFwkTag::SERVICE_EXT, "Rate limited not triggered");
         return;
     }
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "Rate limited not triggered, tier:%{public}s, limit:%{public}d, uid:%{public}d", 
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "Rate limited triggered, tier:%{public}s, limit:%{public}d, uid:%{public}d", 
                 limitResult.tierName.c_str(), limitResult.triggeredLimit, uid);
     if (RateLimiter::GetInstance().CheckReportLimit(uid, limitResult.triggeredLimit)) {
         return;

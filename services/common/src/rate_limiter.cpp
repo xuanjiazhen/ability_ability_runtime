@@ -23,9 +23,9 @@ namespace {
 constexpr int64_t CLEAN_INTERVAL_MS = 60000; // 60s
 constexpr int64_t EXTENSION_LIMIT_INTERVAL_MS = 1000; // 1s
 const std::vector<std::pair<int32_t, std::string>> EXTENSION_TIERS = {
-    {20, "TIER_20"},
-    {50, "TIER_50"}, 
-    {100, "TIER_100"}
+    {50, "TIER_50"},
+    {100, "TIER_100"}, 
+    {200, "TIER_200"}
 };
 constexpr int64_t REPORT_LIMIT_INTERVAL_MS = 5000; // 5s
 constexpr int32_t REPORT_MAX_LIMIT = 1;
@@ -40,50 +40,33 @@ RateLimiter &RateLimiter::GetInstance()
 RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
 {
     CleanCallMap();
-    
     int64_t currentTimeMillis = CurrentTimeMillis();
     int64_t timeBefore = currentTimeMillis - EXTENSION_LIMIT_INTERVAL_MS;
-    
     std::lock_guard<std::mutex> guard(extensionCallMapLock_);
     auto& timestamps = extensionCallMap_[uid];
-    
-    // 清理过期时间戳
     auto it = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
     timestamps.erase(timestamps.begin(), it);
-    
     int currentCount = timestamps.size();
     LimitResult result{false, 0, ""};
-    
-    // 检查挡位触发状态
     {
         std::lock_guard<std::mutex> tierGuard(tierTriggerTimesLock_);
         auto& userTiers = tierTriggerTimes_[uid];
-        
-        // 清理该用户的过期挡位触发记录
         CleanUserTierTriggerTimes(userTiers, timeBefore);
-        
-        // 从高到低检查挡位（优先触发高挡位）
         for (auto tierIt = EXTENSION_TIERS.rbegin(); tierIt != EXTENSION_TIERS.rend(); ++tierIt) {
             const auto& [limit, tierName] = *tierIt;
-            
             if (currentCount >= limit) {
-                // 检查这个挡位是否在当前时间窗口内已经触发过
                 auto triggerIt = userTiers.find(limit);
                 if (triggerIt == userTiers.end() || triggerIt->second < timeBefore) {
-                    // 该挡位在当前秒内未触发过，可以触发
                     result = {true, limit, tierName};
-                    userTiers[limit] = currentTimeMillis; // 记录触发时间
+                    userTiers[limit] = currentTimeMillis;
                     break;
                 }
             }
         }
     }
-    
-    // 如果没有触发限流，记录当前时间
     if (!result.limited) {
         timestamps.emplace_back(currentTimeMillis);
     }
-    
     return result;
 }
 
@@ -92,21 +75,15 @@ bool RateLimiter::CheckReportLimit(int32_t uid, int32_t triggeredTier)
     std::lock_guard<std::mutex> guard(tierReportCallMapLock_);
     auto& userTierReports = tierReportCallMap_[uid];
     auto& timestamps = userTierReports[triggeredTier];
-    
     int64_t currentTimeMillis = CurrentTimeMillis();
     int64_t timeBefore = currentTimeMillis - REPORT_LIMIT_INTERVAL_MS;
-    
-    // 清理过期时间戳
     auto it = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
     timestamps.erase(timestamps.begin(), it);
-    
     if (timestamps.size() >= static_cast<size_t>(REPORT_MAX_LIMIT)) {
         return true;
     }
-    
     timestamps.emplace_back(currentTimeMillis);
     return false;
-
 }
 
 bool RateLimiter::CheckSingleLimit(int32_t uid, std::unordered_map<int32_t, std::vector<int64_t>> &callMap,
@@ -179,15 +156,11 @@ void RateLimiter::CleanSingleCallMap(std::unordered_map<int32_t, std::vector<int
                                     std::mutex& mapLock, int64_t limitInterval) {
     int64_t timeBefore = CurrentTimeMillis() - limitInterval;
     std::lock_guard<std::mutex> guard(mapLock);
-    
     auto it = callMap.begin();
     while (it != callMap.end()) {
         auto& timestamps = it->second;
-        
-        // 使用二分查找清理过期时间戳
         auto eraseIt = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
         timestamps.erase(timestamps.begin(), eraseIt);
-        
         if (timestamps.empty()) {
             it = callMap.erase(it);
         } else {
