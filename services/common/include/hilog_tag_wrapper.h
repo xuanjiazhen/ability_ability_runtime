@@ -30,7 +30,8 @@
     (__builtin_strrchr(__FILE_NAME__, '/') ? __builtin_strrchr(__FILE_NAME__, '/') + 1 : __FILE_NAME__)
 #endif
 
-namespace OHOS::AAFwk {
+namespace OHOS {
+namespace AAFwk {
 enum class AAFwkLogTag : uint32_t {
     DEFAULT = 0xD001300,        // 0XD001300
     ABILITY,
@@ -102,7 +103,8 @@ enum class AAFwkLogTag : uint32_t {
 
 const char* GetTagInfoFromDomainId(AAFwkLogTag tag);
 std::string ConvertFileName(const std::string& fileName);
-} // OHOS::AAFwk
+} // AAFwk
+} // OHOS
 
 using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
 
