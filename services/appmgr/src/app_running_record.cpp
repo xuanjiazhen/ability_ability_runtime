@@ -313,7 +313,6 @@ void AppRunningRecord::RemoveModuleRecord(
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
 
-    std::unique_lock<ffrt::mutex> appInfosLock(appInfosLock_);
     std::unique_lock<ffrt::mutex> hapModulesLock(hapModulesLock_);
     for (auto &item : hapModules_) {
         auto iter = std::find_if(item.second.begin(),
@@ -323,8 +322,11 @@ void AppRunningRecord::RemoveModuleRecord(
             TAG_LOGD(AAFwkTag::APPMGR, "Removed a record.");
             iter = item.second.erase(iter);
             if (item.second.empty() && !isExtensionDebug) {
+                hapModulesLock.unlock();
+                std::unique_lock<ffrt::mutex> appInfosLock(appInfosLock_);
                 TAG_LOGD(AAFwkTag::APPMGR, "Removed an appInfo.");
                 appInfos_.erase(item.first);
+                hapModulesLock.lock();
                 hapModules_.erase(item.first);
             }
             return;
