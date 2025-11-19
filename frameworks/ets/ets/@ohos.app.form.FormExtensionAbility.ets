@@ -20,7 +20,7 @@ import Want from '@ohos.app.ability.Want';
 import { Configuration } from '@ohos.app.ability.Configuration';
 
 type OnStopFn = () => void;
-type OnShareFormFn = (formid: string) => Record<string, Object>;
+type OnShareFormFn = (formid: string) => Record<string, Object>;	
 type OnAcquireFormDataFn = (formId: string) => Record<string, Object>;
 type OnAcquireFormStateFn = (want: Want) => formInfo.FormState;
 
