@@ -41,7 +41,7 @@ ohos_shared_library("ability_deps_wrapper") {
   public_configs = [ ":ability_deps_wrapper_config" ]
 
   configs = [ ":ability_deps_wrapper_private_config" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_base:base",
     "ability_base:want",

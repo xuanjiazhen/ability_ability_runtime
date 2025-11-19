@@ -99,7 +99,10 @@ ohos_shared_library("srms_fwk") {
 
   public_configs = [ ":srms_fwk_config" ]
 
-  deps = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
   deps += [ ":service_router_mgr_interface" ]
 
   external_deps = [

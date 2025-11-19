@@ -34,6 +34,7 @@ ohos_unittest("auto_fill_manager_util_test") {
   deps = [
     "${ability_runtime_innerkits_path}/auto_fill_manager:auto_fill_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   configs = [ "${ability_runtime_services_path}/common:common_config" ]

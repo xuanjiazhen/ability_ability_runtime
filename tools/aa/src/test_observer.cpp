@@ -19,7 +19,7 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "hilog_tag_wrapper.h"
+#include "hilog_wrapper.h"
 #include "shell_command_config_loader.h"
 #include "shell_command_executor.h"
 #include "system_time.h"
@@ -40,14 +40,14 @@ TestObserver::~TestObserver()
 
 void TestObserver::TestStatus(const std::string& msg, const int64_t& resultCode)
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "enter, msg : %{public}s, code : %{public}" PRId64, msg.data(), resultCode);
+    HILOG_INFO("enter, msg : %{public}s, code : %{public}" PRId64, msg.data(), resultCode);
     printf("%s\n", msg.data());
     fflush(stdout);
 }
 
 void TestObserver::TestFinished(const std::string& msg, const int64_t& resultCode)
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "enter, msg : %{public}s, code : %{public}" PRId64, msg.data(), resultCode);
+    HILOG_INFO("enter, msg : %{public}s, code : %{public}" PRId64, msg.data(), resultCode);
     std::cout << "TestFinished-ResultCode: " + std::to_string(resultCode) << std::endl;
     std::cout << "TestFinished-ResultMsg: " + msg << std::endl;
     isFinished_ = true;
@@ -55,16 +55,16 @@ void TestObserver::TestFinished(const std::string& msg, const int64_t& resultCod
 
 ShellCommandResult TestObserver::ExecuteShellCommand(const std::string& cmd, const int64_t timeoutSec)
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "enter, cmd : \"%{public}s\", timeoutSec : %{public}" PRId64, cmd.data(), timeoutSec);
+    HILOG_INFO("enter, cmd : \"%{public}s\", timeoutSec : %{public}" PRId64, cmd.data(), timeoutSec);
 
     auto cmdExecutor = std::make_shared<ShellCommandExecutor>(cmd, timeoutSec);
     if (!cmdExecutor) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "instance create failed");
+        HILOG_ERROR("instance create failed");
         return {};
     }
 
     if (!std::make_shared<ShellCommandConfigLoader>()->ReadConfig(AA_TOOL_COMMAND_CONFIG)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Read config failed");
+        HILOG_ERROR("Read config failed");
         return {};
     }
     
@@ -73,7 +73,7 @@ ShellCommandResult TestObserver::ExecuteShellCommand(const std::string& cmd, con
 
 bool TestObserver::WaitForFinish(const int64_t& timeoutMs)
 {
-    TAG_LOGD(AAFwkTag::AA_TOOL, "enter");
+    HILOG_DEBUG("enter");
 
     auto realTime = timeoutMs > 0 ? timeoutMs : 0;
     int64_t startTime = SystemTime::GetNowSysTime();
@@ -85,7 +85,7 @@ bool TestObserver::WaitForFinish(const int64_t& timeoutMs)
         sleep(1);
     }
 
-    TAG_LOGI(AAFwkTag::AA_TOOL, "User test finished");
+    HILOG_INFO("User test finished");
     return true;
 }
 }  // namespace AAFwk

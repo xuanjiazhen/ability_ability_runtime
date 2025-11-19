@@ -38,7 +38,10 @@ ohos_unittest("ui_extension_get_host_info_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = [ "${ability_runtime_native_path}/appkit:appkit_manager_helper" ]
+  deps = [
+    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:want",

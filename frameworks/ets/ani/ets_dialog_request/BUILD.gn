@@ -52,6 +52,7 @@ ohos_shared_library("dialogrequest_ani_kit") {
     "${ability_runtime_native_path}/ability/native:dialog_request_callback",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/dialog_request_info:dialog_request_info_ani_kit",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

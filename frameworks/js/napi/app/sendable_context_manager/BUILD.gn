@@ -66,6 +66,7 @@ ohos_shared_library("sendablecontextmanager_napi") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     ":sendable_context_manager_abc",
     ":sendable_context_manager_js",
   ]
