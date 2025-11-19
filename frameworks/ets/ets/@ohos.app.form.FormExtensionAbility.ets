@@ -18,10 +18,11 @@ import formInfo from '@ohos.app.form.formInfo';
 import FormExtensionContext from 'application.FormExtensionContext';
 import Want from '@ohos.app.ability.Want';
 import { Configuration } from '@ohos.app.ability.Configuration';
+import { RecordData } from '@ohos.base';
 
 type OnStopFn = () => void;
-type OnShareFormFn = (formid: string) => Record<string, Object>;
-type OnAcquireFormDataFn = (formId: string) => Record<string, Object>;
+type OnShareFormFn = (formid: string) => Record<string, RecordData>;
+type OnAcquireFormDataFn = (formId: string) => Record<string, RecordData>;
 type OnAcquireFormStateFn = (want: Want) => formInfo.FormState;
 
 export default class FormExtensionAbility {
@@ -42,7 +43,7 @@ export default class FormExtensionAbility {
     console.log(`FormExtensionAbility onCastToNormalForm, formId: ${formId}`);
   }
 
-  onUpdateForm(formId: string, wantParams?: Record<string, Object>): void {
+  onUpdateForm(formId: string, wantParams?: Record<string, RecordData>): void {
     console.log(`FormExtensionAbility onUpdateForm, formId: ${formId},
         wantPara: ${wantParams?.['ohos.extra.param.key.host_bg_inverse_color']}`);
   }
