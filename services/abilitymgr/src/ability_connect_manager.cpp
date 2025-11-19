@@ -2514,6 +2514,8 @@ void AbilityConnectManager::CleanActivatingTimeoutAbility(std::shared_ptr<Abilit
     }
     if (IsUIExtensionAbility(abilityRecord)) {
         TAG_LOGI(AAFwkTag::EXT, "UIExt, no need handle.");
+        uiExtensionAbilityRecordMgr_->CheckIsPreloadUIExtensionSuccess(
+            abilityRecord->GetUIExtensionAbilityId(), false);
         return;
     }
     auto connectList = abilityRecord->GetConnectRecordList();
