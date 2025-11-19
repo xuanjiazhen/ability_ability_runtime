@@ -18,6 +18,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 group("ams_common_target") {
   deps = [
+    ":hilog_tag_wrapper",
     ":perm_verification",
     ":task_handler_wrap",
   ]
