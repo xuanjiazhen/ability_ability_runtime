@@ -15,7 +15,7 @@
 
 #include "js_runtime_utils.h"
 
-#include "hilog_tag_wrapper.h"
+#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -148,7 +148,7 @@ void NapiAsyncTask::Schedule(const std::string &name, napi_env env, std::unique_
 
 void NapiAsyncTask::Resolve(napi_env env, napi_value value)
 {
-    TAG_LOGD(AAFwkTag::ABILITY_SIM, "called");
+    HILOG_DEBUG("called");
     if (deferred_) {
         napi_resolve_deferred(env, deferred_, value);
         deferred_ = nullptr;
@@ -168,7 +168,7 @@ void NapiAsyncTask::Resolve(napi_env env, napi_value value)
 
 void NapiAsyncTask::ResolveWithNoError(napi_env env, napi_value value)
 {
-    TAG_LOGD(AAFwkTag::ABILITY_SIM, "called");
+    HILOG_DEBUG("called");
     if (deferred_) {
         napi_resolve_deferred(env, deferred_, value);
         deferred_ = nullptr;
@@ -207,7 +207,7 @@ void NapiAsyncTask::Reject(napi_env env, napi_value error)
 
 void NapiAsyncTask::ResolveWithCustomize(napi_env env, napi_value error, napi_value value)
 {
-    TAG_LOGD(AAFwkTag::ABILITY_SIM, "called");
+    HILOG_DEBUG("called");
     if (deferred_) {
         napi_resolve_deferred(env, deferred_, value);
         deferred_ = nullptr;
@@ -227,7 +227,7 @@ void NapiAsyncTask::ResolveWithCustomize(napi_env env, napi_value error, napi_va
 
 void NapiAsyncTask::RejectWithCustomize(napi_env env, napi_value error, napi_value value)
 {
-    TAG_LOGD(AAFwkTag::ABILITY_SIM, "called");
+    HILOG_DEBUG("called");
     if (deferred_) {
         napi_reject_deferred(env, deferred_, error);
         deferred_ = nullptr;
@@ -322,7 +322,7 @@ bool NapiAsyncTask::SendNapiEvent(napi_env env, napi_event_priority eventPriorit
             Complete(env, status, this);
         },
         eventPriority) != napi_ok) {
-        TAG_LOGE(AAFwkTag::ABILITY_SIM, "SendNapiEvent failed");
+        HILOG_ERROR("SendNapiEvent failed");
         return false;
     }
     return true;
