@@ -110,6 +110,17 @@ public:
         std::unordered_set<std::string> &set);
 
 private:
+    // UTF-8 encoding constants
+    static constexpr char32_t UNICODE_7BIT_MAX = 0x7F;
+    static constexpr char32_t UNICODE_2BYTE_MAX = 0x7FF;
+    static constexpr char32_t UNICODE_3BYTE_MAX = 0xFFFF;
+    static constexpr char UTF8_2BYTE_FIRST_MASK = 0xC0;
+    static constexpr char UTF8_CONTINUATION_MASK = 0x80;
+    static constexpr char UTF8_3BYTE_FIRST_MASK = 0xE0;
+    static constexpr char UTF8_6BIT_MASK = 0x3F;
+    static constexpr int UTF8_SHIFT_6 = 6;
+    static constexpr int UTF8_SHIFT_12 = 12;
+
     std::string GetConfigPath(const std::string& path, const std::string& defaultPath);
     bool ReadFileInfoJson(const std::string &filePath, nlohmann::json &jsonBuf);
     bool IsValidConfigFileName(const std::string& fileName);
