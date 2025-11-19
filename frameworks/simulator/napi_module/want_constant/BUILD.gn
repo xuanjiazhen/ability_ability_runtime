@@ -22,7 +22,7 @@ ohos_shared_library("wantconstant_napi") {
 
   deps = [
     "${ability_runtime_path}/frameworks/simulator/osal:simulator_osal",
-    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
