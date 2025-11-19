@@ -99,6 +99,8 @@ ohos_shared_library("ability_simulator_inner") {
 
     configs = [ "${windowmanager_path}/previewer:previewer_window_config" ]
 
+    deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
+
     external_deps = [
       "ability_base:string_utils",
       "ets_runtime:libark_jsruntime",
