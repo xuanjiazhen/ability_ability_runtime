@@ -154,6 +154,7 @@ void EtsFreeInstallObserver::CallCallback(ani_object callback, int32_t resultCod
     ani_options aniArgs { 1, &interopEnabled };
     if ((status = etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "Failed to getEnv, status: %{public}d", status);
+        return;
     } else if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "Failed to getEnv, status: %{public}d", status);
         return;
@@ -188,6 +189,7 @@ void EtsFreeInstallObserver::CallCallback(ani_object callback, ani_object abilit
     ani_status status = ANI_ERROR;
     if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "Failed to getEnv, status: %{public}d", status);
+        return;
     }
     ani_object aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
     AppExecFwk::AsyncCallback(env, callback, aniObject, abilityResult);
@@ -252,4 +254,4 @@ void EtsFreeInstallObserver::AddEtsObserverCommon(
     etsObserverObjectList_.emplace_back(object);
 }
 } // namespace AbilityRuntime
-} // namespace OHOS
+} // namespace OHOS
