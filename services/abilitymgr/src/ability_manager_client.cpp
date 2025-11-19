@@ -152,7 +152,7 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, in
         static_cast<uint32_t>(specifiedFullTokenId));
 
     HandleDlpApp(const_cast<Want &>(want));
-    return abms->StartAbility(want, userId, requestCode);
+    return abms->StartAbility(want, userId, requestCode, specifiedFullTokenId);
 }
 
 ErrCode AbilityManagerClient::StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> observer)
@@ -178,7 +178,7 @@ ErrCode AbilityManagerClient::StartAbility(
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
         static_cast<uint32_t>(specifiedFullTokenId));
     HandleDlpApp(const_cast<Want &>(want));
-    return abms->StartAbility(want, callerToken, userId, requestCode);
+    return abms->StartAbility(want, callerToken, userId, requestCode, specifiedFullTokenId);
 }
 
 ErrCode AbilityManagerClient::StartAbilityByInsightIntent(

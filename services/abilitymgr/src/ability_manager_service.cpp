@@ -591,6 +591,7 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
     uint64_t specifiedFullTokenId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt StartAbility - enter");
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
@@ -648,7 +649,9 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
 #ifdef SUPPORT_SCREEN
     DmsUtil::GetInstance().UpdateFlagForCollaboration(want);
 #endif
-    StartAbilityWrapParam startAbilityWrapParam = { want, nullptr, requestCode, false, userId };
+    uint32_t specifyTokenId = static_cast<uint32_t>(specifiedFullTokenId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt StartAbility: %{public}u", specifyTokenId);
+    StartAbilityWrapParam startAbilityWrapParam = { want, nullptr, requestCode, false, userId, false, specifyTokenId };
     int32_t ret = StartAbilityWrap(startAbilityWrapParam);
     AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityWrap", want.GetFlags(), ret);
     if (ret != ERR_OK) {
@@ -660,6 +663,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
 int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
     int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt StartAbility = enter");
     return StartAbilityWithRemoveIntentFlag(want, callerToken, userId, requestCode, true, specifiedFullTokenId);
 }
 
@@ -667,6 +671,7 @@ int AbilityManagerService::StartAbilityWithRemoveIntentFlag(const Want &want, co
     int32_t userId, int requestCode, bool removeInsightIntentFlag, bool hideFailureTipDialog,
     bool isFreeInstallFromService, uint64_t specifiedFullTokenId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt StartAbilityWithRemoveIntentFlag enter");
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
@@ -690,6 +695,7 @@ int32_t AbilityManagerService::StartAbilityByFreeInstall(const Want &want, sptr<
     int32_t userId, int32_t requestCode, bool hideFailureTipDialog, bool isFreeInstallFromService,
     uint64_t specifiedFullTokenId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt StartAbilityByFreeInstall enter");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     bool startWithAccount = want.GetBoolParam(START_ABILITY_TYPE, false);
     if (startWithAccount || IsCrossUserCall(userId)) {
@@ -5258,7 +5264,8 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
 
     if (callerToken != nullptr && callerToken->GetObjectDescriptor() != u"ohos.aafwk.AbilityToken") {
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "invalid Token.");
-        eventInfo.errCode = ConnectLocalAbility(abilityWant, validUserId, connect, nullptr, extensionType);
+        eventInfo.errCode = ConnectLocalAbility(abilityWant, validUserId, connect, nullptr, extensionType, nullptr,
+            false, nullptr, specifiedFullTokenId);
         if (eventInfo.errCode != ERR_OK) {
             if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
                 eventInfo.errReason = "ConnectLocalAbility error";
@@ -5270,7 +5277,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         return eventInfo.errCode;
     }
     eventInfo.errCode = ConnectLocalAbility(abilityWant, validUserId, connect, callerToken, extensionType, nullptr,
-        isQueryExtensionOnly);
+        isQueryExtensionOnly, nullptr, specifiedFullTokenId);
     if (eventInfo.errCode != ERR_OK) {
         if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             eventInfo.errReason = "ConnectLocalAbility error";
@@ -5561,7 +5568,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
         result = CheckCallAppServiceExtensionPermission(abilityRequest, targetService, true, specifyTokenId);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "CheckCallAppServiceExtensionPermission result: %{public}d", result);
     } else {
-        result = CheckCallServicePermission(abilityRequest);
+        result = CheckCallServicePermission(abilityRequest, specifyTokenId);
     }
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "%{public}s checkCallServicePermission error", __func__);
