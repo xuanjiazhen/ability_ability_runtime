@@ -28,7 +28,6 @@
 #include "permission_verification.h"
 #include "application_env.h"
 #include "ani_enum_convert.h"
-#include "app_mgr_client.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

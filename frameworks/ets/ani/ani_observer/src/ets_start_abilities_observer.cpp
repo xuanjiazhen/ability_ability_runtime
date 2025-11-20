@@ -89,11 +89,13 @@ void EtsStartAbilitiesObserver::HandleFinished(const std::string &requestKey, in
 void EtsStartAbilitiesObserver::HandleFinishedInner(const std::string &requestKey, int32_t resultCode)
 {
     ani_ref callbackRef = nullptr;
-    std::lock_guard lock(etsObserverObjectListLock_);
-    auto it = etsObserverObjectList_.find(requestKey);
-    if (it != etsObserverObjectList_.end()) {
-        callbackRef = std::move(it->second);
-        etsObserverObjectList_.erase(it);
+    {
+        std::lock_guard lock(etsObserverObjectListLock_);
+        auto it = etsObserverObjectList_.find(requestKey);
+        if (it != etsObserverObjectList_.end()) {
+            callbackRef = std::move(it->second);
+            etsObserverObjectList_.erase(it);
+        }
     }
     if (callbackRef) {
         CallCallback(static_cast<ani_object>(callbackRef), resultCode);
