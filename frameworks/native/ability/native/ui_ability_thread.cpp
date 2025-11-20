@@ -761,5 +761,18 @@ void UIAbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId
         return;
     }
 }
+
+#ifdef SUPPORT_SCREEN
+std::shared_ptr<UIAbility> UIAbilityThread::GetUIAbility()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGI(AAFwkTag::UIABILITY, "UIAbilityThread::GetUIAbility");
+    if (abilityImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
+        return nullptr;
+    }
+    return abilityImpl_->GetUIAbility();
+}
+#endif
 } // namespace AbilityRuntime
 } // namespace OHOS

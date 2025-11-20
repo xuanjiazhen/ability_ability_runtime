@@ -965,5 +965,18 @@ void UIAbilityImpl::ScheduleAbilityRequestSuccess(const std::string &requestId, 
     };
     ability_->OnAbilityRequestSuccess(requestId, element, jsonObject.dump());
 }
+
+#ifdef SUPPORT_SCREEN
+std::shared_ptr<UIAbility> UIAbilityImpl::GetUIAbility()
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "hanksh UIAbilityImpl::GetUIAbility");
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return nullptr;
+    }
+    return ability_;
+}
+#endif
 } // namespace AbilityRuntime
 } // namespace OHOS

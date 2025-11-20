@@ -347,6 +347,10 @@ class ApplicationContext {
     return this.__context_impl__.createDisplayContext(displayId);
   }
 
+  getAllWindowStages() {
+    return this.__context_impl__.getAllWindowStages();
+  }
+
   set area(mode) {
     return this.__context_impl__.switchArea(mode);
   }

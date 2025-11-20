@@ -300,6 +300,13 @@ public:
      */
     void OnAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message) override;
+
+    /**
+     * @brief Get WindowStage.
+     * @return Returns the current ETSNativeReference.
+     */
+    std::shared_ptr<AppExecFwk::ETSNativeReference> GetEtsWindowStage() override;
+
 protected:
     void DoOnForeground(const Want &want) override;
     void ContinuationRestore(const Want &want) override;

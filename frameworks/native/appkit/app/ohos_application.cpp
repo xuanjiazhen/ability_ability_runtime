@@ -237,6 +237,18 @@ void OHOSApplication::SetApplicationContext(
             }
             return applicationSptr->GetSpecifiedRuntime(codeLanguage);
         });
+#ifdef SUPPORT_SCREEN
+    TAG_LOGI(AAFwkTag::APPKIT, "hanksh OHOSApplication::RegisterGetAllUIAbilitiesCallback");
+    abilityRuntimeContext_->RegisterGetAllUIAbilitiesCallback(
+        [applicationWptr](std::vector<std::shared_ptr<AbilityRuntime::UIAbility>> &uIAbilities) {
+            std::shared_ptr<OHOSApplication> applicationSptr = applicationWptr.lock();
+            if (applicationSptr == nullptr) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null applicationSptr");
+                return;
+            }
+            return applicationSptr->GetAllUIAbilities(uIAbilities);
+        });
+#endif
 }
 
 /**
@@ -1275,5 +1287,25 @@ bool OHOSApplication::UpdateETSRuntime(AbilityRuntime::Runtime::Options &option)
     runtime_ = std::move(etsRuntime);
     return true;
 }
+
+#ifdef SUPPORT_SCREEN
+void OHOSApplication::GetAllUIAbilities(std::vector<std::shared_ptr<AbilityRuntime::UIAbility>> &uIAbilities)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "hanksh OHOSApplication::GetAllUIAbilities");
+    if (abilityRecordMgr_ != nullptr) {
+        for (const auto &abilityToken : abilityRecordMgr_->GetAllTokens()) {
+            TAG_LOGI(AAFwkTag::APPKIT, "hanksh OHOSApplication::GetAbilityItem");
+            auto abilityRecord = abilityRecordMgr_->GetAbilityItem(abilityToken);
+            if (abilityRecord != nullptr && abilityRecord->GetAbilityInfo() != nullptr &&
+                abilityRecord->GetAbilityInfo()->type == AbilityType::PAGE &&
+                abilityRecord->GetAbilityThread() != nullptr) {
+                TAG_LOGI(AAFwkTag::APPKIT, "hanksh OHOSApplication thread id is %{public}s",
+                    abilityRecord->GetAbilityInfo()->name.c_str());
+                uIAbilities.emplace_back(abilityRecord->GetAbilityThread()->GetUIAbility());
+            }
+        }
+    }
+}
+#endif
 }  // namespace AppExecFwk
 }  // namespace OHOS

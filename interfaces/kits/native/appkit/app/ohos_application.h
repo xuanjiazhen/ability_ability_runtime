@@ -246,6 +246,10 @@ public:
     bool GetDisplayConfig(uint64_t displayId, float &density, std::string &directionStr);
 #endif
 
+#ifdef SUPPORT_SCREEN
+    void GetAllUIAbilities(std::vector<std::shared_ptr<AbilityRuntime::UIAbility>> &uIAbilities);
+#endif
+
     void PreloadAppStartup(const BundleInfo &bundleInfo, const std::string &preloadModuleName,
         std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData);
 
