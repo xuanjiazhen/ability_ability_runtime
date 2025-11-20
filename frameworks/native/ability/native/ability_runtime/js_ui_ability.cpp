@@ -425,6 +425,10 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
     UIAbility::OnStart(want, sessionInfo);
 
+    if (abilityInfo_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityInfo_");
+        return;
+    }
     if (!jsAbilityObj_) {
         TAG_LOGE(AAFwkTag::UIABILITY, "not found Ability.js");
         return;
@@ -447,6 +451,9 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
 
     napi_set_named_property(env, obj, "launchWant", jsWant);
     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
+    if (sessionInfo != nullptr && abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
+        napi_set_named_property(env, obj, "specifiedId", CreateJsValue(env, sessionInfo->specifiedFlag));
+    }
     auto launchParam = GetLaunchParam();
     if (InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
         launchParam.launchReason = AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT;
