@@ -33,9 +33,12 @@ void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, c
     int32_t userId)
 {
     std::vector<ExtractInsightIntentInfo> intentInfos;
+    std::vector<InsightIntentInfo> configIntentInfos;
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(
         bundleName, userId, intentInfos);
-    if (!intentInfos.empty()) {
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfoByName(
+        bundleName, userId, configIntentInfos);
+    if (!intentInfos.empty() || !configIntentInfos.empty()) {
         TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
             bundleName, moduleName, userId);
@@ -63,6 +66,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
         std::vector<std::string> moduleNameVec;
         std::string profile;
         AbilityRuntime::ExtractInsightIntentProfileInfoVec infos = {};
+        std::vector<InsightIntentInfo> configIntentInfos = {};
 
         auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
         if (bundleMgrHelper == nullptr) {
@@ -82,8 +86,12 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
             }
 
             // Transform json string
-            if (!AbilityRuntime::ExtractInsightIntentProfile::TransformTo(profile, infos) ||
-                infos.insightIntents.size() == 0) {
+        bool isTransformExtractIntent = (!AbilityRuntime::ExtractInsightIntentProfile::TransformTo(profile, infos) ||
+            infos.insightIntents.size() == 0);
+        bool isTransformConfigIntent = (
+            !AbilityRuntime::InsightIntentProfile::TransformTo(profile, configIntentInfos) ||
+            configIntentInfos.size() == 0);
+        if (isTransformExtractIntent && isTransformConfigIntent) {
                 TAG_LOGW(AAFwkTag::INTENT, "transform profile failed, profile:%{public}s", profile.c_str());
                 DeleteInsightIntent(bundleName, moduleNameLocal, userId);
                 continue;
@@ -91,7 +99,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
 
             // save database
             ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
-                bundleName, moduleNameLocal, userId, infos);
+                bundleName, moduleNameLocal, userId, infos, configIntentInfos);
             if (ret != ERR_OK) {
                 TAG_LOGW(AAFwkTag::INTENT, "update intent info failed, bundleName: %{public}s, "
                     "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleNameLocal.c_str(), userId);
