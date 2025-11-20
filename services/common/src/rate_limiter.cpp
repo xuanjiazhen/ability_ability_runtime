@@ -22,11 +22,7 @@ namespace AAFwk {
 namespace {
 constexpr int64_t CLEAN_INTERVAL_MS = 60000; // 60s
 constexpr int64_t EXTENSION_LIMIT_INTERVAL_MS = 1000; // 1s
-const std::vector<std::pair<int32_t, std::string>> EXTENSION_TIERS = {
-    {50, "TIER_50"},
-    {100, "TIER_100"}, 
-    {200, "TIER_200"}
-};
+const std::vector<int32_t> EXTENSION_TIERS = { 50, 100, 200 };
 constexpr int64_t REPORT_LIMIT_INTERVAL_MS = 5000; // 5s
 constexpr int32_t REPORT_MAX_LIMIT = 1;
 }
@@ -46,17 +42,18 @@ RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
     auto& timestamps = extensionCallMap_[uid];
     auto it = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
     timestamps.erase(timestamps.begin(), it);
+    timestamps.emplace_back(currentTimeMillis);
     int currentCount = timestamps.size();
-    LimitResult result{false, 0, ""};
+    LimitResult result{false, 0};
     {
         std::lock_guard<std::mutex> tierGuard(tierTriggerTimesLock_);
         auto& userTiers = tierTriggerTimes_[uid];
         CleanUserTierTriggerTimes(userTiers, timeBefore);
         for (auto tierIt = EXTENSION_TIERS.rbegin(); tierIt != EXTENSION_TIERS.rend(); ++tierIt) {
-            const auto& [limit, tierName] = *tierIt;
+            int32_t limit = *iterIt;
             if (currentCount >= limit) {
                 auto triggerIt = userTiers.find(limit);
-                result = {true, limit, tierName};
+                result = {true, limit};
                 if (triggerIt == userTiers.end() || triggerIt->second < timeBefore) {
                     userTiers[limit] = currentTimeMillis;
                     break;
@@ -64,7 +61,6 @@ RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
             }
         }
     }
-    timestamps.emplace_back(currentTimeMillis);
     return result;
 }
 
@@ -116,7 +112,6 @@ void RateLimiter::CleanCallMap()
     }
     
     CleanSingleCallMap(extensionCallMap_, extensionCallMapLock_, EXTENSION_LIMIT_INTERVAL_MS);
-    CleanSingleCallMap(reportCallMap_, reportCallMapLock_, REPORT_LIMIT_INTERVAL_MS);
     CleanTierTriggerTimes(currentTimeMillis);
 }
 

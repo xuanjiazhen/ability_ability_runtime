@@ -723,7 +723,8 @@ private:
     void UpdateUIExtensionBindInfo(
         const std::shared_ptr<AbilityRecord> &abilityRecord, std::string callerBundleName, int32_t notifyProcessBind);
 
-    void HandleConnectionCountIncrement(int32_t pid, const std::string &bundleName, const std::string &abilityName);
+    void HandleConnectionCountIncrement(int32_t pid, const std::string &callerBundleName,
+        const std::string &targetName);
     void DecrementConnectionCountAndCleanup(int32_t pid);
 private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";

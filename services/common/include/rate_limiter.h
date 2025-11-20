@@ -30,7 +30,6 @@ public:
     struct LimitResult {
         bool limited;
         int32_t triggeredLimit;
-        std::string tierName;
     };
     static RateLimiter &GetInstance();
 
@@ -56,8 +55,6 @@ private:
     std::mutex lastCleanTimeMillisLock_;
     std::unordered_map<int32_t, std::vector<int64_t>> extensionCallMap_;
     std::mutex extensionCallMapLock_;
-    std::unordered_map<int32_t, std::vector<int64_t>> reportCallMap_;
-    std::mutex reportCallMapLock_;
     std::unordered_map<int32_t, std::unordered_map<int32_t, int64_t>> tierTriggerTimes_;
     std::mutex tierTriggerTimesLock_;
     std::unordered_map<int32_t, std::unordered_map<int32_t, std::vector<int64_t>>> tierReportCallMap_;
