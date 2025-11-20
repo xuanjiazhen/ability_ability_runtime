@@ -46,17 +46,18 @@ RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
     auto& timestamps = extensionCallMap_[uid];
     auto it = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
     timestamps.erase(timestamps.begin(), it);
+    timestamps.emplace_back(currentTimeMillis);
     int currentCount = timestamps.size();
-    LimitResult result{false, 0, ""};
+    LimitResult result{false, 0};
     {
         std::lock_guard<std::mutex> tierGuard(tierTriggerTimesLock_);
         auto& userTiers = tierTriggerTimes_[uid];
         CleanUserTierTriggerTimes(userTiers, timeBefore);
         for (auto tierIt = EXTENSION_TIERS.rbegin(); tierIt != EXTENSION_TIERS.rend(); ++tierIt) {
-            const auto& [limit, tierName] = *tierIt;
+            const auto& [limit] = *tierIt;
             if (currentCount >= limit) {
                 auto triggerIt = userTiers.find(limit);
-                result = {true, limit, tierName};
+                result = {true, limit};
                 if (triggerIt == userTiers.end() || triggerIt->second < timeBefore) {
                     userTiers[limit] = currentTimeMillis;
                     break;
@@ -64,7 +65,6 @@ RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
             }
         }
     }
-    timestamps.emplace_back(currentTimeMillis);
     return result;
 }
 
@@ -116,7 +116,6 @@ void RateLimiter::CleanCallMap()
     }
     
     CleanSingleCallMap(extensionCallMap_, extensionCallMapLock_, EXTENSION_LIMIT_INTERVAL_MS);
-    CleanSingleCallMap(reportCallMap_, reportCallMapLock_, REPORT_LIMIT_INTERVAL_MS);
     CleanTierTriggerTimes(currentTimeMillis);
 }
 

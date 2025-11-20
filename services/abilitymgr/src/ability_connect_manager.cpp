@@ -720,8 +720,8 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     targetService->SetSessionInfo(sessionInfo);
     connectRecordList.push_back(connectRecord);
     AddConnectObjectToMap(connectObject, connectRecordList, isCallbackConnected);
-    HandleConnectionCountIncrement(connectRecord->GetCallerPid(), abilityRequest.abilityInfo.bundleName,
-        abilityRequest.abilityInfo.name);
+    HandleConnectionCountIncrement(connectRecord->GetCallerPid(), connectRecord->GetCallerName(),
+        abilityRequest.abilityInfo.bundleName + "/" + abilityRequest.abilityInfo.name);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_CONNECT_EXTENSION);
 
     if (UIExtensionUtils::IsWindowExtension(targetService->GetAbilityInfo().extensionAbilityType)
@@ -756,19 +756,16 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     return ret;
 }
 
-void AbilityConnectManager::HandleConnectionCountIncrement(int32_t pid, const std::string &bundleName,
-    const std::string &abilityName)
+void AbilityConnectManager::HandleConnectionCountIncrement(int32_t pid, const std::string &callerBundleName,
+    const std::string &targetName)
 {
-    if (AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
-        return;
-    }
     std::lock_guard<std::mutex> guard(callerPidConnectionCountMapMutex_);
     callerPidConnectionCountMap_[pid]++;
     for (const auto& threshold : thresholds_) {
         if (callerPidConnectionCountMap_[pid] == threshold) {
             EventInfo eventInfo;
-            eventInfo.abilityName = abilityName;
-            eventInfo.callerBundleName = bundleName;
+            eventInfo.abilityName = targetName;
+            eventInfo.callerBundleName = callerBundleName;
             eventInfo.moduleName = "ConnectionCountLimit";
             eventInfo.extensionType = threshold;
             TAG_LOGD(AAFwkTag::ABILITYMGR, "sendEventReport, pid: %{public}d, threshold: %{public}d", pid, threshold);
@@ -778,10 +775,8 @@ void AbilityConnectManager::HandleConnectionCountIncrement(int32_t pid, const st
     }
 }
 
-void AbilityConnectManager::DecrementConnectionCountAndCleanup(int32_t pid) {
-    if (AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
-        return;
-    }
+void AbilityConnectManager::DecrementConnectionCountAndCleanup(int32_t pid)
+{
     std::lock_guard<std::mutex> guard(callerPidConnectionCountMapMutex_);
     auto it = callerPidConnectionCountMap_.find(pid);
     if (it == callerPidConnectionCountMap_.end()) {
@@ -2439,7 +2434,6 @@ void AbilityConnectManager::HandleCallBackDiedTask(const sptr<IRemoteObject> &co
             ConnectListType connectRecordList = it->second;
             for (auto &connRecord : connectRecordList) {
                 CHECK_POINTER_CONTINUE(connRecord);
-                DecrementConnectionCountAndCleanup(connRecord->GetCallerPid());
                 connRecord->ClearConnCallBack();
             }
         } else {
