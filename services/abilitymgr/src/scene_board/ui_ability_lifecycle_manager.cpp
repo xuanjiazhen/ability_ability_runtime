@@ -83,22 +83,6 @@ auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
     FreezeUtil::GetInstance().DeleteLifecycleEvent(token->AsObject());
 };
-
-bool CompareTwoRequest(const AbilityRequest &left, const AbilityRequest &right)
-{
-    int32_t leftIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(left.want, leftIndex);
-    int32_t rightIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(right.want, rightIndex);
-
-    auto LeftInstanceKey = left.want.GetStringParam(Want::APP_INSTANCE_KEY);
-    auto RightInstanceKey = right.want.GetStringParam(Want::APP_INSTANCE_KEY);
-
-    return leftIndex == rightIndex && LeftInstanceKey == RightInstanceKey &&
-        left.abilityInfo.name == right.abilityInfo.name &&
-        left.abilityInfo.bundleName == right.abilityInfo.bundleName &&
-        left.abilityInfo.moduleName == right.abilityInfo.moduleName;
-}
 }
 
 UIAbilityLifecycleManager::UIAbilityLifecycleManager(int32_t userId): userId_(userId) {}
@@ -243,7 +227,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     uiAbilityRecord->SetSpecifyTokenId(abilityRequest.specifyTokenId);
     UpdateAbilityRecordLaunchReason(abilityRequest, uiAbilityRecord);
     NotifyAbilityToken(uiAbilityRecord->GetToken(), abilityRequest);
-    if (HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag) &&
+    if (HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag, isRestart) &&
         ProcessColdStartBranch(abilityRequest, sessionInfo, uiAbilityRecord, isColdStart)) {
         return ERR_OK;
     }
@@ -337,15 +321,41 @@ bool UIAbilityLifecycleManager::HandleRestartUIAbility(sptr<SessionInfo> session
     return true;
 }
 
+std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::HandleAbilityRecordReused(
+    std::shared_ptr<AbilityRecord> uiAbilityRecord, SessionInfo &sessionInfo, AbilityRequest &abilityRequest)
+{
+    if (uiAbilityRecord == nullptr || uiAbilityRecord->GetSessionInfo() == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord invalid");
+        return nullptr;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "NewWant:%{public}d", sessionInfo.isNewWant);
+    uiAbilityRecord->SetPrelaunchFlag(false);
+    if (sessionInfo.sessionToken != uiAbilityRecord->GetSessionInfo()->sessionToken) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionToken invalid");
+        return nullptr;
+    }
+    abilityRequest.want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
+    auto appMgr = AppMgrUtil::GetAppMgr();
+    if (appMgr != nullptr && sessionInfo.reuseDelegatorWindow) {
+        auto ret = IN_PROCESS_CALL(appMgr->LaunchAbility(uiAbilityRecord->GetToken()));
+        sessionInfo.want.CloseAllFd();
+        if (ret == ERR_OK) {
+            uiAbilityRecord->SetIsNewWant(false);
+            return uiAbilityRecord;
+        }
+        return nullptr;
+    }
+    return uiAbilityRecord;
+}
+
 std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityRequest &abilityRequest,
     sptr<SessionInfo> sessionInfo, bool &isColdStart)
 {
-    std::shared_ptr<AbilityRecord> uiAbilityRecord = nullptr;
     auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
     bool isLowMemKill = (iter != sessionAbilityMap_.end()) &&
         (iter->second != nullptr) && (iter->second->IsKillPrecedeStart());
     if (iter == sessionAbilityMap_.end() || isLowMemKill) {
-        uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
+        auto uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
         auto abilityInfo = abilityRequest.abilityInfo;
         if (uiAbilityRecord == nullptr) {
             uiAbilityRecord = CreateAbilityRecord(abilityRequest, sessionInfo);
@@ -369,16 +379,6 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
         if (isSCBRecovery_) {
             coldStartInSCBRecovery_.insert(sessionInfo->persistentId);
         }
-        if (abilityInfo.applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE &&
-            abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
-            auto appMgr = AppMgrUtil::GetAppMgr();
-            if (appMgr == nullptr) {
-                TAG_LOGW(AAFwkTag::ABILITYMGR, "AppMgrUtil::GetAppMgr failed");
-                return uiAbilityRecord;
-            }
-            IN_PROCESS_CALL_WITHOUT_RET(
-                appMgr->UpdateInstanceKeyBySpecifiedId(sessionInfo->requestId, sessionInfo->instanceKey));
-        }
         MoreAbilityNumbersSendEventInfo(
             abilityRequest.userId, abilityInfo.bundleName, abilityInfo.name, abilityInfo.moduleName);
         if (!abilityRequest.startOptions.GetCurrentProcessName().empty()) {
@@ -387,46 +387,27 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
         }
         if (isLowMemKill) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "killed by low-mem, created a new record, "
-                "replacing old record id=%{public}s, new record id=%{public}s",
-                std::to_string(sessionAbilityMap_[sessionInfo->persistentId]->GetAbilityRecordId()).c_str(),
-                std::to_string(uiAbilityRecord->GetAbilityRecordId()).c_str());
-            lowMemKillAbilityMap_.emplace(sessionInfo->persistentId, sessionAbilityMap_[sessionInfo->persistentId]);
+                "replacing old record id=%{public}d, new record id=%{public}d",
+                iter->second->GetRecordId(), uiAbilityRecord->GetRecordId());
+            lowMemKillAbilityMap_.emplace(sessionInfo->persistentId, iter->second);
             sessionAbilityMap_[sessionInfo->persistentId] = uiAbilityRecord;
         } else {
             sessionAbilityMap_.emplace(sessionInfo->persistentId, uiAbilityRecord);
         }
-    } else {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "NewWant:%{public}d", sessionInfo->isNewWant);
-        uiAbilityRecord = iter->second;
-        if (uiAbilityRecord == nullptr || uiAbilityRecord->GetSessionInfo() == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord invalid");
-            return nullptr;
-        }
-        uiAbilityRecord->SetPrelaunchFlag(false);
-        if (sessionInfo->sessionToken != uiAbilityRecord->GetSessionInfo()->sessionToken) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionToken invalid");
-            return nullptr;
-        }
-        abilityRequest.want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
-        auto appMgr = AppMgrUtil::GetAppMgr();
-        if (appMgr != nullptr && sessionInfo->reuseDelegatorWindow) {
-            auto ret = IN_PROCESS_CALL(appMgr->LaunchAbility(uiAbilityRecord->GetToken()));
-            sessionInfo->want.CloseAllFd();
-            if (ret == ERR_OK) {
-                uiAbilityRecord->SetIsNewWant(false);
-                return uiAbilityRecord;
-            }
-            return nullptr;
-        }
+        return uiAbilityRecord;
     }
-    return uiAbilityRecord;
+    return HandleAbilityRecordReused(iter->second, *sessionInfo, abilityRequest);
 }
 
 std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromTmpMap(
     const AbilityRequest &abilityRequest)
 {
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    if (abilityRequest.want.HasParameter(ServerConstant::DLP_INDEX)) {
+        appIndex = abilityRequest.want.GetIntParam(ServerConstant::DLP_INDEX, 0);
+    } else {
+        appIndex = abilityRequest.abilityInfo.appIndex;
+    }
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     for (const auto &[requestId, abilityRecord] : tmpAbilityMap_) {
         if (abilityRecord) {
@@ -2874,7 +2855,7 @@ int UIAbilityLifecycleManager::ReleaseCallLocked(
 
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
 
-    auto abilityRecords = GetAbilityRecordsByNameInner(element);
+    auto abilityRecords = GetAbilityRecordsByNameInner(element, -1);
     auto isExist = [connect] (const std::shared_ptr<AbilityRecord> &abilityRecord) {
         if (abilityRecord == nullptr) {
             return false;
@@ -2904,7 +2885,7 @@ void UIAbilityLifecycleManager::OnCallConnectDied(const std::shared_ptr<CallReco
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
 
     AppExecFwk::ElementName element = callRecord->GetTargetServiceName();
-    auto abilityRecords = GetAbilityRecordsByNameInner(element);
+    auto abilityRecords = GetAbilityRecordsByNameInner(element, -1);
     auto isExist = [callRecord] (const std::shared_ptr<AbilityRecord> &abilityRecord) {
         if (abilityRecord == nullptr) {
             return false;
@@ -2922,14 +2903,14 @@ void UIAbilityLifecycleManager::OnCallConnectDied(const std::shared_ptr<CallReco
 }
 
 std::vector<std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetAbilityRecordsByName(
-    const AppExecFwk::ElementName &element)
+    const AppExecFwk::ElementName &element, int32_t appIndex)
 {
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    return GetAbilityRecordsByNameInner(element);
+    return GetAbilityRecordsByNameInner(element, appIndex);
 }
 
 std::vector<std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetAbilityRecordsByNameInner(
-    const AppExecFwk::ElementName &element)
+    const AppExecFwk::ElementName &element, int32_t appIndex)
 {
     std::vector<std::shared_ptr<AbilityRecord>> records;
     for (const auto& [first, second] : sessionAbilityMap_) {
@@ -2938,8 +2919,10 @@ std::vector<std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetAbilit
             abilityInfo.name, abilityInfo.moduleName);
         AppExecFwk::ElementName localElementNoModuleName(abilityInfo.deviceId,
             abilityInfo.bundleName, abilityInfo.name);
-        if (localElement == element || localElementNoModuleName == element) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "find element %{public}s", localElement.GetURI().c_str());
+        if ((localElement == element || localElementNoModuleName == element) &&
+            (appIndex == -1 || abilityInfo.appIndex == appIndex)) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "find element %{public}s, appIndex:%{public}d",
+                localElement.GetURI().c_str(), appIndex);
             records.push_back(second);
         }
     }
@@ -3942,7 +3925,11 @@ void UIAbilityLifecycleManager::EnableListForSCBRecovery()
 std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromSessionMap(const AbilityRequest &abilityRequest)
 {
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    if (abilityRequest.want.HasParameter(ServerConstant::DLP_INDEX)) {
+        appIndex = abilityRequest.want.GetIntParam(ServerConstant::DLP_INDEX, 0);
+    } else {
+        appIndex = abilityRequest.abilityInfo.appIndex;
+    }
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     for (const auto &[sessionId, abilityRecord] : sessionAbilityMap_) {
         if (abilityRecord) {
@@ -4109,8 +4096,8 @@ bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &ab
     return ret == ERR_OK && isLoaded;
 }
 
-bool UIAbilityLifecycleManager::HandleStartSpecifiedCold(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
-    uint32_t sceneFlag)
+bool UIAbilityLifecycleManager::HandleStartSpecifiedCold(const AbilityRequest &abilityRequest,
+    sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool isRestart)
 {
     if (!sessionInfo) {
         return false;
@@ -4118,6 +4105,20 @@ bool UIAbilityLifecycleManager::HandleStartSpecifiedCold(AbilityRequest &ability
     const auto &abilityInfo = abilityRequest.abilityInfo;
     if (abilityInfo.launchMode != AppExecFwk::LaunchMode::SPECIFIED) {
         return false;
+    }
+
+    if (isRestart) {
+        auto request = std::make_shared<SpecifiedRequest>(RequestIdUtil::GetRequestId(), abilityRequest);
+        request->isCold = true;
+        auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
+        auto accessTokenIdStr = std::to_string(abilityRequest.abilityInfo.applicationInfo.accessTokenId);
+        auto &list = specifiedRequestList_[accessTokenIdStr + instanceKey];
+        sessionInfo->requestId = request->requestId;
+        request->persistentId = sessionInfo->persistentId;
+        list.push_back(request);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "restart StartSpecified: %{public}d, persitentId: %{public}d, "
+            "list size: %{public}zu", request->requestId, sessionInfo->persistentId, list.size());
+        return true;
     }
 
     auto request = GetSpecifiedRequest(sessionInfo->requestId);

@@ -434,7 +434,8 @@ public:
      * @param element The element name to search for
      * @return Vector of matching ability records
      */
-    std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByName(const AppExecFwk::ElementName &element);
+    std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByName(const AppExecFwk::ElementName &element,
+        int32_t appIndex);
 
     /**
      * @brief Get ability record by token
@@ -852,7 +853,8 @@ private:
      * @param element The element name
      * @return Vector of matching ability records
      */
-    std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByNameInner(const AppExecFwk::ElementName &element);
+    std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByNameInner(const AppExecFwk::ElementName &element,
+        int32_t appIndex);
 
     /**
      * @brief Handle foreground collaboration
@@ -1042,6 +1044,8 @@ private:
      */
     std::shared_ptr<AbilityRecord> GenerateAbilityRecord(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
         bool &isColdStart);
+    std::shared_ptr<AbilityRecord> HandleAbilityRecordReused(std::shared_ptr<AbilityRecord> uiAbilityRecord,
+        SessionInfo &sessionInfo, AbilityRequest &abilityRequest);
 
     /**
      * @brief Find ability record from temporary map
@@ -1105,7 +1109,8 @@ private:
      * @param sceneFlag The scene flag
      * @return true if handled, false otherwise
      */
-    bool HandleStartSpecifiedCold(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, uint32_t sceneFlag);
+    bool HandleStartSpecifiedCold(const AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
+        uint32_t sceneFlag, bool isRestart);
 
     /**
      * @brief Handle cold accept want completion

@@ -437,11 +437,13 @@ public:
      *
      * @param want, the want of the ability to start.
      * @param hostBundleName, the caller application bundle name.
+     * @param requestCode the resultCode of the preload ui extension ability to start.
      * @param userId, the extension runs in.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE)
+        int32_t requestCode = DEFAULT_INVAL_VALUE, int32_t userId = DEFAULT_INVAL_VALUE,
+        int32_t hostPid = DEFAULT_INVAL_VALUE)
     {
         return 0;
     }
@@ -888,7 +890,8 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0) = 0;
+    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
+        const std::string& reason = "Abilityms::KillProcess") = 0;
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
@@ -2269,7 +2272,7 @@ public:
      */
     virtual int32_t QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                                   const std::string &moduleName,
-                                                  const std::string &hostBundleName,
+                                                  const int32_t hostPid,
                                                   int32_t &recordNum,
                                                   int32_t userId = DEFAULT_INVAL_VALUE)
     {
@@ -2447,6 +2450,53 @@ public:
     virtual bool IsRestartAppLimit()
     {
         return false;
+    }
+
+    /**
+     * UnPreload UIExtension with want, send want to ability manager service.
+     *
+     * @param extensionAbilityId The extension ability Id.
+     * @param userId The User Id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ClearPreloadedUIExtensionAbility(
+    int32_t extensionAbilityId, int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+
+    /**
+     * clear all Preload UIExtension with want, send want to ability manager service.
+     *
+     * @param userId The User Id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ClearPreloadedUIExtensionAbilities(int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief Register preload ui extension host client.
+     * @param callerToken Caller ability token.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterPreloadUIExtensionHostClient(
+    const sptr<IRemoteObject> &callerToken)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief UnRegister preload ui extension host client.
+     * @param hostBundleName, the caller application bundle name.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
     }
 };
 }  // namespace AAFwk

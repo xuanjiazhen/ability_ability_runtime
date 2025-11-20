@@ -284,6 +284,7 @@ constexpr const char* KEY_IS_WATERMARK_ENABLED = "com.ohos.param.isWatermarkEnab
 constexpr const char* KILL_SUB_PROCESS_REASON_PREFIX = "Kill SubProcess Reason:";
 
 constexpr const char* PROC_SELF_TASK_PATH = "/proc/self/task/";
+constexpr const char* DLP_INDEX = "ohos.dlp.params.index";
 
 constexpr int32_t ROOT_UID = 0;
 constexpr int32_t FOUNDATION_UID = 5523;
@@ -472,7 +473,11 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
     auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
 
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
+    if (want.HasParameter(DLP_INDEX)) {
+        appIndex = want.GetIntParam(DLP_INDEX, 0);
+    } else {
+        appIndex = abilityInfo.appIndex;
+    }
     if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
         return;
     }
@@ -963,7 +968,11 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     bool isProcCache = false;
     bool isExtensionSandBox = false;
     if (want != nullptr) {
-        (void)AbilityRuntime::StartupUtil::GetAppIndex(*want, appIndex);
+        if (want->HasParameter(DLP_INDEX)) {
+            appIndex = want->GetIntParam(DLP_INDEX, 0);
+        } else {
+            appIndex = abilityInfo->appIndex;
+        }
         callerKey = want->GetStringParam(Want::PARAMS_REAL_CALLER_KEY);
         want->RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
     }
@@ -1177,7 +1186,6 @@ void AppMgrServiceInner::AddUIExtensionLauncherItem(std::shared_ptr<AAFwk::Want>
     appRunningManager_->AddUIExtensionLauncherItem(uiExtensionAbilityId, hostPid, providerPid);
 
     want->RemoveParam(UIEXTENSION_ABILITY_ID);
-    want->RemoveParam(UIEXTENSION_ROOT_HOST_PID);
 }
 
 void AppMgrServiceInner::RemoveUIExtensionLauncherItem(std::shared_ptr<AppRunningRecord> appRecord,
@@ -1342,7 +1350,11 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     uint64_t startFlags = (want == nullptr) ? 0 : AppspawnUtil::BuildStartFlags(*want, *abilityInfo);
     int32_t bundleIndex = 0;
     if (want != nullptr) {
-        (void)AbilityRuntime::StartupUtil::GetAppIndex(*want, bundleIndex);
+        if (want->HasParameter(DLP_INDEX)) {
+            bundleIndex = want->GetIntParam(DLP_INDEX, 0);
+        } else {
+            bundleIndex = abilityInfo->appIndex;
+        }
     } else {
         TAG_LOGE(AAFwkTag::APPMGR, "startFlags is default");
     }
@@ -1880,7 +1892,10 @@ void AppMgrServiceInner::ApplicationTerminated(const int32_t recordId)
     ApplicationTerminatedSendProcessEvent(appRecord);
     taskHandler_->CancelTask("DELAY_KILL_PROCESS_" + std::to_string(recordId));
     auto uid = appRecord->GetUid();
-    SendProcessKillEvent(appRecord, "Kill Reason:app exit");
+    if (appRecord->GetExtensionType() == ExtensionAbilityType::UNSPECIFIED ||
+        AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
+        SendProcessKillEvent(appRecord, "Kill Reason:app exit");
+    }
     NotifyAppRunningStatusEvent(appRecord->GetBundleName(), uid, AbilityRuntime::RunningStatus::APP_RUNNING_STOP);
 }
 
@@ -1935,7 +1950,8 @@ int32_t AppMgrServiceInner::UpdateApplicationInfoInstalled(
     return result;
 }
 
-int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
+int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
+    const std::string &reason)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "KillApplication");
     if (!appRunningManager_) {
@@ -1949,7 +1965,7 @@ int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool 
         return result;
     }
 
-    return KillApplicationByBundleName(bundleName, appIndex, clearPageStack, "KillApplication");
+    return KillApplicationByBundleName(bundleName, appIndex, clearPageStack, reason);
 }
 
 int32_t AppMgrServiceInner::ForceKillApplication(const std::string &bundleName,
@@ -1999,6 +2015,12 @@ int32_t AppMgrServiceInner::WaitProcessesExitAndKill(std::list<pid_t> &pids, con
     const std::string& reason)
 {
     int32_t result = ERR_OK;
+    for (auto iter = pids.begin(); iter != pids.end(); ++iter) {
+        auto appRecord = GetAppRunningRecordByPid(*iter);
+        if (appRecord) {
+            appRecord->SetKillReason(reason);
+        }
+    }
     if (WaitForRemoteProcessExit(pids, startTime)) {
         TAG_LOGI(AAFwkTag::APPMGR, "remote process exited successs");
         return result;
@@ -3271,7 +3293,11 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
         appRecord->SetErrorInfoEnhance(want->GetBoolParam(ERROR_INFO_ENHANCE, false));
         appRecord->SetMultiThread(want->GetBoolParam(MULTI_THREAD, false));
         int32_t appIndex = 0;
-        (void)AbilityRuntime::StartupUtil::GetAppIndex(*want, appIndex);
+        if (want->HasParameter(DLP_INDEX)) {
+            appIndex = want->GetIntParam(DLP_INDEX, 0);
+        } else {
+            appIndex = abilityInfo->appIndex;
+        }
         appRecord->SetAppIndex(appIndex);
 #ifdef WITH_DLP
         appRecord->SetSecurityFlag(want->GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
@@ -4482,7 +4508,7 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
         return ERR_INVALID_VALUE;
     }
-    auto ret = PreCheckStartProcess(bundleName, uid, want);
+    auto ret = PreCheckStartProcess(bundleName, uid, bundleIndex);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
@@ -5641,7 +5667,11 @@ int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IR
     appRecord->SetUserTestInfo(testRecord);
 
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
+    if (want.HasParameter(DLP_INDEX)) {
+        appIndex = want.GetIntParam(DLP_INDEX, 0);
+    } else {
+        appIndex = appInfo->appIndex;
+    }
     uint64_t startFlags = AppspawnUtil::BuildStartFlags(want, info.applicationInfo);
     StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->uid, info, appInfo->bundleName,
         appIndex, appExistFlag);
@@ -5746,7 +5776,11 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
     auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
 
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
+    if (want.HasParameter(DLP_INDEX)) {
+        appIndex = want.GetIntParam(DLP_INDEX, 0);
+    } else {
+        appIndex = abilityInfo.appIndex;
+    }
     if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
         return;
     }
@@ -10470,15 +10504,6 @@ int32_t AppMgrServiceInner::CheckIsKiaProcess(pid_t pid, bool &isKia)
     return appRunningManager_->CheckIsKiaProcess(pid, isKia);
 }
 
-void AppMgrServiceInner::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
-{
-    if (!appRunningManager_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is nullptr");
-        return;
-    }
-    appRunningManager_->UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
-}
-
 void AppMgrServiceInner::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
 {
     if (remoteClientManager_ == nullptr) {
@@ -10504,7 +10529,11 @@ bool AppMgrServiceInner::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const 
     }
     auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
+    if (want.HasParameter(DLP_INDEX)) {
+        appIndex = want.GetIntParam(DLP_INDEX, 0);
+    } else {
+        appIndex = abilityInfo.appIndex;
+    }
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
     if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
@@ -10908,8 +10937,7 @@ bool AppMgrServiceInner::IsBlockedByDisposeRules(const std::string &bundleName, 
     return false;
 }
 
-int32_t AppMgrServiceInner:: PreCheckStartProcess(const std::string &bundleName, int32_t uid,
-    std::shared_ptr<AAFwk::Want> &want)
+int32_t AppMgrServiceInner::PreCheckStartProcess(const std::string &bundleName, int32_t uid, int32_t appIndex)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
@@ -10918,10 +10946,6 @@ int32_t AppMgrServiceInner:: PreCheckStartProcess(const std::string &bundleName,
         return ERR_OK;
     }
     int32_t userId = uid / BASE_USER_RANGE;
-    int32_t appIndex = 0;
-    if (want != nullptr) {
-        (void)AbilityRuntime::StartupUtil::GetAppIndex(*want, appIndex);
-    }
     if (IsBlockedByDisposeRules(bundleName, userId, appIndex)) {
         return AAFwk::ERR_UNINSTALLING_OR_UPGRADING_APP;
     }
@@ -10994,8 +11018,11 @@ int32_t AppMgrServiceInner::KillChildProcessByPid(int32_t pid)
         TAG_LOGE(AAFwkTag::APPMGR, "fail, pid:%{public}d, ret:%{public}d", pid, ret);
         return ret;
     }
-    appRecord->RemoveChildAppRecord(pid);
-    DelayedSingleton<AppStateObserverManager>::GetInstance()->OnChildProcessDied(childRecord);
+    if (appRunningManager_) {
+        appRunningManager_->HandleChildRelation(childRecord, appRecord);
+    }
+    appRecord->RemoveChildProcessRecord(childRecord);
+    OnChildProcessDied(childRecord);
     return ERR_OK;
 }
 } // namespace AppExecFwk

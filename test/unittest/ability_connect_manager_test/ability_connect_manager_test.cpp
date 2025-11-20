@@ -3439,7 +3439,11 @@ HWTEST_F(AbilityConnectManagerTest, PreloadUIExtensionAbilityLocked_0100, TestSi
     abilityRequest.want.SetElement(providerElement);
     abilityRequest.abilityInfo.type = AbilityType::EXTENSION;
     std::string hostBundleName = "com.ohos.uiextensionuser";
-    auto ret = connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName);
+
+    int32_t preloadId = AbilityRuntime::INVALID_EXTENSION_RECORD_ID;;
+    int32_t hostPid = DEFAULT_INVAL_VALUE;
+    auto ret = connectManager->PreloadUIExtensionAbilityLocked(
+        abilityRequest, hostBundleName, ERR_PRELOAD_APP_DATA_ABILITIES_FAILED);
     EXPECT_NE(ret, ERR_OK);
 }
 
@@ -3457,8 +3461,8 @@ HWTEST_F(AbilityConnectManagerTest, UnloadUIExtensionAbility_0100, TestSize.Leve
     AppExecFwk::ElementName providerElement("0", "com.ohos.uiextensionprovider", "UIExtensionProvider", "entry");
     abilityRequest.want.SetElement(providerElement);
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    std::string hostBundleName = "com.ohos.uiextensionuser";
-    auto ret = connectManager->UnloadUIExtensionAbility(abilityRecord, hostBundleName);
+    int32_t hostPid = 0;
+    auto ret = connectManager->UnloadUIExtensionAbility(abilityRecord, hostPid);
     EXPECT_EQ(ret, ERR_CONNECT_MANAGER_NULL_ABILITY_RECORD);
 }
 

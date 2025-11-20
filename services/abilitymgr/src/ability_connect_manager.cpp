@@ -513,9 +513,11 @@ void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abili
 {
     if (abilityRequest.abilityInfo.name == AbilityConfig::LAUNCHER_ABILITY_NAME) {
         targetService.SetLauncherRoot();
-        targetService.SetRestartTime(abilityRequest.restartTime);
-        targetService.SetRestartCount(abilityRequest.restartCount);
-    } else if (IsAbilityNeedKeepAlive(targetService.shared_from_this())) {
+        if (abilityRequest.restart) {
+            targetService.SetRestartTime(abilityRequest.restartTime);
+            targetService.SetRestartCount(abilityRequest.restartCount);
+        }
+    } else if (IsAbilityNeedKeepAlive(targetService.shared_from_this()) && abilityRequest.restart) {
         targetService.SetRestartTime(abilityRequest.restartTime);
         targetService.SetRestartCount(abilityRequest.restartCount);
     }
@@ -567,15 +569,15 @@ int32_t AbilityConnectManager::GetOrCreateTargetServiceRecord(
     return ERR_OK;
 }
 
-int AbilityConnectManager::PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest,
-    std::string &hostBundleName, int32_t hostPid)
+int AbilityConnectManager::PreloadUIExtensionAbilityLocked(
+    const AbilityRequest &abilityRequest, std::string &hostBundleName, int32_t hostPid)
 {
     std::lock_guard guard(serialMutex_);
     return PreloadUIExtensionAbilityInner(abilityRequest, hostBundleName, hostPid);
 }
 
-int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest,
-    std::string &hostBundleName, int32_t hostPid)
+int AbilityConnectManager::PreloadUIExtensionAbilityInner(
+    const AbilityRequest &abilityRequest, std::string &hostBundleName, int32_t hostPid)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (!UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType)) {
@@ -618,14 +620,14 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
 }
 
 int AbilityConnectManager::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord,
-    std::string &hostBundleName)
+    pid_t &hostPid)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     //Get preLoadUIExtensionInfo
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     auto preLoadUIExtensionInfo = std::make_tuple(abilityRecord->GetWant().GetElement().GetAbilityName(),
         abilityRecord->GetWant().GetElement().GetBundleName(),
-        abilityRecord->GetWant().GetElement().GetModuleName(), hostBundleName);
+        abilityRecord->GetWant().GetElement().GetModuleName(), hostPid);
     //delete preLoadUIExtensionMap
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
     auto extensionRecordId = abilityRecord->GetUIExtensionAbilityId();
@@ -1138,6 +1140,9 @@ void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
             }
         }
     });
+    if (info.state == AppState::TERMINATED) {
+        UnRegisterPreloadUIExtensionHostClient(info.pid);
+    }
 }
 
 int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &token, int state)
@@ -1149,6 +1154,9 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
     std::shared_ptr<AbilityRecord> abilityRecord;
     if (targetState == AbilityState::INACTIVE) {
         abilityRecord = GetExtensionByTokenFromServiceMap(token);
+        CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+        CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_INVALID_VALUE);
+        uiExtensionAbilityRecordMgr_->HandlePreloadUIExtensionSuccess(abilityRecord->GetUIExtensionAbilityId(), true);
     } else if (targetState == AbilityState::FOREGROUND || targetState == AbilityState::BACKGROUND) {
         abilityRecord = GetExtensionByTokenFromServiceMap(token);
         if (abilityRecord == nullptr) {
@@ -2587,16 +2595,16 @@ void AbilityConnectManager::ClearPreloadUIExtensionRecord(const std::shared_ptr<
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     CHECK_POINTER(abilityRecord);
     auto extensionRecordId = abilityRecord->GetUIExtensionAbilityId();
-    std::string hostBundleName;
+    pid_t hostPid;
     CHECK_POINTER(uiExtensionAbilityRecordMgr_);
-    auto ret = uiExtensionAbilityRecordMgr_->GetHostBundleNameForExtensionId(extensionRecordId, hostBundleName);
+    auto ret = uiExtensionAbilityRecordMgr_->GetHostPidForExtensionId(extensionRecordId, hostPid);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetHostBundleNameForExtensionId fail");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetHostPidForExtensionId fail");
         return;
     }
     auto extensionRecordMapKey = std::make_tuple(abilityRecord->GetWant().GetElement().GetAbilityName(),
         abilityRecord->GetWant().GetElement().GetBundleName(),
-        abilityRecord->GetWant().GetElement().GetModuleName(), hostBundleName);
+        abilityRecord->GetWant().GetElement().GetModuleName(), hostPid);
     uiExtensionAbilityRecordMgr_->RemovePreloadUIExtensionRecordById(extensionRecordMapKey, extensionRecordId);
 }
 
@@ -3835,15 +3843,17 @@ int32_t AbilityConnectManager::ReportAbilityStartInfoToRSS(const AppExecFwk::Abi
     }
     bool isColdStart = true;
     int32_t pid = 0;
+    int32_t preloadMode = -1;
     for (auto const &info : runningProcessInfos) {
         if (info.uid_ == abilityInfo.applicationInfo.uid) {
             isColdStart = false;
             pid = info.pid_;
+            preloadMode = static_cast<int32_t>(info.preloadMode_);
             break;
         }
     }
     TAG_LOGI(AAFwkTag::EXT, "ReportAbilityStartInfoToRSS, abilityName:%{public}s", abilityInfo.name.c_str());
-    ResSchedUtil::GetInstance().ReportAbilityStartInfoToRSS(abilityInfo, pid, isColdStart, false);
+    ResSchedUtil::GetInstance().ReportAbilityStartInfoToRSS(abilityInfo, pid, isColdStart, false, preloadMode);
     return ERR_OK;
 }
 
@@ -3879,12 +3889,12 @@ int32_t AbilityConnectManager::UpdateKeepAliveEnableState(const std::string &bun
 
 int32_t AbilityConnectManager::QueryPreLoadUIExtensionRecordInner(const AppExecFwk::ElementName &element,
                                                                   const std::string &moduleName,
-                                                                  const std::string &hostBundleName,
+                                                                  const int32_t hostPid,
                                                                   int32_t &recordNum)
 {
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
     return uiExtensionAbilityRecordMgr_->QueryPreLoadUIExtensionRecord(
-        element, moduleName, hostBundleName, recordNum);
+        element, moduleName, hostPid, recordNum);
 }
 
 std::shared_ptr<AbilityRecord> AbilityConnectManager::GetUIExtensionBySessionFromServiceMap(
@@ -3946,6 +3956,75 @@ void AbilityConnectManager::UpdateUIExtensionBindInfo(
     wantParams.SetParam(UIEXTENSION_HOST_UID, AAFwk::Integer::Box(IPCSkeleton::GetCallingUid()));
     wantParams.SetParam(UIEXTENSION_HOST_BUNDLENAME, String ::Box(callerBundleName));
     abilityRecord->UpdateUIExtensionBindInfo(wantParams);
+}
+
+int AbilityConnectManager::UnPreloadUIExtensionAbilityLocked(int32_t extensionAbilityId)
+{
+    std::lock_guard guard(serialMutex_);
+    return UnPreloadUIExtensionAbilityInner(extensionAbilityId);
+}
+
+int AbilityConnectManager::UnPreloadUIExtensionAbilityInner(int32_t extensionAbilityId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "UnPreloadUIExtensionAbilityInner call, extensionAbilityId = %{public}d",
+        extensionAbilityId);
+    if (extensionAbilityId == INVALID_EXTENSION_RECORD_ID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid extensionAbilityId");
+        return ERR_CODE_INVALID_ID;
+    }
+    CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
+    int32_t ret = uiExtensionAbilityRecordMgr_->ClearPreloadedUIExtensionAbility(extensionAbilityId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "ClearPreloadedUIExtensionAbility failed, extensionAbilityId = %{public}d, ret = %{public}d",
+            extensionAbilityId, ret);
+        return ret;
+    }
+    return ERR_OK;
+}
+
+int AbilityConnectManager::ClearAllPreloadUIExtensionAbilityLocked()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ClearAllPreloadUIExtensionAbilityLocked call");
+    std::lock_guard guard(serialMutex_);
+    return ClearAllPreloadUIExtensionAbilityInner();
+}
+
+int AbilityConnectManager::ClearAllPreloadUIExtensionAbilityInner()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ClearAllPreloadUIExtensionAbilityInner call");
+    CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
+    if (uiExtensionAbilityRecordMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null uiExtensionAbilityRecordMgr_");
+        return ERR_NULL_OBJECT;
+    }
+    int32_t ret = uiExtensionAbilityRecordMgr_->ClearAllPreloadUIExtensionRecordForHost();
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ClearAllPreloadUIExtensionAbilityInner failed, ret = %{public}d", ret);
+        return ret;
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityConnectManager::RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken)
+{
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null callerToken");
+        return ERR_INVALID_VALUE;
+    }
+    CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
+    uiExtensionAbilityRecordMgr_->RegisterPreloadUIExtensionHostClient(callerToken);
+    return ERR_OK;
+}
+
+int32_t AbilityConnectManager::UnRegisterPreloadUIExtensionHostClient(int32_t callerPid)
+{
+    CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
+    if (callerPid == DEFAULT_INVALID_VALUE) {
+        callerPid = IPCSkeleton::GetCallingPid();
+    }
+    uiExtensionAbilityRecordMgr_->UnRegisterPreloadUIExtensionHostClient(callerPid);
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

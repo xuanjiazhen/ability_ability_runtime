@@ -354,14 +354,14 @@ ErrCode AbilityManagerClient::RequestModalUIExtension(const Want &want)
     return abms->RequestModalUIExtension(want);
 }
 
-ErrCode AbilityManagerClient::PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-    int32_t userId, int32_t hostPid)
+ErrCode AbilityManagerClient::PreloadUIExtensionAbility(
+    const Want &want, std::string &hostBundleName, int32_t requestCode, int32_t userId, int32_t hostPid)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "elementName:%{public}s/%{public}s, hostBundleName:%{public}s",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), hostBundleName.c_str());
-    return abms->PreloadUIExtensionAbility(want, hostBundleName, userId, hostPid);
+    return abms->PreloadUIExtensionAbility(want, hostBundleName, requestCode, userId, hostPid);
 }
 
 ErrCode AbilityManagerClient::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
@@ -768,12 +768,13 @@ ErrCode AbilityManagerClient::StopServiceAbility(const Want &want, sptr<IRemoteO
     return abms->StopServiceAbility(want, -1, token);
 }
 
-ErrCode AbilityManagerClient::KillProcess(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
+ErrCode AbilityManagerClient::KillProcess(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
+    const std::string& reason)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "enter");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->KillProcess(bundleName, clearPageStack, appIndex);
+    return abms->KillProcess(bundleName, clearPageStack, appIndex, reason);
 }
 
 #ifdef ABILITY_COMMAND_FOR_TEST
@@ -2284,7 +2285,7 @@ ErrCode AbilityManagerClient::UnregisterHiddenStartObserver(const sptr<IHiddenSt
 
 ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                                             const std::string &moduleName,
-                                                            const std::string &hostBundleName,
+                                                            const int32_t hostPid,
                                                             int32_t &recordNum,
                                                             int32_t userId)
 {
@@ -2292,7 +2293,7 @@ ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::El
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->QueryPreLoadUIExtensionRecord(
-        element, moduleName, hostBundleName, recordNum, userId);
+        element, moduleName, hostPid, recordNum, userId);
 }
 
 ErrCode AbilityManagerClient::RevokeDelegator(sptr<IRemoteObject> token)
@@ -2448,6 +2449,34 @@ bool AbilityManagerClient::IsRestartAppLimit()
         return false;
     }
     return abms->IsRestartAppLimit();
+}
+
+ErrCode AbilityManagerClient::ClearPreloadedUIExtensionAbility(int32_t extensionAbilityId, int32_t userId)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->ClearPreloadedUIExtensionAbility(extensionAbilityId, userId);
+}
+
+ErrCode AbilityManagerClient::ClearPreloadedUIExtensionAbilities(int32_t userId)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->ClearPreloadedUIExtensionAbilities(userId);
+}
+
+ErrCode AbilityManagerClient::RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RegisterPreloadUIExtensionHostClient(callerToken);
+}
+
+ErrCode AbilityManagerClient::UnRegisterPreloadUIExtensionHostClient(int32_t callerPid)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->UnRegisterPreloadUIExtensionHostClient(callerPid);
 }
 } // namespace AAFwk
 } // namespace OHOS

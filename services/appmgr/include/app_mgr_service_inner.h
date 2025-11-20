@@ -341,7 +341,8 @@ public:
      *
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0);
+    virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
+        const std::string &reason = "KillApplication");
 
     /**
      * ForceKillApplication, force kill the application.
@@ -1599,8 +1600,6 @@ public:
      */
     virtual int32_t CheckIsKiaProcess(pid_t pid, bool &isKia);
 
-    void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
-
     bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &isDebug);
 
     std::shared_ptr<AAFwk::TaskHandlerWrap> GetTaskHandler() const
@@ -2168,8 +2167,7 @@ private:
     void OnProcessDied(std::shared_ptr<AppRunningRecord> appRecord);
     bool IsBlockedByDisposeRules(const std::string &bundleName, int32_t userId,
         int32_t appIndex);
-    int32_t PreCheckStartProcess(const std::string &bundleName, int32_t uid,
-        std::shared_ptr<AAFwk::Want> &want);
+    int32_t PreCheckStartProcess(const std::string &bundleName, int32_t uid, int32_t appIndex);
     void InsertUninstallOrUpgradeUidSet(int32_t uid);
     void RemoveUninstallOrUpgradeUidSet(int32_t uid);
     bool IsUninstallingOrUpgrading(int32_t uid);

@@ -176,7 +176,7 @@ ErrCode AbilityManagerClient::RequestModalUIExtension(const Want &want)
 }
 
 ErrCode AbilityManagerClient::PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-    int32_t userId, int32_t hostPid)
+    int32_t requestCode, int32_t userId, int32_t hostPid)
 {
     return ERR_OK;
 }
@@ -347,7 +347,8 @@ ErrCode AbilityManagerClient::StopServiceAbility(const Want &want, sptr<IRemoteO
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::KillProcess(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
+ErrCode AbilityManagerClient::KillProcess(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
+    const std::string& reason)
 {
     return ERR_OK;
 }
@@ -1079,7 +1080,7 @@ ErrCode AbilityManagerClient::UnregisterHiddenStartObserver(const sptr<IHiddenSt
 
 ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                                             const std::string &moduleName,
-                                                            const std::string &hostBundleName,
+                                                            const int32_t hostPid,
                                                             int32_t &recordNum,
                                                             int32_t userId)
 {

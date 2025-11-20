@@ -326,10 +326,12 @@ public:
      * @param want, the want of the ability to start.
      * @param hostBundleName, the caller application bundle name.
      * @param userId, the extension runs in.
+     * @param requestCode the resultCode of the preload ui extension ability to start.
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE) override;
+        int32_t requestCode = DEFAULT_INVAL_VALUE, int32_t userId = DEFAULT_INVAL_VALUE,
+        int32_t hostPid = DEFAULT_INVAL_VALUE) override;
 
     /**
      * Change the visibility state of an UIAbility.
@@ -674,7 +676,8 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0) override;
+    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
+        const std::string& reason = "Abilityms::KillProcess") override;
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
@@ -1769,7 +1772,7 @@ public:
      */
     virtual int32_t QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                                   const std::string &moduleName,
-                                                  const std::string &hostBundleName,
+                                                  const int32_t hostPid,
                                                   int32_t &recordNum,
                                                   int32_t userId = DEFAULT_INVAL_VALUE) override;
 
@@ -1903,6 +1906,42 @@ public:
      * @return Returns true on being limited.
      */
     virtual bool IsRestartAppLimit() override;
+
+    /**
+     * UnPreload UIExtension with want, send want to ability manager service.
+     *
+     * @param extensionAbilityId The extension ability Id.
+     * @param userId The User Id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ClearPreloadedUIExtensionAbility(
+        int32_t extensionAbilityId, int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * clear all Preload UIExtension with want, send want to ability manager service.
+     *
+     * @param userId The User Id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ClearPreloadedUIExtensionAbilities(int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * @brief Register preload ui extension host client.
+     * @param callerToken Caller ability token.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken) override;
+
+    /**
+     * @brief UnRegister preload ui extension host client.
+     * @param hostBundleName, the caller application bundle name.
+     * @param hostPid, the caller hostPid.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE) override;
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

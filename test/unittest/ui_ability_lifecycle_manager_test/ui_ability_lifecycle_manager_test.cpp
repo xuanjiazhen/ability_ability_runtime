@@ -3646,7 +3646,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByName_001, TestSize.Le
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
     AppExecFwk::ElementName element;
-    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByName(element);
+    int32_t appIndex = 0;
+    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByName(element, appIndex);
     EXPECT_EQ(ret.empty(), true);
 }
 
@@ -3666,7 +3667,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByName_002, TestSize.Le
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
     AppExecFwk::ElementName element("100", "com.example.unittest", "MainAbility");
-    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByName(element);
+    int32_t appIndex = 0;
+    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByName(element, appIndex);
     EXPECT_EQ(ret.empty(), false);
 }
 
@@ -3687,7 +3689,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByName_003, TestSize.Le
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
     AppExecFwk::ElementName element("100", "com.example.unittest", "MainAbility", "entry");
-    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByName(element);
+    int32_t appIndex = 0;
+    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByName(element, appIndex);
     EXPECT_EQ(ret.empty(), false);
 }
 
@@ -3707,7 +3710,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByNameInner_001, TestSi
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
     AppExecFwk::ElementName element;
-    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element);
+    int32_t appIndex = 0;
+    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element, appIndex);
     EXPECT_EQ(ret.empty(), true);
 }
 
@@ -3727,7 +3731,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByNameInner_002, TestSi
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
     AppExecFwk::ElementName element("100", "com.example.unittest", "MainAbility");
-    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element);
+    int32_t appIndex = 0;
+    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element, appIndex);
     EXPECT_EQ(ret.empty(), false);
 }
 
@@ -3744,11 +3749,55 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByNameInner_003, TestSi
     abilityRequest.abilityInfo.deviceId = "100";
     abilityRequest.abilityInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
+    AppExecFwk::ElementName element("100", "com.example.unittest", "MainAbility");
+    int32_t appIndex = -1;
+    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element, appIndex);
+    EXPECT_EQ(ret.empty(), false);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_GetAbilityRecordsByNameInner_0400
+ * @tc.desc: GetAbilityRecordsByNameInner
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByNameInner_004, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.deviceId = "100";
+    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.moduleName = "entry";
     auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
     AppExecFwk::ElementName element("100", "com.example.unittest", "MainAbility", "entry");
-    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element);
+    int32_t appIndex = 0;
+    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element, appIndex);
+    EXPECT_EQ(ret.empty(), false);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_GetAbilityRecordsByNameInner_0500
+ * @tc.desc: GetAbilityRecordsByNameInner
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByNameInner_005, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.deviceId = "100";
+    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.moduleName = "entry";
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
+    AppExecFwk::ElementName element("100", "com.example.unittest", "MainAbility", "entry");
+    int32_t appIndex = -1;
+    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element, appIndex);
     EXPECT_EQ(ret.empty(), false);
 }
 
@@ -5103,12 +5152,12 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleStartSpecifiedCold_0100, TestSize.
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
     uint32_t sceneFlag = 1;
-    auto result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, nullptr, sceneFlag);
+    auto result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, nullptr, sceneFlag, false);
     EXPECT_EQ(result, false);
 
     sptr<SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::STANDARD;
-    result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag);
+    result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag, false);
     EXPECT_EQ(result, false);
 
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
@@ -5119,7 +5168,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleStartSpecifiedCold_0100, TestSize.
     std::list<std::shared_ptr<SpecifiedRequest>> Lists;
     Lists.push_back(specifiedRequest);
     uiAbilityLifecycleManager->specifiedRequestList_.emplace("key1", Lists);
-    result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag);
+    result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag, false);
     EXPECT_EQ(result, true);
 
     Lists.clear();
@@ -5128,7 +5177,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleStartSpecifiedCold_0100, TestSize.
     specifiedRequest->requestId = sessionInfo->requestId;
     Lists.push_back(specifiedRequest);
     uiAbilityLifecycleManager->specifiedRequestList_.emplace("key2", Lists);
-    result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag);
+    result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag, false);
     EXPECT_EQ(result, false);
 
     Lists.clear();
@@ -5137,8 +5186,11 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleStartSpecifiedCold_0100, TestSize.
     specifiedRequest->requestId = 2;
     Lists.push_back(specifiedRequest);
     uiAbilityLifecycleManager->specifiedRequestList_.emplace("key3", Lists);
-    result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag);
+    result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag, false);
     EXPECT_EQ(result, false);
+
+    result = uiAbilityLifecycleManager->HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag, true);
+    EXPECT_EQ(result, true);
 }
 
 /**

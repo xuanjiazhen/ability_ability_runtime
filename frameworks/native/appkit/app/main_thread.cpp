@@ -1424,13 +1424,17 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
 }
 #endif
 
-bool GetBundleForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
-    BundleInfo &bundleInfo)
+bool MainThread::GetBundleAndHspListForUpdateRuntime(BundleInfo &bundleInfo, std::string bundleName, HspList &hspList)
 {
+    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
+    contextDeal->SetApplicationInfo(applicationInfo_);
+    contextDeal->SetBundleCodePath(applicationInfo_->codePath);
+    auto bundleMgrHelper = contextDeal->GetBundleManager();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
         return false;
     }
+
     ErrCode ret = bundleMgrHelper->GetBundleInfoForSelf (
         (static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) +
         static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION)), bundleInfo);
@@ -1438,17 +1442,8 @@ bool GetBundleForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper
         TAG_LOGE(AAFwkTag::APPKIT, "get bundle Info failed: %{public}d", ret);
         return false;
     }
-    return true;
-}
 
-bool GetHspListForUpdateRuntime(std::shared_ptr<OHOS::AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
-    std::string bundleName, HspList &hspList)
-{
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
-        return false;
-    }
-    ErrCode ret = bundleMgrHelper->GetBaseSharedBundleInfos(bundleName, hspList,
+    ret = bundleMgrHelper->GetBaseSharedBundleInfos(bundleName, hspList,
     AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Get base shared bundle infos failed: %{public}d", ret);
@@ -2080,9 +2075,13 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
         auto napiEnv = (static_cast<AbilityRuntime::JsRuntime&>(*appThread->application_->GetRuntime())).GetNapiEnv();
         AAFwk::ExitReason exitReason = { REASON_JS_ERROR, errorObject.name };
         AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
-        if (!isUncatchable && NapiErrorManager::GetInstance()->NotifyUncaughtException(napiEnv, summary,
+        AppExecFwk::ApplicationDataManager::GetInstance().SetIsUncatchable(isUncatchable);
+        if (NapiErrorManager::GetInstance()->NotifyUncaughtException(napiEnv, summary,
             appExecErrorObj.name, appExecErrorObj.message, appExecErrorObj.stack)) {
-            return;
+            TAG_LOGI(AAFwkTag::APPKIT, "Complete all callbacks");
+            if (!isUncatchable) {
+                return;
+            }
         }
         if (!isUncatchable && ApplicationDataManager::GetInstance().NotifyUnhandledException(summary) &&
             ApplicationDataManager::GetInstance().NotifyExceptionObject(appExecErrorObj)) {
@@ -4296,6 +4295,7 @@ void MainThread::SleepCleanKill()
 
 bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (abilityRecord == nullptr || applicationInfo_ == nullptr || abilityRecord->GetAbilityInfo() == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null abilityRecord or applicationInfo or abilityInfo");
         return false;
@@ -4312,24 +4312,12 @@ bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
     if (runtime->GetLanguage() != AbilityRuntime::Runtime::Language::JS) {
         return true;
     }
-    HITRACE_METER_NAME(HITRACE_TAG_APP, "Updata Runtime");
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    contextDeal->SetApplicationInfo(applicationInfo_);
-    contextDeal->SetBundleCodePath(applicationInfo_->codePath);
-    auto bundleMgrHelper = contextDeal->GetBundleManager();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
-        return false;
-    }
+    HITRACE_METER_NAME(HITRACE_TAG_APP, "Update Runtime");
     BundleInfo bundleInfo;
-    if (!GetBundleForUpdateRuntime(bundleMgrHelper, bundleInfo)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Get bundleInfo failed");
-        return false;
-    }
     HspList hspList;
-    if (!GetHspListForUpdateRuntime(bundleMgrHelper,
+    if (!GetBundleAndHspListForUpdateRuntime(bundleInfo,
         runtimeUpdateParam_.uncatchableTaskInfo.bundleName, hspList)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Get hspList failed");
+        TAG_LOGE(AAFwkTag::APPKIT, "Get Bundle or hspList failed");
         return false;
     }
     AppLibPathMap etsAppLibPaths {};
