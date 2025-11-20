@@ -204,13 +204,171 @@ HWTEST_F(PreloadUIExtensionExecuteCallbackStubTest, HandleOnDestroyDone_0100, Te
     data.WriteInt32(extensionAbilityId);
     
     auto result = stub_->OnRemoteRequest(
-        IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_DESTROY_DONE,
-        data, reply, option);
-    
+        IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_DESTROY_DONE, data, reply, option);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_TRUE(stub_->IsOnDestroyDoneCalled());
     EXPECT_EQ(stub_->GetExtensionAbilityId(), extensionAbilityId);
     TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: OnRemoteRequest_TokenMismatch_0100
+ * @tc.desc: Test InterfaceToken mismatch.
+ *           Expected: ERR_INVALID_STATE
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreloadUIExtensionExecuteCallbackStubTest, OnRemoteRequest_TokenMismatch_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnRemoteRequest_TokenMismatch_0100 start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(u"Invalid.Token.Descriptor");
+    
+    auto result = stub_->OnRemoteRequest(
+        IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_LOADED_DONE, data, reply, option);
+    EXPECT_EQ(result, ERR_INVALID_STATE);
+    TAG_LOGI(AAFwkTag::TEST, "OnRemoteRequest_TokenMismatch_0100 end");
+}
+
+/**
+ * @tc.name: HandleOnPreloadSuccess_0100
+ * @tc.desc: Test ON_PRELOAD_UI_EXTENSION_ABILITY_SUCCESS branch and HandleOnPreloadSuccess impl.
+ *           Expected: ERR_OK and callback invoked.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreloadUIExtensionExecuteCallbackStubTest, HandleOnPreloadSuccess_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandleOnPreloadSuccess_0100 start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    data.WriteInterfaceToken(IPreloadUIExtensionExecuteCallback::GetDescriptor());
+    
+    int32_t requestCode = 10;
+    int32_t extensionAbilityId = 500;
+    int32_t innerErrCode = 0;
+
+    data.WriteInt32(requestCode);
+    data.WriteInt32(extensionAbilityId);
+    data.WriteInt32(innerErrCode);
+    
+    auto result = stub_->OnRemoteRequest(
+        IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_SUCCESS,
+        data, reply, option);
+    
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "HandleOnPreloadSuccess_0100 end");
+}
+
+/**
+ * @tc.name: OnLoadedDone_0100
+ * @tc.desc: Test OnLoadedDone normal execution.
+ *           Verify SendRequest is called with correct code.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreloadUIExtensionExecuteCallbackProxyTest, OnLoadedDone_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnLoadedDone_0100 start");
+    int32_t extensionId = 1001;
+    EXPECT_CALL(*mockRemote_, SendRequest(
+        IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_LOADED_DONE,
+        _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    proxy_->OnLoadedDone(extensionId);
+    TAG_LOGI(AAFwkTag::TEST, "OnLoadedDone_0100 end");
+}
+
+/**
+ * @tc.name: OnLoadedDone_0200
+ * @tc.desc: Test OnLoadedDone when SendRequest fails.
+ *           Verify logic handles error gracefully (logs error, no crash).
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreloadUIExtensionExecuteCallbackProxyTest, OnLoadedDone_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnLoadedDone_0200 start");
+    int32_t extensionId = 1002;
+    EXPECT_CALL(*mockRemote_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_INVALID_VALUE));
+    proxy_->OnLoadedDone(extensionId);
+    TAG_LOGI(AAFwkTag::TEST, "OnLoadedDone_0200 end");
+}
+
+/**
+ * @tc.name: OnDestroyDone_0100
+ * @tc.desc: Test OnDestroyDone normal execution.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreloadUIExtensionExecuteCallbackProxyTest, OnDestroyDone_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnDestroyDone_0100 start");
+    int32_t extensionId = 2001;
+
+    EXPECT_CALL(*mockRemote_, SendRequest(
+        IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_DESTROY_DONE,
+        _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    proxy_->OnDestroyDone(extensionId);
+    TAG_LOGI(AAFwkTag::TEST, "OnDestroyDone_0100 end");
+}
+
+/**
+ * @tc.name: OnDestroyDone_0200
+ * @tc.desc: Test OnDestroyDone failure case.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreloadUIExtensionExecuteCallbackProxyTest, OnDestroyDone_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnDestroyDone_0200 start");
+    int32_t extensionId = 2002;
+
+    EXPECT_CALL(*mockRemote_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_NULL_OBJECT));
+    proxy_->OnDestroyDone(extensionId);
+    TAG_LOGI(AAFwkTag::TEST, "OnDestroyDone_0200 end");
+}
+
+/**
+ * @tc.name: OnPreloadSuccess_0100
+ * @tc.desc: Test OnPreloadSuccess normal execution.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreloadUIExtensionExecuteCallbackProxyTest, OnPreloadSuccess_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnPreloadSuccess_0100 start");
+    int32_t reqCode = 10;
+    int32_t extId = 500;
+    int32_t errCode = 0;
+
+    EXPECT_CALL(*mockRemote_, SendRequest(
+        IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_SUCCESS,
+        _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    proxy_->OnPreloadSuccess(reqCode, extId, errCode);
+    TAG_LOGI(AAFwkTag::TEST, "OnPreloadSuccess_0100 end");
+}
+
+/**
+ * @tc.name: OnPreloadSuccess_0200
+ * @tc.desc: Test OnPreloadSuccess failure case.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreloadUIExtensionExecuteCallbackProxyTest, OnPreloadSuccess_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnPreloadSuccess_0200 start");
+    
+    EXPECT_CALL(*mockRemote_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_TIMED_OUT));
+    proxy_->OnPreloadSuccess(1, 1, 1);
+    TAG_LOGI(AAFwkTag::TEST, "OnPreloadSuccess_0200 end");
 }
 } // namespace AAFwk
 } // namespace OHOS
