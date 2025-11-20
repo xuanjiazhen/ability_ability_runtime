@@ -131,10 +131,11 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     sptr<IRemoteObject> rootSceneSession;
     uIAbilityLifecycleManager->SetRootSceneSession(rootSceneSession);
     AbilityRequest abilityRequest1;
-    uIAbilityLifecycleManager->NotifySCBToStartUIAbility(abilityRequest1);
     sptr<SessionInfo> sessionInfo2;
+    uIAbilityLifecycleManager->NotifySCBPendingActivationInSplitMode(abilityRequest1, sessionInfo2);
+    sptr<SessionInfo> sessionInfo3;
     AbilityRequest abilityRequest2;
-    uIAbilityLifecycleManager->NotifySCBToPreStartUIAbility(abilityRequest2, sessionInfo2);
+    uIAbilityLifecycleManager->NotifySCBToPreStartUIAbility(abilityRequest2, sessionInfo3);
     uint32_t msgId = static_cast<uint32_t>(GetU32Data(data));
     int64_t abilityRecordId = static_cast<int64_t>(GetU32Data(data));
     uIAbilityLifecycleManager->OnTimeOut(msgId, abilityRecordId, boolParam);
@@ -143,8 +144,8 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     uIAbilityLifecycleManager->OnAbilityDied(abilityRecord3);
     std::string errMsg;
     uIAbilityLifecycleManager->ResolveLocked(abilityRequest3, errMsg);
-    sptr<SessionInfo> sessionInfo3;
-    uIAbilityLifecycleManager->CallUIAbilityBySCB(sessionInfo3, boolParam);
+    sptr<SessionInfo> sessionInfo4;
+    uIAbilityLifecycleManager->CallUIAbilityBySCB(sessionInfo4, boolParam);
     DoSomethingInterestingWithMyAPI1(data, size);
 
     return true;
