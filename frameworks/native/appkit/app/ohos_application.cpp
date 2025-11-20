@@ -237,6 +237,18 @@ void OHOSApplication::SetApplicationContext(
             }
             return applicationSptr->GetSpecifiedRuntime(codeLanguage);
         });
+#ifdef SUPPORT_SCREEN
+    TAG_LOGI(AAFwkTag::APPKIT, "hanksh OHOSApplication::RegisterGetAllUIAbilitiesCallback");
+    abilityRuntimeContext_->RegisterGetAllUIAbilitiesCallback(
+        [applicationWptr](std::vector<std::shared_ptr<AbilityRuntime::UIAbility>> &uIAbilities) {
+            std::shared_ptr<OHOSApplication> applicationSptr = applicationWptr.lock();
+            if (applicationSptr == nullptr) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null applicationSptr");
+                return;
+            }
+            return applicationSptr->GetAllUIAbilities(uIAbilities);
+        });
+#endif
 }
 
 /**
@@ -1275,5 +1287,39 @@ bool OHOSApplication::UpdateETSRuntime(AbilityRuntime::Runtime::Options &option)
     runtime_ = std::move(etsRuntime);
     return true;
 }
+
+#ifdef SUPPORT_SCREEN
+void OHOSApplication::GetAllUIAbilities(std::vector<std::shared_ptr<AbilityRuntime::UIAbility>> &uIAbilities)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "hanksh OHOSApplication::GetAllUIAbilities");
+    if (abilityRecordMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null abilityRecordMgr_");
+        return;
+    }
+
+    for (const auto &abilityToken : abilityRecordMgr_->GetAllTokens()) {
+        auto abilityRecord = abilityRecordMgr_->GetAbilityItem(abilityToken);
+        if (abilityRecord == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null abilityRecord");
+            continue;
+        }
+        auto abilityInfo = abilityRecord->GetAbilityInfo();
+        if (abilityInfo == nullptr || abilityInfo->type != AbilityType::PAGE) {
+            continue;
+        }
+        auto abilityThread = abilityRecord->GetAbilityThread();
+        if (abilityThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null abilityThread");
+            continue;
+        }
+        auto uiAbility = abilityThread->GetUIAbility();
+        if (uiAbility == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null uiAbility");
+            continue;
+        }
+        uIAbilities.emplace_back(uiAbility);
+    }
+}
+#endif
 }  // namespace AppExecFwk
 }  // namespace OHOS

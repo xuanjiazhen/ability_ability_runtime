@@ -828,6 +828,26 @@ int32_t ApplicationContext::GetProcessRunningInformation(AppExecFwk::RunningProc
     return (contextImpl_ != nullptr) ? contextImpl_->GetProcessRunningInformation(info) : -1;
 }
 
+#ifdef SUPPORT_SCREEN
+void ApplicationContext::GetAllUIAbilities(std::vector<std::shared_ptr<UIAbility>> &uIAbilities)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "hanksh ApplicationContext::GetAllUIAbilities()");
+    if (contextImpl_ != nullptr) {
+        contextImpl_->GetAllUIAbilities(uIAbilities);
+    }
+}
+
+void ApplicationContext::RegisterGetAllUIAbilitiesCallback(GetAllUIAbilitiesCallback getAllUIAbilitiesCallback)
+{
+    TAG_LOGE(AAFwkTag::APPKIT, "hanksh ApplicationContext::RegisterGetAllUIAbilitiesCallback");
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl_");
+        return;
+    }
+    contextImpl_->RegisterGetAllUIAbilitiesCallback(getAllUIAbilitiesCallback);
+}
+#endif
+
 int32_t ApplicationContext::GetAllRunningInstanceKeys(std::vector<std::string> &instanceKeys)
 {
     return (contextImpl_ != nullptr) ? contextImpl_->GetAllRunningInstanceKeys(instanceKeys) : -1;
