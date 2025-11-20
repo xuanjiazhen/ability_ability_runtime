@@ -1179,8 +1179,8 @@ void AbilityManagerService::CheckExtensionRateLimit(const std::string &targetNam
     if (!limitResult.limited) {
         return;
     }
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "Rate limited triggered, tier:%{public}s, limit:%{public}d, uid:%{public}d", 
-                limitResult.tierName.c_str(), limitResult.triggeredLimit, uid);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "Rate limited triggered, limit:%{public}d, uid:%{public}d", 
+        limitResult.triggeredLimit, uid);
     if (RateLimiter::GetInstance().CheckReportLimit(uid, limitResult.triggeredLimit)) {
         return;
     }
