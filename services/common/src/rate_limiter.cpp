@@ -50,7 +50,7 @@ RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
         auto& userTiers = tierTriggerTimes_[uid];
         CleanUserTierTriggerTimes(userTiers, timeBefore);
         for (auto tierIt = EXTENSION_TIERS.rbegin(); tierIt != EXTENSION_TIERS.rend(); ++tierIt) {
-            int32_t limit = *iterIt;
+            int32_t limit = *tierIt;
             if (currentCount >= limit) {
                 auto triggerIt = userTiers.find(limit);
                 result = {true, limit};
