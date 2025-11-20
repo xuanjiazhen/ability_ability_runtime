@@ -30,6 +30,7 @@ ohos_unittest("ui_extension_preload_test") {
 
   deps = [
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

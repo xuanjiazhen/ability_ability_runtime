@@ -32,6 +32,7 @@ ohos_unittest("napi_base_context_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/napi_base_context:napi_base_context",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

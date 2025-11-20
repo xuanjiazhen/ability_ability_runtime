@@ -25,7 +25,7 @@ ohos_unittest("AppMgrStubTest") {
       [ "${ability_runtime_test_path}/mock/services_appmgr_test/include" ]
 
   sources = [ "app_mgr_stub_test.cpp" ]
-
+  deps = [ "${ability_runtime_services_path}/common:hilog_tag_wrapper" ]
   external_deps = [
     "ability_base:configuration",
     "ability_base:want",

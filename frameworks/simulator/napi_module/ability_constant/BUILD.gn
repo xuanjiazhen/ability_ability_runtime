@@ -22,7 +22,10 @@ ohos_shared_library("abilityconstant") {
 
   sources = [ "ability_constant_module.cpp" ]
 
-  deps = [ "${ability_runtime_path}/frameworks/simulator/osal:simulator_osal" ]
+  deps = [
+    "${ability_runtime_path}/frameworks/simulator/osal:simulator_osal",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "hilog:libhilog",

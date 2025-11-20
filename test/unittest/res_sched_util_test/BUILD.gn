@@ -27,7 +27,10 @@ ohos_unittest("res_sched_util_test") {
 
   sources = [ "res_sched_util_test.cpp" ]
 
-  deps = [ "${ability_runtime_services_path}/common:app_util" ]
+  deps = [
+  "${ability_runtime_services_path}/common:app_util",
+  "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+]
 
   external_deps = [
     "ability_runtime:abilitykit_native",

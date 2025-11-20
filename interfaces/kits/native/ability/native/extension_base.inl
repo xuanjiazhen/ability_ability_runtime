@@ -15,7 +15,6 @@
 
 #include "application_context.h"
 #include "context.h"
-#include "hilog_tag_wrapper.h"
 #include "hilog_wrapper.h"
 #include "ui_extension_utils.h"
 
@@ -28,7 +27,7 @@ void ExtensionBase<C>::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     const sptr<IRemoteObject> &token)
 {
     Extension::Init(record, application, handler, token);
-    TAG_LOGD(AAFwkTag::EXT, "begin");
+    HILOG_DEBUG("begin");
     context_ = CreateAndInitContext(record, application, handler, token);
 }
 
@@ -38,11 +37,11 @@ std::shared_ptr<C> ExtensionBase<C>::CreateAndInitContext(const std::shared_ptr<
     std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
-    TAG_LOGD(AAFwkTag::EXT, "begin");
+    HILOG_DEBUG("begin");
     std::shared_ptr<C> context = std::make_shared<C>();
     auto appContext = Context::GetApplicationContext();
     if (appContext == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "null appContext");
+        HILOG_ERROR("null appContext");
         return context;
     }
     context->SetApplicationInfo(appContext->GetApplicationInfo());
@@ -51,10 +50,10 @@ std::shared_ptr<C> ExtensionBase<C>::CreateAndInitContext(const std::shared_ptr<
     context->SetToken(token);
     context->SetProcessName(appContext->GetProcessName());
     if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "null record");
+        HILOG_ERROR("null record");
         return context;
     }
-    TAG_LOGD(AAFwkTag::EXT, "begin init abilityInfo");
+    HILOG_DEBUG("begin init abilityInfo");
     auto abilityInfo = record->GetAbilityInfo();
     context->SetAbilityInfo(abilityInfo);
     context->InitHapModuleInfo(abilityInfo);
@@ -86,16 +85,16 @@ template<class C>
 void ExtensionBase<C>::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)
 {
     Extension::OnConfigurationUpdated(configuration);
-    TAG_LOGD(AAFwkTag::EXT, "called");
+    HILOG_DEBUG("called");
 
     if (!context_) {
-        TAG_LOGE(AAFwkTag::EXT, "null context_");
+        HILOG_ERROR("null context_");
         return;
     }
 
     auto fullConfig = context_->GetConfiguration();
     if (!fullConfig) {
-        TAG_LOGE(AAFwkTag::EXT, "null config");
+        HILOG_ERROR("null config");
         return;
     }
 
@@ -108,7 +107,7 @@ template<class C>
 void ExtensionBase<C>::OnMemoryLevel(int level)
 {
     Extension::OnMemoryLevel(level);
-    TAG_LOGD(AAFwkTag::EXT, "called");
+    HILOG_DEBUG("called");
 
     if (extensionCommon_) {
         extensionCommon_->OnMemoryLevel(level);
@@ -125,9 +124,9 @@ template<class C>
 void ExtensionBase<C>::OnExtensionAbilityRequestFailure(const std::string &requestId,
     const AppExecFwk::ElementName &element, const std::string &message, int32_t resultCode)
 {
-    TAG_LOGD(AAFwkTag::EXT, "OnAbilityRequestFailure called");
+    HILOG_DEBUG("OnAbilityRequestFailure called");
     if (context_ == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "null context_");
+        HILOG_ERROR("null context_");
         return;
     }
     context_->OnRequestFailure(requestId, element, message, resultCode);
@@ -137,9 +136,9 @@ template<class C>
 void ExtensionBase<C>::OnExtensionAbilityRequestSuccess(
     const std::string &requestId, const AppExecFwk::ElementName &element, const std::string &message)
 {
-    TAG_LOGD(AAFwkTag::EXT, "OnAbilityRequestSuccess called");
+    HILOG_DEBUG("OnAbilityRequestSuccess called");
     if (context_ == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "null context_");
+        HILOG_ERROR("null context_");
         return;
     }
     context_->OnRequestSuccess(requestId, element, message);

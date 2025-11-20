@@ -36,6 +36,7 @@ ohos_unittest("js_auto_fill_extension_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:ui_extension",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [

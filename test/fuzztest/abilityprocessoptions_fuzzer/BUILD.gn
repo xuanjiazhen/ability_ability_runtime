@@ -45,7 +45,10 @@ ohos_fuzztest("AbilityProcessOptionsFuzzTest") {
 
   configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
 
-  deps = [ "${ability_runtime_innerkits_path}/ability_manager:process_options" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:process_options",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
+  ]
 
   external_deps = [
     "ability_base:want",

@@ -15,19 +15,19 @@
 
 #include "shell_command_result.h"
 
-#include "hilog_tag_wrapper.h"
+#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
 bool ShellCommandResult::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteInt32(exitCode)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "write exitCode failed");
+        HILOG_ERROR("write exitCode failed");
         return false;
     }
 
     if (!parcel.WriteString(stdResult)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "write stdResult failed");
+        HILOG_ERROR("write stdResult failed");
         return false;
     }
 

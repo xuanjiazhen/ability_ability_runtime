@@ -56,6 +56,7 @@ ohos_shared_library("quickfixms") {
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/quick_fix:quickfix_manager",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 
@@ -94,6 +95,7 @@ ohos_static_library("quickfixms_static") {
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/quick_fix:quickfix_manager",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 

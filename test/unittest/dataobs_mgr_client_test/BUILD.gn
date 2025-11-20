@@ -38,6 +38,7 @@ ohos_unittest("dataobs_mgr_client_test") {
   deps = [
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
+    "${ability_runtime_services_path}/common:hilog_tag_wrapper",
   ]
 
   external_deps = [
