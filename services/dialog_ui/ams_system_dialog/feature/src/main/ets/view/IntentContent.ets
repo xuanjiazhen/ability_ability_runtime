@@ -69,12 +69,14 @@ export struct IntentContent {
         .then((data) => {
           this.listMaterial = data as IntentInfo[];
           this.intermediateGroupMaterial = this.listMaterial.reduce((acc, item) => {
-            const bundleName: string = item.bundleName;
-            if (!acc[bundleName]) {
-              acc[bundleName] = [];
+            if (item.developType == insightIntentDriver.DevelopType.DECORATOR) {
+              const bundleName: string = item.bundleName;
+              if (!acc[bundleName]) {
+                acc[bundleName] = [];
+              }
+              acc[bundleName].push(item);
+              return acc;
             }
-            acc[bundleName].push(item);
-            return acc;
           }, {} as Record<string, IntentInfo[]>)
           const bundleNames = Object.keys(this.intermediateGroupMaterial);
           const promises = bundleNames.map(async (bundleName) => {
