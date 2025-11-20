@@ -287,7 +287,11 @@ private:
         NapiAsyncTask::CompleteCallback complete =
             [innerErrorCode, intentInfo](napi_env env, NapiAsyncTask &task, int32_t status) {
                 if (*innerErrorCode == 0) {
-                    task.ResolveWithNoError(env, CreateInsightIntentInfoForQuery(env, *intentInfo));
+                    if (intentInfo->isConfig) {
+                        task.ResolveWithNoError(env, CreateConfigInsightIntentInfoForQuery(env, *intentInfo));
+                    } else {
+                        task.ResolveWithNoError(env, CreateInsightIntentInfoForQuery(env, *intentInfo));
+                    }
                 } else {
                     task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*innerErrorCode)));
                 }
