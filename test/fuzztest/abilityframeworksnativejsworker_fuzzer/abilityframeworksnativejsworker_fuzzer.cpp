@@ -17,6 +17,9 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <pthread.h>
+#include <ctime <atomic>
+#include <atomic>
 
 #include "extractor.h"
 #include "file_mapper.h"
@@ -43,6 +46,36 @@ constexpr size_t OFFSET_ZERO = 24;
 constexpr size_t OFFSET_ONE = 16;
 constexpr size_t OFFSET_TWO = 8;
 constexpr uint8_t ENABLE = 2;
+}
+
+static std::atomic<bool> g_timeoutRequested{false};
+
+void* TimeoutThread(void* arg)
+{
+    struct timespec req = {1700, 0};
+    if (nanosleep(&req, nullptr) != 0)
+    {
+    }
+    
+    g_timeoutRequested = true;
+    std::cerr << "[FUZZ] Timeout reached 30min.\n";
+    return;
+}
+
+static void InitTimeout()
+{
+    pthread_t tid;
+    int ret = pthread_create(&tid, nullptr, TimeoutThread, nullptr);
+    if (ret != 0)
+    {
+        std::cerr << "[FUZZ] failed to create timeout thread: "<< ret << "\n";
+    }
+    pthread_detach(tid);
+}
+
+__attribute__((constructor)) void SetupTimeout()
+{
+    InitTimeout();
 }
 
 uint32_t GetU32Data(const char* ptr)
