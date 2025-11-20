@@ -38,7 +38,6 @@ void PreLoadUIExtStateObserver::OnProcessDied(const AppExecFwk::ProcessData &pro
             return;
         }
         extensionRecord->UnloadUIExtensionAbility();
-        AbilityManagerClient::GetInstance()->UnRegisterPreloadUIExtensionHostClient(diedPid);
     } else {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "extensionRecord null");
     }

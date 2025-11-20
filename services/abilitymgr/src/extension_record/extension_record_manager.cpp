@@ -689,7 +689,6 @@ void ExtensionRecordManager::LoadTimeout(int32_t extensionRecordId)
         return;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Start load timeout.");
-    HandlePreloadUIExtensionSuccess(extensionRecordId, false);
     uiExtensionRecord->LoadTimeout();
 }
 
