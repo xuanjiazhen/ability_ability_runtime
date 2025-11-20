@@ -56,17 +56,15 @@ RateLimiter::LimitResult RateLimiter::CheckExtensionLimit(int32_t uid)
             const auto& [limit, tierName] = *tierIt;
             if (currentCount >= limit) {
                 auto triggerIt = userTiers.find(limit);
+                result = {true, limit, tierName};
                 if (triggerIt == userTiers.end() || triggerIt->second < timeBefore) {
-                    result = {true, limit, tierName};
                     userTiers[limit] = currentTimeMillis;
                     break;
                 }
             }
         }
     }
-    if (!result.limited) {
-        timestamps.emplace_back(currentTimeMillis);
-    }
+    timestamps.emplace_back(currentTimeMillis);
     return result;
 }
 
@@ -158,10 +156,15 @@ void RateLimiter::CleanSingleCallMap(std::unordered_map<int32_t, std::vector<int
     std::lock_guard<std::mutex> guard(mapLock);
     auto it = callMap.begin();
     while (it != callMap.end()) {
-        auto& timestamps = it->second;
-        auto eraseIt = std::lower_bound(timestamps.begin(), timestamps.end(), timeBefore);
-        timestamps.erase(timestamps.begin(), eraseIt);
-        if (timestamps.empty()) {
+        bool allExpired = true;
+        for (const auto &timestamp : it->second) {
+            if (timestamp >= timeBefore) {
+                allExpired = false;
+                break;
+            }
+        }
+        
+        if (allExpired) {
             it = callMap.erase(it);
         } else {
             ++it;

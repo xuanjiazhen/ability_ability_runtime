@@ -4114,7 +4114,6 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UI_EXT, "StartUIExtensionAbility begin");
-    CheckExtensionRateLimit("StartUIExtensionAbility");
     CHECK_POINTER_AND_RETURN(extensionSessionInfo, ERR_INVALID_VALUE);
     SetPickerElementNameAndParams(extensionSessionInfo, userId);
     SetAutoFillElementName(extensionSessionInfo);
@@ -5274,7 +5273,6 @@ int AbilityManagerService::ConnectUIExtensionAbility(const Want &want, const spt
     TAG_LOGI(AAFwkTag::UI_EXT,
         "ConnectUIExtensionAbility bundlename: %{public}s, ability is %{public}s, userId is %{private}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
-    CheckExtensionRateLimit(want.GetElement().GetAbilityName());
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(connect->AsObject(), ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);

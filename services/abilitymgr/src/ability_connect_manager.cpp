@@ -761,16 +761,13 @@ void AbilityConnectManager::HandleConnectionCountIncrement(int32_t pid, const st
         return;
     }
     std::lock_guard<std::mutex> guard(callerPidConnectionCountMapMutex_);
-    auto it = callerPidConnectionCountMap_.find(pid);
-    int32_t currentCount = (it != callerPidConnectionCountMap_.end()) ? it->second : 0;
-    int32_t newCount = currentCount + 1;
-    callerPidConnectionCountMap_[pid] = newCount;
+    callerPidConnectionCountMap_[pid]++;
     for (const auto& threshold : thresholds_) {
-        if (currentCount < threshold && newCount >= threshold) {
+        if (callerPidConnectionCountMap_[pid] == threshold) {
             EventInfo eventInfo;
             eventInfo.abilityName = abilityName;
             eventInfo.callerBundleName = bundleName;
-            eventInfo.moduleName = "ReachLilmit";
+            eventInfo.moduleName = "ConnectionCountLimit";
             eventInfo.extensionType = threshold;
             TAG_LOGD(AAFwkTag::ABILITYMGR, "sendEventReport, pid: %{public}d, threshold: %{public}d", pid, threshold);
             EventReport::SendStartAbilityOtherExtensionEvent(EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
