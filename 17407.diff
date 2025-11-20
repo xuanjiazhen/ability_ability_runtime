@@ -1,0 +1,3630 @@
+diff --git a/bundle.json b/bundle.json
+index 5d110c3b652e2aed98ccd702e4584001605ecd72..f6e920b7e97c95f802bec4a5b5100d0a6dc064b8 100644
+--- a/bundle.json
++++ b/bundle.json
+@@ -365,6 +365,7 @@
+               "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common/include",
+               "header_files": [
+                 "ani_common_ability_state_data.h",
++                "ani_common_child_process_param.h",
+                 "ani_common_start_options.h",
+                 "ani_common_want.h",
+                 "ets_native_reference.h"
+@@ -372,6 +373,15 @@
+             },
+             "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common:ani_common"
+           },
++          {
++            "header": {
++              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_observer/include",
++              "header_files": [
++                "ets_start_abilities_observer.h"
++              ]
++            },
++            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_observer:ani_observer"
++          },
+           {
+             "header": {
+               "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_ability_common",
+diff --git a/frameworks/ets/ani/BUILD.gn b/frameworks/ets/ani/BUILD.gn
+index 8a634a6d7828306ae944a2f2c1245c9b4e82697d..c504bbedf177f129e660eff74e9414a0e2c8b2a9 100644
+--- a/frameworks/ets/ani/BUILD.gn
++++ b/frameworks/ets/ani/BUILD.gn
+@@ -23,6 +23,7 @@ group("ani_packages") {
+     "${ability_runtime_path}/frameworks/ets/ani/action_extension_ability:action_extension_ani",
+     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+     "${ability_runtime_path}/frameworks/ets/ani/ani_mission_manager:missionmanager_ani",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_observer:ani_observer",
+     "${ability_runtime_path}/frameworks/ets/ani/ani_wantagent_common:ani_wantagent_common",
+     "${ability_runtime_path}/frameworks/ets/ani/app/ability_context:ability_context_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/app/ability_stage_context:ability_stage_context_ani_kit",
+@@ -43,12 +44,14 @@ group("ani_packages") {
+     "${ability_runtime_path}/frameworks/ets/ani/auto_fill_manager:ability_auto_fill_manager_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/business_ability_router:businessabilityrouter_ani",
+     "${ability_runtime_path}/frameworks/ets/ani/caller_complex:caller_complex_ani",
++    "${ability_runtime_path}/frameworks/ets/ani/child_process_manager:ability_child_process_manager_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/dialog_session:dialog_session_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/embedded_ui_extension_ability:embedded_ui_extension_ani",
+     "${ability_runtime_path}/frameworks/ets/ani/ets_dialog_request:dialogrequest_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/event_hub:event_hub_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/featureAbility:featureability_ani",
+     "${ability_runtime_path}/frameworks/ets/ani/insight_intent/insight_intent_driver:insight_intent_driver_ani_kit",
++    "${ability_runtime_path}/frameworks/ets/ani/kiosk_manager:kiosk_manager_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/quick_fix_manager:quick_fix_manager_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/share_extension_ability:share_extension_ani",
+     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
+diff --git a/frameworks/ets/ani/ani_common/BUILD.gn b/frameworks/ets/ani/ani_common/BUILD.gn
+index 4f9499709e4597ca9f60e7e1e234822a93c7b337..1d3a308f0749163a0d009b5b44000893732abf8a 100644
+--- a/frameworks/ets/ani/ani_common/BUILD.gn
++++ b/frameworks/ets/ani/ani_common/BUILD.gn
+@@ -45,6 +45,7 @@ ohos_shared_library("ani_common") {
+     "src/ani_common_ability_result.cpp",
+     "src/ani_common_ability_state_data.cpp",
+     "src/ani_common_cache_mgr.cpp",
++    "src/ani_common_child_process_param.cpp",
+     "src/ani_common_configuration.cpp",
+     "src/ani_common_execute_param.cpp",
+     "src/ani_common_execute_result.cpp",
+diff --git a/frameworks/ets/ani/ani_common/include/ani_common_child_process_param.h b/frameworks/ets/ani/ani_common/include/ani_common_child_process_param.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..10b9ed80fd09eb27481837d4867f663b6785a4cc
+--- /dev/null
++++ b/frameworks/ets/ani/ani_common/include/ani_common_child_process_param.h
+@@ -0,0 +1,33 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing perns and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_ANI_COMMON_CHILD_PROCESS_PARAM
++#define OHOS_ABILITY_RUNTIME_ANI_COMMON_CHILD_PROCESS_PARAM
++
++#include "ani.h"
++#include "child_process_args.h"
++#include "child_process_options.h"
++
++namespace OHOS {
++namespace AppExecFwk {
++bool UnwrapChildProcessArgs(ani_env* env, ani_object object, ChildProcessArgs &args,
++    std::string &errorMsg);
++bool UnwrapChildProcessFds(ani_env* env, ani_object object, std::map<std::string, int32_t> &map, std::string &errorMsg);
++ani_object WrapChildProcessArgs(ani_env* env, ChildProcessArgs &args);
++bool UnwrapChildProcessOptions(ani_env* env, ani_object object, ChildProcessOptions &options,
++    std::string &errorMsg);
++} // namespace AppExecFwk
++} // namespace OHOS
++#endif // OHOS_ABILITY_RUNTIME_ANI_COMMON_CHILD_PROCESS_PARAM
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/ani_common/src/ani_common_child_process_param.cpp b/frameworks/ets/ani/ani_common/src/ani_common_child_process_param.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..46a413f38c9980d97faef59e9d3c0c8110b2341e
+--- /dev/null
++++ b/frameworks/ets/ani/ani_common/src/ani_common_child_process_param.cpp
+@@ -0,0 +1,261 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ani_common_child_process_param.h"
++
++#include "ani_common_util.h"
++#include "hilog_tag_wrapper.h"
++
++namespace OHOS {
++namespace AppExecFwk {
++namespace {
++constexpr const char* CLASSNAME_CHILDPROCESSARGS = "L@ohos/app/ability/ChildProcessArgs/ChildProcessArgsImpl;";
++constexpr const char* RECORD_CLASS_NAME = "Lescompat/Record;";
++}
++
++void SetFdsInner(ani_env* env, ani_object recordObject, ani_method recordSetMethod,
++    const std::map<std::string, int32_t> &fds)
++{
++    ani_status status = ANI_ERROR;
++    for (auto iter = fds.begin(); iter != fds.end(); ++iter) {
++        std::string key = iter->first;
++        ani_string aniKey = GetAniString(env, key);
++        int32_t value = iter->second;
++        ani_int aniValue = static_cast<ani_int>(value);
++        static const char *className = "Lstd/core/Int;";
++        ani_class persion_cls;
++        status = env->FindClass(className, &persion_cls);
++        if (status != ANI_OK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "FindClass failed status: %{public}d", status);
++            return;
++        }
++        ani_method personInfoCtor;
++        status = env->Class_FindMethod(persion_cls, "<ctor>", "I:V", &personInfoCtor);
++        if (status != ANI_OK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Class_FindMethod failed status: %{public}d", status);
++            return;
++        }
++        ani_object personInfoObj;
++        status = env->Object_New(persion_cls, personInfoCtor, &personInfoObj, aniValue);
++        if (status != ANI_OK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Object_New failed: %{public}d", status);
++            return;
++        }
++        status = env->Object_CallMethod_Void(recordObject, recordSetMethod, aniKey, personInfoObj);
++        if (status != ANI_OK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Object_CallMethod_Void failed status: %{public}d", status);
++            return;
++        }
++    }
++}
++
++void SetFds(ani_env* env, ani_object object, std::map<std::string, int32_t> &fds)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "null aniEnv");
++        return;
++    }
++    ani_status status = ANI_ERROR;
++    ani_class recordCls = nullptr;
++    status = env->FindClass(RECORD_CLASS_NAME, &recordCls);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "FindClass failed status: %{public}d", status);
++        return;
++    }
++    ani_method objectMethod = nullptr;
++    status = env->Class_FindMethod(recordCls, "<ctor>", ":V", &objectMethod);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "Class_FindMethod constructor failed: %{public}d", status);
++        return;
++    }
++    ani_object recordObject = nullptr;
++    status = env->Object_New(recordCls, objectMethod, &recordObject);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "Object_New failed: %{public}d", status);
++        return;
++    }
++    ani_method recordSetMethod = nullptr;
++    status = env->Class_FindMethod(recordCls, "$_set",
++        "X{C{std.core.Numeric}C{std.core.String}C{std.core.BaseEnum}}C{std.core.Object}:", &recordSetMethod);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "Class_FindMethod failed status: %{public}d", status);
++        return;
++    }
++    SetFdsInner(env, recordObject, recordSetMethod, fds);
++    status = env->Object_SetPropertyByName_Ref(object, "fds", recordObject);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "set property failed status: %{public}d", status);
++    }
++}
++
++void GetFds(ani_env* env, ani_string aniKey, ani_object aniValue, std::map<std::string, int32_t> &map)
++{
++    std::string mapKey = "";
++    if (!GetStdString(env, aniKey, mapKey)) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "GetStdString failed");
++        return;
++    }
++    ani_int value;
++    ani_status status = env->Object_CallMethodByName_Int(aniValue, "intValue", nullptr, &value);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "Object_CallMethodByName_Int failed status: %{public}d", status);
++        return;
++    }
++    auto mapValue = static_cast<int32_t>(value);
++    map.emplace(mapKey, mapValue);
++}
++
++bool UnwrapChildProcessArgs(ani_env* env, ani_object object, ChildProcessArgs &args,
++    std::string &errorMsg)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "env null");
++        return false;
++    }
++    if (!GetStringProperty(env, object, "entryParams", args.entryParams)) {
++        TAG_LOGI(AAFwkTag::PROCESSMGR, "parameter error");
++        errorMsg = "Parameter error. The type of args.entryParams must be string.";
++        return false;
++    }
++    ani_ref fdsRef;
++    if (GetRefProperty(env, object, "fds", fdsRef)) {
++        ani_object fdsObject = static_cast<ani_object>(fdsRef);
++        if (fdsObject == nullptr) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "fds must be Record<string, number>");
++            errorMsg = "The type of args.fds must be Record<string, number>.";
++            return false;
++        }
++        if (!UnwrapChildProcessFds(env, fdsObject, args.fds, errorMsg)) {
++            return false;
++        }
++    }
++    return true;
++}
++
++bool UnwrapChildProcessFds(ani_env* env, ani_object object, std::map<std::string, int32_t> &map, std::string &errorMsg)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "env null");
++        return false;
++    }
++    ani_ref iter;
++    ani_status status = ANI_ERROR;
++    status = env->Object_CallMethodByName_Ref(object, "$_iterator", nullptr, &iter);
++    if (ANI_OK != status) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get keys iterator status: %{public}d", status);
++        return false;
++    }
++    ani_ref next;
++    ani_boolean done;
++    while (ANI_OK == env->Object_CallMethodByName_Ref(static_cast<ani_object>(iter), "next", nullptr, &next)) {
++        status = env->Object_GetFieldByName_Boolean(static_cast<ani_object>(next), "done", &done);
++        if (ANI_OK != status) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to check iterator done status: %{public}d", status);
++            return false;
++        }
++        if (done) {
++            TAG_LOGD(AAFwkTag::PROCESSMGR, "[forEachMapEntry] done break");
++            return true;
++        }
++        ani_ref keyValue;
++        status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(next), "value", &keyValue);
++        if (ANI_OK != status) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get key value status: %{public}d", status);
++            return false;
++        }
++        ani_ref aniKey;
++        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 0, &aniKey);
++        if (ANI_OK != status) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get key Item status: %{public}d", status);
++            return false;
++        }
++        ani_ref aniVal;
++        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 1, &aniVal);
++        if (ANI_OK != status) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get key Item status: %{public}d", status);
++            return false;
++        }
++        GetFds(env, static_cast<ani_string>(aniKey), static_cast<ani_object>(aniVal), map);
++    }
++    return true;
++}
++
++ani_object WrapChildProcessArgs(ani_env* env, ChildProcessArgs &args)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "env null");
++        return nullptr;
++    }
++    ani_status status = ANI_ERROR;
++    ani_class className = nullptr;
++    status = env->FindClass(CLASSNAME_CHILDPROCESSARGS, &className);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "FindClass failed status: %{public}d", status);
++        return nullptr;
++    }
++    ani_method method = nullptr;
++    status = env->Class_FindMethod(className, "<ctor>", ":V", &method);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "find method failed status: %{public}d", status);
++        return nullptr;
++    }
++    ani_object object = nullptr;
++    status = env->Object_New(className, method, &object);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "new object failed status: %{public}d", status);
++        return nullptr;
++    }
++    status = env->Object_SetPropertyByName_Ref(object, "entryParams", GetAniString(env, args.entryParams));
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "set property failed status: %{public}d", status);
++        return nullptr;
++    }
++    SetFds(env, object, args.fds);
++    return object;
++}
++
++bool UnwrapChildProcessOptions(ani_env* env, ani_object object, ChildProcessOptions &options, std::string &errorMsg)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "env null");
++        return false;
++    }
++    ani_ref propRef = nullptr;
++    ani_status status = env->Object_GetPropertyByName_Ref(object, "isolationMode", &propRef);
++    if (status != ANI_OK || propRef == nullptr) {
++        options.isolationMode = false;
++        return true;
++    }
++    ani_boolean isUndefined = false;
++    status = env->Reference_IsUndefined(propRef, &isUndefined);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to check undefined for 'isolationMode', status: %{public}d", status);
++        return false;
++    }
++    if (isUndefined) {
++        options.isolationMode = false;
++        return true;
++    }
++    ani_boolean flag = false;
++    status = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(propRef), "valueOf", ":Z", &flag);
++    if (status != ANI_OK) {
++        errorMsg = "Failed to get boolean value for isolationMode.";
++        return false;
++    }
++    options.isolationMode = flag;
++    return true;
++}
++} // namespace AppExecFwk
++} // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/ani_observer/BUILD.gn b/frameworks/ets/ani/ani_observer/BUILD.gn
+new file mode 100644
+index 0000000000000000000000000000000000000000..658f241525a5a434976ba097c90b7c5a246bb8f3
+--- /dev/null
++++ b/frameworks/ets/ani/ani_observer/BUILD.gn
+@@ -0,0 +1,63 @@
++# Copyright (c) 2025 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import("//build/ohos.gni")
++import("//foundation/ability/ability_runtime/ability_runtime.gni")
++
++ohos_shared_library("ani_observer") {
++  branch_protector_ret = "pac_ret"
++  sanitize = {
++    cfi = true
++    cfi_cross_dso = true
++    cfi_vcall_icall_only = true
++    debug = false
++  }
++
++  include_dirs = [
++    "./include",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
++    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
++    "${ability_runtime_path}/interfaces/kits/native/ability/native",
++    "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
++  ]
++
++  public_configs = []
++
++  sources = [ "./src/ets_start_abilities_observer.cpp" ]
++
++  cflags = []
++
++  if (target_cpu == "arm") {
++    cflags += [ "-DBINDER_IPC_32BIT" ]
++  }
++
++  deps = [
++    "${ability_runtime_innerkits_path}/runtime:runtime",
++    "${ability_runtime_native_path}/ability/native:ability_business_error",
++    "${ability_runtime_native_path}/ability/native:abilitykit_native",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
++  ]
++
++  external_deps = [
++    "bundle_framework:appexecfwk_base",
++    "c_utils:utils",
++    "common_event_service:cesfwk_innerkits",
++    "hilog:libhilog",
++    "resource_management:global_resmgr",
++    "runtime_core:ani",
++  ]
++
++  innerapi_tags = [ "platformsdk" ]
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++}
+diff --git a/frameworks/ets/ani/ani_observer/include/ets_start_abilities_observer.h b/frameworks/ets/ani/ani_observer/include/ets_start_abilities_observer.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..2d8b1c569eafe59626d369cffa68bc7ae3efcffc
+--- /dev/null
++++ b/frameworks/ets/ani/ani_observer/include/ets_start_abilities_observer.h
+@@ -0,0 +1,51 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_ETS_START_ABILITIES_OBSERVER_H
++#define OHOS_ABILITY_RUNTIME_ETS_START_ABILITIES_OBSERVER_H
++
++#include "ability_business_error.h"
++#include "ani.h"
++#include "start_abilities_observer.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++class EtsStartAbilitiesObserver : StartAbilitiesObserver {
++public:
++    static EtsStartAbilitiesObserver &GetInstance();
++    virtual ~EtsStartAbilitiesObserver();
++
++    static void HandleFinished(const std::string &requestKey, int32_t resultCode);
++
++    void AddObserver(ani_env *env, const std::string &requestKey, ani_object callback);
++    
++    void SetEtsVm(ani_vm *etsVm)
++    {
++        etsVm_ = etsVm;
++    }
++
++private:
++    void HandleFinishedInner(const std::string &requestKey, int32_t resultCode);
++    void CallCallback(ani_object callback, int32_t resultCode);
++
++    std::mutex etsObserverObjectListLock_;
++    std::mutex etsVmLock_;
++    ani_vm *etsVm_ = nullptr;
++    std::map<std::string, ani_ref> etsObserverObjectList_;
++};
++} // namespace AbilityRuntime
++} // namespace OHOS
++
++#endif // OHOS_ABILITY_RUNTIME_ETS_START_ABILITIES_OBSERVER_H
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/ani_observer/src/ets_start_abilities_observer.cpp b/frameworks/ets/ani/ani_observer/src/ets_start_abilities_observer.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..8b9e6c95b05f548bac9de10f3ecf4d247edd9475
+--- /dev/null
++++ b/frameworks/ets/ani/ani_observer/src/ets_start_abilities_observer.cpp
+@@ -0,0 +1,146 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ets_start_abilities_observer.h"
++
++#include "ani_common_util.h"
++#include "ets_error_utils.h"
++#include "hilog_tag_wrapper.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++namespace {
++constexpr const int32_t ERR_OK = 0;
++}
++
++EtsStartAbilitiesObserver& EtsStartAbilitiesObserver::GetInstance()
++{
++    static EtsStartAbilitiesObserver instance;
++    return instance;
++}
++
++EtsStartAbilitiesObserver::~EtsStartAbilitiesObserver()
++{
++    ani_env *env = nullptr;
++    if (etsVm_ == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITY, "null etsVm_");
++        return;
++    }
++
++    bool isAttachThread = false;
++    env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITY, "null env");
++        return;
++    }
++
++    for (auto it = etsObserverObjectList_.begin(); it != etsObserverObjectList_.end(); it++) {
++        env->GlobalReference_Delete(it->second);
++    }
++
++    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
++}
++
++void EtsStartAbilitiesObserver::AddObserver(ani_env *env, const std::string &requestKey, ani_object callback)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITY, "null env");
++        return;
++    }
++
++    {
++        std::lock_guard lock(etsVmLock_);
++        if (etsVm_ == nullptr) {
++            ani_status status = ANI_ERROR;
++            if ((status = env->GetVM(&etsVm_)) != ANI_OK || etsVm_ == nullptr) {
++                TAG_LOGE(AAFwkTag::ABILITY, "status: %{public}d", status);
++                return;
++            }
++        }
++    }
++
++    ani_ref global = nullptr;
++    ani_status status = ANI_ERROR;
++    if ((status = env->GlobalReference_Create(callback, &global)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::ABILITY, "status: %{public}d", status);
++        return;
++    }
++    std::lock_guard lock(etsObserverObjectListLock_);
++    etsObserverObjectList_.emplace(requestKey, global);
++}
++
++void EtsStartAbilitiesObserver::HandleFinished(const std::string &requestKey, int32_t resultCode)
++{
++    EtsStartAbilitiesObserver::GetInstance().HandleFinishedInner(requestKey, resultCode);
++}
++
++void EtsStartAbilitiesObserver::HandleFinishedInner(const std::string &requestKey, int32_t resultCode)
++{
++    ani_ref callbackRef = nullptr;
++    std::lock_guard lock(etsObserverObjectListLock_);
++    auto it = etsObserverObjectList_.find(requestKey);
++    if (it != etsObserverObjectList_.end()) {
++        callbackRef = std::move(it->second);
++        etsObserverObjectList_.erase(it);
++    }
++    if (callbackRef) {
++        CallCallback(static_cast<ani_object>(callbackRef), resultCode);
++        return;
++    }
++    TAG_LOGE(AAFwkTag::ABILITY, "null callback");
++}
++
++void EtsStartAbilitiesObserver::CallCallback(ani_object callback, int32_t resultCode)
++{
++    TAG_LOGD(AAFwkTag::ABILITY, "CallCallback");
++    if (callback == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITY, "null callback");
++        return;
++    }
++
++    ani_env *env = nullptr;
++    {
++        std::lock_guard lock(etsVmLock_);
++        if (etsVm_ == nullptr) {
++            TAG_LOGE(AAFwkTag::ABILITY, "null etsVm");
++            return;
++        }
++        ani_status status = ANI_ERROR;
++        if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
++            TAG_LOGE(AAFwkTag::ABILITY, "Failed to getEnv, status: %{public}d", status);
++            return;
++        }
++    }
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITY, "null env");
++        return;
++    }
++
++    ani_object aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
++    if (resultCode != ERR_OK) {
++        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, resultCode);
++    }
++    AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
++    env->GlobalReference_Delete(callback);
++}
++
++__attribute__((visibility("default"))) extern "C" void OHOS_ETS_START_ABILITIES_OBSERVER_HANDLE_FINISH(
++    const std::string &requestKey, int32_t resultCode)
++{
++    OHOS::AbilityRuntime::EtsStartAbilitiesObserver::HandleFinished(requestKey, resultCode);
++}
++
++} // namespace AbilityRuntime
++} // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/application/BUILD.gn b/frameworks/ets/ani/application/BUILD.gn
+index 7e0d3ab9dba616bdfb1bc5a92bf1758e867028aa..1bf72fe9aa844a2fee1fba1a1ad5c686fb52bc98 100644
+--- a/frameworks/ets/ani/application/BUILD.gn
++++ b/frameworks/ets/ani/application/BUILD.gn
+@@ -41,6 +41,7 @@ ohos_shared_library("application_ani") {
+   deps = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+     "${ability_runtime_innerkits_path}/ani_base_context:ani_base_context",
++    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+     "${ability_runtime_innerkits_path}/runtime:runtime",
+     "${ability_runtime_native_path}/appkit:app_context",
+     "${ability_runtime_native_path}/appkit:app_context_utils",
+diff --git a/frameworks/ets/ani/application/include/ets_application.h b/frameworks/ets/ani/application/include/ets_application.h
+index f66ad29dbf104fadad102c484128fe45295a8129..120ba652b74782bbe5a9f632516b0a74391dfb2c 100644
+--- a/frameworks/ets/ani/application/include/ets_application.h
++++ b/frameworks/ets/ani/application/include/ets_application.h
+@@ -37,6 +37,14 @@ public:
+     static ani_object GetApplicationContext(ani_env *env);
+     static ani_object GetApplicationContextInstance(ani_env *env);
+     static ani_enum_item GetAppPreloadType(ani_env *env);
++    static void ExitMasterProcessRole(ani_env *env, ani_object callback);
++    static void CreatePluginModuleContextForHostBundle(ani_env *env, ani_object contextObj,
++        ani_string pluginBundleName, ani_string pluginModuleName, ani_string hostBundleName, ani_object callback);
++    static void CreatePluginModuleContextForHostBundleCheck(ani_env *env, ani_object contextObj,
++        ani_string pluginBundleName, ani_string pluginModuleName, ani_string hostBundleName, ani_object callback);
++    static void DemoteCurrentFromCandidateMasterProcess(ani_env *env, ani_object callback);
++    static void PromoteCurrentToCandidateMasterProcess(ani_env *env,
++        ani_boolean isInsertToHead, ani_object callback);
+ };
+ void ApplicationInit(ani_env *env);
+ } // namespace AbilityRuntime
+diff --git a/frameworks/ets/ani/application/src/ets_application.cpp b/frameworks/ets/ani/application/src/ets_application.cpp
+index 9e7bd84d8cc9e064c175e9bf5fe1d301f83fab1c..cc22be83d40eed8762f7bdb89e819c5943ec244c 100644
+--- a/frameworks/ets/ani/application/src/ets_application.cpp
++++ b/frameworks/ets/ani/application/src/ets_application.cpp
+@@ -17,6 +17,7 @@
+ #include "ani_base_context.h"
+ #include "ani_common_util.h"
+ #include "application_context.h"
++#include "app_mgr_client.h"
+ #include "application_context_manager.h"
+ #include "context_impl.h"
+ #include "ets_application_context_utils.h"
+@@ -27,6 +28,7 @@
+ #include "permission_verification.h"
+ #include "application_env.h"
+ #include "ani_enum_convert.h"
++#include "app_mgr_client.h"
+ 
+ namespace OHOS {
+ namespace AbilityRuntime {
+@@ -37,6 +39,59 @@ constexpr const char* APPLICATION_SPACE_NAME = "L@ohos/app/ability/application/a
+ constexpr const char* APP_PRELOAD_TYPE_NAME = "L@ohos/app/ability/application/application/AppPreloadType;";
+ }
+ 
++void EtsApplication::DemoteCurrentFromCandidateMasterProcess(ani_env *env, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::APPKIT, "DemoteCurrentFromCandidateMasterProcess Call");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null env");
++        return;
++    }
++    auto errCode = std::make_shared<int32_t>(ERR_OK);
++    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
++    if (appMgrClient == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "Null appMgrClient");
++        *errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
++    } else {
++        *errCode = appMgrClient->DemoteCurrentFromCandidateMasterProcess();
++    }
++    if (*errCode == ERR_OK) {
++        TAG_LOGD(AAFwkTag::APPKIT, "demote to standby master process success");
++        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK),
++        nullptr);
++    } else {
++        TAG_LOGE(AAFwkTag::APPKIT, "demote to standby master process failed, errCode: %{public}d", *errCode);
++        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, *errCode),
++            nullptr);
++    }
++}
++
++void EtsApplication::PromoteCurrentToCandidateMasterProcess(ani_env *env,
++    ani_boolean isInsertToHead, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::APPKIT, "PromoteCurrentToCandidateMasterProcess Call");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null env");
++        return;
++    }
++    bool insertToHead = static_cast<bool>(isInsertToHead);
++    auto errCode = std::make_shared<int32_t>(ERR_OK);
++    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
++    if (appMgrClient == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "Null appMgrClient");
++        *errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
++    } else {
++        *errCode = appMgrClient->PromoteCurrentToCandidateMasterProcess(insertToHead);
++    }
++    if (*errCode == ERR_OK) {
++        TAG_LOGD(AAFwkTag::APPKIT, "promote to candidate master process success");
++        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK),
++        nullptr);
++    } else {
++        TAG_LOGE(AAFwkTag::APPKIT, "promote to candidate master process failed, errCode: %{public}d", *errCode);
++        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, *errCode), nullptr);
++    }
++}
++
+ ani_object CreateEmptyContextObject(ani_env *env)
+ {
+     ani_class cls = nullptr;
+@@ -465,6 +520,130 @@ ani_enum_item EtsApplication::GetAppPreloadType(ani_env *env)
+     return appPreloadTypeItem;
+ }
+ 
++void EtsApplication::ExitMasterProcessRole(ani_env *env, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::APPKIT, "ExitMasterProcessRole Call");
++    int32_t errCode = ERR_OK;
++    errCode = OHOS::DelayedSingleton<OHOS::AppExecFwk::AppMgrClient>::GetInstance()->ExitMasterProcessRole();
++    AppExecFwk::AsyncCallback(env, callback,
++        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
++}
++
++void EtsApplication::CreatePluginModuleContextForHostBundleCheck(ani_env *env, ani_object contextObj,
++    ani_string pluginBundleName, ani_string pluginModuleName, ani_string hostBundleName, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::CONTEXT, "ConnectUIServiceExtensionCheck called");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
++        return;
++    }
++
++    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
++        TAG_LOGE(AAFwkTag::APPKIT, "no system app");
++        EtsErrorUtil::ThrowNotSystemAppError(env);
++        return;
++    }
++
++    if (!AAFwk::PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission()) {
++        TAG_LOGE(AAFwkTag::APPKIT, "no permission");
++        EtsErrorUtil::ThrowNoPermissionError(env, PERMISSION_GET_BUNDLE_INFO);
++        return;
++    }
++
++    std::string stdPluginBundleName = "";
++    std::string stdPluginModuleName = "";
++    std::string stdHostBundleName = "";
++    if (!AppExecFwk::GetStdString(env, pluginBundleName, stdPluginBundleName)
++        || !AppExecFwk::GetStdString(env, pluginModuleName, stdPluginModuleName)
++        || !AppExecFwk::GetStdString(env, hostBundleName, stdHostBundleName)) {
++        TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
++        EtsErrorUtil::ThrowInvalidParamError(env,
++            "Parse param failed, moduleName and pluginBundleName must be string.");
++        return;
++    }
++    
++    ani_boolean stageMode = false;
++    ani_status status = IsStageContext(env, contextObj, stageMode);
++    if (status != ANI_OK || !stageMode) {
++        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must be a context of stageMode.");
++        return;
++    }
++
++    auto context = GetStageModeContext(env, contextObj);
++    if (context == nullptr) {
++        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must not be nullptr.");
++        return;
++    }
++
++    auto inputContextPtr = Context::ConvertTo<Context>(context);
++    if (inputContextPtr == nullptr) {
++        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must be a context.");
++        return;
++    }
++}
++
++void EtsApplication::CreatePluginModuleContextForHostBundle(ani_env *env, ani_object contextObj,
++    ani_string pluginBundleName, ani_string pluginModuleName, ani_string hostBundleName, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::APPKIT, "CreatePluginModuleContextForHostBundle Call");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null env");
++        return;
++    }
++
++    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
++        TAG_LOGE(AAFwkTag::APPKIT, "no system app");
++        return;
++    }
++
++    if (!AAFwk::PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission()) {
++        TAG_LOGE(AAFwkTag::APPKIT, "no permission");
++        return;
++    }
++
++    std::string stdPluginBundleName = "";
++    std::string stdPluginModuleName = "";
++    std::string stdHostBundleName = "";
++    if (!AppExecFwk::GetStdString(env, pluginBundleName, stdPluginBundleName)
++        || !AppExecFwk::GetStdString(env, pluginModuleName, stdPluginModuleName)
++        || !AppExecFwk::GetStdString(env, hostBundleName, stdHostBundleName)) {
++        TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
++        return;
++    }
++    
++    ani_boolean stageMode = false;
++    ani_status status = IsStageContext(env, contextObj, stageMode);
++    if (status != ANI_OK || !stageMode) {
++        TAG_LOGE(AAFwkTag::APPKIT, "invalid IsStageContext");
++        return;
++    }
++
++    auto context = GetStageModeContext(env, contextObj);
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "invalid context");
++        return;
++    }
++
++    auto inputContextPtr = Context::ConvertTo<Context>(context);
++    if (inputContextPtr == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "invalid inputContextPtr");
++        return;
++    }
++
++    auto moduleContext = std::make_shared<std::shared_ptr<Context>>();
++    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
++    if (contextImpl == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "invalid contextImpl");
++        return;
++    }
++
++    contextImpl->SetProcessName(context->GetProcessName());
++    *moduleContext = contextImpl->CreateTargetPluginContext(stdHostBundleName, stdPluginBundleName,
++        stdPluginModuleName, inputContextPtr);
++
++    SetCreateCompleteCallback(env, moduleContext, callback);
++}
++
+ void ApplicationInit(ani_env *env)
+ {
+     TAG_LOGD(AAFwkTag::APPKIT, "ApplicationInit Call");
+@@ -518,6 +697,16 @@ void ApplicationInit(ani_env *env)
+             ":Lapplication/ApplicationContext/ApplicationContext;",
+             reinterpret_cast<void *>(EtsApplication::GetApplicationContext)
+         },
++        ani_native_function {
++            "nativeDemoteCurrentFromCandidateMasterProcess",
++            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsApplication::DemoteCurrentFromCandidateMasterProcess)
++        },
++        ani_native_function {
++            "nativePromoteCurrentToCandidateMasterProcess",
++            "ZLutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsApplication::PromoteCurrentToCandidateMasterProcess)
++        },
+         ani_native_function {
+             "nativeGetApplicationContextInstance",
+             ":Lapplication/ApplicationContext/ApplicationContext;",
+@@ -528,6 +717,24 @@ void ApplicationInit(ani_env *env)
+             ":L@ohos/app/ability/application/application/AppPreloadType;",
+             reinterpret_cast<void *>(EtsApplication::GetAppPreloadType)
+         },
++        ani_native_function {
++            "nativeExitMasterProcessRole",
++            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsApplication::ExitMasterProcessRole)
++        },
++        ani_native_function {
++            "nativeCreatePluginModuleContextForHostBundle",
++            "Lapplication/Context/Context;Lstd/core/String;"
++            "Lstd/core/String;Lstd/core/String;"
++            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsApplication::CreatePluginModuleContextForHostBundle)
++        },
++        ani_native_function {
++            "nativeCreatePluginModuleContextForHostBundleCheck",
++            "Lapplication/Context/Context;Lstd/core/String;"
++            "Lstd/core/String;Lstd/core/String;:V",
++            reinterpret_cast<void *>(EtsApplication::CreatePluginModuleContextForHostBundleCheck)
++        },
+     };
+     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
+     if (status != ANI_OK) {
+diff --git a/frameworks/ets/ani/child_process_manager/BUILD.gn b/frameworks/ets/ani/child_process_manager/BUILD.gn
+new file mode 100644
+index 0000000000000000000000000000000000000000..f93788ce0c84934f6b4b39c558cb0a4fdecb9401
+--- /dev/null
++++ b/frameworks/ets/ani/child_process_manager/BUILD.gn
+@@ -0,0 +1,71 @@
++# Copyright (c) 2025 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import("//build/ohos.gni")
++import("//foundation/ability/ability_runtime/ability_runtime.gni")
++
++ohos_shared_library("ability_child_process_manager_ani_kit") {
++  branch_protector_ret = "pac_ret"
++  sanitize = {
++    cfi = true
++    cfi_cross_dso = true
++    cfi_vcall_icall_only = true
++    debug = false
++  }
++
++  include_dirs = [
++    "./include",
++    "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
++  ]
++
++  configs = []
++
++  public_configs = []
++
++  sources = []
++
++  cflags = []
++  if (target_cpu == "arm") {
++    cflags += [ "-DBINDER_IPC_32BIT" ]
++  }
++
++  deps = [
++    "${ability_runtime_innerkits_path}/app_manager:app_manager",
++    "${ability_runtime_innerkits_path}/child_process_manager:child_process_manager",
++    "${ability_runtime_innerkits_path}/runtime:runtime",
++    "${ability_runtime_native_path}/ability/native:abilitykit_native",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
++  ]
++
++  external_deps = [
++    "ability_base:base",
++    "bundle_framework:libappexecfwk_common",
++    "c_utils:utils",
++    "hilog:libhilog",
++    "ipc:ipc_capi",
++    "runtime_core:ani",
++  ]
++
++  if (ability_runtime_child_process) {
++    sources += [ "./src/ets_child_process_manager.cpp" ]
++    deps += [ "${ability_runtime_innerkits_path}/child_process_manager:child_process_manager" ]
++  }
++
++  if (ability_runtime_graphics) {
++    external_deps += [ "image_framework:image" ]
++  }
++
++  innerapi_tags = [ "platformsdk" ]
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++}
+diff --git a/frameworks/ets/ani/child_process_manager/include/ets_child_process_manager.h b/frameworks/ets/ani/child_process_manager/include/ets_child_process_manager.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..1f0fa1dc995b34b8f546daf0566e2b26c46bd0d0
+--- /dev/null
++++ b/frameworks/ets/ani/child_process_manager/include/ets_child_process_manager.h
+@@ -0,0 +1,26 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_ETS_CHILD_PROCESS_MANAGER_H
++#define OHOS_ABILITY_RUNTIME_ETS_CHILD_PROCESS_MANAGER_H
++
++#include "ets_runtime.h"
++
++namespace OHOS {
++namespace ChildProcessManagerEts {
++void EtsChildProcessManagerInit(ani_env *env);
++} // namespace ChildProcessManagerEts
++} // namespace OHOS
++#endif // OHOS_ABILITY_RUNTIME_ETS_CHILD_PROCESS_MANAGER_H
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/child_process_manager/src/ets_child_process_manager.cpp b/frameworks/ets/ani/child_process_manager/src/ets_child_process_manager.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..ecdb7d677512b1c5226136d4c0e510b547eaca29
+--- /dev/null
++++ b/frameworks/ets/ani/child_process_manager/src/ets_child_process_manager.cpp
+@@ -0,0 +1,401 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ets_child_process_manager.h"
++
++#include "ani_common_child_process_param.h"
++#include "ani_common_util.h"
++#include "ani_enum_convert.h"
++#include "ani_task.h"
++#include "child_process_manager.h"
++#include "hilog_tag_wrapper.h"
++#include "ets_error_utils.h"
++
++namespace OHOS {
++namespace ChildProcessManagerEts {
++namespace {
++constexpr const char* CHILD_PROCESS_MANAGER_NAME_SPACE = "L@ohos/app/ability/childProcessManager/childProcessManager;";
++enum {
++    MODE_SELF_FORK = 0,
++    MODE_APP_SPAWN_FORK = 1,
++};
++struct ChildProcessAniParam {
++    std::string srcEntry;
++    AppExecFwk::ChildProcessArgs args;
++    AppExecFwk::ChildProcessOptions options;
++    int32_t childProcessType;
++};
++}
++
++class EtsChildProcessManager {
++public:
++    EtsChildProcessManager() = default;
++    ~EtsChildProcessManager() = default;
++
++    static EtsChildProcessManager &GetInstance()
++    {
++        static EtsChildProcessManager instance;
++        return instance;
++    }
++
++    static void StartChildProcess(ani_env *env, ani_string etsSrcEntry, ani_enum_item etsStartMode,
++        ani_object callback)
++    {
++        GetInstance().OnStartChildProcess(env, etsSrcEntry, etsStartMode, callback);
++    }
++
++    static void StartArkChildProcess(ani_env *env, ani_string etsSrcEntry, ani_object ChildProcessArgs,
++        ani_object callback)
++    {
++        GetInstance().OnStartArkChildProcess(env, etsSrcEntry, ChildProcessArgs, nullptr, callback);
++    }
++
++    static void StartArkChildProcessWithOptions(ani_env *env, ani_string etsSrcEntry, ani_object ChildProcessArgs,
++        ani_object ChildProcessOptions, ani_object callback)
++    {
++        GetInstance().OnStartArkChildProcess(env, etsSrcEntry, ChildProcessArgs, ChildProcessOptions, callback);
++    }
++
++    static void StartNativeChildProcess(ani_env *env, ani_string etsSrcEntry, ani_object ChildProcessArgs,
++        ani_object callback)
++    {
++        GetInstance().OnStartNativeChildProcess(env, etsSrcEntry, ChildProcessArgs, nullptr, callback);
++    }
++
++    static void StartNativeChildProcessWithOptions(ani_env *env, ani_string etsSrcEntry, ani_object ChildProcessArgs,
++        ani_object ChildProcessOptions, ani_object callback)
++    {
++        GetInstance().OnStartNativeChildProcess(env, etsSrcEntry, ChildProcessArgs, ChildProcessOptions, callback);
++    }
++
++private:
++    void OnStartChildProcess(ani_env *env, ani_string etsSrcEntry, ani_enum_item etsStartMode, ani_object callback)
++    {
++        TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
++        if (env == nullptr) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "env is null");
++            return;
++        }
++        if (AbilityRuntime::ChildProcessManager::GetInstance().IsChildProcess()) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Already in child process");
++            AbilityRuntime::EtsErrorUtil::ThrowError(env,
++                AbilityRuntime::AbilityErrorCode::ERROR_CODE_OPERATION_NOT_SUPPORTED);
++            return;
++        }
++        std::string srcEntry;
++        if (!AppExecFwk::GetStdString(env, etsSrcEntry, srcEntry)) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Parse srcEntry failed");
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
++                "Parse param srcEntry failed, must be a valid string.");
++            return;
++        }
++        TAG_LOGD(AAFwkTag::PROCESSMGR, "srcEntry %{public}s", srcEntry.c_str());
++        int32_t startMode;
++        if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, etsStartMode, startMode)) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Parse startMode failed");
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
++                "Unsupported startMode, must be StartMode.SELF_FORK or StartMode.APP_SPAWN_FORK.");
++            return;
++        }
++        TAG_LOGD(AAFwkTag::PROCESSMGR, "startMode %{public}d", startMode);
++        if (startMode != MODE_SELF_FORK && startMode != MODE_APP_SPAWN_FORK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Invalid StartMode");
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
++                "Unsupported startMode, must be StartMode.SELF_FORK or StartMode.APP_SPAWN_FORK.");
++            return;
++        }
++        if (startMode == MODE_SELF_FORK) {
++            StartChildProcessSelfForkTask(env, srcEntry, callback);
++        } else {
++            StartChildProcessAppSpawnForkTask(env, srcEntry, callback);
++        }
++    }
++
++    static void StartChildProcessSelfForkTask(ani_env *env, std::string &etsSrcEntry, ani_object callback)
++    {
++        ani_status status = ANI_ERROR;
++        ani_ref callbackRef = nullptr;
++        if ((status = env->GlobalReference_Create(callback, &callbackRef)) != ANI_OK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "GlobalReference_Create callbackRef failed status: %{public}d", status);
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env, "GlobalReference_Create failed.");
++            return;
++        }
++        ani_vm *aniVM = nullptr;
++        if (env->GetVM(&aniVM) != ANI_OK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "get aniVM failed");
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env, "get aniVM failed.");
++            return;
++        }
++        auto task = [aniVM, etsSrcEntry, callbackRef]() {
++            if (aniVM == nullptr || callbackRef == nullptr) {
++                TAG_LOGE(AAFwkTag::PROCESSMGR, "aniVM or callbackRef is null");
++                return;
++            }
++            bool isAttachThread = false;
++            ani_env *aniEnv = AppExecFwk::AttachAniEnv(aniVM, isAttachThread);
++            if (aniEnv == nullptr) {
++                TAG_LOGE(AAFwkTag::PROCESSMGR, "null aniEnv");
++                return;
++            }
++            pid_t pid = 0;
++            AbilityRuntime::ChildProcessManagerErrorCode errorCode =
++                AbilityRuntime::ChildProcessManager::GetInstance().StartChildProcessBySelfFork(etsSrcEntry, pid);
++            TAG_LOGD(AAFwkTag::PROCESSMGR, "StartChildProcessBySelfFork errorCode: %{public}d, pid: %{public}d",
++                errorCode, pid);
++            if (errorCode != AbilityRuntime::ChildProcessManagerErrorCode::ERR_OK) {
++                TAG_LOGE(AAFwkTag::PROCESSMGR, "StartChildProcessBySelfFork failed, errorCode: %{public}d", errorCode);
++                AppExecFwk::AsyncCallback(aniEnv, static_cast<ani_object>(callbackRef),
++                    AbilityRuntime::EtsErrorUtil::CreateError(aniEnv,
++                        AbilityRuntime::ChildProcessManagerErrorUtil::GetAbilityErrorCode(errorCode)), nullptr);
++                AppExecFwk::DetachAniEnv(aniVM, isAttachThread);
++                return;
++            }
++            AppExecFwk::AsyncCallback(aniEnv, static_cast<ani_object>(callbackRef),
++                AbilityRuntime::EtsErrorUtil::CreateError(aniEnv,
++                    AbilityRuntime::ChildProcessManagerErrorUtil::GetAbilityErrorCode(errorCode)),
++                AppExecFwk::CreateInt(aniEnv, static_cast<ani_int>(pid)));
++            AppExecFwk::DetachAniEnv(aniVM, isAttachThread);
++        };
++        if (AbilityRuntime::AniTask::AniSendEvent(task) != ANI_OK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to aniSendEvent");
++        }
++    }
++
++    static void StartChildProcessAppSpawnForkTask(ani_env *env, std::string &etsSrcEntry, ani_object callback)
++    {
++        pid_t pid = ERR_INVALID_VALUE;
++        AbilityRuntime::ChildProcessManagerErrorCode innerErrorCode =
++            AbilityRuntime::ChildProcessManager::GetInstance().StartChildProcessByAppSpawnFork(etsSrcEntry, pid);
++        TAG_LOGD(AAFwkTag::PROCESSMGR, "StartChildProcessByAppSpawnFork innerErrorCode: %{public}d, pid: %{public}d",
++            innerErrorCode, pid);
++        if (innerErrorCode != AbilityRuntime::ChildProcessManagerErrorCode::ERR_OK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "StartChildProcessByAppSpawnFork failed, innerErrorCode is %{public}d",
++                innerErrorCode);
++            AppExecFwk::AsyncCallback(env, callback, AbilityRuntime::EtsErrorUtil::CreateError(env,
++                AbilityRuntime::ChildProcessManagerErrorUtil::GetAbilityErrorCode(innerErrorCode)), nullptr);
++            return;
++        }
++        AppExecFwk::AsyncCallback(env, callback, AbilityRuntime::EtsErrorUtil::CreateError(env,
++            AbilityRuntime::ChildProcessManagerErrorUtil::GetAbilityErrorCode(innerErrorCode)),
++            AppExecFwk::CreateInt(env, static_cast<ani_int>(pid)));
++    }
++
++    void OnStartArkChildProcess(ani_env *env, ani_string etsSrcEntry, ani_object childProcessArgs,
++        ani_object childProcessOptions, ani_object callback)
++    {
++        TAG_LOGD(AAFwkTag::PROCESSMGR, "OnStartArkChildProcess Call");
++        if (env == nullptr) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "env is null");
++            return;
++        }
++        if (AbilityRuntime::ChildProcessManager::GetInstance().IsChildProcessBySelfFork()) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Already in child process");
++            AbilityRuntime::EtsErrorUtil::ThrowError(env,
++                AbilityRuntime::AbilityErrorCode::ERROR_CODE_OPERATION_NOT_SUPPORTED);
++            return;
++        }
++        std::string srcEntry;
++        if (!AppExecFwk::GetStdString(env, etsSrcEntry, srcEntry)) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Parse srcEntry failed");
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
++                "Parse param srcEntry failed, must be a valid string.");
++            return;
++        }
++        if (srcEntry.empty()) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "param srcEntry cannot be empty");
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
++                "Param srcEntry cannot be empty.");
++            return;
++        }
++        TAG_LOGD(AAFwkTag::PROCESSMGR, "srcEntry: %{public}s", srcEntry.c_str());
++        AppExecFwk::ChildProcessArgs args;
++        AppExecFwk::ChildProcessOptions options;
++        if (!ParseArgsAndOptions(env, childProcessArgs, childProcessOptions, args, options)) {
++            return;
++        }
++        ChildProcessAniParam param;
++        param.srcEntry = srcEntry;
++        param.args = args;
++        param.options = options;
++        param.childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_ARK;
++        StartChildProcessWithArgsTask(env, param, callback);
++    }
++
++    void OnStartNativeChildProcess(ani_env *env, ani_string etsEntryPoint, ani_object childProcessArgs,
++        ani_object childProcessOptions, ani_object callback)
++    {
++        TAG_LOGD(AAFwkTag::PROCESSMGR, "OnStartNativeChildProcess Call");
++        if (env == nullptr) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "env is null");
++            return;
++        }
++        if (AbilityRuntime::ChildProcessManager::GetInstance().IsChildProcessBySelfFork()) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Already in child process");
++            AbilityRuntime::EtsErrorUtil::ThrowError(env,
++                AbilityRuntime::AbilityErrorCode::ERROR_CODE_OPERATION_NOT_SUPPORTED);
++            return;
++        }
++        std::string entryPoint;
++        if (!AppExecFwk::GetStdString(env, etsEntryPoint, entryPoint)) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Parse param entryPoint failed");
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
++                "Parse param entryPoint failed, must be a valid string.");
++            return;
++        }
++        if (entryPoint.empty()) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "Param entryPoint cannot be empty");
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
++                "Param entryPoint cannot be empty.");
++            return;
++        }
++        if (entryPoint.find(":") == std::string::npos) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR,
++                "Param entryPoint must contain a colon to separate library name and entry function.");
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
++                "Param entryPoint must contain a colon to separate library name and entry function.");
++            return;
++        }
++        AppExecFwk::ChildProcessArgs args;
++        AppExecFwk::ChildProcessOptions options;
++        if (!ParseArgsAndOptions(env, childProcessArgs, childProcessOptions, args, options)) {
++            return;
++        }
++        ChildProcessAniParam param;
++        param.srcEntry = entryPoint;
++        param.args = args;
++        param.options = options;
++        param.childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_NATIVE_ARGS;
++        StartChildProcessWithArgsTask(env, param, callback);
++    }
++
++    static bool ParseArgsAndOptions(ani_env *env, ani_object childProcessArgs, ani_object childProcessOptions,
++        AppExecFwk::ChildProcessArgs &args, AppExecFwk::ChildProcessOptions &options)
++    {
++        if (env == nullptr) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "env is null");
++            return false;
++        }
++        std::string errorMsg;
++        if (!AppExecFwk::UnwrapChildProcessArgs(env, childProcessArgs, args, errorMsg)) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "parse param args failed: %{private}s", errorMsg.c_str());
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env, errorMsg);
++            return false;
++        }
++        if (childProcessOptions &&
++            !AppExecFwk::UnwrapChildProcessOptions(env, childProcessOptions, options, errorMsg)) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "parse param options failed: %{private}s", errorMsg.c_str());
++            AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env, errorMsg);
++            return false;
++        }
++        return true;
++    }
++
++    static void StartChildProcessWithArgsTask(ani_env *env, const ChildProcessAniParam &param, ani_object callback)
++    {
++        pid_t pid = 0;
++        TAG_LOGD(AAFwkTag::PROCESSMGR,
++            "StartChildProcessWithArgs, childProcessType:%{public}d, srcEntry:%{private}s, "
++            "args.entryParams size:%{public}zu, args.fds size:%{public}zu, options.isolationMode:%{public}d",
++            param.childProcessType, param.srcEntry.c_str(), param.args.entryParams.length(),
++            param.args.fds.size(), param.options.isolationMode);
++        AbilityRuntime::ChildProcessManagerErrorCode errorCode =
++            AbilityRuntime::ChildProcessManager::GetInstance().StartChildProcessWithArgs(
++                param.srcEntry, pid, param.childProcessType, param.args, param.options);
++        if (errorCode != AbilityRuntime::ChildProcessManagerErrorCode::ERR_OK) {
++            TAG_LOGE(AAFwkTag::PROCESSMGR, "StartChildProcessWithArgs failed, errorCode: %{public}d", errorCode);
++            AppExecFwk::AsyncCallback(env, callback, AbilityRuntime::EtsErrorUtil::CreateError(env,
++                AbilityRuntime::ChildProcessManagerErrorUtil::GetAbilityErrorCode(errorCode)), nullptr);
++            return;
++        }
++        AppExecFwk::AsyncCallback(env, callback, AbilityRuntime::EtsErrorUtil::CreateError(env,
++            AbilityRuntime::AbilityErrorCode::ERROR_OK), AppExecFwk::CreateInt(env, static_cast<ani_int>(pid)));
++    }
++};
++
++void EtsChildProcessManagerInit(ani_env *env)
++{
++    TAG_LOGD(AAFwkTag::PROCESSMGR, "EtsChildProcessManagerInit call");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "null env");
++        return;
++    }
++    if (env->ResetError() != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "ResetError failed");
++    }
++    ani_status status = ANI_ERROR;
++    ani_namespace ns;
++    status = env->FindNamespace(CHILD_PROCESS_MANAGER_NAME_SPACE, &ns);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "FindNamespace childProcessManager failed status : %{public}d", status);
++        return;
++    }
++    std::array kitFunctions = {
++        ani_native_function {"nativeStartChildProcess",
++            "Lstd/core/String;L@ohos/app/ability/childProcessManager/childProcessManager/StartMode;"
++            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsChildProcessManager::StartChildProcess)},
++        ani_native_function {"nativeStartArkChildProcess",
++            "Lstd/core/String;L@ohos/app/ability/ChildProcessArgs/ChildProcessArgs;"
++            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsChildProcessManager::StartArkChildProcess)},
++        ani_native_function {"nativeStartArkChildProcess",
++            "Lstd/core/String;L@ohos/app/ability/ChildProcessArgs/ChildProcessArgs;"
++            "L@ohos/app/ability/ChildProcessOptions/ChildProcessOptions;"
++            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsChildProcessManager::StartArkChildProcessWithOptions)},
++        ani_native_function {"nativeStartNativeChildProcess",
++            "Lstd/core/String;L@ohos/app/ability/ChildProcessArgs/ChildProcessArgs;"
++            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsChildProcessManager::StartNativeChildProcess)},
++        ani_native_function {"nativeStartNativeChildProcess",
++            "Lstd/core/String;L@ohos/app/ability/ChildProcessArgs/ChildProcessArgs;"
++            "L@ohos/app/ability/ChildProcessOptions/ChildProcessOptions;"
++            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsChildProcessManager::StartNativeChildProcessWithOptions)}
++    };
++    status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "Namespace_BindNativeFunctions failed status : %{public}d", status);
++    }
++    if (env->ResetError() != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "ResetError failed");
++    }
++    TAG_LOGD(AAFwkTag::PROCESSMGR, "EtsChildProcessManagerInit end");
++}
++
++extern "C" {
++ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
++{
++    TAG_LOGD(AAFwkTag::PROCESSMGR, "in ChildProcessManagerEts.ANI_Constructor");
++    if (vm == nullptr || result == nullptr) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "null vm or result");
++        return ANI_INVALID_ARGS;
++    }
++
++    ani_env *env = nullptr;
++    ani_status status = ANI_ERROR;
++    status = vm->GetEnv(ANI_VERSION_1, &env);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::PROCESSMGR, "GetEnv failed, status=%{public}d", status);
++        return ANI_NOT_FOUND;
++    }
++    EtsChildProcessManagerInit(env);
++    *result = ANI_VERSION_1;
++    TAG_LOGD(AAFwkTag::PROCESSMGR, "ChildProcessManagerEts.ANI_Constructor finished");
++    return ANI_OK;
++}
++}
++} // namespace ChildProcessManagerEts
++} // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/kiosk_manager/BUILD.gn b/frameworks/ets/ani/kiosk_manager/BUILD.gn
+new file mode 100644
+index 0000000000000000000000000000000000000000..28e86e73c628ac706431a34155e024b46d862dbb
+--- /dev/null
++++ b/frameworks/ets/ani/kiosk_manager/BUILD.gn
+@@ -0,0 +1,80 @@
++# Copyright (c) 2025 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import("//build/config/components/ets_frontend/ets2abc_config.gni")
++import("//build/ohos.gni")
++import("//foundation/ability/ability_runtime/ability_runtime.gni")
++
++ohos_shared_library("kiosk_manager_ani_kit") {
++  branch_protector_ret = "pac_ret"
++  sanitize = {
++    cfi = true
++    cfi_cross_dso = true
++    cfi_vcall_icall_only = true
++    debug = false
++  }
++
++  include_dirs = [
++    "./include",
++    "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
++    "${ability_runtime_path}/frameworks/js/napi/kiosk_manager",
++    "${ability_runtime_path}/interfaces/kits/native/ability/native",
++    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
++    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
++    "${ability_runtime_services_path}/common/include",
++  ]
++  configs = []
++
++  public_configs = []
++
++  sources = [ "./src/ets_kiosk_manaer.cpp" ]
++
++  cflags = []
++  if (target_cpu == "arm") {
++    cflags += [ "-DBINDER_IPC_32BIT" ]
++  }
++
++  deps = [
++    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
++    "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
++    "${ability_runtime_innerkits_path}/ani_base_context:ani_base_context",
++    "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
++    "${ability_runtime_innerkits_path}/runtime:runtime",
++    "${ability_runtime_native_path}/ability:ability_context_native",
++    "${ability_runtime_native_path}/ability/native:ability_business_error",
++    "${ability_runtime_native_path}/ability/native:abilitykit_native",
++    "${ability_runtime_native_path}/appkit:app_context",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
++  ]
++
++  external_deps = [
++    "ability_base:want",
++    "ability_base:zuri",
++    "access_token:libtokenid_sdk",
++    "bundle_framework:appexecfwk_base",
++    "c_utils:utils",
++    "common_event_service:cesfwk_innerkits",
++    "eventhandler:libeventhandler",
++    "hilog:libhilog",
++    "init:libbegetutil",
++    "ipc:ipc_core",
++    "ipc:ipc_napi",
++    "json:nlohmann_json_static",
++    "napi:ace_napi",
++    "runtime_core:ani",
++  ]
++
++  innerapi_tags = [ "platformsdk" ]
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++}
+diff --git a/frameworks/ets/ani/kiosk_manager/include/ets_kiosk_manager.h b/frameworks/ets/ani/kiosk_manager/include/ets_kiosk_manager.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..92f5f06856e9f96a04a688d4bd84ed4505be172f
+--- /dev/null
++++ b/frameworks/ets/ani/kiosk_manager/include/ets_kiosk_manager.h
+@@ -0,0 +1,26 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_ETS_KIOSK_MANAGER_H
++#define OHOS_ABILITY_RUNTIME_ETS_KIOSK_MANAGER_H
++
++#include "ani.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++void EtsKioskManagerInit(ani_env env);
++}  // namespace AbilityRuntime
++}  // namespace OHOS
++#endif
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/kiosk_manager/src/ets_kiosk_manaer.cpp b/frameworks/ets/ani/kiosk_manager/src/ets_kiosk_manaer.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..aa4151af6017c1e3957342b42699390994661f2f
+--- /dev/null
++++ b/frameworks/ets/ani/kiosk_manager/src/ets_kiosk_manaer.cpp
+@@ -0,0 +1,301 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ets_kiosk_manager.h"
++
++#include "ability_business_error.h"
++#include "ability_context.h"
++#include "ability_manager_client.h"
++#include "ani_base_context.h"
++#include "ani_common_util.h"
++#include "ets_error_utils.h"
++#include "hilog_tag_wrapper.h"
++#include "kiosk_status.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++using AbilityManagerClient = AAFwk::AbilityManagerClient;
++
++constexpr const char* KIOSK_STATUS_CLASS_NAME = "Lapplication/KioskStatus/KioskStatusInner;";
++constexpr const char* KIOSK_MANAGER_CLASS_NAME = "L@ohos/app/ability/kioskManager/kioskManager;";
++constexpr const char* KIOSK_MANAGER_KIOSK_BUNDLE_NAME = "kioskBundleName";
++constexpr const char* KIOSK_MANAGER_IS_KIOSK_MODE = "isKioskMode";
++constexpr const char* KIOSK_MANAGER_KIOSK_BUNDLE_UID = "kioskBundleUid";
++constexpr const char* SIGNATURE_UIABILITY_CALLBACK =
++    "Lapplication/UIAbilityContext/UIAbilityContext;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
++constexpr const char* SIGNATURE_UIABILITY = "Lapplication/UIAbilityContext/UIAbilityContext;:V";
++constexpr const char* SIGNATURE_CALLBACK = "Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
++
++void EnterKioskModeSyncCheck(ani_env *env, ani_object contextObj)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null env");
++        return;
++    }
++    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null context");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get context, context must not be nullptr.");
++        return;
++    }
++    auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
++    if (uiAbilityContext == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null UIAbilityContext");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get uiAbilityContext, uiAbilityContext must not be nullptr.");
++        return;
++    }
++    auto token = uiAbilityContext->GetToken();
++    if (token == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null token");
++        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to get token, token must not be nullptr.");
++        return;
++    }
++}
++
++void EnterKioskModeSync(ani_env *env, ani_object contextObj, ani_object callback)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null env");
++        return;
++    }
++    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null context");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get context, context must not be nullptr.");
++        return;
++    }
++    auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
++    if (uiAbilityContext == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null UIAbilityContext");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get uiAbilityContext, uiAbilityContext must not be nullptr.");
++        return;
++    }
++    auto token = uiAbilityContext->GetToken();
++    if (token == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null token");
++        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to get token, token must not be nullptr.");
++        return;
++    }
++    auto errCode = AbilityManagerClient::GetInstance()->EnterKioskMode(token);
++    if (errCode != ERR_OK) {
++        AppExecFwk::AsyncCallback(
++            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
++        return;
++    }
++    AppExecFwk::AsyncCallback(env, callback, nullptr, nullptr);
++}
++
++void ExitKioskModeSyncCheck(ani_env *env, ani_object contextObj)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null env");
++        return;
++    }
++    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null context");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get context, context must not be nullptr.");
++        return;
++    }
++    auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
++    if (uiAbilityContext == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null UIAbilityContext");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get uiAbilityContext, uiAbilityContext must not be nullptr.");
++        return;
++    }
++    auto token = uiAbilityContext->GetToken();
++    if (token == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null token");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get token, token must not be nullptr.");
++        return;
++    }
++}
++
++void ExitKioskModeSync(ani_env *env, ani_object contextObj, ani_object callback)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null env");
++        return;
++    }
++    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null context");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get context, context must not be nullptr.");
++        return;
++    }
++    auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
++    if (uiAbilityContext == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null UIAbilityContext");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get uiAbilityContext, uiAbilityContext must not be nullptr.");
++        return;
++    }
++    auto token = uiAbilityContext->GetToken();
++    if (token == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null token");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Failed to get token, token must not be nullptr.");
++        return;
++    }
++    auto errCode = AbilityManagerClient::GetInstance()->ExitKioskMode(token);
++    if (errCode != ERR_OK) {
++        AppExecFwk::AsyncCallback(
++            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
++        return;
++    }
++    AppExecFwk::AsyncCallback(env, callback, nullptr, nullptr);
++}
++
++ani_object CreateEtsKioskStatus(ani_env *env, std::shared_ptr<AAFwk::KioskStatus> kioskStatus)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null env");
++        return nullptr;
++    }
++    if (kioskStatus == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null kioskStatus");
++        return nullptr;
++    }
++    ani_class cls = nullptr;
++    ani_method method = nullptr;
++    ani_object contextObj = nullptr;
++    ani_status status = env->FindClass(KIOSK_STATUS_CLASS_NAME, &cls);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APPKIT, "FindClass status: %{public}d", status);
++        return nullptr;
++    }
++    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindMethod status: %{public}d", status);
++        return nullptr;
++    }
++    if ((status = env->Object_New(cls, method, &contextObj)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APPKIT, "Object_New status: %{public}d", status);
++        return nullptr;
++    }
++    if ((status = env->Object_SetPropertyByName_Ref(contextObj, KIOSK_MANAGER_KIOSK_BUNDLE_NAME,
++        OHOS::AppExecFwk::GetAniString(env, kioskStatus->kioskBundleName_))) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleName failed, status: %{public}d", status);
++        return nullptr;
++    }
++    if ((status = env->Object_SetPropertyByName_Boolean(
++        contextObj, KIOSK_MANAGER_IS_KIOSK_MODE, kioskStatus->isKioskMode_)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APPKIT, "set isKioskMode failed, status: %{public}d", status);
++        return nullptr;
++    }
++    if ((status = env->Object_SetPropertyByName_Int(
++        contextObj, KIOSK_MANAGER_KIOSK_BUNDLE_UID, kioskStatus->kioskBundleUid_)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APPKIT, "set kioskBundleUid failed, status: %{public}d", status);
++        return nullptr;
++    }
++    return contextObj;
++}
++
++void GetKioskStatusSync(ani_env *env, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::APPKIT, "Get KioskStatus");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null env");
++        return;
++    }
++    std::shared_ptr<AAFwk::KioskStatus> kioskStatus = std::make_shared<AAFwk::KioskStatus>();
++    auto errCode = AbilityManagerClient::GetInstance()->GetKioskStatus(*kioskStatus);
++    if (errCode != ERR_OK) {
++        AppExecFwk::AsyncCallback(
++            env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode)), nullptr);
++        return;
++    }
++    auto status = CreateEtsKioskStatus(env, kioskStatus);
++    AppExecFwk::AsyncCallback(env, callback, nullptr, status);
++}
++
++void EtsKioskManagerInit(ani_env *env)
++{
++    TAG_LOGI(AAFwkTag::APPKIT, "EtsKioskManagerInit call");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "Invalid param");
++        return;
++    }
++    ani_namespace ns;
++    if (env->FindNamespace(KIOSK_MANAGER_CLASS_NAME, &ns) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APPKIT, "FindNamespace failed");
++        return;
++    }
++    if (ns == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "ns null");
++        return;
++    }
++    std::array functions = {
++        ani_native_function {
++            "nativeEnterKioskMode", SIGNATURE_UIABILITY_CALLBACK,
++            reinterpret_cast<void*>(EnterKioskModeSync)
++        },
++        ani_native_function {
++            "nativeEnterKioskModeCheck", SIGNATURE_UIABILITY,
++            reinterpret_cast<void*>(EnterKioskModeSyncCheck)
++        },
++        ani_native_function {
++            "nativeExitKioskMode", SIGNATURE_UIABILITY_CALLBACK,
++            reinterpret_cast<void*>(ExitKioskModeSync)
++        },
++        ani_native_function {
++            "nativeExitKioskModeCheck", SIGNATURE_UIABILITY,
++            reinterpret_cast<void*>(ExitKioskModeSyncCheck)
++        },
++        ani_native_function {
++            "nativeGetKioskStatus", SIGNATURE_CALLBACK,
++            reinterpret_cast<void*>(GetKioskStatusSync)
++        },
++
++    };
++    if (env->Namespace_BindNativeFunctions(ns, functions.data(), functions.size()) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APPKIT, "Namespace_BindNativeFunctions failed");
++    };
++}
++
++extern "C"{
++ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
++{
++    TAG_LOGI(AAFwkTag::APPKIT, "ANI_Constructor");
++    if (vm == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "vm null");
++        return ANI_ERROR;
++    }
++    if (result == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "result null");
++        return ANI_ERROR;
++    }
++    ani_env *env = nullptr;
++    ani_status status = ANI_ERROR;
++    status = vm->GetEnv(ANI_VERSION_1, &env);
++    if (status != ANI_OK) {
++        TAG_LOGE(AAFwkTag::APPKIT, "GetEnv failed status: %{public}d", status);
++        return ANI_NOT_FOUND;
++    }
++    EtsKioskManagerInit(env);
++    *result = ANI_VERSION_1;
++    TAG_LOGI(AAFwkTag::APPKIT, "ANI_Constructor finish");
++    return ANI_OK;
++}
++}
++} // namespace Ability
++} // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/service_extension_ability/include/ets_service_extension_context.h b/frameworks/ets/ani/service_extension_ability/include/ets_service_extension_context.h
+index cb8d4b218e514daaa91109d56e7ff5454655f9a4..7f62df5b18746bf778a75187f6f46c0789bfc347 100644
+--- a/frameworks/ets/ani/service_extension_ability/include/ets_service_extension_context.h
++++ b/frameworks/ets/ani/service_extension_ability/include/ets_service_extension_context.h
+@@ -66,6 +66,9 @@ public:
+     static void StartServiceExtensionAbility(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj);
+     static void StopServiceExtensionAbility(
+         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callbackobj);
++    static void StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
++        ani_object callback);
++    static bool UnwrapWantList(ani_env *env, ani_object wantListObj, std::vector<AAFwk::Want> &wantList);
+     static void StartUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callback);
+     static void WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj);
+ 
+@@ -85,6 +88,7 @@ private:
+     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
+         ani_object callbackObj, std::shared_ptr<ServiceExtensionContext> context);
+     void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
++    void OnStartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj, ani_object callback);
+ 
+     std::weak_ptr<ServiceExtensionContext> context_;
+     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;
+diff --git a/frameworks/ets/ani/service_extension_ability/src/ets_service_extension_context.cpp b/frameworks/ets/ani/service_extension_ability/src/ets_service_extension_context.cpp
+index 5407ac7223bfa772ce788f8fc57cf7b922f87b39..905fd11970ef06a0e2968a43d55550fd6b3b5dc7 100644
+--- a/frameworks/ets/ani/service_extension_ability/src/ets_service_extension_context.cpp
++++ b/frameworks/ets/ani/service_extension_ability/src/ets_service_extension_context.cpp
+@@ -22,6 +22,7 @@
+ #include "ets_context_utils.h"
+ #include "ets_error_utils.h"
+ #include "ets_extension_context.h"
++#include "ets_start_abilities_observer.h"
+ 
+ namespace OHOS {
+ namespace AbilityRuntime {
+@@ -41,6 +42,7 @@ constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
+ constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "JLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+ constexpr int32_t ARGC_ONE = 1;
+ constexpr int32_t ARGC_TWO = 2;
++constexpr int32_t ARGC_FOUR = 4;
+ 
+ bool BindNativeMethods(ani_env *env, ani_class &cls)
+ {
+@@ -69,6 +71,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
+             reinterpret_cast<void*>(EtsServiceExtensionContext::StartUIServiceExtension)},
+         ani_native_function { "nativeWantCheck", "L@ohos/app/ability/Want/Want;:V",
+             reinterpret_cast<void *>(EtsServiceExtensionContext::WantCheck) },
++        ani_native_function {"nativeStartUIAbilities",
++            "Lescompat/Array;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsServiceExtensionContext::StartUIAbilities)},
+     };
+     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK
+         && status != ANI_ALREADY_BINDED) {
+@@ -209,6 +214,23 @@ void EtsServiceExtensionContext::StartAbilityWithOption(
+     etsServiceExtensionContext->OnStartAbility(env, aniObj, wantObj, opt, call);
+ }
+ 
++void EtsServiceExtensionContext::StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
++    ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::SERVICE_EXT, "StartUIAbilities");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
++        return;
++    }
++    auto etsServiceExtensionContext = EtsServiceExtensionContext::GetEtsAbilityContext(env, aniObj);
++    if (etsServiceExtensionContext == nullptr) {
++        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null etsServiceExtensionContext");
++        return;
++    }
++    etsServiceExtensionContext->OnStartUIAbilities(env, aniObj, wantListObj, callback);
++}
++
++
+ void EtsServiceExtensionContext::StopServiceExtensionAbility(
+     ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callbackobj)
+ {
+@@ -548,6 +570,38 @@ void EtsServiceExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *en
+     AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+ }
+ 
++bool EtsServiceExtensionContext::UnwrapWantList(ani_env *env, ani_object wantListObj,
++    std::vector<AAFwk::Want> &wantList)
++{
++    ani_array_ref wantListArray = reinterpret_cast<ani_array_ref>(wantListObj);
++    ani_size arrayLength = 0;
++    if (env->Array_GetLength(wantListArray, &arrayLength) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to get array length.");
++        return false;
++    }
++    if (arrayLength < ARGC_ONE || arrayLength > ARGC_FOUR) {
++        TAG_LOGE(AAFwkTag::SERVICE_EXT, "wantList size not support");
++        return false;
++    }
++    for (ani_size i = 0; i < arrayLength; i++) {
++        ani_ref wantRef  = nullptr;
++        if (env->Array_Get_Ref(wantListArray, i, &wantRef) != ANI_OK || wantRef == nullptr) {
++            TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to get want object");
++            return false;
++        }
++        ani_object wantObj = reinterpret_cast<ani_object>(wantRef);
++        AAFwk::Want curWant;
++        if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, curWant)) {
++            TAG_LOGE(AAFwkTag::SERVICE_EXT, "startUIAbilities parse want failed");
++            return false;
++        }
++        TAG_LOGD(AAFwkTag::SERVICE_EXT, "startUIAbilities ability:%{public}s",
++            curWant.GetElement().GetAbilityName().c_str());
++        wantList.emplace_back(curWant);
++    }
++    return true;
++}
++
+ void EtsServiceExtensionContext::AddFreeInstallObserver(
+     ani_env *env, const AAFwk::Want &want, ani_object callbackObj, std::shared_ptr<ServiceExtensionContext> context)
+ {
+@@ -803,5 +857,60 @@ void ETSServiceExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::El
+     }
+     AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+ }
++
++void EtsServiceExtensionContext::OnStartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
++    ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::SERVICE_EXT, "OnStartUIAbilities");
++
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
++        AppExecFwk::AsyncCallback(env, callback,
++            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
++        return;
++    }
++    ani_vm *etsVm = nullptr;
++    ani_status status = ANI_ERROR;
++    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
++        return;
++    }
++
++    ErrCode innerErrCode = ERR_OK;
++    std::vector<AAFwk::Want> wantList;
++    std::string requestKey = std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
++        std::chrono::system_clock::now().time_since_epoch()).count());
++    if (!EtsServiceExtensionContext::UnwrapWantList(env, wantListObj, wantList)) {
++        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Unwrap wantList param failed.");
++        ani_object aniObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant filed");
++        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
++        return;
++    }
++
++    TAG_LOGD(AAFwkTag::SERVICE_EXT, "startUIAbilities wantListLength: %{public}zu", wantList.size());
++
++    EtsStartAbilitiesObserver::GetInstance().SetEtsVm(etsVm);
++    EtsStartAbilitiesObserver::GetInstance().AddObserver(env, requestKey, callback);
++
++    auto context = context_.lock();
++    if (!context) {
++        TAG_LOGW(AAFwkTag::SERVICE_EXT, "null context");
++        innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
++        ani_object aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(innerErrCode));
++        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
++        return;
++    }
++    innerErrCode = context->StartUIAbilities(wantList, requestKey);
++
++    TAG_LOGD(AAFwkTag::SERVICE_EXT, "startUIAbilities complete innerErrCode: %{public}d", innerErrCode);
++    if (innerErrCode == AAFwk::START_UI_ABILITIES_WAITING_SPECIFIED_CODE) {
++        TAG_LOGI(AAFwkTag::SERVICE_EXT, "startUIAbilities waiting specified.");
++        ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
++        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
++        return;
++    }
++    EtsStartAbilitiesObserver::HandleFinished(requestKey, innerErrCode);
++}
++
+ } // namespace AbilityRuntime
+ } // namespace OHOS
+diff --git a/frameworks/ets/ani/ui_extension_ability/include/ets_ui_extension_context.h b/frameworks/ets/ani/ui_extension_ability/include/ets_ui_extension_context.h
+index 115e52ccb4e0140af2883c5f9e52bc84e3510d85..569f609830d6afe4c30d89dccc4e4200472c2bb6 100644
+--- a/frameworks/ets/ani/ui_extension_ability/include/ets_ui_extension_context.h
++++ b/frameworks/ets/ani/ui_extension_ability/include/ets_ui_extension_context.h
+@@ -85,12 +85,17 @@ public:
+     static void ReportDrawnCompleted(ani_env *env,  ani_object aniObj, ani_object callback);
+     static void ConnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj,
+         ani_object uiServiceExtConCallbackObj, ani_object callback);
++    static void StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
++        ani_object callback);
++    static bool UnwrapWantList(ani_env *env, ani_object wantListObj, std::vector<AAFwk::Want> &wantList);
+     static void StartUIServiceExtension(ani_env *env, ani_object aniObj,
+         ani_object wantObj, ani_object callback);
+     static void DisconnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object proxyObj,
+         ani_object callback);
+     static void WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj);
+     static void DisconnectUIServiceExtensionCheck(ani_env *env, ani_object aniObj, ani_object proxyObj);
++    static void StartUIAbilitiesInSplitWindowMode(ani_env *env, ani_object aniObj,
++        ani_int primaryWindowId, ani_object wantObj, ani_object callback);
+     static void OpenLink(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
+         ani_object optionsObj, ani_object callbackobj);
+     static void OpenLinkCheck(ani_env *env, ani_object aniObj, ani_string aniLink);
+@@ -130,11 +135,15 @@ private:
+         sptr<EtsUIExtensionConnection>& connection, AAFwk::Want& want);
+     void OnSetColorMode(ani_env *env, ani_object aniCls, ani_enum_item aniColorMode);
+     void OnReportDrawnCompleted(ani_env *env,  ani_object aniCls, ani_object callback);
++    void OnStartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
++        ani_object callback);
+     void OnConnectUIServiceExtension(ani_env *env, ani_object wantObj, ani_object uiServiceExtConCallbackObj,
+         ani_object callback);
+     void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
+     void OnDisconnectUIServiceExtension(ani_env *env, ani_object proxyObj, ani_object callback);
+     bool CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want& want, ani_object callback, ani_object myCallback);
++    void OnStartUIAbilitiesInSplitWindowMode(ani_env *env, ani_int primaryWindowId,
++        ani_object wantObj, ani_object callback);
+     void OpenLinkInner(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
+         ani_object optionsObj, ani_object callbackobj, bool haveOptionsParm, bool haveCallBackParm);
+     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
+diff --git a/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_context.cpp b/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_context.cpp
+index 0a4d268d689054190be82f6edec8b3c19f455dbf..124aad074c13a53373d0805f07f25f3013643398 100644
+--- a/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_context.cpp
++++ b/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_context.cpp
+@@ -19,6 +19,7 @@
+ #include "ani_common_start_options.h"
+ #include "ani_common_want.h"
+ #include "ani_enum_convert.h"
++#include "errors.h"
+ #include "remote_object_taihe_ani.h"
+ #include "common_fun_ani.h"
+ #include "ets_context_utils.h"
+@@ -29,6 +30,7 @@
+ #include "ui_extension_context.h"
+ #include "ets_uiservice_uiext_connection.h"
+ #include "ets_ui_service_proxy.h"
++#include "ets_start_abilities_observer.h"
+ 
+ namespace OHOS {
+ namespace AbilityRuntime {
+@@ -52,8 +54,11 @@ constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION =
+     "Lapplication/UIServiceProxy/UIServiceProxy;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
+ constexpr const char *SIGNATURE_WANT_CHK = "L@ohos/app/ability/Want/Want;:V";
+ constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK = "Lapplication/UIServiceProxy/UIServiceProxy;:V";
++constexpr const char *SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE =
++    "IL@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
+ constexpr int32_t ARGC_ONE = 1;
+ constexpr int32_t ARGC_TWO = 2;
++constexpr int32_t ARGC_FOUR = 4;
+ constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+     "L@ohos/app/ability/AtomicServiceOptions/AtomicServiceOptions;:V";
+ constexpr const char *SIGNATURE_OPEN_LINK = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+@@ -322,6 +327,22 @@ void EtsUIExtensionContext::SetHostPageOverlayForbidden(ani_env *env, ani_object
+     etsUiExtensionContext->OnSetHostPageOverlayForbidden(env, aniObj, aniIsForbidden);
+ }
+ 
++void EtsUIExtensionContext::StartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
++    ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::UI_EXT, "StartUIAbilities");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
++        return;
++    }
++    auto etsUiExtensionContext = GetEtsUIExtensionContext(env, aniObj);
++    if (etsUiExtensionContext == nullptr) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "null etsUiExtensionContext");
++        return;
++    }
++    etsUiExtensionContext->OnStartUIAbilities(env, aniObj, wantListObj, callback);
++}
++
+ void EtsUIExtensionContext::OnTerminateSelf(ani_env *env, ani_object obj, ani_object callback)
+ {
+     ani_object aniObject = nullptr;
+@@ -491,6 +512,58 @@ void EtsUIExtensionContext::OnStartAbilityForResult(ani_env *env, ani_object ani
+     return;
+ }
+ 
++void EtsUIExtensionContext::OnStartUIAbilities(ani_env *env, ani_object aniObj, ani_object wantListObj,
++    ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::UI_EXT, "OnStartUIAbilities");
++    
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
++        return;
++    }
++    ani_vm *etsVm = nullptr;
++    ani_status status = ANI_ERROR;
++    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "status : %{public}d", status);
++        return;
++    }
++
++    ErrCode innerErrCode = ERR_OK;
++    std::vector<AAFwk::Want> wantList;
++    std::string requestKey = std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
++        std::chrono::system_clock::now().time_since_epoch()).count());
++    if (!EtsUIExtensionContext::UnwrapWantList(env, wantListObj, wantList)) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "Unwrap wantList param failed.");
++        ani_object aniObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant filed");
++        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
++        return;
++    }
++
++    TAG_LOGD(AAFwkTag::UI_EXT, "startUIAbilities wantListLength: %{public}zu", wantList.size());
++
++    EtsStartAbilitiesObserver::GetInstance().SetEtsVm(etsVm);
++    EtsStartAbilitiesObserver::GetInstance().AddObserver(env, requestKey, callback);
++    
++    auto context = context_.lock();
++    if (!context) {
++        TAG_LOGW(AAFwkTag::UI_EXT, "null context");
++        innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
++        ani_object aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(innerErrCode));
++        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
++        return;
++    }
++    innerErrCode = context->StartUIAbilities(wantList, requestKey);
++
++    TAG_LOGD(AAFwkTag::UI_EXT, "startUIAbilities complete innerErrCode: %{public}d", innerErrCode);
++    if (innerErrCode == AAFwk::START_UI_ABILITIES_WAITING_SPECIFIED_CODE) {
++        TAG_LOGI(AAFwkTag::UI_EXT, "startUIAbilities waiting specified.");
++        ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
++        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
++        return;
++    }
++    EtsStartAbilitiesObserver::HandleFinished(requestKey, innerErrCode);
++}
++
+ ani_long EtsUIExtensionContext::OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
+     ani_object wantObj, ani_object connectOptionsObj)
+ {
+@@ -1283,6 +1356,53 @@ void EtsUIExtensionContext::OnDisconnectUIServiceExtension(ani_env *env, ani_obj
+         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+ }
+ 
++void EtsUIExtensionContext::StartUIAbilitiesInSplitWindowMode(ani_env *env, ani_object aniObj,
++    ani_int primaryWindowId, ani_object wantObj, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::UI_EXT, "StartUIAbilitiesInSplitWindowMode called");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
++        return;
++    }
++    auto etsUiExtensionContext = GetEtsUIExtensionContext(env, aniObj);
++    if (etsUiExtensionContext == nullptr) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "null etsUiExtensionContext");
++        return;
++    }
++    etsUiExtensionContext->OnStartUIAbilitiesInSplitWindowMode(env, primaryWindowId, wantObj, callback);
++}
++
++void EtsUIExtensionContext::OnStartUIAbilitiesInSplitWindowMode(ani_env *env, ani_int primaryWindowId,
++    ani_object wantObj, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::UI_EXT, "OnStartUIAbilitiesInSplitWindowMode is called");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
++        return;
++    }
++    AAFwk::Want want;
++    if (!want.HasParameter(AAFwk::Want::PARAM_BACK_TO_OTHER_MISSION_STACK)) {
++        want.SetParam(AAFwk::Want::PARAM_BACK_TO_OTHER_MISSION_STACK, true);
++    }
++    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "UnwrapWant failed");
++        return;
++    }
++    auto context = context_.lock();
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
++        AppExecFwk::AsyncCallback(env, callback,
++            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
++        return;
++    }
++    int32_t innerErrCode = static_cast<int32_t>(ERR_OK);
++    innerErrCode = context->StartUIAbilitiesInSplitWindowMode(primaryWindowId, want);
++    TAG_LOGD(AAFwkTag::UI_EXT, "StartUIServiceExtension code:%{public}d", innerErrCode);
++    AppExecFwk::AsyncCallback(env, callback,
++        AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
++}
++
++
+ bool EtsUIExtensionContext::BindNativePtrCleaner(ani_env *env)
+ {
+     if (env == nullptr) {
+@@ -1422,6 +1542,12 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
+             reinterpret_cast<void*>(EtsUIExtensionContext::WantCheck)},
+         ani_native_function{"nativeDisconnectUIServiceExtensionCheck", SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK,
+             reinterpret_cast<void*>(EtsUIExtensionContext::DisconnectUIServiceExtensionCheck)},
++        ani_native_function {"nativeStartUIAbilities",
++            "Lescompat/Array;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
++            reinterpret_cast<void *>(EtsUIExtensionContext::StartUIAbilities)},
++        ani_native_function{"nativeStartUIAbilitiesInSplitWindowMode",
++            SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE,
++            reinterpret_cast<void*>(EtsUIExtensionContext::StartUIAbilitiesInSplitWindowMode)},
+         ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
+             reinterpret_cast<void *>(EtsUIExtensionContext::OpenAtomicService) },
+         ani_native_function { "nativeOpenAtomicServiceCheck", ":V",
+@@ -1491,6 +1617,38 @@ EtsUIExtensionContext* EtsUIExtensionContext::GetEtsUIExtensionContext(ani_env *
+     return etsContext;
+ }
+ 
++bool EtsUIExtensionContext::UnwrapWantList(ani_env *env, ani_object wantListObj,
++    std::vector<AAFwk::Want> &wantList)
++{
++    ani_array_ref wantListArray = reinterpret_cast<ani_array_ref>(wantListObj);
++    ani_size arrayLength = 0;
++    if (env->Array_GetLength(wantListArray, &arrayLength) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "Failed to get array length.");
++        return false;
++    }
++    if (arrayLength < ARGC_ONE || arrayLength > ARGC_FOUR) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "wantList size not support");
++        return false;
++    }
++    for (ani_size i = 0; i < arrayLength; i++) {
++        ani_ref wantRef  = nullptr;
++        if (env->Array_Get_Ref(wantListArray, i, &wantRef) != ANI_OK || wantRef == nullptr) {
++            TAG_LOGE(AAFwkTag::UI_EXT, "Failed to get want object");
++            return false;
++        }
++        ani_object wantObj = reinterpret_cast<ani_object>(wantRef);
++        AAFwk::Want curWant;
++        if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, curWant)) {
++            TAG_LOGE(AAFwkTag::UI_EXT, "startUIAbilities parse want failed");
++            return false;
++        }
++        TAG_LOGD(AAFwkTag::UI_EXT, "startUIAbilities ability:%{public}s",
++            curWant.GetElement().GetAbilityName().c_str());
++        wantList.emplace_back(curWant);
++    }
++    return true;
++}
++
+ EtsUIExtensionConnection::EtsUIExtensionConnection(ani_vm *etsVm) : etsVm_(etsVm) {}
+ 
+ EtsUIExtensionConnection::~EtsUIExtensionConnection()
+diff --git a/frameworks/ets/ani/wantagent/BUILD.gn b/frameworks/ets/ani/wantagent/BUILD.gn
+index 3b3c773b6be2152f626a88640f65c7ddf064a041..d77d6920db7277d71db8fa03c0752cb3d18bdae7 100644
+--- a/frameworks/ets/ani/wantagent/BUILD.gn
++++ b/frameworks/ets/ani/wantagent/BUILD.gn
+@@ -34,10 +34,13 @@ ohos_shared_library("aniwantagent") {
+ 
+   deps = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
++    "${ability_runtime_innerkits_path}/ani_base_context:ani_base_context",
+     "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
+     "${ability_runtime_innerkits_path}/runtime:runtime",
+     "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
++    "${ability_runtime_native_path}/ability:ability_context_native",
+     "${ability_runtime_native_path}/ability/native:abilitykit_native",
++    "${ability_runtime_native_path}/ability/native:extensionkit_native",
+     "${ability_runtime_native_path}/appkit:app_context",
+     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+     "${ability_runtime_path}/frameworks/ets/ani/ani_wantagent_common:ani_wantagent_common",
+diff --git a/frameworks/ets/ani/wantagent/include/ani_want_agent.h b/frameworks/ets/ani/wantagent/include/ani_want_agent.h
+index 22fe0024a0d49080842c7e9d931d1eee7680e0dd..52810823222b54ced497b68220ad69610a6e147f 100644
+--- a/frameworks/ets/ani/wantagent/include/ani_want_agent.h
++++ b/frameworks/ets/ani/wantagent/include/ani_want_agent.h
+@@ -71,10 +71,18 @@ public:
+     static void Clean(ani_env *env, ani_object object);
+     static ani_object CreateLocalWantAgent(ani_env *env, ani_object info);
+     static ani_boolean IsLocalWantAgent(ani_env *env, ani_object info);
++    static void TriggerAsyncCheck(
++        ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj);
++    static void TriggerAsync(
++        ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj, ani_object call);
+     static void TriggerCheck(ani_env *env, ani_object agent, ani_object triggerInfoObj);
+ 
+ private:
+     void OnEqual(ani_env *env, ani_object agent, ani_object otherAgent, ani_object call);
++    void OnTriggerAsync(
++        ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj, ani_object call);
++    void OnTriggerAsyncCheck(
++        ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj);
+     void OnGetWant(ani_env *env, ani_object agent, ani_object call);
+     void OnGetOperationType(ani_env *env, ani_object agent, ani_object call);
+     void OnGetBundleName(ani_env *env, ani_object agent, ani_object call);
+@@ -84,8 +92,10 @@ private:
+     void OnGetWantAgent(ani_env *env, ani_object info, ani_object call);
+     ani_object OnCreateLocalWantAgent(ani_env *env, ani_object info);
+     ani_boolean OnIsLocalWantAgent(ani_env *env, ani_object info);
++    ani_object CreateEtsCompletedData(ani_env *env, const CompletedDispatcher &data);
+     int32_t GetTriggerInfo(ani_env *env, ani_object triggerInfoObj, TriggerInfo &triggerInfo);
+     int32_t GetWantAgentParam(ani_env *env, ani_object info, WantAgentParams &params);
++    std::shared_ptr<AbilityRuntime::Context> ConvertToContext(std::shared_ptr<AbilityRuntime::Context> context);
+ };
+ 
+ class TriggerCompleteCallBack : public CompletedCallback {
+diff --git a/frameworks/ets/ani/wantagent/src/ani_want_agent.cpp b/frameworks/ets/ani/wantagent/src/ani_want_agent.cpp
+index 44deec6a1ae11a89a1658e637d7fb372fd325634..938d844b9155006f318289b30318d8d61f52eb99 100644
+--- a/frameworks/ets/ani/wantagent/src/ani_want_agent.cpp
++++ b/frameworks/ets/ani/wantagent/src/ani_want_agent.cpp
+@@ -16,11 +16,13 @@
+ #include "ani_want_agent.h"
+ 
+ #include "ability_runtime_error_util.h"
++#include "ani_base_context.h"
+ #include "ani_common_start_options.h"
+ #include "ani_common_util.h"
+ #include "ani_common_want.h"
+ #include "ani_common_want_agent.h"
+ #include "ani_enum_convert.h"
++#include "extension_context.h"
+ #include "hilog_tag_wrapper.h"
+ #include "start_options.h"
+ #include "want_agent_helper.h"
+@@ -54,6 +56,68 @@ void TriggerCompleteCallBack::SetWantAgentInstance(std::shared_ptr<WantAgent> wa
+     triggerCompleteInfo_.wantAgent = wantAgent;
+ }
+ 
++void EtsWantAgent::TriggerAsyncCheck(
++    ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "null env");
++        return;
++    }
++    GetInstance().OnTriggerAsyncCheck(env, agent, triggerInfoObj, contextObj);
++}
++
++void EtsWantAgent::OnTriggerAsyncCheck(
++    ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "null env");
++        return;
++    }
++    ani_boolean stageMode = false;
++    ani_status status = IsStageContext(env, contextObj, stageMode);
++    if (status != ANI_OK || !stageMode) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "not stageMode");
++        EtsErrorUtil::ThrowInvalidParamError(env,
++            "Parse param context failed, must be a context of stageMode.");
++        return;
++    }
++    auto context = GetStageModeContext(env, contextObj);
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "null context");
++        EtsErrorUtil::ThrowInvalidParamError(env,
++            "Parse param context failed, must not be nullptr.");
++        return;
++    }
++    auto inputContextPtr = ConvertToContext(context);
++    if (inputContextPtr == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "the context is not ability context");
++        EtsErrorUtil::ThrowError(env,
++            ERR_ABILITY_RUNTIME_EXTERNAL_NOT_ABILITY_CONTEXT);
++        return;
++    }
++    WantAgent* pWantAgent = nullptr;
++    UnwrapWantAgent(env, agent, reinterpret_cast<void **>(&pWantAgent));
++    if (pWantAgent == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "Parse pWantAgent failed");
++        EtsErrorUtil::ThrowInvalidParamError(
++            env, "Parse pWantAgent failed. Agent must be a WantAgent.");
++        return;
++    }
++    TriggerInfo triggerInfo;
++    int32_t ret = GetTriggerInfo(env, triggerInfoObj, triggerInfo);
++    if (ret != BUSINESS_ERROR_CODE_OK) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "Get trigger info error");
++        EtsErrorUtil::ThrowInvalidParamError(env, "Get trigger info error. TriggerInfo must be a TriggerInfo.");
++        return;
++    }
++
++    if (!CheckCallerIsSystemApp()) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
++        EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP,
++            AbilityRuntimeErrorUtil::GetErrMessage(ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP));
++        return;
++    }
++}
+ bool OnSendFinishedCallback(TriggerReceiveDataWorker *dataWorker)
+ {
+     if (dataWorker == nullptr) {
+@@ -241,6 +305,17 @@ void EtsWantAgent::TriggerCheck(ani_env *env, ani_object agent, ani_object trigg
+     }
+ }
+ 
++void EtsWantAgent::TriggerAsync(
++    ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj, ani_object call)
++{
++    TAG_LOGD(AAFwkTag::WANTAGENT, "TriggerAsync called");
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "null env");
++        return;
++    }
++    GetInstance().OnTriggerAsync(env, agent, triggerInfoObj, contextObj, call);
++}
++
+ void EtsWantAgent::Clean(ani_env *env, ani_object object)
+ {
+     TAG_LOGD(AAFwkTag::WANTAGENT, "Clean called");
+@@ -695,6 +770,134 @@ void EtsWantAgent::OnGetWantAgent(ani_env *env, ani_object info, ani_object call
+         AsyncCallback(env, call, error, retObj);
+     }
+ }
++std::shared_ptr<AbilityRuntime::Context> EtsWantAgent::ConvertToContext(
++    std::shared_ptr<AbilityRuntime::Context> context)
++{
++    auto uiAbilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
++    auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::ExtensionContext>(context);
++    if (uiAbilityContext == nullptr && extensionContext == nullptr) {
++        return nullptr;
++    }
++    
++    return OHOS::AbilityRuntime::Context::ConvertTo<AbilityRuntime::Context>(context);
++}
++
++std::shared_ptr<OHOS::AbilityRuntime::Context> GetContextByStageMode(ani_env *env, ani_object &contextObj)
++{
++    ani_boolean stageMode = false;
++    ani_status status = IsStageContext(env, contextObj, stageMode);
++    if (status != ANI_OK || !stageMode) {
++        TAG_LOGE(AAFwkTag::APPKIT, "not stageMode");
++        EtsErrorUtil::ThrowInvalidParamError(env,
++            "Parse param context failed, must be a context of stageMode.");
++        return nullptr;
++    }
++    auto context = GetStageModeContext(env, contextObj);
++    if (context == nullptr) {
++        TAG_LOGE(AAFwkTag::APPKIT, "null context");
++        EtsErrorUtil::ThrowInvalidParamError(env,
++            "Parse param context failed, must not be nullptr.");
++        return nullptr;
++    }
++    return context;
++}
++
++ani_object EtsWantAgent::CreateEtsCompletedData(ani_env *env, const CompletedDispatcher &data)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "null env");
++        return nullptr;
++    }
++    ani_class cls = nullptr;
++    ani_status status = ANI_OK;
++    if ((status = env->FindClass(COMPLETE_DATA_IMPL_CLASS_NAME, &cls)) != ANI_OK || cls == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "FindClass failed status: %{public}d, or null class", status);
++        return nullptr;
++    }
++    ani_method method = nullptr;
++    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK || method == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "Class_FindMethod failed status: %{public}d, or null method", status);
++        return nullptr;
++    }
++    ani_object objValue = nullptr;
++    if ((status = env->Object_New(cls, method, &objValue)) != ANI_OK || objValue == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "Object_New failed status: %{public}d, or null object", status);
++        return nullptr;
++    }
++
++    WantAgent *pWantAgent = new (std::nothrow) WantAgent(data.GetPendingWant());
++    if (pWantAgent == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "null pWantAgent");
++        return objValue;
++    }
++
++    ani_object retObj = WrapWantAgent(env, pWantAgent);
++    env->Object_SetPropertyByName_Ref(objValue, "info", retObj);
++    env->Object_SetPropertyByName_Ref(objValue, "want", WrapWant(env, data.GetWant()));
++    env->Object_SetPropertyByName_Int(objValue, "finalCode", static_cast<ani_int>(data.GetResultCode()));
++    env->Object_SetPropertyByName_Ref(objValue, "finalData", GetAniString(env, data.GetResultData()));
++    env->Object_SetPropertyByName_Ref(objValue, "extraInfo", WrapWantParams(env, data.GetResultExtras()));
++    return objValue;
++}
++
++void EtsWantAgent::OnTriggerAsync(
++    ani_env *env, ani_object agent, ani_object triggerInfoObj, ani_object contextObj, ani_object call)
++{
++    if (env == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "null env");
++        return;
++    }
++    auto context = GetContextByStageMode(env, contextObj);
++    auto inputContextPtr = ConvertToContext(context);
++    if (inputContextPtr == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "Convert to context failed");
++        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must be a context.");
++        return;
++    }
++    WantAgent* pWantAgent = nullptr;
++    UnwrapWantAgent(env, agent, reinterpret_cast<void **>(&pWantAgent));
++    if (pWantAgent == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "Parse pWantAgent failed");
++        EtsErrorUtil::ThrowInvalidParamError(env, "Parse pWantAgent failed. Agent must be a WantAgent.");
++        return;
++    }
++    TriggerInfo triggerInfo;
++    if (GetTriggerInfo(env, triggerInfoObj, triggerInfo) != BUSINESS_ERROR_CODE_OK) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "Get trigger info error");
++        EtsErrorUtil::ThrowInvalidParamError(env, "Get trigger info error. TriggerInfo must be a TriggerInfo.");
++        return;
++    }
++    ani_ref callbackRef = nullptr;
++    ani_status status = ANI_OK;
++    if ((status = env->GlobalReference_Create(call, &callbackRef)) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "GlobalReference_Create failed status: %{public}d", status);
++        return;
++    }
++    ani_vm *etsVm = nullptr;
++    status = env->GetVM(&etsVm);
++    if (status != ANI_OK || etsVm == nullptr) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "GetVM failed status: %{public}d, or null etsVm", status);
++        return;
++    }
++    if (!CheckCallerIsSystemApp()) {
++        TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
++        EtsErrorUtil::ThrowError(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP,
++            AbilityRuntimeErrorUtil::GetErrMessage(ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP));
++        return;
++    }
++    auto triggerObj = std::make_shared<TriggerCompleteCallBack>();
++    triggerObj->SetCallbackInfo(etsVm, callbackRef);
++    triggerObj->SetWantAgentInstance(std::make_shared<WantAgent>(pWantAgent->GetPendingWant()));
++    sptr<CompletedDispatcher> completedData = new CompletedDispatcher();
++    auto retCode = WantAgentHelper::TriggerWantAgent(
++        std::make_shared<WantAgent>(*pWantAgent), triggerObj, triggerInfo, completedData, inputContextPtr->GetToken());
++    if (retCode == ERR_OK) {
++        AsyncCallback(env, call, nullptr, CreateEtsCompletedData(env, *completedData));
++    } else {
++        ani_object errorObj = EtsErrorUtil::CreateError(env, retCode, AbilityRuntimeErrorUtil::GetErrMessage(retCode));
++        AsyncCallback(env, call, errorObj, nullptr);
++    }
++}
+ 
+ ani_object EtsWantAgent::OnCreateLocalWantAgent(ani_env *env, ani_object info)
+ {
+@@ -771,6 +974,8 @@ ani_status BindNativeFunctions(ani_env *env)
+         return status;
+     }
+     std::array functions = {
++        ani_native_function {
++            "nativetriggerAsyncCheck", nullptr, reinterpret_cast<void *>(EtsWantAgent::TriggerAsyncCheck) },
+         ani_native_function { "nativeGetBundleName", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetBundleName) },
+         ani_native_function { "nativeGetUid", nullptr, reinterpret_cast<void *>(EtsWantAgent::GetUid) },
+         ani_native_function {
+@@ -786,6 +991,7 @@ ani_status BindNativeFunctions(ani_env *env)
+             reinterpret_cast<void *>(EtsWantAgent::IsLocalWantAgent) },
+         ani_native_function { "nativeTriggerCheck", "Lstd/core/Object;LwantAgent/triggerInfo/TriggerInfo;:V",
+             reinterpret_cast<void *>(EtsWantAgent::TriggerCheck) },
++        ani_native_function { "nativeTriggerAsync", nullptr, reinterpret_cast<void *>(EtsWantAgent::TriggerAsync) },
+     };
+     if ((status = env->Namespace_BindNativeFunctions(ns, functions.data(), functions.size())) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::WANTAGENT, "Namespace_BindNativeFunctions failed status: %{public}d", status);
+diff --git a/frameworks/ets/ets/@ohos.app.ability.ChildProcessArgs.ets b/frameworks/ets/ets/@ohos.app.ability.ChildProcessArgs.ets
+new file mode 100644
+index 0000000000000000000000000000000000000000..c127a4f025e682099fd63ffe828d9bdac577ef4c
+--- /dev/null
++++ b/frameworks/ets/ets/@ohos.app.ability.ChildProcessArgs.ets
+@@ -0,0 +1,24 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++export interface ChildProcessArgs {
++  entryParams?: string;
++  fds?: Record<string, int>;
++}
++
++class ChildProcessArgsImpl implements ChildProcessArgs {
++  public entryParams?: string;
++  public fds?: Record<string, int>;
++}
+\ No newline at end of file
+diff --git a/frameworks/ets/ets/@ohos.app.ability.ChildProcessOptions.ets b/frameworks/ets/ets/@ohos.app.ability.ChildProcessOptions.ets
+new file mode 100644
+index 0000000000000000000000000000000000000000..1d2c40d26fb1c83d3e7582a59b28d48ab69868e8
+--- /dev/null
++++ b/frameworks/ets/ets/@ohos.app.ability.ChildProcessOptions.ets
+@@ -0,0 +1,22 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++export interface ChildProcessOptions {
++  isolationMode?: boolean;
++}
++
++class ChildProcessOptionsImpl implements ChildProcessOptions {
++  public isolationMode?: boolean;
++}
+\ No newline at end of file
+diff --git a/frameworks/ets/ets/@ohos.app.ability.application.ets b/frameworks/ets/ets/@ohos.app.ability.application.ets
+index c00c780889d8ac9a719ce7b1da6b18168fa8b146..d2a53b849e03303e205986d89897d0c4a65a5393 100644
+--- a/frameworks/ets/ets/@ohos.app.ability.application.ets
++++ b/frameworks/ets/ets/@ohos.app.ability.application.ets
+@@ -39,6 +39,19 @@ export default namespace application {
+ 
+   export native function nativeGetApplicationContext(): ApplicationContext;
+ 
++  export native function nativeDemoteCurrentFromCandidateMasterProcess(callback: AsyncCallbackWrapper<void>): void;
++
++  export native function nativePromoteCurrentToCandidateMasterProcess(isInsertToHead: boolean,
++    callback:AsyncCallbackWrapper<void>): void;
++
++  export native function nativeExitMasterProcessRole(callback: AsyncCallbackWrapper<void>): void;
++
++  export native function nativeCreatePluginModuleContextForHostBundle(context: Context, pluginBundleName: string,
++    pluginModuleName: string, hostBundleName: string, callback: AsyncCallbackWrapper<Context>): void;
++
++  export native function nativeCreatePluginModuleContextForHostBundleCheck(context: Context, pluginBundleName: string,
++    pluginModuleName: string, hostBundleName: string): void;
++
+   export native function nativeGetApplicationContextInstance(): ApplicationContext;
+ 
+   export native function nativeGetAppPreloadType(): AppPreloadType;
+@@ -120,6 +133,51 @@ export default namespace application {
+     return p;
+   }
+ 
++  export function demoteCurrentFromCandidateMasterProcess(callback: AsyncCallback<void>): void {
++    let myCall = new AsyncCallbackWrapper<void>(callback);
++    taskpool.execute((): void => {
++      application.nativeDemoteCurrentFromCandidateMasterProcess(myCall);
++    });
++  }
++
++  export function demoteCurrentFromCandidateMasterProcess(): Promise<void> {
++    let p: Promise<void> =
++      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
++        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
++          if (err == null || err.code == 0) {
++            resolve(undefined);
++          } else {
++            reject(err);
++          }
++        });
++        taskpool.execute((): void => {
++          application.nativeDemoteCurrentFromCandidateMasterProcess(myCall);
++        });
++      });
++    return p;
++  }
++
++  export function promoteCurrentToCandidateMasterProcess(isInsertToHead: boolean, callback: AsyncCallback<void>): void {
++    let asyncCall = new AsyncCallbackWrapper<void>(callback);
++    taskpool.execute((): void => {
++      application.nativePromoteCurrentToCandidateMasterProcess(isInsertToHead, asyncCall);
++    });
++  }
++  export function promoteCurrentToCandidateMasterProcess(isInsertToHead: boolean): Promise<void> {
++    return new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
++      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        application.nativePromoteCurrentToCandidateMasterProcess(isInsertToHead, asyncCall);
++      });
++    });
++  }
++
+   export function getApplicationContext(): ApplicationContext {
+     return nativeGetApplicationContext();
+   }
+@@ -131,4 +189,40 @@ export default namespace application {
+   export function getAppPreloadType(): AppPreloadType {
+     return nativeGetAppPreloadType();
+   }
++
++  export function exitMasterProcessRole(): Promise<void> {
++    let p: Promise<void> =
++      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
++        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=> {
++          if (err == null || err.code == 0) {
++            resolve(undefined);
++          } else {
++            reject(err);
++          }
++        });
++        taskpool.execute((): void => {
++            application.nativeExitMasterProcessRole(myCall);
++        });
++      });
++    return p;
++  }
++
++  export function createPluginModuleContextForHostBundle(context: Context, pluginBundleName: string,
++    pluginModuleName: string, hostBundleName: string): Promise<Context> {
++    application.nativeCreatePluginModuleContextForHostBundleCheck(context, pluginBundleName, pluginModuleName, hostBundleName);
++    let p =
++      new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
++        let myCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
++          if (err == null || err.code == 0) {
++            resolve(data as Context);
++          } else {
++            reject(err);
++          }
++        });
++        taskpool.execute((): void => {
++          application.nativeCreatePluginModuleContextForHostBundle(context, pluginBundleName, pluginModuleName, hostBundleName, myCall);
++        });
++      });
++    return p;
++  }
+ }
+\ No newline at end of file
+diff --git a/frameworks/ets/ets/@ohos.app.ability.childProcessManager.ets b/frameworks/ets/ets/@ohos.app.ability.childProcessManager.ets
+new file mode 100644
+index 0000000000000000000000000000000000000000..2df37ac9e0a917732a8f49cee6fa6dad3487e6b8
+--- /dev/null
++++ b/frameworks/ets/ets/@ohos.app.ability.childProcessManager.ets
+@@ -0,0 +1,106 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import { BusinessError, AsyncCallback } from '@ohos.base';
++import AsyncCallbackWrapper from './utils/AbilityUtils';
++import { ChildProcessArgs } from '@ohos.app.ability.ChildProcessArgs';
++import { ChildProcessOptions } from '@ohos.app.ability.ChildProcessOptions';
++
++namespace childProcessManager {
++  loadLibraryWithPermissionCheck("ability_child_process_manager_ani_kit.z", "@ohos.app.ability.childProcessManager");
++
++  export const enum StartMode {
++    SELF_FORK = 0,
++    APP_SPAWN_FORK = 1,
++  }
++
++  export native function nativeStartChildProcess(srcEntry: string, startMode: StartMode, callback: AsyncCallbackWrapper<int>): void;
++  export native function nativeStartArkChildProcess(srcEntry: string, args: ChildProcessArgs, callback: AsyncCallbackWrapper<int>): void;
++  export native function nativeStartArkChildProcess(srcEntry: string, args: ChildProcessArgs, options: ChildProcessOptions, callback: AsyncCallbackWrapper<int>): void;
++  export native function nativeStartNativeChildProcess(entryPoint: string, args: ChildProcessArgs, callback: AsyncCallbackWrapper<int>): void;
++  export native function nativeStartNativeChildProcess(entryPoint: string, args: ChildProcessArgs, options: ChildProcessOptions, callback: AsyncCallbackWrapper<int>): void;
++
++  export function startChildProcess(srcEntry: string, startMode: StartMode): Promise<int> {
++    let p = new Promise<int>((resolve: (data: int) => void, reject: (err: BusinessError) => void): void => {
++      let myCall = new AsyncCallbackWrapper<int>((err: BusinessError | null, data: int | undefined) => {
++        if (err == null || err.code == 0) {
++          resolve(data as int);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        childProcessManager.nativeStartChildProcess(srcEntry, startMode, myCall);
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++    return p;
++  }
++  export function startChildProcess(srcEntry: string, startMode: StartMode, callback: AsyncCallback<int>): void {
++    let myCall = new AsyncCallbackWrapper<int>(callback);
++    taskpool.execute((): void => {
++      childProcessManager.nativeStartChildProcess(srcEntry, startMode, myCall);
++    });
++  }
++
++  export function startArkChildProcess(srcEntry: string, args: ChildProcessArgs,
++    options?: ChildProcessOptions): Promise<int> {
++    let p = new Promise<int>((resolve: (data: int) => void, reject: (err: BusinessError) => void): void => {
++      let myCall = new AsyncCallbackWrapper<int>((err: BusinessError | null, data: int | undefined) => {
++        if (err == null || err.code == 0) {
++          resolve(data as int);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        if (options == null) {
++          childProcessManager.nativeStartArkChildProcess(srcEntry, args, myCall);
++        } else {
++          childProcessManager.nativeStartArkChildProcess(srcEntry, args, options as ChildProcessOptions, myCall);
++        }
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++    return p;
++  }
++
++  export function startNativeChildProcess(entryPoint: string, args: ChildProcessArgs,
++    options?: ChildProcessOptions): Promise<int> {
++    let p = new Promise<int>((resolve: (data: int) => void, reject: (err: BusinessError) => void): void => {
++      let myCall = new AsyncCallbackWrapper<int>((err: BusinessError | null, data: int | undefined) => {
++        if (err == null || err.code == 0) {
++          resolve(data as int);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        if (options == null) {
++          childProcessManager.nativeStartNativeChildProcess(entryPoint, args, myCall);
++        } else {
++          childProcessManager.nativeStartNativeChildProcess(entryPoint, args, options as ChildProcessOptions, myCall);
++        }
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++    return p;
++  }
++}
++
++export default childProcessManager;
+\ No newline at end of file
+diff --git a/frameworks/ets/ets/@ohos.app.ability.kioskManager.ets b/frameworks/ets/ets/@ohos.app.ability.kioskManager.ets
+new file mode 100644
+index 0000000000000000000000000000000000000000..d2ee378147728f3c05bdd92a32a406d80c80d7c2
+--- /dev/null
++++ b/frameworks/ets/ets/@ohos.app.ability.kioskManager.ets
+@@ -0,0 +1,85 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License"),
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++/**
++ * @file
++ * @kit AbilityKit
++ */
++
++import UIAbilityContext from 'application.UIAbilityContext';
++import { KioskStatus as _KioskStatus } from 'application.KioskStatus';
++import { BusinessError, AsyncCallback } from '@ohos.base';
++import AsyncCallbackWrapper from './utils/AbilityUtils';
++
++export default namespace kioskManager {
++  loadLibrary("kiosk_manager_ani_kit.z")
++    export native function nativeEnterKioskMode(context: UIAbilityContext ,callback: AsyncCallbackWrapper<void>): void;
++    export native function nativeExitKioskMode(context: UIAbilityContext ,callback: AsyncCallbackWrapper<void>): void;
++    export native function nativeGetKioskStatus(callback: AsyncCallbackWrapper<KioskStatus>): void;
++
++    export native function nativeEnterKioskModeCheck(context: UIAbilityContext): void;
++    export native function nativeExitKioskModeCheck(context: UIAbilityContext): void;
++    function enterKioskMode(context: UIAbilityContext): Promise<void> {
++      kioskManager.nativeEnterKioskModeCheck(context);
++      let p: Promise<void> =
++        new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
++            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=> {
++              if (err == null || err.code == 0) {
++                resolve(undefined);
++              } else {
++                reject(err);
++              }
++            });
++            taskpool.execute((): void => {
++                kioskManager.nativeEnterKioskMode(context, myCall);
++            });
++        });
++      return p;
++    }
++    function exitKioskMode(context: UIAbilityContext): Promise<void> {
++      kioskManager.nativeExitKioskModeCheck(context);
++      let p: Promise<void> =
++        new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
++            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=> {
++              if (err == null || err.code == 0) {
++                resolve(undefined);
++              } else {
++                reject(err);
++              }
++            });
++            taskpool.execute((): void => {
++                kioskManager.nativeExitKioskMode(context, myCall);
++            });
++        });
++      return p;
++    }
++    function getKioskStatus(): Promise<KioskStatus> {
++        let p: Promise<KioskStatus> =
++        new Promise<KioskStatus>((resolve: (data: KioskStatus) => void, reject: (err: BusinessError | null) => void): void => {
++            let myCall = new AsyncCallbackWrapper<KioskStatus>((err: BusinessError | null, data: KioskStatus | undefined)=> {
++              if (err == null || err.code == 0) {
++                resolve(data as KioskStatus);
++              } else {
++                reject(err);
++              }
++            });
++            taskpool.execute((): void => {
++                kioskManager.nativeGetKioskStatus(myCall);
++            });
++        });
++      return p;
++    }
++    export type KioskStatus = _KioskStatus;
++}
+\ No newline at end of file
+diff --git a/frameworks/ets/ets/@ohos.app.ability.wantAgent.ets b/frameworks/ets/ets/@ohos.app.ability.wantAgent.ets
+index a54dbbbf0033efa2b589f2f623fafbd183963e7c..dec9bce9856127a7d54a3723990a65cfedec35d5 100644
+--- a/frameworks/ets/ets/@ohos.app.ability.wantAgent.ets
++++ b/frameworks/ets/ets/@ohos.app.ability.wantAgent.ets
+@@ -20,9 +20,11 @@ import { LocalWantAgentInfo as _LocalWantAgentInfo } from 'wantAgent.wantAgentIn
+ import { TriggerInfo as _TriggerInfo } from 'wantAgent.triggerInfo';
+ import AsyncCallbackWrapper from './utils/AbilityUtils';
+ import { AbilityUtils } from './utils/AbilityUtils';
++import Context from 'application.Context';
+ 
+ const ERROR_CODE_INVALID_PARAM: int = 401;
+ 
++
+ namespace wantAgent {
+   loadLibraryWithPermissionCheck("aniwantagent.z", "@ohos.app.ability.wantAgent");
+ 
+@@ -75,6 +77,7 @@ namespace wantAgent {
+   native function nativeIsLocalWantAgent(agent: WantAgent): boolean;
+   native function nativeCreateLocalWantAgent(info: LocalWantAgentInfo): WantAgent;
+   native function nativeTriggerCheck(agent: WantAgent, triggerInfo: TriggerInfo): void;
++  native function nativeTriggerAsync(agent: WantAgent, triggerInfo: TriggerInfo, context: Context, callback: AsyncCallbackWrapper<CompleteData>): void;
+ 
+   export function getBundleName(agent: WantAgent, callback: AsyncCallback<string>): void {
+     if (!(agent instanceof WantAgentCls)) {
+@@ -89,6 +92,31 @@ namespace wantAgent {
+       }
+     });
+   }
++  export native function nativetriggerAsyncCheck(agent: WantAgent, triggerInfo: TriggerInfo, context: Context): void;
++  export function triggerAsync(agent: WantAgent, triggerInfo: TriggerInfo, context: Context): Promise<CompleteData> {
++    nativetriggerAsyncCheck(agent, triggerInfo, context);
++    return new Promise<CompleteData>((resolve: (data: CompleteData) => void,
++      reject: (err: BusinessError) => void): void => {
++      let call = new AsyncCallbackWrapper<CompleteData>((err: BusinessError | null, data: CompleteData | undefined) => {
++        if (err == null || err.code == 0) {
++          resolve(data as CompleteData);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        try {
++          nativeTriggerAsync(agent, triggerInfo, context, call);
++        } catch (err: BusinessError) {
++          reject(err);
++        }
++      });
++    });
++  }
++
++  export function setWantAgentMultithreading(isMultithreadingSupported: boolean): void {
++ 
++  }
+ 
+   export function getBundleName(agent: WantAgent): Promise<string> {
+     if (!(agent instanceof WantAgentCls)) {
+diff --git a/frameworks/ets/ets/BUILD.gn b/frameworks/ets/ets/BUILD.gn
+index 6cf83b28ab64416bc5e33d7c4618ff2c03cc7fa9..b45aa31411707e7d5e27eb4606b092e72eb288f3 100644
+--- a/frameworks/ets/ets/BUILD.gn
++++ b/frameworks/ets/ets/BUILD.gn
+@@ -197,6 +197,57 @@ ohos_prebuilt_etc("ability_runtime_extension_context_abc_etc") {
+   deps = [ ":ability_runtime_extension_context_abc" ]
+ }
+ 
++generate_static_abc("ability_runtime_child_process_args_abc") {
++  base_url = "./"
++  files = [ "./@ohos.app.ability.ChildProcessArgs.ets" ]
++
++  is_boot_abc = "True"
++  device_dst_file =
++      "/system/framework/ability_runtime_child_process_args_abc.abc"
++}
++
++ohos_prebuilt_etc("ability_runtime_child_process_args_abc_etc") {
++  source = "$target_out_dir/ability_runtime_child_process_args_abc.abc"
++  module_install_dir = "framework"
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++  deps = [ ":ability_runtime_child_process_args_abc" ]
++}
++
++generate_static_abc("ability_runtime_child_process_manager_abc") {
++  base_url = "./"
++  files = [ "./@ohos.app.ability.childProcessManager.ets" ]
++
++  is_boot_abc = "True"
++  device_dst_file =
++      "/system/framework/ability_runtime_child_process_manager_abc.abc"
++}
++
++ohos_prebuilt_etc("ability_runtime_child_process_manager_abc_etc") {
++  source = "$target_out_dir/ability_runtime_child_process_manager_abc.abc"
++  module_install_dir = "framework"
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++  deps = [ ":ability_runtime_child_process_manager_abc" ]
++}
++
++generate_static_abc("ability_runtime_child_process_options_abc") {
++  base_url = "./"
++  files = [ "./@ohos.app.ability.ChildProcessOptions.ets" ]
++
++  is_boot_abc = "True"
++  device_dst_file =
++      "/system/framework/ability_runtime_child_process_options_abc.abc"
++}
++
++ohos_prebuilt_etc("ability_runtime_child_process_options_abc_etc") {
++  source = "$target_out_dir/ability_runtime_child_process_options_abc.abc"
++  module_install_dir = "framework"
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++  deps = [ ":ability_runtime_child_process_options_abc" ]
++}
++
+ generate_static_abc("ability_runtime_configuration_abc") {
+   base_url = "./"
+   files = [ "./@ohos.app.ability.Configuration.ets" ]
+@@ -1840,6 +1891,38 @@ ohos_prebuilt_etc("ability_ability_abc_etc") {
+   deps = [ ":ability_ability_abc" ]
+ }
+ 
++generate_static_abc("ability_runtime_kiosk_manager_abc") {
++  base_url = "./"
++  files = [ "./@ohos.app.ability.kioskManager.ets" ]
++
++  is_boot_abc = "True"
++  device_dst_file = "/system/framework/ability_runtime_kiosk_manager_abc.abc"
++}
++
++ohos_prebuilt_etc("ability_runtime_kiosk_manager_abc_etc") {
++  source = "$target_out_dir/ability_runtime_kiosk_manager_abc.abc"
++  module_install_dir = "framework"
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++  deps = [ ":ability_runtime_kiosk_manager_abc" ]
++}
++
++generate_static_abc("ability_runtime_kiosk_status_abc") {
++  base_url = "./"
++  files = [ "./application/KioskStatus.ets" ]
++
++  is_boot_abc = "True"
++  device_dst_file = "/system/framework/ability_runtime_kiosk_status_abc.abc"
++}
++
++ohos_prebuilt_etc("ability_runtime_kiosk_status_abc_etc") {
++  source = "$target_out_dir/ability_runtime_kiosk_status_abc.abc"
++  module_install_dir = "framework"
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++  deps = [ ":ability_runtime_kiosk_status_abc" ]
++}
++
+ generate_static_abc("ability_runtime_interop_ability_lifecycle_callback_abc") {
+   base_url = "./"
+   files = [ "./@ohos.app.ability.InteropAbilityLifecycleCallback.ets" ]
+@@ -1857,6 +1940,21 @@ ohos_prebuilt_etc(
+   deps = [ ":ability_runtime_interop_ability_lifecycle_callback_abc" ]
+ }
+ 
++generate_static_abc("app_processInfo_abc") {
++  base_url = "./"
++  files = [ "./app/processInfo.ets" ]
++  is_boot_abc = "True"
++  device_dst_file = "/system/framework/app_processInfo_abc.abc"
++}
++
++ohos_prebuilt_etc("app_processInfo_abc_etc") {
++  source = "$target_out_dir/app_processInfo_abc.abc"
++  module_install_dir = "framework"
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++  deps = [ ":app_processInfo_abc" ]
++}
++
+ group("ets_packages") {
+   deps = [
+     ":ability_ability_abc_etc",
+@@ -1902,6 +2000,9 @@ group("ets_packages") {
+     ":ability_runtime_auto_startup_manager_abc_etc",
+     ":ability_runtime_base_context_abc_etc",
+     ":ability_runtime_caller_callee_abc_etc",
++    ":ability_runtime_child_process_args_abc_etc",
++    ":ability_runtime_child_process_manager_abc_etc",
++    ":ability_runtime_child_process_options_abc_etc",
+     ":ability_runtime_completion_handler_abc_etc",
+     ":ability_runtime_configuration_abc_etc",
+     ":ability_runtime_configuration_constant_abc_etc",
+@@ -1923,6 +2024,8 @@ group("ets_packages") {
+     ":ability_runtime_insight_intent_driver_abc_etc",
+     ":ability_runtime_insight_intent_executor_abc_etc",
+     ":ability_runtime_interop_ability_lifecycle_callback_abc_etc",
++    ":ability_runtime_kiosk_manager_abc_etc",
++    ":ability_runtime_kiosk_status_abc_etc",
+     ":ability_runtime_mission_info_abc_etc",
+     ":ability_runtime_mission_listener_abc_etc",
+     ":ability_runtime_mission_snapshot_abc_etc",
+@@ -1955,6 +2058,7 @@ group("ets_packages") {
+     ":ability_runtime_want_constant_abc_etc",
+     ":appRecovery_abc_etc",
+     ":app_foreground_state_observer_abc_etc",
++    ":app_processInfo_abc_etc",
+     ":app_service_extension_ability_abc_etc",
+     ":application_state_observer_abc_etc",
+     ":atomic_service_options_abc_etc",
+diff --git a/frameworks/ets/ets/app/processInfo.ets b/frameworks/ets/ets/app/processInfo.ets
+new file mode 100644
+index 0000000000000000000000000000000000000000..cbc825155f5d1badb6ae4644b52def2393fa34c1
+--- /dev/null
++++ b/frameworks/ets/ets/app/processInfo.ets
+@@ -0,0 +1,25 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++
++export interface ProcessInfo {
++    pid: int;
++    processName: string;
++  }
++
++class ProcessInfoImpl implements ProcessInfo {
++    pid: int;
++    processName: string = '';
++}
+\ No newline at end of file
+diff --git a/frameworks/ets/ets/application/KioskStatus.ets b/frameworks/ets/ets/application/KioskStatus.ets
+new file mode 100644
+index 0000000000000000000000000000000000000000..5fd6c44e5b763de456d087da7dcbcb6f8f0fdeb1
+--- /dev/null
++++ b/frameworks/ets/ets/application/KioskStatus.ets
+@@ -0,0 +1,26 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++export interface KioskStatus{
++    isKioskMode: boolean;
++    kioskBundleUid: int;
++    kioskBundleName: string;
++}
++
++export default class KioskStatusInner implements KioskStatus{
++    isKioskMode: boolean;
++    kioskBundleUid: int;
++    kioskBundleName: string = "";
++}
+\ No newline at end of file
+diff --git a/frameworks/ets/ets/application/ServiceExtensionContext.ets b/frameworks/ets/ets/application/ServiceExtensionContext.ets
+index f6be6aaa8daa91c4d874e13ad21cac598b98427d..13a0dd01d0b858bf92c39bae615efd8af57858aa 100644
+--- a/frameworks/ets/ets/application/ServiceExtensionContext.ets
++++ b/frameworks/ets/ets/application/ServiceExtensionContext.ets
+@@ -100,6 +100,8 @@ export default class ServiceExtensionContext extends ExtensionContext {
+ 
+   native nativeWantCheck(want: Want): void;
+ 
++  native nativeStartUIAbilities(wantList: Array<Want>, callback: AsyncCallbackWrapper<void>): void;
++
+   terminateSelf(callback: AsyncCallback<void>): void {
+     let myCall = new AsyncCallbackWrapper<void>(callback);
+     taskpool.execute((): void => {
+@@ -235,4 +237,19 @@ export default class ServiceExtensionContext extends ExtensionContext {
+       });
+     });
+   }
++
++  startUIAbilities(wantList: Array<Want>): Promise<void> {
++    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
++      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        this.nativeStartUIAbilities(wantList, myCall);
++      });
++    });
++  }
+ }
+diff --git a/frameworks/ets/ets/application/UIExtensionContext.ets b/frameworks/ets/ets/application/UIExtensionContext.ets
+index 5a5fbd8e43b883d6d91608eb0196e7e0d876fe1a..c15f69f9c37378583692e5d2210cc5b66526967d 100644
+--- a/frameworks/ets/ets/application/UIExtensionContext.ets
++++ b/frameworks/ets/ets/application/UIExtensionContext.ets
+@@ -100,6 +100,8 @@ export default class UIExtensionContext extends ExtensionContext {
+   private native nativeDisconnectUIServiceExtensionAbility(proxy: UIServiceProxy, callback:AsyncCallbackWrapper<void>): void;
+   private native nativeWantCheck(want: Want): void;
+   private native nativeDisconnectUIServiceExtensionCheck(proxy: UIServiceProxy) : void;
++  private native nativeStartUIAbilities(wantList: Array<Want>, callback: AsyncCallbackWrapper<void>): void;
++  private native nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId: int, secondaryWant: Want, callback:AsyncCallbackWrapper<void>) : void;
+   private native nativeOpenLinkSync(link: string, syncCallback:AsyncCallbackWrapper<void>,
+     options?: OpenLinkOptions, callback?: AsyncCallbackWrapper<AbilityResult>): void;
+   private native nativeOpenLinkCheck(link: string): void;
+@@ -409,4 +411,35 @@ export default class UIExtensionContext extends ExtensionContext {
+       });
+     });
+   }
++
++  startUIAbilitiesInSplitWindowMode(primaryWindowId: int, secondaryWant: Want): Promise<void> {
++    this.nativeWantCheck(secondaryWant);
++    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
++      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        this.nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId, secondaryWant, myCall);
++      });
++    });
++  }
++
++  startUIAbilities(wantList: Array<Want>): Promise<void> {
++    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
++      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        this.nativeStartUIAbilities(wantList, myCall);
++      });
++    });
++  }
+ }
+\ No newline at end of file
+diff --git a/frameworks/native/ability/native/BUILD.gn b/frameworks/native/ability/native/BUILD.gn
+index dc4eba36d892eef65fa454861d78df3ef529d4a5..d8cd6faf9b0b20563114fc8171a1b35c600c8b1d 100644
+--- a/frameworks/native/ability/native/BUILD.gn
++++ b/frameworks/native/ability/native/BUILD.gn
+@@ -300,6 +300,7 @@ ohos_shared_library("abilitykit_native") {
+     "${ability_runtime_native_path}/ability/native/ability_loader.cpp",
+     "${ability_runtime_native_path}/ability/native/ability_post_event_timeout.cpp",
+     "${ability_runtime_native_path}/ability/native/ability_process.cpp",
++    "${ability_runtime_native_path}/ability/native/ability_runtime/ets_observer_instance.cpp",
+     "${ability_runtime_native_path}/ability/native/ability_runtime/js_ability.cpp",
+     "${ability_runtime_native_path}/ability/native/ability_runtime/js_ability_context.cpp",
+     "${ability_runtime_native_path}/ability/native/ability_runtime/js_caller_complex.cpp",
+@@ -322,6 +323,7 @@ ohos_shared_library("abilitykit_native") {
+     "${ability_runtime_native_path}/ability/native/query_erms_observer_proxy.cpp",
+     "${ability_runtime_native_path}/ability/native/query_erms_observer_stub.cpp",
+     "${ability_runtime_native_path}/ability/native/service_ability_impl.cpp",
++    "${ability_runtime_native_path}/ability/native/start_abilities_observer.cpp",
+     "${ability_runtime_native_path}/appkit/app/app_context.cpp",
+     "${ability_runtime_native_path}/appkit/app/context_container.cpp",
+     "${ability_runtime_native_path}/appkit/app/context_deal.cpp",
+@@ -887,6 +889,7 @@ ohos_shared_library("ui_ability_ani") {
+   }
+ 
+   include_dirs = [
++    "${ability_runtime_path}/frameworks/ets/ani/ani_observer/include",
+     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
+     "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
+     "${ability_runtime_path}/frameworks/ets/ani/ui_ability/include",
+@@ -1127,6 +1130,7 @@ ohos_shared_library("uiabilitykit_native") {
+ ohos_shared_library("ability_thread") {
+   include_dirs = [
+     "${ability_runtime_path}/interfaces/kits/native/ability/native",
++    "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
+     "${ability_runtime_path}/utils/global/time/include",
+   ]
+ 
+@@ -1577,6 +1581,7 @@ ohos_shared_library("service_extension_ani") {
+   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
+   include_dirs = [
+     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_observer/include",
+     "${ability_runtime_path}/frameworks/ets/ani/service_extension_ability/include",
+     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
+@@ -1604,6 +1609,7 @@ ohos_shared_library("service_extension_ani") {
+     "${ability_runtime_native_path}/appkit:app_context_utils",
+     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
+     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_observer:ani_observer",
+     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+   ]
+ 
+@@ -2395,6 +2401,7 @@ ohos_shared_library("ui_extension_ani") {
+     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
+     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/include",
+     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_base/include",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_observer/include",
+     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback/include",
+     "${ability_runtime_path}/frameworks/ets/ani/ui_service_extension_ability/include",
+     "${ability_runtime_path}/frameworks/ets/ani/ui_service_extension_ability/connection",
+@@ -2435,6 +2442,7 @@ ohos_shared_library("ui_extension_ani") {
+     "${ability_runtime_native_path}/appkit:app_context",
+     "${ability_runtime_native_path}/appkit:app_context_utils",
+     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_observer:ani_observer",
+     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
+   ]
+ 
+diff --git a/frameworks/native/ability/native/ability_runtime/ets_observer_instance.cpp b/frameworks/native/ability/native/ability_runtime/ets_observer_instance.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..fd979db1514ec918e3b6b8595b98ec3ecd9defab
+--- /dev/null
++++ b/frameworks/native/ability/native/ability_runtime/ets_observer_instance.cpp
+@@ -0,0 +1,56 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ets_observer_instance.h"
++
++#include <cstddef>
++#include <dlfcn.h>
++
++#include "hilog_tag_wrapper.h"
++#include "hitrace_meter.h"
++#include "string_wrapper.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++namespace {
++const char *ETS_ANI_LIBNAME = "libani_observer.z.so";
++const char *ETS_STARTABILITIESOBSERVER_HANDLE_FINISH_FUNC = "OHOS_ETS_START_ABILITIES_OBSERVER_HANDLE_FINISH";
++using EtsStartAbilitiesObserverHandleFinishFunc = void(*)(const std::string &requestKey, int32_t resultCode);
++EtsStartAbilitiesObserverHandleFinishFunc g_etsStartAbiliesObserverHandleFinishFunc = nullptr;
++}
++
++void ETSStartAbilitiesHandleFinished(const std::string &requestKey, int32_t resultCode)
++{
++    if (g_etsStartAbiliesObserverHandleFinishFunc != nullptr) {
++        return g_etsStartAbiliesObserverHandleFinishFunc(requestKey, resultCode);
++    }
++    auto handle = dlopen(ETS_ANI_LIBNAME, RTLD_LAZY);
++    if (handle == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "dlopen failed %{public}s, %{public}s", ETS_ANI_LIBNAME, dlerror());
++        return;
++    }
++    auto symbol = dlsym(handle, ETS_STARTABILITIESOBSERVER_HANDLE_FINISH_FUNC);
++    if (symbol == nullptr) {
++        TAG_LOGE(AAFwkTag::UIABILITY, "dlsym failed %{public}s, %{public}s",
++            ETS_STARTABILITIESOBSERVER_HANDLE_FINISH_FUNC, dlerror());
++        dlclose(handle);
++        return;
++    }
++    g_etsStartAbiliesObserverHandleFinishFunc = reinterpret_cast<EtsStartAbilitiesObserverHandleFinishFunc>(symbol);
++    return g_etsStartAbiliesObserverHandleFinishFunc(requestKey, resultCode);
++}
++
++} // namespace AbilityRuntime
++} // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/native/ability/native/extension_ability_thread.cpp b/frameworks/native/ability/native/extension_ability_thread.cpp
+index 615f39a0c83765cd88f5653a6f6ed8c13de2da28..3fbce9deb12b4919b1f46b4cc708dbb0798c309e 100644
+--- a/frameworks/native/ability/native/extension_ability_thread.cpp
++++ b/frameworks/native/ability/native/extension_ability_thread.cpp
+@@ -24,6 +24,7 @@
+ #include "hitrace_meter.h"
+ #include "js_start_abilities_observer.h"
+ #include "ui_extension_utils.h"
++#include "start_abilities_observer.h"
+ 
+ namespace OHOS {
+ namespace AbilityRuntime {
+@@ -595,6 +596,7 @@ void ExtensionAbilityThread::ScheduleAbilitiesRequestDone(const std::string &req
+         }
+ 
+         JsStartAbilitiesObserver::GetInstance().HandleFinished(requestKey, resultCode);
++        StartAbilitiesObserver::HandleFinished(requestKey, resultCode);
+     };
+     abilityHandler_->PostTask(task);
+ }
+diff --git a/frameworks/native/ability/native/start_abilities_observer.cpp b/frameworks/native/ability/native/start_abilities_observer.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..823294e791005d96460dbe6f6c0b3a85589ef738
+--- /dev/null
++++ b/frameworks/native/ability/native/start_abilities_observer.cpp
+@@ -0,0 +1,31 @@
++/*
++ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "start_abilities_observer.h"
++
++#include "ets_observer_instance.h"
++#include "hilog_tag_wrapper.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++
++void StartAbilitiesObserver::HandleFinished(const std::string &requestKey, int32_t resultCode)
++{
++    TAG_LOGI(AAFwkTag::ABILITY, "HandleFinished %{public}s, %{public}d", requestKey.c_str(), resultCode);
++    ETSStartAbilitiesHandleFinished(requestKey, resultCode);
++}
++
++} // namespace AbilityRuntime
++} // namespace OHOS
+diff --git a/interfaces/kits/native/ability/native/ability_runtime/ets_observer_instance.h b/interfaces/kits/native/ability/native/ability_runtime/ets_observer_instance.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..b58ddcb7b5b486749c347fbc1b62302765cb4748
+--- /dev/null
++++ b/interfaces/kits/native/ability/native/ability_runtime/ets_observer_instance.h
+@@ -0,0 +1,28 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_ETS_OBSERVER_INSTANCE_H
++#define OHOS_ABILITY_RUNTIME_ETS_OBSERVER_INSTANCE_H
++
++#include "start_abilities_observer.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++
++void ETSStartAbilitiesHandleFinished(const std::string &requestKey, int32_t resultCode);
++
++} // namespace AbilityRuntime
++} // namespace OHOS
++#endif // OHOS_ABILITY_RUNTIME_ETS_OBSERVER_INSTANCE_H
+\ No newline at end of file
+diff --git a/interfaces/kits/native/ability/native/start_abilities_observer.h b/interfaces/kits/native/ability/native/start_abilities_observer.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..a1992680b2f941e96cb5ca3674e170c19d104133
+--- /dev/null
++++ b/interfaces/kits/native/ability/native/start_abilities_observer.h
+@@ -0,0 +1,36 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_START_ABILITIES_OBSERVER_H
++#define OHOS_ABILITY_RUNTIME_START_ABILITIES_OBSERVER_H
++
++#include <functional>
++#include <map>
++#include <mutex>
++#include <string>
++
++namespace OHOS {
++namespace AbilityRuntime {
++class StartAbilitiesObserver {
++public:
++    StartAbilitiesObserver() = default;
++    virtual ~StartAbilitiesObserver() = default;
++
++    static void HandleFinished(const std::string &requestKey, int32_t resultCode);
++};
++} // namespace AbilityRuntime
++} // namespace OHOS
++
++#endif // OHOS_ABILITY_RUNTIME_START_ABILITIES_OBSERVER_H
+\ No newline at end of file
