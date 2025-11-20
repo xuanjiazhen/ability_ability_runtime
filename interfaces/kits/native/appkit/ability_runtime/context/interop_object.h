@@ -16,34 +16,15 @@
 #ifndef OHOS_ABILITY_RUNTIME_INTEROP_OBJECT_H
 #define OHOS_ABILITY_RUNTIME_INTEROP_OBJECT_H
 
-typedef struct __hybridgref *hybridgref;
-typedef struct __ani_env ani_env;
-typedef struct __ani_vm ani_vm;
-typedef class __ani_object *ani_object;
-typedef class __ani_ref *ani_ref;
-
-typedef struct napi_env__ *napi_env;
-typedef struct napi_value__ *napi_value;
-
 namespace OHOS {
 namespace AbilityRuntime {
 class InteropObject {
 public:
-    InteropObject(ani_env *env, ani_ref ref);
-    InteropObject(napi_env env, napi_value value);
-    virtual ~InteropObject();
-
-    ani_object GetAniValue(ani_env *env);
-    napi_value GetNapiValue(napi_env env);
-    bool IsFromAni();
-    bool IsFromNapi();
-
-private:
-    ani_env *GetAniEnv();
-
-    hybridgref ref_ = nullptr;
-    ani_vm *vm_ = nullptr;
-    napi_env env_ = nullptr;
+    virtual ~InteropObject() {}
+    virtual bool IsFromNapi()
+    {
+        return false;
+    }
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
