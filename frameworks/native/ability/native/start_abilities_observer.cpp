@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,6 @@ namespace AbilityRuntime {
 
 void StartAbilitiesObserver::HandleFinished(const std::string &requestKey, int32_t resultCode)
 {
-    TAG_LOGI(AAFwkTag::ABILITY, "HandleFinished %{public}s, %{public}d", requestKey.c_str(), resultCode);
     ETSStartAbilitiesHandleFinished(requestKey, resultCode);
 }
 
