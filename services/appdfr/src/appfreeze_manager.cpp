@@ -1103,6 +1103,9 @@ bool AppfreezeManager::CheckThreadKilled(int32_t pid, int32_t uid, const std::st
 bool AppfreezeManager::IsSkipDetect(int32_t pid, int32_t uid, const std::string& bundleName,
     const std::string& eventName)
 {
+    if (CheckAppfreezeHappend(pid, eventName)) {
+        return true;
+    }
     if (CheckThreadKilled(pid, uid, bundleName)) {
         TAG_LOGW(AAFwkTag::APPDFR, "bundleName: %{public}s has been killed, pid: %{public}d",
             bundleName.c_str(), pid);
