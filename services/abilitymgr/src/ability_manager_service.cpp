@@ -745,9 +745,9 @@ int AbilityManagerService::StartAbilityWithSpecifyTokenIdInner(const Want &want,
         return ERR_INVALID_CONTINUATION_FLAG;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability come, ability:%{public}s, userId:%{public}d, "
-        "specifyTokenId:%{public}u, appIndex:%{public}d", want.GetElement().GetAbilityName().c_str(), userId,
-        specifyTokenId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "startWithSpecifyTokenId:%{public}s, u:%{public}d,TId:%{public}u,appIdx:%{public}d",
+        WantUtils::GenerateName(want).c_str(), userId, specifyTokenId,
+        want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
     StartAbilityWrapParam startAbilityWrapParam = {
         want, callerToken, requestCode, isPendingWantCaller, userId, false, specifyTokenId };
     int32_t ret = StartAbilityWrap(startAbilityWrapParam);
@@ -902,9 +902,9 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
         return ERR_INVALID_CONTINUATION_FLAG;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "start, ability: %{public}s, userId: %{public}d, specifyTokenId: %{public}u",
-        want.GetElement().GetAbilityName().c_str(), DEFAULT_INVAL_VALUE, specifyTokenId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start OnlyUI:%{public}s, specifyTokenId:%{public}u, appIdx:%{public}d",
+        WantUtils::GenerateName(want).c_str(),
+        specifyTokenId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
     StartAbilityWrapParam startAbilityWrapParam = {
         want, callerToken, DEFAULT_INVAL_VALUE, false, DEFAULT_INVAL_VALUE, false, specifyTokenId, false, false, true };
     int32_t ret = StartAbilityWrap(startAbilityWrapParam);
@@ -14304,7 +14304,7 @@ void AbilityManagerService::HandleRestartResidentProcessDependedOnWeb()
 int32_t AbilityManagerService::PreStartMission(const std::string& bundleName, const std::string& moduleName,
     const std::string& abilityName, const std::string& startTime)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "PreStartMission");
     CHECK_CALLER_IS_SYSTEM_APP;
 
     if (!PermissionVerification::GetInstance()->VerifyPreStartAtomicServicePermission()) {

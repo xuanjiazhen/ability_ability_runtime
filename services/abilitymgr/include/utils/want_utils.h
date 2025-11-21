@@ -71,6 +71,14 @@ public:
      * @return Flag if the targetType is App.
      */
     static bool IsNormalApp(uint32_t targetType);
+
+    /**
+     * GenerateName, generate the bundle name and ability name of the want.
+     *
+     * @param the target want.
+     * @return the bundle name and ability name.
+     */
+    static string GenerateName(const Want &want);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

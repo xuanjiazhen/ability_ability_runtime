@@ -105,5 +105,10 @@ bool WantUtils::IsNormalApp(uint32_t targetType)
 #endif
     return false;
 }
+
+string WantUtils::GenerateName(const Want &want);
+{
+    return want.GetElement().GetBundleName() + "/" + want.GetElement().GetAbilityName();
+}
 }  // namespace AAFwk
 }  // namespace OHOS
