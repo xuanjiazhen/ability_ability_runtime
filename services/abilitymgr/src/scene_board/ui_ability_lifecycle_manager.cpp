@@ -1691,8 +1691,7 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         errMsg = "sessionInfo is nullptr";
         return ERR_INVALID_VALUE;
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "windowTop=%{public}d,windowHeight=%{public}d,"
-        "windowMode=%{public}d,supportWindowModes.size=%{public}zu,specifiedFlag=%{public}s",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "wt=%{public}d,wh=%{public}d,wm=%{public}d,wm.s=%{public}zu,speFlag=%{public}s",
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_TOP, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_MODE, 0),
@@ -1723,8 +1722,9 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
             abilityRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
         }
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s"
-            "requestId:%{public}s", sessionInfo->want.GetElement().GetAbilityName().c_str(), requestId.c_str());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, caller-NotifySCBPendingActivation, %{public}s/%{public}s, "
+            "reqId:%{public}s", sessionInfo->want.GetElement().GetBundleName().c_str(),
+            sessionInfo->want.GetElement().GetAbilityName().c_str(), requestId.c_str());
         auto ret = static_cast<int>(callerSession->PendingSessionActivation(sessionInfo));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
@@ -1747,7 +1747,8 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
     }
     sessionInfo->canStartAbilityFromBackground = true;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, root-NotifySCBPendingActivation, %{public}s/%{public}s",
+        sessionInfo->want.GetElement().GetBundleName().c_str(),
         sessionInfo->want.GetElement().GetAbilityName().c_str());
     auto ret = static_cast<int>(tmpSceneSession->PendingSessionActivation(sessionInfo));
     if (ret != ERR_OK) {
@@ -2718,7 +2719,8 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
             callerAbility->NotifyAbilityRequestSuccess(requestId, sessionInfo->want.GetElement());
         }
         sessionInfo->want.RemoveParam(KEY_REQUEST_ID);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s",
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, caller-NotifySCBPendingActivation, %{public}s/%{public}s",
+            sessionInfo->want.GetElement().GetBundleName().c_str(),
             sessionInfo->want.GetElement().GetAbilityName().c_str());
         callerSession->PendingSessionActivation(sessionInfo);
         return ERR_OK;
@@ -2734,8 +2736,9 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
         }
         sessionInfo->want.RemoveParam(KEY_REQUEST_ID);
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s",
-        sessionInfo->want.GetElement().GetAbilityName().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, root-NotifySCBPendingActivation, %{public}s/%{public}s",
+            sessionInfo->want.GetElement().GetBundleName().c_str(),
+            sessionInfo->want.GetElement().GetAbilityName().c_str());
     tmpSceneSession->PendingSessionActivation(sessionInfo);
     return ERR_OK;
 }
@@ -2765,7 +2768,8 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCBInSplitMode(int primaryWindow
     for (auto &sessionInfo : sessionInfoList) {
         sessionInfo->canStartAbilityFromBackground = true;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, root-NotifySCBPendingActivation, %{public}s/%{public}s",
+        sessionInfo->want.GetElement().GetBundleName().c_str(),
         sessionInfo->want.GetElement().GetAbilityName().c_str());
     tmpSceneSession->BatchPendingSessionsActivation(sessionInfoList, configList);
     return ERR_OK;
