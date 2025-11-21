@@ -91,6 +91,10 @@ public:
      */
     void OnConfigurationUpdated(const Configuration &configuration) override;
 
+    int32_t OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnContinue,
+        const AppExecFwk::AbilityInfo &abilityInfo) override;
+    bool CallObjectOnContinueMethod(ani_method method, ani_ref wantParamRef, int32_t& onContinueResult);
+
     /**
      * @brief Update Contextconfiguration
      */

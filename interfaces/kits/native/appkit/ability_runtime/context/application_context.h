@@ -76,7 +76,9 @@ public:
     void DispatchOnAbilityBackground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability);
     void DispatchOnAbilityBackground(std::shared_ptr<InteropObject> ability);
     void DispatchOnAbilityContinue(const std::shared_ptr<NativeReference> &ability);
+    void DispatchOnAbilityContinue(const std::shared_ptr<AppExecFwk::ETSNativeReference> &ability);
     void DispatchOnAbilityWillContinue(const std::shared_ptr<NativeReference> &ability);
+    void DispatchOnAbilityWillContinue(const std::shared_ptr<AppExecFwk::ETSNativeReference> &ability);
     void DispatchOnWindowStageWillRestore(const std::shared_ptr<NativeReference> &ability,
         const std::shared_ptr<NativeReference> &windowStage);
     void DispatchOnWindowStageRestore(const std::shared_ptr<NativeReference> &ability,

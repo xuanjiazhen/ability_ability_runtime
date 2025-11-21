@@ -450,7 +450,37 @@ void ApplicationContext::DispatchOnAbilityContinue(const std::shared_ptr<NativeR
     }
 }
 
+void ApplicationContext::DispatchOnAbilityContinue(const std::shared_ptr<AppExecFwk::ETSNativeReference> &ability)
+{
+    if (!ability) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null ability");
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(callbackLock_);
+    for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityContinue(ability);
+        }
+    }
+}
+
 void ApplicationContext::DispatchOnAbilityWillContinue(const std::shared_ptr<NativeReference> &ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "Dispatch onAbilityWillContinue");
+    if (ability == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null ability");
+        return;
+    }
+
+    std::lock_guard<std::recursive_mutex> lock(callbackLock_);
+    for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityWillContinue(ability);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnAbilityWillContinue(const std::shared_ptr<AppExecFwk::ETSNativeReference> &ability)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Dispatch onAbilityWillContinue");
     if (ability == nullptr) {
