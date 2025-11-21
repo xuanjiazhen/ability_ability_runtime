@@ -892,6 +892,11 @@ std::shared_ptr<AppRunningRecord> AppRunningRecord::GetParentAppRecord()
     return parentAppRecord_.lock();
 }
 
+void AppRunningRecord::SetProcessTypeToNormal()
+{
+    processType_ = ProcessType::NORMAL;
+}
+
 int32_t AppRunningRecord::ChangeAppGcState(int32_t state, uint64_t tid)
 {
     return 0;
