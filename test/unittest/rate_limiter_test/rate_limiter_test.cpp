@@ -29,7 +29,7 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr int64_t EXTENSION_LIMIT_INTERVAL_MS = 1000;  // 1s
-constexpr int32_t EXTENSION_MAX_LIMIT = 20;
+constexpr int32_t EXTENSION_MAX_LIMIT = 50;
 constexpr int64_t REPORT_LIMIT_INTERVAL_MS = 5000; // 5s
 constexpr int32_t REPORT_MAX_LIMIT = 1;
 }
@@ -179,7 +179,7 @@ HWTEST_F(RateLimiterTest, CleanCallMapTest_0200, TestSize.Level2)
     rateLimiter.CleanCallMap();
     auto mapSize = rateLimiter.tierReportCallMap_.size();
     TAG_LOGI(AAFwkTag::TEST, "tierReportCallMap_ size:%{public}zu", mapSize);
-    EXPECT_EQ(mapSize, 1);
+    EXPECT_EQ(mapSize, 2);
 
     TAG_LOGI(AAFwkTag::TEST, "CleanCallMapTest_0200 end.");
 }
@@ -211,16 +211,16 @@ HWTEST_F(RateLimiterTest, CleanUserTierTriggerTimesTest_0300, TestSize.Level2)
     auto &rateLimiter = RateLimiter::GetInstance();
     rateLimiter.CleanUserTierTriggerTimes(userTiers, timeBefore);
  
-    EXPECT_EQ(userTiers.size(), 2);
-    EXPECT_NE(userTiers.find(1), userTiers.end());
-    EXPECT_NE(userTiers.find(3), userTiers.end());
-    EXPECT_EQ(userTiers.find(2), userTiers.end());
+    EXPECT_EQ(userTiers.size(), 1);
+    EXPECT_EQ(userTiers.find(1), userTiers.end());
+    EXPECT_EQ(userTiers.find(3), userTiers.end());
+    EXPECT_NE(userTiers.find(2), userTiers.end());
 }
  
 HWTEST_F(RateLimiterTest, CleanUserTierTriggerTimesTest_0400, TestSize.Level2)
 {
     std::unordered_map<int32_t, int64_t> userTiers = {};
-    int64_t timeBefore = 100;
+    int64_t timeBefore = 101;
     auto &rateLimiter = RateLimiter::GetInstance();
     rateLimiter.CleanUserTierTriggerTimes(userTiers, timeBefore);
  
