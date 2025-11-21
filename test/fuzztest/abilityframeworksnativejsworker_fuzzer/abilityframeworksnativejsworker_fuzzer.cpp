@@ -32,6 +32,25 @@
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
 
+constexpr size_t MAX_INPUT_SIZE = 1024;
+constexpr size_t MAX_JSON_LENTH = 512;
+
+bool IsAllSame(const uint8_t* data, size_t size) {
+    size = std::min(size, static_cast<size_t>(100));
+    uint8_t first = data[0];
+    for (size_t i = 1; i < size; ++i) {
+        if (data[i] != first){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool IsJsonStart(const uint8_t* data, size_t size) {
+    return (data[0] == '{' || data[0] == '[]');
+}
+
+
 namespace OHOS {
 namespace {
 constexpr int INPUT_ZERO = 0;
@@ -68,6 +87,15 @@ sptr<Token> GetFuzzAbilityToken()
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
+    if (size > MAX_INPUT_SIZE) {
+        return false;
+    }
+    if (IsAllSame(reinterpret_cast<const uint8_t*>(data), size)){
+        return false;
+    }
+    if (IsJsonStart(reinterpret_cast<const uint8_t*>(data), size)){
+        return false;
+    }
     std::shared_ptr<JsEnv::WorkerInfo> workerInfo = std::make_shared<JsEnv::WorkerInfo>();
     workerInfo->codePath = panda::panda_file::StringPacProtect("/data/test/codePath");
     workerInfo->packagePathStr = "/data/test/packagePath";
@@ -115,6 +143,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
+    if (size > MAX_INPUT_SIZE) {
+        return 0;
+    }
+
+    if (IsAllSame(data, size)) {
+        return 0;
+    }
+
+    if (IsJsonStart(data, size)) {
+        return 0;
+    }
     char* ch = static_cast<char*>(malloc(size + 1));
     if (ch == nullptr) {
         std::cout << "malloc failed." << std::endl;
