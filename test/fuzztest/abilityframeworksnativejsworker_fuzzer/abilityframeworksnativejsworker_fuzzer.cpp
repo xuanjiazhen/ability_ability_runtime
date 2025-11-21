@@ -68,6 +68,15 @@ sptr<Token> GetFuzzAbilityToken()
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
+    if (size > MAX_INPUT_SIZE) {
+        return false;
+    }
+    if (IsAllSame(reinterpret_cast<const uint8_t*>(data), size)){
+        return false;
+    }
+    if (IsJsonStart(reinterpret_cast<const uint8_t*>(data), size)){
+        return false;
+    }
     std::shared_ptr<JsEnv::WorkerInfo> workerInfo = std::make_shared<JsEnv::WorkerInfo>();
     workerInfo->codePath = panda::panda_file::StringPacProtect("/data/test/codePath");
     workerInfo->packagePathStr = "/data/test/packagePath";
@@ -77,7 +86,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::string jsonStr(data, size);
     uint8_t *buff = nullptr;
     size_t buffSize;
-    std::unique_ptr<AbilityBase::FileMapper> fileMapper = std::make_unique<AbilityBase::FileMapper>();
+    std::shared_ptr<AbilityBase::FileMapper> fileMapper = std::shared_ptr<AbilityBase::FileMapper>();
     void* mapper = static_cast<void*>(fileMapper.get());
     helper.GetSafeData(jsonStr, &buff, &buffSize, &mapper);
     helper.NormalizedFileName(jsonStr);
@@ -91,9 +100,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     bool isDebugApp = *data % ENABLE;
     bool isNativeStart = *data % ENABLE;
     AbilityRuntime::JsRuntimeCommon::GetInstance().StartDebuggerModule(isDebugApp, isNativeStart);
-    NativeEngine *nativeEngine = nullptr;
-    AbilityRuntime::InitWorkerFunc(nativeEngine);
-    AbilityRuntime::OffWorkerFunc(nativeEngine);
     int32_t id = static_cast<int32_t>(GetU32Data(data));
     AbilityRuntime::UpdateContainerScope(id);
     AbilityRuntime::RestoreContainerScope(id);
