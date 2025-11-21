@@ -81,6 +81,8 @@ public:
     virtual void OnDidForeground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) {}
     virtual void OnWillBackground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) {}
     virtual void OnDidBackground(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) {}
+    virtual void OnAbilityContinue(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) {}
+    virtual void OnAbilityWillContinue(std::shared_ptr<AppExecFwk::ETSNativeReference> ability) {}
 };
 
 class JsAbilityLifecycleCallback : public AbilityLifecycleCallback,
