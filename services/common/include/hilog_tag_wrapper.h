@@ -211,7 +211,7 @@ static inline const char* GetTagInfoFromDomainId(AAFwkLogTag tag)
     }
 }
 
-static const std::string ConvertFileName(const std::string& fileName)
+static inline const std::string ConvertFileName(const std::string& fileName)
 {
     std::unordered_map<std::string, std::string> abbrFileNameMap = {
         { "ability_connect_manager", "ABCM" },
