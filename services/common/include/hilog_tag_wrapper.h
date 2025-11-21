@@ -211,7 +211,7 @@ static inline const char* GetTagInfoFromDomainId(AAFwkLogTag tag)
     }
 }
 
-static inline const std::string ConvertFileName(const std::string& fileName)
+[[maybe_unused]] static const std::string ConvertFileName(const std::string& fileName)
 {
     std::unordered_map<std::string, std::string> abbrFileNameMap = {
         { "ability_connect_manager", "ABCM" },
@@ -267,10 +267,10 @@ static void PrintLog(
 
 using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
 
-#define TAG_LOGD(tag, fmt, ...) PrintLog(LOG_DEBUG, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__);
-#define TAG_LOGI(tag, fmt, ...) PrintLog(LOG_INFO, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__);
-#define TAG_LOGW(tag, fmt, ...) PrintLog(LOG_WARN, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__);
-#define TAG_LOGE(tag, fmt, ...) PrintLog(LOG_ERROR, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__);
-#define TAG_LOGF(tag, fmt, ...) PrintLog(LOG_FATAL, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__);
+#define TAG_LOGD(tag, fmt, ...) PrintLog(LOG_DEBUG, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__)
+#define TAG_LOGI(tag, fmt, ...) PrintLog(LOG_INFO, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__)
+#define TAG_LOGW(tag, fmt, ...) PrintLog(LOG_WARN, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__)
+#define TAG_LOGE(tag, fmt, ...) PrintLog(LOG_ERROR, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__)
+#define TAG_LOGF(tag, fmt, ...) PrintLog(LOG_FATAL, tag, std::string(__FILE_NAME__), __LINE__, fmt, ##__VA_ARGS__)
 
 #endif  // OHOS_AAFWK_HILOG_TAG_WRAPPER_H
