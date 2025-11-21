@@ -227,5 +227,16 @@ void EtsAbilityLifecycleCallback::OnDidBackground(std::shared_ptr<AppExecFwk::ET
 {
     CallObjectMethod("onDidBackground", SIGNATURE_UIABILITY, ability);
 }
+
+void EtsAbilityLifecycleCallback::OnAbilityContinue(std::shared_ptr<AppExecFwk::ETSNativeReference> ability)
+{
+    CallObjectMethod("onAbilityContinue", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsAbilityLifecycleCallback::OnAbilityWillContinue(std::shared_ptr<AppExecFwk::ETSNativeReference> ability)
+{
+    CallObjectMethod("onAbilityWillContinue", SIGNATURE_UIABILITY, ability);
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS
