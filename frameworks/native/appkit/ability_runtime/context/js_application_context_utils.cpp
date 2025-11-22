@@ -37,6 +37,9 @@
 #include "js_runtime_utils.h"
 #include "napi_common_want.h"
 #include "tokenid_kit.h"
+#ifdef SUPPORT_SCREEN
+#include "ui_ability.h"
+#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -953,6 +956,70 @@ napi_value JsApplicationContextUtils::OnGetRunningProcessInformation(napi_env en
     NapiAsyncTask::Schedule("JsApplicationContextUtils::OnGetRunningProcessInformation",
         env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
     return result;
+}
+
+napi_value JsApplicationContextUtils::GetAllWindowStages(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnGetAllWindowStages, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnGetAllWindowStages(napi_env env, NapiCallbackInfo& info)
+{
+#ifdef SUPPORT_SCREEN
+    TAG_LOGI(AAFwkTag::APPKIT, "hanksh JsApplicationContextUtils::OnGetAllWindowStages");
+    auto uIAbilities = std::make_shared<std::vector<std::shared_ptr<UIAbility>>>();
+
+    NapiAsyncTask::ExecuteCallback execute = [applicationContext = applicationContext_, uIAbilities]() {
+        auto context = applicationContext.lock();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null context");
+            return;
+        }
+        context->GetAllUIAbilities(*uIAbilities);
+    };
+    auto complete = [uIAbilities](napi_env env, NapiAsyncTask& task, int32_t status) {
+        napi_value array = nullptr;
+        TAG_LOGE(AAFwkTag::APPKIT, "hanksh vector size:%{public}d", (*uIAbilities).size());
+        napi_create_array(env, &array);
+        if (array == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "hanksh array == nullptr");
+            return;
+        }
+        uint32_t index = 0;
+        for (const auto &ability : *uIAbilities) {
+            if (ability == nullptr) {
+                continue;
+            }
+            auto windowStage = ability->GetWindowStage();
+            if (windowStage == nullptr) {
+                continue;
+            }
+            napi_value jsWindowStage = windowStage->GetNapiValue();
+            if (jsWindowStage == nullptr) {
+                continue;
+            }
+            if (napi_set_element(env, array, index, jsWindowStage) != napi_ok) {
+                TAG_LOGE(AAFwkTag::APPKIT, "Failed to set element at index %{public}d", index);
+                continue;
+            }
+            index++;
+        }
+        task.ResolveWithNoError(env, array);
+    };
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsApplicationContextUtils::OnGetAllWindowStages", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+#else
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+    napi_value emptyArray = nullptr;
+    napi_create_array(env, &emptyArray);
+    napi_resolve_deferred(env, deferred, emptyArray);
+    return promise;
+#endif
 }
 
 napi_value JsApplicationContextUtils::GetCurrentAppCloneIndex(napi_env env, napi_callback_info info)
@@ -1961,6 +2028,7 @@ void JsApplicationContextUtils::BindNativeApplicationContextTwo(napi_env env, na
         JsApplicationContextUtils::SetSupportedProcessCacheSelf);
     BindNativeFunction(env, object, "setFontSizeScale", MD_NAME,
         JsApplicationContextUtils::SetFontSizeScale);
+    BindNativeFunction(env, object, "getAllWindowStages", MD_NAME, JsApplicationContextUtils::GetAllWindowStages);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
