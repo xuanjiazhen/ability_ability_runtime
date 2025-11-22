@@ -564,6 +564,11 @@ void EtsUIAbility::OnSceneCreated()
     TAG_LOGD(AAFwkTag::UIABILITY, "OnSceneCreated end");
 }
 
+std::shared_ptr<AppExecFwk::ETSNativeReference> EtsUIAbility::GetEtsWindowStage()
+{
+    return etsWindowStageObj_;
+}
+
 void EtsUIAbility::OnSceneRestored()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

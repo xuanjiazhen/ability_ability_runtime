@@ -82,6 +82,10 @@ public:
      */
     virtual void ScheduleUpdateConfiguration(const Configuration &config) = 0;
 
+#ifdef SUPPORT_SCREEN
+    virtual std::shared_ptr<AbilityRuntime::UIAbility> GetUIAbility();
+#endif
+
     /**
      * @brief notify this ability current memory level.
      * @param level Current memory level

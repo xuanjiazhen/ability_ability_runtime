@@ -253,5 +253,23 @@ HWTEST_F(JsUiAbilityTest, JSUIAbility_OnNewWant_0100, TestSize.Level1)
     EXPECT_NE(want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER), navDestinationInfo);
     GTEST_LOG_(INFO) << "JSUIAbility_OnNewWant_0100 end";
 }
+
+/**
+ * @tc.name: JSUIAbility_GetWindowStage_0100
+ * @tc.desc: GetWindowStage test
+ * @tc.desc: Verify function GetWindowStage.
+ */
+HWTEST_F(JsUiAbilityTest, JSUIAbility_GetWindowStage_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "JSUIAbility_GetWindowStage_0100 start";
+    AbilityRuntime::Runtime::Options options;
+    options.lang = AbilityRuntime::Runtime::Language::JS;
+    auto runtime = AbilityRuntime::Runtime::Create(options);
+    auto ability = AbilityRuntime::JsUIAbility::Create(runtime);
+    ASSERT_NE(ability, nullptr);
+    auto windowStage  = ability->GetWindowStage();
+    ASSERT_EQ(windowStage, nullptr);
+    GTEST_LOG_(INFO) << "JSUIAbility_GetWindowStage_0100 end";
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
