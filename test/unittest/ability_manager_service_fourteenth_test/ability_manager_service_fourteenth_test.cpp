@@ -39,6 +39,7 @@ public:
     void SetUp();
     void TearDown();
     std::shared_ptr<AbilityRecord> MockAbilityRecord(AbilityType);
+    std::shared_ptr<ExtensionAbilityBase> MockExtensionAbilityBase(AbilityType);
     sptr<Token> MockToken(AbilityType);
     sptr<SessionInfo> MockSessionInfo(int32_t persistentId);
     AbilityRequest GenerateAbilityRequest(const std::string& deviceName, const std::string& abilityName,
@@ -63,6 +64,15 @@ std::shared_ptr<AbilityRecord> AbilityManagerServiceFourteenthTest::MockAbilityR
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = abilityType;
     return AbilityRecord::CreateAbilityRecord(abilityRequest);
+}
+
+std::shared_ptr<ExtensionAbilityBase> AbilityManagerServiceFourteenthTest::MockExtensionAbilityBase(AbilityType abilityType)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.demo";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = abilityType;
+    return ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
 }
 
 sptr<Token> AbilityManagerServiceFourteenthTest::MockToken(AbilityType abilityType)
@@ -842,7 +852,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
              "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_002 start");
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
     MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
-    MyStatus::GetInstance().acmGetUIExtensionBySessionFromServiceMap_ = MockAbilityRecord(AbilityType::SERVICE);
+    MyStatus::GetInstance().acmGetUIExtensionBySessionFromServiceMap_ = MockExtensionAbilityBase(AbilityType::SERVICE);
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -1024,7 +1034,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, TerminateUIExtensionAbility_002, T
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest TerminateUIExtensionAbility_002 start");
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
-    MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = MockAbilityRecord(AbilityType::SERVICE);
+    MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = MockExtensionAbilityBase(AbilityType::SERVICE);
     MyStatus::GetInstance().ipcGetCallingTokenID_ = -1;
     MyStatus::GetInstance().arGetAbilityInfo_.applicationInfo.accessTokenId = 1;
     MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
@@ -1054,7 +1064,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, TerminateUIExtensionAbility_003, T
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest TerminateUIExtensionAbility_003 start");
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
-    MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = MockAbilityRecord(AbilityType::SERVICE);
+    MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = MockExtensionAbilityBase(AbilityType::SERVICE);
     MyStatus::GetInstance().ipcGetCallingTokenID_ = 1;
     MyStatus::GetInstance().arGetAbilityInfo_.applicationInfo.accessTokenId = 1;
     MyStatus::GetInstance().arGetAbilityInfo_.visible = false;

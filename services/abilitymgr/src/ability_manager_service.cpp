@@ -4725,7 +4725,7 @@ int AbilityManagerService::CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject
         return ERR_INVALID_VALUE;
     }
 
-    auto abilityRecord = std::static_pointer_cast<ExtensionAbilityBase>(Token::GetAbilityRecordByToken(token));
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (!UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target ability %{public}s/%{public}s not an uiextensionability",
@@ -4762,7 +4762,8 @@ int AbilityManagerService::CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject
 
     // notify caller sync detach
     sessionProxy->NotifyExtensionDetachToDisplay();
-    connectManager->TerminateAbilityWindowLocked(abilityRecord, sessionInfo);
+    connectManager->TerminateAbilityWindowLocked(std::static_pointer_cast<ExtensionAbilityBase>(abilityRecord),
+        sessionInfo);
     return ERR_OK;
 }
 

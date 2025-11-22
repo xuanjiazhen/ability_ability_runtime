@@ -321,7 +321,8 @@ int32_t ExtensionRecordManager::GetHostPidForExtensionId(int32_t extensionRecord
     return ERR_INVALID_VALUE;
 }
 
-int32_t ExtensionRecordManager::AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::ExtensionAbilityBase> abilityRecord)
+int32_t ExtensionRecordManager::AddPreloadUIExtensionRecord(
+    const std::shared_ptr<AAFwk::ExtensionAbilityBase> abilityRecord)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     std::lock_guard<std::mutex> lock(mutex_);
@@ -490,7 +491,8 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecordInner(const AAFwk::Abi
 }
 
 int32_t ExtensionRecordManager::SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
-    const std::shared_ptr<AAFwk::ExtensionAbilityBase> &abilityRecord, std::shared_ptr<ExtensionRecord> &extensionRecord)
+    const std::shared_ptr<AAFwk::ExtensionAbilityBase> &abilityRecord,
+    std::shared_ptr<ExtensionRecord> &extensionRecord)
 {
     if (abilityRequest.abilityInfo.isolationProcess &&
         AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {

@@ -54,7 +54,7 @@ public:
 
 protected:
     AbilityRequest abilityRequest_{};
-    std::shared_ptr<AbilityRecord> serviceRecord_{ nullptr };
+    std::shared_ptr<ExtensionAbilityBase> serviceRecord_{ nullptr };
 
 private:
     std::shared_ptr<AbilityConnectManager> connectManager_;
@@ -103,7 +103,7 @@ void AbilityConnectManagerSecondTest::SetUp(void)
     std::string bundleName = "com.ix.hiservcie";
     std::string moduleName = "entry";
     abilityRequest_ = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
-    serviceRecord_ = AbilityRecord::CreateAbilityRecord(abilityRequest_);
+    serviceRecord_ = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest_);
 }
 
 void AbilityConnectManagerSecondTest::TearDown(void)

@@ -373,7 +373,7 @@ void AbilityConnectManager::HandleTerminateDisconnectTask(const ConnectListType&
 {
 }
 
-int AbilityConnectManager::DispatchInactive(const std::shared_ptr<AbilityRecord> &abilityRecord, int state)
+int AbilityConnectManager::DispatchInactive(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord, int state)
 {
     return ERR_OK;
 }
@@ -600,7 +600,7 @@ void AbilityConnectManager::CompleteBackground(const std::shared_ptr<ExtensionAb
 {
 }
 
-void AbilityConnectManager::PrintTimeOutLog(const std::shared_ptr<AbilityRecord> &ability, uint32_t msgId, bool isHalf)
+void AbilityConnectManager::PrintTimeOutLog(const std::shared_ptr<ExtensionAbilityBase> &ability, uint32_t msgId, bool isHalf)
 {
 }
 

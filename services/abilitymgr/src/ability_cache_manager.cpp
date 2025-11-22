@@ -83,7 +83,8 @@ void AbilityCacheManager::RemoveAbilityRecInProcList(std::shared_ptr<ExtensionAb
     }
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToProcLru(std::shared_ptr<ExtensionAbilityBase> abilityRecord)
+std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToProcLru(
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord)
 {
     if (abilityRecord == nullptr) {
         return nullptr;
@@ -108,8 +109,8 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToProcLru(std::sha
     return nullptr;
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToDevLru(std::shared_ptr<ExtensionAbilityBase> abilityRecord,
-    std::shared_ptr<ExtensionAbilityBase> rec)
+std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToDevLru(
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord, std::shared_ptr<ExtensionAbilityBase> rec)
 {
     if (rec != nullptr) {
         devRecLru_.push_back(abilityRecord);

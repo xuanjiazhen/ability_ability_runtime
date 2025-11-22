@@ -517,7 +517,8 @@ void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abili
             targetService.SetRestartTime(abilityRequest.restartTime);
             targetService.SetRestartCount(abilityRequest.restartCount);
         }
-    } else if (IsAbilityNeedKeepAlive(std::static_pointer_cast<ExtensionAbilityBase>(targetService.shared_from_this())) && abilityRequest.restart) {
+    } else if (IsAbilityNeedKeepAlive(
+        std::static_pointer_cast<ExtensionAbilityBase>(targetService.shared_from_this())) && abilityRequest.restart) {
         targetService.SetRestartTime(abilityRequest.restartTime);
         targetService.SetRestartCount(abilityRequest.restartCount);
     }
@@ -709,7 +710,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 
     // 4. Other cases , need to connect the service ability
     auto connectRecord = ConnectionRecord::CreateConnectionRecord(
-        callerToken, std::static_pointer_cast<AbilityRecord>(targetService), connect, shared_from_this());
+        callerToken, targetService, connect, shared_from_this());
     CHECK_POINTER_AND_RETURN(connectRecord, ERR_INVALID_VALUE);
     connectRecord->AttachCallerInfo();
     connectRecord->SetConnectState(ConnectionState::CONNECTING);
@@ -982,7 +983,7 @@ void AbilityConnectManager::DisconnectRecordForce(ConnectListType &list,
         if (abilityRecord->IsNeverStarted()) {
             TAG_LOGW(AAFwkTag::EXT, "force terminate ability record state: %{public}d",
                 abilityRecord->GetAbilityState());
-            TerminateRecord(std::static_pointer_cast<ExtensionAbilityBase>(abilityRecord));
+            TerminateRecord(abilityRecord);
         } else if (abilityRecord->IsAbilityState(AbilityState::ACTIVE)) {
             TAG_LOGW(AAFwkTag::EXT, "force disconnect ability record state: %{public}d",
                 abilityRecord->GetAbilityState());
@@ -1086,7 +1087,8 @@ void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
     });
 
     auto cacheAbilityList = AbilityCacheManager::GetInstance().GetAbilityList();
-    std::for_each(cacheAbilityList.begin(), cacheAbilityList.end(), [&info](std::shared_ptr<ExtensionAbilityBase> &service) {
+    std::for_each(cacheAbilityList.begin(), cacheAbilityList.end(), [&info](
+        std::shared_ptr<ExtensionAbilityBase> &service) {
         if (service && info.bundleName == service->GetApplicationInfo().bundleName &&
             info.appIndex == service->GetAppIndex() && info.instanceKey == service->GetInstanceKey()) {
             auto appName = service->GetApplicationInfo().name;
@@ -1855,7 +1857,8 @@ void AbilityConnectManager::HandleRestartResidentTask(const AbilityRequest &abil
     StartAbilityLocked(abilityRequest);
 }
 
-void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord, uint32_t messageId)
+void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord,
+    uint32_t messageId)
 {
     CHECK_POINTER(abilityRecord);
     int connectRecordId = 0;
@@ -2456,7 +2459,7 @@ void AbilityConnectManager::OnAbilityDied(const std::shared_ptr<ExtensionAbility
         auto task = [abilityRecord, connectManagerWeak = weak_from_this()]() {
             auto connectManager = connectManagerWeak.lock();
             CHECK_POINTER(connectManager);
-            connectManager->HandleAbilityDiedTask(std::static_pointer_cast<ExtensionAbilityBase>(abilityRecord));
+            connectManager->HandleAbilityDiedTask(abilityRecord);
         };
         taskHandler_->SubmitTask(task, TASK_ON_ABILITY_DIED);
     }
@@ -2736,7 +2739,8 @@ static bool CheckIsNumString(const std::string &numStr)
     return true;
 }
 
-void AbilityConnectManager::HandleNotifyAssertFaultDialogDied(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord)
+void AbilityConnectManager::HandleNotifyAssertFaultDialogDied(
+    const std::shared_ptr<ExtensionAbilityBase> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::EXT, "called");
     CHECK_POINTER(abilityRecord);
@@ -2826,7 +2830,8 @@ void AbilityConnectManager::HandleUIExtensionDied(const std::shared_ptr<Extensio
     }
 }
 
-void AbilityConnectManager::RestartAbility(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord, int32_t currentUserId)
+void AbilityConnectManager::RestartAbility(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord,
+    int32_t currentUserId)
 {
     TAG_LOGI(AAFwkTag::EXT, "restart ability: %{public}s/%{public}s",
         abilityRecord->GetElementName().GetBundleName().c_str(),
@@ -2950,7 +2955,7 @@ void AbilityConnectManager::DumpStateByUri(std::vector<std::string> &info, bool 
     std::vector<std::string> &params)
 {
     TAG_LOGI(AAFwkTag::EXT, "args:%{public}s, params size: %{public}zu", args.c_str(), params.size());
-    std::shared_ptr<AbilityRecord> extensionAbilityRecord = nullptr;
+    std::shared_ptr<ExtensionAbilityBase> extensionAbilityRecord = nullptr;
     {
         std::lock_guard lock(serviceMapMutex_);
         auto it = std::find_if(serviceMap_.begin(), serviceMap_.end(), [&args](const auto &service) {
@@ -3229,7 +3234,8 @@ void AbilityConnectManager::CompleteBackground(const std::shared_ptr<ExtensionAb
     TerminateAbilityLocked(abilityRecord->GetToken());
 }
 
-void AbilityConnectManager::PrintTimeOutLog(const std::shared_ptr<ExtensionAbilityBase> &ability, uint32_t msgId, bool isHalf)
+void AbilityConnectManager::PrintTimeOutLog(const std::shared_ptr<ExtensionAbilityBase> &ability, uint32_t msgId,
+    bool isHalf)
 {
     CHECK_POINTER(ability);
     AppExecFwk::RunningProcessInfo processInfo = {};

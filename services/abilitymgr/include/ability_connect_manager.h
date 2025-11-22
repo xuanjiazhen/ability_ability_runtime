@@ -401,7 +401,8 @@ public:
     bool HasRequestIdInLoadAbilityQueue(int32_t requestId);
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId);
     void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
-    void StartSpecifiedProcess(const LoadAbilityContext &context, const std::shared_ptr<ExtensionAbilityBase> &abilityRecord);
+    void StartSpecifiedProcess(const LoadAbilityContext &context,
+        const std::shared_ptr<ExtensionAbilityBase> &abilityRecord);
     int UnPreloadUIExtensionAbilityLocked(int32_t extensionAbilityId);
     int UnPreloadUIExtensionAbilityInner(int32_t extensionAbilityId);
     int ClearAllPreloadUIExtensionAbilityLocked();
@@ -626,7 +627,8 @@ private:
      * @param messageId, message id.
      */
     void PostTimeOutTask(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord, uint32_t messageId);
-    void PostTimeOutTask(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord, int connectRecordId, uint32_t messageId);
+    void PostTimeOutTask(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord, int connectRecordId,
+        uint32_t messageId);
 
     void CompleteForeground(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord);
     void CompleteBackground(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord);
@@ -642,7 +644,8 @@ private:
     void CleanActivatingTimeoutAbility(std::shared_ptr<ExtensionAbilityBase> abilityRecord);
     void MoveToTerminatingMap(const std::shared_ptr<ExtensionAbilityBase>& abilityRecord);
 
-    void DoForegroundUIExtension(std::shared_ptr<ExtensionAbilityBase> abilityRecord, const AbilityRequest &abilityRequest);
+    void DoForegroundUIExtension(std::shared_ptr<ExtensionAbilityBase> abilityRecord,
+        const AbilityRequest &abilityRequest);
     void DoBackgroundAbilityWindow(const std::shared_ptr<ExtensionAbilityBase> &abilityRecord,
         const sptr<SessionInfo> &sessionInfo);
 
@@ -715,7 +718,8 @@ private:
     void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
         const std::shared_ptr<ExtensionAbilityBase> abilityRecord, sptr<IRemoteObject> callerToken);
 
-    void SetExtensionLoadParam(AbilityRuntime::LoadParam &loadParam, std::shared_ptr<ExtensionAbilityBase> abilityRecord);
+    void SetExtensionLoadParam(AbilityRuntime::LoadParam &loadParam,
+        std::shared_ptr<ExtensionAbilityBase> abilityRecord);
     bool IsStrictMode(std::shared_ptr<ExtensionAbilityBase> abilityRecord);
     bool NeedExtensionControl(std::shared_ptr<ExtensionAbilityBase> abilityRecord);
     bool GetTimeoutMsgContent(uint32_t msgId, std::string &msgContent, int &typeId);
