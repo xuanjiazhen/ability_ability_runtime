@@ -1299,5 +1299,58 @@ HWTEST_F(ExtensionRecordManagerTest, ConvertToUnloadExtensionRecords0100, TestSi
     EXPECT_EQ(recordsToUnload.size(), 1);
     EXPECT_EQ(sourceRecords.size(), 1);
 }
+
+/**
+ * @tc.name: UpdateProcessName_0800
+ * @tc.desc: UpdateProcessName_0800
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_0800, TestSize.Level1)
+{
+    auto extRecordMgr = stdmake_sharedExtensionRecordManager(0);
+    AAFwkAbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = testBundleName;
+    abilityRequest.abilityInfo.name = testInfoName;
+    auto abilityRecord = AAFwkAbilityRecordCreateAbilityRecord(abilityRequest);
+    stdshared_ptrExtensionRecord extRecord = stdmake_sharedExtensionRecord(abilityRecord);
+
+    extRecord-processMode_ = PROCESS_MODE_HOST_SPECIFIED;
+    abilityRecord-SetAppIndex(1);
+    abilityRequest.want.SetParam(PROCESS_MODE_HOST_SPECIFIED_KEY, stdstring(processName1));
+    int result = extRecordMgr-UpdateProcessName(abilityRequest, extRecord);
+    EXPECT_NE(result, ERR_OK);
+
+    extRecord-processMode_ = PROCESS_MODE_HOST_SPECIFIED;
+    abilityRecord-SetAppIndex(1);
+    abilityRequest.want.SetParam(PROCESS_MODE_HOST_SPECIFIED_KEY, stdstring(processName1));
+    extRecordMgr-AddExtensionRecord(1, extRecord);
+    result = extRecordMgr-UpdateProcessName(abilityRequest, extRecord);
+    EXPECT_NE(result, ERR_OK);
+
+    extRecord-processMode_ = PROCESS_MODE_HOST_SPECIFIED;
+    abilityRecord-SetAppIndex(1);
+    abilityRequest.want.SetParam(PROCESS_MODE_HOST_SPECIFIED_KEY, stdstring(processName1));
+    abilityRecord-SetProcessName(processName);
+    extRecordMgr-AddExtensionRecord(1, extRecord);
+    result = extRecordMgr-UpdateProcessName(abilityRequest, extRecord);
+    EXPECT_EQ(result, ERR_OK);
+
+    extRecord-processMode_ = PROCESS_MODE_HOST_SPECIFIED;
+    abilityRecord-SetAppIndex(2);
+    abilityRequest.want.SetParam(PROCESS_MODE_HOST_SPECIFIED_KEY, stdstring(processName1));
+    abilityRecord-SetProcessName(processName);
+    extRecordMgr-AddExtensionRecord(1, extRecord);
+    result = extRecordMgr-UpdateProcessName(abilityRequest, extRecord);
+    EXPECT_NE(result, ERR_OK);
+
+    extRecord-processMode_ = PROCESS_MODE_HOST_SPECIFIED;
+    abilityRecord-SetAppIndex(1);
+    abilityRequest.want.SetParam(PROCESS_MODE_HOST_SPECIFIED_KEY, stdstring(processName1231));
+    abilityRecord-SetProcessName(processName);
+    extRecordMgr-AddExtensionRecord(1, extRecord);
+    result = extRecordMgr-UpdateProcessName(abilityRequest, extRecord);
+    EXPECT_NE(result, ERR_OK);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
