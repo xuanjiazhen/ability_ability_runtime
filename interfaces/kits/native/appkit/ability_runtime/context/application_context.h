@@ -159,6 +159,12 @@ public:
     void RegisterAppFontObserver(AppConfigUpdateCallback appFontCallback);
     void RegisterProcessSecurityExit(AppProcessExitCallback appProcessExitCallback);
     void RegisterAppGetSpecifiedRuntime(AppGetSpecifiedRuntimeCallback appGetSpecifiedRuntimeCallback);
+
+#ifdef SUPPORT_SCREEN
+    void GetAllUIAbilities(std::vector<std::shared_ptr<UIAbility>> &uIAbilities);
+    void RegisterGetAllUIAbilitiesCallback(GetAllUIAbilitiesCallback getAllUIAbilitiesCallback);
+#endif
+
 #ifdef SUPPORT_GRAPHICS
     void RegisterGetDisplayConfig(GetDisplayConfigCallback getDisplayConfigCallback);
 #endif

@@ -181,6 +181,10 @@ public:
 
     void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
 
+#ifdef SUPPORT_SCREEN
+    std::shared_ptr<UIAbility> GetUIAbility();
+#endif
+
 #ifdef SUPPORT_GRAPHICS
 public:
 
