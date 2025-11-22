@@ -919,24 +919,6 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_CommandAbilityWindow_003, TestSize.Lev
 
 /*
  * Feature: AbilityRecord
- * Function: RestoreAbilityState
- * SubFunction: RestoreAbilityState
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord RestoreAbilityState
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_RestoreAbilityState_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->lifecycleDeal_ = nullptr;
-    abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
-    PacMap stateDatas_;
-    abilityRecord->RestoreAbilityState();
-    EXPECT_NE(abilityRecord_, nullptr);
-}
-
-/*
- * Feature: AbilityRecord
  * Function: PrepareTerminateAbility
  * SubFunction: PrepareTerminateAbility
  * FunctionPoints: NA

@@ -264,23 +264,6 @@ HWTEST_F(LifecycleDealTest, SaveAbilityStateTest_001, TestSize.Level1)
 
 /*
  * Feature: LifecycleDeal
- * Function: RestoreAbilityState
- * SubFunction: NA
- * FunctionPoints: LifecycleDeal RestoreAbilityState
- * EnvConditions:NA
- * CaseDescription: Verify RestoreAbilityState operation and call mock once
- * @tc.require: AR000I8B26
- */
-HWTEST_F(LifecycleDealTest, RestoreAbilityState_001, TestSize.Level1)
-{
-    EXPECT_CALL(*abilityScheduler_, ScheduleRestoreAbilityState(::testing::_)).Times(1);
-    PacMap inState;
-    lifecycleDeal_->SetScheduler(abilityScheduler_);
-    lifecycleDeal_->RestoreAbilityState(inState);
-}
-
-/*
- * Feature: LifecycleDeal
  * Function: ForegroundNew
  * SubFunction: NA
  * FunctionPoints: LifecycleDeal ForegroundNew

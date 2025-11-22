@@ -168,7 +168,7 @@ void StartAbilitySandboxSavefile::HandleResult(const Want &want, int resultCode,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request code not found: %{public}d.", requestCode);
         return;
     }
-    callerRecord->SendSandboxSavefileResult(want, resultCode, originReqCode);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SavefileResult for:%{public}s", callerRecord->GetAbilityInfo().name.c_str());
 }
 } // namespace AAFwk
 } // namespace OHOS

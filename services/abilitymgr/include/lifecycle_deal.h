@@ -69,7 +69,6 @@ public:
     void CommandAbility(const Want &want, bool reStart, int startId);
     void CommandAbilityWindow(const Want &want, const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd);
     void SaveAbilityState();
-    void RestoreAbilityState(const PacMap &inState);
     /**
      * schedule ability life cycle to foreground
      */
