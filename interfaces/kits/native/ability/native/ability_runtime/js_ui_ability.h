@@ -216,6 +216,12 @@ public:
     void OnSceneCreated() override;
 
     /**
+     * @brief Get WindowStage
+     * @return Returns the current NativeReference
+     */
+    std::shared_ptr<NativeReference> GetWindowStage() override;
+
+    /**
      * @brief Called after ability stoped.
      * You can override this function to implement your own processing logic.
      */

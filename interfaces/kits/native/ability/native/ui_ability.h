@@ -55,6 +55,9 @@ struct OnSaveStateResult {
     WantParams wantParams;
     StateReason reason;
 };
+#ifdef SUPPORT_SCREEN
+struct ETSNativeReference;
+#endif
 } // namespace AppExecFwk
 namespace AbilityRuntime {
 class Runtime;
@@ -251,6 +254,20 @@ public:
      * @return If the data is restored successfully, it returns true; otherwise, it returns false .
      */
     bool OnRestoreData(AAFwk::WantParams &restoreData) override;
+
+#ifdef SUPPORT_SCREEN
+    /**
+     * @brief Get WindowStage
+     * @return Returns the current NativeReference
+     */
+    virtual std::shared_ptr<NativeReference> GetWindowStage();
+
+    /**
+     * @brief Get WindowStage.
+     * @return Returns the current ETSNativeReference.
+     */
+    virtual std::shared_ptr<AppExecFwk::ETSNativeReference> GetEtsWindowStage();
+#endif
 
     /**
      * @brief Obtains the lifecycle state of this ability.
