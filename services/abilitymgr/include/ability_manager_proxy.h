@@ -1801,7 +1801,8 @@ public:
      */
     virtual int32_t GetAllInsightIntentInfo(
         AbilityRuntime::GetInsightIntentFlag flag,
-        std::vector<InsightIntentInfoForQuery> &infos) override;
+        std::vector<InsightIntentInfoForQuery> &infos,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
      * Get specified bundleName insight intent infos.
@@ -1813,7 +1814,8 @@ public:
     virtual int32_t GetInsightIntentInfoByBundleName(
         AbilityRuntime::GetInsightIntentFlag flag,
         const std::string &bundleName,
-        std::vector<InsightIntentInfoForQuery> &infos) override;
+        std::vector<InsightIntentInfoForQuery> &infos,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
      * Get specified intentName insight intent infos.
@@ -1829,7 +1831,8 @@ public:
         const std::string &bundleName,
         const std::string &moduleName,
         const std::string &intentName,
-        InsightIntentInfoForQuery &info) override;
+        InsightIntentInfoForQuery &info,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
 

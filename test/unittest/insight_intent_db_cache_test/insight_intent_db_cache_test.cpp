@@ -78,14 +78,14 @@ HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_001, TestSize.Level0
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<ExtractInsightIntentGenericInfo> genericInfos;
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentGenericInfo(genericInfos);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentGenericInfo(userId, genericInfos);
     EXPECT_EQ(genericInfos.empty(), false);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfoByName(
-        bundleName, genericInfos);
+        bundleName, userId, genericInfos);
     EXPECT_EQ(genericInfos.empty(), false);
     ExtractInsightIntentGenericInfo genericInfo;
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfo(
-            bundleName, moduleName, intentName, genericInfo);
+            bundleName, moduleName, intentName, userId, genericInfo);
 
     std::vector<ExtractInsightIntentInfo> genericInfos2;
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentInfo(100, genericInfos2);
