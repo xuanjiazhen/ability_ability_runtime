@@ -216,6 +216,12 @@ public:
     void OnSceneCreated() override;
 
     /**
+     * @brief Get WindowStage.
+     * @return Returns the napi_value of WindowStage.
+     */
+    napi_value GetWindowStage() override;
+
+    /**
      * @brief Called after ability stoped.
      * You can override this function to implement your own processing logic.
      */
