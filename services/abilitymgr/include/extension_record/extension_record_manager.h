@@ -108,7 +108,8 @@ public:
     int32_t GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
         std::shared_ptr<AAFwk::ExtensionAbilityBase> &abilityRecord, bool &isLoaded);
 
-    std::shared_ptr<AAFwk::ExtensionAbilityBase> GetAbilityRecordBySessionInfo(const sptr<AAFwk::SessionInfo> &sessionInfo);
+    std::shared_ptr<AAFwk::ExtensionAbilityBase> GetAbilityRecordBySessionInfo(
+        const sptr<AAFwk::SessionInfo> &sessionInfo);
 
     std::shared_ptr<AAFwk::AbilityRecord> GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token);
 
@@ -176,7 +177,8 @@ private:
 
     int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
     int32_t SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
-        const std::shared_ptr<AAFwk::ExtensionAbilityBase> &abilityRecord, std::shared_ptr<ExtensionRecord> &extensionRecord);
+        const std::shared_ptr<AAFwk::ExtensionAbilityBase> &abilityRecord,
+        std::shared_ptr<ExtensionRecord> &extensionRecord);
     void ConvertToUnloadExtensionRecords(std::vector<std::shared_ptr<ExtensionRecord>> &records,
         std::vector<std::shared_ptr<ExtensionRecord>> &recordsToUnload);
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,

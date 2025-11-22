@@ -74,6 +74,7 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     std::shared_ptr<AbilityRecord> MockAbilityRecord(AbilityType);
+    std::shared_ptr<ExtensionAbilityBase> MockExtensionAbilityBase(AbilityType abilityType);
     sptr<Token> MockToken(AbilityType);
     void SetUp();
     void TearDown();
@@ -127,6 +128,15 @@ std::shared_ptr<AbilityRecord> AbilityManagerServiceThirdTest::MockAbilityRecord
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = abilityType;
     return AbilityRecord::CreateAbilityRecord(abilityRequest);
+}
+
+std::shared_ptr<ExtensionAbilityBase> AbilityManagerServiceThirdTest::MockExtensionAbilityBase(AbilityType abilityType)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.demo";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = abilityType;
+    return ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
 }
 
 sptr<Token> AbilityManagerServiceThirdTest::MockToken(AbilityType abilityType)
@@ -584,7 +594,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, DisconnectBeforeCleanupByUserId_001, Te
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     abilityMs_->subManagersHelper_->InitConnectManager(100, false);
 
-    auto abilityRecord = MockAbilityRecord(AbilityType::SERVICE);
+    auto abilityRecord = MockExtensionAbilityBase(AbilityType::SERVICE);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     OHOS::sptr<IAbilityConnection> callback1 = new AbilityConnectCallback();
     std::shared_ptr<ConnectionRecord> connection1 =

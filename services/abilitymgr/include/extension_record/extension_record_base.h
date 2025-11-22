@@ -20,6 +20,8 @@
 
 namespace OHOS {
 namespace AAFwk {
+class ConnectionRecord;
+
 class ExtensionAbilityBase : public AbilityRecord {
 public:
     ExtensionAbilityBase(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
@@ -28,6 +30,119 @@ public:
     static std::shared_ptr<ExtensionAbilityBase> CreateAbilityRecord(const AbilityRequest &abilityRequest);
 
     AbilityRecordType GetAbilityRecordType() override;
+
+    /**
+     * add connect record to the list.
+     *
+     */
+    void AddConnectRecordToList(const std::shared_ptr<ConnectionRecord> &connRecord);
+
+    /**
+     * get the list of connect record.
+     *
+     */
+    std::list<std::shared_ptr<ConnectionRecord>> GetConnectRecordList() const;
+
+    /**
+     * get the list of connect record.
+     *
+     */
+    std::list<std::shared_ptr<ConnectionRecord>> GetConnectingRecordList();
+
+    /**
+     * remove the connect record from list.
+     *
+     */
+    void RemoveConnectRecordFromList(const std::shared_ptr<ConnectionRecord> &connRecord);
+
+    /**
+     * get connecting record from list.
+     *
+     */
+    std::shared_ptr<ConnectionRecord> GetConnectingRecord() const;
+
+    /**
+     * get disconnecting record from list.
+     *
+     */
+    std::shared_ptr<ConnectionRecord> GetDisconnectingRecord() const;
+
+    size_t GetConnectedListSize();
+
+    /**
+     * check whether connect list is empty.
+     *
+     */
+    bool IsConnectListEmpty();
+
+    bool NeedConnectAfterCommand();
+
+    size_t GetConnectingListSize();
+
+    /**
+     * get the count of In Progress record.
+     *
+     */
+    uint32_t GetInProgressRecordCount();
+
+    /**
+     * disconnect the ability.
+     *
+     */
+    void DisconnectAbility();
+
+    /**
+     * disconnect the ability with want
+     *
+     */
+    void DisconnectAbilityWithWant(const Want &want);
+
+    /**
+     * connect the ability.
+     *
+     */
+    void ConnectAbility();
+
+    /**
+     * connect the ability with want.
+     *
+     */
+    void ConnectAbilityWithWant(const Want &want);
+    /**
+     * dump service info.
+     *
+     */
+    void DumpService(std::vector<std::string> &info, bool isClient = false) const override;
+
+    /**
+     * dump service info.
+     *
+     */
+    void DumpService(std::vector<std::string> &info, std::vector<std::string> &params,
+        bool isClient = false) const override;
+
+    /**
+     * set connect remote object.
+     *
+     */
+    void SetConnRemoteObject(const sptr<IRemoteObject> &remoteObject);
+
+    /**
+     * get connect remote object.
+     *
+     */
+    sptr<IRemoteObject> GetConnRemoteObject() const;
+
+private:
+    void DumpUIExtensionRootHostInfo(std::vector<std::string> &info) const;
+
+    void DumpUIExtensionPid(std::vector<std::string> &info, bool isUIExtension) const;
+    // service(ability) can be connected by multi-pages(abilities), so need to store this service's connections
+    mutable ffrt::mutex connRecordListMutex_;
+    std::list<std::shared_ptr<ConnectionRecord>> connRecordList_ = {};
+    // service(ability) onConnect() return proxy of service ability
+    sptr<IRemoteObject> connRemoteObject_ = {};
+    bool isConnected = false;
 };
 } // namespace AAFwk
 } // namespace OHOS
