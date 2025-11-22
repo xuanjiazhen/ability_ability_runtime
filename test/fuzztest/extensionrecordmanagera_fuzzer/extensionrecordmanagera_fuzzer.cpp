@@ -156,7 +156,7 @@ void FuzztestExtensionRecordManagerFunc3(std::shared_ptr<ExtensionRecordManager>
     Want want;
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo applicationInfo;
-    std::shared_ptr<AbilityRecord> abilityRecord = std::make_shared<ExtensionAbilityBase>(want, abilityInfo, applicationInfo);
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = std::make_shared<ExtensionAbilityBase>(want, abilityInfo, applicationInfo);
     std::shared_ptr<ExtensionRecord> record = std::make_shared<ExtensionRecord>(abilityRecord);
     AAFwk::AbilityRequest abilityRequest;
     UIExtensionSessionInfo uiExtensionSessionInfo;

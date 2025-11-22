@@ -126,13 +126,13 @@ sptr<SessionInfo> AbilityConnectManagerTest::MockSessionInfo(int32_t persistentI
     return sessionInfo;
 }
 
-std::shared_ptr<AbilityRecord> AbilityConnectManagerTest::InitAbilityRecord()
+std::shared_ptr<ExtensionAbilityBase> AbilityConnectManagerTest::InitAbilityRecord()
 {
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AbilityType::PAGE;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
     return abilityRecord;
 }
 
@@ -154,7 +154,7 @@ void AbilityConnectManagerTest::SetUp(void)
     std::string bundleName = "com.ix.hiservcie";
     std::string moduleName = "entry";
     abilityRequest_ = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
-    serviceRecord_ = AbilityRecord::CreateAbilityRecord(abilityRequest_);
+    serviceRecord_ = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest_);
     serviceToken_ = serviceRecord_->GetToken();
     std::string deviceName1 = "device";
     std::string abilityName1 = "musicServiceAbility";
@@ -162,14 +162,14 @@ void AbilityConnectManagerTest::SetUp(void)
     std::string bundleName1 = "com.ix.musicservcie";
     std::string moduleName1 = "entry";
     abilityRequest1_ = GenerateAbilityRequest(deviceName1, abilityName1, appName1, bundleName1, moduleName1);
-    serviceRecord1_ = AbilityRecord::CreateAbilityRecord(abilityRequest1_);
+    serviceRecord1_ = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest1_);
     std::string deviceName2 = "device";
     std::string abilityName2 = "residentServiceAbility";
     std::string appName2 = "residentservcie";
     std::string bundleName2 = "com.ix.residentservcie";
     std::string moduleName2 = "entry";
     abilityRequest2_ = GenerateAbilityRequest(deviceName2, abilityName2, appName2, bundleName2, moduleName2);
-    serviceRecord2_ = AbilityRecord::CreateAbilityRecord(abilityRequest2_);
+    serviceRecord2_ = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest2_);
     serviceToken2_ = serviceRecord_->GetToken();
     serviceToken1_ = serviceRecord_->GetToken();
     callbackA_ = new AbilityConnectCallback();
@@ -339,7 +339,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "HandleActiveAbility_001 start");
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     AbilityRequest abilityRequest;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     OHOS::sptr<IAbilityConnection> callback1 = new AbilityConnectCallback();
@@ -443,7 +443,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleRestartResidentTask_001, TestSize.Leve
     std::string bundleName = "com.example.bundle";
     std::string moduleName = "entry";
     abilityRequest_ = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
-    serviceRecord_ = AbilityRecord::CreateAbilityRecord(abilityRequest_);
+    serviceRecord_ = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest_);
 
     connectManager->HandleRestartResidentTask(abilityRequest_);
     ASSERT_TRUE(connectManager->restartResidentTaskList_.empty());
@@ -467,7 +467,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleRestartResidentTask_002, TestSize.Leve
     std::string bundleName = "com.example.bundle";
     std::string moduleName = "entry";
     abilityRequest_ = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
-    serviceRecord_ = AbilityRecord::CreateAbilityRecord(abilityRequest_);
+    serviceRecord_ = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest_);
 
     connectManager->HandleRestartResidentTask(abilityRequest_);
     ASSERT_EQ(connectManager->restartResidentTaskList_.size(), 0);
@@ -516,7 +516,7 @@ HWTEST_F(AbilityConnectManagerTest, GetUIExtensionSessionInfo_001, TestSize.Leve
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     AbilityRequest abilityRequest;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     UIExtensionSessionInfo info;
@@ -544,8 +544,8 @@ HWTEST_F(AbilityConnectManagerTest, GetUIExtensionSessionInfo_002, TestSize.Leve
     std::string bundleName = "com.ix.hiservcie";
     std::string moduleName = "entry";
     abilityRequest_ = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
-    serviceRecord_ = AbilityRecord::CreateAbilityRecord(abilityRequest_);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    serviceRecord_ = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest_);
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     sptr<IRemoteObject> token = abilityRecord->GetToken();
     
     connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
@@ -600,7 +600,7 @@ HWTEST_F(AbilityConnectManagerTest, TerminateAbilityInner_001, TestSize.Level1)
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest_);
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest_);
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
     auto result = ConnectManager()->TerminateAbilityInner(abilityRecord->GetToken());
@@ -618,7 +618,7 @@ HWTEST_F(AbilityConnectManagerTest, TerminateAbilityInner_002, TestSize.Level1)
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
     OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
@@ -643,7 +643,7 @@ HWTEST_F(AbilityConnectManagerTest, TerminateAbilityInner_003, TestSize.Level1)
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
     abilityRecord->connRecordList_.clear();
@@ -663,7 +663,7 @@ HWTEST_F(AbilityConnectManagerTest, IsWindowExtensionFocused_001, TestSize.Level
     ASSERT_NE(connectManager, nullptr);
 
     uint32_t extensionTokenId = 12345;
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     sptr<IRemoteObject> focusToken = abilityRecord->GetToken();
     ASSERT_NE(focusToken, nullptr);
     
@@ -691,7 +691,7 @@ HWTEST_F(AbilityConnectManagerTest, IsWindowExtensionFocused_0002, TestSize.Leve
     ASSERT_NE(connectManager, nullptr);
 
     uint32_t extensionTokenId = 12345;
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     sptr<IRemoteObject> focusToken = abilityRecord->GetToken();
     ASSERT_NE(focusToken, nullptr);
     
@@ -763,7 +763,7 @@ HWTEST_F(AbilityConnectManagerTest, StartAbilityLocked_001, TestSize.Level1)
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     sptr<IRemoteObject> focusToken = abilityRecord->GetToken();
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo.deviceId = "id";
@@ -876,7 +876,7 @@ HWTEST_F(AbilityConnectManagerTest, UnloadUIExtensionAbility_001, TestSize.Level
     abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::WORK_SCHEDULER;
     abilityRequest.abilityInfo.bundleName = "com.example.test";
     abilityRequest.abilityInfo.name = "TestAbility";
-    std::shared_ptr<AbilityRecord> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
     OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
     std::shared_ptr<ConnectionRecord> connection =
         std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
@@ -906,7 +906,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_004, TestSize.Level1)
     abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::WORK_SCHEDULER;
     abilityRequest.abilityInfo.bundleName = "com.example.test";
     abilityRequest.abilityInfo.name = "TestAbility";
-    std::shared_ptr<AbilityRecord> targetService  = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<ExtensionAbilityBase> targetService  = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
     Want want;
     want.SetParam(PARAM_RESV_CALLER_APP_ID, std::string("app"));
     targetService->SetWant(want);
@@ -928,7 +928,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_005, TestSize.Level1)
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
     abilityRequest.abilityInfo.bundleName = "com.example.test";
@@ -1083,7 +1083,7 @@ HWTEST_F(AbilityConnectManagerTest, SetServiceAfterNewCreate_004, TestSize.Level
     std::string moduleName = "entry";
     auto abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
     abilityRequest.restart = true;
-    auto targetService = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto targetService = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
     abilityRequest.appInfo.accessTokenId = FAKE_TOKENID;
     connectManager->SetServiceAfterNewCreate(abilityRequest, *targetService);
     EXPECT_EQ(connectManager->sceneBoardTokenId_, FAKE_TOKENID);
@@ -1104,7 +1104,7 @@ HWTEST_F(AbilityConnectManagerTest, SetServiceAfterNewCreate_005, TestSize.Level
     std::string moduleName = "entry";
     auto abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
     abilityRequest.restart = true;
-    auto targetService = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto targetService = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
     targetService->SetKeepAliveBundle(true);
 
     connectManager->SetServiceAfterNewCreate(abilityRequest, *targetService);

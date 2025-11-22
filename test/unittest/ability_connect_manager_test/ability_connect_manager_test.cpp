@@ -719,7 +719,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_017, TestSize.Level1)
 
     abilityRecord->SetAbilityState(OHOS::AAFwk::AbilityState::ACTIVE);
     ConnectManager()->ScheduleConnectAbilityDoneLocked(token, callback);
-    auto abilityRecordB = Token::GetAbilityRecordByToken(token);
+    auto abilityRecordB = std::static_pointer_cast<ExtensionAbilityBase>(Token::GetAbilityRecordByToken(token));
     EXPECT_TRUE(abilityRecordB);
     auto connectRecordList = abilityRecordB->GetConnectRecordList();
     int size = connectRecordList.size();
@@ -2180,7 +2180,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnAbilityDied_001, TestSize.
 {
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     ASSERT_NE(connectManager, nullptr);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = serviceRecord_;
     abilityRecord->abilityInfo_.type = AbilityType::PAGE;
     connectManager->SetEventHandler(nullptr);
     connectManager->OnAbilityDied(abilityRecord);

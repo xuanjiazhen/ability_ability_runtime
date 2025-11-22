@@ -709,7 +709,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 
     // 4. Other cases , need to connect the service ability
     auto connectRecord = ConnectionRecord::CreateConnectionRecord(
-        callerToken, std::static_pointer_cast<AbilityRecord>(targetService), connect, shared_from_this());
+        callerToken, targetService, connect, shared_from_this());
     CHECK_POINTER_AND_RETURN(connectRecord, ERR_INVALID_VALUE);
     connectRecord->AttachCallerInfo();
     connectRecord->SetConnectState(ConnectionState::CONNECTING);
@@ -2949,7 +2949,7 @@ void AbilityConnectManager::DumpStateByUri(std::vector<std::string> &info, bool 
     std::vector<std::string> &params)
 {
     TAG_LOGI(AAFwkTag::EXT, "args:%{public}s, params size: %{public}zu", args.c_str(), params.size());
-    std::shared_ptr<AbilityRecord> extensionAbilityRecord = nullptr;
+    std::shared_ptr<ExtensionAbilityBase> extensionAbilityRecord = nullptr;
     {
         std::lock_guard lock(serviceMapMutex_);
         auto it = std::find_if(serviceMap_.begin(), serviceMap_.end(), [&args](const auto &service) {
