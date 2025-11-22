@@ -235,10 +235,6 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityRequest.callType is CALL_REQUEST_TYPE.");
         abilityRecord->SetStartedByCall(true);
     }
-    if (AbilityRuntime::StartupUtil::IsStartPlugin(abilityRequest.want)) {
-        abilityRecord->isPluginAbility_ = true;
-    }
-    abilityRecord->collaboratorType_ = abilityRequest.collaboratorType;
     abilityRecord->missionAffinity_ = abilityRequest.want.GetStringParam(PARAM_MISSION_AFFINITY_KEY);
 
     auto userId = abilityRequest.appInfo.uid / BASE_USER_RANGE;
@@ -683,13 +679,6 @@ bool AbilityRecord::IsReady() const
     return isReady_;
 }
 
-#ifdef SUPPORT_SCREEN
-bool AbilityRecord::IsWindowAttached() const
-{
-    return isWindowAttached_;
-}
-#endif
-
 bool AbilityRecord::IsLauncherAbility() const
 {
     return isLauncherAbility_;
@@ -798,15 +787,6 @@ void AbilityRecord::SaveAbilityWindowConfig(const WindowConfig &windowConfig)
     windowConfig_ = windowConfig;
 }
 
-void AbilityRecord::RestoreAbilityState()
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    CHECK_POINTER(lifecycleDeal_);
-    lifecycleDeal_->RestoreAbilityState(stateDatas_);
-    stateDatas_.Clear();
-    isRestarting_ = false;
-}
-
 int AbilityRecord::GetRequestCode() const
 {
     return requestCode_;
@@ -829,10 +809,6 @@ void AbilityRecord::SendResult(bool isSandboxApp, uint32_t tokeId)
 }
 
 void AbilityRecord::SendResultByBackToCaller(const std::shared_ptr<AbilityResult> &result)
-{
-}
-
-void AbilityRecord::SendSandboxSavefileResult(const Want &want, int resultCode, int requestCode)
 {
 }
 
@@ -2026,19 +2002,6 @@ void AbilityRecord::RemoveUIExtensionLaunchTimestamp()
 bool AbilityRecord::ReportAbilityConnectionRelations()
 {
     return true;
-}
-
-void AbilityRecord::SetPromotePriority(bool promotePriority)
-{
-}
-
-bool AbilityRecord::GetPromotePriority()
-{
-    return false;
-}
-
-void AbilityRecord::PromotePriority()
-{
 }
 }  // namespace AAFwk
 }  // namespace OHOS

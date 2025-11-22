@@ -41,6 +41,7 @@
 #include "ipc_skeleton.h"
 #include "lifecycle_deal.h"
 #include "lifecycle_state_info.h"
+#include "param.h"
 #include "session_info.h"
 #include "ui_extension_window_command.h"
 #include "uri.h"
@@ -57,7 +58,6 @@ namespace OHOS {
 namespace AAFwk {
 using Closure = std::function<void()>;
 
-class AbilityRecord;
 class ConnectionRecord;
 class CallContainer;
 struct EventInfo;
@@ -86,6 +86,8 @@ public:
      */
     virtual void Init(const AbilityRequest &abilityRequest);
     virtual AbilityRecordType GetAbilityRecordType();
+    virtual void ConfigLoadParam(AbilityRuntime::LoadParam &loadParam) {}
+    virtual void AfterStateUpdated();
 
     /**
      * load UI ability.
@@ -107,12 +109,6 @@ public:
      */
     void ForegroundAbility(uint32_t sceneFlag = 0, bool hasLastWant = false);
     void ForegroundUIExtensionAbility(uint32_t sceneFlag = 0);
-
-    /**
-     * process request of foregrounding the ability.
-     *
-     */
-    void ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options = {});
 
      /**
      * post foreground timeout task for ui ability.
@@ -262,13 +258,6 @@ public:
     bool GetRecoveryInfo();
 
 #ifdef SUPPORT_SCREEN
-    /**
-     * check whether the ability 's window is attached.
-     *
-     * @return true : attached ,false: not attached
-     */
-    bool IsWindowAttached() const;
-
     inline bool IsStartingWindow() const
     {
         return isStartingWindow_;
@@ -277,26 +266,6 @@ public:
     inline void SetStartingWindow(bool isStartingWindow)
     {
         isStartingWindow_ = isStartingWindow;
-    }
-
-    inline void SetKillReason(const std::string &reason)
-    {
-        killReason_ = reason;
-    }
-
-    inline std::string GetKillReason()
-    {
-        return killReason_;
-    }
-
-    inline void SetIsKillPrecedeStart(bool isKillPrecedeStart)
-    {
-        isKillPrecedeStart_.store(isKillPrecedeStart);
-    }
-
-    inline bool IsKillPrecedeStart()
-    {
-        return isKillPrecedeStart_.load();
     }
 
     void PostCancelStartingWindowHotTask();
@@ -319,8 +288,6 @@ public:
     bool IsCompleteFirstFrameDrawing() const;
     bool GetColdStartFlag();
     void SetColdStartFlag(bool isColdStart);
-    bool GetPrelaunchFlag();
-    void SetPrelaunchFlag(bool isPrelaunch);
 #endif
 
     /**
@@ -429,18 +396,6 @@ public:
     void SaveAbilityWindowConfig(const WindowConfig &windowConfig);
 
     /**
-     * restore ability state.
-     *
-     */
-    void RestoreAbilityState();
-
-    /**
-     * notify top active ability updated.
-     *
-     */
-    void TopActiveAbilityChanged(bool flag);
-
-    /**
      * set the want for start ability.
      *
      */
@@ -493,11 +448,6 @@ public:
      *
      */
     void SendResultByBackToCaller(const std::shared_ptr<AbilityResult> &result);
-
-    /**
-     * send result object to caller ability thread for sandbox app file saving.
-     */
-    void SendSandboxSavefileResult(const Want &want, int resultCode, int requestCode);
 
     /**
      * send result object to caller ability.
@@ -779,8 +729,6 @@ public:
     void RemoveAbilityDeathRecipient() const;
     bool IsExistConnection(const sptr<IAbilityConnection> &connect);
 
-    int32_t GetCollaboratorType() const;
-
     std::string GetMissionAffinity() const;
 
     void SetLockedState(bool lockedState);
@@ -876,58 +824,11 @@ public:
         return securityFlag_;
     }
 
-    bool IsPluginAbility() const
-    {
-        return isPluginAbility_;
-    }
-
     void NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message, int32_t resultCode = 0);
 
     void NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
     void NotifyAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode);
-
-    void ScheduleCollaborate(const Want &want);
-
-    bool IsHook () const
-    {
-        return isHook_;
-    }
-
-    inline void SetIsHook(bool isHook)
-    {
-        isHook_ = isHook;
-    }
-
-    bool GetHookOff () const
-    {
-        return hookOff_;
-    }
-
-    inline void SetHookOff(bool hookOff)
-    {
-        hookOff_ = hookOff;
-    }
-
-    inline void SetLaunchWant(std::shared_ptr<Want> launchWant)
-    {
-        launchWant_ = launchWant;
-    }
-
-    inline std::shared_ptr<Want> GetLaunchWant() const
-    {
-        return launchWant_;
-    }
-
-    inline void SetLastWant(std::shared_ptr<Want> lastWant)
-    {
-        lastWant_ = lastWant;
-    }
-
-    inline bool HasLastWant() const
-    {
-        return lastWant_ != nullptr;
-    }
 
     inline void SetBackgroundDrivenFlag(bool isLastWantBackgroundDriven)
     {
@@ -969,16 +870,6 @@ public:
         return isPreloaded_.load();
     }
 
-    inline void SetFrozenByPreload(bool isFrozenByPreload)
-    {
-        isFrozenByPreload_.store(isFrozenByPreload);
-    }
-
-    inline bool IsFrozenByPreload() const
-    {
-        return isFrozenByPreload_.load();
-    }
-
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
         const std::string &taskName = "");
 
@@ -1002,19 +893,13 @@ public:
 
     bool ReportAbilityConnectionRelations();
 
-    void SetPromotePriority(bool promotePriority);
-
-    bool GetPromotePriority();
-
-    void PromotePriority();
-
 protected:
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
     AbilityState currentState_ = AbilityState::INITIAL;    // current life state
     Want want_ = {};                                       // want to start this ability
 
-private:
+protected:
     /**
      * get the type of ability.
      *
@@ -1113,7 +998,6 @@ private:
     static std::atomic<int64_t> abilityRecordId;
     bool isReady_ = false;                            // is ability thread attached?
     bool isWindowStarted_ = false;                     // is window hotstart or coldstart?
-    bool isWindowAttached_ = false;                   // Is window of this ability attached?
     bool isLauncherAbility_ = false;                  // is launcher?
     bool isLoading_ = false;        // is loading?
     bool isTerminating_ = false;              // is terminating ?
@@ -1143,9 +1027,7 @@ private:
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isLaunching_ = true;
     bool securityFlag_ = false;
-    bool isHook_ = false;
-    bool hookOff_ = false;
-    bool isPluginAbility_ = false;
+    
     std::atomic_bool isCallerSetProcess_ = false;       // new version
     std::atomic_bool backgroundAbilityWindowDelayed_ = false;
 
@@ -1158,7 +1040,6 @@ private:
     int32_t appIndex_ = 0;          // new version
     int32_t restartCount_ = -1;
     int32_t restartMax_ = -1;
-    int32_t collaboratorType_ = 0;
     uint32_t callerAccessTokenId_ = -1;
     uint32_t specifyTokenId_ = 0;
 
@@ -1235,7 +1116,6 @@ private:
 
     ffrt::mutex lock_;
     ffrt::mutex connectWantLock_;
-    std::mutex collaborateWantLock_;
 
     bool isKillForPermissionUpdate_ = false;
 
@@ -1245,19 +1125,10 @@ private:
     std::atomic_bool isPrepareTerminateAbilityDone_ = false;
     bool isPrepareTerminate_ = false;
 
-    std::string killReason_ = "";
-    std::atomic_bool isKillPrecedeStart_ = false;
-    std::shared_ptr<Want> launchWant_ = nullptr;
-    std::shared_ptr<Want> lastWant_ = nullptr;
     std::atomic_bool isLastWantBackgroundDriven_ = false;
     std::atomic<int32_t> scenarios_ = 0;
     std::atomic<bool> isPreloaded_ = false;
-    std::atomic<bool> isFrozenByPreload_ = false;
     std::atomic<bool> isAbilityConnectionReported_ = false;
-    struct UIAbilityProperty {
-        bool promotePriority = false;
-    };
-    std::shared_ptr<UIAbilityProperty> uiAbilityProperty_ = nullptr;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -550,10 +550,8 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_OnSchedulerDied_001, TestSize.Le
     abilityRecord->abilityInfo_.bundleName = "test";
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->scheduler_ = sptr<AbilitySchedulerMock>::MakeSptr();
-    EXPECT_NE(abilityRecord->scheduler_, nullptr);
-    abilityRecord->isWindowAttached_ = true;
     abilityRecord->OnProcessDied();
-    EXPECT_TRUE(abilityRecord->isWindowAttached_);
+    EXPECT_NE(abilityRecord->scheduler_, nullptr);
 }
 
 /*
@@ -570,9 +568,8 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_OnSchedulerDied_002, TestSize.Le
     abilityRecord->abilityInfo_.bundleName = "test";
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->scheduler_ = nullptr;
-    abilityRecord->isWindowAttached_ = true;
     abilityRecord->OnProcessDied();
-    EXPECT_FALSE(abilityRecord->isWindowAttached_);
+    EXPECT_EQ(abilityRecord->scheduler_, nullptr);
 }
 
 /*
