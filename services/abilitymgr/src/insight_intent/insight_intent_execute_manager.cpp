@@ -508,15 +508,14 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     }
     if (!srcEntry.empty()) {
         want.SetParam(INSIGHT_INTENT_SRC_ENTRY, srcEntry);
-    } else if (decoratorInfo.decoratorType == "" && ret == ERR_INSIGHT_INTENT_GET_PROFILE_FAILED &&
+    } else if (ret == ERR_INSIGHT_INTENT_GET_PROFILE_FAILED &&
         param->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND) {
         TAG_LOGI(AAFwkTag::INTENT, "insight intent srcEntry invalid, try free install ondemand");
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count());
         want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
         want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
-    } else if (decoratorInfo.decoratorType == "") {
-        // decoratorType is empty indicate no decorator
+    } else {
         TAG_LOGE(AAFwkTag::INTENT, "insight intent srcEntry invalid");
         return ERR_INVALID_VALUE;
     }
