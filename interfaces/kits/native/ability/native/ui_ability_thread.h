@@ -159,6 +159,10 @@ public:
 
     void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element) override;
 
+#ifdef SUPPORT_SCREEN
+    std::shared_ptr<UIAbility> GetUIAbility() override;
+#endif
+
 private:
     void DumpAbilityInfoInner(const std::vector<std::string> &params, std::vector<std::string> &info);
     void DumpOtherInfo(std::vector<std::string> &info);

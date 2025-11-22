@@ -223,6 +223,20 @@ void UIAbility::AttachAbilityContext(const std::shared_ptr<AbilityRuntime::Abili
     });
 }
 
+#ifdef SUPPORT_SCREEN
+std::shared_ptr<NativeReference> UIAbility::GetWindowStage()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    return nullptr;
+}
+
+std::shared_ptr<AppExecFwk::ETSNativeReference> UIAbility::GetEtsWindowStage()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    return nullptr;
+}
+#endif
+
 void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

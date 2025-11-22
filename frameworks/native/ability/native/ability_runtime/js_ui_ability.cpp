@@ -1238,6 +1238,12 @@ std::shared_ptr<NativeReference> JsUIAbility::GetJsWindowStage()
     return jsWindowStageObj_;
 }
 
+std::shared_ptr<NativeReference> JsUIAbility::GetWindowStage()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    return GetJsWindowStage();
+}
+
 const JsRuntime &JsUIAbility::GetJsRuntime()
 {
     return jsRuntime_;
