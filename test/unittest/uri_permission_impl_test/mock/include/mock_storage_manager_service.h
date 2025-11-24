@@ -429,6 +429,11 @@ public:
     {
         return E_OK;
     }
+
+    virtual int32_t EraseAllUserEncryptedKeys() override
+    {
+        return E_OK;
+    }
 };
 
 bool StorageManagerServiceMock::isZero = true;
