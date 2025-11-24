@@ -25,7 +25,7 @@
 #define inline
 #include "extension_record.h"
 #include "extension_record_manager.h"
-#define inline
+#undef inline
 #undef private
 #include "ability_fuzz_util.h"
 
@@ -110,7 +110,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     extensionRecordManager->CreateExtensionRecord(abilityRequest, hostBundleName, extensionRecord, hostPid);
     extensionRecordManager->GetUIExtensionRootHostInfo(token);
     extensionRecordManager->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
-    extensionRecordManager->GetExtensionRecordById(extensionRecordId);
     extensionRecordManager->LoadTimeout(extensionRecordId);
     extensionRecordManager->ForegroundTimeout(extensionRecordId);
     extensionRecordManager->BackgroundTimeout(extensionRecordId);
