@@ -1808,7 +1808,13 @@ void EtsServiceExtensionContext::OnOpenLink(ani_env *env, ani_object aniObj, ani
     if (!isOptionsUndefined) {
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "openlink have option");
         AppExecFwk::UnWrapOpenLinkOptions(env, openLinkOptionsObj, openLinkOptions, want);
-        UnwrapCompletionHandlerForOpenLink(env, openLinkOptionsObj, openLinkOptions, want);
+        OnRequestResult onRequestSucc;
+        OnRequestResult onRequestFail;
+        ani_ref refCompletionHandler = nullptr;
+        if (AppExecFwk::UnwrapCommonCompletionHandler(env, optionsObj, refCompletionHandler,
+            onRequestSucc, onRequestFail)) {
+            AddCompletionHandlerForOpenLink(env, refCompletionHandler, want, onRequestSucc, onRequestFail);
+        }
     }
 
     want.SetUri(link);
