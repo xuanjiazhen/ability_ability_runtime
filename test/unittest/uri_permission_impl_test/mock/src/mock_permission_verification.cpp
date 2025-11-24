@@ -79,7 +79,8 @@ bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const
     }
     return false;
 }
-bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName) const
+bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName,
+    const uint32_t specifyTokenId) const
 {
     return !!(MyFlag::flag_);
 }
@@ -178,6 +179,10 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
     return MyFlag::flag_;
 }
 bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPI() const
+{
+    return true;
+}
+bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_t specifiedFullTokenId) const
 {
     return true;
 }
