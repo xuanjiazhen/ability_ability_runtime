@@ -1032,7 +1032,8 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     }
 
     if (!appRecord) {
-        TAG_LOGD(AAFwkTag::APPMGR, "appRecord null");
+        TAG_LOGE(AAFwkTag::APPMGR, "TestProcess appRecord null");
+        TAG_LOGE(AAFwkTag::APPMGR, "TestProcess process %{public}s", processName.c_str());
         if (KillingProcessManager::GetInstance().IsCallerKilling(callerKey)) {
             TAG_LOGE(AAFwkTag::APPMGR, "caller is killing");
             NotifyLoadAbilityFailed(loadParam->token);
@@ -1072,7 +1073,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             return;
         }
     } else {
-        TAG_LOGI(AAFwkTag::APPMGR, "have apprecord");
+        TAG_LOGE(AAFwkTag::APPMGR, "TestProcess have apprecord");
         if (!appRecord->IsKeepAliveDkv()) {
             TAG_LOGD(AAFwkTag::APPMGR, "appRecord setKeepAlive");
             appRecord->SetKeepAliveDkv(loadParam->isKeepAlive);
@@ -1080,6 +1081,13 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         if (!appRecord->IsMainElementRunning()) {
             TAG_LOGD(AAFwkTag::APPMGR, "appRecord SetMainElementRunning");
             appRecord->SetMainElementRunning(loadParam->isMainElementRunning);
+        }
+        TAG_LOGE(AAFwkTag::APPMGR, "TestProcess abilityInfo extensionAbilityType:%{public}d", abilityInfo->extensionAbilityType);
+        if (appRecord->GetProcessType() == ProcessType::EXTENSION ||
+            appRecord->GetExtensionType() != abilityInfo->extensionAbilityType) {
+            TAG_LOGE(AAFwkTag::APPMGR, "TestProcess extension to normal start");
+            appRecord->SetProcessType(ProcessType::NORMAL);
+            DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessTypeChanged(appRecord);
         }
         ReportEventToRSS(*abilityInfo, appRecord);
         appRunningManager_->UpdateConfigurationDelayed(appRecord);
