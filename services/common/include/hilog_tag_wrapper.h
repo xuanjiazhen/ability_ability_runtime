@@ -266,15 +266,15 @@ static void PrintLog(
 
 using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
 
-#define TAG_LOGD(tag, fmt, ...) OHOS::AAFwk::PrintLog(\
+#define TAG_LOGD(tag, fmt, ...) OHOS::AAFwk::PrintLog( \
     LOG_DEBUG, tag, __FILE_NAME__, __LINE__, AAFWK_FUNC_FMT fmt, ##__VA_ARGS__)
-#define TAG_LOGI(tag, fmt, ...) OHOS::AAFwk::PrintLog(\
+#define TAG_LOGI(tag, fmt, ...) OHOS::AAFwk::PrintLog( \
     LOG_INFO, tag, __FILE_NAME__, __LINE__, AAFWK_FUNC_FMT fmt, ##__VA_ARGS__)
-#define TAG_LOGW(tag, fmt, ...) OHOS::AAFwk::PrintLog(\
+#define TAG_LOGW(tag, fmt, ...) OHOS::AAFwk::PrintLog( \
     LOG_WARN, tag, __FILE_NAME__, __LINE__, AAFWK_FUNC_FMT fmt, ##__VA_ARGS__)
-#define TAG_LOGE(tag, fmt, ...) OHOS::AAFwk::PrintLog(\
+#define TAG_LOGE(tag, fmt, ...) OHOS::AAFwk::PrintLog( \
     LOG_ERROR, tag, __FILE_NAME__, __LINE__, AAFWK_FUNC_FMT fmt, ##__VA_ARGS__)
-#define TAG_LOGF(tag, fmt, ...) OHOS::AAFwk::PrintLog(\
+#define TAG_LOGF(tag, fmt, ...) OHOS::AAFwk::PrintLog( \
     LOG_FATAL, tag, __FILE_NAME__, __LINE__, AAFWK_FUNC_FMT fmt, ##__VA_ARGS__)
 
 #endif  // OHOS_AAFWK_HILOG_TAG_WRAPPER_H
