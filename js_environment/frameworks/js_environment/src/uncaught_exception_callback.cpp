@@ -28,7 +28,6 @@
 #endif // SUPPORT_GRAPHICS
 #include "unwinder.h"
 #include "unwinder_config.h"
-
 namespace OHOS {
 namespace JsEnv {
 constexpr char BACKTRACE[] = "=====================Backtrace========================";
@@ -108,6 +107,7 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
     }
     if (errorStack.find(BACKTRACE) != std::string::npos) {
         summary += "Stacktrace:\n" + GetFuncNameAndBuildId(errorStack);
+        GetCurrentUIStackInfo(summary);
         std::string submitterStack = GetSubmitterStackLocal();
         if (!submitterStack.empty()) {
             summary.append("========SubmitterStacktrace========\n");
@@ -115,6 +115,7 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
         }
     } else {
         summary += "Stacktrace:\n" + errorStack;
+        GetCurrentUIStackInfo(summary);
         NativeEngine *engine = reinterpret_cast<NativeEngine*>(env_);
         std::string stackTraceStr;
         engine->GetHybridStackTraceForCrash(env_, stackTraceStr);
@@ -122,12 +123,6 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
             summary += "HybridStack:\n" + stackTraceStr;
         }
     }
-#ifdef SUPPORT_GRAPHICS
-    std::string str = Ace::UIContent::GetCurrentUIStackInfo();
-    if (!str.empty()) {
-        summary.append(str);
-    }
-#endif // SUPPORT_GRAPHICS
     if (uncaughtTask_) {
         uncaughtTask_(summary, errorObj);
     }
@@ -246,6 +241,16 @@ std::string NapiUncaughtExceptionCallback::GetSubmitterStackLocal()
         dlclose(handle);
         return "";
     }
+}
+
+void NapiUncaughtExceptionCallback::GetCurrentUIStackInfo(std::string& target)
+{
+#ifdef SUPPORT_GRAPHICS
+    std::string str = OHOS::Ace::UIContent::GetCurrentUIStackInfo();
+    if (!str.empty()) {
+        target.append(str);
+    }
+#endif // SUPPORT_GRAPHICS
 }
 } // namespace JsEnv
 } // namespace OHOS
