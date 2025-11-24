@@ -108,6 +108,12 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
     }
     if (errorStack.find(BACKTRACE) != std::string::npos) {
         summary += "Stacktrace:\n" + GetFuncNameAndBuildId(errorStack);
+#ifdef SUPPORT_GRAPHICS
+        std::string str = Ace::UIContent::GetCurrentUIStackInfo();
+        if (!str.empty()) {
+            summary.append(str);
+        }
+#endif // SUPPORT_GRAPHICS
         std::string submitterStack = GetSubmitterStackLocal();
         if (!submitterStack.empty()) {
             summary.append("========SubmitterStacktrace========\n");
@@ -115,6 +121,12 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
         }
     } else {
         summary += "Stacktrace:\n" + errorStack;
+#ifdef SUPPORT_GRAPHICS
+        std::string str = Ace::UIContent::GetCurrentUIStackInfo();
+        if (!str.empty()) {
+            summary.append(str);
+        }
+#endif // SUPPORT_GRAPHICS
         NativeEngine *engine = reinterpret_cast<NativeEngine*>(env_);
         std::string stackTraceStr;
         engine->GetHybridStackTraceForCrash(env_, stackTraceStr);
@@ -122,12 +134,6 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
             summary += "HybridStack:\n" + stackTraceStr;
         }
     }
-#ifdef SUPPORT_GRAPHICS
-    std::string str = Ace::UIContent::GetCurrentUIStackInfo();
-    if (!str.empty()) {
-        summary.append(str);
-    }
-#endif // SUPPORT_GRAPHICS
     if (uncaughtTask_) {
         uncaughtTask_(summary, errorObj);
     }
