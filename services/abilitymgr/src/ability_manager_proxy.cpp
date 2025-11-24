@@ -71,7 +71,7 @@ bool AbilityManagerProxy::ExtendMaxIpcCapacityForWant(const Want &want, MessageP
     return false;
 }
 
-int AbilityManagerProxy::StartAbility(const Want &want, int32_t userId, int requestCode)
+int AbilityManagerProxy::StartAbility(const Want &want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -216,7 +216,8 @@ int AbilityManagerProxy::StartAbility(const Want &want, const AbilityStartSettin
 }
 
 int AbilityManagerProxy::StartAbility(
-    const Want &want, const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode)
+    const Want &want, const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -1383,7 +1384,8 @@ int AbilityManagerProxy::ConnectAbility(
 
 int AbilityManagerProxy::ConnectAbilityCommon(
     const Want &want, const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken,
-    AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly)
+    AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly,
+    uint64_t specifiedFullTokenId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
