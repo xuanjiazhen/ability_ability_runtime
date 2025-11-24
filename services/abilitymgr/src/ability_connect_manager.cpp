@@ -113,6 +113,8 @@ AbilityConnectManager::AbilityConnectManager(int userId) : userId_(userId)
     uiExtensionAbilityRecordMgr_ = std::make_unique<AbilityRuntime::ExtensionRecordManager>(userId);
 }
 
+
+
 AbilityConnectManager::~AbilityConnectManager()
 {}
 
