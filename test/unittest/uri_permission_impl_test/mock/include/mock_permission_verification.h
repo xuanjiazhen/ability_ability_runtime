@@ -41,7 +41,7 @@ struct VerificationInfo {
 
     bool VerifyPermissionByTokenId(const int &tokenId, const std::string &permissionName) const;
 
-    bool VerifyCallingPermission(const std::string &permissionName) const;
+    bool VerifyCallingPermission(const std::string &permissionName, const uint32_t specifyTokenId = 0) const;
 
     bool IsSACall() const;
  
@@ -97,6 +97,8 @@ struct VerificationInfo {
     }
 
     bool JudgeCallerIsAllowedToUseSystemAPI() const;
+
+    bool JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_t specifiedFullTokenId) const;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
