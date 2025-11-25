@@ -61,7 +61,8 @@ constexpr static char FENCE_EXTENSION[] = "FenceExtension";
 constexpr static char CALLER_INFO_QUERY_EXTENSION[] = "CallerInfoQueryExtension";
 constexpr static char ASSET_ACCELERATION_EXTENSION[] = "AssetAccelerationExtension";
 constexpr static char SELECTION_EXTENSION[] = "SelectionExtensionAbility";
-}
+constexpr static char OLE_EXTENSION[] = "OleExtension";
+} // namespace
 
 const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_MAP = {
 #ifdef SUPPORT_GRAPHICS
@@ -207,16 +208,128 @@ void ExtensionAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplic
     TAG_LOGD(AAFwkTag::EXT, "End");
 }
 
+/**
+ * @brief 检查Attach函数的参数有效性
+ * @param application OHOS应用实例指针
+ * @param abilityRecord 能力记录指针
+ * @return bool 参数有效返回true，否则返回false
+ */
+bool ExtensionAbilityThread::CheckAttachParameters(
+    const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
+    const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord)
+{
+    if (application == nullptr || abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null Application or abilityRecord");
+        return false;
+    }
+    return true;
+}
+
+/**
+ * @brief 初始化事件运行器和能力处理器
+ * @param abilityName 能力名称
+ * @param mainRunner 主事件运行器指针，如果为nullptr则创建新的运行器
+ * @return bool 初始化成功返回true，否则返回false
+ */
+bool ExtensionAbilityThread::InitializeEventRunner(const std::string &abilityName,
+    const std::shared_ptr<AppExecFwk::EventRunner> &mainRunner)
+{
+    // 检查是否为Ole extension且需要使用独立的消息循环队列
+    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = nullptr;
+    bool isOleExtension = false;
+    
+    // 尝试从上下文获取abilityInfo以判断是否为Ole extension
+    if (extensionImpl_ != nullptr) {
+        auto context = extensionImpl_->GetContext();
+        if (context != nullptr) {
+            auto abilityContext = std::dynamic_pointer_cast<AbilityRuntime::AbilityContext>(context);
+            if (abilityContext != nullptr) {
+                abilityInfo = abilityContext->GetAbilityInfo();
+                if (abilityInfo != nullptr && 
+                    abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::OLE) {
+                    isOleExtension = true;
+                }
+            }
+        }
+    }
+    
+    // 对于Ole extension，使用共享的独立消息循环队列
+    if (isOleExtension) {
+        std::lock_guard<std::mutex> lock(g_oleExtensionRunnerMutex);
+        if (g_oleExtensionRunner == nullptr) {
+            // 如果共享runner不存在，则创建一个新的
+            g_oleExtensionRunner = AppExecFwk::EventRunner::Create(OLE_EXTENSION);
+            if (g_oleExtensionRunner == nullptr) {
+                TAG_LOGE(AAFwkTag::EXT, "create ole extension runner failed");
+                return false;
+            }
+        }
+        // 使用共享的Ole extension runner
+        abilityHandler_ = std::make_shared<AppExecFwk::AbilityHandler>(g_oleExtensionRunner);
+        if (abilityHandler_ == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "create ole extension ability handler failed");
+            return false;
+        }
+        return true;
+    }
+    
+    // 非Ole extension的原有逻辑
+    if (mainRunner == nullptr) {
+        runner_ = AppExecFwk::EventRunner::Create(abilityName);
+        if (runner_ == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "null runner_");
+            return false;
+        }
+        abilityHandler_ = std::make_shared<AppExecFwk::AbilityHandler>(runner_);
+        if (abilityHandler_ == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
+            return false;
+        }
+    } else {
+        abilityHandler_ = std::make_shared<AppExecFwk::AbilityHandler>(mainRunner);
+        if (abilityHandler_ == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief 安全获取扩展能力实例
+ * @param abilityRecord 能力记录指针
+ * @param abilityName 能力名称
+ * @return std::unique_ptr<AppExecFwk::Extension> 扩展能力实例指针，获取失败返回nullptr
+ */
+std::unique_ptr<AppExecFwk::Extension> ExtensionAbilityThread::GetExtensionByNameSafe(
+    const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
+    const std::string &abilityName)
+{
+    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = abilityRecord->GetAbilityInfo();
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null abilityInfo");
+        return nullptr;
+    }
+    
+    auto extension = AppExecFwk::AbilityLoader::GetInstance().GetExtensionByName(abilityName,
+        abilityInfo->arkTSMode);
+    if (extension == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null extension");
+        return nullptr;
+    }
+    return extension;
+}
+
 void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
     const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
     const std::shared_ptr<AppExecFwk::EventRunner> &mainRunner)
 {
-    if (application == nullptr || abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "null Application or abilityRecord");
+    // 1. 检查参数有效性
+    if (!CheckAttachParameters(application, abilityRecord)) {
         return;
     }
 
-    // 1.new AbilityHandler
+    // 2. 创建能力名称
     std::string abilityName = CreateAbilityName(abilityRecord, application);
     if (abilityName.empty()) {
         TAG_LOGE(AAFwkTag::EXT, "empty abilityName");
@@ -227,38 +340,20 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
 
     TAG_LOGD(AAFwkTag::EXT, "HandleAttach, extension: %{public}s", abilityName.c_str());
     FreezeUtil::GetInstance().AddLifecycleEvent(abilityRecord->GetToken(), "ExtensionAbilityThread::HandleAttach");
-    if (mainRunner == nullptr) {
-        runner_ = AppExecFwk::EventRunner::Create(abilityName);
-        if (runner_ == nullptr) {
-            TAG_LOGE(AAFwkTag::EXT, "null runner_");
-            return;
-        }
-        abilityHandler_ = std::make_shared<AppExecFwk::AbilityHandler>(runner_);
-        if (abilityHandler_ == nullptr) {
-            TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
-            return;
-        }
-    } else {
-        abilityHandler_ = std::make_shared<AppExecFwk::AbilityHandler>(mainRunner);
-        if (abilityHandler_ == nullptr) {
-            TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
-            return;
-        }
+
+    // 3. 初始化事件运行器
+    if (!InitializeEventRunner(abilityName, mainRunner)) {
+        return;
     }
 
-    // 2.new ability
-    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = abilityRecord->GetAbilityInfo();
-    if (abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "null abilityInfo");
-        return;
-    }
-    auto extension = AppExecFwk::AbilityLoader::GetInstance().GetExtensionByName(abilityName,
-        abilityInfo->arkTSMode);
+    // 4. 获取扩展能力实例
+    auto extension = GetExtensionByNameSafe(abilityRecord, abilityName);
     if (extension == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "null extension");
         return;
     }
-    currentExtension_.reset(extension);
+
+    // 5. 设置实例和继续内部处理
+    currentExtension_.reset(extension.release());
     token_ = abilityRecord->GetToken();
     abilityRecord->SetAbilityThread(this);
     HandleAttachInner(application, abilityRecord);

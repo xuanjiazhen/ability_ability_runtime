@@ -234,6 +234,8 @@ private:
 
     std::shared_ptr<ExtensionImpl> extensionImpl_ = nullptr;
     std::shared_ptr<Extension> currentExtension_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventRunner> g_oleExtensionRunner = nullptr;
+    std::mutex g_oleExtensionRunnerMutex;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
