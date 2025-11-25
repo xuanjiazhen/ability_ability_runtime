@@ -96,7 +96,7 @@ public:
     int AppfreezeHandle(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int AppfreezeHandleWithStack(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::LifecycleFlow flow = FreezeUtil::LifecycleFlow());
-    std::string WriteToFile(const std::string& fileName, std::string& content);
+    std::string WriteToFile(const std::string& fileName, const std::string& content);
     bool IsHandleAppfreeze(const std::string& bundleName);
     bool IsProcessDebug(int32_t pid, std::string bundleName);
     bool IsNeedIgnoreFreezeEvent(int32_t pid, const std::string& errorName);
