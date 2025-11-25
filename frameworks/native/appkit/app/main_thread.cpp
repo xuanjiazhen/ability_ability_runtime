@@ -4287,7 +4287,7 @@ void MainThread::SleepCleanKill()
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return ;
         }
-        AbilityManagerClient::GetInstance()->RecordAppExitReason({ REASON_SIGNAL, "Sleep_Clean_Kill" });
+        AbilityManagerClient::GetInstance()->RecordAppExitReason({ REASON_RESOURCE_CONTROL, "Sleep_Clean_Kill" });
         _exit(0);
     };
     mainHandler_->PostTask(task, "Sleep Clean:Over HeapSize", AppExecFwk::SLEEP_CLEAN_DELAY_TIME);
