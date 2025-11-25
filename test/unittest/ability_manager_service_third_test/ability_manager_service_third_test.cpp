@@ -74,7 +74,7 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     std::shared_ptr<AbilityRecord> MockAbilityRecord(AbilityType);
-    std::shared_ptr<ExtensionAbilityBase> MockExtensionAbilityBase(AbilityType abilityType);
+    std::shared_ptr<ExtensionRecordBase> MockExtensionRecordBase(AbilityType abilityType);
     sptr<Token> MockToken(AbilityType);
     void SetUp();
     void TearDown();
@@ -130,13 +130,13 @@ std::shared_ptr<AbilityRecord> AbilityManagerServiceThirdTest::MockAbilityRecord
     return AbilityRecord::CreateAbilityRecord(abilityRequest);
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityManagerServiceThirdTest::MockExtensionAbilityBase(AbilityType abilityType)
+std::shared_ptr<ExtensionRecordBase> AbilityManagerServiceThirdTest::MockExtensionRecordBase(AbilityType abilityType)
 {
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.bundleName = "com.test.demo";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = abilityType;
-    return ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
+    return ExtensionRecordBase::CreateAbilityRecord(abilityRequest);
 }
 
 sptr<Token> AbilityManagerServiceThirdTest::MockToken(AbilityType abilityType)
@@ -594,7 +594,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, DisconnectBeforeCleanupByUserId_001, Te
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     abilityMs_->subManagersHelper_->InitConnectManager(100, false);
 
-    auto abilityRecord = MockExtensionAbilityBase(AbilityType::SERVICE);
+    auto abilityRecord = MockExtensionRecordBase(AbilityType::SERVICE);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     OHOS::sptr<IAbilityConnection> callback1 = new AbilityConnectCallback();
     std::shared_ptr<ConnectionRecord> connection1 =
@@ -1106,7 +1106,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, UnloadUIExtensionAbility_001, TestSize.
     AppExecFwk::ElementName providerElement("0", "com.ohos.uiextensionprovider", "UIExtensionProvider", "entry");
     abilityRequest.want.SetElement(providerElement);
     abilityRequest.abilityInfo.type = AbilityType::EXTENSION;
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = ExtensionRecordBase::CreateAbilityRecord(abilityRequest);
     int32_t hostPid = 0;
     auto result = abilityMs->UnloadUIExtensionAbility(abilityRecord, hostPid);
     EXPECT_EQ(result, ERR_INVALID_VALUE);

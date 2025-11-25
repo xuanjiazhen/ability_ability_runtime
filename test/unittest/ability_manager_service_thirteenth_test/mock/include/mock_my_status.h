@@ -51,8 +51,8 @@ public:
     int permPermission_ = 1;
     bool perJudgeCallerIsAllowedToUseSystemAPI_ = true;
     bool paramGetBoolParameter_ = true;
-    std::shared_ptr<ExtensionAbilityBase> acmGetUIExtensionBySessionInfo_ = nullptr;
-    std::shared_ptr<ExtensionAbilityBase> acmGetUIExtensionBySessionFromServiceMap_ = nullptr;
+    std::shared_ptr<ExtensionRecordBase> acmGetUIExtensionBySessionInfo_ = nullptr;
+    std::shared_ptr<ExtensionRecordBase> acmGetUIExtensionBySessionFromServiceMap_ = nullptr;
     bool isSupportStartAbilities_ = true;
     bool isSupportMultiInstance_ = true;
     bool isSystemAppCall_ = true;

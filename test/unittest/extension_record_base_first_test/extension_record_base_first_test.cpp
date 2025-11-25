@@ -48,9 +48,9 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-    std::shared_ptr<ExtensionAbilityBase> GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> GetAbilityRecord();
 
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord_{ nullptr };
+    std::shared_ptr<ExtensionRecordBase> abilityRecord_{ nullptr };
 };
 
 void ExtensionRecordBaseFirstTest::SetUpTestCase(void)
@@ -64,7 +64,7 @@ void ExtensionRecordBaseFirstTest::SetUp(void)
     OHOS::AppExecFwk::AbilityInfo abilityInfo;
     OHOS::AppExecFwk::ApplicationInfo applicationInfo;
     Want want;
-    abilityRecord_ = std::make_shared<ExtensionAbilityBase>(want, abilityInfo, applicationInfo);
+    abilityRecord_ = std::make_shared<ExtensionRecordBase>(want, abilityInfo, applicationInfo);
     abilityRecord_->Init(AbilityRequest());
 }
 
@@ -73,23 +73,23 @@ void ExtensionRecordBaseFirstTest::TearDown(void)
     abilityRecord_.reset();
 }
 
-std::shared_ptr<ExtensionAbilityBase> ExtensionRecordBaseFirstTest::GetAbilityRecord()
+std::shared_ptr<ExtensionRecordBase> ExtensionRecordBaseFirstTest::GetAbilityRecord()
 {
     Want want;
     OHOS::AppExecFwk::AbilityInfo abilityInfo;
     OHOS::AppExecFwk::ApplicationInfo applicationInfo;
-    return std::make_shared<ExtensionAbilityBase>(want, abilityInfo, applicationInfo);
+    return std::make_shared<ExtensionRecordBase>(want, abilityInfo, applicationInfo);
 }
 
 /*
-* Feature: ExtensionAbilityBase
+* Feature: ExtensionRecordBase
 * Function: GetInProgressRecordCount
 * SubFunction: NA
 */
 HWTEST_F(ExtensionRecordBaseFirstTest, ExtensionRecordBase_GetInProgressRecordCount_001, TestSize.Level1)
 {
     TAG_LOGE(AAFwkTag::TEST, "AbilityRecord_GetInProgressRecordCount_001 start.");
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     std::shared_ptr<ConnectionRecord> connections = nullptr;
     abilityRecord->connRecordList_.push_back(connections);
     auto res = abilityRecord->GetInProgressRecordCount();
@@ -114,7 +114,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, ExtensionRecordBase_GetInProgressRecordCo
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: Add connection record to ability record' list
  * SubFunction: NA
  * FunctionPoints: AddConnectRecordToList
@@ -171,7 +171,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AaFwk_AbilityMS_AddConnectRecordToList, T
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: GetConnectingRecordList
  * SubFunction: GetConnectingRecordList
  * FunctionPoints: NA
@@ -180,7 +180,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AaFwk_AbilityMS_AddConnectRecordToList, T
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_GetConnectingRecordList_001, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     EXPECT_NE(abilityRecord, nullptr);
     OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
     std::shared_ptr<ConnectionRecord> connection1 =
@@ -195,7 +195,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_GetConnectingRecordList_001
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: DumpService
  * SubFunction: DumpService
  * FunctionPoints: NA
@@ -204,7 +204,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_GetConnectingRecordList_001
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpService_001, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     EXPECT_NE(abilityRecord, nullptr);
     std::vector<std::string> info;
     std::vector<std::string> params;
@@ -219,7 +219,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpService_001, TestSize.L
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: DisconnectAbility
  * SubFunction: DisconnectAbility
  * FunctionPoints: NA
@@ -228,7 +228,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpService_001, TestSize.L
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DisconnectAbility_001, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
     abilityRecord->connRecordList_.clear();
@@ -238,7 +238,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DisconnectAbility_001, Test
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: DisconnectAbilityWithWant
  * SubFunction: DisconnectAbilityWithWant
  * FunctionPoints: NA
@@ -247,7 +247,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DisconnectAbility_001, Test
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DisconnectAbilityWithWant_001, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
@@ -260,7 +260,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DisconnectAbilityWithWant_0
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: DumpService
  * SubFunction: DumpService
  * FunctionPoints: NA
@@ -269,7 +269,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DisconnectAbilityWithWant_0
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpService_002, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     std::vector<std::string> info;
     std::vector<std::string> params;
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::HMS_ACCOUNT;
@@ -283,16 +283,16 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpService_002, TestSize.L
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: DumpService
  * SubFunction: DumpService
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify ExtensionAbilityBase DumpService
+ * CaseDescription: Verify ExtensionRecordBase DumpService
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpService_003, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     std::vector<std::string> info;
     std::vector<std::string> params;
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
@@ -306,7 +306,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpService_003, TestSize.L
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: SetConnRemoteObject GetConnRemoteObject
  * SubFunction: SetConnRemoteObject GetConnRemoteObject
  * FunctionPoints: NA
@@ -321,7 +321,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AaFwk_AbilityMS_ConnRemoteObject, TestSiz
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: DumpUIExtensionRootHostInfo
  * SubFunction: DumpUIExtensionRootHostInfo
  * FunctionPoints: NA
@@ -330,7 +330,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AaFwk_AbilityMS_ConnRemoteObject, TestSiz
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpUIExtensionRootHostInfo_001, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     std::vector<std::string> info;
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSDIALOG_COMMON;
     abilityRecord->token_ = nullptr;
@@ -339,7 +339,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpUIExtensionRootHostInfo
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: DumpUIExtensionRootHostInfo
  * SubFunction: DumpUIExtensionRootHostInfo
  * FunctionPoints: NA
@@ -348,7 +348,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpUIExtensionRootHostInfo
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpUIExtensionRootHostInfo_002, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     std::vector<std::string> info;
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSDIALOG_COMMON;
     abilityRecord->token_ = sptr<Token>::MakeSptr(abilityRecord);
@@ -357,7 +357,7 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpUIExtensionRootHostInfo
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: DumpUIExtensionPid
  * SubFunction: DumpUIExtensionPid
  * FunctionPoints: NA
@@ -366,23 +366,23 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpUIExtensionRootHostInfo
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_DumpUIExtensionPid_001, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     std::vector<std::string> info;
     abilityRecord->DumpUIExtensionPid(info, true);
     EXPECT_TRUE(info.size() == 1);
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: ConnectAbility
  * SubFunction: ConnectAbility
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify ExtensionAbilityBase ConnectAbility
+ * CaseDescription: Verify ExtensionRecordBase ConnectAbility
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_ConnectAbility_001, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     abilityRecord->lifecycleDeal_ = nullptr;
     abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
     bool isConnected = true;
@@ -391,16 +391,16 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_ConnectAbility_001, TestSiz
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: PostUIExtensionAbilityTimeoutTask
  * SubFunction: PostUIExtensionAbilityTimeoutTask
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify ExtensionAbilityBase PostUIExtensionAbilityTimeoutTask
+ * CaseDescription: Verify ExtensionRecordBase PostUIExtensionAbilityTimeoutTask
  */
 HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_PostUIExtensionAbilityTimeoutTask_001, TestSize.Level1)
 {
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecord();
     ASSERT_NE(abilityRecord, nullptr);
     abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::LOAD_TIMEOUT_MSG);
     abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);

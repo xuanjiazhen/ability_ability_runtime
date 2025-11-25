@@ -94,7 +94,7 @@ public:
     bool IsPreloadExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
         const pid_t &hostPid, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
-    int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::ExtensionAbilityBase> abilityRecord);
+    int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::ExtensionRecordBase> abilityRecord);
 
     void RemoveAllPreloadUIExtensionRecord(PreLoadUIExtensionMapKey &preLoadUIExtensionInfo);
 
@@ -106,9 +106,9 @@ public:
         int32_t extensionRecordId);
 
     int32_t GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
-        std::shared_ptr<AAFwk::ExtensionAbilityBase> &abilityRecord, bool &isLoaded);
+        std::shared_ptr<AAFwk::ExtensionRecordBase> &abilityRecord, bool &isLoaded);
 
-    std::shared_ptr<AAFwk::ExtensionAbilityBase> GetAbilityRecordBySessionInfo(
+    std::shared_ptr<AAFwk::ExtensionRecordBase> GetAbilityRecordBySessionInfo(
         const sptr<AAFwk::SessionInfo> &sessionInfo);
 
     std::shared_ptr<AAFwk::AbilityRecord> GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token);
@@ -177,7 +177,7 @@ private:
 
     int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
     int32_t SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
-        const std::shared_ptr<AAFwk::ExtensionAbilityBase> &abilityRecord,
+        const std::shared_ptr<AAFwk::ExtensionRecordBase> &abilityRecord,
         std::shared_ptr<ExtensionRecord> &extensionRecord);
     void ConvertToUnloadExtensionRecords(std::vector<std::shared_ptr<ExtensionRecord>> &records,
         std::vector<std::shared_ptr<ExtensionRecord>> &recordsToUnload);

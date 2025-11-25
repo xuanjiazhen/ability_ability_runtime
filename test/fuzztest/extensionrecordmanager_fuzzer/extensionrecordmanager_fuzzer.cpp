@@ -48,7 +48,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t recordNum;
     std::shared_ptr<AbilityRuntime::ExtensionRecord> record;
     std::shared_ptr<AbilityRuntime::ExtensionRecord> extensionRecord;
-    std::shared_ptr<AAFwk::ExtensionAbilityBase> abilityRecord;
+    std::shared_ptr<AAFwk::ExtensionRecordBase> abilityRecord;
     std::list<sptr<IRemoteObject>> callerList;
     std::string hostBundleName;
     std::string bundleName;

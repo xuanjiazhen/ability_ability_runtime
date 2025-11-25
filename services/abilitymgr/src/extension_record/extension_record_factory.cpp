@@ -139,7 +139,7 @@ uint32_t ExtensionRecordFactory::GetExtensionProcessMode(
 int32_t ExtensionRecordFactory::CreateRecord(
     const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &extensionRecord)
 {
-    auto abilityRecord = AAFwk::ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::ExtensionRecordBase::CreateAbilityRecord(abilityRequest);
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord create failed");
         return ERR_NULL_OBJECT;

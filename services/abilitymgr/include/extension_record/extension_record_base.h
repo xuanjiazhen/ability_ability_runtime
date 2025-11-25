@@ -22,12 +22,12 @@ namespace OHOS {
 namespace AAFwk {
 class ConnectionRecord;
 
-class ExtensionAbilityBase : public AbilityRecord {
+class ExtensionRecordBase : public AbilityRecord {
 public:
-    ExtensionAbilityBase(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
+    ExtensionRecordBase(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode = -1);
 
-    static std::shared_ptr<ExtensionAbilityBase> CreateAbilityRecord(const AbilityRequest &abilityRequest);
+    static std::shared_ptr<ExtensionRecordBase> CreateAbilityRecord(const AbilityRequest &abilityRequest);
 
     AbilityRecordType GetAbilityRecordType() override;
 
