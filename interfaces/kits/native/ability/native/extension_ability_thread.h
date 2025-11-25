@@ -137,7 +137,19 @@ public:
 
     void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override;
 
+    void HandleOleExtensionAttach(
+        const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
+        const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
+        const std::string &abilityName);
+        
+    void HandleNormalExtensionAttach(
+        const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
+        const std::shared_ptr<AppExecFwk::EventRunner> &mainRunner,
+        const std::string &abilityName);
+
 private:
+    static std::map<std::string, std::shared_ptr<AppExecFwk::EventRunner>> oleEventRunnerMap_;
+
     /**
      * @brief Dump Ability Info Inner
      * @param params the params need to be Dumped
@@ -234,8 +246,6 @@ private:
 
     std::shared_ptr<ExtensionImpl> extensionImpl_ = nullptr;
     std::shared_ptr<Extension> currentExtension_ = nullptr;
-    std::shared_ptr<AppExecFwk::EventRunner> g_oleExtensionRunner = nullptr;
-    std::mutex g_oleExtensionRunnerMutex;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
