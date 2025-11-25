@@ -24,7 +24,8 @@ const std::string STRING_ABILITY_NAME_INVALID = "invalid_ability";
 const std::string STRING_BUNDLE_NAME_INVALID = "invalid_bundle";
 }  // namespace
 
-int MockAbilityManagerStub::StartAbility(const Want& want, int32_t userId, int requestCode)
+int MockAbilityManagerStub::StartAbility(
+    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
     TAG_LOGI(AAFwkTag::TEST, "[%{public}s(%{public}s)] enter", __FILE__, __FUNCTION__);
 
