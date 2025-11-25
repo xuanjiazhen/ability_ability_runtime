@@ -38,7 +38,7 @@ public:
     void SetUp();
     void TearDown();
     std::shared_ptr<ConnectionStateManager> manager_ {nullptr};
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord_ {nullptr};
+    std::shared_ptr<ExtensionRecordBase> abilityRecord_ {nullptr};
     std::shared_ptr<DataAbilityRecord> dataAbilityRecord_ {nullptr};
     sptr<IAbilityConnection> callback_ {nullptr};
 
@@ -70,7 +70,7 @@ void ConnectionStateManagerTest::SetUp()
     AbilityInfo abilityInfo;
     ApplicationInfo applicationInfo;
     AbilityRequest abilityRequest;
-    abilityRecord_ = std::make_shared<ExtensionAbilityBase>(want, abilityInfo, applicationInfo);
+    abilityRecord_ = std::make_shared<ExtensionRecordBase>(want, abilityInfo, applicationInfo);
     dataAbilityRecord_ = std::make_shared<DataAbilityRecord>(abilityRequest);
     manager_ = std::make_shared<ConnectionStateManager>();
     callback_ = new AbilityConnectionMock();

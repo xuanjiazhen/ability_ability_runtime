@@ -58,7 +58,7 @@ sptr<Token> GetFuzzAbilityToken()
     abilityRequest.appInfo.bundleName = "com.example.fuzzTest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AbilityType::DATA;
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = ExtensionRecordBase::CreateAbilityRecord(abilityRequest);
     if (abilityRecord) {
         token = abilityRecord->GetToken();
     }
@@ -71,8 +71,8 @@ void FuzztestExtensionRecordManagerFunc1(std::shared_ptr<ExtensionRecordManager>
     Want want;
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo applicationInfo;
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord =
-        std::make_shared<ExtensionAbilityBase>(want, abilityInfo, applicationInfo);
+    std::shared_ptr<ExtensionRecordBase> abilityRecord =
+        std::make_shared<ExtensionRecordBase>(want, abilityInfo, applicationInfo);
     std::shared_ptr<ExtensionRecord> record = std::make_shared<ExtensionRecord>(abilityRecord);
     mgr->GenerateExtensionRecordId(int32Param);
     mgr->AddExtensionRecord(int32Param, record);
@@ -105,7 +105,7 @@ void FuzztestExtensionRecordManagerFunc2(std::shared_ptr<ExtensionRecordManager>
     Want want;
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo applicationInfo;
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = std::make_shared<ExtensionAbilityBase>(want, abilityInfo, applicationInfo);
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = std::make_shared<ExtensionRecordBase>(want, abilityInfo, applicationInfo);
     std::shared_ptr<ExtensionRecord> record = std::make_shared<ExtensionRecord>(abilityRecord);
     AAFwk::AbilityRequest abilityRequest;
     sptr<AAFwk::SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
@@ -156,7 +156,7 @@ void FuzztestExtensionRecordManagerFunc3(std::shared_ptr<ExtensionRecordManager>
     Want want;
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo applicationInfo;
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = std::make_shared<ExtensionAbilityBase>(want, abilityInfo, applicationInfo);
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = std::make_shared<ExtensionRecordBase>(want, abilityInfo, applicationInfo);
     std::shared_ptr<ExtensionRecord> record = std::make_shared<ExtensionRecord>(abilityRecord);
     AAFwk::AbilityRequest abilityRequest;
     UIExtensionSessionInfo uiExtensionSessionInfo;

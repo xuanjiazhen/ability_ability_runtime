@@ -38,7 +38,7 @@ void AbilityCacheManager::Init(uint32_t devCapacity, uint32_t procCapacity)
     procLruCapacity_ = procCapacity;
 }
 
-void AbilityCacheManager::RemoveAbilityRecInDevList(std::shared_ptr<ExtensionAbilityBase> abilityRecord)
+void AbilityCacheManager::RemoveAbilityRecInDevList(std::shared_ptr<ExtensionRecordBase> abilityRecord)
 {
     if (abilityRecord == nullptr) {
         return;
@@ -56,7 +56,7 @@ void AbilityCacheManager::RemoveAbilityRecInDevList(std::shared_ptr<ExtensionAbi
     }
 }
 
-void AbilityCacheManager::RemoveAbilityRecInProcList(std::shared_ptr<ExtensionAbilityBase> abilityRecord)
+void AbilityCacheManager::RemoveAbilityRecInProcList(std::shared_ptr<ExtensionRecordBase> abilityRecord)
 {
     if (abilityRecord == nullptr) {
         return;
@@ -83,15 +83,15 @@ void AbilityCacheManager::RemoveAbilityRecInProcList(std::shared_ptr<ExtensionAb
     }
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToProcLru(
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord)
+std::shared_ptr<ExtensionRecordBase> AbilityCacheManager::AddToProcLru(
+    std::shared_ptr<ExtensionRecordBase> abilityRecord)
 {
     if (abilityRecord == nullptr) {
         return nullptr;
     }
     auto findProcInfo = procLruMap_.find(abilityRecord->GetApplicationInfo().accessTokenId);
     if (findProcInfo == procLruMap_.end()) {
-        std::list<std::shared_ptr<ExtensionAbilityBase>> recList;
+        std::list<std::shared_ptr<ExtensionRecordBase>> recList;
         ProcRecordsInfo procRecInfo = {recList, 1};
         procRecInfo.recList.push_back(abilityRecord);
         procLruMap_[abilityRecord->GetApplicationInfo().accessTokenId] = procRecInfo;
@@ -99,7 +99,7 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToProcLru(
     }
     if (findProcInfo->second.cnt == procLruCapacity_) {
         RemoveAbilityRecInDevList(findProcInfo->second.recList.front());
-        std::shared_ptr<ExtensionAbilityBase> rec = findProcInfo->second.recList.front();
+        std::shared_ptr<ExtensionRecordBase> rec = findProcInfo->second.recList.front();
         findProcInfo->second.recList.pop_front();
         findProcInfo->second.recList.push_back(abilityRecord);
         return rec;
@@ -109,8 +109,8 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToProcLru(
     return nullptr;
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToDevLru(
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord, std::shared_ptr<ExtensionAbilityBase> rec)
+std::shared_ptr<ExtensionRecordBase> AbilityCacheManager::AddToDevLru(
+    std::shared_ptr<ExtensionRecordBase> abilityRecord, std::shared_ptr<ExtensionRecordBase> rec)
 {
     if (rec != nullptr) {
         devRecLru_.push_back(abilityRecord);
@@ -128,7 +128,7 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::AddToDevLru(
     return rec;
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::Put(std::shared_ptr<ExtensionAbilityBase> abilityRecord)
+std::shared_ptr<ExtensionRecordBase> AbilityCacheManager::Put(std::shared_ptr<ExtensionRecordBase> abilityRecord)
 {
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null abilityRecord");
@@ -137,11 +137,11 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::Put(std::shared_ptr<E
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "Put the ability to lru, service:%{public}s, extension type %{public}d",
         abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
     std::lock_guard<std::mutex> lock(mutex_);
-    std::shared_ptr<ExtensionAbilityBase> rec = AddToProcLru(abilityRecord);
+    std::shared_ptr<ExtensionRecordBase> rec = AddToProcLru(abilityRecord);
     return AddToDevLru(abilityRecord, rec);
 }
 
-void AbilityCacheManager::Remove(std::shared_ptr<ExtensionAbilityBase> abilityRecord)
+void AbilityCacheManager::Remove(std::shared_ptr<ExtensionRecordBase> abilityRecord)
 {
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null abilityRecord");
@@ -155,14 +155,14 @@ void AbilityCacheManager::Remove(std::shared_ptr<ExtensionAbilityBase> abilityRe
 }
 
 bool AbilityCacheManager::IsRecInfoSame(const AbilityRequest& abilityRequest,
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord)
+    std::shared_ptr<ExtensionRecordBase> abilityRecord)
 {
     return abilityRecord != nullptr &&
         abilityRequest.abilityInfo.moduleName == abilityRecord->GetAbilityInfo().moduleName &&
         abilityRequest.want.GetElement().GetAbilityName() == abilityRecord->GetWant().GetElement().GetAbilityName();
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::GetAbilityRecInProcList(const AbilityRequest &abilityRequest)
+std::shared_ptr<ExtensionRecordBase> AbilityCacheManager::GetAbilityRecInProcList(const AbilityRequest &abilityRequest)
 {
     auto findProcInfo = procLruMap_.find(abilityRequest.appInfo.accessTokenId);
     if (findProcInfo == procLruMap_.end()) {
@@ -173,7 +173,7 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::GetAbilityRecInProcLi
     auto recIter = procRecordsInfo.recList.begin();
     while (recIter != procRecordsInfo.recList.end()) {
         if (IsRecInfoSame(abilityRequest, *recIter)) {
-            std::shared_ptr<ExtensionAbilityBase> abilityRecord = *recIter;
+            std::shared_ptr<ExtensionRecordBase> abilityRecord = *recIter;
             procRecordsInfo.recList.erase(recIter);
             procRecordsInfo.cnt--;
             return abilityRecord;
@@ -184,12 +184,12 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::GetAbilityRecInProcLi
     return nullptr;
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::Get(const AbilityRequest& abilityRequest)
+std::shared_ptr<ExtensionRecordBase> AbilityCacheManager::Get(const AbilityRequest& abilityRequest)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "Get the ability from lru, service:%{public}s, extension type %{public}d",
         abilityRequest.abilityInfo.uri.c_str(), abilityRequest.abilityInfo.extensionAbilityType);
     std::lock_guard<std::mutex> lock(mutex_);
-    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecInProcList(abilityRequest);
+    std::shared_ptr<ExtensionRecordBase> abilityRecord = GetAbilityRecInProcList(abilityRequest);
     if (abilityRecord == nullptr) {
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "Can't found the abilityRecord for get.");
         return nullptr;
@@ -198,7 +198,7 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::Get(const AbilityRequ
     return abilityRecord;
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::FindRecordByToken(const sptr<IRemoteObject> &token)
+std::shared_ptr<ExtensionRecordBase> AbilityCacheManager::FindRecordByToken(const sptr<IRemoteObject> &token)
 {
     if (token == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null token");
@@ -210,7 +210,7 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::FindRecordByToken(con
         if (*it) {
             sptr<IRemoteObject> srcToken = (*it)->GetToken();
             if (srcToken == token) {
-                std::shared_ptr<ExtensionAbilityBase> &abilityRecord = *it;
+                std::shared_ptr<ExtensionRecordBase> &abilityRecord = *it;
                 TAG_LOGD(AAFwkTag::SERVICE_EXT,
                     "Find the ability by token from lru, service:%{public}s, extension type %{public}d",
                     abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
@@ -222,13 +222,13 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::FindRecordByToken(con
     return nullptr;
 }
 
-std::list<std::shared_ptr<ExtensionAbilityBase>> AbilityCacheManager::GetAbilityList()
+std::list<std::shared_ptr<ExtensionRecordBase>> AbilityCacheManager::GetAbilityList()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return devRecLru_;
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::FindRecordBySessionId(const std::string &assertSessionId)
+std::shared_ptr<ExtensionRecordBase> AbilityCacheManager::FindRecordBySessionId(const std::string &assertSessionId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = devRecLru_.begin();
@@ -239,7 +239,7 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::FindRecordBySessionId
         }
         auto assertSessionStr = (*it)->GetWant().GetStringParam(Want::PARAM_ASSERT_FAULT_SESSION_ID);
         if (assertSessionStr == assertSessionId) {
-            std::shared_ptr<ExtensionAbilityBase> &abilityRecord = *it;
+            std::shared_ptr<ExtensionRecordBase> &abilityRecord = *it;
             TAG_LOGD(AAFwkTag::SERVICE_EXT,
                 "Find the ability by sessionId from lru, service:%{public}s, extension type %{public}d",
                 abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
@@ -251,7 +251,7 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::FindRecordBySessionId
     return nullptr;
 }
 
-std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::FindRecordByServiceKey(const std::string &serviceKey)
+std::shared_ptr<ExtensionRecordBase> AbilityCacheManager::FindRecordByServiceKey(const std::string &serviceKey)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = devRecLru_.begin();
@@ -265,7 +265,7 @@ std::shared_ptr<ExtensionAbilityBase> AbilityCacheManager::FindRecordByServiceKe
             curServiceKey = curServiceKey + std::to_string((*it)->GetWant().GetIntParam(FRS_APP_INDEX, 0));
         }
         if (curServiceKey.compare(serviceKey) == 0) {
-            std::shared_ptr<ExtensionAbilityBase> &abilityRecord = *it;
+            std::shared_ptr<ExtensionRecordBase> &abilityRecord = *it;
             TAG_LOGD(AAFwkTag::SERVICE_EXT,
                 "Find the ability by serviceKey from lru, service:%{public}s, extension type %{public}d",
                 abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);

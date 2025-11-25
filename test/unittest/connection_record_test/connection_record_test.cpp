@@ -57,7 +57,7 @@ public:
 
     std::shared_ptr<ConnectionRecord> connectionRecord_{ nullptr };
     OHOS::sptr<AbilityConnectCallbackMock> callback_{ nullptr };
-    std::shared_ptr<ExtensionAbilityBase> service_{ nullptr };
+    std::shared_ptr<ExtensionRecordBase> service_{ nullptr };
 };
 
 AbilityRequest ConnectionRecordTest::GenerateAbilityRequest(const std::string& deviceName,
@@ -96,7 +96,7 @@ void ConnectionRecordTest::SetUp(void)
     std::string appName = "hiservcie";
     std::string bundleName = "com.ix.hiservcie";
     AbilityRequest abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName);
-    service_ = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
+    service_ = ExtensionRecordBase::CreateAbilityRecord(abilityRequest);
     connectionRecord_ = std::make_shared<ConnectionRecord>(service_->GetToken(), service_, callback_, nullptr);
 }
 

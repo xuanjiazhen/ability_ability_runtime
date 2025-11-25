@@ -169,7 +169,7 @@ const AbilityRequest& ExtensionRecordBaseModuleTest::MakeHomeAbilityRequest()
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: ConnectionRecord
  * SubFunction: AddConnectRecordToList/GetConnectRecordList/GetConnectingRecord/GetDisconnectingRecord
  * FunctionPoints: Ability connect record getter and setter
@@ -179,7 +179,7 @@ HWTEST_F(ExtensionRecordBaseModuleTest, ConnectionRecord_001, TestSize.Level2)
 {
     auto& abilityRequest = MakeDefaultAbilityRequest();
 
-    auto abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = ExtensionRecordBase::CreateAbilityRecord(abilityRequest);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 
@@ -210,7 +210,7 @@ HWTEST_F(ExtensionRecordBaseModuleTest, ConnectionRecord_001, TestSize.Level2)
 }
 
 /*
- * Feature: ExtensionAbilityBase
+ * Feature: ExtensionRecordBase
  * Function: Scheduler
  * SubFunction: Activate/Inactivate/Terminate/ConnectAbility/DisconnectAbility/SendResult
  * FunctionPoints: Check scheduler work flow.
@@ -219,7 +219,7 @@ HWTEST_F(ExtensionRecordBaseModuleTest, ConnectionRecord_001, TestSize.Level2)
 HWTEST_F(ExtensionRecordBaseModuleTest, AbilityScheduler_001, TestSize.Level3)
 {
     auto& abilityRequest = MakeDefaultAbilityRequest();
-    auto abilityRecord = ExtensionAbilityBase::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = ExtensionRecordBase::CreateAbilityRecord(abilityRequest);
     EXPECT_TRUE(abilityRecord);
 
     sptr<MockAbilitySchedulerStub> mockAbilityScheduerStub(new MockAbilitySchedulerStub);

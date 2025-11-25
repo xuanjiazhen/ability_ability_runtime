@@ -31,24 +31,24 @@ namespace AAFwk {
 using namespace OHOS::AbilityRuntime::GlobalConstant;
 const int HALF_TIMEOUT = 2;
 
-ExtensionAbilityBase::ExtensionAbilityBase(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
+ExtensionRecordBase::ExtensionRecordBase(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode)
     : AbilityRecord(want, abilityInfo, applicationInfo, requestCode) {}
 
-std::shared_ptr<ExtensionAbilityBase> ExtensionAbilityBase::CreateAbilityRecord(const AbilityRequest &abilityRequest)
+std::shared_ptr<ExtensionRecordBase> ExtensionRecordBase::CreateAbilityRecord(const AbilityRequest &abilityRequest)
 {
-    auto abilityRecord = std::make_shared<ExtensionAbilityBase>(abilityRequest.want, abilityRequest.abilityInfo,
+    auto abilityRecord = std::make_shared<ExtensionRecordBase>(abilityRequest.want, abilityRequest.abilityInfo,
         abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->Init(abilityRequest);
     return abilityRecord;
 }
 
-AbilityRecordType ExtensionAbilityBase::GetAbilityRecordType()
+AbilityRecordType ExtensionRecordBase::GetAbilityRecordType()
 {
     return AbilityRecordType::EXTENSION_ABILITY;
 }
 
-void ExtensionAbilityBase::AddConnectRecordToList(const std::shared_ptr<ConnectionRecord> &connRecord)
+void ExtensionRecordBase::AddConnectRecordToList(const std::shared_ptr<ConnectionRecord> &connRecord)
 {
     CHECK_POINTER(connRecord);
     std::lock_guard guard(connRecordListMutex_);
@@ -63,13 +63,13 @@ void ExtensionAbilityBase::AddConnectRecordToList(const std::shared_ptr<Connecti
     connRecordList_.push_back(connRecord);
 }
 
-std::list<std::shared_ptr<ConnectionRecord>> ExtensionAbilityBase::GetConnectRecordList() const
+std::list<std::shared_ptr<ConnectionRecord>> ExtensionRecordBase::GetConnectRecordList() const
 {
     std::lock_guard guard(connRecordListMutex_);
     return connRecordList_;
 }
 
-void ExtensionAbilityBase::RemoveConnectRecordFromList(const std::shared_ptr<ConnectionRecord> &connRecord)
+void ExtensionRecordBase::RemoveConnectRecordFromList(const std::shared_ptr<ConnectionRecord> &connRecord)
 {
     CHECK_POINTER(connRecord);
     std::lock_guard guard(connRecordListMutex_);
@@ -79,7 +79,7 @@ void ExtensionAbilityBase::RemoveConnectRecordFromList(const std::shared_ptr<Con
     }
 }
 
-std::shared_ptr<ConnectionRecord> ExtensionAbilityBase::GetConnectingRecord() const
+std::shared_ptr<ConnectionRecord> ExtensionRecordBase::GetConnectingRecord() const
 {
     std::lock_guard guard(connRecordListMutex_);
     auto connect =
@@ -89,7 +89,7 @@ std::shared_ptr<ConnectionRecord> ExtensionAbilityBase::GetConnectingRecord() co
     return (connect != connRecordList_.end()) ? *connect : nullptr;
 }
 
-std::list<std::shared_ptr<ConnectionRecord>> ExtensionAbilityBase::GetConnectingRecordList()
+std::list<std::shared_ptr<ConnectionRecord>> ExtensionRecordBase::GetConnectingRecordList()
 {
     std::lock_guard guard(connRecordListMutex_);
     std::list<std::shared_ptr<ConnectionRecord>> connectingList;
@@ -101,7 +101,7 @@ std::list<std::shared_ptr<ConnectionRecord>> ExtensionAbilityBase::GetConnecting
     return connectingList;
 }
 
-std::shared_ptr<ConnectionRecord> ExtensionAbilityBase::GetDisconnectingRecord() const
+std::shared_ptr<ConnectionRecord> ExtensionRecordBase::GetDisconnectingRecord() const
 {
     std::lock_guard guard(connRecordListMutex_);
     auto connect =
@@ -111,7 +111,7 @@ std::shared_ptr<ConnectionRecord> ExtensionAbilityBase::GetDisconnectingRecord()
     return (connect != connRecordList_.end()) ? *connect : nullptr;
 }
 
-size_t ExtensionAbilityBase::GetConnectedListSize()
+size_t ExtensionRecordBase::GetConnectedListSize()
 {
     std::lock_guard guard(connRecordListMutex_);
     return std::count_if(connRecordList_.begin(), connRecordList_.end(), [](std::shared_ptr<ConnectionRecord> record) {
@@ -119,18 +119,18 @@ size_t ExtensionAbilityBase::GetConnectedListSize()
     });
 }
 
-bool ExtensionAbilityBase::IsConnectListEmpty()
+bool ExtensionRecordBase::IsConnectListEmpty()
 {
     std::lock_guard guard(connRecordListMutex_);
     return connRecordList_.empty();
 }
 
-bool ExtensionAbilityBase::NeedConnectAfterCommand()
+bool ExtensionRecordBase::NeedConnectAfterCommand()
 {
     return !IsConnectListEmpty() && !isConnected;
 }
 
-size_t ExtensionAbilityBase::GetConnectingListSize()
+size_t ExtensionRecordBase::GetConnectingListSize()
 {
     std::lock_guard guard(connRecordListMutex_);
     return std::count_if(connRecordList_.begin(), connRecordList_.end(), [](std::shared_ptr<ConnectionRecord> record) {
@@ -138,7 +138,7 @@ size_t ExtensionAbilityBase::GetConnectingListSize()
     });
 }
 
-uint32_t ExtensionAbilityBase::GetInProgressRecordCount()
+uint32_t ExtensionRecordBase::GetInProgressRecordCount()
 {
     std::lock_guard guard(connRecordListMutex_);
     uint32_t count = 0;
@@ -151,7 +151,7 @@ uint32_t ExtensionAbilityBase::GetInProgressRecordCount()
     return count;
 }
 
-void ExtensionAbilityBase::DisconnectAbility()
+void ExtensionRecordBase::DisconnectAbility()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "DisconnectAbility, bundle:%{public}s, ability:%{public}s.",
@@ -167,7 +167,7 @@ void ExtensionAbilityBase::DisconnectAbility()
     }
 }
 
-void ExtensionAbilityBase::DisconnectAbilityWithWant(const Want &want)
+void ExtensionRecordBase::DisconnectAbilityWithWant(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "DisconnectAbilityWithWant:%{public}s.", GetAbilityInfo().name.c_str());
@@ -178,13 +178,13 @@ void ExtensionAbilityBase::DisconnectAbilityWithWant(const Want &want)
     }
 }
 
-void ExtensionAbilityBase::DumpService(std::vector<std::string> &info, bool isClient) const
+void ExtensionRecordBase::DumpService(std::vector<std::string> &info, bool isClient) const
 {
     std::vector<std::string> params;
     DumpService(info, params, isClient);
 }
 
-void ExtensionAbilityBase::DumpService(std::vector<std::string> &info, std::vector<std::string> &params,
+void ExtensionRecordBase::DumpService(std::vector<std::string> &info, std::vector<std::string> &params,
     bool isClient) const
 {
     info.emplace_back("      AbilityRecord ID #" + std::to_string(GetRecordId()) + "   state #" +
@@ -231,7 +231,7 @@ void ExtensionAbilityBase::DumpService(std::vector<std::string> &info, std::vect
     DumpUIExtensionPid(info, isUIExtension);
 }
 
-void ExtensionAbilityBase::DumpUIExtensionRootHostInfo(std::vector<std::string> &info) const
+void ExtensionRecordBase::DumpUIExtensionRootHostInfo(std::vector<std::string> &info) const
 {
     if (!UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
         // Dump host info only for uiextension.
@@ -259,7 +259,7 @@ void ExtensionAbilityBase::DumpUIExtensionRootHostInfo(std::vector<std::string> 
     info.emplace_back(dumpInfo);
 }
 
-void ExtensionAbilityBase::DumpUIExtensionPid(std::vector<std::string> &info, bool isUIExtension) const
+void ExtensionRecordBase::DumpUIExtensionPid(std::vector<std::string> &info, bool isUIExtension) const
 {
     if (!isUIExtension) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Not ui extension type.");
@@ -276,7 +276,7 @@ void ExtensionAbilityBase::DumpUIExtensionPid(std::vector<std::string> &info, bo
     info.emplace_back("      pid: " + std::to_string(processInfo.pid_));
 }
 
-void ExtensionAbilityBase::ConnectAbilityWithWant(const Want &want)
+void ExtensionRecordBase::ConnectAbilityWithWant(const Want &want)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "Connect ability.");
     CHECK_POINTER(lifecycleDeal_);
@@ -287,7 +287,7 @@ void ExtensionAbilityBase::ConnectAbilityWithWant(const Want &want)
     isConnected = true;
 }
 
-void ExtensionAbilityBase::ConnectAbility()
+void ExtensionRecordBase::ConnectAbility()
 {
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "%{public}s called.", __func__);
     Want want = GetWant();
@@ -295,17 +295,17 @@ void ExtensionAbilityBase::ConnectAbility()
     ConnectAbilityWithWant(want);
 }
 
-void ExtensionAbilityBase::SetConnRemoteObject(const sptr<IRemoteObject> &remoteObject)
+void ExtensionRecordBase::SetConnRemoteObject(const sptr<IRemoteObject> &remoteObject)
 {
     connRemoteObject_ = remoteObject;
 }
 
-sptr<IRemoteObject> ExtensionAbilityBase::GetConnRemoteObject() const
+sptr<IRemoteObject> ExtensionRecordBase::GetConnRemoteObject() const
 {
     return connRemoteObject_;
 }
 
-void ExtensionAbilityBase::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
+void ExtensionRecordBase::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
 {
     if (IsDebug()) {
         return;
