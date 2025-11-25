@@ -5941,7 +5941,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
         if (isSpecifyUserId) {
             userId = wantSenderInfo.userId;
             appIndex = wantSenderInfo.appIndex;
-            appUid = (uid >= 0) ? uid : GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+            appUid = (uid >= 0) ? uid : GetUidByCloneBundleInfo(bundleName, callerUid, userId, appIndex);
         } else if (uid >= 0) {
             if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
                 GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
@@ -5951,11 +5951,11 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
             appUid = uid;
         } else {
             userId = callerUserId;
-            appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+            appUid = GetUidByCloneBundleInfo(bundleName, callerUid, userId, appIndex);
         }
     } else if (isSystemApp) {
         userId = isSpecifyUserId ? wantSenderInfo.userId : callerUserId;
-        appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+        appUid = GetUidByCloneBundleInfo(bundleName, callerUid, userId, appIndex);
     } else {
         userId = callerUserId;
         appUid = callerUid;
