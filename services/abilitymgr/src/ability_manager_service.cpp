@@ -1368,7 +1368,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
 
     AbilityRequest abilityRequest;
     abilityRequest.hideFailureTipDialog = param.hideFailureTipDialog;
-    abilityRequest.isFromIcon = param.isBySCB;
+    abilityRequest.startSpecifiedParams = param.startSpecifiedParams;
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(param.want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
@@ -12410,7 +12410,7 @@ int32_t AbilityManagerService::SetSessionManagerService(const sptr<IRemoteObject
     return SET_SMS_FAILED;
 }
 
-int32_t AbilityManagerService::StartSpecifiedAbilityBySCB(const Want &want)
+int32_t AbilityManagerService::StartSpecifiedAbilityBySCB(const Want &want, const StartSpecifiedAbilityParams &params)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedAbilityBySCB");
     if (!IsCallerSceneBoard()) {
@@ -12421,6 +12421,7 @@ int32_t AbilityManagerService::StartSpecifiedAbilityBySCB(const Want &want)
     StartAbilityWrapParam param = {
         .want = want,
         .isBySCB = true,
+        .startSpecifiedParams = std::make_shared<StartSpecifiedAbilityParams>(params),
     };
     auto ret = StartAbilityInner(param);
     StartAbilityUtils::startSpecifiedBySCB = false;
