@@ -2497,24 +2497,6 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_ForegroundAbility_002, TestSize.Level1
 
 /*
  * Feature: AbilityRecord
- * Function: PostUIExtensionAbilityTimeoutTask
- * SubFunction: PostUIExtensionAbilityTimeoutTask
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord PostUIExtensionAbilityTimeoutTask
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_PostUIExtensionAbilityTimeoutTask_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    ASSERT_NE(abilityRecord, nullptr);
-    abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::LOAD_TIMEOUT_MSG);
-    abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
-    abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::BACKGROUND_TIMEOUT_MSG);
-    EXPECT_TRUE(abilityRecord != nullptr);
-}
-
-/*
- * Feature: AbilityRecord
  * Function: IsHistoryRequestCode
  * SubFunction: IsHistoryRequestCode
  * FunctionPoints: NA

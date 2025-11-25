@@ -522,40 +522,6 @@ void AbilityRecord::RemoveLoadTimeoutTask()
     handler->RemoveEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, GetAbilityRecordId());
 }
 
-void AbilityRecord::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
-{
-    if (IsDebug()) {
-        return;
-    }
-
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "post timeout %{public}d, id %{public}d", messageId, recordId_);
-    switch (messageId) {
-        case AbilityManagerService::LOAD_TIMEOUT_MSG: {
-            uint32_t timeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
-                static_cast<uint32_t>(LOAD_TIMEOUT_MULTIPLE);
-            SendEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT, recordId_, true);
-            SendEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, timeout, recordId_, true);
-            break;
-        }
-        case AbilityManagerService::FOREGROUND_TIMEOUT_MSG: {
-            uint32_t timeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
-                static_cast<uint32_t>(FOREGROUND_TIMEOUT_MULTIPLE);
-            if (InsightIntentExecuteParam::IsInsightIntentExecute(GetWant())) {
-                timeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
-                    static_cast<uint32_t>(INSIGHT_INTENT_TIMEOUT_MULTIPLE);
-            }
-            SendEvent(AbilityManagerService::FOREGROUND_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT, recordId_, true);
-            SendEvent(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, timeout, recordId_, true);
-            ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::FOREGROUND_BEGIN, GetPid(), GetUid(),
-                timeout, GetAbilityRecordId());
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-}
-
 std::string AbilityRecord::GetLabel()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);

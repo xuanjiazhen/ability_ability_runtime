@@ -391,10 +391,6 @@ void AbilityRecord::RemoveLoadTimeoutTask()
 {
 }
 
-void AbilityRecord::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
-{
-}
-
 std::string AbilityRecord::GetLabel()
 {
     return abilityInfo_.applicationInfo.label;

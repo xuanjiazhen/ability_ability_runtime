@@ -66,6 +66,7 @@ ohos_unittest("extension_record_base_first_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "safwk:system_ability_fwk",
   ]
 
   defines = []
