@@ -181,6 +181,7 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
     std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!RegisterETSEnvFuncs()) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "RegisterETSEnvFuncs failed");
         return std::unique_ptr<ETSRuntime>();
