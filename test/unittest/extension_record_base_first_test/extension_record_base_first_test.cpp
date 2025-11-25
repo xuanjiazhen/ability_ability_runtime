@@ -21,12 +21,13 @@
 #include "lifecycle_deal.h"
 #undef private
 #undef protected
-#include "app_utils.h"
-#include "uri_utils.h"
-#include "hilog_tag_wrapper.h"
-#include "connection_record.h"
-#include "mock_ability_connect_callback.h"
+#include "ability_manager_service.h"
 #include "ability_util.h"
+#include "app_utils.h"
+#include "connection_record.h"
+#include "hilog_tag_wrapper.h"
+#include "mock_ability_connect_callback.h"
+#include "uri_utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
@@ -387,6 +388,24 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_ConnectAbility_001, TestSiz
     bool isConnected = true;
     abilityRecord->ConnectAbility();
     EXPECT_NE(abilityRecord, nullptr);
+}
+
+/*
+ * Feature: ExtensionAbilityBase
+ * Function: PostUIExtensionAbilityTimeoutTask
+ * SubFunction: PostUIExtensionAbilityTimeoutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify ExtensionAbilityBase PostUIExtensionAbilityTimeoutTask
+ */
+HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_PostUIExtensionAbilityTimeoutTask_001, TestSize.Level1)
+{
+    std::shared_ptr<ExtensionAbilityBase> abilityRecord = GetAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::LOAD_TIMEOUT_MSG);
+    abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
+    abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::BACKGROUND_TIMEOUT_MSG);
+    EXPECT_TRUE(abilityRecord != nullptr);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

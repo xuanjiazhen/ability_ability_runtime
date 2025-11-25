@@ -123,8 +123,6 @@ public:
 
     void RemoveLoadTimeoutTask();
 
-    void PostUIExtensionAbilityTimeoutTask(uint32_t messageId);
-
     /**
      * move the ability to back ground.
      *

@@ -17,13 +17,20 @@
 
 #include <singleton.h>
 
+#include "ability_manager_service.h"
 #include "ability_util.h"
+#include "ams_configuration_parameter.h"
 #include "connection_state_manager.h"
+#include "global_constant.h"
 #include "hitrace_meter.h"
+#include "res_sched_util.h"
 #include "ui_extension_utils.h"
 
 namespace OHOS {
 namespace AAFwk {
+using namespace OHOS::AbilityRuntime::GlobalConstant;
+const int HALF_TIMEOUT = 2;
+
 ExtensionAbilityBase::ExtensionAbilityBase(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode)
     : AbilityRecord(want, abilityInfo, applicationInfo, requestCode) {}
@@ -298,5 +305,38 @@ sptr<IRemoteObject> ExtensionAbilityBase::GetConnRemoteObject() const
     return connRemoteObject_;
 }
 
+void ExtensionAbilityBase::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
+{
+    if (IsDebug()) {
+        return;
+    }
+    int32_t recordId = GetRecordId();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "post timeout %{public}d, id %{public}d", messageId, recordId);
+    switch (messageId) {
+        case AbilityManagerService::LOAD_TIMEOUT_MSG: {
+            uint32_t timeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
+                static_cast<uint32_t>(LOAD_TIMEOUT_MULTIPLE);
+            SendEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT, recordId, true);
+            SendEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, timeout, recordId, true);
+            break;
+        }
+        case AbilityManagerService::FOREGROUND_TIMEOUT_MSG: {
+            uint32_t timeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
+                static_cast<uint32_t>(FOREGROUND_TIMEOUT_MULTIPLE);
+            if (InsightIntentExecuteParam::IsInsightIntentExecute(GetWant())) {
+                timeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
+                    static_cast<uint32_t>(INSIGHT_INTENT_TIMEOUT_MULTIPLE);
+            }
+            SendEvent(AbilityManagerService::FOREGROUND_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT, recordId, true);
+            SendEvent(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, timeout, recordId, true);
+            ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::FOREGROUND_BEGIN, GetPid(), GetUid(),
+                timeout, GetAbilityRecordId());
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+}
 } // namespace AAFwk
 } // namespace OHOS

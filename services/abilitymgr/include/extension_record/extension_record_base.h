@@ -55,6 +55,8 @@ public:
      */
     void RemoveConnectRecordFromList(const std::shared_ptr<ConnectionRecord> &connRecord);
 
+    void PostUIExtensionAbilityTimeoutTask(uint32_t messageId);
+
     /**
      * get connecting record from list.
      *
