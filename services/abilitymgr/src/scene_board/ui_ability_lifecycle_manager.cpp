@@ -1652,6 +1652,10 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Assign start setting to session.");
         sessionInfo->startSetting = abilityRequest.startSetting;
     }
+    if (abilityRequest.startSpecifiedParams != nullptr) {
+        sessionInfo->persistentId = abilityRequest.startSpecifiedParams->persistentId;
+        sessionInfo->specifiedReason = static_cast<int32_t>(abilityRequest.startSpecifiedParams->specifiedReason);
+    }
     sessionInfo->callingTokenId = static_cast<uint32_t>(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN,
         IPCSkeleton::GetCallingTokenID()));
     sessionInfo->instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);

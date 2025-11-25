@@ -95,6 +95,7 @@ struct AbilityRequest {
     bool hideFailureTipDialog = false;
     bool promotePriority = false;
     uint64_t specifiedFullTokenId = 0;
+    std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
     std::pair<bool, LaunchReason> IsContinuation() const;
 
     bool IsAcquireShareData() const
