@@ -43,6 +43,8 @@ public:
 
     bool IsShellCall() const;
 
+    bool IsShellCallByTokenId(uint32_t callerTokenId) const;
+
     bool CheckSpecificSystemAbilityAccessPermission() const;
 
     bool VerifyRunningInfoPerm() const;
@@ -89,6 +91,7 @@ public:
     }
 
     bool JudgeCallerIsAllowedToUseSystemAPI() const;
+    bool JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_t specifiedFullTokenId) const;
     bool IsSystemAppCall() const;
 };
 } // namespace AAFwk

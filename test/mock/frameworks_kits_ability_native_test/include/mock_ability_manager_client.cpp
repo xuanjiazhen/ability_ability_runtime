@@ -82,7 +82,8 @@ ErrCode AbilityManagerClient::ScheduleCommandAbilityWindowDone(
     return -1;
 }
 
-ErrCode AbilityManagerClient::StartAbility(const Want& want, int requestCode, int32_t userId)
+ErrCode AbilityManagerClient::StartAbility(const Want& want, int requestCode, int32_t userId,
+    uint64_t specifiedFullTokenId)
 {
     return -1;
 }
@@ -97,8 +98,8 @@ ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConn
     return -1;
 }
 
-ErrCode AbilityManagerClient::ConnectAbility(
-    const Want& want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+ErrCode AbilityManagerClient::ConnectAbility(const Want& want, sptr<IAbilityConnection> connect,
+    sptr<IRemoteObject> callerToken, int32_t userId, uint64_t specifiedFullTokenId)
 {
     return -1;
 }

@@ -32,7 +32,7 @@ public:
      * @param extensionType The extension type.
      * @return Whether it has SA permissions.
      */
-    static bool CheckSAPermission(const AppExecFwk::ExtensionAbilityType &extensionType);
+    static bool CheckSAPermission(const AppExecFwk::ExtensionAbilityType &extensionType, uint32_t specifyTokenId = 0);
 
     /**
      * CheckSAPermissionMore, check if it has SA permissions or more.
@@ -40,7 +40,8 @@ public:
      * @param extensionType The extension type.
      * @return Whether it has SA permissions or more.
      */
-    static bool CheckSAPermissionMore(const AppExecFwk::ExtensionAbilityType &extensionType);
+    static bool CheckSAPermissionMore(const AppExecFwk::ExtensionAbilityType &extensionType,
+        uint32_t specifyTokenId = 0);
 };
 
 } // namespace AAFwk

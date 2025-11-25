@@ -123,6 +123,10 @@ bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPI() const
 {
     return MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_;
 }
+bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_t specifiedFullTokenId) const
+{
+    return true;
+}
 bool PermissionVerification::IsSystemAppCall() const
 {
     return MyStatus::GetInstance().isSystemAppCall_;
