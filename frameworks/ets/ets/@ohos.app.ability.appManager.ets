@@ -72,6 +72,58 @@ export enum KeepAliveSetter {
     USER = 1
 }
 
+  export enum FilterAbilityStateType {
+    CREATE = 1 << 0,
+    FOREGROUND = 1 << 1,
+    BACKGROUND = 1 << 2,
+    DESTROY = 1 << 3
+  }
+
+  export enum FilterCallback {
+    ON_FOREGROUND_APPLICATION_CHANGED = 1 << 0,
+    ON_ABILITY_STATE_CHANGED = 1 << 1,
+    ON_PROCESS_CREATED = 1 << 2,
+    ON_PROCESS_DIED = 1 << 3,
+    ON_PROCESS_STATE_CHANGED = 1 << 4,
+    ON_APP_STARTED = 1 << 5,
+    ON_APP_STOPPED = 1 << 6
+  }
+
+  export enum FilterBundleType {
+    APP = 1 << 0,
+    ATOMIC_SERVICE = 1 << 1
+  }
+
+  export enum FilterAppStateType {
+    CREATE = 1 << 0,
+    FOREGROUND = 1 << 1,
+    BACKGROUND = 1 << 2,
+    DESTROY = 1 << 3
+  }
+
+  export enum FilterProcessStateType {
+    CREATE = 1 << 0,
+    FOREGROUND = 1 << 1,
+    BACKGROUND = 1 << 2,
+    DESTROY = 1 << 3
+  }
+
+  export interface AppStateFilter {
+    bundleTypes?: int;
+    appStateTypes?: int;
+    processStateTypes?: int;
+    abilityStateTypes?: int;
+    callbacks?: int;
+  }
+
+  class AppStateFilterInner implements AppStateFilter {
+    bundleTypes?: int;
+    appStateTypes?: int;
+    processStateTypes?: int;
+    abilityStateTypes?: int;
+    callbacks?: int;
+  }
+
 export interface KeepAliveBundleInfo {
     bundleName: string;
     type: KeepAliveAppType;
