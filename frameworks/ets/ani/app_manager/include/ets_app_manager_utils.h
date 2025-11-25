@@ -20,6 +20,7 @@
 #include "ability_state_data.h"
 #include "ani.h"
 #include "app_state_data.h"
+#include "application_state_filter.h"
 #include "ets_runtime.h"
 #include "keep_alive_info.h"
 #include "process_data.h"
@@ -65,6 +66,8 @@ bool SetAbilityFirstFrameStateData(ani_env *env, ani_object object,
 bool AttachAniEnv(ani_vm *etsVm, ani_env *&env);
 void DetachAniEnv(ani_vm *etsVm);
 void ReleaseObjectReference(ani_vm *etsVm, ani_ref etsObjRef);
+bool UnWrapAppStateFilter(ani_env *env,
+    const ani_object &etsAppStateFilter, OHOS::AppExecFwk::AppStateFilter &appStateFilter);
 
 } // namespace AppManagerEts
 } // namespace OHOS

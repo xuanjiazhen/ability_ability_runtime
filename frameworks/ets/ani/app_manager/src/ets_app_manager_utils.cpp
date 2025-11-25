@@ -1049,5 +1049,40 @@ void ReleaseObjectReference(ani_vm *etsVm, ani_ref etsObjRef)
     }
 }
 
+bool UnWrapAppStateFilter(ani_env *env,
+    const ani_object &etsAppStateFilter, OHOS::AppExecFwk::AppStateFilter &appStateFilter)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "env is null");
+        return false;
+    }
+    ani_int mid = 0;
+    if (!AppExecFwk::GetIntPropertyObject(env, etsAppStateFilter, "bundleTypes", mid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get bundleTypes failed");
+        return false;
+    }
+    appStateFilter.bundleTypes = static_cast<OHOS::AppExecFwk::FilterBundleType>(mid);
+    if (!AppExecFwk::GetIntPropertyObject(env, etsAppStateFilter, "appStateTypes", mid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get appStateTypes failed");
+        return false;
+    }
+    appStateFilter.appStateTypes = static_cast<OHOS::AppExecFwk::FilterAppStateType>(mid);
+    if (!AppExecFwk::GetIntPropertyObject(env, etsAppStateFilter, "processStateTypes", mid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get processStateTypes failed");
+        return false;
+    }
+    appStateFilter.processStateTypes = static_cast<OHOS::AppExecFwk::FilterProcessStateType>(mid);
+    if (!AppExecFwk::GetIntPropertyObject(env, etsAppStateFilter, "abilityStateTypes", mid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get abilityStateTypes failed");
+        return false;
+    }
+    appStateFilter.abilityStateTypes = static_cast<OHOS::AppExecFwk::FilterAbilityStateType>(mid);
+    if (!AppExecFwk::GetIntPropertyObject(env, etsAppStateFilter, "callbacks", mid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get callbacks failed");
+        return false;
+    }
+    appStateFilter.callbacks = static_cast<OHOS::AppExecFwk::FilterCallback>(mid);
+    return true;
+}
 } // namespace AppManagerEts
 } // namespace OHOS
