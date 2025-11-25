@@ -1153,22 +1153,7 @@ public:
 
     int StartAbilityWrap(const StartAbilityWrapParam &startAbilityWrapParam);
 
-    int StartAbilityInner(
-        const Want &want,
-        const sptr<IRemoteObject> &callerToken,
-        int requestCode,
-        bool isPendingWantCaller,
-        int32_t userId = DEFAULT_INVAL_VALUE,
-        bool isStartAsCaller = false,
-        uint32_t specifyTokenId = 0,
-        bool isForegroundToRestartApp = false,
-        bool isImplicit = false,
-        bool isUIAbilityOnly = false,
-        bool isAppCloneSelector = false,
-        bool hideFailureTipDialog = false,
-        bool isBySCB = false,
-        bool isFreeInstallFromService = false,
-        uint64_t specifiedFullTokenId = 0);
+    int StartAbilityInner(StartAbilityWrapParam &param);
 
     int32_t StartExtensionAbilityInner(
         const Want &want,
