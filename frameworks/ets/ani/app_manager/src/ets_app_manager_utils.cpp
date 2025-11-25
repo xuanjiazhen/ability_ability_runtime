@@ -1048,6 +1048,5 @@ void ReleaseObjectReference(ani_vm *etsVm, ani_ref etsObjRef)
         TAG_LOGE(AAFwkTag::APPMGR, "GlobalReference_Delete status: %{public}d", status);
     }
 }
-
 } // namespace AppManagerEts
 } // namespace OHOS
