@@ -21,6 +21,7 @@
 
 #include "ability_info.h"
 #include "extension_ability_info.h"
+#include "start_specified_ability_params.h"
 #include "want.h"
 
 namespace OHOS {
@@ -95,8 +96,10 @@ struct StartAbilityWrapParam {
     bool isUIAbilityOnly = false;
     bool isAppCloneSelector = false;
     bool hideFailureTipDialog = false;
+    bool isBySCB = false;
     bool isFreeInstallFromService = false;
     uint64_t specifiedFullTokenId = 0;
+    std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
 };
 }
 }
