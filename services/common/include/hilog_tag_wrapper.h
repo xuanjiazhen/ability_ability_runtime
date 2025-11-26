@@ -17,7 +17,6 @@
 #define OHOS_AAFWK_HILOG_TAG_WRAPPER_H
 
 #include <cinttypes>
-#include <unordered_map>
 #include <string>
 
 #include "hilog/log.h"
