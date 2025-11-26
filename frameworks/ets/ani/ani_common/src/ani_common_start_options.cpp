@@ -27,6 +27,7 @@ namespace AppExecFwk {
 namespace {
 constexpr const char *APP_LINKING_ONLY = "appLinkingOnly";
 constexpr const char *HIDE_FAILURE_TIP_DIALOG = "hideFailureTipDialog";
+constexpr int32_t ARGC_TWO = 2;
 }
 
 bool UnwrapStartOptionsWithProcessOption(ani_env* env, ani_object param, AAFwk::StartOptions &startOptions)
@@ -359,6 +360,85 @@ void UnWrapOpenLinkOptions(
         AppExecFwk::GetBooleanPropertyObject(env, optionsObj, HIDE_FAILURE_TIP_DIALOG, hideFailureTipDialog);
         openLinkOptions.SetHideFailureTipDialog(hideFailureTipDialog);
     }
+}
+
+bool UnwrapCommonCompletionHandler(ani_env *env, ani_object param, ani_ref refCompletionHandler,
+    AbilityRuntime::OnRequestResult &onRequestSucc, AbilityRuntime::OnRequestResult &onRequestFail)
+{
+    TAG_LOGD(AAFwkTag::ANI, "UnwrapCommonCompletionHandler called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "env null");
+        return false;
+    }
+    ani_ref completionHandler;
+    if (!AppExecFwk::GetFieldRefByName(env, param, "completionHandler", completionHandler) ||
+        !completionHandler) {
+        TAG_LOGE(AAFwkTag::ANI, "null completionHandler");
+        return false;
+    }
+    if (env->GlobalReference_Create(completionHandler, &refCompletionHandler) != ANI_OK ||
+        !refCompletionHandler) {
+        TAG_LOGE(AAFwkTag::ANI, "Failed to create global ref for completionHandler");
+        return false;
+    }
+    CreateOnRequestResultCallback(env, refCompletionHandler, onRequestSucc, "onRequestSuccess");
+    CreateOnRequestResultCallback(env, refCompletionHandler, onRequestFail, "onRequestFailure");
+    return true;
+}
+
+void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
+    AbilityRuntime::OnRequestResult &onRequestCallback, const char *callbackName)
+{
+    TAG_LOGD(AAFwkTag::ANI, "CreateOnRequestResultCallback called");
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "GetVM failed, status: %{public}d", status);
+        env->GlobalReference_Delete(refCompletionHandler);
+        return;
+    }
+    onRequestCallback = [etsVm, refCompletionHandler, callbackName](const AppExecFwk::ElementName &element,
+        const std::string &message) {
+        ani_status status = ANI_ERROR;
+        ani_env *env = nullptr;
+        if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
+            TAG_LOGE(AAFwkTag::ANI, "GetEnv failed or env is null, status: %{public}d", status);
+            return;
+        }
+        ani_object elementObj = WrapElementName(env, element);
+        if (!elementObj) {
+            TAG_LOGE(AAFwkTag::ANI, "WrapElementName failed");
+            env->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        ani_string messageStr = nullptr;
+        if (env->String_NewUTF8(message.c_str(), message.size(), &messageStr) != ANI_OK || !messageStr) {
+            TAG_LOGE(AAFwkTag::ANI, "String_NewUTF8 for message failed");
+            env->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        ani_ref funRef;
+        if ((status = env->Object_GetFieldByName_Ref(reinterpret_cast<ani_object>(refCompletionHandler),
+            callbackName, &funRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ANI, "Object_GetFieldByName_Ref failed");
+            env->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        if (!AppExecFwk::IsValidProperty(env, funRef)) {
+            TAG_LOGE(AAFwkTag::ANI, "IsValidProperty failed");
+            env->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        ani_ref result = nullptr;
+        std::vector<ani_ref> argv = { elementObj, messageStr};
+        if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_TWO, argv.data(),
+            &result)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ANI, "FunctionalObject_Call failed");
+            env->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        env->GlobalReference_Delete(refCompletionHandler);
+    };
 }
 } // namespace AppExecFwk
 } // namespace OHOS
