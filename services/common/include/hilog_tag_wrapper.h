@@ -239,7 +239,7 @@ static inline const char* GetTagInfoFromDomainId(AAFwkLogTag tag)
     AAFWK_FILENAME_PAIR("window_pid_visibility_changed_listener.cpp", "WND_CHG_LSNR")
 
 #define AAFWK_FILENAME_PAIR(name, abbr) \
-    if (__builtin_strcmp(fileName, name) == 0) return abbr;
+    if (__builtin_strcmp(fileName, name) == 0) { return abbr; }
 
     AAFWK_FILENAME_MAPPING
 
