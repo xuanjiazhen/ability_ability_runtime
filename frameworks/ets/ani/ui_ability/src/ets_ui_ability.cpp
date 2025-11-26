@@ -1768,6 +1768,8 @@ int32_t EtsUIAbility::OnSaveState(int32_t reason, WantParams &wantParams,
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilitySaveState(ability);
     }
+    AppExecFwk::OnSaveStateResult saveStateResult = {numberResult, wantParams, stateReason};
+    callbackInfo->Call(saveStateResult);
     AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
     return numberResult;
 }
