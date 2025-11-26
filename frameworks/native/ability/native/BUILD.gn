@@ -1061,6 +1061,7 @@ ohos_shared_library("uiabilitykit_native") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
+    "dlp_set_config:libdlp_setconfig_sdk",
     "ets_runtime:libark_jsruntime",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
