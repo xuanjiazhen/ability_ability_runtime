@@ -23,6 +23,9 @@
 #ifdef SUPPORT_SCREEN
 #include "distributed_client.h"
 #endif
+#ifdef WITH_DLP
+#include "dlp_permission_kit.h"
+#endif // WITH_DLP
 #include "ets_runtime.h"
 #include "ets_ui_ability_instance.h"
 #include "event_report.h"
@@ -232,6 +235,9 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     }
 
 #ifdef WITH_DLP
+    if (want.HasParameter(DLP_PARAMS_SECURITY_FLAG)) {
+        Security::DlpPermission::DlpPermissionKit::SetDlpConfig(want);
+    }
     securityFlag_ = want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false);
     (const_cast<AAFwk::Want &>(want)).RemoveParam(DLP_PARAMS_SECURITY_FLAG);
 #endif // WITH_DLP
