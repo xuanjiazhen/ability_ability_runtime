@@ -27,7 +27,8 @@
 
 #ifndef AAFWK_FILE_NAME
 #define AAFWK_FILE_NAME \
-    (OHOS::AAFwk::ConvertFileName(__builtin_strrchr(__FILE_NAME__, '/') ? __builtin_strrchr(__FILE_NAME__, '/') + 1 : __FILE_NAME__))
+    (OHOS::AAFwk::ConvertFileName(__builtin_strrchr(__FILE_NAME__, '/') ? __builtin_strrchr(__FILE_NAME__, '/') + 1 \
+    : __FILE_NAME__))
 #endif
 
 namespace OHOS::AAFwk {
@@ -207,43 +208,43 @@ static inline const char* GetTagInfoFromDomainId(AAFwkLogTag tag)
 
 [[maybe_unused]] static constexpr const char* ConvertFileName(const char* fileName)
 {
-    #define AAFWK_FILENAME_MAPPING \
-        AAFWK_FILENAME_PAIR("ability_connect_manager.cpp", "ABCM") \
-        AAFWK_FILENAME_PAIR("ability_manager_service.cpp", "ABMS") \
-        AAFWK_FILENAME_PAIR("ability_record.cpp", "ABR") \
-        AAFWK_FILENAME_PAIR("ability_connect_callback_stub.cpp", "ACCS") \
-        AAFWK_FILENAME_PAIR("ability_manager_client.cpp", "AMC") \
-        AAFWK_FILENAME_PAIR("app_mgr_service_inner.cpp", "AMSI") \
-        AAFWK_FILENAME_PAIR("app_running_manager.cpp", "ARM") \
-        AAFWK_FILENAME_PAIR("app_running_record.cpp", "ARR") \
-        AAFWK_FILENAME_PAIR("app_spawn_client.cpp", "ASC") \
-        AAFWK_FILENAME_PAIR("app_state_observer_manager.cpp", "ASOM") \
-        AAFWK_FILENAME_PAIR("cache_process_manager.cpp", "CPM") \
-        AAFWK_FILENAME_PAIR("connection_record.cpp", "CONN") \
-        AAFWK_FILENAME_PAIR("connect_server_manager.cpp", "CSM") \
-        AAFWK_FILENAME_PAIR("dump_runtime_helper.cpp", "DRH") \
-        AAFWK_FILENAME_PAIR("ecological_rule_interceptor.cpp", "ERI") \
-        AAFWK_FILENAME_PAIR("extension_record_manager.cpp", "ERM") \
-        AAFWK_FILENAME_PAIR("js_ability_stage.cpp", "JAS") \
-        AAFWK_FILENAME_PAIR("js_runtime_common.cpp", "JRC") \
-        AAFWK_FILENAME_PAIR("js_service_extension.cpp", "JSE") \
-        AAFWK_FILENAME_PAIR("js_environment.cpp", "JSENV") \
-        AAFWK_FILENAME_PAIR("js_service_extension_context.cpp", "JSEC") \
-        AAFWK_FILENAME_PAIR("js_ui_ability.cpp", "JUA") \
-        AAFWK_FILENAME_PAIR("main_thread.cpp", "MTHRD") \
-        AAFWK_FILENAME_PAIR("ohos_application.cpp", "OH_APP") \
-        AAFWK_FILENAME_PAIR("preload_uiext_state_observer.cpp", "PUSO") \
-        AAFWK_FILENAME_PAIR("service_extension_context.cpp", "SEC") \
-        AAFWK_FILENAME_PAIR("ui_ability_lifecycle_manager.cpp", "UALM") \
-        AAFWK_FILENAME_PAIR("window_pid_visibility_changed_listener.cpp", "WND_CHG_LSNR")
+#define AAFWK_FILENAME_MAPPING \
+    AAFWK_FILENAME_PAIR("ability_connect_manager.cpp", "ABCM") \
+    AAFWK_FILENAME_PAIR("ability_manager_service.cpp", "ABMS") \
+    AAFWK_FILENAME_PAIR("ability_record.cpp", "ABR") \
+    AAFWK_FILENAME_PAIR("ability_connect_callback_stub.cpp", "ACCS") \
+    AAFWK_FILENAME_PAIR("ability_manager_client.cpp", "AMC") \
+    AAFWK_FILENAME_PAIR("app_mgr_service_inner.cpp", "AMSI") \
+    AAFWK_FILENAME_PAIR("app_running_manager.cpp", "ARM") \
+    AAFWK_FILENAME_PAIR("app_running_record.cpp", "ARR") \
+    AAFWK_FILENAME_PAIR("app_spawn_client.cpp", "ASC") \
+    AAFWK_FILENAME_PAIR("app_state_observer_manager.cpp", "ASOM") \
+    AAFWK_FILENAME_PAIR("cache_process_manager.cpp", "CPM") \
+    AAFWK_FILENAME_PAIR("connection_record.cpp", "CONN") \
+    AAFWK_FILENAME_PAIR("connect_server_manager.cpp", "CSM") \
+    AAFWK_FILENAME_PAIR("dump_runtime_helper.cpp", "DRH") \
+    AAFWK_FILENAME_PAIR("ecological_rule_interceptor.cpp", "ERI") \
+    AAFWK_FILENAME_PAIR("extension_record_manager.cpp", "ERM") \
+    AAFWK_FILENAME_PAIR("js_ability_stage.cpp", "JAS") \
+    AAFWK_FILENAME_PAIR("js_runtime_common.cpp", "JRC") \
+    AAFWK_FILENAME_PAIR("js_service_extension.cpp", "JSE") \
+    AAFWK_FILENAME_PAIR("js_environment.cpp", "JSENV") \
+    AAFWK_FILENAME_PAIR("js_service_extension_context.cpp", "JSEC") \
+    AAFWK_FILENAME_PAIR("js_ui_ability.cpp", "JUA") \
+    AAFWK_FILENAME_PAIR("main_thread.cpp", "MTHRD") \
+    AAFWK_FILENAME_PAIR("ohos_application.cpp", "OH_APP") \
+    AAFWK_FILENAME_PAIR("preload_uiext_state_observer.cpp", "PUSO") \
+    AAFWK_FILENAME_PAIR("service_extension_context.cpp", "SEC") \
+    AAFWK_FILENAME_PAIR("ui_ability_lifecycle_manager.cpp", "UALM") \
+    AAFWK_FILENAME_PAIR("window_pid_visibility_changed_listener.cpp", "WND_CHG_LSNR")
 
-    #define AAFWK_FILENAME_PAIR(name, abbr) \
-        if (__builtin_strcmp(fileName, name) == 0) return abbr;
+#define AAFWK_FILENAME_PAIR(name, abbr) \
+    if (__builtin_strcmp(fileName, name) == 0) return abbr;
 
     AAFWK_FILENAME_MAPPING
 
-    #undef AAFWK_FILENAME_PAIR
-    #undef AAFWK_FILENAME_MAPPING
+#undef AAFWK_FILENAME_PAIR
+#undef AAFWK_FILENAME_MAPPING
 
     return fileName;
 }
