@@ -1841,6 +1841,67 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetExtensionRunningInfos_0
 
 /*
  * Feature: AbilityManagerService
+ * Function: GetExtensionRunningInfos
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetExtensionRunningInfos
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of GetExtensionRunningInfos
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetExtensionRunningInfos_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    system::SetParameter(FORBID_START, "true");
+    int upperLimit = 0;
+    std::vector<ExtensionRunningInfo> info;
+    auto res = proxy_->GetExtensionRunningInfos(upperLimit, info);
+    system::SetParameter(FORBID_START, "false");
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_EXTENSION_RUNNING_INFO), mock_->code_);
+    EXPECT_EQ(res, INNER_ERR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: NotifyFrozenProcessByRSS
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService NotifyFrozenProcessByRSS
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of NotifyFrozenProcessByRSS
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_NotifyFrozenProcessByRSS_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    std::vector<int32_t> pidList;
+    int32_t uid = 1;
+    auto res = proxy_->NotifyFrozenProcessByRSS(pidList, uid);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::NOTIFY_FROZEN_PROCESS_BY_RSS), mock_->code_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: NotifyFrozenProcessByRSS
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService NotifyFrozenProcessByRSS
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of NotifyFrozenProcessByRSS
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_NotifyFrozenProcessByRSS_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    system::SetParameter(FORBID_START, "true");
+    std::vector<int32_t> pidList;
+    int32_t uid = 1;
+    auto res = proxy_->NotifyFrozenProcessByRSS(pidList, uid);
+    system::SetParameter(FORBID_START, "false");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: GetProcessRunningInfos
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService GetProcessRunningInfos
