@@ -18,6 +18,7 @@
 #include "ability_foreground_state_observer_interface.h"
 #include "app_foreground_state_observer_stub.h"
 #include "app_mgr_proxy.h"
+#include "app_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_foreground_state_observer_stub.h"
 #include "mock_app_mgr_service.h"
@@ -950,6 +951,95 @@ HWTEST_F(AppMgrProxyTest, GetAllRunningInstanceKeysByBundleName_001, TestSize.Le
     EXPECT_EQ(result, NO_ERROR);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: GetAllRunningProcesses_001
+ * @tc.desc: GetAllRunningProcesses.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, GetAllRunningProcesses_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppMgrProxy_GetAllRunningProcesses_001 start";
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::vector<RunningProcessInfo> info;
+    appMgrProxy_->GetAllRunningProcesses(info);
+
+    EXPECT_EQ(
+        mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::APP_GET_ALL_RUNNING_PROCESSES));
+
+    GTEST_LOG_(INFO) << "AppMgrProxy_GetAllRunningProcesses_001 end";
+}
+
+/**
+ * @tc.name: AppMgrProxy_DumpHeapMemory_001
+ * @tc.desc: DumpHeapMemory
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_DumpHeapMemory_001, TestSize.Level0)
+{
+    GTEST_LOG_(INFO) << "AppMgrProxy_DumpHeapMemory_001 start";
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    int32_t pid = 0;
+    OHOS::AppExecFwk::MallocInfo mallocInfo;
+    appMgrProxy_->DumpHeapMemory(pid, mallocInfo);
+
+    EXPECT_EQ(
+        mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_HEAP_MEMORY_PROCESS));
+
+    GTEST_LOG_(INFO) << "AppMgrProxy_DumpHeapMemory_001 end";
+}
+
+/**
+ * @tc.name: UpdateProcessMemoryState_001
+ * @tc.desc: UpdateProcessMemoryState.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, UpdateProcessMemoryState_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppMgrProxy_UpdateProcessMemoryState_001 start";
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::vector<ProcessMemoryState> procMemState;
+    appMgrProxy_->UpdateProcessMemoryState(procMemState);
+
+    EXPECT_EQ(
+        mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_PROCESS_MEMORY_STATE));
+
+    GTEST_LOG_(INFO) << "AppMgrProxy_UpdateProcessMemoryState_001 end";
+}
+
+/**
+ * @tc.name: Unregisterapplicationstateobserver_001
+ * @tc.desc: Unregisterapplicationstateobserver.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, Unregisterapplicationstateobserver_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppMgrProxy_Unregisterapplicationstateobserver_001 start";
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    sptr<IApplicationStateObserver> observer;
+    appMgrProxy_->Unregisterapplicationstateobserver(observer);
+
+    EXPECT_EQ(
+        mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_APPLICATION_STATE_OBSERVER));
+
+    GTEST_LOG_(INFO) << "AppMgrProxy_Unregisterapplicationstateobserver_001 end";
 }
 
 /**
