@@ -78,7 +78,15 @@ bool FilePermissionManager::CheckDocsUriPermission(uint32_t callerTokenId, bool 
     return false;
 }
 
-static bool CheckFileManagerUriPermission(uint32_t providerTokenId,
+static bool CheckCloudUriPermission(bool hasFileManagerPermission, Uri &uri)
+{
+    if (hasFileManagerPermission && uri.find(APPDATA_URI) == 0) {
+        return true;
+    }
+    return false;
+}
+
+static bool CheckFileManagerUriPermission(uint64_t providerTokenId,
                                           const std::string &filePath,
                                           const std::string &bundleName)
 {
@@ -138,6 +146,9 @@ std::vector<bool> FilePermissionManager::CheckUriPersistentPermission(std::vecto
                                            bundleName) ||
             CheckDocsUriPermission(callerTokenId, hasFileManagerPerm, hasSandboxManagerPerm, policyInfo.path))) {
             resultCodes[i] = true;
+            continue;
+        } else {
+            resultCodes[i] = CheckCloudUriPermission(hasFileManagerPermission, uriVec[i]);
             continue;
         }
         resultIndex.emplace_back(i);
