@@ -439,6 +439,11 @@ public:
     {
         return E_OK;
     }
+
+    virtual int32_t GetAllExtBundleStats(uint32_t userId, std::vector<ExtBundleStats> &bundleStats) override
+    {
+        return E_OK;
+    }
 };
 
 bool StorageManagerServiceMock::isZero = true;
