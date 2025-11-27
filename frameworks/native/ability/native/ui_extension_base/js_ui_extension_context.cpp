@@ -1885,6 +1885,14 @@ void JsUIExtensionContext::UnWrapCompletionHandlerForAtomicService(
         TAG_LOGD(AAFwkTag::UI_EXT, "null completionHandlerForAtomicService");
         return;
     }
+    napi_ref ref = nullptr;
+    napi_create_reference(env, completionHandlerForAtomicService, 1, &ref);
+    std::shared_ptr<NativeReference> atomicServiceRef =
+        std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref));
+    if (atomicServiceRef == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "create reference failed");
+        return;
+    }
     TAG_LOGI(AAFwkTag::UI_EXT, "completionHandlerForAtomicService exists");
     napi_value onRequestSuccFunc = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandlerForAtomicService,
         "onAtomicServiceRequestSuccess", napi_function);
@@ -1894,19 +1902,55 @@ void JsUIExtensionContext::UnWrapCompletionHandlerForAtomicService(
         TAG_LOGE(AAFwkTag::UI_EXT, "null onRequestSuccFunc or onRequestFailFunc");
         return;
     }
-    OnAtomicRequestSuccess onRequestSucc = [env, completionHandlerForAtomicService, onRequestSuccFunc](
+    napi_create_reference(env, onRequestSuccFunc, 1, &ref);
+    std::shared_ptr<NativeReference> onRequestSuccRef =
+        std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref));
+    napi_create_reference(env, onRequestFailFunc, 1, &ref);
+    std::shared_ptr<NativeReference> onRequestFailRef =
+        std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref));
+    if (onRequestSuccRef == nullptr || onRequestFailRef == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "create onRequestSuccRef or onRequestFailRef failed");
+        return;
+    }
+    OnAtomicRequestSuccess onRequestSucc = [env, atomicServiceRef, onRequestSuccRef](
         const std::string &appId) {
         napi_value argv[ARGC_ONE] = { CreateJsValue(env, appId) };
+        napi_value completionHandlerForAtomicService = atomicServiceRef->GetNapiValue();
+        napi_value onRequestSuccFunc = onRequestSuccRef->GetNapiValue();
+        napi_valuetype type = napi_undefined;
+        napi_typeof(env, onRequestSuccFunc, &type);
+        if (type != napi_function) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "onRequestSuccFunc is not function");
+            return;
+        }
+        napi_typeof(env, completionHandlerForAtomicService, &type);
+        if (type != napi_object) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "completionHandlerForAtomicService is not napi_object");
+            return;
+        }
         napi_status status = napi_call_function(
             env, completionHandlerForAtomicService, onRequestSuccFunc, ARGC_ONE, argv, nullptr);
         if (status != napi_ok) {
             TAG_LOGE(AAFwkTag::UI_EXT, "call onRequestSuccess, failed: %{public}d", status);
         }
     };
-    OnAtomicRequestFailure onRequestFail = [env, completionHandlerForAtomicService, onRequestFailFunc](
+    OnAtomicRequestFailure onRequestFail = [env, atomicServiceRef, onRequestFailRef](
         const std::string &appId, int32_t failureCode, const std::string &message) {
         napi_value argv[ARGC_THREE] = { CreateJsValue(env, appId), CreateJsValue(env, failureCode),
             CreateJsValue(env, message) };
+        napi_value completionHandlerForAtomicService = atomicServiceRef->GetNapiValue();
+        napi_value onRequestFailFunc = onRequestFailRef->GetNapiValue();
+        napi_valuetype type = napi_undefined;
+        napi_typeof(env, onRequestFailFunc, &type);
+        if (type != napi_function) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "onRequestFailFunc is not function");
+            return;
+        }
+        napi_typeof(env, completionHandlerForAtomicService, &type);
+        if (type != napi_object) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "completionHandlerForAtomicService is not napi_object");
+            return;
+        }
         napi_status status = napi_call_function(
             env, completionHandlerForAtomicService, onRequestFailFunc, ARGC_THREE, argv, nullptr);
         if (status != napi_ok) {
