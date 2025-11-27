@@ -65,6 +65,7 @@ const std::string METHOD_NAME = "WindowScene::GoForeground";
 #ifdef SUPPORT_SCREEN
 constexpr int32_t BASE_DISPLAY_ID_NUM(10);
 #endif
+static const int32_t ANI_SCOPE_SIZE = 16;
 constexpr const char *UI_ABILITY_CLASS_NAME = "L@ohos/app/ability/UIAbility/UIAbility;";
 constexpr const char *UI_ABILITY_SIGNATURE_VOID = ":V";
 constexpr const char *MEMORY_LEVEL_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;";
@@ -75,6 +76,10 @@ constexpr const int32_t CALL_BACK_ERROR = -1;
 constexpr const char *ON_SHARE_SIGNATURE = "Lescompat/Record;:V";
 constexpr const char *ON_COLLABORATE =
     "Lescompat/Record;:L@ohos/app/ability/AbilityConstant/AbilityConstant/CollaborateResult;";
+constexpr const char *ON_CONTINUE_SIG =
+    "C{std.core.Record}:X{C{@ohos.app.ability.AbilityConstant.AbilityConstant.OnContinueResult}C{std.core.Promise}}";
+constexpr const char *ON_CONTINUE2_SIG =
+    "C{std.core.Record}:C{@ohos.app.ability.AbilityConstant.AbilityConstant.OnContinueResult}";
 
 void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
 {
@@ -1460,6 +1465,84 @@ void EtsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
     CallObjectMethod(false, "onConfigurationUpdate", nullptr, aniConfiguration);
     auto realConfigPtr = std::make_shared<Configuration>(realConfig);
     EtsAbilityContext::ConfigurationUpdated(env, shellContextRef_, realConfigPtr);
+}
+
+int32_t EtsUIAbility::OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnContinue,
+    const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    using namespace AppExecFwk;
+    TAG_LOGI(AAFwkTag::UIABILITY, "called");
+    auto aniEnv = etsRuntime_.GetAniEnv();
+    if (aniEnv == nullptr || etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "env null or etsAbilityObj_ null");
+        return ContinuationManagerStage::ON_CONTINUE_ERR;
+    }
+    ani_method method = nullptr;
+    ani_status status = aniEnv->Class_FindMethod(etsAbilityObj_->aniCls, "onContinue", ON_CONTINUE_SIG, &method);
+    if (status != ANI_OK) {
+        status = aniEnv->Class_FindMethod(etsAbilityObj_->aniCls, "onContinue", ON_CONTINUE2_SIG, &method);
+    }
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "onContinue FindMethod status: %{public}d, or null method", status);
+        return ContinuationManagerStage::ON_CONTINUE_ERR;
+    }
+    ani_ref wantParamRef = AppExecFwk::WrapWantParams(aniEnv, wantParams);
+    if (wantParamRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null wantParamRef");
+        return ContinuationManagerStage::ON_CONTINUE_ERR;
+    }
+    EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        applicationContext->DispatchOnAbilityWillContinue(ability);
+    }
+    ani_status localScopeStatus = aniEnv->CreateLocalScope(ANI_SCOPE_SIZE);
+    if (localScopeStatus != ANI_OK) {
+        TAG_LOGW(AAFwkTag::UIABILITY, "Failed to creat local scope");
+    }
+    int32_t continueResult = ContinuationManagerStage::ON_CONTINUE_ERR;
+    bool callRet = CallObjectOnContinueMethod(method, wantParamRef, continueResult);
+    if (!callRet) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Failed to CallObjectOnContinueMethod");
+        return ContinuationManagerStage::ON_CONTINUE_ERR;
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY, "CallObjectOnContinueMethod, continueResult = %{public}d", continueResult);
+    if (applicationContext != nullptr) {
+        applicationContext->DispatchOnAbilityContinue(ability);
+    }
+    AppExecFwk::UnwrapWantParams(aniEnv, wantParamRef, wantParams);
+    if (localScopeStatus == ANI_OK) {
+        aniEnv->DestroyLocalScope();
+    }
+    return (continueResult == ContinuationManagerStage::AGREE) ?
+        ContinuationManagerStage::AGREE : ContinuationManagerStage::REJECT;
+}
+
+bool EtsUIAbility::CallObjectOnContinueMethod(ani_method method, ani_ref wantParamRef, int32_t& onContinueResult)
+{
+    auto aniEnv = etsRuntime_.GetAniEnv();
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "env null");
+        return false;
+    }
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null etsAbilityObj_");
+        return false;
+    }
+    ani_value args[] = { { .r = wantParamRef } };
+    ani_ref result = nullptr;
+    ani_status status = ANI_OK;
+    if ((status = aniEnv->Object_CallMethod_Ref_A(etsAbilityObj_->aniObj, method, &result, args)) != ANI_OK ||
+        result == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "CallMethod status: %{public}d, or null result", status);
+        return false;
+    }
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(aniEnv,
+        reinterpret_cast<ani_enum_item>(result), onContinueResult)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "EnumConvert_EtsToNative failed");
+        return false;
+    }
+    return true;
 }
 
 void EtsUIAbility::OnMemoryLevel(int level)
