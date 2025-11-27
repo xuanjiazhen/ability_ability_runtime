@@ -822,6 +822,18 @@ void EtsAbilityContext::StartRecentAbility(ani_env *env, ani_object aniObj, ani_
     etsContext->OnStartAbility(env, aniObj, wantObj, startOptionsObj, callbackObj, true);
 }
 
+void EtsAbilityContext::SetOnNewWantSkipScenarios(ani_env *env, ani_object aniObj, ani_int etsScenarios,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "SetOnNewWantSkipScenarios called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetOnNewWantSkipScenarios(env, aniObj, etsScenarios, callback);
+}
+
 int32_t EtsAbilityContext::GenerateRequestCode()
 {
     static int32_t curRequestCode_ = 0;
@@ -2603,6 +2615,28 @@ void EtsAbilityContext::OnStartAbilityWithAccount(
     }
 }
 
+void EtsAbilityContext::OnSetOnNewWantSkipScenarios(ani_env *env, ani_object aniObj, ani_int etsScenarios,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnSetOnNewWantSkipScenarios called");
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context null");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env, "context null"), nullptr);
+        return;
+    }
+    int32_t scenarios = static_cast<int32_t>(etsScenarios);
+    ErrCode innerErrCode = ERR_OK;
+    innerErrCode = context->SetOnNewWantSkipScenarios(scenarios);
+    if (innerErrCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "SetOnNewWantSkipScenarios failed, innerErrCode: %{public}d", innerErrCode);
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER),
+            nullptr);
+        return;
+    }
+    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, ERR_OK), nullptr);
+}
+
 namespace {
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
@@ -2762,6 +2796,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeSetMissionWindowIcon",
                 "L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetMissionWindowIcon) },
+            ani_native_function { "nativeSetOnNewWantSkipScenarios",
+                "ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::SetOnNewWantSkipScenarios) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
