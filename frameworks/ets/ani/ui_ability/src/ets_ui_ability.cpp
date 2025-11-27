@@ -57,7 +57,7 @@ const std::string METHOD_NAME = "WindowScene::GoForeground";
 #ifdef SUPPORT_SCREEN
 constexpr int32_t BASE_DISPLAY_ID_NUM(10);
 #endif
-static const int32_t ANI_SCOPE_SIZE = 16;
+//static const int32_t ANI_SCOPE_SIZE = 16;
 
 constexpr const char *UI_ABILITY_CLASS_NAME = "@ohos.app.ability.UIAbility.UIAbility";
 constexpr const char *UI_ABILITY_SIGNATURE_VOID = ":";
@@ -65,8 +65,8 @@ constexpr const char *MEMORY_LEVEL_ENUM_NAME = "@ohos.app.ability.AbilityConstan
 constexpr const char *ON_SHARE_SIGNATURE = "C{std.core.Record}:";
 constexpr const char *ON_COLLABORATE =
     "C{std.core.Record}:C{@ohos.app.ability.AbilityConstant.AbilityConstant.CollaborateResult}";
-constexpr const char *ON_CONTINUE_SIG =
-    "C{std.core.Record}:X{C{@ohos.app.ability.AbilityConstant.AbilityConstant.OnContinueResult}C{std.core.Promise}}";
+//constexpr const char *ON_CONTINUE_SIG =
+//    "C{std.core.Record}:X{C{@ohos.app.ability.AbilityConstant.AbilityConstant.OnContinueResult}C{std.core.Promise}}";
 constexpr const char *ON_CONTINUE2_SIG =
     "C{std.core.Record}:C{@ohos.app.ability.AbilityConstant.AbilityConstant.OnContinueResult}";
 
@@ -128,6 +128,36 @@ void OnPrepareTerminatePromiseCallback(ani_env *env, ani_object aniObj, ani_bool
         return;
     }
     TAG_LOGI(AAFwkTag::UIABILITY, "OnPrepareTerminatePromiseCallback end");
+}
+
+void OnContinuePromiseCallback(ani_env *env, ani_object aniObj, ani_ref continueResult)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "OnContinuePromiseCallback called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    ani_long continueCallbackPtr = 0;
+    ani_status status = ANI_ERROR;
+    if ((status = env->Object_GetFieldByName_Long(aniObj, "continueCallbackPoint", &continueCallbackPtr)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Object_GetFieldByName_Long status: %{public}d", status);
+        return;
+    }
+    if (continueCallbackPtr == 0) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null continueCallbackPtr");
+        return;
+    }
+    auto *callbackInfo = reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<> *>(continueCallbackPtr);
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null callbackInfo");
+        return;
+    }
+    callbackInfo->Call();
+    AppExecFwk::AbilityTransactionCallbackInfo<>::Destroy(callbackInfo);
+    if ((status = env->Object_SetFieldByName_Long(aniObj, "continueCallbackPoint", 0)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Object_SetFieldByName_Long status: %{public}d", status);
+        return;
+    }
 }
 } // namespace
 
@@ -226,6 +256,8 @@ bool EtsUIAbility::BindNativeMethods()
             ani_native_function { "nativeOnDestroyCallback", ":", reinterpret_cast<void *>(OnDestroyPromiseCallback) },
             ani_native_function { "nativeOnPrepareToTerminateCallback", "z:",
                 reinterpret_cast<void *>(OnPrepareTerminatePromiseCallback) },
+            ani_native_function { "nativeOnContinueCallback", nullptr,
+                reinterpret_cast<void*>(OnContinuePromiseCallback) },
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });
@@ -1256,11 +1288,11 @@ int32_t EtsUIAbility::OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnC
         return ContinuationManagerStage::ON_CONTINUE_ERR;
     }
     ani_method method = nullptr;
-    ani_status status = aniEnv->Class_FindMethod(etsAbilityObj_->aniCls, "onContinue", ON_CONTINUE_SIG, &method);
-    if (status != ANI_OK) {
-        TAG_LOGI(AAFwkTag::UIABILITY, "Class_FindMethod ON_CONTINUE2_SIG");
-        status = aniEnv->Class_FindMethod(etsAbilityObj_->aniCls, "onContinue", ON_CONTINUE2_SIG, &method);
-    }
+    ani_status status = aniEnv->Class_FindMethod(etsAbilityObj_->aniCls, "onContinue", ON_CONTINUE2_SIG, &method);
+    //if (status != ANI_OK) {
+    //    TAG_LOGI(AAFwkTag::UIABILITY, "Class_FindMethod ON_CONTINUE2_SIG");
+    //    status = aniEnv->Class_FindMethod(etsAbilityObj_->aniCls, "onContinue", ON_CONTINUE2_SIG, &method);
+    //}
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "onContinue FindMethod status: %{public}d, or null method", status);
         return ContinuationManagerStage::ON_CONTINUE_ERR;
@@ -1274,26 +1306,110 @@ int32_t EtsUIAbility::OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnC
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityWillContinue(etsAbilityObj_);
     }
-    ani_status localScopeStatus = aniEnv->CreateLocalScope(ANI_SCOPE_SIZE);
-    if (localScopeStatus != ANI_OK) {
-        TAG_LOGW(AAFwkTag::UIABILITY, "Failed to creat local scope");
-    }
+    //ani_status localScopeStatus = aniEnv->CreateLocalScope(ANI_SCOPE_SIZE);
+    //if (localScopeStatus != ANI_OK) {
+    //    TAG_LOGW(AAFwkTag::UIABILITY, "Failed to creat local scope");
+    //}
     int32_t continueResult = ContinuationManagerStage::ON_CONTINUE_ERR;
-    bool callRet = CallObjectOnContinueMethod(method, wantParamRef, continueResult);
+    bool isPromise = false;
+    bool callRet = CallObjectOnContinueMethod(method, wantParamRef, continueResult, isPromise);
     if (!callRet) {
         TAG_LOGE(AAFwkTag::UIABILITY, "Failed to CallObjectOnContinueMethod");
         return ContinuationManagerStage::ON_CONTINUE_ERR;
     }
-    TAG_LOGI(AAFwkTag::UIABILITY, "CallObjectOnContinueMethod, continueResult = %{public}d", continueResult);
-    AppExecFwk::UnwrapWantParams(aniEnv, wantParamRef, wantParams);
-    if (localScopeStatus == ANI_OK) {
-        aniEnv->DestroyLocalScope();
+    if (isPromise) {
+        if (true == OnContinueReturnPromise(aniEnv, wantParamRef, abilityInfo)) {
+            isAsyncOnContinue = true;
+            return ContinuationManagerStage::AGREE;
+        } else {
+            return ContinuationManagerStage::ON_CONTINUE_ERR;
+        }
     }
+    TAG_LOGI(AAFwkTag::UIABILITY, "CallObjectOnContinueMethod, continueResult = %{public}d", continueResult);
+    if (!AppExecFwk::UnwrapWantParams(aniEnv, wantParamRef, wantParams)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Failed to UnwrapWantParams");
+        return ContinuationManagerStage::ON_CONTINUE_ERR;
+    }
+    //if (localScopeStatus == ANI_OK) {
+    //    aniEnv->DestroyLocalScope();
+    //}
     return (continueResult == ContinuationManagerStage::AGREE) ?
         ContinuationManagerStage::AGREE : ContinuationManagerStage::REJECT;
 }
 
-bool EtsUIAbility::CallObjectOnContinueMethod(ani_method method, ani_ref wantParamRef, int32_t& onContinueResult)
+bool EtsUIAbility::OnContinueReturnPromise(ani_env* aniEnv, ani_ref aniWantParamRef, const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "called");
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "env null");
+        return false;
+    }
+    auto *callbackInfo = AppExecFwk::AbilityTransactionCallbackInfo<int32_t>::Create();
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null callbackInfo");
+        return false;
+    }
+    ani_ref globalWantRef = nullptr;
+    if (ANI_OK != aniEnv->GlobalReference_Create(aniWantParamRef, &globalWantRef) || globalWantRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "GlobalReference_Create failed");
+        delete callbackInfo;
+        return false;
+    }
+    ani_long continueCallbackInfo = reinterpret_cast<ani_long>(callbackInfo);
+    ani_status status = 
+        aniEnv->Object_SetFieldByName_Long(etsAbilityObj_->aniObj, "continueCallbackPoint", continueCallbackInfo);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Object_SetFieldByName_Long status: %{public}d", status);
+        return false;
+    }
+    auto weakThis = weak_from_this();
+    auto asyncCallback = [globalWantRef, weakThis, abilityInfoCaptured = abilityInfo]
+        (int32_t result) {
+        auto ability = weakThis.lock();
+        if (ability == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
+            return;
+        }
+        ability->OnContinueAsyncCB(abilityInfoCaptured, globalWantRef, result);
+    };
+    callbackInfo->Push(asyncCallback);
+    return true;
+}
+
+int32_t EtsUIAbility::OnContinueAsyncCB(const AppExecFwk::AbilityInfo &abilityInfo, ani_ref aniWantParamsRef,
+    int32_t status)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "called");
+    auto aniEnv = etsRuntime_.GetAniEnv();
+    if (aniEnv == nullptr || etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "env null or etsAbilityObj_ null");
+        return false;
+    }
+    AAFwk::WantParams wantParams;
+    if (!AppExecFwk::UnwrapWantParams(aniEnv, aniWantParamsRef, wantParams)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Failed to UnwrapWantParams");
+        return false;
+    }
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        applicationContext->DispatchOnAbilityContinue(etsAbilityObj_);
+    }
+
+    Want want;
+    want.SetParams(wantParams);
+    want.AddFlags(want.FLAG_ABILITY_CONTINUATION);
+    want.SetElementName(abilityInfo.deviceId, abilityInfo.bundleName, abilityInfo.name,
+        abilityInfo.moduleName);
+    int result = AAFwk::AbilityManagerClient::GetInstance()->StartContinuation(want, token_, status);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTINUATION, "StartContinuation failed: %{public}d", result);
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY, "end");
+    return result == ERR_OK;
+}
+
+bool EtsUIAbility::CallObjectOnContinueMethod(ani_method method, ani_ref wantParamRef,
+    int32_t& onContinueResult, bool& isPromise)
 {
     auto aniEnv = etsRuntime_.GetAniEnv();
     if (aniEnv == nullptr) {
@@ -1304,6 +1420,7 @@ bool EtsUIAbility::CallObjectOnContinueMethod(ani_method method, ani_ref wantPar
         TAG_LOGE(AAFwkTag::UIABILITY, "null etsAbilityObj_");
         return false;
     }
+    isPromise = false;
     ani_value args[] = { { .r = wantParamRef } };
     ani_ref result = nullptr;
     ani_status status = ANI_OK;
@@ -1312,6 +1429,14 @@ bool EtsUIAbility::CallObjectOnContinueMethod(ani_method method, ani_ref wantPar
         TAG_LOGE(AAFwkTag::UIABILITY, "CallMethod status: %{public}d, or null result", status);
         return false;
     }
+    ani_boolean isUndefined = ANI_FALSE;
+    aniEnv->Reference_IsUndefined(result, &isUndefined);
+    if (isUndefined) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "wait promise back");
+        isPromise = true;
+        return true;
+    }
+
     if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(aniEnv,
         reinterpret_cast<ani_enum_item>(result), onContinueResult)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "EnumConvert_EtsToNative failed");
