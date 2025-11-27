@@ -90,6 +90,27 @@ bool IsValidProperty(ani_env *env, ani_ref param);
 bool CheckCallerIsSystemApp();
 ani_object WrapLocale(ani_env *env, const std::string &locale);
 ani_object CreateIntAniArray(ani_env *env, const std::vector<int32_t> &dataArry);
+
+class AniLocalScope {
+public:
+    AniLocalScope(ani_env *env, size_t scopeSize)
+        :env_(env)
+    {
+        if (env_ == nullptr) {
+            return;
+        }
+        scopeCreateSucceed = (ANI_OK == aniEnv->CreateLocalScope(scopeSize));
+    }
+    ~AniLocalScope()
+    {
+        if (scopeCreateSucceed) {
+            env_->DestroyLocalScope();
+        }
+    }
+protected:
+    ani_env* env_ = nullptr;
+    bool scopeCreateSucceed = false;
+};
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
