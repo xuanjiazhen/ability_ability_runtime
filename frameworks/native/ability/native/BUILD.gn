@@ -2730,6 +2730,7 @@ ohos_shared_library("share_extension") {
 
   external_deps = [
     "ability_base:want",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
@@ -2959,6 +2960,7 @@ ohos_shared_library("auto_startup_callback") {
 
   external_deps = [
     "ability_base:want",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",

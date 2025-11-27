@@ -292,6 +292,7 @@ ohos_unittest("ets_runtime_test") {
     "ability_base:string_utils",
     "ability_runtime:runtime",
     "bundle_framework:appexecfwk_core",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "faultloggerd:libunwinder",
