@@ -49,7 +49,7 @@ export default class UIAbility extends Ability {
 
   private native nativeOnPrepareToTerminateCallback(prepareTermination: boolean): void;
 
-  private native nativeOnContinueCallback(): void;
+  private native nativeOnContinueCallback(result: AbilityConstant.OnContinueResult): void;
 
   private callOnDestroy(): boolean {
     let p = this.onDestroy();
@@ -77,15 +77,6 @@ export default class UIAbility extends Ability {
     return false;
   }
 
-    let p = this.onContinue(wantParams);
-    if (p instanceof Promise) {
-      let promiseResult = p as Promise<AbilityConstant.OnContinueResult>
-      promiseResult.then((result: AbilityConstant.OnContinueResult) => {
-      });
-      return undefined;
-    }
-    return p;
-
   private callOnContinue(wantParams: Record<string, Object>): AbilityConstant.OnContinueResult | undefined {
     let p = this.onContinue(wantParams);
     if (p instanceof Promise) {
@@ -93,7 +84,7 @@ export default class UIAbility extends Ability {
       promiseResult.then((result: AbilityConstant.OnContinueResult) => this.nativeOnContinueCallback(result));
       return undefined;
     }
-    return p;
+    return p as AbilityConstant.OnContinueResult;
   }
 
   context: UIAbilityContext = new UIAbilityContext();
