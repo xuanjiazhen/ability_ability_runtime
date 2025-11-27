@@ -93,8 +93,8 @@ public:
 
     int32_t OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnContinue,
         const AppExecFwk::AbilityInfo &abilityInfo) override;
-    int32_t OnContinueAsyncCB(const AppExecFwk::AbilityInfo &abilityInfo, ani_ref aniWantParamsRef,
-        int32_t status) override;
+    int32_t OnContinueAsyncCB(ani_ref aniWantParamsRef, int32_t status,
+        const AppExecFwk::AbilityInfo &abilityInfo) override;
     bool OnContinueReturnPromise(ani_env* aniEnv, ani_ref aniWantParamRef, const AppExecFwk::AbilityInfo &abilityInfo);
     bool CallObjectOnContinueMethod(ani_method method, ani_ref wantParamRef, int32_t& onContinueResult,
         bool& isPromise);

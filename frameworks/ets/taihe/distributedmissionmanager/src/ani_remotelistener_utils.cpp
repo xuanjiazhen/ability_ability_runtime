@@ -23,6 +23,7 @@
 namespace ani_remotelistenerutils {
 
 static std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_;
+static std::once_flag g_handlerOnceFlag;
 
 AniRemoteMissionListener::AniRemoteMissionListener(const ::MissionCallbacks::MissionCallback &ref)
     :callbacks_(ref)
@@ -44,10 +45,10 @@ void AniRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceId
 {
     TAG_LOGI(AAFwkTag::MISSION, "NotifyMissionsChanged");
     wptr<AniRemoteMissionListener> weakthis = this;
-    SendEventToMainThread([deviceId, weakthis] {
+    SendEventToMainThread([copyId = deviceId, weakthis] {
         auto sptrthis = weakthis.promote();
         if (sptrthis != nullptr) {
-            sptrthis->NotifyMissionsChangedInMainThread(deviceId);
+            sptrthis->NotifyMissionsChangedInMainThread(copyId);
         }
     });
 }
@@ -56,10 +57,10 @@ void AniRemoteMissionListener::NotifySnapshot(const std::string &deviceId, int32
 {
     TAG_LOGI(AAFwkTag::MISSION, "NotifySnapshot");
     wptr<AniRemoteMissionListener> weakthis = this;
-    SendEventToMainThread([deviceId, missionId, weakthis] {
+    SendEventToMainThread([copyId = deviceId, missionId, weakthis] {
         auto sptrthis = weakthis.promote();
         if (sptrthis != nullptr) {
-            sptrthis->NotifySnapshotInMainThread(deviceId, missionId);
+            sptrthis->NotifySnapshotInMainThread(copyId, missionId);
         }
     });
 }
@@ -68,10 +69,10 @@ void AniRemoteMissionListener::NotifyNetDisconnect(const std::string &deviceId, 
 {
     TAG_LOGI(AAFwkTag::MISSION, "NotifyNetDisconnect");
     wptr<AniRemoteMissionListener> weakthis = this;
-    SendEventToMainThread([deviceId, state, weakthis] {
+    SendEventToMainThread([copyId = deviceId, state, weakthis] {
         auto sptrthis = weakthis.promote();
         if (sptrthis != nullptr) {
-            sptrthis->NotifyNetDisconnectInMainThread(deviceId, state);
+            sptrthis->NotifyNetDisconnectInMainThread(copyId, state);
         }
     });
 }
@@ -114,13 +115,15 @@ bool AniRemoteMissionListener::SendEventToMainThread(const std::function<void()>
     if (func == nullptr) {
         return false;
     }
-    if (!mainHandler_) {
-        std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::GetMainEventRunner();
-        if (!runner) {
-            TAG_LOGI(AAFwkTag::MISSION, "GetMainEventRunner failed");
-            return false;
+    std::call_once(g_handlerOnceFlag, []{
+        auto runner = OHOS::AppExecFwk::EventRunner::GetMainEventRunner();
+        if (runner) {
+            mainHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
         }
-        mainHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    });
+    if (!mainHandler_) {
+        TAG_LOGI(AAFwkTag::MISSION, "Failed to initialize event handler");
+        return false;
     }
     mainHandler_->PostTask(func, "", 0, OHOS::AppExecFwk::EventQueue::Priority::IMMEDIATE, {});
     return true;
@@ -161,13 +164,15 @@ bool AniMissionContinue::SendEventToMainThread(const std::function<void()> func)
     if (func == nullptr) {
         return false;
     }
-    if (!mainHandler_) {
-        std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::GetMainEventRunner();
-        if (!runner) {
-            TAG_LOGI(AAFwkTag::MISSION, "GetMainEventRunner failed");
-            return false;
+    std::call_once(g_handlerOnceFlag, []{
+        auto runner = OHOS::AppExecFwk::EventRunner::GetMainEventRunner();
+        if (runner) {
+            mainHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
         }
-        mainHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    });
+    if (!mainHandler_) {
+        TAG_LOGI(AAFwkTag::MISSION, "Failed to initialize event handler");
+        return false;
     }
     mainHandler_->PostTask(func, "", 0, OHOS::AppExecFwk::EventQueue::Priority::IMMEDIATE, {});
     return true;

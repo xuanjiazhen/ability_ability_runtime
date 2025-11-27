@@ -48,14 +48,28 @@ public:
         return new(std::nothrow) AbilityTransactionCallbackInfo();
     }
 
-    static void Destroy(AbilityTransactionCallbackInfo *callbackInfo)
+    static void Destroy(AbilityTransactionCallbackInfo *callbackInfo, void* data = nullptr)
     {
+        callbackInfo->Finalize(data);
         delete callbackInfo;
     }
 
     void Push(const CallbackFunc &callback)
     {
         callbackStack_.push(callback);
+    }
+
+    void SetFinalizeCallback(const std::function<void(void*)> &finalize)
+    {
+        finalizeCallback_ = finalize;
+    }
+
+    void Finalize(void* data)
+    {
+        if (finalizeCallback_ != nullptr) {
+            finalizeCallback_(data);
+            finalizeCallback_ = nullptr;
+        }
     }
 
     void Call(T &callbackResult)
@@ -74,6 +88,7 @@ public:
 
 private:
     std::stack<CallbackFunc> callbackStack_ {};
+    std::function<void(void*)> finalizeCallback_ {};
 };
 
 template<>
@@ -89,7 +104,7 @@ public:
         return new(std::nothrow) AbilityTransactionCallbackInfo();
     }
 
-    static void Destroy(AbilityTransactionCallbackInfo *callbackInfo)
+    static void Destroy(AbilityTransactionCallbackInfo *callbackInfo, [[maybe_unused]]void* data = nullptr)
     {
         delete callbackInfo;
     }

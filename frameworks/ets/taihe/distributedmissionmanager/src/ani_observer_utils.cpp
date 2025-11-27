@@ -21,6 +21,7 @@
 namespace ani_observerutils {
 
 std::shared_ptr<OHOS::AppExecFwk::EventHandler> JsBaseObserver::mainHandler_;
+static std::once_flag g_handlerOnceFlag;
 
 JsBaseObserver::JsBaseObserver()
 {
@@ -31,13 +32,15 @@ bool JsBaseObserver::SendEventToMainThread(const std::function<void()> func)
     if (func == nullptr) {
         return false;
     }
-    if (!mainHandler_) {
-        std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::GetMainEventRunner();
-        if (!runner) {
-            TAG_LOGI(AAFwkTag::MISSION, "GetMainEventRunner failed");
-            return false;
+    std::call_once(g_handlerOnceFlag, []{
+        auto runner = OHOS::AppExecFwk::EventRunner::GetMainEventRunner();
+        if (runner) {
+            mainHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
         }
-        mainHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    });
+    if (!mainHandler_) {
+        TAG_LOGI(AAFwkTag::MISSION, "Failed to initialize event handler");
+        return false;
     }
     mainHandler_->PostTask(func, "", 0, OHOS::AppExecFwk::EventQueue::Priority::IMMEDIATE, {});
     return true;
