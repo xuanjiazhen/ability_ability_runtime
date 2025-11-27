@@ -90,6 +90,7 @@ bool IsValidProperty(ani_env *env, ani_ref param);
 bool CheckCallerIsSystemApp();
 ani_object WrapLocale(ani_env *env, const std::string &locale);
 ani_object CreateIntAniArray(ani_env *env, const std::vector<int32_t> &dataArry);
+
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
