@@ -558,6 +558,13 @@ int32_t UIAbility::OnContinueAsyncCB(napi_ref jsWantParams, int32_t status,
     return ERR_OK;
 }
 
+int32_t UIAbility::OnContinueAsyncCB(const AppExecFwk::AbilityInfo &abilityInfo, ani_ref aniWantParamsRef,
+    int32_t status)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    return ERR_OK;
+}
+
 int32_t UIAbility::OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnContinue,
     const AppExecFwk::AbilityInfo &abilityInfo)
 {

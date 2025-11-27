@@ -113,6 +113,8 @@ taihe_shared_library("distributedmissionmanager_ani") {
     "node:node_header_notice",
     "samgr:samgr_proxy",
   ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
 }
 
 generate_static_abc("distributedmissionmanager_abc") {
