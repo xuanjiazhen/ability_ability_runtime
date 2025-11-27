@@ -551,6 +551,12 @@ void JsAbilityContext::UnWrapCompletionHandlerForAtomicService(
         TAG_LOGD(AAFwkTag::CONTEXT, "null completionHandlerForAtomicService");
         return;
     }
+    napi_ref AtomicServiceRef = nullptr;
+    auto status = napi_create_reference(env, completionHandlerForAtomicService, 1, &AtomicServiceRef);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "create reference failed: %{public}d", status);
+        return;
+    }
     napi_value onRequestSuccFunc = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandlerForAtomicService,
         "onAtomicServiceRequestSuccess", napi_function);
     napi_value onRequestFailFunc = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandlerForAtomicService,
@@ -559,24 +565,40 @@ void JsAbilityContext::UnWrapCompletionHandlerForAtomicService(
         TAG_LOGE(AAFwkTag::CONTEXT, "null onRequestSuccFunc or onRequestFailFunc");
         return;
     }
-    OnAtomicRequestSuccess onRequestSucc = [env, completionHandlerForAtomicService, onRequestSuccFunc](
+    OnAtomicRequestSuccess onRequestSucc = [env, AtomicServiceRef, onRequestSuccFunc](
         const std::string &appId) {
         napi_value argv[ARGC_ONE] = { CreateJsValue(env, appId) };
-        napi_status status = napi_call_function(
+        napi_value completionHandlerForAtomicService = nullptr;
+        napi_status status = napi_get_reference_value(env, AtomicServiceRef, &completionHandlerForAtomicService);
+        if (status != napi_ok || completionHandlerForAtomicService == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "get reference value failed: %{public}d", status);
+            napi_delete_reference(env, AtomicServiceRef);
+            return;
+        }
+        status = napi_call_function(
             env, completionHandlerForAtomicService, onRequestSuccFunc, ARGC_ONE, argv, nullptr);
         if (status != napi_ok) {
             TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestSuccess, failed: %{public}d", status);
         }
+        napi_delete_reference(env, AtomicServiceRef);
     };
-    OnAtomicRequestFailure onRequestFail = [env, completionHandlerForAtomicService, onRequestFailFunc](
+    OnAtomicRequestFailure onRequestFail = [env, AtomicServiceRef, onRequestFailFunc](
         const std::string &appId, int32_t failureCode, const std::string &message) {
         napi_value argv[ARGC_THREE] = { CreateJsValue(env, appId), CreateJsValue(env, failureCode),
             CreateJsValue(env, message) };
-        napi_status status = napi_call_function(
+        napi_value completionHandlerForAtomicService = nullptr;
+        napi_status status = napi_get_reference_value(env, AtomicServiceRef, &completionHandlerForAtomicService);
+        if (status != napi_ok || completionHandlerForAtomicService == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "get reference value failed: %{public}d", status);
+            napi_delete_reference(env, AtomicServiceRef);
+            return;
+        }
+        status = napi_call_function(
             env, completionHandlerForAtomicService, onRequestFailFunc, ARGC_THREE, argv, nullptr);
         if (status != napi_ok) {
             TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestFailure, failed: %{public}d", status);
         }
+        napi_delete_reference(env, AtomicServiceRef);
     };
     auto context = context_.lock();
     if (!context) {
