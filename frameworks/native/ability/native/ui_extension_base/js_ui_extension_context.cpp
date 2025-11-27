@@ -1885,6 +1885,14 @@ void JsUIExtensionContext::UnWrapCompletionHandlerForAtomicService(
         TAG_LOGD(AAFwkTag::UI_EXT, "null completionHandlerForAtomicService");
         return;
     }
+    napi_ref ref = nullptr;
+    napi_create_reference(env, completionHandlerForAtomicService, 1, &ref);
+    std::shared_ptr<NativeReference> atomicServiceRef =
+        std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref));
+    if (atomicServiceRef == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "create reference failed");
+        return;
+    }
     TAG_LOGI(AAFwkTag::UI_EXT, "completionHandlerForAtomicService exists");
     napi_value onRequestSuccFunc = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandlerForAtomicService,
         "onAtomicServiceRequestSuccess", napi_function);
@@ -1894,19 +1902,29 @@ void JsUIExtensionContext::UnWrapCompletionHandlerForAtomicService(
         TAG_LOGE(AAFwkTag::UI_EXT, "null onRequestSuccFunc or onRequestFailFunc");
         return;
     }
-    OnAtomicRequestSuccess onRequestSucc = [env, completionHandlerForAtomicService, onRequestSuccFunc](
+    OnAtomicRequestSuccess onRequestSucc = [env, atomicServiceRef, onRequestSuccFunc](
         const std::string &appId) {
         napi_value argv[ARGC_ONE] = { CreateJsValue(env, appId) };
+        napi_value completionHandlerForAtomicService = atomicServiceRef->GetNapiValue();
+        if (completionHandlerForAtomicService == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "get reference value failed");
+            return;
+        }
         napi_status status = napi_call_function(
             env, completionHandlerForAtomicService, onRequestSuccFunc, ARGC_ONE, argv, nullptr);
         if (status != napi_ok) {
             TAG_LOGE(AAFwkTag::UI_EXT, "call onRequestSuccess, failed: %{public}d", status);
         }
     };
-    OnAtomicRequestFailure onRequestFail = [env, completionHandlerForAtomicService, onRequestFailFunc](
+    OnAtomicRequestFailure onRequestFail = [env, atomicServiceRef, onRequestFailFunc](
         const std::string &appId, int32_t failureCode, const std::string &message) {
         napi_value argv[ARGC_THREE] = { CreateJsValue(env, appId), CreateJsValue(env, failureCode),
             CreateJsValue(env, message) };
+        napi_value completionHandlerForAtomicService = atomicServiceRef->GetNapiValue();
+        if (completionHandlerForAtomicService == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "get reference value failed");
+            return;
+        }
         napi_status status = napi_call_function(
             env, completionHandlerForAtomicService, onRequestFailFunc, ARGC_THREE, argv, nullptr);
         if (status != napi_ok) {
