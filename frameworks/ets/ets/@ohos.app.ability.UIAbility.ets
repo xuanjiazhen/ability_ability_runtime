@@ -77,15 +77,6 @@ export default class UIAbility extends Ability {
     return false;
   }
 
-    let p = this.onContinue(wantParams);
-    if (p instanceof Promise) {
-      let promiseResult = p as Promise<AbilityConstant.OnContinueResult>
-      promiseResult.then((result: AbilityConstant.OnContinueResult) => {
-      });
-      return undefined;
-    }
-    return p;
-
   private callOnContinue(wantParams: Record<string, Object>): AbilityConstant.OnContinueResult | undefined {
     let p = this.onContinue(wantParams);
     if (p instanceof Promise) {
