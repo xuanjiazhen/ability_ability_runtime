@@ -1885,7 +1885,8 @@ public:
      */
     ErrCode GetAllInsightIntentInfo(
         AbilityRuntime::GetInsightIntentFlag flag,
-        std::vector<InsightIntentInfoForQuery> &infos);
+        std::vector<InsightIntentInfoForQuery> &infos,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
      * Get specified bundleName insight intent infos.
@@ -1897,7 +1898,8 @@ public:
     ErrCode GetInsightIntentInfoByBundleName(
         AbilityRuntime::GetInsightIntentFlag flag,
         const std::string &bundleName,
-        std::vector<InsightIntentInfoForQuery> &infos);
+        std::vector<InsightIntentInfoForQuery> &infos,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
      * Get specified intentName insight intent infos.
@@ -1913,7 +1915,8 @@ public:
         const std::string &bundleName,
         const std::string &moduleName,
         const std::string &intentName,
-        InsightIntentInfoForQuery &info);
+        InsightIntentInfoForQuery &info,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     ErrCode UpdateKioskApplicationList(const std::vector<std::string> &appList);
 
