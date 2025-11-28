@@ -99,6 +99,7 @@ public:
     void StopDebugMode();
     uint32_t instanceId_ = 0;
     void SetJsRuntime(std::unique_ptr<AbilityRuntime::Runtime> &jsRuntime);
+    static void PreloadLibrary();
 
 private:
     bool Initialize(const Options &options, std::unique_ptr<Runtime> &jsRuntime, bool isMove = true);
