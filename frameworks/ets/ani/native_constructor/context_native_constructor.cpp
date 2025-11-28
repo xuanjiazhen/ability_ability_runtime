@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <ani.h>
+#include <array>
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {

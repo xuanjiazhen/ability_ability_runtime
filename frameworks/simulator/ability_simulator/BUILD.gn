@@ -14,6 +14,7 @@
 import("//build/config/components/ace_engine/ace_gen_obj.gni")
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
+import("//foundation/communication/ipc/config.gni")
 
 config("ability_simulator_public_config") {
   include_dirs = [ "include" ]
@@ -21,7 +22,7 @@ config("ability_simulator_public_config") {
 }
 
 ohos_shared_library("ability_simulator_inner") {
-  if (is_mingw || is_mac) {
+  if (is_mingw || is_mac || is_linux) {
     defines = []
     if (is_mingw) {
       defines += [
@@ -45,6 +46,7 @@ ohos_shared_library("ability_simulator_inner") {
       "${ability_runtime_innerkits_path}/error_utils/include",
       "${ability_runtime_innerkits_path}/runtime/include",
       "${windowmanager_path}/previewer/include",
+      "${windowmanager_path}/previewer",
       "${windowmanager_path}/previewer/mock",
       "${windowmanager_path}/previewer/mock/transaction",
       "${windowmanager_path}/previewer/mock/ui",
@@ -52,7 +54,15 @@ ohos_shared_library("ability_simulator_inner") {
       "${windowmanager_path}/interfaces/kits/napi/window_runtime/window_stage_napi",
       "include/bundle_parser",
       "${simulator_path}/napi_module/application",
+      "${resource_management_path}/interfaces/inner_api/include",
     ]
+
+    if (is_linux) {
+      defines += [ "LINUX_PREVIEW" ]
+      defines += [ "WINDOW_PREVIEW" ]
+      defines += [ "LINUX_PLATFORM" ]
+      defines += [ "PREVIEW" ]
+    }
 
     sources = [
       "${ability_runtime_native_path}/ability/native/ability_business_error/ability_business_error.cpp",
@@ -121,8 +131,10 @@ ohos_shared_library("ability_simulator_inner") {
 
     if (is_mingw) {
       external_deps += [ "resource_management:win_resmgr" ]
-    } else {
+    } else if (is_mac) {
       external_deps += [ "resource_management:mac_resmgr" ]
+    } else if (is_linux) {
+      external_deps += [ "resource_management:linux_resmgr" ]
     }
   }
 
@@ -133,7 +145,7 @@ ohos_shared_library("ability_simulator_inner") {
 }
 
 group("ability_simulator") {
-  if (is_mingw || is_mac) {
+  if (is_mingw || is_mac || is_linux) {
     public_deps = [ ":ability_simulator_inner" ]
   }
 }

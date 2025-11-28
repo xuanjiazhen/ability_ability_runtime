@@ -24,6 +24,7 @@
 #include "common_profile.h"
 #include "hilog_tag_wrapper.h"
 #include "string_ex.h"
+#include <unordered_map>
 
 namespace OHOS {
 namespace AppExecFwk {

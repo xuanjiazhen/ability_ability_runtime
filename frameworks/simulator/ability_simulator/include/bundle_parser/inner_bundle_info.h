@@ -24,6 +24,7 @@
 #include "hap_module_info.h"
 #include "json_util.h"
 #include "nocopyable.h"
+#include <optional>
 
 namespace OHOS {
 namespace AppExecFwk {

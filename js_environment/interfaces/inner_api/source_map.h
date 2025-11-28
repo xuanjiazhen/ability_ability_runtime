@@ -18,7 +18,9 @@
 
 #include <cstring>
 #include <fstream>
+#include <functional>
 #include <limits.h>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <utility>

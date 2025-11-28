@@ -72,6 +72,8 @@ const std::string DEPENDENCY_ALIAS = "dependencyAlias";
 constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.dll";
 #elif defined(MAC_PLATFORM)
 constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.dylib";
+#elif defined(LINUX_PLATFORM)
+constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.so";
 #else
 #error "Unsupported platform"
 #endif
@@ -359,7 +361,6 @@ int64_t SimulatorImpl::StartAbility(
     if (!ParseAbilityInfo(abilitySrcPath, abilityName)) {
         return -1;
     }
-
     CreateStageContext();
     std::ifstream stream(options_.modulePath, std::ios::ate | std::ios::binary);
     if (!stream.is_open()) {
