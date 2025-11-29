@@ -521,5 +521,37 @@ HWTEST_F(SleepCleanTest, SleepCleanTest029, TestSize.Level1) {
     EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest029 end";
 }
+
+/**
+* @tc.number: SleepCleanTest030
+* @tc.name: SleepCleanTest030
+* @tc.desc: test HandleSleepClean with appStatus=1 and valid heap size
+*/
+HWTEST_F(SleepCleanTest, SleepCleanTest030, TestSize.Level1) {
+    GTEST_LOG_(INFO) << "SleepCleanTest030 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    FaultData faultData;
+    faultData.appStatus = 1;
+    currentHeapSize = "500000";
+    bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
+    EXPECT_TRUE(ret);
+    GTEST_LOG_(INFO) << "SleepCleanTest030 end";
+}
+
+/**
+* @tc.number: SleepCleanTest031
+* @tc.name: SleepCleanTest031
+* @tc.desc: test HandleSleepClean with appStatus=1 and invalid heap size
+*/
+HWTEST_F(SleepCleanTest, SleepCleanTest031, TestSize.Level1) {
+    GTEST_LOG_(INFO) << "SleepCleanTest031 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    FaultData faultData;
+    faultData.appStatus = 1;
+    currentHeapSize = "invalid_number";
+    bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
+    EXPECT_FALSE(ret);
+    GTEST_LOG_(INFO) << "SleepCleanTest031 end";
+}
 }
 }
