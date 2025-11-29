@@ -92,7 +92,7 @@ HWTEST_F(AutoFillManagerTest, RequestAutoFill_0100, TestSize.Level1)
  * SubFunction: NA
  * FunctionPoints:Calling to the RequestAutoFill function parameter is invalid.
  * EnvConditions: NA
- * CaseDescription: Verify the parameter autoFillType and autoFillTriggerType is UNSPECIFIED.
+ * CaseDescription: Verify the parameter  autoFillTriggerType is AUTO_REQUEST.
  */
 HWTEST_F(AutoFillManagerTest, RequestAutoFill_0200, TestSize.Level1)
 {
@@ -101,7 +101,7 @@ HWTEST_F(AutoFillManagerTest, RequestAutoFill_0200, TestSize.Level1)
     std::shared_ptr<MockIFillRequestCallback> mockIFillRequestCallback = std::make_shared<MockIFillRequestCallback>();
     Ace::MockUIContent *uicontent = new Ace::MockUIContent();
     AbilityRuntime::AutoFill::AutoFillRequest autoFillRequest;
-    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::UNSPECIFIED;
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::AUTO_REQUEST;
     autoFillRequest.autoFillType = AbilityBase::AutoFillType::UNSPECIFIED;
     AbilityRuntime::AutoFill::AutoFillResult result;
     auto ret = manager.RequestAutoFill(uicontent, autoFillRequest, mockIFillRequestCallback, result);
@@ -126,7 +126,31 @@ HWTEST_F(AutoFillManagerTest, RequestAutoFill_0300, TestSize.Level1)
     AbilityRuntime::AutoFill::AutoFillRequest autoFillRequest;
     autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::PASTE_REQUEST;
     autoFillRequest.autoFillType = AbilityBase::AutoFillType::UNSPECIFIED;
-    autoFillRequest.autoFillCommand == AbilityRuntime::AutoFill::AutoFillCommand::SAVE;
+    autoFillRequest.autoFillCommand = AbilityRuntime::AutoFill::AutoFillCommand::SAVE;
+    AbilityRuntime::AutoFill::AutoFillResult result;
+    auto ret = manager.RequestAutoFill(uicontent, autoFillRequest, mockIFillRequestCallback, result);
+    EXPECT_EQ(ret, AbilityRuntime::AutoFill::AUTO_FILL_CREATE_MODULE_UI_EXTENSION_FAILED);
+    delete uicontent;
+}
+
+/*
+ * Feature: AutoFillManager
+ * Function: RequestAutoFill
+ * SubFunction: NA
+ * FunctionPoints:Calling to the RequestAutoFill function parameter is invalid.
+ * EnvConditions: NA
+ * CaseDescription: Verify the parameter AutoFillType is USER_NAME.
+ */
+HWTEST_F(AutoFillManagerTest, RequestAutoFill_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, RequestAutoFill_0400, TestSize.Level1";
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+    std::shared_ptr<MockIFillRequestCallback> mockIFillRequestCallback = std::make_shared<MockIFillRequestCallback>();
+    Ace::MockUIContent *uicontent = new Ace::MockUIContent();
+    AbilityRuntime::AutoFill::AutoFillRequest autoFillRequest;
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::MANUAL_REQUEST;
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::USER_NAME;
+    autoFillRequest.autoFillCommand = AbilityRuntime::AutoFill::AutoFillCommand::SAVE;
     AbilityRuntime::AutoFill::AutoFillResult result;
     auto ret = manager.RequestAutoFill(uicontent, autoFillRequest, mockIFillRequestCallback, result);
     EXPECT_EQ(ret, AbilityRuntime::AutoFill::AUTO_FILL_CREATE_MODULE_UI_EXTENSION_FAILED);
@@ -217,6 +241,34 @@ HWTEST_F(AutoFillManagerTest, ConvertAutoFillWindowType_0100, TestSize.Level1)
     autoFillRequest.autoFillType = AbilityBase::AutoFillType::PERSON_FULL_NAME;
     manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
     EXPECT_EQ(isSmartAutoFill, true);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+}
+
+/*
+ * Feature: AutoFillManager
+ * Function: ConvertAutoFillWindowType
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify Based on whether the requestType value can correctly convert
+ * the windowType and extension types.
+ */
+HWTEST_F(AutoFillManagerTest, ConvertAutoFillWindowType_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, ConvertAutoFillWindowType_0200, TestSize.Level1";
+    AbilityRuntime::AutoFill::AutoFillRequest autoFillRequest;
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::PASTE_REQUEST;
+    bool isSmartAutoFill = true;
+    AbilityRuntime::AutoFill::AutoFillWindowType autoFillWindowType
+        = AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW;
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+    isSmartAutoFill = true;
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::MANUAL_REQUEST;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
     EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
 }
 
