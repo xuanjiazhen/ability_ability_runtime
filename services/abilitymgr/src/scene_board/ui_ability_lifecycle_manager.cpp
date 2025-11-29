@@ -382,10 +382,6 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityReque
         }
         MoreAbilityNumbersSendEventInfo(
             abilityRequest.userId, abilityInfo.bundleName, abilityInfo.name, abilityInfo.moduleName);
-        if (!abilityRequest.startOptions.GetCurrentProcessName().empty()) {
-            uiAbilityRecord->SetProcessName(abilityRequest.abilityInfo.process);
-            uiAbilityRecord->SetCallerSetProcess(true);
-        }
         if (isLowMemKill) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "killed by low-mem, created a new record, "
                 "replacing old record id=%{public}d, new record id=%{public}d",
