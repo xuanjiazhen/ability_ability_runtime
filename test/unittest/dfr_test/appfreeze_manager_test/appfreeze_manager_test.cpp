@@ -208,15 +208,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_006, TestSize.Level1)
     appfreezeManager->ClearOldInfo();
     int32_t pid = static_cast<int32_t>(getprocpid());
     int state = AppfreezeManager::AppFreezeState::APPFREEZE_STATE_FREEZE;
-    bool result = appfreezeManager->IsNeedIgnoreFreezeEvent(pid, "Test");
-    EXPECT_TRUE(!result);
-    appfreezeManager->ClearOldInfo();
-    result = appfreezeManager->IsProcessDebug(pid, "Test");
-    EXPECT_TRUE(!result);
-    result = appfreezeManager->IsNeedIgnoreFreezeEvent(pid, "Test");
-    EXPECT_TRUE(result);
-    std::string errorName = "THREAD_BLOCK_3S";
-    result = appfreezeManager->IsNeedIgnoreFreezeEvent(12000, errorName);
+    bool result = appfreezeManager->IsProcessDebug(pid, "Test");
     EXPECT_TRUE(!result);
 }
 
@@ -234,22 +226,6 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_007, TestSize.Level1)
     str = "123:456";
     ret = appfreezeManager->StrSplit(str, index);
     EXPECT_EQ(ret, "456");
-}
-
-/**
- * @tc.number: AppfreezeManagerTest_008
- * @tc.desc: add testcase codecoverage
- * @tc.type: FUNC
- */
-HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_008, TestSize.Level1)
-{
-    int32_t pid = static_cast<int32_t>(getprocpid());
-    int state = AppfreezeManager::AppFreezeState::APPFREEZE_STATE_IDLE;
-    EXPECT_EQ(appfreezeManager->GetFreezeState(pid), state);
-    appfreezeManager->SetFreezeState(pid,
-        AppfreezeManager::AppFreezeState::APPFREEZE_STATE_FREEZE, "Test");
-    appfreezeManager->SetFreezeState(pid, state, "Test");
-    EXPECT_EQ(appfreezeManager->GetFreezeState(pid), state);
 }
 
 /**
@@ -534,6 +510,95 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetCatcherStack_Test001, Tes
     }
     result = appfreezeManager->GetCatcherStack(fileName, catcherStack);
     EXPECT_EQ(result, "");
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest CheckAppfreezeHappend Test
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test001, TestSize.Level1)
+{
+    int pid = getpid();
+    int uid = getuid();
+    std::string bundleName = "AppfreezeManagerTest_CheckAppfreezeHappend_Test001";
+    std::string key = std::string(pid) + "_" + std::string(uid) + "_" + bundleName;
+    bool ret = appfreezeManager->CheckAppfreezeHappend(key, "CheckAppfreezeHappend_Test");
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->CheckAppfreezeHappend(key, "BUSSINESS_THREAD_BLOCK_3S");
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_6S");
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->CheckAppfreezeHappend(key, "LIFECYCLE_TIMEOUT");
+    EXPECT_EQ(ret, true);
+    ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
+    EXPECT_EQ(ret, true);
+    for (int i = 0; i < 20; i++) {
+        key += "_" + std::string(i);
+        appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_6S");
+    }
+    int count = 60;
+    while (count > 0) {
+        count = sleep(count);
+    }
+    key += "_" + std::string(20);
+    appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_6S");
+    EXPECT_EQ(ret, false);
+    appfreezeManager->CheckAppfreezeHappend(key, "LIFECYCLE_HALF_TIMEOUT_WARNING");
+    EXPECT_EQ(ret, false);
+    appfreezeManager->CheckAppfreezeHappend(key, "LIFECYCLE_HALF_TIMEOUT_WARNING");
+    EXPECT_EQ(ret, true);
+    appfreezeManager->CheckAppfreezeHappend(key, "LIFECYCLE_TIMEOUT_WARNING");
+    EXPECT_EQ(ret, false);
+    appfreezeManager->CheckAppfreezeHappend(key, "LIFECYCLE_TIMEOUT_WARNING");
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest IsNeedIgnoreFreezeEvent Test
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_IsNeedIgnoreFreezeEvent_Test001, TestSize.Level1)
+{
+    int pid = getpid();
+    int uid = getuid();
+    std::string bundleName = "AppfreezeManagerTest_IsNeedIgnoreFreezeEvent_Test001";
+    std::string key = std::string(pid) + "_" + std::string(uid) + "_" + bundleName;
+    int reportTimes = 3;
+    bool ret = appfreezeManager->IsNeedIgnoreFreezeEvent(key, "THREAD_BLOCK_6S", reportTimes);
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(key, "THREAD_BLOCK_3S", reportTimes);
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(key, "LIFECYCLE_TIMEOUT", reportTimes);
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(key, "THREAD_BLOCK_6S", reportTimes);
+    EXPECT_EQ(ret, true);
+    std::string eventName = "LIFECYCLE_TIMEOUT_WARNING";
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    std::string eventName = "LIFECYCLE_HALF_TIMEOUT_WARNING";
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    while (count > 0) {
+        count = sleep(count);
+    }
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(key, "THREAD_BLOCK_6S", reportTimes);
+    EXPECT_EQ(ret, false);
+    eventName = "LIFECYCLE_TIMEOUT_WARNING";
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    EXPECT_EQ(ret, false);
+    eventName = "LIFECYCLE_HALF_TIMEOUT_WARNING";
+    ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    EXPECT_EQ(ret, false);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
