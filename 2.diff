@@ -1,0 +1,21 @@
+diff --git a/test/unittest/connect_server_manager_test/connect_server_manager_test.cpp b/test/unittest/connect_server_manager_test/connect_server_manager_test.cpp
+index d4eea3a0ca..437568f510 100644
+--- a/test/unittest/connect_server_manager_test/connect_server_manager_test.cpp
++++ b/test/unittest/connect_server_manager_test/connect_server_manager_test.cpp
+@@ -199,11 +199,13 @@ HWTEST_F(ConnectServerManagerTest, ConnectServerManagerTest_0900, TestSize.Level
+ {
+     TAG_LOGI(AAFwkTag::TEST, "ConnectServerManagerTest_0900 is start");
+     ConnectServerManager &connectServerManager = AbilityRuntime::ConnectServerManager::Get();
+-    connectServerManager.RemoveInstance(ONE);
+-    connectServerManager.g_debuggerInfo.clear();
++    const std::string instanceName = "test";
++    connectServerManager.instanceMap_.clear();
++    connectServerManager.instanceMap_.try_emplace(ONE, instanceName, getproctid());
+     void* vm = nullptr;
+     DebuggerPostTask debuggerPostTask = [](std::function<void()>&&) {};
+-    auto res = connectServerManager.g_debuggerInfo.emplace(gettid(), std::make_pair(vm, debuggerPostTask));
++    connectServerManager.g_debuggerInfo.clear();
++    auto res = connectServerManager.g_debuggerInfo.try_emplace(getproctid(), std::make_pair(vm, debuggerPostTask));
+     EXPECT_TRUE(res.second);
+     connectServerManager.RemoveInstance(ONE);
+     EXPECT_TRUE(connectServerManager.g_debuggerInfo.empty());
