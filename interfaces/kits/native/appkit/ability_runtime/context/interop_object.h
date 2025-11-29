@@ -25,6 +25,11 @@ public:
     {
         return false;
     }
+
+    virtual bool IsFromAni()
+    {
+        return false;
+    }
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
