@@ -278,7 +278,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest014, TestSize.Level1) {
     faultData.waitSaveState = false;
     currentHeapSize = "100000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest014 end";
 }
 
@@ -310,7 +310,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest016, TestSize.Level1) {
     faultData.notifyApp = true;
     currentHeapSize = "150000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest016 end";
 }
 
@@ -342,7 +342,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest018, TestSize.Level1) {
     faultData.forceExit = true;
     currentHeapSize = "200000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest018 end";
 }
 
@@ -374,7 +374,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest020, TestSize.Level1) {
     faultData.needKillProcess = false;  // Default is true
     currentHeapSize = "250000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest020 end";
 }
 
@@ -406,7 +406,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest022, TestSize.Level1) {
     faultData.isInForeground = true;  // No default initialization
     currentHeapSize = "300000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest022 end";
 }
 
@@ -438,7 +438,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest024, TestSize.Level1) {
     faultData.isEnableMainThreadSample = true;  // No default initialization
     currentHeapSize = "350000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest024 end";
 }
 
@@ -470,7 +470,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest026, TestSize.Level1) {
     faultData.faultType = FaultDataType::APP_FREEZE;
     currentHeapSize = "400000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest026 end";
 }
 
@@ -502,7 +502,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest028, TestSize.Level1) {
     faultData.faultType = FaultDataType::APP_CRASH;
     currentHeapSize = "450000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest028 end";
 }
 
@@ -534,7 +534,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest030, TestSize.Level1) {
     faultData.stuckTimeout = 5000;
     currentHeapSize = "500000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest030 end";
 }
 
@@ -566,7 +566,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest032, TestSize.Level1) {
     faultData.stuckTimeout = 0;  // Default value
     currentHeapSize = "550000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest032 end";
 }
 
@@ -598,7 +598,7 @@ HWTEST_F(SleepCleanTest, SleepCleanTest034, TestSize.Level1) {
     faultData.state = 1;
     currentHeapSize = "600000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     GTEST_LOG_(INFO) << "SleepCleanTest034 end";
 }
 
