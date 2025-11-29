@@ -29,9 +29,13 @@ class InteropObjectInstance {
 public:
     static std::shared_ptr<InteropObject> CreateInteropObject(const Runtime &runtime,
         const AbilityLifecycleCallbackArgs &arg);
+    static std::shared_ptr<InteropAbilityLifecycleCallback> CreateJsInteropAbilityLifecycleCallback(
+        void *env);
 
 private:
     static std::shared_ptr<InteropObject> CreateEtsInteropObject(const Runtime &runtime,
+        const AbilityLifecycleCallbackArgs &arg);
+    static std::shared_ptr<InteropObject> CreateJsInteropObject(const Runtime &runtime,
         const AbilityLifecycleCallbackArgs &arg);
 };
 } // namespace AbilityRuntime
