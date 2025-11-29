@@ -493,13 +493,13 @@ HWTEST_F(SleepCleanTest, SleepCleanTest027, TestSize.Level1) {
 /**
 * @tc.number: SleepCleanTest028
 * @tc.name: SleepCleanTest028
-* @tc.desc: test HandleSleepClean with faultType=APP_CRASH and valid heap size
+* @tc.desc: test HandleSleepClean with faultType=CPP_CRASH and valid heap size
 */
 HWTEST_F(SleepCleanTest, SleepCleanTest028, TestSize.Level1) {
     GTEST_LOG_(INFO) << "SleepCleanTest028 start";
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
     FaultData faultData;
-    faultData.faultType = FaultDataType::APP_CRASH;
+    faultData.faultType = FaultDataType::CPP_CRASH;
     currentHeapSize = "450000";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
     EXPECT_FALSE(ret);
@@ -509,13 +509,13 @@ HWTEST_F(SleepCleanTest, SleepCleanTest028, TestSize.Level1) {
 /**
 * @tc.number: SleepCleanTest029
 * @tc.name: SleepCleanTest029
-* @tc.desc: test HandleSleepClean with faultType=APP_CRASH and invalid heap size
+* @tc.desc: test HandleSleepClean with faultType=CPP_CRASH and invalid heap size
 */
 HWTEST_F(SleepCleanTest, SleepCleanTest029, TestSize.Level1) {
     GTEST_LOG_(INFO) << "SleepCleanTest029 start";
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
     FaultData faultData;
-    faultData.faultType = FaultDataType::APP_CRASH;
+    faultData.faultType = FaultDataType::CPP_CRASH;
     currentHeapSize = "random_string";
     bool ret = SleepClean::GetInstance().HandleSleepClean(faultData, application);
     EXPECT_FALSE(ret);
