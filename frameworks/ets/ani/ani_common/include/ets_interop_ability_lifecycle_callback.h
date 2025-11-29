@@ -42,9 +42,9 @@ public:
     void OnAbilityForeground(std::shared_ptr<InteropObject> ability) override;
     void OnAbilityBackground(std::shared_ptr<InteropObject> ability) override;
 
-    int32_t Register(ani_object callback);
-    bool Unregister(ani_object aniCallback = nullptr);
-    bool Empty();
+    int32_t Register(void *callback) override;
+    bool Unregister(void *aniCallback = nullptr) override;
+    bool Empty() override;
 
 private:
     ani_env *GetAniEnv();
