@@ -413,6 +413,41 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, IsCallerSceneBoard_004, TestSize.L
 
 /*
  * Feature: AbilityManagerService
+ * Name: StartSpecifiedAbilityBySCB_001
+ * Function: StartSpecifiedAbilityBySCB
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartSpecifiedAbilityBySCB
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, StartSpecifiedAbilityBySCB_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest StartSpecifiedAbilityBySCB_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    Want want;
+    auto ret = abilityMs_->StartSpecifiedAbilityBySCB(want);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto mockCurrentConnectManager = std::make_shared<AbilityConnectManager>(0);
+    mockCurrentConnectManager->sceneBoardTokenId_ = 1;
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+    abilityMs_->subManagersHelper_->currentConnectManager_ = mockCurrentConnectManager;
+
+    int retCode = abilityMs_->IsCallerSceneBoard();
+    EXPECT_TRUE(retCode);
+
+    EXPECT_FALSE(want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY));
+    abilityMs_->StartSpecifiedAbilityBySCB(want);
+    EXPECT_TRUE(want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY));
+
+    constexpr int32_t tempIndex = 100;
+    want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, tempIndex);
+    abilityMs_->StartSpecifiedAbilityBySCB(want);
+    EXPECT_EQ(want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0), tempIndex);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest StartSpecifiedAbilityBySCB_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Name: AcquireShareData_001
  * Function: AcquireShareData
  * SubFunction: NA
