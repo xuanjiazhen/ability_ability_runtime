@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <shared_mutex>
 #include <unordered_set>
 
 #include "cpp/mutex.h"
@@ -796,6 +797,8 @@ public:
     ExtensionAbilityType GetExtensionType() const;
     ProcessType GetProcessType() const;
 
+    void SetProcessType(ProcessType processType);
+
     /**
      * Notify Fault Data
      *
@@ -1052,7 +1055,9 @@ public:
     inline void SetKillReason(std::string killReason)
     {
         std::lock_guard<ffrt::mutex> lock(killReasonLock_);
-        killReason_ = killReason;
+        if (killReason_ == "") {
+            killReason_ = killReason;
+        }
     }
 
     inline std::string GetKillReason() const
@@ -1161,6 +1166,16 @@ public:
         return hasBeenExistedMasterProcessRole_.load();
     }
 
+    inline void AllowScbProcessMoveToBackground()
+    {
+        isAllowScbProcessMoveToBackground_.store(true);
+    }
+
+    inline bool IsAllowScbProcessMoveToBackground() const
+    {
+        return isAllowScbProcessMoveToBackground_.load();
+    }
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1198,7 +1213,8 @@ private:
     void RemoveModuleRecord(const std::shared_ptr<ModuleRunningRecord> &record, bool isExtensionDebug = false);
     int32_t GetAddStageTimeout() const;
     void SetModuleLoaded(const std::string &moduleName) const;
-
+    void FillAbilityStateDataWithWant(const std::shared_ptr<AbilityRunningRecord> &ability,
+        AbilityStateData &abilityStateData);
 private:
     class RemoteObjHash {
     public:
@@ -1263,7 +1279,7 @@ private:
     std::atomic<bool> isPreForeground_ = false;
 
     int32_t appRecordId_ = 0;
-    int32_t mainUid_;
+    int32_t mainUid_ = -1;
     int restartResidentProcCount_ = 0;
     int32_t exitReason_ = 0;
     int32_t appIndex_ = 0; // render record
@@ -1345,11 +1361,13 @@ private:
     std::shared_ptr<StartupTaskData> startupTaskData_ = nullptr;
     ffrt::mutex startupTaskDataLock_;
     mutable ffrt::mutex killReasonLock_;
+    mutable std::shared_mutex processTypeLock_;
 
     bool isMasterProcess_ = false; // Only MasterProcess can be keepalive
     int64_t timeStamp_ = 0; // the flag of BackUpMainControlProcess
     std::atomic<int32_t> specifiedProcessRequestId_ = -1;
     std::atomic<bool> hasBeenExistedMasterProcessRole_ = false;
+    std::atomic<bool> isAllowScbProcessMoveToBackground_ = false;
 };
 
 }  // namespace AppExecFwk

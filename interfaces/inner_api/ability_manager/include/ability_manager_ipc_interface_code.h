@@ -500,6 +500,10 @@ enum class AbilityManagerInterfaceCode {
     GET_CONNECTION_DATA = 2505,
     COMPLETE_FIRST_FRAME_DRAWING_BY_SCB = 2506,
 
+    //ipc id for foreground app connection observer
+    REGISTER_FOREGROUND_APP_CONNECTION_OBSERVER = 2507,
+    UNREGISTER_FOREGROUND_APP_CONNECTION_OBSERVER = 2508,
+
     GET_TOP_ABILITY = 3000,
     FREE_INSTALL_ABILITY_FROM_REMOTE = 3001,
     ADD_FREE_INSTALL_OBSERVER = 3002,
@@ -685,6 +689,18 @@ enum class AbilityManagerInterfaceCode {
 
     // restart app limit check
     IS_RESTART_APP_LIMIT = 6154,
+
+    // ipc id for un preload UIExtension ability by want and receives the preload Id
+    UN_PRELOAD_UI_EXTENSION_ABILITY = 6155,
+
+    // ipc id for claer all preload UIExtension ability
+    CLEAR_ALL_PRELOAD_UI_EXTENSION_ABILITY = 6156,
+
+    // register preload UIExtension host client
+    REGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT = 6157,
+
+    // unregister preload UIExtension host client
+    UNREGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT = 6158,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

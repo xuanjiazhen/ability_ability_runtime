@@ -593,7 +593,7 @@ void JsAbilityContext::UnWrapCompletionHandlerForAtomicService(
 }
 
 bool JsAbilityContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi_value param,
-    AAFwk::OnOpenLinkRequestFunc& onRequestSucc, AAFwk::OnOpenLinkRequestFunc& onRequestFail)
+    OnRequestResult &onRequestSucc, OnRequestResult &onRequestFail)
 {
     napi_value completionHandlerForOpenLink = AppExecFwk::GetPropertyValueByPropertyName(env, param,
         "completionHandler", napi_object);
@@ -630,8 +630,8 @@ bool JsAbilityContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi_val
     return true;
 }
 
-void JsAbilityContext::AddCompletionHandlerForOpenLink(AAFwk::Want& want, AAFwk::OnOpenLinkRequestFunc& onRequestSucc,
-    AAFwk::OnOpenLinkRequestFunc& onRequestFail)
+void JsAbilityContext::AddCompletionHandlerForOpenLink(AAFwk::Want &want, OnRequestResult &onRequestSucc,
+    OnRequestResult &onRequestFail)
 {
     auto context = context_.lock();
     if (!context) {
@@ -1045,8 +1045,8 @@ napi_value JsAbilityContext::OnOpenLink(napi_env env, NapiCallbackInfo& info)
             "Parse param link or openLinkOptions failed, link must be string, openLinkOptions must be options.");
         return CreateJsUndefined(env);
     }
-    AAFwk::OnOpenLinkRequestFunc onRequestSucc;
-    AAFwk::OnOpenLinkRequestFunc onRequestFail;
+    OnRequestResult onRequestSucc;
+    OnRequestResult onRequestFail;
     if (CheckTypeForNapiValue(env, info.argv[INDEX_ONE], napi_object) &&
         UnwrapCompletionHandlerForOpenLink(env, info.argv[INDEX_ONE], onRequestSucc, onRequestFail)) {
         AddCompletionHandlerForOpenLink(want, onRequestSucc, onRequestFail);
@@ -2185,7 +2185,10 @@ napi_value JsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(napi_env env, 
         return CreateJsUndefined(env);
     }
     AAFwk::Want want;
-    AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
+    if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
+        ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return CreateJsUndefined(env);
+    }
 
     std::string specifiedFlag;
     if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], specifiedFlag)) {
@@ -3352,7 +3355,7 @@ napi_value JsAbilityContext::OnRestartAppWithWindow(napi_env env, NapiCallbackIn
         ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
         return CreateJsUndefined(env);
     }
-
+    InheritWindowMode(want);
     auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
     NapiAsyncTask::ExecuteCallback execute =
         [weak = context_, innerErrCode, want] {

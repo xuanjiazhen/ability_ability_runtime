@@ -24,6 +24,7 @@
 #include "dlp_connection_info.h"
 #endif // WITH_DLP
 #include "iconnection_observer.h"
+#include "iforeground_app_connection.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -60,6 +61,10 @@ public:
     virtual int RegisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
 
     virtual int UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
+
+    virtual int RegisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer);
+
+    virtual int UnregisterForegroundAppObserver(sptr<AbilityRuntime::IForegroundAppConnection> observer);
 
 #ifdef WITH_DLP
     virtual int GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos);
@@ -232,6 +237,9 @@ private:
     int FreeInstallAbilityFromRemoteInner(MessageParcel &data, MessageParcel &reply);
     int AddFreeInstallObserverInner(MessageParcel &data, MessageParcel &reply);
 
+    int32_t RegisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnregisterForegroundAppObserverInner(MessageParcel &data, MessageParcel &reply);
+
     int EnableRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
     int SubmitSaveRecoveryInfoInner(MessageParcel &data, MessageParcel &reply);
     int ScheduleRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
@@ -347,6 +355,10 @@ private:
     int32_t SetOnNewWantSkipScenariosInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyStartupExceptionBySCBInner(MessageParcel &data, MessageParcel &reply);
     int32_t PreloadApplicationInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnPreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ClearAllPreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnRegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply);
 
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
@@ -391,6 +403,8 @@ private:
     int OnRemoteRequestInnerTwentieth(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int OnRemoteRequestInnerTwentyFirst(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    int OnRemoteRequestInnerTwentySecond(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int HandleOnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);

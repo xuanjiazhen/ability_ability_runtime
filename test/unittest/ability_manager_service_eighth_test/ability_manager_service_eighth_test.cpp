@@ -19,9 +19,11 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
 #include "app_utils.h"
+#include "app_mgr_util.h"
 #include "hilog_tag_wrapper.h"
 #include "process_options.h"
 #include "ipc_skeleton.h"
+#include "mock_app_mgr_service.h"
 #include "mock_parameters.h"
 #include "mock_scene_board_judgement.h"
 #include "start_ability_handler.h"
@@ -44,6 +46,7 @@ constexpr uint32_t TEST_FLAG_ABILITY_CONTINUATION = 0x00000008;
 constexpr int32_t TEST_U0_USER_ID = 0;
 constexpr int32_t ONE = 1;
 constexpr int32_t TWO = 2;
+constexpr int32_t DLP_APP_INDEX = 1001;
 constexpr uint32_t TEST_VALUE_ONE = 1;
 const std::string TEST_STRING_VALUE_1 = "1";
 const std::string TEST_CREATE_FILE = "ohos.want.action.CREATE_FILE";
@@ -309,12 +312,12 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartAbilityInChainTest_001, TestSize.
     want.SetParam(key, value);
     StartAbilityParams params2(want);
     params2.callerToken = callerToken;
-    params2.callerAppIndex = ONE;
+    params2.callerAppIndex = DLP_APP_INDEX;
     ret = abilityMs_->StartAbilityInChain(params2, result);
     EXPECT_TRUE(ret);
     const int32_t userId = -1;
     std::shared_ptr<AbilityRecord> callerAbilityRecord = GetAbilityRecord();
-    callerAbilityRecord->Init();
+    callerAbilityRecord->Init(AbilityRequest());
     sptr<IRemoteObject> callerToken1 = callerAbilityRecord->GetToken();
     params2.callerToken = callerToken1;
     params2.userId = userId;
@@ -372,8 +375,8 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartUIAbilityBySCB_001, TestSize.Leve
     Want want;
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo applicationInfo;
-    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
-    abilityRecord->Init();
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(want, abilityInfo, applicationInfo, -1);
+    abilityRecord->Init(AbilityRequest());
     sessionInfo->persistentId = TWO;
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(TWO, abilityRecord);
     abilityMs_->subManagersHelper_->uiAbilityManagers_.emplace(TWO, uiAbilityLifecycleManager);
@@ -435,25 +438,37 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartUIAbilityBySCB_001_002, TestSize.
 
 /*
  * Feature: AbilityManagerService
- * Function: SignRestartAppFlag
- * FunctionPoints: SignRestartAppFlag
+ * Function: SignRestartProcess
+ * FunctionPoints: SignRestartProcess
  */
-HWTEST_F(AbilityManagerServiceEighthTest, SignRestartAppFlag_002, TestSize.Level1)
+HWTEST_F(AbilityManagerServiceEighthTest, SignRestartProcess_001, TestSize.Level1)
 {
+    auto oriAppMgr = AppMgrUtil::appMgr_;
+    auto mockAppMgr = sptr<MockAppMgrService>::MakeSptr();
+    AppMgrUtil::appMgr_ = mockAppMgr;
     int32_t uid = 100;
+
+    EXPECT_CALL(*mockAppMgr, SignRestartProcess).Times(1).WillOnce(Return(-1));
     auto abilityMs = std::make_shared<AbilityManagerService>();
+    auto ret = abilityMs->SignRestartProcess(uid, uid);
+    EXPECT_EQ(ret, -1);
+
+    EXPECT_CALL(*mockAppMgr, SignRestartProcess).WillRepeatedly(Return(ERR_OK));
+    ret = abilityMs->SignRestartProcess(uid, uid);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
     auto taskHandler = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
     auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs);
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
-    abilityMs->subManagersHelper_->uiAbilityManagers_.emplace(uid, std::make_shared<UIAbilityLifecycleManager>());
     abilityMs->subManagersHelper_->connectManagers_.emplace(uid, std::make_shared<AbilityConnectManager>(uid));
+    ret = abilityMs->SignRestartProcess(uid, uid);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
-    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled)
-        .WillRepeatedly(Return(true));
-    AbilityManagerService::SignRestartAppFlagParam param =
-        { uid, uid, "", AppExecFwk::MultiAppModeType::UNSPECIFIED, true, false, true, "testBundleName" };
-    auto ret = abilityMs->SignRestartAppFlag(param);
+    abilityMs->subManagersHelper_->uiAbilityManagers_.emplace(uid, std::make_shared<UIAbilityLifecycleManager>());
+    ret = abilityMs->SignRestartProcess(uid, uid);
     EXPECT_EQ(ret, ERR_OK);
+
+    AppMgrUtil::appMgr_ = oriAppMgr;
 }
 
 /*
@@ -562,21 +577,19 @@ HWTEST_F(AbilityManagerServiceEighthTest, TerminateUIServiceExtensionAbility_001
     std::string bundleName = "com.ix.hiservcie";
     std::string moduleName = "entry";
     abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
-    std::shared_ptr<AbilityRecord> abilityRecord{ nullptr };
-    abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     token = abilityRecord->GetToken();
-    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
-    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(TWO, abilityRecord);
-    abilityMs_->subManagersHelper_->uiAbilityManagers_.emplace(TWO, uiAbilityLifecycleManager);
+    auto connectManager = std::make_shared<AbilityConnectManager>(1);
+    connectManager->sceneBoardTokenId_ = 1;
+    connectManager->serviceMap_.emplace(bundleName, abilityRecord);
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(1, connectManager));
+    IPCSkeleton::SetCallingTokenID(0);
     EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
         .WillRepeatedly(Return(true));
     result = abilityMs_->TerminateUIServiceExtensionAbility(token);
     EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
 
     IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(1);
-    connectManager->sceneBoardTokenId_ = 1;
-    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(1, connectManager));
     IPCSkeleton::SetCallingTokenID(1);
     result = abilityMs_->TerminateUIServiceExtensionAbility(token);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
@@ -602,16 +615,12 @@ HWTEST_F(AbilityManagerServiceEighthTest, TerminateUIServiceExtensionAbility_002
     std::string moduleName = "entry";
     IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
     IPCSkeleton::SetCallingTokenID(1);
-    std::shared_ptr<AbilityRecord> abilityRecord{ nullptr };
-    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
         .WillRepeatedly(Return(true));
     abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     token = abilityRecord->GetToken();
-    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(TWO, abilityRecord);
-    abilityMs_->subManagersHelper_->uiAbilityManagers_.emplace(TWO, uiAbilityLifecycleManager);
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(1);
     connectManager->sceneBoardTokenId_ = 1;
     abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(1, connectManager));
@@ -621,10 +630,6 @@ HWTEST_F(AbilityManagerServiceEighthTest, TerminateUIServiceExtensionAbility_002
     abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
     abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     token = abilityRecord->GetToken();
-    uiAbilityLifecycleManager->sessionAbilityMap_.clear();
-    abilityMs_->subManagersHelper_->uiAbilityManagers_.clear();
-    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(TWO, abilityRecord);
-    abilityMs_->subManagersHelper_->uiAbilityManagers_.emplace(TWO, uiAbilityLifecycleManager);
     result = abilityMs_->TerminateUIServiceExtensionAbility(token);
     EXPECT_NE(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest TerminateUIServiceExtensionAbility_002 end");

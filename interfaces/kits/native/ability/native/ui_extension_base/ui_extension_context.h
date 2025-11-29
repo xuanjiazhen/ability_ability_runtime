@@ -27,7 +27,7 @@
 #include "js_ui_extension_callback.h"
 #include "string_wrapper.h"
 #ifdef SUPPORT_SCREEN
-#include "window.h"
+#include "wm/window.h"
 #endif // SUPPORT_SCREEN
 
 namespace OHOS {
@@ -192,7 +192,7 @@ public:
         OnAtomicRequestFailure onRequestFail, const std::string &appId) override;
 
     ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
-        AAFwk::OnOpenLinkRequestFunc onRequestSucc, AAFwk::OnOpenLinkRequestFunc onRequestFail) override;
+        OnRequestResult onRequestSucc, OnRequestResult onRequestFail) override;
 
     void OnRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message) override;

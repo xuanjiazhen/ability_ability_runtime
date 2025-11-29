@@ -1057,8 +1057,9 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_IsApplicationFirstForegr
      * @tc.steps: step1. Initialize AppRunningManager instance
      * @tc.expected: expect first Foreground
      */
-    AppRunningRecord foregroundingRecord(appInfo_, 1, PROCESS_NAME);
+    AppRunningRecord foregroundingRecord(appInfo_, 0, PROCESS_NAME);
     foregroundingRecord.SetAppIndex(1);
+    foregroundingRecord.SetUid(record->GetUid());
     foregroundingRecord.extensionType_ = AppExecFwk::ExtensionAbilityType::SERVICE;
     auto ret = appRunningManager->IsApplicationFirstForeground(foregroundingRecord);
     EXPECT_FALSE(ret);
@@ -1232,6 +1233,7 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_IsApplicationBackground_
      * @tc.expected: expect step1 not matched record return false
      */
     AppRunningRecord backgroundRecord(appInfo_, 1, PROCESS_NAME);
+    backgroundRecord.SetUid(record->GetUid());
     auto ret = appRunningManager->IsApplicationBackground(backgroundRecord);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_IsApplicationBackground_0500 end");
@@ -1412,6 +1414,7 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_IsApplicationFirstFocuse
      */
     AppRunningRecord focusRecord(appInfo_, 1, PROCESS_NAME);
     focusRecord.appRecordId_ = record->GetRecordId() + 1;
+    focusRecord.SetUid(record->GetUid());
     auto ret = appRunningManager->IsApplicationFirstFocused(focusRecord);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_IsApplicationFirstFocused_0500 end");
@@ -1438,7 +1441,7 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_IsApplicationUnfocused_0
      * @tc.steps: step2. Initialize AppRunningManager instance
      * @tc.expected: expect step1 first focused true
      */
-    auto ret = appRunningManager->IsApplicationUnfocused("");
+    auto ret = appRunningManager->IsApplicationUnfocused(0);
     EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_IsApplicationUnfocused_0100 end");
 }
@@ -1465,7 +1468,7 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_IsApplicationUnfocused_0
      * @tc.steps: step2. Initialize AppRunningManager instance
      * @tc.expected: expect step1 different bundle unfocused true
      */
-    auto ret = appRunningManager->IsApplicationUnfocused("");
+    auto ret = appRunningManager->IsApplicationUnfocused(record->GetUid());
     EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_IsApplicationUnfocused_0200 end");
 }
@@ -1492,7 +1495,7 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_IsApplicationUnfocused_0
      * @tc.steps: step2. Initialize AppRunningManager instance
      * @tc.expected: expect step2 focused false
      */
-    auto ret = appRunningManager->IsApplicationUnfocused(BUNDLE_NAME);
+    auto ret = appRunningManager->IsApplicationUnfocused(record->GetUid());
     EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_IsApplicationUnfocused_0300 end");
 }
@@ -1522,7 +1525,7 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_IsApplicationUnfocused_0
      * @tc.steps: step2. Initialize AppRunningManager instance
      * @tc.expected: expect step1 focused false
      */
-    auto ret = appRunningManager->IsApplicationUnfocused(BUNDLE_NAME);
+    auto ret = appRunningManager->IsApplicationUnfocused(record->GetUid());
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_IsApplicationUnfocused_0400 end");
 }
@@ -1780,6 +1783,77 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_NeedNotifyAppStateChange
     auto ret = appRunningManager->NeedNotifyAppStateChangeWhenProcessDied(currentRecord);
     EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_NeedNotifyAppStateChangeWhenProcessDied_0600 end");
+}
+
+/**
+ * @tc.name: AppRunningManager_SignRestartProcess_0100
+ * @tc.desc: Test SignRestartProcess
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_SignRestartProcess_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_SignRestartProcess_0100 start");
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    auto pid = 100;
+    auto ret = appRunningManager->SignRestartProcess(pid);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    auto recordId = AppRecordId::Create();
+    appRunningManager->appRunningRecordMap_.emplace(recordId, nullptr);
+    ret = appRunningManager->SignRestartProcess(pid);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    appInfo_->bundleName = BUNDLE_NAME;
+    auto record = appRunningManager->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    recordId = AppRecordId::Create();
+    appRunningManager->appRunningRecordMap_.emplace(recordId, record);
+    ret = appRunningManager->SignRestartProcess(pid);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    record->priorityObject_->pid_ = pid;
+    ret = appRunningManager->SignRestartProcess(pid);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_SignRestartProcess_0100 end");
+}
+
+/**
+ * @tc.name: AppRunningManager_ProcessExitByPid_0100
+ * @tc.desc: Test ProcessExitByPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_ProcessExitByPid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_ProcessExitByPid_0100 start");
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    auto pid = 100;
+    KillProcessConfig config{false, false, "ProcessExitByPidTest"};
+    auto ret = appRunningManager->ProcessExitByPid(pid, config);
+    EXPECT_EQ(ret, false);
+
+    auto recordId = AppRecordId::Create();
+    appRunningManager->appRunningRecordMap_.emplace(recordId, nullptr);
+    ret = appRunningManager->ProcessExitByPid(pid, config);
+    EXPECT_EQ(ret, false);
+
+    appInfo_->bundleName = BUNDLE_NAME;
+    auto record = appRunningManager->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    recordId = AppRecordId::Create();
+    appRunningManager->appRunningRecordMap_.emplace(recordId, record);
+    ret = appRunningManager->ProcessExitByPid(pid, config);
+    EXPECT_EQ(ret, false);
+
+    record->priorityObject_->pid_ = pid;
+    ret = appRunningManager->ProcessExitByPid(pid, config);
+    EXPECT_EQ(ret, true);
+
+    config.clearPageStack = true;
+    ret = appRunningManager->ProcessExitByPid(pid, config);
+    EXPECT_EQ(ret, true);
+
+    config.addKillingCaller = true;
+    ret = appRunningManager->ProcessExitByPid(pid, config);
+    EXPECT_EQ(ret, true);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningManager_ProcessExitByPid_0100 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

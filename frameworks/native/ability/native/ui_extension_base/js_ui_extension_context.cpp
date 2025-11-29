@@ -345,7 +345,7 @@ static bool ParseOpenLinkParams(const napi_env &env, const NapiCallbackInfo &inf
 }
 
 bool JsUIExtensionContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi_value param,
-    AAFwk::OnOpenLinkRequestFunc& onRequestSucc, AAFwk::OnOpenLinkRequestFunc& onRequestFail)
+    OnRequestResult &onRequestSucc, OnRequestResult &onRequestFail)
 {
     napi_value completionHandlerForOpenLink = AppExecFwk::GetPropertyValueByPropertyName(env, param,
         "completionHandler", napi_object);
@@ -382,8 +382,8 @@ bool JsUIExtensionContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi
     return true;
 }
 
-void JsUIExtensionContext::AddCompletionHandlerForOpenLink(AAFwk::Want& want,
-    AAFwk::OnOpenLinkRequestFunc& onRequestSucc, AAFwk::OnOpenLinkRequestFunc& onRequestFail)
+void JsUIExtensionContext::AddCompletionHandlerForOpenLink(AAFwk::Want &want,
+    OnRequestResult &onRequestSucc, OnRequestResult &onRequestFail)
 {
     auto context = context_.lock();
     if (!context) {
@@ -416,8 +416,8 @@ napi_value JsUIExtensionContext::OnOpenLink(napi_env env, NapiCallbackInfo& info
             "Parse param link or openLinkOptions failed, link must be string, openLinkOptions must be options.");
         return CreateJsUndefined(env);
     }
-    AAFwk::OnOpenLinkRequestFunc onRequestSucc;
-    AAFwk::OnOpenLinkRequestFunc onRequestFail;
+    OnRequestResult onRequestSucc;
+    OnRequestResult onRequestFail;
     if (CheckTypeForNapiValue(env, info.argv[INDEX_ONE], napi_object) &&
         UnwrapCompletionHandlerForOpenLink(env, info.argv[INDEX_ONE], onRequestSucc, onRequestFail)) {
         AddCompletionHandlerForOpenLink(want, onRequestSucc, onRequestFail);
@@ -1756,7 +1756,11 @@ void JSUIExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::Eleme
         TAG_LOGE(AAFwkTag::UI_EXT, "null methodOnConnect");
         return;
     }
-    napi_call_function(env_, obj, methodOnConnect, ARGC_TWO, argv, nullptr);
+    TAG_LOGD(AAFwkTag::UI_EXT, "Call onConnect");
+    napi_status status = napi_call_function(env_, obj, methodOnConnect, ARGC_TWO, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed %{public}d", status);
+    }
 }
 
 void JSUIExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
@@ -1802,7 +1806,11 @@ void JSUIExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::El
 
     // release connect
     RemoveConnection(connectionId_);
-    napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    TAG_LOGD(AAFwkTag::UI_EXT, "Call onDisconnect");
+    napi_status status = napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed %{public}d", status);
+    }
 }
 
 void JSUIExtensionConnection::SetJsConnectionObject(napi_value jsConnectionObject)

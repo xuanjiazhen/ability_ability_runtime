@@ -116,6 +116,7 @@ public:
      *
      * @param abilityRequest, Special want for service type's ability.
      * @param hostBundleName, the caller application bundle name.
+     * @param hostPid, the caller hostPid.
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest, std::string &hostBundleName,
@@ -126,6 +127,7 @@ public:
      *
      * @param abilityRequest, Special want for service type's ability.
      * @param hostBundleName, the caller application bundle name.
+     * @param hostPid, the caller hostPid.
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest, std::string &hostBundleName,
@@ -142,7 +144,7 @@ public:
      */
     int QueryPreLoadUIExtensionRecordInner(const AppExecFwk::ElementName &element,
                                            const std::string &moduleName,
-                                           const std::string &hostBundleName,
+                                           const int32_t hostPid,
                                            int32_t &recordNum);
 
     /**
@@ -152,7 +154,7 @@ public:
      * @param hostBundleName, the caller application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::string &bundleName);
+    int UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, pid_t &hostPid);
 
     /**
      * ClearPreloadUIExtensionRecord, clear preload uiextension record.
@@ -376,6 +378,7 @@ public:
     void CloseAssertDialog(const std::string &assertSessionId);
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey);
+    void SignRestartProcess(int32_t pid);
 
     std::shared_ptr<AAFwk::AbilityRecord> GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token);
     void UninstallApp(const std::string &bundleName, int32_t uid);
@@ -400,6 +403,12 @@ public:
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId);
     void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
     void StartSpecifiedProcess(const LoadAbilityContext &context, const std::shared_ptr<AbilityRecord> &abilityRecord);
+    int UnPreloadUIExtensionAbilityLocked(int32_t extensionAbilityId);
+    int UnPreloadUIExtensionAbilityInner(int32_t extensionAbilityId);
+    int ClearAllPreloadUIExtensionAbilityLocked();
+    int ClearAllPreloadUIExtensionAbilityInner();
+    int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);
+    int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid);
 
 private:
     /**
@@ -714,6 +723,21 @@ private:
 
     void UpdateUIExtensionBindInfo(
         const std::shared_ptr<AbilityRecord> &abilityRecord, std::string callerBundleName, int32_t notifyProcessBind);
+
+    void HandleConnectionCountIncrement(int32_t pid, const std::string &callerBundleName,
+        const std::string &targetName);
+    void DecrementConnectionCountAndCleanup(int32_t pid);
+
+    class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        using PreloadUIExtensionHostClientDiedHandler = std::function<void(const wptr<IRemoteObject> &)>;
+        explicit PreloadUIExtensionHostClientDeathRecipient(PreloadUIExtensionHostClientDiedHandler handler);
+        ~PreloadUIExtensionHostClientDeathRecipient() = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) final;
+
+    private:
+        PreloadUIExtensionHostClientDiedHandler diedHandler_;
+    };
 private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";
@@ -727,6 +751,7 @@ private:
     RecipientMapType uiExtRecipientMap_;
     UIExtensionMapType uiExtensionMap_;
     WindowExtensionMapType windowExtensionMap_;
+    std::map<int32_t, int32_t> callerPidConnectionCountMap_;
 
     std::list<std::shared_ptr<AbilityRecord>> terminatingExtensionList_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
@@ -744,7 +769,11 @@ private:
     std::mutex windowExtensionMapMutex_;
     std::mutex startServiceReqListLock_;
     std::mutex loadAbilityQueueLock_;
+    std::mutex callerPidConnectionCountMapMutex_;
+    std::mutex preloadUIExtRecipientMapMutex_;
     std::deque<std::map<int32_t, LoadAbilityContext>> loadAbilityQueue_;
+    std::vector<int32_t> thresholds_ = {50, 100, 200, 500};
+    std::map<int32_t, sptr<IRemoteObject::DeathRecipient>> preloadUIExtensionHostClientDeathRecipients_;
 
     DISALLOW_COPY_AND_MOVE(AbilityConnectManager);
 };
