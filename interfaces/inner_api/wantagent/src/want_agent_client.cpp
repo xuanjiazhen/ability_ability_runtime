@@ -178,7 +178,7 @@ ErrCode WantAgentClient::CancelWantSender(const sptr<IWantSender> &sender, uint3
     error = abms->SendRequest(static_cast<int32_t>(AbilityManagerInterfaceCode::CANCEL_PENDING_WANT_SENDER),
         data, reply, option);
     if (error != NO_ERROR) {
-        return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY;
+        return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_TIMEOUT;
     }
 
     return ERR_OK;
@@ -511,7 +511,7 @@ bool WantAgentClient::SendRequest(int32_t operation, const sptr<IRemoteObject> &
     }
     error = abms->SendRequest(operation, data, reply, option);
     if (error != NO_ERROR) {
-        error = ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY;
+        error = ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_TIMEOUT;
         return false;
     }
 
