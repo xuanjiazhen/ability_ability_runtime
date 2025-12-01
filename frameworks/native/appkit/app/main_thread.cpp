@@ -4329,7 +4329,7 @@ void MainThread::SleepCleanKill()
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return ;
         }
-        AbilityManagerClient::GetInstance()->RecordAppExitReason({ REASON_RESOURCE_CONTROL, "JsHeapSleepCleanKill" });
+        AbilityManagerClient::GetInstance()->RecordAppExitReason({ REASON_RESOURCE_CONTROL, "Js_Heap_Sleep_Clean_Kill" });
         _exit(0);
     };
     mainHandler_->PostTask(task, "Sleep Clean:Over HeapSize", AppExecFwk::SLEEP_CLEAN_DELAY_TIME);
