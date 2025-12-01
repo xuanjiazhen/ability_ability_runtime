@@ -23,6 +23,7 @@
 #include "cancel_listener.h"
 #include "context/application_context.h"
 #include "completed_dispatcher.h"
+#include "hilog_tag_wrapper.h"
 #include "want.h"
 #include "want_agent_constant.h"
 #include "want_params.h"
@@ -36,7 +37,9 @@ public:
     PendingWant() {};
     explicit PendingWant(const sptr<AAFwk::IWantSender> &target);
     PendingWant(const sptr<AAFwk::IWantSender> &target, const sptr<IRemoteObject> whitelistToken);
-    virtual ~PendingWant() = default;
+    virtual ~PendingWant() {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "pending_want destructor called");
+    }
 
     WantAgentConstant::OperationType GetType(sptr<AAFwk::IWantSender> target);
 
