@@ -45,21 +45,23 @@ napi_value AttachWantAgentFunc(napi_env env, void *value, void *)
         return jsObject;
     }
 
-    auto wantAgent = new (std::nothrow) AbilityRuntime::WantAgent::WantAgent(
-        reinterpret_cast<AbilityRuntime::WantAgent::WantAgent*>(value)->GetPendingWant());
+    auto pendingWant = reinterpret_cast<AbilityRuntime::WantAgent::WantAgent*>(value)->GetPendingWant();
+    if (pendingWant == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "pendingWant from srcWantAgent is null");
+        return jsObject;
+    }
+
+    auto wantAgent = new (std::nothrow)AbilityRuntime::WantAgent::WantAgent(pendingWant);
     if (wantAgent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "new wantAgent failed");
         return jsObject;
     }
 
     napi_value wantAgentClass = nullptr;
-    napi_define_class(env, "WantAgentClass", NAPI_AUTO_LENGTH,
-        [](napi_env env, napi_callback_info info) -> napi_value {
-            napi_value thisVar = nullptr;
-            napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
-
-            return thisVar;
-        }, nullptr, 0, nullptr, &wantAgentClass);
+    napi_define_class(env, "WantAgentClass", NAPI_AUTO_LENGTH, [](napi_env env, napi_callback_info info) -> napi_value {
+        napi_value thisVar = nullptr;
+        napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+        return thisVar;}, nullptr, 0, nullptr, &wantAgentClass);
     napi_value result = nullptr;
     napi_new_instance(env, wantAgentClass, 0, nullptr, &result);
     if (result == nullptr) {
@@ -70,13 +72,11 @@ napi_value AttachWantAgentFunc(napi_env env, void *value, void *)
     }
 
     napi_coerce_to_native_binding_object(env, result, DetachCallbackFunc, AttachWantAgentFunc, value, nullptr);
-    auto res = napi_wrap(env, result, reinterpret_cast<void*>(wantAgent),
-        [](napi_env env, void* data, void* hint) {
-            TAG_LOGD(AAFwkTag::WANTAGENT, "delete wantAgent");
-            auto agent = static_cast<AbilityRuntime::WantAgent::WantAgent*>(data);
-            delete agent;
-            agent = nullptr;
-        }, nullptr, nullptr);
+    auto res = napi_wrap(env, result, reinterpret_cast<void*>(wantAgent), [](napi_env env, void* data, void* hint) {
+        TAG_LOGD(AAFwkTag::WANTAGENT, "delete wantAgent");
+        auto agent = static_cast<AbilityRuntime::WantAgent::WantAgent*>(data);
+        delete agent;
+        agent = nullptr;}, nullptr, nullptr);
     if (res != napi_ok && wantAgent != nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "napi_wrap failed:%{public}d", res);
         delete wantAgent;
