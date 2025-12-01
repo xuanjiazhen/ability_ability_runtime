@@ -664,7 +664,7 @@ class RecordWriter {
       } else {
         writableFields[index] = fieldNameValuePair;
       }
-      if (Reflect.isLiteralInitializedInterface(obj)) {
+      if (reflect.isLiteralInitializedInterface(obj)) {
         this.addWritableProperties(cls, obj, writableFields)
       }
     }
