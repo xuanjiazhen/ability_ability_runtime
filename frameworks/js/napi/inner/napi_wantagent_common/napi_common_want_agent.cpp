@@ -45,8 +45,19 @@ napi_value AttachWantAgentFunc(napi_env env, void *value, void *)
         return jsObject;
     }
 
-    auto wantAgent = new (std::nothrow) AbilityRuntime::WantAgent::WantAgent(
-        reinterpret_cast<AbilityRuntime::WantAgent::WantAgent*>(value)->GetPendingWant());
+    auto srcWantAgent = reinterpret_cast<AbilityRuntime::WantAgent::WantAgent*>(value);
+    if (srcWantAgent == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "srcWantAgent after cast is null");
+        return jsObject;
+    }
+
+    auto pendingWant = srcWantAgent->GetPendingWant();
+    if (pendingWant == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "pendingWant from srcWantAgent is null");
+        return jsObject;
+    }
+
+    auto wantAgent = new (std::nothrow)AbilityRuntime::WantAgent::WantAgent(pendingWant);
     if (wantAgent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "new wantAgent failed");
         return jsObject;
