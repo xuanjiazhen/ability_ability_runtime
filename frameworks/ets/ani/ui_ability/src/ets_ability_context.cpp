@@ -1008,10 +1008,6 @@ void EtsAbilityContext::RestartAppWithWindow(ani_env *env, ani_object aniObj, an
 void EtsAbilityContext::StartAbilityForResultInner(ani_env *env, const AAFwk::StartOptions &startOptions,
     AAFwk::Want &want, std::shared_ptr<AbilityContext> context, ani_object startOptionsObj, ani_object callback)
 {
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "env is null");
-        return;
-    }
     std::string startTime = std::to_string(
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
             .count());
@@ -1050,9 +1046,10 @@ void EtsAbilityContext::StartAbilityForResultInner(ani_env *env, const AAFwk::St
                     : observer->OnInstallFinished(bundleName, abilityName, startTime, abilityResult);
             return;
         }
+        auto data = isInner ? nullptr : abilityResult;
         auto errCode = isInner ? resultCode : 0;
         AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-            EtsErrorUtil::CreateErrorByNativeErr(env, errCode), abilityResult);
+            EtsErrorUtil::CreateErrorByNativeErr(env, errCode), data);
     };
     auto requestCode = GenerateRequestCode();
     (startOptionsObj == nullptr) ? context->StartAbilityForResult(want, requestCode, std::move(task))
@@ -1806,9 +1803,10 @@ void EtsAbilityContext::OnStartAbilityForResultWithAccountInner(ani_env *env, co
                     : observer->OnInstallFinished(bundleName, abilityName, startTime, abilityResult);
             return;
         }
+        auto data = isInner ? nullptr : abilityResult;
         auto errCode = isInner ? resultCode : 0;
         AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-            EtsErrorUtil::CreateErrorByNativeErr(env, errCode), abilityResult);
+            EtsErrorUtil::CreateErrorByNativeErr(env, errCode), data);
     };
     auto requestCode = GenerateRequestCode();
     (startOptionsObj == nullptr) ? context->StartAbilityForResultWithAccount(want, accountId, requestCode,
