@@ -36,7 +36,9 @@ public:
     PendingWant() {};
     explicit PendingWant(const sptr<AAFwk::IWantSender> &target);
     PendingWant(const sptr<AAFwk::IWantSender> &target, const sptr<IRemoteObject> whitelistToken);
-    virtual ~PendingWant() = default;
+    virtual ~PendingWant() {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "pending_want destructor called");
+    }
 
     WantAgentConstant::OperationType GetType(sptr<AAFwk::IWantSender> target);
 
