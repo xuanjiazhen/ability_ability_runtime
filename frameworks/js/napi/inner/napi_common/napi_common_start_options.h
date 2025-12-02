@@ -37,8 +37,10 @@ bool UnwrapPixelMapFromJS(napi_env env, napi_value param, std::shared_ptr<Media:
 
 bool UnwrapStartWindowOption(napi_env env, napi_value param,
     std::shared_ptr<AAFwk::StartWindowOption> &startWindowOption);
-
 EXTERN_C_END
+
+AbilityRuntime::OnRequestResult UnwrapCompletionHandlerOnRequestResult(napi_env env,
+    const char *funcName, std::shared_ptr<NativeReference> ref);
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_NAPI_COMMON_START_OPTIONS_H
