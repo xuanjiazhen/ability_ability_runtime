@@ -37,6 +37,11 @@ PendingWant::PendingWant(const sptr<AAFwk::IWantSender> &target, const sptr<IRem
     : target_(target), cancelReceiver_(nullptr), allowListToken_(allowListToken)
 {}
 
+PendingWant::~PendingWant()
+{
+    TAG_LOGI(AAFwkTag::WANTAGENT, "pendingWant destructor called");
+}
+
 WantAgentConstant::OperationType PendingWant::GetType(sptr<AAFwk::IWantSender> target)
 {
     int32_t operationType = 0;
