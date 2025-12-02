@@ -558,6 +558,32 @@ HWTEST_F(ContextImplTest, GetBaseDir_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetAllTempBase_0100
+ * @tc.desc: Switch temp bases test.
+ * @tc.type: FUNC
+ * @tc.require: issueI61P7Y
+ */
+HWTEST_F(ContextImplTest, GetAllTempBase_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+    contextImpl->applicationInfo_ = nullptr;
+    std::vector<std::string> tempBases;
+    contextImpl->GetAllTempBase(tempBases);
+    constexpr int32_t NON_MODULE_BASE_SIZE = 2;
+    EXPECT_EQ(tempBases.size(), NON_MODULE_BASE_SIZE);
+
+    contextImpl->applicationInfo_ = std::make_shared<AppExecFwk::ApplicationInfo>();
+    AppExecFwk::ModuleInfo moduleInfo;
+    moduleInfo.moduleName = "testModuleName";
+    contextImpl->applicationInfo_->moduleInfos.push_back(moduleInfo);
+    EXPECT_EQ(tempBases.size(), NON_MODULE_BASE_SIZE * NON_MODULE_BASE_SIZE);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
  * @tc.name: SwitchArea_0100
  * @tc.desc: Switch area basic test.
  * @tc.type: FUNC

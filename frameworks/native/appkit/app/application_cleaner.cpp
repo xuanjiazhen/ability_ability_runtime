@@ -34,7 +34,7 @@ static const std::string MARK_SYMBOL{ "_useless" };
 static const std::string PATH_SEPARATOR = { "/" };
 static const char FILE_SEPARATOR_CHAR = '/';
 static const std::string MARK_TEMP_DIR{ "temp_useless" };
-static const std::string CONTEXT_HAPS{ "/haps" };
+constexpr const char* TEMP_DIR_NAME = "/temp";
 
 static const size_t MARK_TEMP_LEN = 12;
 static const int PATH_MAX_SIZE = 256;
@@ -67,7 +67,7 @@ void ApplicationCleaner::RenameTempData()
         return;
     }
     std::vector<std::string> tempdir{};
-    context_->GetAllTempDir(tempdir);
+    context_->GetAllTempBase(tempdir);
     if (tempdir.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "empty tempdir");
         return;
@@ -77,10 +77,11 @@ void ApplicationCleaner::RenameTempData()
             .count();
     std::ostringstream stream;
     stream << std::hex << now;
-    for (const auto &path : tempdir) {
+    for (const auto &baseDir : tempdir) {
+        auto path = baseDir + TEMP_DIR_NAME;
         auto newPath = path + MARK_SYMBOL + stream.str();
         if (rename(path.c_str(), newPath.c_str()) != 0) {
-            TAG_LOGE(AAFwkTag::APPKIT, "msg: %{public}s", strerror(errno));
+            TAG_LOGW(AAFwkTag::APPKIT, "msg: %{public}s", strerror(errno));
         }
     }
 }
@@ -148,35 +149,7 @@ int ApplicationCleaner::GetRootPath(std::vector<std::string> &rootPath)
         return RESULT_ERR;
     }
 
-    auto instance = AppExecFwk::OsAccountManagerWrapper::GetInstance();
-    if (instance == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null instance");
-        return RESULT_ERR;
-    }
-
-    int userId = -1;
-    if (instance->GetOsAccountLocalIdFromProcess(userId) != RESULT_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Get account failed");
-        return RESULT_ERR;
-    }
-    TAG_LOGD(AAFwkTag::APPKIT, "userId: %{public}d", userId);
-
-    rootPath.clear();
-    auto baseDir = context_->GetBaseDir();
-    auto infos = context_->GetApplicationInfo();
-    if (infos == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null infos");
-        return RESULT_ERR;
-    }
-
-    rootPath.emplace_back(baseDir);
-    for (const auto &moudle : infos->moduleInfos) {
-        auto moudleDir = baseDir + CONTEXT_HAPS + PATH_SEPARATOR + moudle.moduleName;
-        if (access(moudleDir.c_str(), F_OK) != 0) {
-            continue;
-        }
-        rootPath.emplace_back(moudleDir);
-    }
+    context_->GetAllTempBase(rootPath);
     return RESULT_OK;
 }
 

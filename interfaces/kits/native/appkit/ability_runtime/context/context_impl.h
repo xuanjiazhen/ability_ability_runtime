@@ -97,7 +97,7 @@ public:
      *
      * @param tempPaths Return all temporary directories of the application.
      */
-    virtual void GetAllTempDir(std::vector<std::string> &tempPaths);
+    virtual void GetAllTempBase(std::vector<std::string> &tempPaths);
 
     /**
      * @brief Obtains the directory for storing files for the application on the device's internal storage.
@@ -417,6 +417,7 @@ public:
      * @return Returns the application base directory.
      */
     std::string GetBaseDir() const override;
+    std::string GetBaseDir(const std::string &area) const;
 
     /**
      * @brief Obtains the Device Type.
