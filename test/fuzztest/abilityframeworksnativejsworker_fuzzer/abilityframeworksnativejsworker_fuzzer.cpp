@@ -31,7 +31,7 @@
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
-
+constexpr size_t  MAX_INPUT_SIZE = 1024;
 namespace OHOS {
 namespace {
 constexpr int INPUT_ZERO = 0;
@@ -77,8 +77,11 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::string jsonStr(data, size);
     uint8_t *buff = nullptr;
     size_t buffSize;
-    std::shared_ptr<AbilityBase::FileMapper> fileMapper = std::shared_ptr<AbilityBase::FileMapper>();
+    std::shared_ptr<AbilityBase::FileMapper> fileMapper = std::make_shared<AbilityBase::FileMapper>();
     void* mapper = static_cast<void*>(fileMapper.get());
+    if (mapper == nullptr) {
+        return false;
+    }
     helper.GetSafeData(jsonStr, &buff, &buffSize, &mapper);
     helper.NormalizedFileName(jsonStr);
     bool useSecureMem = *data % ENABLE;
@@ -108,7 +111,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
 
     /* Validate the length of size */
-    if (size < OHOS::U32_AT_SIZE) {
+    if (size < OHOS::U32_AT_SIZE || size > MAX_INPUT_SIZE) {
         return 0;
     }
 
