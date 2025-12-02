@@ -4532,6 +4532,7 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
     AppSpawnStartMsg startMsg;
     auto appInfo = appRecord->GetApplicationInfo();
     auto bundleType = appInfo ? appInfo->bundleType : BundleType::APP;
+    startMsg.appDistributionType = appInfo ? appInfo->appDistributionType : std::string();
 #ifdef SUPPORT_CHILD_PROCESS
     PresetMaxChildProcess(appRecord, startMsg.maxChildProcess);
 #endif // SUPPORT_CHILD_PROCESS

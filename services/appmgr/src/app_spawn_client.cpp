@@ -460,6 +460,16 @@ int32_t AppSpawnClient::AppspawnSetExtMsgSec(const AppSpawnStartMsg &startMsg, A
             return ret;
         }
     }
+
+    if (!startMsg.appDistributionType.empty()) {
+        ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_DISTRIBUTION_TYPE,
+            startMsg.appDistributionType.c_str());
+        if (ret) {
+            TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
+            return ret;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "Send appDistributionType: %{public}s", startMsg.appDistributionType.c_str());
+    }
     return ret;
 }
 

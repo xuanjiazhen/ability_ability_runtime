@@ -234,7 +234,7 @@ struct ApplicationInfo {
 
     // apl
     std::string appPrivilegeLevel = AVAILABLELEVEL_NORMAL;
-    std::string appDistributionType = "none";
+    std::string appDistributionType = "";
     std::string appProvisionType = "release";
 
     // user related fields, assign when calling the get interface
