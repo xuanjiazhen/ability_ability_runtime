@@ -69,7 +69,7 @@ export struct IntentContent {
         .then((data) => {
           this.listMaterial = data as IntentInfo[];
           this.intermediateGroupMaterial = this.listMaterial
-            .filter(item => item.developType != insightIntentDriver.DevelopType.CONFIGURATION)
+            .filter(item => item.developType == insightIntentDriver.DevelopType.DECORATOR || item.developType == undefined)
             .reduce((acc, item) => {
               const bundleName: string = item.bundleName;
               if (!acc[bundleName]) {
