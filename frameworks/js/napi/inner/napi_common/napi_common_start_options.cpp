@@ -30,6 +30,9 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
+constexpr int32_t ARGC_TWO = 2;
+}
 EXTERN_C_START
 
 bool UnwrapProcessOptions(napi_env env, napi_value param, std::shared_ptr<AAFwk::ProcessOptions> &processOptions)
@@ -266,5 +269,26 @@ bool UnwrapStartOptionsAndWant(napi_env env, napi_value param, AAFwk::StartOptio
     return UnwrapStartOptions(env, param, startOptions);
 }
 EXTERN_C_END
+
+AbilityRuntime::OnRequestResult UnwrapCompletionHandlerOnRequestResult(napi_env env,
+    const char *funcName, std::shared_ptr<NativeReference> ref)
+{
+    if (ref == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null ref");
+        return nullptr;
+    }
+    return [env, ref, funcName](const AppExecFwk::ElementName &element, const std::string &message) {
+        napi_value completionHandler = ref->GetNapiValue();
+        napi_value onRequestResultObj = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandler,
+            funcName, napi_function);
+        size_t argc = ARGC_TWO;
+        napi_value argv[ARGC_TWO] =
+            { AppExecFwk::WrapElementName(env, element), AbilityRuntime::CreateJsValue(env, message) };
+        napi_status status = napi_call_function(env, completionHandler, onRequestResultObj, argc, argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "call %{public}s, failed: %{public}d", funcName, status);
+        }
+    };
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

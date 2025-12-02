@@ -56,6 +56,8 @@ constexpr size_t ARGC_FOUR = 4;
 constexpr const char* ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 const std::string JSON_KEY_ERR_MSG = "errMsg";
 const std::string KEY_REQUEST_ID = "com.ohos.param.requestId";
+constexpr const char* FUNC_NAME_ON_REQUEST_SUCCESS = "onRequestSuccess";
+constexpr const char* FUNC_NAME_ON_REQUEST_FAILURE = "onRequestFailure";
 
 class StartAbilityByCallParameters {
 public:
@@ -339,32 +341,16 @@ private:
             TAG_LOGD(AAFwkTag::SERVICE_EXT, "null completionHandlerForOpenLink");
             return false;
         }
-        napi_value onRequestSuccFunc = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandlerForOpenLink,
-            "onRequestSuccess", napi_function);
-        napi_value onRequestFailFunc = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandlerForOpenLink,
-            "onRequestFailure", napi_function);
-        if (onRequestSuccFunc == nullptr || onRequestFailFunc == nullptr) {
-            TAG_LOGE(AAFwkTag::SERVICE_EXT, "null onRequestSuccFunc or onRequestFailFunc");
+        napi_ref ref = nullptr;
+        if (napi_create_reference(env, completionHandlerForOpenLink, 1, &ref) != napi_ok) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "failed to create ref");
             return false;
         }
-        onRequestSucc = [env, completionHandlerForOpenLink, onRequestSuccFunc](
-            const AppExecFwk::ElementName &element, const std::string &message) {
-            napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
-            napi_status status = napi_call_function(
-                env, completionHandlerForOpenLink, onRequestSuccFunc, ARGC_TWO, argv, nullptr);
-            if (status != napi_ok) {
-                TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestSuccess, failed: %{public}d", status);
-            }
-        };
-        onRequestFail = [env, completionHandlerForOpenLink, onRequestFailFunc](
-            const AppExecFwk::ElementName &element, const std::string &message) {
-            napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
-            napi_status status = napi_call_function(
-                env, completionHandlerForOpenLink, onRequestFailFunc, ARGC_TWO, argv, nullptr);
-            if (status != napi_ok) {
-                TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestFailure, failed: %{public}d", status);
-            }
-        };
+        auto completionHandlerRef = std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref));
+        onRequestSucc = AppExecFwk::UnwrapCompletionHandlerOnRequestResult(env, FUNC_NAME_ON_REQUEST_SUCCESS,
+            completionHandlerRef);
+        onRequestFail = AppExecFwk::UnwrapCompletionHandlerOnRequestResult(env, FUNC_NAME_ON_REQUEST_FAILURE,
+            completionHandlerRef);
         return true;
     }
 
