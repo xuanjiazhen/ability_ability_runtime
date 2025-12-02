@@ -71,6 +71,8 @@ const std::string KEY_REQUEST_ID = "com.ohos.param.requestId";
 const std::string TRACE_ATOMIC_SERVICE = "StartAtomicService";
 constexpr int32_t CALLER_TIME_OUT = 10; // 10s
 const std::string JSON_KEY_ERR_MSG = "errMsg";
+constexpr const char* FUNC_NAME_ON_REQUEST_SUCCESS = "onRequestSuccess";
+constexpr const char* FUNC_NAME_ON_REQUEST_FAILURE = "onRequestFailure";
 
 namespace {
 static std::map<ConnectionKey, sptr<JSAbilityConnection>, KeyCompare> g_connects;
@@ -626,6 +628,26 @@ void JsAbilityContext::UnWrapCompletionHandlerForAtomicService(
     options.requestId_ = requestId;
 }
 
+OnRequestResult JsAbilityContext::UnwrapCompletionHandlerOnRequestResult(napi_env env,
+    const char *funcName, std::shared_ptr<NativeReference> ref)
+{
+    if (ref == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null ref");
+        return nullptr;
+    }
+    return [env, ref, funcName](const AppExecFwk::ElementName &element, const std::string &message) {
+        napi_value completionHandler = ref->GetNapiValue();
+        napi_value onRequestResultObj = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandler,
+            funcName, napi_function);
+        size_t argc = ARGC_TWO;
+        napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
+        napi_status status = napi_call_function(env, completionHandler, onRequestResultObj, argc, argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "call %{public}s, failed: %{public}d", funcName, status);
+        }
+    };
+}
+
 bool JsAbilityContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi_value param,
     OnRequestResult &onRequestSucc, OnRequestResult &onRequestFail)
 {
@@ -635,32 +657,16 @@ bool JsAbilityContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi_val
         TAG_LOGD(AAFwkTag::CONTEXT, "null completionHandlerForOpenLink");
         return false;
     }
-    napi_value onRequestSuccFunc = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandlerForOpenLink,
-        "onRequestSuccess", napi_function);
-    napi_value onRequestFailFunc = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandlerForOpenLink,
-        "onRequestFailure", napi_function);
-    if (onRequestSuccFunc == nullptr || onRequestFailFunc == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null onRequestSuccFunc or onRequestFailFunc");
+    napi_ref ref = nullptr;
+    if (napi_create_reference(env, completionHandlerForOpenLink, 1, &ref) != napi_ok || ref == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed to create ref");
         return false;
     }
-    onRequestSucc = [env, completionHandlerForOpenLink, onRequestSuccFunc](
-        const AppExecFwk::ElementName &element, const std::string &message) {
-        napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
-        napi_status status = napi_call_function(
-            env, completionHandlerForOpenLink, onRequestSuccFunc, ARGC_TWO, argv, nullptr);
-        if (status != napi_ok) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestSuccess, failed: %{public}d", status);
-        }
-    };
-    onRequestFail = [env, completionHandlerForOpenLink, onRequestFailFunc](
-        const AppExecFwk::ElementName &element, const std::string &message) {
-        napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
-        napi_status status = napi_call_function(
-            env, completionHandlerForOpenLink, onRequestFailFunc, ARGC_TWO, argv, nullptr);
-        if (status != napi_ok) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestFailure, failed: %{public}d", status);
-        }
-    };
+    auto completionHandlerRef = std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref));
+    onRequestSucc = UnwrapCompletionHandlerOnRequestResult(env, FUNC_NAME_ON_REQUEST_SUCCESS,
+        completionHandlerRef);
+    onRequestFail = UnwrapCompletionHandlerOnRequestResult(env, FUNC_NAME_ON_REQUEST_FAILURE,
+        completionHandlerRef);
     return true;
 }
 

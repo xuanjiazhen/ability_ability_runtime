@@ -189,6 +189,8 @@ private:
     OnRequestResult &onRequestFail);
     void AddCompletionHandlerForOpenLink(AAFwk::Want &want, OnRequestResult &onRequestSucc,
     OnRequestResult &onRequestFail);
+    OnRequestResult UnwrapCompletionHandlerOnRequestResult(napi_env env, const char *funcName,
+        std::shared_ptr<NativeReference> ref);
     std::pair<OnAtomicRequestSuccess, OnAtomicRequestFailure> CreateAtomicServiceCallBack(napi_env env,
         const std::shared_ptr<NativeReference> &atomicServiceRef,
         const std::shared_ptr<NativeReference> &onRequestSuccRef,
