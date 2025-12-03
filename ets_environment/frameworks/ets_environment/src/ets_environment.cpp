@@ -606,14 +606,13 @@ bool ETSEnvironment::LoadModule(const std::string &modulePath, const std::string
     return true;
 }
 
-bool ETSEnvironment::FinishPreload() {
+void ETSEnvironment::FinishPreload(napi_env jsEnv) {
     ani_env *env = GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed: ANI env nullptr");
         return false;
     }
-    ark::ets::ETSAni::Prefork(env);
-    return true;
+    ark::ets::ETSAni::Prefork(env, reinterpret_cast<void *>(jsEnv));
 }
 
 bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
@@ -698,8 +697,8 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             std::function<bool(const std::string &bundleModuleName, std::string &namespaceName)> &cb) {
             ark::ets::EtsNamespaceManager::SetAppLibPaths(abcPathsToBundleModuleNameMap, cb);
         },
-        .FinishPreload = []() {
-            ETSEnvironment::GetInstance()->FinishPreload();
+        .FinishPreload = [](napi_env jsEnv) {
+            ETSEnvironment::GetInstance()->FinishPreload(jsEnv);
         },
         .PostFork = [](void *napiEnv, const std::string &aotPath, const std::vector<std::string> &appInnerHspPathList,
             const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,

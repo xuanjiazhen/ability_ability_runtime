@@ -60,8 +60,8 @@ public:
     bool PreloadModule(const std::string &modulePath);
     bool LoadModule(const std::string &modulePath, const std::string &srcEntrance, void *&cls,
         void *&obj, void *&ref);
-    bool FinishPreload();
-    bool PostFork(void *napiEnv, const std::string &aotPath, const std::vector<std::string>& appInnerHspPathList,
+    void FinishPreload(napi_env jsEnv);
+    void PostFork(void *napiEnv, const std::string &aotPath, const std::vector<std::string>& appInnerHspPathList,
         const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
         const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner);
     bool PreloadSystemClass(const char *className);
