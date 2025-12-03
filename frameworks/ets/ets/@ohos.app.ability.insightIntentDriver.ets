@@ -38,6 +38,8 @@ export default namespace insightIntentDriver {
   export native function nativeExecuteSync(param: ExecuteParam,
     callback: AsyncCallbackWrapper<insightIntent.ExecuteResult>,
     isCallback: boolean): void;
+  export native function nativeGetInsightIntentInfoByFilterSync(filter: InsightIntentInfoFilter,
+    callback: AsyncCallbackWrapper<Array<InsightIntentInfo>>): void;
 
   export function execute(param: ExecuteParam, callback: AsyncCallback<insightIntent.ExecuteResult>): void {
     let pCallback = new AsyncCallbackWrapper<insightIntent.ExecuteResult>(callback);
@@ -63,5 +65,23 @@ export default namespace insightIntentDriver {
       });
     });
     return pPromise;
+  }
+
+  export function getInsightIntentInfoByFilter(filter: insightIntentDriver.InsightIntentInfoFilter):
+    Promise<Array<insightIntentDriver.InsightIntentInfo>> {
+    return new Promise<Array<insightIntentDriver.InsightIntentInfo>>((resolve: (data: Array<insightIntentDriver.InsightIntentInfo>) => void,
+      reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<Array<insightIntentDriver.InsightIntentInfo>>((err: BusinessError | null,
+        data: Array<insightIntentDriver.InsightIntentInfo> | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as Array<insightIntentDriver.InsightIntentInfo>);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        nativeGetInsightIntentInfoByFilterSync(filter, asyncCall);
+      });
+    });
   }
 }
