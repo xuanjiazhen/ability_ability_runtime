@@ -257,6 +257,7 @@ HWTEST_F(AbilityAutoStartupServiceTest, QueryAllAutoStartupApplications_001, Tes
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest QueryAllAutoStartupApplications_001 start";
     auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
     EXPECT_NE(abilityAutoStartupService, nullptr);
+    MyFlag::flag_ = 1;
     std::vector<AutoStartupInfo> infoList;
     int32_t userId = 100;
     auto result = abilityAutoStartupService->QueryAllAutoStartupApplications(infoList, userId);
@@ -281,6 +282,7 @@ HWTEST_F(AbilityAutoStartupServiceTest, QueryAllAutoStartupApplications_002, Tes
     AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
     auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
     EXPECT_NE(abilityAutoStartupService, nullptr);
+    MyFlag::flag_ = 0;
     std::vector<AutoStartupInfo> infoList;
     int32_t userId = 100;
     auto result = abilityAutoStartupService->QueryAllAutoStartupApplications(infoList, userId);
