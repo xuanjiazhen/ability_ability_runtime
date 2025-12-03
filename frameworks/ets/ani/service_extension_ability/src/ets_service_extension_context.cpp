@@ -1695,8 +1695,9 @@ void EtsServiceExtensionContext::UnwrapCompletionHandlerForOpenLink(ani_env *env
         return;
     }
     ani_ref completionHandler;
-    if (!AppExecFwk::GetFieldRefByName(env, param, "completionHandler", completionHandler) ||
-        !completionHandler) {
+    ani_boolean isUndefined;
+    if (!AppExecFwk::GetPropertyRef(env, param, "completionHandler", completionHandler, isUndefined) ||
+        !completionHandler || isUndefined) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null completionHandler");
         return;
     }
