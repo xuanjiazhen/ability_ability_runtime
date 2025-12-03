@@ -63,6 +63,7 @@ constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "Lapplication/UIAbilityCon
 constexpr const char* CLEANER_CLASS = "Lapplication/UIAbilityContext/Cleaner;";
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 const std::string JSON_KEY_ERR_MSG = "errMsg";
+const std::string KEY_REQUEST_ID = "com.ohos.param.requestId";
 constexpr const char* SIGNATURE_OPEN_LINK = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
     "L@ohos/app/ability/OpenLinkOptions/OpenLinkOptions;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
@@ -1212,6 +1213,7 @@ void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string a
     if (haveOptionsParm) {
         TAG_LOGD(AAFwkTag::CONTEXT, "OpenLink Have option");
         AppExecFwk::UnWrapOpenLinkOptions(env, optionsObj, openLinkOptions, want);
+        UnwrapCompletionHandlerForOpenLink(env, optionsObj, openLinkOptions, want);
     }
     want.SetUri(link);
     std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
@@ -1241,9 +1243,15 @@ void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string a
         if (ret == AAFwk::ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK) {
             TAG_LOGI(AAFwkTag::CONTEXT, "start ability by default succeeded");
             freeInstallObserver_->OnInstallFinishedByUrl(startTime, link, ERR_OK);
-            return;
+        } else {
+            TAG_LOGE(AAFwkTag::CONTEXT, "OpenLink failed");
+            freeInstallObserver_->OnInstallFinishedByUrl(startTime, link, ret);
+            nlohmann::json jsonObject = nlohmann::json {
+                { JSON_KEY_ERR_MSG, "Failed to call openLink" },
+            };
+            std::string requestId = want.GetStringParam(KEY_REQUEST_ID);
+            context->OnOpenLinkRequestFailure(requestId, want.GetElement(), jsonObject.dump());
         }
-        freeInstallObserver_->OnInstallFinishedByUrl(startTime, link, ret);
     }
 }
 
@@ -1578,6 +1586,7 @@ void EtsAbilityContext::OnOpenAtomicService(
             AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
             return;
         }
+        UnWrapCompletionHandlerForAtomicService(env, optionsObj, startOptions, appId);
     }
     OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackObj);
 }
@@ -1929,6 +1938,90 @@ void EtsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     context->InsertResultCallbackTask(requestCode, std::move(task));
 }
 
+void EtsAbilityContext::UnwrapCompletionHandlerForOpenLink(ani_env *env, ani_object param,
+    AAFwk::OpenLinkOptions &openLinkOptions, AAFwk::Want& want)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "UnwrapCompletionHandlerForOpenLink called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        return;
+    }
+    ani_ref completionHandler;
+    ani_boolean isUndefined;
+    if (!AppExecFwk::GetPropertyRef(env, param, "completionHandler", completionHandler, isUndefined) ||
+        !completionHandler || isUndefined) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null completionHandler");
+        return;
+    }
+    ani_ref refCompletionHandler = nullptr;
+    if (env->GlobalReference_Create(completionHandler, &refCompletionHandler) != ANI_OK ||
+        !refCompletionHandler) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to create global ref for completionHandler.");
+        return;
+    }
+
+    OnRequestResult onRequestSucc;
+    OnRequestResult onRequestFail;
+    CreateOnRequestResultCallback(env, refCompletionHandler, onRequestSucc, "onRequestSuccess");
+    CreateOnRequestResultCallback(env, refCompletionHandler, onRequestFail, "onRequestFailure");
+    std::string requestId =
+        std::to_string(static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count()));
+    if (context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "add completionHandler failed");
+        return;
+    }
+    want.RemoveParam(KEY_REQUEST_ID);
+    want.SetParam(KEY_REQUEST_ID, requestId);
+}
+
+void EtsAbilityContext::UnWrapCompletionHandlerForAtomicService(
+    ani_env *env, ani_object param, AAFwk::StartOptions &options, const std::string &appId)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "UnWrapCompletionHandlerForAtomicService called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        return;
+    }
+    ani_ref completionHandler;
+    if (!AppExecFwk::GetFieldRefByName(env, param, "completionHandlerForAtomicService", completionHandler) ||
+        !completionHandler) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null completionHandlerForAtomicService");
+        return;
+    }
+    ani_ref refCompletionHandler = nullptr;
+    if (env->GlobalReference_Create(completionHandler, &refCompletionHandler) != ANI_OK ||
+        !refCompletionHandler) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to create global ref for completionHandler.");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::CONTEXT, "completionHandlerForAtomicService exists");
+    OnAtomicRequestSuccess onRequestSucc;
+    OnAtomicRequestFailure onRequestFail;
+    AppExecFwk::CreateOnAtomicRequestSuccessResultCallback(env, refCompletionHandler, onRequestSucc,
+        "onAtomicServiceRequestSuccess");
+    AppExecFwk::CreateOnAtomicRequestFailureResultCallback(env, refCompletionHandler, onRequestFail,
+        "onAtomicServiceRequestFailure");
+    std::string requestId =
+        std::to_string(static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count()));
+    if (context->AddCompletionHandlerForAtomicService(requestId, onRequestSucc, onRequestFail, appId) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "add completionHandler failed");
+        return;
+    }
+    options.requestId_ = requestId;
+}
+
 bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
 {
     ani_class cls {};
@@ -2051,9 +2144,20 @@ void EtsAbilityContext::OpenAtomicServiceInner(ani_env *env, ani_object aniObj, 
     };
     want.SetParam(AAFwk::Want::PARAM_RESV_FOR_RESULT, true);
     auto requestCode = GenerateRequestCode();
-    ErrCode ErrCode = context->OpenAtomicService(want, options, requestCode, std::move(task));
-    if (ErrCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "OpenAtomicService failed, ErrCode: %{public}d", ErrCode);
+    ErrCode errCode = context->OpenAtomicService(want, options, requestCode, std::move(task));
+    if (errCode != 0) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "OpenAtomicService failed: %{public}d", errCode);
+        if (freeInstallObserver_ != nullptr) {
+            std::string bundleName = want.GetElement().GetBundleName();
+            std::string abilityName = want.GetElement().GetAbilityName();
+            freeInstallObserver_->OnInstallFinished(bundleName, abilityName, startTime, errCode);
+        }
+        if (!options.requestId_.empty()) {
+            nlohmann::json jsonObject = nlohmann::json {
+                { JSON_KEY_ERR_MSG, "failed to call openAtomicService" }
+            };
+            context->OnRequestFailure(options.requestId_, want.GetElement(), jsonObject.dump());
+        }
     }
 }
 
