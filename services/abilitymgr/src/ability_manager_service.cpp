@@ -13003,20 +13003,30 @@ int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &w
     abilityRequest.startSetting = nullptr;
     abilityRequest.want = want;
     abilityRequest.connect = connect;
-    int32_t result = GenerateAbilityRequest(want, -1, abilityRequest, callerToken, GetValidUserId(DEFAULT_INVAL_VALUE));
+    int32_t result = GenerateAbilityRequest(want, -1, abilityRequest, callerToken, GetValidUserId(userId));
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request error");
         return result;
     }
     std::shared_ptr<AbilityRecord> targetRecord;
-    int32_t oriValidUserId = GetValidUserId(DEFAULT_INVAL_VALUE);
+    int32_t oriValidUserId = GetValidUserId(userId);
     auto missionListMgr = GetMissionListManagerByUserId(oriValidUserId);
+    if(IsCrossUserCall(oriValidUserId)) {
+        if (VerifyAccountPermission(oriValidUserId) == CHECK_PERMISSION_FAILED) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
+            return CHECK_PERMISSION_FAILED;
+        }
+        if (!JudgeMultiUserConcurrency(oriValidUserId)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied");
+            return ERR_CROSS_USER;
+        }
+    }
     if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability has already started");
         UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
         result = OnExecuteIntent(abilityRequest, targetRecord);
     }  else {
-        result = StartAbilityByCall(want, connect, callerToken);
+        result = StartAbilityByCall(want, connect, callerToken, oriValidUserId);
     }
     ResSchedUtil::GetInstance().ReportAbilityIntentExemptionInfoToRSS(abilityRequest.uid, 0);
     DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->SetIntentExemptionInfo(
@@ -15406,6 +15416,18 @@ int32_t AbilityManagerService::GetAllInsightIntentInfo(
         TAG_LOGD(AAFwkTag::INTENT, "not system app or permission denied");
         return ret;
     }
+
+    if(IsCrossUserCall(userId)) {
+        if (VerifyAccountPermission(userId) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "permission verification failed");
+            return CHECK_PERMISSION_FAILED;
+        }
+        if (!JudgeMultiUserConcurrency(userId)) {
+            TAG_LOGE(AAFwkTag::INTENT, "multi-user non-concurrent unsatisfied");
+            return ERR_CROSS_USER;
+        }
+    }
+
     if (flag & AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) {
         std::vector<ExtractInsightIntentInfo> intentInfos;
         std::vector<InsightIntentInfo> configInfos;
@@ -15484,6 +15506,18 @@ int32_t AbilityManagerService::GetInsightIntentInfoByBundleName(
         TAG_LOGD(AAFwkTag::INTENT, "not system app or permission denied");
         return ret;
     }
+
+    if(IsCrossUserCall(userId)) {
+        if (VerifyAccountPermission(userId) == CHECK_PERMISSION_FAILED) {
+            TAG_LOGE(AAFwkTag::INTENT, "permission verification failed");
+            return CHECK_PERMISSION_FAILED;
+        }
+        if (!JudgeMultiUserConcurrency(userId)) {
+            TAG_LOGE(AAFwkTag::INTENT, "multi-user non-concurrent unsatisfied");
+            return ERR_CROSS_USER;
+        }
+    }
+
     if (flag & AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) {
         std::vector<ExtractInsightIntentInfo> intentInfos;
         std::vector<InsightIntentInfo> configInfos;
@@ -15566,6 +15600,18 @@ int32_t AbilityManagerService::GetInsightIntentInfoByIntentName(
         TAG_LOGD(AAFwkTag::INTENT, "not system app or permission denied");
         return ret;
     }
+
+    if(IsCrossUserCall(userId)) {
+        if (VerifyAccountPermission(userId) == CHECK_PERMISSION_FAILED) {
+            TAG_LOGE(AAFwkTag::INTENT, "permission verification failed");
+            return CHECK_PERMISSION_FAILED;
+        }
+        if (!JudgeMultiUserConcurrency(userId)) {
+            TAG_LOGE(AAFwkTag::INTENT, "multi-user non-concurrent unsatisfied");
+            return ERR_CROSS_USER;
+        }
+    }
+
     if (flag & AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) {
         ExtractInsightIntentInfo intentInfo;
         InsightIntentInfo configIntentInfo;
