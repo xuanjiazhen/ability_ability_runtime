@@ -228,6 +228,7 @@ export function getRunningProcessInfoByBundleName(bundleName: string, userId: in
 
 export native function nativeOn(type: string, observer: ApplicationStateObserver, bundleNameList?: Array<string>) : int;
 export native function nativeOn(type: string, observer: ApplicationStateObserver) : int;
+export native function nativeOn(type: string, observer: ApplicationStateObserver, filter: AppStateFilter) : int;
 
 export function onApplicationStateChange(observer: ApplicationStateObserver): int {
   return appManager.nativeOn('applicationState', observer);
@@ -235,6 +236,10 @@ export function onApplicationStateChange(observer: ApplicationStateObserver): in
 
 export function onApplicationStateChange(observer: ApplicationStateObserver, bundleNameList: Array<string>): int {
   return appManager.nativeOn('applicationState', observer, bundleNameList);
+}
+
+export function onApplicationStateChange(observer: ApplicationStateObserver, filter: AppStateFilter): int {
+  return appManager.nativeOn('applicationState', observer, filter);
 }
 
 export native function nativeOff(type:string, observerId: int, callback: AsyncCallbackWrapper<void>) : void;

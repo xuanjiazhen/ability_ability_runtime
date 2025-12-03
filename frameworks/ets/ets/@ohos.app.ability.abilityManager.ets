@@ -58,6 +58,7 @@ export default namespace abilityManager {
   export native function nativePreloadUIExtensionAbility(want: Want, callback: AsyncCallbackWrapper<int>): void;
   export native function nativeClearPreloadedUIExtensionAbility(preloadId: int, callback: AsyncCallbackWrapper<void>): void;
   export native function nativeClearPreloadedUIExtensionAbilities(callback: AsyncCallbackWrapper<void>): void;
+  export native function nativeNotifySaveAsResult(parameter: AbilityResult, requestCode: int, callback: AsyncCallbackWrapper<void>): void;
 
   export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
@@ -348,6 +349,28 @@ export default namespace abilityManager {
         } catch (err: BusinessError) {
           reject(err);
         }
+      });
+    });
+  }
+
+  export function notifySaveAsResult(parameter: AbilityResult, requestCode: int, callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute( (): void => {
+        abilityManager.nativeNotifySaveAsResult(parameter, requestCode, myCall);
+    });
+  }
+
+  export function notifySaveAsResult(parameter: AbilityResult, requestCode: int): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        abilityManager.nativeNotifySaveAsResult(parameter, requestCode, asyncCall);
       });
     });
   }
