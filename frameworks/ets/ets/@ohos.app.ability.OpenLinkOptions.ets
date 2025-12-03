@@ -14,13 +14,11 @@
  */
 
 import { RecordData } from '@ohos.base';
+import CompletionHandler from '@ohos.app.ability.CompletionHandler';
 
 export default interface OpenLinkOptions {
     appLinkingOnly?: boolean;
     parameters?: Record<string, RecordData>;
-}
-
-class OpenLinkOptionsImpl implements OpenLinkOptions {
-    appLinkingOnly?: boolean|undefined;
-    parameters?: Record<string, RecordData>|undefined;
+    hideFailureTipDialog?: boolean;
+    completionHandler?: CompletionHandler;
 }
