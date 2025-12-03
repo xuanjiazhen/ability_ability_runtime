@@ -257,6 +257,7 @@ HWTEST_F(AbilityAutoStartupServiceTest, QueryAllAutoStartupApplications_001, Tes
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest QueryAllAutoStartupApplications_001 start";
     auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
     EXPECT_NE(abilityAutoStartupService, nullptr);
+    MyFlag::flag_ = 1;
     std::vector<AutoStartupInfo> infoList;
     int32_t userId = 100;
     auto result = abilityAutoStartupService->QueryAllAutoStartupApplications(infoList, userId);
@@ -266,6 +267,7 @@ HWTEST_F(AbilityAutoStartupServiceTest, QueryAllAutoStartupApplications_001, Tes
     } else {
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     }
+    MyFlag::flag_ = 0;
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest QueryAllAutoStartupApplications_001 end";
 }
 

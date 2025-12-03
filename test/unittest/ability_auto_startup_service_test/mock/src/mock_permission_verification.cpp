@@ -21,7 +21,7 @@ namespace AAFwk {
 bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName,
     const uint32_t specifyTokenId) const
 {
-    return !!(MyFlag::flag_);
+    return !(MyFlag::flag_);
 }
 bool PermissionVerification::IsSACall() const
 {
