@@ -20,7 +20,7 @@ namespace AAFwk {
 bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName,
     const uint32_t specifyTokenId) const
 {
-    return !!(MyFlag::flag_);
+    return !(MyFlag::flag_);
 }
 
 bool PermissionVerification::IsSACall() const
@@ -115,7 +115,7 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
 }
 bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPI() const
 {
-    return true;
+    return false;
 }
 bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_t specifiedFullTokenId) const
 {
