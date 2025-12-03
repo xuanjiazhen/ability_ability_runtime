@@ -116,6 +116,15 @@ bool UnwrapExecuteParam(ani_env *env, ani_object param, AppExecFwk::InsightInten
         executeParam.flags_ = flags;
     }
 
+    if (IsExistsProperty(env, param, "userId")) {
+        ani_int userId = 0;
+        if (!GetIntPropertyObject(env, param, "userId", userId)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Wrong argument userId fail");
+            return false;
+        }
+        executeParam.userId_ = userId;
+    }
+
     return true;
 }
 } // namespace AbilityRuntime
