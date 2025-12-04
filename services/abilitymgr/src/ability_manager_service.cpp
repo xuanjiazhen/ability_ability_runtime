@@ -4250,6 +4250,14 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     }
     abilityRequest.extensionType = abilityRequest.abilityInfo.extensionAbilityType;
 
+    abilityRequest.moduleProcess = "";
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    if (DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->GetHapModuleInfo(
+        abilityRequest.abilityInfo, hapModuleInfo)) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "hapModule process: %{public}s", hapModuleInfo.process.c_str());
+        abilityRequest.moduleProcess = hapModuleInfo.process;
+    }
+
     abilityRequest.userId = validUserId;
     if (!HandleExecuteSAInterceptor(extensionSessionInfo->want, callerToken, abilityRequest, result)) {
         return result;
