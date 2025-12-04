@@ -136,6 +136,5 @@ HWTEST_F(AppNativeSpawnManagerTest, AppNativeSpawnManagerTest_ChildRelation_0500
     EXPECT_EQ(parent, 0);
 }
 
-
 }  // namespace AppExecFwk
 }  // namespace OHOS
