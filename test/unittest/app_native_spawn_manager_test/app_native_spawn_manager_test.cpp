@@ -136,6 +136,22 @@ HWTEST_F(AppNativeSpawnManagerTest, AppNativeSpawnManagerTest_ChildRelation_0500
     EXPECT_EQ(parent, 0);
 }
 
-
+/**
+ * @tc.number: AppNativeSpawnManagerTest_AppNativeSpawnStartCallback_0100
+ * @tc.desc: Test AppNativeSpawnStartCallback works
+ * @tc.type: FUNC
+ * @tc.Function: AppNativeSpawnStartCallback
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppNativeSpawnManagerTest, AppNativeSpawnManagerTest_AppNativeSpawnStartCallback_0100, TestSize.Level0)
+{
+    TAG_LOGD(AAFwkTag::TEST, "AppNativeSpawnManagerTest_AppNativeSpawnStartCallback_0100 start.");
+    std::string key = "startup.service.ctl.nativespawn";
+    std::string value = "2";
+    AppNativeSpawnManager::GetInstance().AppNativeSpawnStartCallback(key, value, nullptr);
+    std::string value = "5";
+    AppNativeSpawnManager::GetInstance().AppNativeSpawnStartCallback(key, value, nullptr);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
