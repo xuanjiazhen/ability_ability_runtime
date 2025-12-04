@@ -409,7 +409,7 @@ public:
     int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);
     int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid);
 
-private:
+protected:
     /**
      * StartAbilityLocked with request.
      *
@@ -670,7 +670,6 @@ private:
      */
     void RemoveExtensionDelayDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
 
-private:
     bool IsNeedToRestart(const std::shared_ptr<AbilityRecord> &abilityRecord,
         const std::string &bundleName, const std::string &abilityName);
     void TerminateRecord(std::shared_ptr<AbilityRecord> abilityRecord);
@@ -737,7 +736,8 @@ private:
     private:
         PreloadUIExtensionHostClientDiedHandler diedHandler_;
     };
-private:
+
+protected:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";
 
