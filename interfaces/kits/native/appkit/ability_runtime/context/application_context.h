@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_APPLICATION_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_APPLICATION_CONTEXT_H
 
+
 #include <vector>
 #include <shared_mutex>
 
