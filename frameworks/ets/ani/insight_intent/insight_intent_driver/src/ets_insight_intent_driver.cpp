@@ -28,6 +28,7 @@
 #include "insight_intent_execute_result.h"
 #include "ani_common_execute_param.h"
 #include "ani_common_execute_result.h"
+#include "ani_common_intent_info_filter.h"
 #include "ani_common_util.h"
 #include "ets_error_utils.h"
 
@@ -354,6 +355,96 @@ public:
         }
         return;
     }
+    
+    static void OnGetInsightIntentInfoByFilterCheck(ani_env *env, ani_object aniFilter)
+    {
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null env");
+            EtsErrorUtil::ThrowInvalidParamError(env, "null env");
+            return;
+        }
+
+        if (aniFilter == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid param");
+            EtsErrorUtil::ThrowInvalidParamError(env, "invalid param");
+            return;
+        }
+
+        InsightIntentInfoFilter filter;
+        if (!UnwrapIntentInfoFilter(env, aniFilter, filter)) {
+            TAG_LOGE(AAFwkTag::INTENT, "parse filter failed");
+            EtsErrorUtil::ThrowInvalidParamError(env, "Param error: filter must be a InsightIntentInfoFilter.");
+            return;
+        }
+    }
+
+    static void OnGetInsightIntentInfoByFilter(ani_env *env, ani_object aniFilter, ani_object callback)
+    {
+        TAG_LOGD(AAFwkTag::INTENT, "called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null env");
+            return;
+        }
+        if (aniFilter == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid param");
+            return;
+        }
+        InsightIntentInfoFilter filter;
+        if (!UnwrapIntentInfoFilter(env, aniFilter, filter)) {
+            TAG_LOGE(AAFwkTag::INTENT, "parse filter failed");
+            return;
+        }
+
+        ani_object error;
+        ani_ref callbackRef = nullptr;
+        if (env->GlobalReference_Create(callback, &callbackRef) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GlobalReference_Create failed");
+            error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
+                AbilityErrorCode::ERROR_CODE_INNER));
+            AsyncCallback(env, callback, error, nullptr);
+            return;
+        }
+
+        ani_vm *vm = nullptr;
+        if (env->GetVM(&vm) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GetVM failed");
+            error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
+                AbilityErrorCode::ERROR_CODE_INNER));
+            AsyncCallback(env, callback, error, nullptr);
+            return;
+        }
+
+        std::shared_ptr<EtsInsightIntentExecuteCallbackClient> client;
+        client = std::make_shared<EtsInsightIntentExecuteCallbackClient>(vm, nullptr, callbackRef);
+
+        auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
+        auto infos = std::make_shared<std::vector<InsightIntentInfoForQuery>>();
+        if (filter.bundleName_.empty()) {
+            *innerErrorCode = AbilityManagerClient::GetInstance()->GetAllInsightIntentInfo(
+                filter.intentFlags_, *infos, filter.userId_);
+        } else if (!filter.moduleName_.empty() && !filter.intentName_.empty()) {
+            auto intentInfo = std::make_shared<InsightIntentInfoForQuery>();
+            *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByIntentName(
+                filter.intentFlags_, filter.bundleName_, filter.moduleName_,
+                filter.intentName_, *intentInfo, filter.userId_);
+            infos->push_back(*intentInfo);
+        } else if (filter.moduleName_.empty() && filter.intentName_.empty()) {
+            *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByBundleName(
+                filter.intentFlags_, filter.bundleName_, *infos, filter.userId_);
+        } else {
+            TAG_LOGE(AAFwkTag::INTENT, "Invaild filter");
+            *innerErrorCode = ERR_INVALID_VALUE;
+        }
+
+        if (*innerErrorCode != 0) {
+            error = EtsErrorUtil::CreateErrorByNativeErr(env, *innerErrorCode);
+            AsyncCallback(env, callback, error, nullptr);
+        } else {
+            ani_object result = CreateEtsInsightIntentInfoForQueryArray(env, *infos);
+            AsyncCallback(env, callback, nullptr, result);
+        }
+        return;
+    }
 };
 
 void EtsInsightIntentDriverInit(ani_env *env)
@@ -386,6 +477,10 @@ void EtsInsightIntentDriverInit(ani_env *env)
             reinterpret_cast<void *>(EtsInsightIntentDriver::OnGetInsightIntentInfoByIntentName)},
         ani_native_function {"nativeGetInfoByIntentNameCheck", nullptr,
             reinterpret_cast<void *>(EtsInsightIntentDriver::OnGetInfoByIntentNameCheck)},
+        ani_native_function {"nativeGetInsightIntentInfoByFilterCheck", nullptr,
+            reinterpret_cast<void *>(EtsInsightIntentDriver::OnGetInsightIntentInfoByFilterCheck)},
+        ani_native_function {"nativeGetInsightIntentInfoByFilter", nullptr,
+            reinterpret_cast<void *>(EtsInsightIntentDriver::OnGetInsightIntentInfoByFilter)},
     };
 
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
