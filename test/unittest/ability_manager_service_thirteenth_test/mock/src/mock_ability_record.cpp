@@ -2037,7 +2037,7 @@ bool AbilityRecord::GetPromotePriority()
     return false;
 }
 
-void AbilityRecord::PromotePriority()
+bool AbilityRecord::PromotePriority()
 {
 }
 }  // namespace AAFwk
