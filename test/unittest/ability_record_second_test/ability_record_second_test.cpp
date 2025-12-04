@@ -385,50 +385,6 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpAbilityState_001, TestSize.L
 
 /*
  * Feature: AbilityRecord
- * Function: DumpService
- * SubFunction: DumpService
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord DumpService
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpService_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::vector<std::string> info;
-    std::vector<std::string> params;
-    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::HMS_ACCOUNT;
-    abilityRecord->scheduler_ = nullptr;
-    abilityRecord->isReady_ = false;
-    abilityRecord->isLauncherRoot_ = false;
-    abilityRecord->token_ = nullptr;
-    abilityRecord->DumpService(info, params, false);
-    EXPECT_TRUE(info.size() == 7);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: DumpService
- * SubFunction: DumpService
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord DumpService
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpService_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::vector<std::string> info;
-    std::vector<std::string> params;
-    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
-    abilityRecord->scheduler_ = nullptr;
-    abilityRecord->isReady_ = false;
-    abilityRecord->isLauncherRoot_ = false;
-    abilityRecord->token_ = nullptr;
-    abilityRecord->DumpService(info, params, false);
-    EXPECT_TRUE(info.size() == 9);
-}
-
-/*
- * Feature: AbilityRecord
  * Function: OnSchedulerDied
  * SubFunction: OnSchedulerDied
  * FunctionPoints: NA

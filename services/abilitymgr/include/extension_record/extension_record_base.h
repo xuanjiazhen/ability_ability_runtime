@@ -29,6 +29,9 @@ public:
 
     static std::shared_ptr<ExtensionRecordBase> CreateAbilityRecord(const AbilityRequest &abilityRequest);
 
+    static std::shared_ptr<ExtensionRecordBase> TransferToExtensionRecordBase(
+        const std::shared_ptr<AbilityRecord> &abilityRecord);
+
     AbilityRecordType GetAbilityRecordType() override;
 
     /**
@@ -114,14 +117,14 @@ public:
      * dump service info.
      *
      */
-    void DumpService(std::vector<std::string> &info, bool isClient = false) const override;
+    void DumpService(std::vector<std::string> &info, bool isClient = false) const;
 
     /**
      * dump service info.
      *
      */
     void DumpService(std::vector<std::string> &info, std::vector<std::string> &params,
-        bool isClient = false) const override;
+        bool isClient = false) const;
 
     /**
      * set connect remote object.

@@ -4794,7 +4794,7 @@ int AbilityManagerService::CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject
 
     // notify caller sync detach
     sessionProxy->NotifyExtensionDetachToDisplay();
-    connectManager->TerminateAbilityWindowLocked(std::static_pointer_cast<ExtensionRecordBase>(abilityRecord),
+    connectManager->TerminateAbilityWindowLocked(ExtensionRecordBase::TransferToExtensionRecordBase(abilityRecord),
         sessionInfo);
     return ERR_OK;
 }
@@ -8031,8 +8031,8 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
 
     auto userId = abilityRecord->GetOwnerMissionUserId();
     auto connectManager = GetConnectManagerByUserId(userId);
-    if (connectManager && abilityRecord->GetAbilityRecordType() == AbilityRecordType::EXTENSION_ABILITY) {
-        connectManager->OnAbilityDied(std::static_pointer_cast<ExtensionRecordBase>(abilityRecord));
+    if (connectManager) {
+        connectManager->OnAbilityDied(ExtensionRecordBase::TransferToExtensionRecordBase(abilityRecord));
         return;
     } else {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "no connectManager, type: %{public}d", abilityRecord->GetAbilityRecordType());
@@ -13266,7 +13266,7 @@ void AbilityManagerService::OnStartProcessFailed(const std::vector<sptr<IRemoteO
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null connectManager");
                 continue;
             }
-            connectManager->OnLoadAbilityFailed(std::static_pointer_cast<ExtensionRecordBase>(abilityRecord));
+            connectManager->OnLoadAbilityFailed(ExtensionRecordBase::TransferToExtensionRecordBase(abilityRecord));
         }
     }
 }
