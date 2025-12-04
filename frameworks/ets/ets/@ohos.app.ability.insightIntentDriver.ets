@@ -33,6 +33,7 @@ export default namespace insightIntentDriver {
     displayId?: long;
     uris?: Array<string>;
     flags?: int;
+    userId?: int;
   }
   enum InsightIntentType {
     LINK = '@InsightIntentLink',
