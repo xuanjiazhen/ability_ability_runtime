@@ -1150,14 +1150,6 @@ int64_t AbilityRecord::GetStartTime() const
     return startTime_;
 }
 
-void AbilityRecord::DumpService(std::vector<std::string> &info, bool isClient) const
-{
-}
-
-void AbilityRecord::DumpService(std::vector<std::string> &info, std::vector<std::string> &params, bool isClient) const
-{
-}
-
 void AbilityRecord::RemoveAbilityDeathRecipient() const
 {
 }

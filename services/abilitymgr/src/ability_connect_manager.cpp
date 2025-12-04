@@ -517,8 +517,8 @@ void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abili
             targetService.SetRestartTime(abilityRequest.restartTime);
             targetService.SetRestartCount(abilityRequest.restartCount);
         }
-    } else if (IsAbilityNeedKeepAlive(
-        std::static_pointer_cast<ExtensionRecordBase>(targetService.shared_from_this())) && abilityRequest.restart) {
+    } else if (IsAbilityNeedKeepAlive(ExtensionRecordBase::TransferToExtensionRecordBase(
+        targetService.shared_from_this())) && abilityRequest.restart) {
         targetService.SetRestartTime(abilityRequest.restartTime);
         targetService.SetRestartCount(abilityRequest.restartCount);
     }
@@ -1252,7 +1252,7 @@ int AbilityConnectManager::ScheduleConnectAbilityDoneLocked(
     std::lock_guard guard(serialMutex_);
     CHECK_POINTER_AND_RETURN(token, ERR_INVALID_VALUE);
 
-    auto abilityRecord = std::static_pointer_cast<ExtensionRecordBase>(Token::GetAbilityRecordByToken(token));
+    auto abilityRecord = ExtensionRecordBase::TransferToExtensionRecordBase(Token::GetAbilityRecordByToken(token));
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::EXT, "%{public}s/%{public}s", abilityRecord->GetElementName().GetBundleName().c_str(),
@@ -1403,7 +1403,7 @@ int AbilityConnectManager::ScheduleCommandAbilityDoneLocked(const sptr<IRemoteOb
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard guard(serialMutex_);
     CHECK_POINTER_AND_RETURN(token, ERR_INVALID_VALUE);
-    auto abilityRecord = std::static_pointer_cast<ExtensionRecordBase>(Token::GetAbilityRecordByToken(token));
+    auto abilityRecord = ExtensionRecordBase::TransferToExtensionRecordBase(Token::GetAbilityRecordByToken(token));
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     std::string element = abilityRecord->GetURI();
     TAG_LOGD(AAFwkTag::EXT, "Ability: %{public}s", element.c_str());

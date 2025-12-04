@@ -2378,46 +2378,6 @@ int64_t AbilityRecord::GetStartTime() const
     return startTime_;
 }
 
-void AbilityRecord::DumpService(std::vector<std::string> &info, bool isClient) const
-{
-    std::vector<std::string> params;
-    DumpService(info, params, isClient);
-}
-
-void AbilityRecord::DumpService(std::vector<std::string> &info, std::vector<std::string> &params, bool isClient) const
-{
-    info.emplace_back("      AbilityRecord ID #" + std::to_string(GetRecordId()) + "   state #" +
-                      AbilityRecord::ConvertAbilityState(GetAbilityState()) + "   start time [" +
-                      std::to_string(GetStartTime()) + "]");
-    info.emplace_back("      main name [" + GetAbilityInfo().name + "]");
-    info.emplace_back("      bundle name [" + GetAbilityInfo().bundleName + "]");
-    bool isUIExtension = UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType);
-    if (isUIExtension) {
-        info.emplace_back("      ability type [UIEXTENSION]");
-    } else {
-        if (GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
-            info.emplace_back("      ability type [UI_SERVICE]");
-            info.emplace_back("      windowConfig windowType [" +
-                std::to_string(GetAbilityWindowConfig().windowType) + "]");
-            info.emplace_back("      windowConfig windowId [" +
-                std::to_string(GetAbilityWindowConfig().windowId) + "]");
-        } else {
-            info.emplace_back("      ability type [SERVICE]");
-        }
-    }
-    info.emplace_back("      app state #" + AbilityRecord::ConvertAppState(appState_));
-
-    std::string isKeepAlive = GetKeepAlive() ? "true" : "false";
-    info.emplace_back("        isKeepAlive: " + isKeepAlive);
-    if (isLauncherRoot_) {
-        info.emplace_back("      can restart num #" + std::to_string(restartCount_));
-    }
-
-    info.emplace_back("      Connections: 0");
-    // add dump client info
-    DumpClientInfo(info, params, isClient);
-}
-
 void AbilityRecord::RemoveAbilityDeathRecipient() const
 {
     if (scheduler_ == nullptr) {

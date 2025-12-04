@@ -560,19 +560,6 @@ public:
     int64_t GetStartTime() const;
 
     /**
-     * dump service info.
-     *
-     */
-    virtual void DumpService(std::vector<std::string> &info, bool isClient = false) const;
-
-    /**
-     * dump service info.
-     *
-     */
-    virtual void DumpService(std::vector<std::string> &info, std::vector<std::string> &params,
-        bool isClient = false) const;
-
-    /**
      * check whether the ability is never started.
      */
     bool IsNeverStarted() const;
