@@ -48,6 +48,15 @@ AbilityRecordType ExtensionRecordBase::GetAbilityRecordType()
     return AbilityRecordType::EXTENSION_ABILITY;
 }
 
+std::shared_ptr<ExtensionRecordBase> ExtensionRecordBase::TransferToExtensionRecordBase(
+    std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    if (abilityRecord->GetAbilityRecordType() == AbilityRecordType::EXTENSION_ABILITY) {
+        return std::static_pointer_cast<ExtensionRecordBase>(abilityRecord);
+    }
+    return nullptr;
+}
+
 void ExtensionRecordBase::AddConnectRecordToList(const std::shared_ptr<ConnectionRecord> &connRecord)
 {
     CHECK_POINTER(connRecord);
