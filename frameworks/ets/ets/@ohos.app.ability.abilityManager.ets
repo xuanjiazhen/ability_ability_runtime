@@ -232,7 +232,7 @@ export default namespace abilityManager {
 
   function queryAtomicServiceStartupRule(context: Context, appId: string): Promise<AtomicServiceStartupRule> {
     abilityManager.nativeQueryAtomicServiceStartupRuleCheck(context);
-    return new Promise<AtomicServiceStartupRule>((resolve:(data:AtomicServiceStartupRule)=>void, reject:(err: BusinessError | null)=>void):void => {
+    return new Promise<AtomicServiceStartupRule>((resolve:(data:AtomicServiceStartupRule)=>void, reject:(err: Error)=>void):void => {
       let asyncCall = new AsyncCallbackWrapper<AtomicServiceStartupRule>((err: BusinessError | null, data: AtomicServiceStartupRule | undefined)=>{
         if (err == null || err.code == 0) {
           resolve(data as AtomicServiceStartupRule);
