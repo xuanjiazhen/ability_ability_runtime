@@ -336,7 +336,7 @@ private:
                 *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByBundleName(
                     filter.intentFlags_, filter.bundleName_, *infos, filter.userId_);
             } else {
-                TAG_LOGE(AAFwkTag::INTENT, "Invaild filter");
+                TAG_LOGE(AAFwkTag::INTENT, "Invalid filter");
             }
         };
         NapiAsyncTask::CompleteCallback complete =
