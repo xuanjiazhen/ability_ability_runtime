@@ -25,13 +25,13 @@ bool UnwrapFilterBundleTypeFromJS(napi_env env, napi_value param, FilterBundleTy
     uint32_t bundleTypes = 0;
     if (IsExistsByPropertyName(env, param, "bundleTypes")) {
         if (!UnwrapUint32ByPropertyName(env, param, "bundleTypes", bundleTypes)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Unwrap filterBundleTypes failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Unwrap filterBundleTypes failed");
             return false;
         }
         uint32_t allBundleTypes = static_cast<uint32_t>(FilterBundleType::APP) |
             static_cast<uint32_t>(FilterBundleType::ATOMIC_SERVICE);
         if (bundleTypes & (~allBundleTypes)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Invalid filterBundleTypes value: %{public}u", bundleTypes);
+            TAG_LOGE(AAFwkTag::BRIDGE, "Invalid filterBundleTypes value: %{public}u", bundleTypes);
             return false;
         }
         filterBundleTypes = static_cast<FilterBundleType>(bundleTypes);
@@ -44,7 +44,7 @@ bool UnwrapFilterAppStateTypeFromJS(napi_env env, napi_value param, FilterAppSta
     uint32_t appStateTypes = 0;
     if (IsExistsByPropertyName(env, param, "appStateTypes")) {
         if (!UnwrapUint32ByPropertyName(env, param, "appStateTypes", appStateTypes)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Unwrap filterAppStateTypes failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Unwrap filterAppStateTypes failed");
             return false;
         }
         uint32_t allAppStateTypes = static_cast<uint32_t>(FilterAppStateType::CREATE) |
@@ -52,7 +52,7 @@ bool UnwrapFilterAppStateTypeFromJS(napi_env env, napi_value param, FilterAppSta
             static_cast<uint32_t>(FilterAppStateType::BACKGROUND) |
             static_cast<uint32_t>(FilterAppStateType::DESTROY);
         if (appStateTypes & (~allAppStateTypes)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Invalid filterAppStateTypes value: %{public}u",  appStateTypes);
+            TAG_LOGE(AAFwkTag::BRIDGE, "Invalid filterAppStateTypes value: %{public}u",  appStateTypes);
             return false;
         }
         filterAppStateTypes = static_cast<FilterAppStateType>(appStateTypes);
@@ -65,7 +65,7 @@ bool UnwrapFilterProcessStateTypeFromJS(napi_env env, napi_value param, FilterPr
     uint32_t processStateTypes = 0;
     if (IsExistsByPropertyName(env, param, "processStateTypes")) {
         if (!UnwrapUint32ByPropertyName(env, param, "processStateTypes", processStateTypes)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Unwrap filterProcessStateTypes failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Unwrap filterProcessStateTypes failed");
             return false;
         }
         uint32_t allProcessStateTypes = static_cast<uint32_t>(FilterProcessStateType::CREATE) |
@@ -73,7 +73,7 @@ bool UnwrapFilterProcessStateTypeFromJS(napi_env env, napi_value param, FilterPr
             static_cast<uint32_t>(FilterProcessStateType::BACKGROUND) |
             static_cast<uint32_t>(FilterProcessStateType::DESTROY);
         if (processStateTypes & (~allProcessStateTypes)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Invalid filterProcessStateTypes value: %{public}u",  processStateTypes);
+            TAG_LOGE(AAFwkTag::BRIDGE, "Invalid filterProcessStateTypes value: %{public}u",  processStateTypes);
             return false;
         }
         filterProcessStateTypes = static_cast<FilterProcessStateType>(processStateTypes);
@@ -86,7 +86,7 @@ bool UnwrapFilterAbilityStateTypeFromJS(napi_env env, napi_value param, FilterAb
     uint32_t abilityStateTypes = 0;
     if (IsExistsByPropertyName(env, param, "abilityStateTypes")) {
         if (!UnwrapUint32ByPropertyName(env, param, "abilityStateTypes", abilityStateTypes)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Unwrap filterAbilityStateTypes failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Unwrap filterAbilityStateTypes failed");
             return false;
         }
         uint32_t allAbilityStateTypes = static_cast<uint32_t>(FilterAbilityStateType::CREATE) |
@@ -94,7 +94,7 @@ bool UnwrapFilterAbilityStateTypeFromJS(napi_env env, napi_value param, FilterAb
             static_cast<uint32_t>(FilterAbilityStateType::BACKGROUND) |
             static_cast<uint32_t>(FilterAbilityStateType::DESTROY);
         if (abilityStateTypes & (~allAbilityStateTypes)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Invalid filterAbilityStateTypes value: %{public}u",  abilityStateTypes);
+            TAG_LOGE(AAFwkTag::BRIDGE, "Invalid filterAbilityStateTypes value: %{public}u",  abilityStateTypes);
             return false;
         }
         filterAbilityStateType = static_cast<FilterAbilityStateType>(abilityStateTypes);
@@ -107,7 +107,7 @@ bool UnwrapFilterCallbackFromJS(napi_env env, napi_value param, FilterCallback &
     uint32_t callbacks = 0;
     if (IsExistsByPropertyName(env, param, "callbacks")) {
         if (!UnwrapUint32ByPropertyName(env, param, "callbacks", callbacks)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Unwrap filterCallbacks failed");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Unwrap filterCallbacks failed");
             return false;
         }
         uint32_t allCallbacks = static_cast<uint32_t>(FilterCallback::ON_FOREGROUND_APPLICATION_CHANGED) |
@@ -118,7 +118,7 @@ bool UnwrapFilterCallbackFromJS(napi_env env, napi_value param, FilterCallback &
             static_cast<uint32_t>(FilterCallback::ON_APP_STARTED) |
             static_cast<uint32_t>(FilterCallback::ON_APP_STOPPED);
         if (callbacks & (~allCallbacks)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Invalid filterCallbacks value: %{public}u",  callbacks);
+            TAG_LOGE(AAFwkTag::BRIDGE, "Invalid filterCallbacks value: %{public}u",  callbacks);
             return false;
         }
         if (callbacks & static_cast<uint32_t>(FilterCallback::ON_ABILITY_STATE_CHANGED)) {

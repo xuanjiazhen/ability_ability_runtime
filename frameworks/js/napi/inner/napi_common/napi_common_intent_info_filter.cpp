@@ -25,20 +25,20 @@ using namespace OHOS::AppExecFwk;
 bool UnwrapIntentInfoFilter(napi_env env, napi_value param, AppExecFwk::InsightIntentInfoFilter &filter)
 {
     if (!IsTypeForNapiValue(env, param, napi_object)) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "invalid params");
+        TAG_LOGE(AAFwkTag::BRIDGE, "invalid params");
         return false;
     }
 
     int32_t intentFlags = 0;
     if (!UnwrapInt32ByPropertyName(env, param, "intentFlags", intentFlags)) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type intentFlags");
+        TAG_LOGE(AAFwkTag::BRIDGE, "Wrong argument type intentFlags");
         return false;
     }
     if (intentFlags != GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT &&
         intentFlags != GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT &&
         intentFlags != (GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO) &&
         intentFlags != (GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO)) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Parse flag failed");
+        TAG_LOGE(AAFwkTag::BRIDGE, "Parse flag failed");
         return false;
     }
     filter.intentFlags_ = static_cast<GetInsightIntentFlag>(intentFlags);
@@ -46,7 +46,7 @@ bool UnwrapIntentInfoFilter(napi_env env, napi_value param, AppExecFwk::InsightI
     if (IsExistsByPropertyName(env, param, "bundleName")) {
         std::string bundleName {""};
         if (!UnwrapStringByPropertyName(env, param, "bundleName", bundleName)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type bundleName");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Wrong argument type bundleName");
             return false;
         }
         filter.bundleName_ = bundleName;
@@ -55,7 +55,7 @@ bool UnwrapIntentInfoFilter(napi_env env, napi_value param, AppExecFwk::InsightI
     if (IsExistsByPropertyName(env, param, "moduleName")) {
         std::string moduleName {""};
         if (!UnwrapStringByPropertyName(env, param, "moduleName", moduleName)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type moduleName");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Wrong argument type moduleName");
             return false;
         }
         filter.moduleName_ = moduleName;
@@ -64,7 +64,7 @@ bool UnwrapIntentInfoFilter(napi_env env, napi_value param, AppExecFwk::InsightI
     if (IsExistsByPropertyName(env, param, "intentName")) {
         std::string intentName {""};
         if (!UnwrapStringByPropertyName(env, param, "intentName", intentName)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type intentName");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Wrong argument type intentName");
             return false;
         }
         filter.intentName_ = intentName;
@@ -73,7 +73,7 @@ bool UnwrapIntentInfoFilter(napi_env env, napi_value param, AppExecFwk::InsightI
     if (IsExistsByPropertyName(env, param, "userId")) {
         int32_t userId = DEFAULT_INVAL_VALUE;
         if (!UnwrapInt32ByPropertyName(env, param, "userId", userId)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument userId fail");
+            TAG_LOGE(AAFwkTag::BRIDGE, "Wrong argument userId fail");
             return false;
         }
         filter.userId_ = userId;
