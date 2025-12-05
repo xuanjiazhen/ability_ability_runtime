@@ -416,7 +416,7 @@ bool ETSAbilityStage::CallObjectMethod(bool withResult, const char *name, const 
         ani_boolean res = ANI_FALSE;
         va_list args;
         va_start(args, signature);
-        if ((status = env->Object_CallMethod_Boolean(etsAbilityStageObj_->aniObj, method, &res, args)) != ANI_OK) {
+        if ((status = env->Object_CallMethod_Boolean_V(etsAbilityStageObj_->aniObj, method, &res, args)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
             etsRuntime_.HandleUncaughtError();
         }
@@ -517,7 +517,7 @@ bool ETSAbilityStage::CallAcceptOrRequestSync(ani_env *env, const AAFwk::Want &w
         return false;
     }
     if (etsAbilityStageObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityObj_");
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityStageObj_");
         return false;
     }
     ani_method method = nullptr;
@@ -560,7 +560,7 @@ bool ETSAbilityStage::CallAcceptOrRequestAsync(ani_env *env, const AAFwk::Want &
         return false;
     }
     if (etsAbilityStageObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityObj_");
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityStageObj_");
         return false;
     }
     ani_method method = nullptr;
