@@ -142,6 +142,8 @@ private:
     void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
     void OnDisconnectUIServiceExtension(ani_env *env, ani_object proxyObj, ani_object callback);
     bool CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want& want, ani_object callback, ani_object myCallback);
+    void StartUIAbilitiesInSplitWindowModeCheck(ani_env *env, ani_object aniObj,
+        ani_int primaryWindowId, ani_object wantObj);
     void OnStartUIAbilitiesInSplitWindowMode(ani_env *env, ani_int primaryWindowId,
         ani_object wantObj, ani_object callback);
     void OpenLinkInner(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
