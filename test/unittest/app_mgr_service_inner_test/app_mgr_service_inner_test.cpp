@@ -40,6 +40,7 @@
 #include "mock_native_token.h"
 #include "mock_permission_verification.h"
 #include "mock_render_scheduler.h"
+#include "mock_res_sched_util.h"
 #include "mock_sa_call.h"
 #include "mock_task_handler_wrap.h"
 #include "param.h"
@@ -469,6 +470,26 @@ HWTEST_F(AppMgrServiceInnerTest, ReportUIExtensionProcColdStartToRss_001, TestSi
     want->SetElementName("bundleName", "abilityName");
     want->SetModuleName("moduleName");
 
+    // do test2
+    appMgrServiceInner->ReportUIExtensionProcColdStartToRss(nullptr, want);
+    // do test3
+    appMgrServiceInner->ReportUIExtensionProcColdStartToRss(abilityInfo_, nullptr);
+
+    // fill extensionAbilityType
+    abilityInfo_->extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOEDITOR; // 504
+    // EXPECT_CALL
+    EXPECT_CALL(ResSchedUtil::GetInstance(), ReportUIExtensionProcColdStartToRss(
+        Eq(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOEDITOR)),
+        Eq(hostPid),
+        StrEq(""),
+        StrEq(pickerType),
+        StrEq("bundleName"),
+        StrEq("abilityName"),
+        StrEq("moduleName")
+    )).Times(1);
+    // do test4
+    appMgrServiceInner->ReportUIExtensionProcColdStartToRss(abilityInfo_, want);
+
     // fill appRunningManager_
     std::string hostBundleName = "wantHostBundleName";
     std::shared_ptr<ApplicationInfo> infoHost = std::make_shared<ApplicationInfo>();
@@ -481,13 +502,24 @@ HWTEST_F(AppMgrServiceInnerTest, ReportUIExtensionProcColdStartToRss_001, TestSi
     appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordIdHost, appRunningRecordHost);
 
     // fill abilityInfo_
-    abilityInfo_->extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOPICKER;
-    // do test2
+    abilityInfo_->extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOPICKER; // 404
+
+    // EXPECT_CALL
+    EXPECT_CALL(ResSchedUtil::GetInstance(), ReportUIExtensionProcColdStartToRss(
+        Eq(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOEDITOR)),
+        Eq(hostPid),
+        StrEq(hostBundleName),
+        StrEq(pickerType),
+        StrEq("bundleName"),
+        StrEq("abilityName"),
+        StrEq("moduleName")
+    )).Times(1);
+    // do test5
     appMgrServiceInner->ReportUIExtensionProcColdStartToRss(abilityInfo_, want);
 
     // fill abilityInfo_ with not UIExtension
     abilityInfo_->extensionAbilityType = AppExecFwk::ExtensionAbilityType::BACKUP;
-    // do test3
+    // do test6
     appMgrServiceInner->ReportUIExtensionProcColdStartToRss(abilityInfo_, want);
 }
 
