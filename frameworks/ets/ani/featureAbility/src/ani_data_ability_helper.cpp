@@ -89,7 +89,7 @@ bool IsInstanceOf(ani_env* env, const char* name, ani_object aniValue)
     ani_status status = ANI_ERROR;
     ani_class cls = nullptr;
     if ((status = env->FindClass(name, &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "status: %{public}d", status);
         return false;
     }
     ani_boolean isInstanceOf = ANI_FALSE;
