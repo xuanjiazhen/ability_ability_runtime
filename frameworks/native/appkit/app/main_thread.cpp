@@ -1560,7 +1560,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 #endif
     AppExecFwk::HapModuleInfo entryHapModuleInfo;
     if (!bundleInfo.hapModuleInfos.empty()) {
-        hapList_ = bundleInfo.hapModuleInfos;
         for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
             if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::ENTRY) {
                 findEntryHapModuleInfo = true;
@@ -3578,24 +3577,6 @@ int32_t MainThread::ScheduleNotifyHotReloadPage(const sptr<IQuickFixCallback> &c
     return NO_ERROR;
 }
 
-bool MainThread::CheckHapPathLoaded(const HapModuleInfo &hapModuleInfo)
-{
-    for (auto it = hapList_.begin(); it != hapList_.end();) {
-        if (it->hqfInfo.moduleName == hapModuleInfo.hqfInfo.moduleName) {
-            if (it->hqfInfo.hapSha256 == hapModuleInfo.hqfInfo.hapSha256) {
-                TAG_LOGI(AAFwkTag::APPKIT, "hap in list");
-                return true;
-            } else {
-                it = hapList_.erase(it);
-                return false;
-            }
-        } else {
-            ++it;
-        }
-    }
-    return false;
-}
-
 void setFileMap(const HapModuleInfo &hapInfo, const std::string &bundleName,
     std::vector<std::pair<std::string, std::string>> &fileMap)
 {
@@ -3640,19 +3621,6 @@ bool MainThread::GetHqfFileAndHapPath(const std::string &bundleName,
         if (processInfo_->GetProcessName() == hapInfo.process) {
             setFileMap(hapInfo, bundleName, fileMap);
         } else if (processInfo_->GetProcessName() == hapInfo.process + std::to_string(appCloneIndex)) {
-            auto &runtime = application_->GetRuntime();
-            if (runtime == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
-                return false;
-            }
-            if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS &&
-                hapInfo.moduleType == ModuleType::FEATURE) {
-                break;
-            }
-            if (CheckHapPathLoaded(hapInfo)) {
-                break;
-            }
-            hapList_.push_back(hapInfo);
             setFileMap(hapInfo, bundleName, fileMap);
         }
     }
