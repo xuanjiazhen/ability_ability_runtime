@@ -121,11 +121,12 @@ void NapiThrow(napi_env env, int32_t errCode)
 auto OnSendFinishedUvAfterWorkCallback = [](uv_work_t* work, int status) {
     TAG_LOGI(AAFwkTag::WANTAGENT, "trigger callback");
     TriggerReceiveDataWorker* dataWorkerData = static_cast<TriggerReceiveDataWorker *>(work->data);
-    if (dataWorkerData == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null dataWorkerData");
+    if (dataWorkerData == nullptr || dataWorkerData->env == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null dataWorkerData or env");
         delete work;
         return;
     }
+    HandleScope handleScope(dataWorkerData->env);
     if (dataWorkerData->resultData == "canceled") {
         TAG_LOGI(AAFwkTag::WANTAGENT, "canceled");
         delete dataWorkerData;
@@ -1067,6 +1068,7 @@ int32_t JsWantAgent::GetWantAgentParam(napi_env env, napi_callback_info info, Wa
 
 napi_value JsWantAgent::OnGetWantAgent(napi_env env, napi_callback_info info)
 {
+    HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
@@ -1087,6 +1089,7 @@ napi_value JsWantAgent::OnGetWantAgent(napi_env env, napi_callback_info info)
     NapiAsyncTask::CompleteCallback complete = [weak = weak_from_this(), parasobj = spParas](napi_env env,
         NapiAsyncTask &task, int32_t status) {
         TAG_LOGD(AAFwkTag::WANTAGENT, "called");
+        HandleEscape handleEscape(env);
         auto self = weak.lock();
         std::shared_ptr<AAFwk::WantParams> extraInfo = std::make_shared<AAFwk::WantParams>(parasobj->extraInfo);
         WantAgentInfo wantAgentInfo(parasobj->requestCode,
@@ -1115,7 +1118,7 @@ napi_value JsWantAgent::OnGetWantAgent(napi_env env, napi_callback_info info)
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnGetWantAgent",
         env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsWantAgent::OnNapiGetWant(napi_env env, napi_callback_info info)
@@ -1292,12 +1295,13 @@ std::shared_ptr<AbilityRuntime::Context> JsWantAgent::ConvertToContext(std::shar
 
 napi_value JsWantAgent::CreateJsCompletedData(napi_env env, const CompletedDispatcher &data)
 {
+    HandleEscape handleEscape(env);
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     WantAgent *pWantAgent = new (std::nothrow) WantAgent(data.GetPendingWant());
     if (pWantAgent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null pWantAgent");
-        return objValue;
+        return handleEscape.Escape(objValue);
     }
 
     napi_value jsWantAgent = OHOS::AppExecFwk::WrapWantAgent(env, pWantAgent, nullptr);
@@ -1306,7 +1310,7 @@ napi_value JsWantAgent::CreateJsCompletedData(napi_env env, const CompletedDispa
     napi_set_named_property(env, objValue, "finalCode", CreateJsValue(env, data.GetResultCode()));
     napi_set_named_property(env, objValue, "finalData", CreateJsValue(env, data.GetResultData()));
     napi_set_named_property(env, objValue, "extraInfo", CreateJsWantParams(env, data.GetResultExtras()));
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 
 napi_value JsWantAgent::OnNapiGetWantAgent(napi_env env, napi_callback_info info)
@@ -1345,6 +1349,7 @@ void JsWantAgent::SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsPa
     complete = [weak = weak_from_this(), parasobj = spParas](napi_env env,
         NapiAsyncTask &task, int32_t status) {
         TAG_LOGD(AAFwkTag::WANTAGENT, "called");
+        HandleScope handleScope(env);
         auto self = weak.lock();
         std::shared_ptr<AAFwk::WantParams> extraInfo = std::make_shared<AAFwk::WantParams>(parasobj->extraInfo);
         WantAgentInfo wantAgentInfo(parasobj->requestCode,
@@ -1385,6 +1390,7 @@ void JsWantAgent::SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsPa
 napi_value JsWantAgent::OnNapiCreateLocalWantAgent(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "on create localWantAgent");
+    HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
@@ -1430,7 +1436,7 @@ napi_value JsWantAgent::OnNapiCreateLocalWantAgent(napi_env env, napi_callback_i
         pWantAgent = nullptr;
         return CreateJsUndefined(env);
     }
-    return jsWantAgent;
+    return handleEscape.Escape(jsWantAgent);
 }
 
 napi_value JsWantAgent::OnNapiIsLocalWantAgent(napi_env env, napi_callback_info info)

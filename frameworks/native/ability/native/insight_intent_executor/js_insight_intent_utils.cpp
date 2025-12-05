@@ -166,6 +166,7 @@ void JsInsightIntentUtils::ReplySucceeded(InsightIntentExecutorAsyncCallback* ca
 std::string JsInsightIntentUtils::StringifyObject(napi_env env, napi_value result)
 {
     TAG_LOGD(AAFwkTag::INTENT, "stringify object");
+    HandleScope handleScope(env);
     napi_value global;
     auto status = napi_get_global(env, &global);
     if (status != napi_ok) {
