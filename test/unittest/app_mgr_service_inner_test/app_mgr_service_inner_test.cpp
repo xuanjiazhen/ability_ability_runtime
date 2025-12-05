@@ -451,6 +451,45 @@ HWTEST_F(AppMgrServiceInnerTest, LoadAbility_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5W4S7
  */
+HWTEST_F(AppMgrServiceInnerTest, ReportUIExtensionProcColdStartToRss_001, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    appMgrServiceInner->ReportUIExtensionProcColdStartToRss(nullptr, nullptr);
+
+    int32_t hostPid = 102;
+    // fill want
+    std::shared_ptr<AAFwk::Want> want;
+    want->SetParam("ability.want.params.uiExtensionRootHostPid", hostPid);
+    std::string pickerType = "pickerType";
+    want->SetParam("ability.want.params.uiExtensionType", pickerType);
+    want->SetElementName("bundleName", "abilityName");
+    want->SetModuleName("moduleName");
+
+    // fill appRunningManager_
+    std::string hostBundleName = "wantHostBundleName";
+    std::shared_ptr<ApplicationInfo> infoHost = std::make_shared<ApplicationInfo>();
+    infoHost->bundleName = hostBundleName;
+    int32_t recordIdHost = RECORD_ID + 1;
+    std::string processNameHost = "appRunningRecordProcessNameHost";
+    auto appRunningRecordHost = std::make_shared<AppRunningRecord>(infoHost, recordIdHost, processNameHost);
+    ASSERT_NE(appRunningRecordHost, nullptr);
+    appRunningRecordHost->priorityObject_->pid_ = hostPid;
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordIdHost, appRunningRecordHost);
+
+    // fill abilityInfo_
+    abilityInfo_->extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOPICKER;
+
+    // do test
+    appMgrServiceInner->ReportUIExtensionProcColdStartToRss(abilityInfo_, want);
+}
+
+/**
+ * @tc.name: CheckLoadAbilityConditions_001
+ * @tc.desc: check load ability conditions.
+ * @tc.type: FUNC
+ * @tc.require: issueI5W4S7
+ */
 HWTEST_F(AppMgrServiceInnerTest, CheckLoadAbilityConditions_001, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "CheckLoadAbilityConditions_001 start");
