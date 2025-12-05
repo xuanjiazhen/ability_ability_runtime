@@ -68,6 +68,7 @@ void InnerInitWantOptionsData(std::map<std::string, unsigned int> &flagMap)
 napi_value WrapElementName(napi_env env, const ElementName &elementName)
 {
     napi_value jsObject = nullptr;
+    HandleScope handleScope(env);
     NAPI_CALL(env, napi_create_object(env, &jsObject));
 
     napi_value jsValue = nullptr;
@@ -1073,6 +1074,7 @@ bool InnerUnwrapWantOptions(napi_env env, napi_value param, const char *property
 
 napi_value WrapWant(napi_env env, const Want &want)
 {
+    HandleScope handleScope(env);
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
 
@@ -1239,6 +1241,7 @@ bool UnwrapWant(napi_env env, napi_value param, Want &want, const std::string &p
 
 napi_value WrapAbilityResult(napi_env env, const int &resultCode, const AAFwk::Want &want)
 {
+    HandleScope handleScope(env);
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
 

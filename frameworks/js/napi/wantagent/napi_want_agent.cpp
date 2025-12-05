@@ -121,11 +121,12 @@ void NapiThrow(napi_env env, int32_t errCode)
 auto OnSendFinishedUvAfterWorkCallback = [](uv_work_t* work, int status) {
     TAG_LOGI(AAFwkTag::WANTAGENT, "trigger callback");
     TriggerReceiveDataWorker* dataWorkerData = static_cast<TriggerReceiveDataWorker *>(work->data);
-    if (dataWorkerData == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null dataWorkerData");
+    if (dataWorkerData == nullptr || dataWorkerData->env == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null dataWorkerData or env");
         delete work;
         return;
     }
+    HandleScope handleScope(dataWorkerData->env);
     if (dataWorkerData->resultData == "canceled") {
         TAG_LOGI(AAFwkTag::WANTAGENT, "canceled");
         delete dataWorkerData;
