@@ -118,8 +118,9 @@ void NapiThrow(napi_env env, int32_t errCode)
     napi_throw(env, CreateErrorValue(env, errCode));
 }
 
-auto OnSendFinishedUvAfterWorkCallback = [](uv_work_t* work, int status) {
+auto OnSendFinishedUvAfterWorkCallback = [env](uv_work_t* work, int status) {
     TAG_LOGI(AAFwkTag::WANTAGENT, "trigger callback");
+    HandleScope handleScope(env);
     TriggerReceiveDataWorker* dataWorkerData = static_cast<TriggerReceiveDataWorker *>(work->data);
     if (dataWorkerData == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null dataWorkerData");
