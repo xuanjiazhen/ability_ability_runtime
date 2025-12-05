@@ -1607,6 +1607,7 @@ int32_t JsUIAbility::OnContinue(WantParams &wantParams, bool &isAsyncOnContinue,
     napi_status createStatus = napi_create_reference(env, jsWantParams, 1, &jsWantParamsRef);
     if (createStatus != napi_ok) {
         TAG_LOGE(AAFwkTag::UIABILITY, "napi_create_reference failed, %{public}d", createStatus);
+        delete callbackInfo;
         return AppExecFwk::ContinuationManagerStage::OnContinueResult::ON_CONTINUE_ERR;
     }
     ReleaseOnContinueAsset(env, result, jsWantParamsRef, callbackInfo);
@@ -1621,8 +1622,10 @@ int32_t JsUIAbility::OnContinue(WantParams &wantParams, bool &isAsyncOnContinue,
     callbackInfo->Push(asyncCallback);
     if (!CallPromise(result, callbackInfo)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "call promise failed");
+        delete callbackInfo;
         return OnContinueSyncCB(result, wantParams, jsWantParams);
     }
+    delete callbackInfo;
     isAsyncOnContinue = true;
     TAG_LOGI(AAFwkTag::UIABILITY, "end");
     return onContinueRes;
