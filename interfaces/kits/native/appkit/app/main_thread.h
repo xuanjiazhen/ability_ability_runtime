@@ -830,7 +830,7 @@ private:
         AppExecFwk::ModuleTestRunner &tsTestRunner);
     bool CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);
     void SleepCleanKill();
-    bool CheckHapPathLoaded(const HapModuleInfo &hapModuleInfo);
+    bool checkHapLoaded(const HapModuleInfo &hapInfo);
 
     std::vector<std::string> fileEntries_;
     std::vector<std::string> nativeFileEntries_;

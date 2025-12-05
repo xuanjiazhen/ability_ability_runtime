@@ -3578,19 +3578,10 @@ int32_t MainThread::ScheduleNotifyHotReloadPage(const sptr<IQuickFixCallback> &c
     return NO_ERROR;
 }
 
-bool MainThread::CheckHapPathLoaded(const HapModuleInfo &hapModuleInfo)
-{
-    for (auto it = hapList_.begin(); it != hapList_.end();) {
-        if (it->hqfInfo.moduleName == hapModuleInfo.hqfInfo.moduleName) {
-            if (it->hqfInfo.hapSha256 == hapModuleInfo.hqfInfo.hapSha256) {
-                TAG_LOGI(AAFwkTag::APPKIT, "hap in list");
-                return true;
-            } else {
-                it = hapList_.erase(it);
-                return false;
-            }
-        } else {
-            ++it;
+bool MainThread::checkHapLoaded(const HapModuleInfo &hapInfo) {
+    for (auto it : hapList_) {
+        if (hapInfo.name == it.name) {
+            return true;
         }
     }
     return false;
@@ -3640,6 +3631,9 @@ bool MainThread::GetHqfFileAndHapPath(const std::string &bundleName,
         if (processInfo_->GetProcessName() == hapInfo.process) {
             setFileMap(hapInfo, bundleName, fileMap);
         } else if (processInfo_->GetProcessName() == hapInfo.process + std::to_string(appCloneIndex)) {
+            if (!CheckHapLoaded(hapInfo)) {
+                break;
+            }
             auto &runtime = application_->GetRuntime();
             if (runtime == nullptr) {
                 TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
@@ -3649,10 +3643,6 @@ bool MainThread::GetHqfFileAndHapPath(const std::string &bundleName,
                 hapInfo.moduleType == ModuleType::FEATURE) {
                 break;
             }
-            if (CheckHapPathLoaded(hapInfo)) {
-                break;
-            }
-            hapList_.push_back(hapInfo);
             setFileMap(hapInfo, bundleName, fileMap);
         }
     }
