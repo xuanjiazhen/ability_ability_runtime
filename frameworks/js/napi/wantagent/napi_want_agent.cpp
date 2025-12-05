@@ -121,11 +121,12 @@ void NapiThrow(napi_env env, int32_t errCode)
 auto OnSendFinishedUvAfterWorkCallback = [](uv_work_t* work, int status) {
     TAG_LOGI(AAFwkTag::WANTAGENT, "trigger callback");
     TriggerReceiveDataWorker* dataWorkerData = static_cast<TriggerReceiveDataWorker *>(work->data);
-    if (dataWorkerData == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null dataWorkerData");
+    if (dataWorkerData == nullptr || dataWorkerData->env == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null dataWorkerData or env");
         delete work;
         return;
     }
+    HandleScope handleScope(dataWorkerData->env);
     if (dataWorkerData->resultData == "canceled") {
         TAG_LOGI(AAFwkTag::WANTAGENT, "canceled");
         delete dataWorkerData;
@@ -1067,6 +1068,7 @@ int32_t JsWantAgent::GetWantAgentParam(napi_env env, napi_callback_info info, Wa
 
 napi_value JsWantAgent::OnGetWantAgent(napi_env env, napi_callback_info info)
 {
+    HandleScope handleScope(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
@@ -1292,6 +1294,7 @@ std::shared_ptr<AbilityRuntime::Context> JsWantAgent::ConvertToContext(std::shar
 
 napi_value JsWantAgent::CreateJsCompletedData(napi_env env, const CompletedDispatcher &data)
 {
+    HandleScope handleScope(env);
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     WantAgent *pWantAgent = new (std::nothrow) WantAgent(data.GetPendingWant());
@@ -1345,6 +1348,7 @@ void JsWantAgent::SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsPa
     complete = [weak = weak_from_this(), parasobj = spParas](napi_env env,
         NapiAsyncTask &task, int32_t status) {
         TAG_LOGD(AAFwkTag::WANTAGENT, "called");
+        HandleScope handleScope(env);
         auto self = weak.lock();
         std::shared_ptr<AAFwk::WantParams> extraInfo = std::make_shared<AAFwk::WantParams>(parasobj->extraInfo);
         WantAgentInfo wantAgentInfo(parasobj->requestCode,
@@ -1385,6 +1389,7 @@ void JsWantAgent::SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsPa
 napi_value JsWantAgent::OnNapiCreateLocalWantAgent(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "on create localWantAgent");
+    HandleScope handleScope(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
