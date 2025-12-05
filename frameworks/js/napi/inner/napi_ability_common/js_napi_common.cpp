@@ -1557,6 +1557,7 @@ size_t NAPIAbilityConnection::RemoveAllCallbacks(ConnectRemoveKeyType key)
 void UvWorkOnAbilityConnectDone(uv_work_t *work, int status)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    HandleScope handleScope(env);
     std::unique_ptr<uv_work_t> managedWork(work);
     if (work == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null work");

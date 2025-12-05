@@ -105,9 +105,9 @@ napi_value JsPhotoEditorExtensionContext::OnSaveEditedContentWithUri(napi_env en
             task.Reject(env, CreateJsError(env, static_cast<int32_t>(PhotoEditorErrorCode::ERROR_CODE_INTERNAL_ERROR)));
             return;
         }
-
         AAFwk::Want newWant;
         PhotoEditorErrorCode errCode = context->SaveEditedContent(uri, newWant);
+        HandleScope handleScope(env);
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, static_cast<int>(errCode), newWant);
         if (abilityResult == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null abilityResult");
@@ -161,6 +161,7 @@ napi_value JsPhotoEditorExtensionContext::OnSaveEditedContentWithImage(napi_env 
 
         AAFwk::Want newWant;
         PhotoEditorErrorCode errCode = context->SaveEditedContent(image, packOption, newWant);
+        HandleScope handleScope(env);
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, static_cast<int>(errCode), newWant);
         if (abilityResult == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null abilityResult");

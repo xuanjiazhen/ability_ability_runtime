@@ -80,6 +80,7 @@ napi_value CreateJsExtensionRunningInfoArray(napi_env env, const std::vector<AAF
 
 napi_value CreateJsAbilityRunningInfo(napi_env env, const AAFwk::AbilityRunningInfo &info)
 {
+    HandleEscape handleEscape(env);
     napi_value objValue = nullptr;
     napi_status createStatus = napi_create_object(env, &objValue);
     if (createStatus != napi_ok || objValue == nullptr) {
@@ -94,11 +95,12 @@ napi_value CreateJsAbilityRunningInfo(napi_env env, const AAFwk::AbilityRunningI
     napi_set_named_property(env, objValue, "processName", CreateJsValue(env, info.processName));
     napi_set_named_property(env, objValue, "startTime", CreateJsValue(env, info.startTime));
     napi_set_named_property(env, objValue, "abilityState", CreateJsValue(env, info.abilityState));
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 
 napi_value CreateJsExtensionRunningInfo(napi_env env, const AAFwk::ExtensionRunningInfo &info)
 {
+    HandleEscape handleEscape(env);
     napi_value objValue = nullptr;
     napi_status createStatus = napi_create_object(env, &objValue);
     if (createStatus != napi_ok || objValue == nullptr) {
@@ -114,7 +116,7 @@ napi_value CreateJsExtensionRunningInfo(napi_env env, const AAFwk::ExtensionRunn
     napi_set_named_property(env, objValue, "processName", CreateJsValue(env, info.processName));
     napi_set_named_property(env, objValue, "startTime", CreateJsValue(env, info.startTime));
     napi_set_named_property(env, objValue, "clientPackage", CreateNativeArray(env, info.clientPackage));
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 
 napi_value AbilityStateInit(napi_env env)
