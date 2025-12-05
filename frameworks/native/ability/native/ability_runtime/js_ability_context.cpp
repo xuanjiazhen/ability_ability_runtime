@@ -512,6 +512,7 @@ void JsAbilityContext::UnwrapCompletionHandlerInStartOptions(napi_env env, napi_
     }
     OnRequestResult onRequestSucc = [env, completionHandler, onRequestSuccObj](const AppExecFwk::ElementName &element,
         const std::string &message) {
+        HandleScope handleScope(env);
         size_t argc = ARGC_TWO;
         napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
         napi_status status = napi_call_function(env, completionHandler, onRequestSuccObj, argc, argv, nullptr);
@@ -521,6 +522,7 @@ void JsAbilityContext::UnwrapCompletionHandlerInStartOptions(napi_env env, napi_
     };
     OnRequestResult onRequestFail = [env, completionHandler, onRequestFailObj](const AppExecFwk::ElementName &element,
         const std::string &message) {
+        HandleScope handleScope(env);
         size_t argc = ARGC_TWO;
         napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
         napi_status status = napi_call_function(env, completionHandler, onRequestFailObj, argc, argv, nullptr);
@@ -611,6 +613,7 @@ bool JsAbilityContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi_val
     }
     onRequestSucc = [env, completionHandlerForOpenLink, onRequestSuccFunc](
         const AppExecFwk::ElementName &element, const std::string &message) {
+        HandleScope handleScope(env);
         napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
         napi_status status = napi_call_function(
             env, completionHandlerForOpenLink, onRequestSuccFunc, ARGC_TWO, argv, nullptr);
@@ -620,6 +623,7 @@ bool JsAbilityContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi_val
     };
     onRequestFail = [env, completionHandlerForOpenLink, onRequestFailFunc](
         const AppExecFwk::ElementName &element, const std::string &message) {
+        HandleScope handleScope(env);
         napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
         napi_status status = napi_call_function(
             env, completionHandlerForOpenLink, onRequestFailFunc, ARGC_TWO, argv, nullptr);

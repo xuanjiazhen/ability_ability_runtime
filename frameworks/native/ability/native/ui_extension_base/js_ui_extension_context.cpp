@@ -363,6 +363,7 @@ bool JsUIExtensionContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi
     }
     onRequestSucc = [env, completionHandlerForOpenLink, onRequestSuccFunc](
         const AppExecFwk::ElementName &element, const std::string &message) {
+        HandleScope handleScope(env);
         napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
         napi_status status = napi_call_function(
             env, completionHandlerForOpenLink, onRequestSuccFunc, ARGC_TWO, argv, nullptr);
@@ -372,6 +373,7 @@ bool JsUIExtensionContext::UnwrapCompletionHandlerForOpenLink(napi_env env, napi
     };
     onRequestFail = [env, completionHandlerForOpenLink, onRequestFailFunc](
         const AppExecFwk::ElementName &element, const std::string &message) {
+        HandleScope handleScope(env);
         napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
         napi_status status = napi_call_function(
             env, completionHandlerForOpenLink, onRequestFailFunc, ARGC_TWO, argv, nullptr);
@@ -1251,6 +1253,7 @@ napi_value JsUIExtensionContext::OpenAtomicServiceInner(napi_env env, NapiCallba
         HandleScope handleScope(env);
         std::string bundleName = element.GetBundleName();
         std::string abilityName = element.GetAbilityName();
+        HandleScope handleScope(env);
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
@@ -1735,6 +1738,7 @@ void JSUIExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::Eleme
     const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "start, resultCode:%{public}d", resultCode);
+    HandleScope handleScope(env);
     // wrap ElementName
     napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
 
@@ -1786,6 +1790,7 @@ void JSUIExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::El
     int resultCode)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "resultCode:%{public}d", resultCode);
+    HandleScope handleScope(env);
     napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
     napi_value argv[] = {napiElementName};
     if (jsConnectionObject_ == nullptr) {

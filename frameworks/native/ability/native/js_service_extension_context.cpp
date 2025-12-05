@@ -349,6 +349,7 @@ private:
         }
         onRequestSucc = [env, completionHandlerForOpenLink, onRequestSuccFunc](
             const AppExecFwk::ElementName &element, const std::string &message) {
+            HandleScope handleScope(env);
             napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
             napi_status status = napi_call_function(
                 env, completionHandlerForOpenLink, onRequestSuccFunc, ARGC_TWO, argv, nullptr);
@@ -358,6 +359,7 @@ private:
         };
         onRequestFail = [env, completionHandlerForOpenLink, onRequestFailFunc](
             const AppExecFwk::ElementName &element, const std::string &message) {
+            HandleScope handleScope(env);
             napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
             napi_status status = napi_call_function(
                 env, completionHandlerForOpenLink, onRequestFailFunc, ARGC_TWO, argv, nullptr);
@@ -1737,6 +1739,7 @@ void JSServiceExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::
     const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "resultCode:%{public}d", resultCode);
+    HandleScope handleScope(env);
     // wrap ElementName
     napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
 
@@ -1788,6 +1791,7 @@ void JSServiceExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFw
     int resultCode)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called, resultCode:%{public}d", resultCode);
+    HandleScope handleScope(env);
     napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
     napi_value argv[] = {napiElementName};
     if (jsConnectionObject_ == nullptr) {
