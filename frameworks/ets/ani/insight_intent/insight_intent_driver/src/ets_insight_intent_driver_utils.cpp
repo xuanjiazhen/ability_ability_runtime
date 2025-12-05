@@ -460,7 +460,7 @@ bool CreateEmptyRecordObject(ani_env *env, ani_object &recordObject)
     }
     ani_status status = env->Object_New(recordCls, recordCtorMethod, &recordObject);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ANI, "Object_New failed: %{public}d", status);
+        TAG_LOGE(AAFwkTag::BRIDGE, "Object_New failed: %{public}d", status);
         return false;
     }
     return true;
