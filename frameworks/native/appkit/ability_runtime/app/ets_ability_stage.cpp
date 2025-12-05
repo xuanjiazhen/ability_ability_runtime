@@ -517,7 +517,7 @@ bool ETSAbilityStage::CallAcceptOrRequestSync(ani_env *env, const AAFwk::Want &w
         return false;
     }
     if (etsAbilityStageObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityObj_");
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityStageObj_");
         return false;
     }
     ani_method method = nullptr;
@@ -560,7 +560,7 @@ bool ETSAbilityStage::CallAcceptOrRequestAsync(ani_env *env, const AAFwk::Want &
         return false;
     }
     if (etsAbilityStageObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityObj_");
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityStageObj_");
         return false;
     }
     ani_method method = nullptr;
@@ -947,7 +947,33 @@ bool ETSAbilityStage::CallOnPrepareTerminateAsync(
         TAG_LOGE(AAFwkTag::APPKIT, "callbackInfo nullptr");
         return false;
     }
-    isAsync = CallObjectMethod(true, "callOnPrepareTermination", ":Z");
+    
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return false;
+    }
+    if (etsAbilityStageObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityStageObj_");
+        return false;
+    }
+
+    ani_method method = nullptr;
+    ani_status status = env->Class_FindMethod(etsAbilityStageObj_->aniCls, "callOnPrepareTermination",
+        ":Z", &method);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindMethod status: %{public}d, or null method", status);
+        return false;
+    }
+
+    ani_value args[] = { { } };
+    ani_boolean res = ANI_FALSE;
+    if ((status = env->Object_CallMethod_Boolean_A(etsAbilityStageObj_->aniObj, method, &res, args)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "CallMethod status: %{public}d", status);
+        return false;
+    }
+
+    isAsync = res;
     return isAsync;
 }
 
