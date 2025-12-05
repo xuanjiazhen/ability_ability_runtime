@@ -2812,5 +2812,30 @@ HWTEST_F(MainThreadTest, GetBundleAndHspListForUpdateRuntime_0100, TestSize.Leve
     HspList hsplist;
     EXPECT_TRUE(mainThread_->GetHspListForUpdateRuntime(bundleInfo, "com.ohos.myapplication", hsplist));
 }
+
+/**
+ * @tc.name: CheckHapLoaded_0100
+ * @tc.desc: CheckHapLoaded test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, CheckHapLoaded_0100, TestSize.Level1)
+{
+    HapModuleInfo test;
+    test.name = "test";
+    mainThread_->LoadedhapList_.push_back(test);
+    EXPECT_TRUE(mainThread_->CheckHapLoaded(test));
+}
+
+/**
+ * @tc.name: CheckHapLoaded_0200
+ * @tc.desc: CheckHapLoaded Hap not in LoadedhapList_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, CheckHapLoaded_0200, TestSize.Level1)
+{
+    HapModuleInfo test;
+    test.name = "test";
+    EXPECT_FALSE(mainThread_->CheckHapLoaded(test));
+}
 } // namespace AppExecFwk
 } // namespace OHOS
