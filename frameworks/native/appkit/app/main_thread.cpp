@@ -1560,7 +1560,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 #endif
     AppExecFwk::HapModuleInfo entryHapModuleInfo;
     if (!bundleInfo.hapModuleInfos.empty()) {
-        hapList_ = bundleInfo.hapModuleInfos;
+        loadedHapList_ = bundleInfo.hapModuleInfos;
         for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
             if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::ENTRY) {
                 findEntryHapModuleInfo = true;
@@ -3580,31 +3580,12 @@ int32_t MainThread::ScheduleNotifyHotReloadPage(const sptr<IQuickFixCallback> &c
 
 bool MainThread::CheckHapPathLoaded(const HapModuleInfo &hapModuleInfo)
 {
-    for (auto it = hapList_.begin(); it != hapList_.end();) {
-        if (it->hqfInfo.moduleName == hapModuleInfo.hqfInfo.moduleName) {
-            if (it->hqfInfo.hapSha256 == hapModuleInfo.hqfInfo.hapSha256) {
-                TAG_LOGI(AAFwkTag::APPKIT, "hap in list");
-                return true;
-            } else {
-                it = hapList_.erase(it);
-                return false;
-            }
-        } else {
-            ++it;
+    for (auto it : loadedHapList_) {
+        if (it.name == hapModuleInfo.name) {
+            return true;
         }
     }
     return false;
-}
-
-void setFileMap(const HapModuleInfo &hapInfo, const std::string &bundleName,
-    std::vector<std::pair<std::string, std::string>> &fileMap)
-{
-    std::string resolvedHapPath(AbilityBase::GetLoadPath(hapInfo.hapPath));
-    std::string resolvedHqfFile(AbilityBase::GetLoadPath(hapInfo.hqfInfo.hqfFilePath));
-    TAG_LOGD(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s, processName: %{private}s, "
-        "hqf file: %{private}s, hap path: %{private}s", bundleName.c_str(), hapInfo.moduleName.c_str(),
-        hapInfo.process.c_str(), resolvedHqfFile.c_str(), resolvedHapPath.c_str());
-    fileMap.push_back(std::pair<std::string, std::string>(resolvedHqfFile, resolvedHapPath));
 }
 
 bool MainThread::GetHqfFileAndHapPath(const std::string &bundleName,
@@ -3631,30 +3612,24 @@ bool MainThread::GetHqfFileAndHapPath(const std::string &bundleName,
         if (processInfo_ == nullptr || hapInfo.hqfInfo.hqfFilePath.empty()) {
             break;
         }
-        int32_t appCloneIndex;
-        if (application_ == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "null application_");
+        if (!CheckHapPathLoaded(hapInfo)) {
+            break;
+        }
+        auto &runtime = application_->GetRuntime();
+        if (runtime == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return false;
         }
-        application_->GetAppCloneIndex(appCloneIndex);
-        if (processInfo_->GetProcessName() == hapInfo.process) {
-            setFileMap(hapInfo, bundleName, fileMap);
-        } else if (processInfo_->GetProcessName() == hapInfo.process + std::to_string(appCloneIndex)) {
-            auto &runtime = application_->GetRuntime();
-            if (runtime == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
-                return false;
-            }
-            if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS &&
-                hapInfo.moduleType == ModuleType::FEATURE) {
-                break;
-            }
-            if (CheckHapPathLoaded(hapInfo)) {
-                break;
-            }
-            hapList_.push_back(hapInfo);
-            setFileMap(hapInfo, bundleName, fileMap);
+        if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS &&
+            hapInfo.moduleType == ModuleType::FEATURE) {
+            break;
         }
+        std::string resolvedHapPath(AbilityBase::GetLoadPath(hapInfo.hapPath));
+        std::string resolvedHqfFile(AbilityBase::GetLoadPath(hapInfo.hqfInfo.hqfFilePath));
+        TAG_LOGD(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s, processName: %{private}s, "
+            "hqf file: %{private}s, hap path: %{private}s", bundleName.c_str(), hapInfo.moduleName.c_str(),
+            hapInfo.process.c_str(), resolvedHqfFile.c_str(), resolvedHapPath.c_str());
+        fileMap.push_back(std::pair<std::string, std::string>(resolvedHqfFile, resolvedHapPath));
     }
     return true;
 }
