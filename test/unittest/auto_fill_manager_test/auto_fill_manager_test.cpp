@@ -64,10 +64,14 @@ void AutoFillManagerTest::TearDownTestCase(void)
 {}
 
 void AutoFillManagerTest::SetUp()
-{}
+{
+    system::GetBoolParameter(AUTO_FILL_START_POPUP_WINDOW, false);
+}
 
 void AutoFillManagerTest::TearDown()
-{}
+{
+    system::GetBoolParameter(AUTO_FILL_START_POPUP_WINDOW, false);
+}
 
 /*
  * Feature: AutoFillManager
@@ -310,6 +314,160 @@ HWTEST_F(AutoFillManagerTest, ConvertAutoFillWindowType_0200, TestSize.Level1)
     system::SetBoolParameter(AUTO_FILL_START_POPUP_WINDOW, true);
     manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
     EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+}
+
+/*
+ * Feature: AutoFillManager
+ * Function: ConvertAutoFillWindowType
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify Based on whether the requestType value can correctly convert
+ * the windowType and extension types.
+ */
+HWTEST_F(AutoFillManagerTest, ConvertAutoFillWindowType_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, ConvertAutoFillWindowType_0300, TestSize.Level1";
+    AbilityRuntime::AutoFill::AutoFillWindowType autoFillWindowType
+        = AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW;
+    AbilityRuntime::AutoFill::AutoFillRequest autoFillRequest;
+    autoFillRequest.autoFillCommand = AbilityRuntime::AutoFill::AutoFillCommand::RELOAD_IN_MODAL;
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::PASTE_REQUEST;
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::PASSWORD;
+    bool isSmartAutoFill = true;
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::MANUAL_REQUEST;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+    system::SetBoolParameter(AUTO_FILL_START_POPUP_WINDOW, true);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::AUTO_REQUEST;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::UNSPECIFIED;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+}
+
+/*
+ * Feature: AutoFillManager
+ * Function: ConvertAutoFillWindowType
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify Based on whether the requestType value can correctly convert
+ * the windowType and extension types.
+ */
+HWTEST_F(AutoFillManagerTest, ConvertAutoFillWindowType_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, ConvertAutoFillWindowType_0400, TestSize.Level1";
+    AbilityRuntime::AutoFill::AutoFillWindowType autoFillWindowType
+        = AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW;
+    AbilityRuntime::AutoFill::AutoFillRequest autoFillRequest;
+    autoFillRequest.config.isShowInSubWindow =false;
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::PASTE_REQUEST;
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::USER_NAME;
+    bool isSmartAutoFill = true;
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::MANUAL_REQUEST;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+    system::SetBoolParameter(AUTO_FILL_START_POPUP_WINDOW, true);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::AUTO_REQUEST;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::UNSPECIFIED;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+}
+
+/*
+ * Feature: AutoFillManager
+ * Function: ConvertAutoFillWindowType
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify Based on whether the requestType value can correctly convert
+ * the windowType and extension types.
+ */
+HWTEST_F(AutoFillManagerTest, ConvertAutoFillWindowType_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, ConvertAutoFillWindowType_0500, TestSize.Level1";
+    AbilityRuntime::AutoFill::AutoFillWindowType autoFillWindowType
+        = AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW;
+    AbilityRuntime::AutoFill::AutoFillRequest autoFillRequest;
+    autoFillRequest.config.inspectorId = "test";
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::PASTE_REQUEST;
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::NEW_PASSWORD;
+    bool isSmartAutoFill = true;
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::MANUAL_REQUEST;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+    system::SetBoolParameter(AUTO_FILL_START_POPUP_WINDOW, true);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::AUTO_REQUEST;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::UNSPECIFIED;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+}
+
+/*
+ * Feature: AutoFillManager
+ * Function: ConvertAutoFillWindowType
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify Based on whether the requestType value can correctly convert
+ * the windowType and extension types.
+ */
+HWTEST_F(AutoFillManagerTest, ConvertAutoFillWindowType_0600, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, ConvertAutoFillWindowType_0600, TestSize.Level1";
+    AbilityRuntime::AutoFill::AutoFillWindowType autoFillWindowType
+        = AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW;
+    AbilityRuntime::AutoFill::AutoFillRequest autoFillRequest;
+    autoFillRequest.nodeId = 0;
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::PASTE_REQUEST;
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::PERSON_FULL_NAME;
+    bool isSmartAutoFill = true;
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::MANUAL_REQUEST;
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::DISTRICT_ADDRESS;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::AUTO_REQUEST;
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::PHONE_NUMBER;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_TRUE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::UNSPECIFIED;
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::ID_CARD_NUMBER;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_TRUE(isSmartAutoFill);
     EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
 }
 
