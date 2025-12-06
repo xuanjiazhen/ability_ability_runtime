@@ -103,6 +103,8 @@ public:
     MOCK_METHOD(WMError, UnregisterWindowManagerAgent,
         (WindowManagerAgentType type, const sptr<IWindowManagerAgent>& agent), (override));
     MOCK_METHOD(void, GetFocusWindowInfo, (FocusChangeInfo& focusInfo, DisplayId displayId), (override));
+    MOCK_METHOD(void, GetAllGroupInfo, ((std::unordered_map<DisplayId, DisplayGroupId>& displayId2GroupIdMap),
+        (std::vector<sptr<FocusChangeInfo>>& allFocusInfoList)), (override));
     MOCK_METHOD(WMError, CheckWindowId, (int32_t windowId, int32_t& pid), (override));
     MOCK_METHOD(WMError, CheckUIExtensionCreation,
         (int32_t windowId, uint32_t tokenId, const AppExecFwk::ElementName& element,
