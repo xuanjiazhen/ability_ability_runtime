@@ -179,6 +179,18 @@ bool InnerWrapWantParamsBool(
 
 bool InnerCreateByteObject(ani_env *env, ani_byte value, ani_object &object)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::BRIDGE, "env is nullptr");
+        return false;
+    }
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::BRIDGE, "object is nullptr");
+        return false;
+    }
+    if (value < -128 || value > 127) {
+        TAG_LOGE(AAFwkTag::BRIDGE, "value is failed");
+        return false;
+    }
     ani_class cls = nullptr;
     ani_method ctorMethod = nullptr;
     ani_status status = env->FindClass("std.core.Byte", &cls);
@@ -877,7 +889,7 @@ bool InnerWrapWantParamsArrayByte(ani_env *env, ani_object recordObject, const s
 
     for (size_t i = 0; i < natArray.size(); ++i) {
         ani_object byteObj {};
-        if (InnerCreateByteObject(env, aniArrayBuf[i], byteObj)) {
+        if (!InnerCreateByteObject(env, aniArrayBuf[i], byteObj)) {
             return false;
         }
         status = env->Array_Set(aniArray, i, byteObj);

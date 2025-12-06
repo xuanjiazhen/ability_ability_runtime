@@ -34,39 +34,103 @@ constexpr const char *ETS_NATIVE_WANT_PARAMS_CLASS_NAME = "@ohos.app.ability.Wan
 constexpr const char *ETS_NATIVE_WANT_PARAMS_CLEANER_CLASS_NAME = "@ohos.app.ability.Want.NativeWantParamsCleaner";
 } // namespace
 
-ani_ref g_booleanCls {};
-ani_ref g_doubleCls {};
-ani_ref g_intCls {};
-ani_ref g_longCls {};
+static ani_ref g_booleanCls;
+static ani_ref g_doubleCls;
+static ani_ref g_intCls;
+static ani_ref g_longCls;
 
-ani_method unboxBoolean {};
-ani_method unboxDouble {};
-ani_method unboxInt {};
-ani_method unboxLong {};
+static ani_method unboxBoolean;
+static ani_method unboxDouble;
+static ani_method unboxInt;
+static ani_method unboxLong;
+
+static std::once_flag g_initFlag;
+static bool g_isInitialized = false;
+
+static bool CacheGlobalClass(ani_env *env, const char *descriptor, ani_ref *gref, ani_class *result)
+{
+    ani_class cls {};
+    auto status = env->FindClass(descriptor, &cls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::WANT, "Not found '%{public}s'", descriptor);
+        return false;
+    }
+    *result = cls;
+    status = env->GlobalReference_Create(cls, gref);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::WANT, "GlobalReference_Create failed '%{public}d'", status);
+        env->GlobalReference_Delete(cls);
+        return false;
+    }
+    if (*gref == nullptr) {
+        TAG_LOGE(AAFwkTag::WANT, "ani_ref is null ");
+        return false;
+    }
+    return true;
+}
+
+static bool InitializeGlobal(ani_env *env)
+{
+    ani_class booleanCls {};
+    if (!CacheGlobalClass(env, "std.core.Boolean", &g_booleanCls, &booleanCls)) {
+        return false;
+    }
+    ani_class doubleCls {};
+    if (!CacheGlobalClass(env, "std.core.Double", &g_doubleCls, &doubleCls)) {
+        return false;
+    }
+    ani_class intCls {};
+    if (!CacheGlobalClass(env, "std.core.Int", &g_intCls, &intCls)) {
+        return false;
+    }
+    ani_class longCls {};
+    if (!CacheGlobalClass(env, "std.core.Long", &g_longCls, &longCls)) {
+        return false;
+    }
+    auto status = env->Class_FindMethod(doubleCls, "toDouble", ":d", &unboxDouble);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::WANT, "Double Class_FindMethod failed '%{public}d'", status);
+        return false;
+    }
+    status = env->Class_FindMethod(booleanCls, "toBoolean", ":z", &unboxBoolean);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::WANT, "Boolean Class_FindMethod failed '%{public}d'", status);
+        return false;
+    }
+    status = env->Class_FindMethod(intCls, "toInt", ":i", &unboxInt);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::WANT, "Int Class_FindMethod failed '%{public}d'", status);
+        return false;
+    }
+    status = env->Class_FindMethod(longCls, "toLong", ":l", &unboxLong);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::WANT, "Long Class_FindMethod failed '%{public}d'", status);
+        return false;
+    }
+    return true;
+}
+
+static bool InitializeGlobalOnce(ani_env *env)
+{
+    // Guaranteed to be called once
+    static bool isInitialized = InitializeGlobal(env);
+    return isInitialized;
+}
 
 template<typename T>
 ani_status unbox(ani_env *env, ani_object obj, T *result)
 {
-    return ANI_INVALID_TYPE;
+    std::call_once(g_initFlag, [env]() {
+        g_isInitialized = InitializeGlobal(env);
+    });
+    return g_isInitialized;
 }
 
 template<>
 ani_status unbox<ani_double>(ani_env *env, ani_object obj, ani_double *result)
 {
-    if (g_doubleCls == nullptr) {
-        ani_class doubleCls {};
-        auto status = env->FindClass("std.core.Double", &doubleCls);
-        if (status != ANI_OK) {
-            return status;
-        }
-        status = env->GlobalReference_Create(doubleCls, &g_doubleCls);
-        if (status != ANI_OK) {
-            return status;
-        }
-        status = env->Class_FindMethod(doubleCls, "toDouble", ":d", &unboxDouble);
-        if (status != ANI_OK) {
-            return status;
-        }
+    if (!InitializeGlobalOnce(env)) {
+        return ANI_ERROR;
     }
     return env->Object_CallMethod_Double(obj, unboxDouble, result);
 }
@@ -74,20 +138,8 @@ ani_status unbox<ani_double>(ani_env *env, ani_object obj, ani_double *result)
 template<>
 ani_status unbox<ani_boolean>(ani_env *env, ani_object obj, ani_boolean *result)
 {
-    if (g_booleanCls == nullptr) {
-        ani_class booleanCls {};
-        auto status = env->FindClass("std.core.Boolean", &booleanCls);
-        if (status != ANI_OK) {
-            return status;
-        }
-        status = env->GlobalReference_Create(booleanCls, &g_booleanCls);
-        if (status != ANI_OK) {
-            return status;
-        }
-        status = env->Class_FindMethod(booleanCls, "toBoolean", ":z", &unboxBoolean);
-        if (status != ANI_OK) {
-            return status;
-        }
+    if (!InitializeGlobalOnce(env)) {
+        return ANI_ERROR;
     }
     return env->Object_CallMethod_Boolean(obj, unboxBoolean, result);
 }
@@ -95,20 +147,8 @@ ani_status unbox<ani_boolean>(ani_env *env, ani_object obj, ani_boolean *result)
 template<>
 ani_status unbox<ani_int>(ani_env *env, ani_object obj, ani_int *result)
 {
-    if (g_intCls == nullptr) {
-        ani_class intCls {};
-        auto status = env->FindClass("std.core.Int", &intCls);
-        if (status != ANI_OK) {
-            return status;
-        }
-        status = env->GlobalReference_Create(intCls, &g_intCls);
-        if (status != ANI_OK) {
-            return status;
-        }
-        status = env->Class_FindMethod(intCls, "toInt", ":i", &unboxInt);
-        if (status != ANI_OK) {
-            return status;
-        }
+    if (!InitializeGlobalOnce(env)) {
+        return ANI_ERROR;
     }
     return env->Object_CallMethod_Int(obj, unboxInt, result);
 }
@@ -116,20 +156,8 @@ ani_status unbox<ani_int>(ani_env *env, ani_object obj, ani_int *result)
 template<>
 ani_status unbox<ani_long>(ani_env *env, ani_object obj, ani_long *result)
 {
-    if (g_longCls == nullptr) {
-        ani_class longCls {};
-        auto status = env->FindClass("std.core.Long", &longCls);
-        if (status != ANI_OK) {
-            return status;
-        }
-        status = env->GlobalReference_Create(longCls, &g_longCls);
-        if (status != ANI_OK) {
-            return status;
-        }
-        status = env->Class_FindMethod(longCls, "toLong", ":l", &unboxLong);
-        if (status != ANI_OK) {
-            return status;
-        }
+    if (!InitializeGlobalOnce(env)) {
+        return ANI_ERROR;
     }
     return env->Object_CallMethod_Long(obj, unboxLong, result);
 }
