@@ -204,6 +204,7 @@ void DoSomethingTestWithMyAPI3(std::shared_ptr<MissionListManager> missionListMg
     const AppExecFwk::ElementName element;
     missionListMgr->GetAbilityNumber(element);
     missionListMgr->MoveToBackgroundTask(abilityRecord, boolParam);
+    sleep(1);
     missionListMgr->PrintTimeOutLog(abilityRecord, uint32Param, boolParam);
     uint32_t msgId = uint32Param % ABILITY_STATE_MOD;
     std::string stringParam(data, size);
