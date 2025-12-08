@@ -578,6 +578,7 @@ HWTEST_F(UriPermissionImplTest, Upms_RevokeUriPermissionManually_001, TestSize.L
     auto upms = std::make_shared<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
     MyFlag::flag_ |= MyFlag::IS_SA_CALL;
+    MyFlag::isDFSCall_ = true;
     uint32_t flagRead = 1;
     uint32_t fromTokenId = 1001;
     uint32_t targetTokenId = 1002;
@@ -611,6 +612,7 @@ HWTEST_F(UriPermissionImplTest, Upms_RevokeUriPermissionManually_002, TestSize.L
     auto upms = std::make_shared<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
     MyFlag::flag_ |= MyFlag::IS_SA_CALL;
+    MyFlag::isDFSCall_ = true;
     uint32_t flagRead = 1;
     uint32_t fromTokenId = 1001;
     uint32_t targetTokenId = 1002;
@@ -640,6 +642,7 @@ HWTEST_F(UriPermissionImplTest, Upms_RevokeUriPermissionManually_003, TestSize.L
     auto upms = std::make_shared<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
     MyFlag::flag_ |= MyFlag::IS_SA_CALL;
+    MyFlag::isDFSCall_ = true;
     uint32_t flagRead = 1;
     uint32_t fromTokenId = 1001;
     uint32_t targetTokenId = 1002;
@@ -705,6 +708,7 @@ HWTEST_F(UriPermissionImplTest, Upms_VerifyUriPermission_001, TestSize.Level1)
     auto upms = std::make_unique<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
     MyFlag::flag_ |= MyFlag::IS_SA_CALL;
+    MyFlag::isDFSCall_ = true;
     auto callerTokenId = 1001;
     auto targetTokenId = 1002;
     auto invalidTokenId = 1003;

@@ -114,5 +114,10 @@ bool FUDUtils::IsUdmfOrPasteboardCall()
 {
     return MyFlag::isUdmfOrPasteboardCallRet_;
 }
+
+bool FUDUtils::IsDFSCall()
+{
+    return MyFlag::isDFSCall_;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

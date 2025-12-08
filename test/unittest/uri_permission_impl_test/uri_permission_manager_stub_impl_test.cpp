@@ -63,7 +63,7 @@ void UriPermissionManagerStubImplTest::TearDown() {}
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_001, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-    MyFlag::isSAOrSystemAppCall_ = false;
+    MyFlag::isDFSCall_ = false;
     std::string uri = "uri";
     uint32_t flag = 1;
     uint32_t tokenId = 1;
@@ -82,6 +82,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_001, TestSi
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_002, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    MyFlag::isDFSCall_ = true;
     std::string uri = "uri";
     uint32_t flag = 0;
     uint32_t tokenId = 1;
@@ -100,7 +101,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_002, TestSi
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_003, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-    MyFlag::isSAOrSystemAppCall_ = true;
+    MyFlag::isDFSCall_ = true;
     MyFlag::isUriTypeValid_ = false;
     std::string uri = "uri";
     uint32_t flag = 1;
