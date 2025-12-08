@@ -172,7 +172,7 @@ private:
     bool IsNeedIgnoreFreezeEvent(const std::string& key, const std::string& eventName,
         int maxReportTimes = DEFAULT_APPFREEZE_REPORT_TIMES);
     int64_t GetFreezeCurrentTime();
-    void SetFreezeState(const std::string& key, int state, const std::string& eventName);
+    void SetFreezeState(const std::string& key, int state, const std::string& eventName, int maxReportTimes);
     int GetReportTimes(const std::string& key);
     int64_t GetLastOccurTime(const std::string& key);
     bool ClearOldInfo(std::map<std::string, AppFreezeInfo>& infoMap, size_t maxSize, int64_t maxTimelimit);

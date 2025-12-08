@@ -42,13 +42,15 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         return false;
     }
     int state;
+    int maxReportTimes;
     std::string errorName;
     std::string key;
     FuzzedDataProvider fdp(data, size);
     state = fdp.ConsumeIntegralInRange(0, INPUT_SIZE);
+    maxReportTimes = fdp.ConsumeIntegralInRange(0, INPUT_SIZE);
     errorName = fdp.ConsumeRandomLengthString();
     key = fdp.ConsumeRandomLengthString();
-    freeze->SetFreezeState(key, state, errorName);
+    freeze->SetFreezeState(key, state, errorName, maxReportTimes);
     freeze->GetReportTimes(key);
     freeze->GetLastOccurTime(key);
     return true;

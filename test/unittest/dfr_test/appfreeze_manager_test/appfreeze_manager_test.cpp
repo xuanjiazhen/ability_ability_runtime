@@ -517,6 +517,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test00
     EXPECT_EQ(ret, true);
     ret = appfreezeManager->CheckAppfreezeHappend(testValue, "LIFECYCLE_TIMEOUT");
     EXPECT_EQ(ret, false);
+    EXPECT_TRUE(appfreezeManager->appfreezeInfo_[key].reportTimes > 1);
     appfreezeManager->appfreezeInfo_[key].occurTime = appfreezeManager->GetFreezeCurrentTime() +
         600000; // test value
     for (int i = 0; i < 20; i++) {
@@ -572,6 +573,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_IsNeedIgnoreFreezeEvent_Test
     ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
     ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
     ret = appfreezeManager->IsNeedIgnoreFreezeEvent(eventName, eventName, reportTimes);
+    EXPECT_TRUE(appfreezeManager->appfreezeInfo_[eventName].reportTimes > 1);
     int count = 60; // test value
     while (count > 0) {
         count = sleep(count);

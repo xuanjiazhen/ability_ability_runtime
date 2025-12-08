@@ -85,7 +85,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::string binderInfo(data, size);
     freeze->NotifyANR(faultData, appInfo, binderInfo, memoryContent);
     int state = static_cast<int>(GetU32Data(data));
-    freeze->SetFreezeState(key, state, errorName);
+    int maxReportTimes = static_cast<int>(GetU32Data(data));
+    freeze->SetFreezeState(key, state, errorName, maxReportTimes);
     freeze->GetReportTimes(key);
     freeze->GetLastOccurTime(key);
     return true;
