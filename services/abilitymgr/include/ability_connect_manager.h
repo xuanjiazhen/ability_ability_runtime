@@ -451,7 +451,8 @@ private:
      * @param abilityRecord, the ptr of the ability to load.
      */
     void LoadAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
-        std::function<void(const std::shared_ptr<AbilityRecord> &)> updateRecordCallback = nullptr);
+        std::function<void(const std::shared_ptr<AbilityRecord> &)> updateRecordCallback = nullptr,
+        int32_t loadTimeout = AAFwk::DEFAULT_INVAL_VALUE);
     void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<AbilityRecord> &abilityRecord);
     /**
@@ -527,6 +528,7 @@ private:
     int DispatchBackground(const std::shared_ptr<AbilityRecord> &abilityRecord);
     int DispatchTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
+    int32_t GetLoadTimeout(int32_t loadTimeout);
     void HandleStartTimeoutTask(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void HandleStopTimeoutTask(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void HandleTerminateDisconnectTask(const ConnectListType& connectlist);
@@ -626,7 +628,8 @@ private:
      * @param messageId, message id.
      */
     void PostTimeOutTask(const std::shared_ptr<AbilityRecord> &abilityRecord, uint32_t messageId);
-    void PostTimeOutTask(const std::shared_ptr<AbilityRecord> &abilityRecord, int connectRecordId, uint32_t messageId);
+    void PostTimeOutTask(const std::shared_ptr<AbilityRecord> &abilityRecord, int connectRecordId, uint32_t messageId,
+        int32_t loadTimeout = AAFwk::DEFAULT_INVAL_VALUE);
 
     void CompleteForeground(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void CompleteBackground(const std::shared_ptr<AbilityRecord> &abilityRecord);

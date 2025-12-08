@@ -97,6 +97,7 @@ struct AbilityRequest {
     bool promotePriority = false;
     uint64_t specifiedFullTokenId = 0;
     std::pair<bool, LaunchReason> IsContinuation() const;
+    int32_t loadExtensionTimeout = -1; // only for connectAbility
 
     bool IsAcquireShareData() const
     {

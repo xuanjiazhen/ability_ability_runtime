@@ -537,7 +537,8 @@ public:
         AppExecFwk::ExtensionAbilityType extensionType,
         int32_t userId = DEFAULT_INVAL_VALUE,
         bool isQueryExtensionOnly = false,
-        uint64_t specifiedFullTokenId = 0) override;
+        uint64_t specifiedFullTokenId = 0,
+        int32_t loadTimeout = DEFAULT_INVAL_VALUE) override;
 
     virtual int ConnectUIExtensionAbility(
         const Want &want,
