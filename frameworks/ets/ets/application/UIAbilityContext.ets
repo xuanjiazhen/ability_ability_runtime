@@ -696,9 +696,7 @@ hideAbility(): Promise<void> {
           reject(err);
         }
       });
-      taskpool.execute((): void => {
-        this.nativeSetAbilityInstanceInfo(label, icon, syncCall);
-      });
+      this.nativeSetAbilityInstanceInfo(label, icon, syncCall);
     });
     return p;
   }
