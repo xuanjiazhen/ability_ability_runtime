@@ -1342,14 +1342,13 @@ ErrCode UriPermissionManagerStubImpl::Active(const UriPermissionRawData& policyR
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    TAG_LOGD(AAFwkTag::URIPERMMGR, "active %{private}d permission", tokenId);
     auto permissionName = PermissionConstants::PERMISSION_FILE_ACCESS_PERSIST;
     if (!PermissionVerification::GetInstance()->VerifyPermissionByTokenId(tokenId, permissionName)) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "No permission to call");
         funcResult = SANDBOX_MANAGER_PERMISSION_DENIED;
         return ERR_OK;
     }
-    TAG_LOGD(AAFwkTag::URIPERMMGR, "call");
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "active %{public}d permission", tokenId);
     std::vector<PolicyInfo> policy;
     auto result = RawDataToPolicyInfo(policyRawData, policy);
     if (result != ERR_OK) {
@@ -1360,7 +1359,6 @@ ErrCode UriPermissionManagerStubImpl::Active(const UriPermissionRawData& policyR
     uint64_t timeNow = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count());
     auto ret = SandboxManagerKit::StartAccessingPolicy(policy, res, false, tokenId, timeNow);
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "active permission end");
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "StartAccessingPolicy failed, ret is %{public}d", ret);
         funcResult = ret;
