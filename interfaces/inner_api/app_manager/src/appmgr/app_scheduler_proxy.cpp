@@ -117,7 +117,7 @@ void AppSchedulerProxy::ScheduleLowMemory()
     }
 }
 
-void AppSchedulerProxy::ScheduleMemoryLevel(int32_t level)
+void AppSchedulerProxy::ScheduleMemoryLevel(int32_t level, bool isShellCall = false)
 {
     uint32_t operation = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_MEMORYLEVEL_APPLICATION_TRANSACTION);
     ScheduleMemoryCommon(level, operation);
@@ -202,11 +202,15 @@ void AppSchedulerProxy::ScheduleShrinkMemory(const int32_t level)
     ScheduleMemoryCommon(level, operation);
 }
 
-void AppSchedulerProxy::ScheduleMemoryCommon(const int32_t level, const uint32_t operation)
+void AppSchedulerProxy::ScheduleMemoryCommon(const int32_t level, const uint32_t operation, bool isShellCall = false)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC | MessageOption::TF_ASYNC_WAKEUP_LATER);
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!isShellCall) {
+        option.SetFlags(MessageOption::TF_ASYNC_WAKEUP_LATER);
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "option: %{public}d", option.GetFlags());
     if (!WriteInterfaceToken(data)) {
         return;
     }
