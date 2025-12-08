@@ -591,7 +591,8 @@ public:
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId);
+    ErrCode ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId,
+        int32_t loadTimeout = DEFAULT_INVAL_VALUE);
 
     /**
      * ConnectAbility, connect session with service ability.
