@@ -214,6 +214,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     abilityRequest.sessionInfo = sessionInfo;
     auto uiAbilityRecord = GenerateAbilityRecord(abilityRequest, sessionInfo, isColdStart);
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
+    SetLastExitReasonAsync(uiAbilityRecord);
     MarkStartingFlag(abilityRequest);
     if (sessionInfo->reuseDelegatorWindow) {
         uiAbilityRecord->lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
@@ -512,7 +513,7 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
 
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "lifecycle name: %{public}s", abilityRecord->GetAbilityInfo().name.c_str());
-    SetLastExitReason(abilityRecord);
+    abilityRecord->SyncLoadExitReason();
 
     auto callerRecord = abilityRecord->GetCallerRecord(); // this is a pointer
     if (abilityRecord->GetRequestCode() != DEFAULT_REQUEST_CODE &&
@@ -1628,6 +1629,7 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
 
     sessionAbilityMap_.emplace(sessionInfo->persistentId, uiAbilityRecord);
     uiAbilityRecord->SetSessionInfo(sessionInfo);
+    SetLastExitReasonAsync(uiAbilityRecord);
     if (sessionInfo->state == CallToState::BACKGROUND) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "set pending BACKGROUND");
         uiAbilityRecord->SetPendingState(AbilityState::BACKGROUND);
@@ -3005,6 +3007,19 @@ void UIAbilityLifecycleManager::SetLastExitReason(UIAbilityRecordPtr abilityReco
             abilityName.c_str(), exitReason.reason);
         abilityRecord->SetLastExitReason(exitReason, processInfo, time_stamp, withKillMsg);
     }
+}
+
+void UIAbilityLifecycleManager::SetLastExitReasonAsync(UIAbilityRecordPtr abilityRecord) const
+{
+    CHECK_POINTER(abilityRecord);
+    if (abilityRecord->IsExitReasonLoaded()) {
+        return;
+    }
+    abilityRecord->SetExitReasonLoaded();
+    std::weak_ptr<UIAbilityRecord> weakRecord(abilityRecord);
+    abilityRecord->SetLoadExitReasonTask(ffrt::submit_h([weakRecord, pThis = shared_from_this()]() {
+        pThis->SetLastExitReason(weakRecord.lock());
+        }));
 }
 
 bool UIAbilityLifecycleManager::PrepareTerminateAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,

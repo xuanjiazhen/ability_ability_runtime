@@ -908,6 +908,7 @@ private:
      * @param abilityRecord The ability record
      */
     void SetLastExitReason(UIAbilityRecordPtr abilityRecord) const;
+    void SetLastExitReasonAsync(UIAbilityRecordPtr abilityRecord) const;
 
     /**
      * @brief Set receiver info for ability
