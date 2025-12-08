@@ -438,8 +438,7 @@ public:
             *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByBundleName(
                 filter.intentFlags_, filter.bundleName_, *infos, filter.userId_);
         } else {
-            TAG_LOGE(AAFwkTag::INTENT, "Invaild filter");
-            *innerErrorCode = ERR_INVALID_VALUE;
+            TAG_LOGE(AAFwkTag::INTENT, "Invalid filter");
         }
 
         if (*innerErrorCode != 0) {
