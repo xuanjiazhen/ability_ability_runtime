@@ -144,6 +144,8 @@ private:
     template<typename T>
     void ConnectManager(sptr<T> &mgr, int32_t serviceId);
 
+    bool VerifyUriPermissionInner(const Uri& uri, uint32_t flag, uint32_t tokenId);
+
     std::vector<bool> VerifyUriPermissionByMap(std::vector<Uri> &uriVec, uint32_t flag, uint32_t tokenId);
 
     bool VerifySingleUriPermissionByMap(const std::string &uri, uint32_t flag, uint32_t tokenId);
