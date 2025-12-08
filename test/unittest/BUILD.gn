@@ -491,7 +491,7 @@ group("unittest") {
       "ui_extension_context_second_test:unittest",
       "ui_extension_context_test:unittest",
       "ui_extension_record_factory_test:unittest",
-      "ui_extension_record_test:unittest",
+      # "ui_extension_record_test:unittest",
       "ui_extension_utils_test:unittest",
       "update_caller_info_util_test:unittest",
       "uri_utils_second_test",

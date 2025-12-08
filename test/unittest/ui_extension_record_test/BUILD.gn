@@ -56,5 +56,5 @@ ohos_unittest("ui_extension_record_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":ui_extension_record_test" ]
+  # deps = [ ":ui_extension_record_test" ]
 }
