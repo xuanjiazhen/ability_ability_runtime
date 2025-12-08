@@ -79,6 +79,7 @@ const int COMMAND_TIMEOUT_MULTIPLE = 5;
 const int COMMAND_TIMEOUT_MULTIPLE_NEW = 21;
 const int COMMAND_WINDOW_TIMEOUT_MULTIPLE = 5;
 #endif
+constexpr const int32_t LOAD_TIMEOUT_MAX = 60;
 const int32_t AUTO_DISCONNECT_INFINITY = -1;
 constexpr const char* FROZEN_WHITE_DIALOG = "com.huawei.hmos.huaweicast";
 constexpr char BUNDLE_NAME_DIALOG[] = "com.ohos.amsdialog";
@@ -86,6 +87,7 @@ constexpr char ABILITY_NAME_ASSERT_FAULT_DIALOG[] = "AssertFaultDialog";
 constexpr const char* WANT_PARAMS_APP_RESTART_FLAG = "ohos.aafwk.app.restart";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 constexpr int32_t HALF_TIMEOUT = 2;
+constexpr const int32_t BACKUP_SA_UID = 1089;
 
 constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
     1 << static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::RUN_WITH_MAIN_PROCESS);
@@ -745,7 +747,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
                 mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
             }
         };
-        LoadAbility(targetService, updateRecordCallback);
+        LoadAbility(targetService, updateRecordCallback, abilityRequest.loadExtensionTimeout);
     } else if (targetService->IsAbilityState(AbilityState::ACTIVE)) {
         targetService->SetWant(abilityRequest.want);
         HandleActiveAbility(targetService, connectRecord);
@@ -1670,7 +1672,7 @@ std::list<std::shared_ptr<ConnectionRecord>> AbilityConnectManager::GetConnectRe
 }
 
 void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
-    std::function<void(const std::shared_ptr<AbilityRecord>&)> updateRecordCallback)
+    std::function<void(const std::shared_ptr<AbilityRecord>&)> updateRecordCallback, int32_t loadTimeout)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER(abilityRecord);
@@ -1683,7 +1685,7 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &ab
     }
     if (!abilityRecord->IsDebugApp()) {
         TAG_LOGD(AAFwkTag::EXT, "IsDebug is false, here is not debug app");
-        PostTimeOutTask(abilityRecord, AbilityManagerService::LOAD_TIMEOUT_MSG);
+        PostTimeOutTask(abilityRecord, 0, AbilityManagerService::LOAD_TIMEOUT_MSG, loadTimeout);
     }
     sptr<Token> token = abilityRecord->GetToken();
     sptr<Token> perToken = nullptr;
@@ -1904,7 +1906,7 @@ void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<AbilityRecord>
 }
 
 void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<AbilityRecord> &abilityRecord,
-    int connectRecordId, uint32_t messageId)
+    int connectRecordId, uint32_t messageId, int32_t loadTimeout)
 {
     CHECK_POINTER(abilityRecord);
     CHECK_POINTER(taskHandler_);
@@ -1919,7 +1921,7 @@ void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<AbilityRecord>
             return abilityRecord->PostUIExtensionAbilityTimeoutTask(messageId);
         }
         // first load ability, There is at most one connect record.
-        delayTime = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * LOAD_TIMEOUT_MULTIPLE;
+        delayTime = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * GetLoadTimeout(loadTimeout);
         abilityRecord->SendEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, delayTime / HALF_TIMEOUT,
             recordId, true);
         abilityRecord->SendEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, delayTime, recordId, true);
@@ -1935,6 +1937,26 @@ void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<AbilityRecord>
         TAG_LOGE(AAFwkTag::EXT, "messageId error");
         return;
     }
+}
+
+int32_t AbilityConnectManager::GetLoadTimeout(int32_t loadTimeout)
+{
+#ifdef SUPPORT_ASAN
+    return LOAD_TIMEOUT_MULTIPLE;
+#else
+    if (loadTimeout == AAFwk::DEFAULT_INVAL_VALUE) {
+        return LOAD_TIMEOUT_MULTIPLE;
+    }
+    if (loadTimeout <= 0 || loadTimeout > LOAD_TIMEOUT_MAX) {
+        TAG_LOGE(AAFwkTag::EXT, "loadTimeout %{public}d invalid, reset to default", loadTimeout);
+        return LOAD_TIMEOUT_MULTIPLE;
+    }
+    if (IPCSkeleton::GetCallingUid() != BACKUP_SA_UID) {
+        TAG_LOGW(AAFwkTag::EXT, "not BackupSA call");
+        return LOAD_TIMEOUT_MULTIPLE;
+    }
+    return loadTimeout;
+#endif
 }
 
 void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<AbilityRecord> &abilityRecord)
