@@ -28,6 +28,7 @@ template("errormanager") {
       "error_manager_module.cpp",
       "js_error_manager.cpp",
       "js_error_observer.cpp",
+      "utils.cpp",
     ]
 
     configs = [ "${ability_runtime_services_path}/common:common_config" ]
