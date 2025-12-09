@@ -20,6 +20,7 @@
 #include <memory>
 #include "ability_business_error.h"
 #include "application_data_manager.h"
+#include "app_recovery.h"
 #include "event_runner.h"
 #include "hilog_tag_wrapper.h"
 #include "js_error_observer.h"
@@ -27,7 +28,7 @@
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
-#include "app_recovery.h"
+#include "utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -111,6 +112,7 @@ napi_value AddRejection(napi_env env, napi_value promise, napi_value reason)
 
 napi_value RemoveRejection(napi_env env, napi_value promise)
 {
+    ErrorManagerHandleScope handleScope(env);
     napi_value ret = CreateJsUndefined(env);
     auto iter = pendingUnHandledRejections.begin();
     while (iter != pendingUnHandledRejections.end()) {
@@ -131,6 +133,7 @@ napi_value RemoveRejection(napi_env env, napi_value promise)
 
 napi_value UnhandledRejectionHandler(napi_env env, napi_value promise, napi_value reason)
 {
+    ErrorManagerHandleScope handleScope(env);
     napi_value global = nullptr;
     NAPI_CALL(env, napi_get_global(env, &global));
     size_t argc = ARGC_TWO;
@@ -146,6 +149,7 @@ napi_value UnhandledRejectionHandler(napi_env env, napi_value promise, napi_valu
 
 static napi_value OnUnhandledRejection(napi_env env, napi_callback_info info)
 {
+    ErrorManagerHandleScope handleScope(env);
     size_t argc = ARGC_THREE; // 3 parameter size
     napi_value argv[ARGC_THREE] = {0}; // 3 array length
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
@@ -166,6 +170,7 @@ static napi_value NotifyUnhandledRejectionHandler(napi_env env, napi_callback_in
     if (!pendingUnHandledRejections.empty()) {
         auto iter = pendingUnHandledRejections.begin();
         while (iter != pendingUnHandledRejections.end()) {
+            ErrorManagerHandleScope handleScope(env);
             napi_value promise = nullptr;
             NAPI_CALL(env, napi_get_reference_value(env, iter->first, &promise));
             napi_value reason = nullptr;
@@ -182,6 +187,7 @@ static napi_value NotifyUnhandledRejectionHandler(napi_env env, napi_callback_in
         if (!globalUnhandledRejections.empty()) {
             auto iter = globalUnhandledRejections.begin();
             while (iter != globalUnhandledRejections.end()) {
+                ErrorManagerHandleScope handleScope(env);
                 std::shared_ptr<GlobalUnhandledRejection> rejection = *iter;
                 napi_value promise = nullptr;
                 NAPI_CALL(env, napi_get_reference_value(env, rejection->promiseRef, &promise));
@@ -202,6 +208,7 @@ static napi_value NotifyGlobalUnhandledRejectionHandler(napi_env env, napi_callb
     if (!globalUnhandledRejections.empty()) {
         auto iter = globalUnhandledRejections.begin();
         while (iter != globalUnhandledRejections.end()) {
+            ErrorManagerHandleScope handleScope(env);
             std::shared_ptr<GlobalUnhandledRejection> rejection = *iter;
             napi_value promise = nullptr;
             NAPI_CALL(env, napi_get_reference_value(env, rejection->promiseRef, &promise));
@@ -275,6 +282,7 @@ static bool IsGlobalPromiseListNotEmpty()
 
 static std::string GetContent(napi_env env, napi_value exception, const std::string name)
 {
+    ErrorManagerHandleScope handleScope(env);
     napi_value tempContent;
     std::string content;
     napi_value propertyNmae = nullptr;
@@ -299,6 +307,7 @@ static std::string GetContent(napi_env env, napi_value exception, const std::str
 
 static napi_value CreateGlobalObject(napi_env env, WorkItem *item)
 {
+    ErrorManagerHandleScope handleScope(env);
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue == nullptr) {
@@ -316,6 +325,7 @@ static napi_value CreateGlobalObject(napi_env env, WorkItem *item)
 static void CallJsFunction(napi_env env, napi_value obj, const char *methodName,
                            napi_value const *argv, size_t argc)
 {
+    ErrorManagerHandleScope handleScope(env);
     TAG_LOGI(AAFwkTag::JSNAPI, "call func: %{public}s", methodName);
     if (obj == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null obj");
@@ -339,6 +349,7 @@ static void DoFunctionCallback(uv_work_t *reqwork, int status)
         TAG_LOGI(AAFwkTag::JSNAPI, "Get WorkItem Failed");
         return;
     }
+    ErrorManagerHandleScope handleScope(newItem->env);
     napi_value global = nullptr;
     if (napi_get_global(newItem->env, &global) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
@@ -419,6 +430,7 @@ static void DoGlobalCallback(napi_env env, napi_value exception, std::string ins
 }
 static napi_value CreateJsErrorObject(napi_env env, std::string &name, std::string &message, std::string &stack)
 {
+    ErrorManagerHandleScope handleScope(env);
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue == nullptr) {
@@ -447,6 +459,7 @@ static void DoMainThreadOnException(napi_env env, std::string name, std::string 
 
     std::vector<std::pair<int32_t, std::shared_ptr<NativeReference>>> functions = observerList[env];
     for (auto &functionTemp : functions) {
+        ErrorManagerHandleScope handleScope(env);
         size_t argc = ARGC_ONE;
         napi_value args[] = {CreateJsErrorObject(env, name, message, stack)};
         CallJsFunction(env, functionTemp.second->GetNapiValue(), "onException", args, argc);
@@ -466,6 +479,7 @@ static void DoMainThreadOnUnhandleException(napi_env env, std::string summary)
 
     std::vector<std::pair<int32_t, std::shared_ptr<NativeReference>>> functions = observerList[env];
     for (auto &functionTemp : functions) {
+        ErrorManagerHandleScope handleScope(env);
         size_t argc = ARGC_ONE;
         napi_value args[] = {CreateJsValue(env, summary)};
         CallJsFunction(env, functionTemp.second->GetNapiValue(), "onUnhandledException", args, argc);
@@ -491,6 +505,7 @@ static void DoWorkThreadCallback(napi_env env, napi_value exception)
     std::string message = GetContent(env, exception, "message");
     std::vector<std::pair<int32_t, std::shared_ptr<NativeReference>>> functions = observerList[env];
     for (auto &functionTemp : functions) {
+        ErrorManagerHandleScope handleScope(env);
         size_t argc = ARGC_ONE;
         napi_value args[] = {CreateJsErrorObject(env, name, message, stack)};
         CallJsFunction(env, functionTemp.second->GetNapiValue(), "onException", args, argc);
@@ -514,6 +529,7 @@ static void DoErrorHandlerCallback(napi_env env, std::string name, std::string m
         TAG_LOGI(AAFwkTag::JSNAPI, "not register defaultHandler callback");
         return;
     }
+    ErrorManagerHandleScope handleScope(env);
     napi_value global = nullptr;
     if (napi_get_global(defaultHandler.env, &global) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
@@ -543,6 +559,7 @@ static void FreezeCallback()
         TAG_LOGI(AAFwkTag::JSNAPI, "not register freeze callback");
         return;
     }
+    ErrorManagerHandleScope handleScope(freezeObserver.env);
     napi_value global = nullptr;
     if (napi_get_global(freezeObserver.env, &global) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
@@ -604,6 +621,7 @@ static void RemoveGlobalRejection(napi_env env, napi_value promise, std::string 
 {
     auto iter = globalUnhandledRejections.begin();
     while (iter != globalUnhandledRejections.end()) {
+        ErrorManagerHandleScope handleScope(env);
         napi_value prom = nullptr;
         if (napi_get_reference_value(env, (*iter)->promiseRef, &prom) != napi_ok) {
             TAG_LOGI(AAFwkTag::JSNAPI, "Get Promise Failed");
@@ -712,6 +730,7 @@ public:
 
     napi_value SetRejectionCallback(napi_env env) const
     {
+        ErrorManagerHandleScope handleScope(env);
         napi_value rejectCallback = nullptr;
         std::string rejectCallbackName = "OnUnhandledRejection";
         NAPI_CALL(env, napi_create_function(env,
@@ -790,6 +809,7 @@ private:
             return CreateJsUndefined(env);
         }
         std::lock_guard<std::mutex> lock(defaultHandlerMtx);
+        ErrorManagerHandleScope handleScope(env);
         napi_value object = nullptr;
         if (defaultHandler.ref == nullptr) {
             object = nullptr;
@@ -906,6 +926,7 @@ private:
             return nullptr;
         }
         for (auto& iter : unhandledRejectionObservers) {
+            ErrorManagerHandleScope handleScope(env);
             napi_value observer = nullptr;
             NAPI_CALL(env, napi_get_reference_value(env, iter, &observer));
             bool equals = false;
@@ -1020,6 +1041,7 @@ private:
             if (iter.env != env) {
                 continue;
             }
+            ErrorManagerHandleScope handleScope(env);
             napi_value observer = nullptr;
             NAPI_CALL(env, napi_get_reference_value(env, iter.ref, &observer));
             bool equals = false;
@@ -1067,6 +1089,7 @@ private:
             if (iter.env != env) {
                 continue;
             }
+            ErrorManagerHandleScope handleScope(env);
             napi_value observer = nullptr;
             NAPI_CALL(env, napi_get_reference_value(env, iter.ref, &observer));
             bool equals = false;
@@ -1101,6 +1124,7 @@ private:
             if (iter.env != env) {
                 continue;
             }
+            ErrorManagerHandleScope handleScope(env);
             napi_value observer = nullptr;
             NAPI_CALL(env, napi_get_reference_value(env, iter.ref, &observer));
             bool equals = false;
@@ -1138,6 +1162,7 @@ private:
         if (!ValidateFunction(env, function)) {
             return nullptr;
         }
+        ErrorManagerHandleScope handleScope(env);
         napi_value observer = nullptr;
         NAPI_CALL(env, napi_get_reference_value(env, freezeObserver.ref, &observer));
         bool equals = false;
@@ -1172,6 +1197,7 @@ private:
             if (iter.env != env) {
                 continue;
             }
+            ErrorManagerHandleScope handleScope(env);
             napi_value observer = nullptr;
             NAPI_CALL(env, napi_get_reference_value(env, iter.ref, &observer));
             bool equals = false;
@@ -1227,6 +1253,7 @@ private:
             }
             task.ResolveWithNoError(env, CreateJsUndefined(env));
         };
+        ErrorManagerHandleScope handleScope(env);
         napi_value lastParam = (argc <= ARGC_TWO) ? nullptr : argv[INDEX_TWO];
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JSErrorManager::OnUnregisterErrorObserver",
@@ -1244,6 +1271,7 @@ private:
             unhandledRejectionObservers.clear();
             return res;
         }
+        ErrorManagerHandleScope handleScope(env);
         napi_value function = argv[INDEX_ONE];
         if (!ValidateFunction(env, function)) {
             return res;
@@ -1304,6 +1332,7 @@ private:
             TAG_LOGE(AAFwkTag::JSNAPI, "null obj");
             return;
         }
+        ErrorManagerHandleScope handleScope(env);
 
         napi_value method = nullptr;
         napi_get_named_property(env, obj, methodName, &method);
@@ -1331,6 +1360,7 @@ private:
                     TAG_LOGE(AAFwkTag::JSNAPI, "null observer");
                     return;
                 }
+                ErrorManagerHandleScope handleScope(env);
                 napi_value jsValue[] = { CreateJsValue(loopObserver_->env, number) };
                 CallJsFunction(loopObserver_->env, loopObserver_->observerObject->GetNapiValue(), "onLoopTimeOut",
                     jsValue, ARGC_ONE);
