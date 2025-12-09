@@ -46,6 +46,7 @@ using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
 class ETSEnvironment final : public std::enable_shared_from_this<ETSEnvironment> {
 public:
     ETSEnvironment() {};
+    ~ETSEnvironment();
 
     static std::unique_ptr<ETSEnvironment> &GetInstance();
     static void InitETSSDKNS(const std::string &path);
@@ -77,10 +78,14 @@ public:
     struct VMEntry {
         ani_vm *aniVm_;
         ani_env *aniEnv_;
+        ani_class abcLinkerClass_;
+        ani_ref abcLinkerRef_;
         VMEntry()
         {
             aniVm_ = nullptr;
             aniEnv_ = nullptr;
+            abcLinkerClass_ = nullptr;
+            abcLinkerRef_ = nullptr;
         }
     };
 
@@ -89,7 +94,8 @@ private:
         ani_array_ref &refArray);
     std::vector<std::string> GetHspPathList();
     bool GetHspAbcRuntimeLinker(ani_array_ref &refHspLinkerArray, ani_class cls);
-    ani_object CreateRuntimeLinker(ani_env *aniEnv, ani_class cls, ani_ref undefined_ref, ani_array_ref &refArray);
+    bool InitAbcLinker(ani_env *env);
+    ani_object CreateRuntimeLinker(ani_env *aniEnv, ani_class cls, ani_ref undefinedRef, ani_array_ref &refArray);
     bool LoadRuntimeApis();
     bool LoadSymbolCreateVM(void *handle, ETSRuntimeAPI &apis);
     bool LoadSymbolANIGetCreatedVMs(void *handle, ETSRuntimeAPI &apis);
