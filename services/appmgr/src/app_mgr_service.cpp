@@ -1155,7 +1155,7 @@ int32_t AppMgrService::UpdateConfigurationByUserIds(
 }
 
 int32_t AppMgrService::UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo>& appInfos,
-    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId, UpdateConfigurationFlag flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
@@ -1166,7 +1166,7 @@ int32_t AppMgrService::UpdateConfigurationForBackgroundApp(const std::vector<Bac
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    return appMgrServiceInner_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId, flag);
 }
 
 int32_t AppMgrService::UpdateConfigurationByBundleName(const Configuration& config, const std::string &name,

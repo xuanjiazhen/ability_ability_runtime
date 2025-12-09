@@ -1199,7 +1199,7 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
     return result;
 }
 
-bool AppRunningManager::UpdateConfiguration(std::shared_ptr<AppRunningRecord>& appRecord, Rosen::ConfigMode configMode)
+bool AppRunningManager::UpdateConfiguration(std::shared_ptr<AppRunningRecord>& appRecord, Rosen::ConfigMode configMode, UpdateConfigurationFlag flag)
 {
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null ptr");
@@ -1226,11 +1226,11 @@ bool AppRunningManager::UpdateConfiguration(std::shared_ptr<AppRunningRecord>& a
         TAG_LOGI(AAFwkTag::APPKIT, "colorMode: %{public}s", value.c_str());
     }
     delayConfig->RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
-    appRecord->UpdateConfiguration(config);
+    appRecord->UpdateConfiguration(config, flag);
     return true;
 }
 
-void AppRunningManager::ExecuteConfigurationTask(const BackgroundAppInfo& info, const int32_t userId)
+void AppRunningManager::ExecuteConfigurationTask(const BackgroundAppInfo& info, const int32_t userId, UpdateConfigurationFlag flag)
 {
     auto appRunningMap = GetAppRunningRecordMap();
 
@@ -1261,7 +1261,7 @@ void AppRunningManager::ExecuteConfigurationTask(const BackgroundAppInfo& info, 
 }
 
 int32_t AppRunningManager::UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
-    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId, UpdateConfigurationFlag flag)
 {
     int8_t maxCountPerBatch = policy.maxCountPerBatch;
     if (maxCountPerBatch < 1) {
@@ -1293,7 +1293,7 @@ int32_t AppRunningManager::UpdateConfigurationForBackgroundApp(const std::vector
                 TAG_LOGE(AAFwkTag::APPMGR, "appRuningMgr null");
                 return;
             }
-            appRuningMgr->ExecuteConfigurationTask(info, userId);
+            appRuningMgr->ExecuteConfigurationTask(info, userId, flag);
         };
         AAFwk::TaskHandlerWrap::GetFfrtHandler()->SubmitTask(policyTask,
             info.bandleName.c_str() + std::to_string(info.appIndex), intervalTime * batchCount);

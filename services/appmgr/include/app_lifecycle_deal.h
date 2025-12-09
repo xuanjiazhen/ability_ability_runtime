@@ -213,7 +213,7 @@ public:
      * @param config, System environment change parameters.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t UpdateConfiguration(const Configuration &config);
+    int32_t UpdateConfiguration(const Configuration &config, UpdateConfigurationFlag flag);
 
     /**
      * @brief Notify application load patch.

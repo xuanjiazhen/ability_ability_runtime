@@ -483,14 +483,14 @@ public:
 
     /**
      * UpdateConfigurationForBackgroundApp
-     * 
      * @param appInfos Background application information.
      * @param policy Update policy.
      * @param userId configuration for the user
+     * @param flag update reason
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
-        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1)
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1, UpdateConfigurationFlag flag)
     {
         return 0;
     }

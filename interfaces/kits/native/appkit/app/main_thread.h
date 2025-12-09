@@ -279,7 +279,7 @@ public:
      * @param config The updated config.
      *
      */
-    void ScheduleConfigurationUpdated(const Configuration &config) override;
+    void ScheduleConfigurationUpdated(const Configuration &config, UpdateConfigurationFlag flag = UpdateConfigurationFlag::NOT_IN_WHITE_LIST) override;
 
     /**
      *

@@ -6173,7 +6173,7 @@ std::vector<BackgroundAppInfo> AppMgrServiceInner::GetBackgroundAppInfo(
 }
 
 int32_t AppMgrServiceInner::UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo>& allowAppList,
-    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId, UpdateConfigurationFlag flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!appRunningManager_) {
@@ -6193,7 +6193,7 @@ int32_t AppMgrServiceInner::UpdateConfigurationForBackgroundApp(const std::vecto
         return ERR_INVALID_VALUE;
     }
 
-    return appRunningManager_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    return appRunningManager_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId, flag);
 }
 
 int32_t AppMgrServiceInner::UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,

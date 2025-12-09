@@ -174,7 +174,7 @@ public:
      * @param The configuration data.
      * @return
      */
-    virtual void ScheduleConfigurationUpdated(const Configuration &config) override;
+    virtual void ScheduleConfigurationUpdated(const Configuration &config, UpdateConfigurationFlag flag = UpdateConfigurationFlag::NOT_IN_WHITE_LIST) override;
 
     /**
      * ScheduleProcessSecurityExit, call ScheduleProcessSecurityExit() through proxy project,

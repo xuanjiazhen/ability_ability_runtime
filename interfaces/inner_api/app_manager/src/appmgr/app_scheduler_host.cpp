@@ -335,8 +335,9 @@ int32_t AppSchedulerHost::HandleScheduleConfigurationUpdated(MessageParcel &data
         TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<Configuration> failed");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
+    UpdateConfigurationFlag flag = static_cast<UpdateConfigurationFlag>(data.ReadInt32());
 
-    ScheduleConfigurationUpdated(*configuration);
+    ScheduleConfigurationUpdated(*configuration, flag);
     return NO_ERROR;
 }
 

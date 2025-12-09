@@ -1736,7 +1736,7 @@ void AppRunningRecord::ResetNewProcessRequest()
     specifiedProcessRequest_.reset();
 }
 
-int32_t AppRunningRecord::UpdateConfiguration(const Configuration &config)
+int32_t AppRunningRecord::UpdateConfiguration(const Configuration &config, UpdateConfigurationFlag flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1744,7 +1744,7 @@ int32_t AppRunningRecord::UpdateConfiguration(const Configuration &config)
         TAG_LOGI(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
         return ERR_INVALID_VALUE;
     }
-    return appLifeCycleDeal_->UpdateConfiguration(config);
+    return appLifeCycleDeal_->UpdateConfiguration(config, flag);
 }
 
 void AppRunningRecord::AddRenderRecord(const std::shared_ptr<RenderRecord> &record)

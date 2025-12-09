@@ -1008,7 +1008,7 @@ int32_t AppMgrProxy::UpdateConfigurationByUserIds(
 }
 
 int32_t AppMgrProxy::UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo>& appInfos,
-    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId, UpdateConfigurationFlag flag)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfigurationForBackgroundApp");
     MessageParcel data;
@@ -1038,6 +1038,10 @@ int32_t AppMgrProxy::UpdateConfigurationForBackgroundApp(const std::vector<Backg
     }
     if (!data.WriteInt32(userId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "parcel userId failed");
+        return ERR_INVALID_DATA;
+    }
+    if (!data.WriteInt32(static_cast<int32_t>(flag))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel flag failed");
         return ERR_INVALID_DATA;
     }
     int32_t ret = SendRequest(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY, data, reply, option);

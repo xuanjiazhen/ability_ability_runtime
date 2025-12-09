@@ -893,7 +893,7 @@ void MainThread::ScheduleProfileChanged(const Profile &profile)
  * @param config The updated config.
  *
  */
-void MainThread::ScheduleConfigurationUpdated(const Configuration &config)
+void MainThread::ScheduleConfigurationUpdated(const Configuration &config, UpdateConfigurationFlag flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -904,7 +904,7 @@ void MainThread::ScheduleConfigurationUpdated(const Configuration &config)
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
-        appThread->HandleConfigurationUpdated(config);
+        appThread->HandleConfigurationUpdated(config, flag);
     };
     if (!mainHandler_->PostTask(task, "MainThread:ConfigurationUpdated")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");

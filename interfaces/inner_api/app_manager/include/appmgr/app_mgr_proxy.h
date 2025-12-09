@@ -28,6 +28,10 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+enum class UpdateConfigurationFlag {
+    UPDATE_NOT_IN_WHITELIST,
+    UPDATE_WITH_EXTENSION,
+};
 class AppMgrProxy : public IRemoteProxy<IAppMgr> {
 public:
     explicit AppMgrProxy(const sptr<IRemoteObject> &impl);
@@ -450,10 +454,11 @@ public:
      * @param appInfos Background application information.
      * @param policy Update policy.
      * @param userId configuration for the user
+     * @param flag update reason
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
-        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1) override;
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1, UpdateConfigurationFlag flag) override;
 
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
         int32_t appIndex = 0) override;

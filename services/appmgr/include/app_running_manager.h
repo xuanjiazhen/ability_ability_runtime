@@ -240,7 +240,7 @@ public:
     * @param config System environment change parameters.
     * @return Returns ERR_OK on success, others on failure.
     */
-    int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
+    int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1, UpdateConfigurationFlag flag = UpdateConfigurationFlag::UPDATE_NOT_IN_WHITELIST);
 
     /**
      * UpdateConfigurationForBackgroundApp
@@ -250,7 +250,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
-        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1);
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1, UpdateConfigurationFlag flag);
 
     /**
      *  Update config by sa.
@@ -455,7 +455,7 @@ private:
     bool isCollaboratorReserveType(const std::shared_ptr<AppRunningRecord> &appRecord);
     void NotifyAppPreCache(const std::shared_ptr<AppRunningRecord>& appRecord,
         const std::shared_ptr<AppMgrServiceInner>& appMgrServiceInner);
-    void ExecuteConfigurationTask(const BackgroundAppInfo& info, const int32_t userId);
+    void ExecuteConfigurationTask(const BackgroundAppInfo& info, const int32_t userId, UpdateConfigurationFlag flag = UpdateConfigurationFlag::UPDATE_WITH_EXTENSION);
     bool UpdateConfiguration(std::shared_ptr<AppRunningRecord> &appRecord, Rosen::ConfigMode configMode);
     bool IsSameAbilityType(
         const std::shared_ptr<AppRunningRecord> &appRecord, const AppExecFwk::AbilityInfo &abilityInfo);

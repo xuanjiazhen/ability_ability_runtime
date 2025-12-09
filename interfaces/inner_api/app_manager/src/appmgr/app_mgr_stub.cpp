@@ -1151,7 +1151,8 @@ int32_t AppMgrStub::HandleUpdateConfigurationForBackgroundApp(MessageParcel &dat
         return ERR_INVALID_VALUE;
     }
     int32_t userId = data.ReadInt32();
-    int32_t result = UpdateConfigurationForBackgroundApp(appInfos, *policy, userId);
+    UpdateConfigurationFlag flag = static_cast<UpdateConfigurationFlag>(data.ReadInt32());
+    int32_t result = UpdateConfigurationForBackgroundApp(appInfos, *policy, userId, flag);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
         return ERR_INVALID_VALUE;

@@ -838,7 +838,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &allowAppList,
-        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId);
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId, UpdateConfigurationFlag flag);
 
     int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name, int32_t appIndex);
 
