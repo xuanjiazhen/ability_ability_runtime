@@ -309,6 +309,42 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_BackgroundAbility_001, TestSize.
 
 /*
  * Feature: AbilityRecord
+ * Function: PrepareTerminateAbility
+ * SubFunction: PrepareTerminateAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: lifecycleDeal_ == nullptr
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_PrepareTerminateAbility_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->lifecycleDeal_ = nullptr;
+    bool result1 = abilityRecord_->PrepareTerminateAbility(true);
+    EXPECT_FALSE(result1);
+    bool result2 = abilityRecord_->PrepareTerminateAbility(false);
+    EXPECT_FALSE(result2);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: PrepareTerminateAbility
+ * SubFunction: PrepareTerminateAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: !isSCBCall
+
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_PrepareTerminateAbility_002, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    auto mockLifecycleDeal = std::make_shared<MockLifecycleDeal>();
+    EXPECT_CALL(*mockLifecycleDeal, PrepareTerminateAbility())
+        .WillOnce(testing::Return(true));
+    abilityRecord->lifecycleDeal_ = mockLifecycleDeal;
+    bool result = abilityRecord->PrepareTerminateAbility(false);
+} */
+
+/*
+ * Feature: AbilityRecord
  * Function: PrepareTerminateAbilityDone
  * SubFunction: PrepareTerminateAbilityDone
  * FunctionPoints: NA
