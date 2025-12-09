@@ -331,12 +331,14 @@ private:
                 *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByIntentName(
                     filter.intentFlags_, filter.bundleName_, filter.moduleName_,
                     filter.intentName_, *intentInfo, filter.userId_);
-                infos->push_back(*intentInfo);
+                if(!intentInfo->intentType.empty() || intentInfo->isConfig) {
+                    infos->push_back(*intentInfo);
+                }
             } else if (filter.moduleName_.empty() && filter.intentName_.empty()) {
                 *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByBundleName(
                     filter.intentFlags_, filter.bundleName_, *infos, filter.userId_);
             } else {
-                TAG_LOGE(AAFwkTag::INTENT, "Invaild filter");
+                TAG_LOGE(AAFwkTag::INTENT, "Invalid filter");
             }
         };
         NapiAsyncTask::CompleteCallback complete =

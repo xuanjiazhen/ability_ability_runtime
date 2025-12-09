@@ -85,7 +85,23 @@ bool UnwrapIntentInfoFilter(ani_env *env, ani_object param, AppExecFwk::InsightI
         }
         filter.userId_ = userId;
     }
-    return true;
+
+    if (IsExistsProperty(env, param, "bundleName") &&
+        IsExistsProperty(env, param, "moduleName") &&
+        IsExistsProperty(env, param, "intentName")) {
+        return true;
+    }
+
+    if (IsExistsProperty(env, param, "bundleName")) {
+        return true;
+    }
+
+    if (!IsExistsProperty(env, param, "bundleName") &&
+        !IsExistsProperty(env, param, "moduleName") &&
+        !IsExistsProperty(env, param, "intentName")) {
+        return true;
+    }
+    return false;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
