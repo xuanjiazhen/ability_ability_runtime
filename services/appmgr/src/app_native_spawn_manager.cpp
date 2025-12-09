@@ -34,6 +34,7 @@ namespace {
 //listen fd use
 constexpr int32_t PIPE_MSG_READ_BUFFER = 1024;
 constexpr const char* NATIVESPAWN_EXIT = "startup.service.ctl.nativespawn";
+constexpr const char* NATIVESPAWN_EXIT_SIGNAL = "5";
 }
 
 AppNativeSpawnManager::~AppNativeSpawnManager() {}
@@ -95,7 +96,11 @@ static void AppNativeSpawnStartCallback(const char *key, const char *value, void
 {
     TAG_LOGI(AAFwkTag::APPMGR, "key is: %{public}s, value is: %{public}s", key, value);
     // set flag
-    if (std::string(value) == "5") {
+    if (value == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "value nullptr");
+        return;
+    }
+    if (strcmp(value, NATIVESPAWN_EXIT_SIGNAL) == 0) {
         int ret = NativeSpawnListenCloseSet();
         if (ret != 0) {
             TAG_LOGE(AAFwkTag::APPMGR, "NativeSpawnListenCloseSet failed");
