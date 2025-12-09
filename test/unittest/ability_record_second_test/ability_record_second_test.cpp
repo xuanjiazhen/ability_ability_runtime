@@ -309,6 +309,24 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_BackgroundAbility_001, TestSize.
 
 /*
  * Feature: AbilityRecord
+ * Function: PrepareTerminateAbility
+ * SubFunction: PrepareTerminateAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord PrepareTerminateAbility
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_PrepareTerminateAbility_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->lifecycleDeal_ = nullptr;
+    bool result1 = abilityRecord_->PrepareTerminateAbility(true);
+    EXPECT_FALSE(result1);
+    bool result2 = abilityRecord_->PrepareTerminateAbility(false);
+    EXPECT_FALSE(result2);
+}
+
+/*
+ * Feature: AbilityRecord
  * Function: PrepareTerminateAbilityDone
  * SubFunction: PrepareTerminateAbilityDone
  * FunctionPoints: NA
