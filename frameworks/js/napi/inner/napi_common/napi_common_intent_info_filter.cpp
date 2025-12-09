@@ -79,7 +79,22 @@ bool UnwrapIntentInfoFilter(napi_env env, napi_value param, AppExecFwk::InsightI
         filter.userId_ = userId;
     }
 
-    return true;
+    if (IsExistsByPropertyName(env, param, "bundleName") &&
+        IsExistsByPropertyName(env, param, "moduleName") &&
+        IsExistsByPropertyName(env, param, "intentName")) {
+        return true;
+    }
+
+    if (IsExistsByPropertyName(env, param, "bundleName")) {
+        return true;
+    }
+
+    if (!IsExistsByPropertyName(env, param, "bundleName") &&
+        !IsExistsByPropertyName(env, param, "moduleName") &&
+        !IsExistsByPropertyName(env, param, "intentName")) {
+        return true;
+    }
+    return false;
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
