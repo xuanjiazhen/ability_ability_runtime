@@ -397,6 +397,12 @@ public:
             return;
         }
 
+        if (!CheckValidIntentInfoFilter(env, aniFilter)) {
+            TAG_LOGE(AAFwkTag::INTENT, "check filter failed");
+            EtsErrorUtil::ThrowInvalidParamError(env, "Param error: filter must be a valid InsightIntentInfoFilter.");
+            return;
+        }
+
         InsightIntentInfoFilter filter;
         if (!UnwrapIntentInfoFilter(env, aniFilter, filter)) {
             TAG_LOGE(AAFwkTag::INTENT, "parse filter failed");
@@ -416,6 +422,10 @@ public:
             TAG_LOGE(AAFwkTag::INTENT, "invalid param");
             return;
         }
+        if (!CheckValidIntentInfoFilter(env, aniFilter)) {
+            TAG_LOGE(AAFwkTag::INTENT, "check filter failed");
+            return;
+        }
         InsightIntentInfoFilter filter;
         if (!UnwrapIntentInfoFilter(env, aniFilter, filter)) {
             TAG_LOGE(AAFwkTag::INTENT, "parse filter failed");
@@ -433,13 +443,14 @@ public:
             *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByIntentName(
                 filter.intentFlags_, filter.bundleName_, filter.moduleName_,
                 filter.intentName_, *intentInfo, filter.userId_);
-            infos->push_back(*intentInfo);
+            if (!intentInfo->intentType.empty() || intentInfo->isConfig) {
+                infos->push_back(*intentInfo);
+            }
         } else if (filter.moduleName_.empty() && filter.intentName_.empty()) {
             *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByBundleName(
                 filter.intentFlags_, filter.bundleName_, *infos, filter.userId_);
         } else {
-            TAG_LOGE(AAFwkTag::INTENT, "Invaild filter");
-            *innerErrorCode = ERR_INVALID_VALUE;
+            TAG_LOGE(AAFwkTag::INTENT, "Invalid filter");
         }
 
         if (*innerErrorCode != 0) {

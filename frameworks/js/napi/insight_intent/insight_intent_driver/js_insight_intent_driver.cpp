@@ -313,6 +313,12 @@ private:
             return CreateJsUndefined(env);
         }
 
+        if (!CheckValidIntentInfoFilter(env, info.argv[INDEX_ZERO])) {
+            TAG_LOGE(AAFwkTag::INTENT, "check filter failed");
+            ThrowInvalidParamError(env, "Param error: filter must be a valid InsightIntentInfoFilter.");
+            return CreateJsUndefined(env);
+        }
+
         InsightIntentInfoFilter filter;
         if (!UnwrapIntentInfoFilter(env, info.argv[INDEX_ZERO], filter)) {
             TAG_LOGE(AAFwkTag::INTENT, "parse filter failed");
@@ -331,12 +337,14 @@ private:
                 *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByIntentName(
                     filter.intentFlags_, filter.bundleName_, filter.moduleName_,
                     filter.intentName_, *intentInfo, filter.userId_);
-                infos->push_back(*intentInfo);
+                if (!intentInfo->intentType.empty() || intentInfo->isConfig) {
+                    infos->push_back(*intentInfo);
+                }
             } else if (filter.moduleName_.empty() && filter.intentName_.empty()) {
                 *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByBundleName(
                     filter.intentFlags_, filter.bundleName_, *infos, filter.userId_);
             } else {
-                TAG_LOGE(AAFwkTag::INTENT, "Invaild filter");
+                TAG_LOGE(AAFwkTag::INTENT, "Invalid filter");
             }
         };
         NapiAsyncTask::CompleteCallback complete =
