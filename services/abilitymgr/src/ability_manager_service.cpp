@@ -265,6 +265,7 @@ constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
 constexpr const char* SCREENCONFIG_SCREENMODE = "ohos.verticalpanel.screenconfig.screenmode";
 constexpr const char* UD_KEY = "ability.want.params.udKey";
 constexpr int32_t INSTALL_TYPE_UPGRADE = 2;
+constexpr int32_t ABILITY_STATE_FOREGROUND = 2;
 
 void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
@@ -13148,7 +13149,7 @@ int32_t AbilityManagerService::GetForegroundUIAbilities(std::vector<AppExecFwk::
         abilityData.bundleName = info.ability.GetBundleName();
         abilityData.moduleName = info.ability.GetModuleName();
         abilityData.abilityName = info.ability.GetAbilityName();
-        abilityData.abilityState = info.abilityState;
+        abilityData.abilityState = ABILITY_STATE_FOREGROUND;
         abilityData.pid = info.pid;
         abilityData.uid = info.uid;
         abilityData.abilityType = static_cast<int32_t>(AppExecFwk::AbilityType::PAGE);
