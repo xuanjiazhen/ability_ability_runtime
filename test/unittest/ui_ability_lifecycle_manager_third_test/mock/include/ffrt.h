@@ -32,6 +32,8 @@ struct task_attr {
     inline task_attr &timeout(int64_t) { return *this; }
 };
 
+struct task_handle {};
+
 inline void submit(std::function<void()> &&task, task_attr attr = {})
 {
     if (task) {
@@ -39,5 +41,12 @@ inline void submit(std::function<void()> &&task, task_attr attr = {})
         taskThread.detach();
     }
 }
+
+inline task_handle submit_h(std::function<void()> &&task)
+{
+    return task_handle{};
+}
+
+inline void wait(std::vector<task_handle> taskHandles) {}
 }  // namespace ffrt
 #endif // FFRT_API_FFRT_H
