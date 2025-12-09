@@ -107,12 +107,11 @@ HWTEST_F(ResSchedUtilTest, ResSchedUtilTest_0400, TestSize.Level2)
     int32_t pickerType = static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOPICKER);
     int32_t hostPid = 102;
     std::string hostBundleName = "hostBundleName";
-    std::string pickerTypeStr = "pickerType";
     std::string bundleName = "bundleName";
     std::string abilityName = "abilityName";
     std::string moduleName = "moduleName";
     AAFwk::ResSchedUtil::GetInstance().ReportUIExtensionProcColdStartToRss(pickerType,
-        hostPid, hostBundleName, pickerTypeStr, bundleName, abilityName, moduleName);
+        hostPid, hostBundleName, bundleName, abilityName, moduleName);
     SUCCEED();
     int64_t resSchedType = AAFwk::RES_TYPE_SCB_START_ABILITY;
     int64_t ret = AAFwk::ResSchedUtil::GetInstance().convertType(resSchedType);

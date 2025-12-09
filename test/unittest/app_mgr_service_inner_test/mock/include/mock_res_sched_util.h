@@ -30,7 +30,7 @@ public:
     DISALLOW_COPY_AND_MOVE(ResSchedUtilBase);
 
     virtual void ReportUIExtensionProcColdStartToRss(
-        int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName, const std::string& pickerType,
+        int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName,
         const std::string& bundleName, const std::string& abilityName, const std::string& moduleName) = 0;
 };
 
@@ -43,7 +43,7 @@ public:
     static ResSchedUtil &GetInstance();
 
     MOCK_METHOD(void, ReportUIExtensionProcColdStartToRss,
-        (int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName, const std::string& pickerType,
+        (int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName,
         const std::string& bundleName, const std::string& abilityName, const std::string& moduleName), ());
 };
 

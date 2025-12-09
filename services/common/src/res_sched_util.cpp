@@ -115,7 +115,7 @@ void ResSchedUtil::ReportPreloadApplicationToRSS(const std::shared_ptr<AbilityIn
 }
 
 void ResSchedUtil::ReportUIExtensionProcColdStartToRss(
-    int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName, const std::string& pickerType,
+    int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName,
     const std::string& bundleName, const std::string& abilityName, const std::string& moduleName)
 {
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
@@ -124,7 +124,6 @@ void ResSchedUtil::ReportUIExtensionProcColdStartToRss(
         {"extensionAbilityType", std::to_string(extensionAbilityType)},
         {"hostPid", std::to_string(hostPid)},
         {"hostBundleName", hostBundleName},
-        {"pickerType", pickerType},
         {"bundleName", bundleName},
         {"abilityName", abilityName},
         {"moduleName", moduleName},

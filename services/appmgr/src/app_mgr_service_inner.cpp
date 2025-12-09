@@ -1144,12 +1144,11 @@ void AppMgrServiceInner::ReportUIExtensionProcColdStartToRss(const std::shared_p
         if (hostAppRecord) {
             hostBundleName = hostAppRecord->GetBundleName();
         }
-        std::string pickerType = want->GetStringParam("ability.want.params.uiExtensionType");
         std::string bundleName = want->GetElement().GetBundleName();
         std::string abilityName = want->GetElement().GetAbilityName();
         std::string moduleName = want->GetElement().GetModuleName();
         AAFwk::ResSchedUtil::GetInstance().ReportUIExtensionProcColdStartToRss(extensionAbilityType,
-            hostPid, hostBundleName, pickerType, bundleName, abilityName, moduleName);
+            hostPid, hostBundleName, bundleName, abilityName, moduleName);
     }
 }
 

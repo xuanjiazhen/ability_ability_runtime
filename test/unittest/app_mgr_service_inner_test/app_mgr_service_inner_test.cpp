@@ -465,8 +465,6 @@ HWTEST_F(AppMgrServiceInnerTest, ReportUIExtensionProcColdStartToRss_001, TestSi
     // fill want
     std::shared_ptr<AAFwk::Want> want = std::make_shared<Want>();
     want->SetParam("ability.want.params.uiExtensionRootHostPid", hostPid);
-    std::string pickerType = "pickerType";
-    want->SetParam("ability.want.params.uiExtensionType", pickerType);
     want->SetElementName("bundleName", "abilityName");
     want->SetModuleName("moduleName");
 
@@ -482,7 +480,6 @@ HWTEST_F(AppMgrServiceInnerTest, ReportUIExtensionProcColdStartToRss_001, TestSi
         Eq(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOEDITOR)),
         Eq(hostPid),
         StrEq(""),
-        StrEq(pickerType),
         StrEq("bundleName"),
         StrEq("abilityName"),
         StrEq("moduleName")
@@ -509,7 +506,6 @@ HWTEST_F(AppMgrServiceInnerTest, ReportUIExtensionProcColdStartToRss_001, TestSi
         Eq(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOEDITOR)),
         Eq(hostPid),
         StrEq(hostBundleName),
-        StrEq(pickerType),
         StrEq("bundleName"),
         StrEq("abilityName"),
         StrEq("moduleName")
