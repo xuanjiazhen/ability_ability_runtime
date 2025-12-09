@@ -12867,6 +12867,18 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (callerBundlename.empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "callerBundlename is null");
     }
+
+    if(IsCrossUserCall(param.userId_)) {
+        if (VerifyAccountPermission(param.userId_) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
+            return CHECK_PERMISSION_FAILED;
+        }
+        if (!JudgeMultiUserConcurrency(param.userId_)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied");
+            return ERR_CROSS_USER;
+        }
+    }
+
     AbilityRuntime::ExtractInsightIntentGenericInfo infos = GetInsightIntentGenericInfo(param);
     bool openLinkExecuteFlag = infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
     bool ignoreAbilityName = openLinkExecuteFlag ||
