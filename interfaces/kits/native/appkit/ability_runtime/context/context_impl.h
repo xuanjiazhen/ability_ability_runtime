@@ -446,7 +446,7 @@ public:
 
     int32_t GetUpdateFlag();
 
-    void SetUpdateFlag(uint8_t updateFlag);
+    void SetUpdateFlag(uint32_t flag);
 
 #ifdef SUPPORT_SCREEN
     /**
