@@ -339,6 +339,11 @@ static void DoFunctionCallback(uv_work_t *reqwork, int status)
         TAG_LOGI(AAFwkTag::JSNAPI, "Get WorkItem Failed");
         return;
     }
+    napi_handle_scope scope_ = nullptr;
+    napi_status scopeStatus = napi_open_handle_scope(newItem->env, &scope_);
+    if (scopeStatus != napi_ok || scope_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "napi_open_handle_scope failed");
+    }
     napi_value global = nullptr;
     if (napi_get_global(newItem->env, &global) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
@@ -359,6 +364,7 @@ static void DoFunctionCallback(uv_work_t *reqwork, int status)
         TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
         return;
     }
+    napi_close_handle_scope(newItem->env, scope_);
     delete newItem;
     newItem = nullptr;
 }
