@@ -462,7 +462,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
-        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1, UpdateConfigurationFlag flag) override;
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1, UpdateConfigurationFlag flag = UpdateConfigurationFlag::UPDATE_NOT_IN_WHITELIST) override;
 
     /**
      *  Update config by bundle name.
