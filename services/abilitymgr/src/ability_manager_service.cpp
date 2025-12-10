@@ -15933,12 +15933,12 @@ int32_t AbilityManagerService::ProcessUdmfKey(
     return ERR_OK;
 }
 
-ErrCode AbilityManagerService::IsUIAbilityAlreadyExist(const std::string &abilityName,const std::string &specifiedFlag,
+ErrCode AbilityManagerService::IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
     int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode)
 {
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-    return uiAbilityManager->IsUIAbilityAlreadyExist(abilityName, specifiedFlag, appIndex, instanceKey, launchMode);
+    return uiAbilityManager->IsUIAbilityAlreadyExist(want, specifiedFlag, appIndex, instanceKey, launchMode);
 }
 
 bool AbilityManagerService::IsAppCloneOrMultiInstance(const Want &want, const std::shared_ptr<AbilityRecord> callerRecord,
@@ -16005,8 +16005,7 @@ ErrCode AbilityManagerService::StartSelfUIAbilityInCurrentProcess(const Want &wa
 
     CHECK_TRUE_RETURN_RET(abilityInfo.type != AppExecFwk::AbilityType::PAGE,
         TARGET_BUNDLE_NOT_EXIST, "not UIAbility");
-    auto ret = IsUIAbilityAlreadyExist(targetAbilityName,
-        specifiedFlag, appIndex, processInfo.instanceKey, abilityInfo.launchMode);
+    auto ret = IsUIAbilityAlreadyExist(want, specifiedFlag, appIndex, processInfo.instanceKey, abilityInfo.launchMode);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility already exist");
         return ret;
@@ -16017,6 +16016,10 @@ ErrCode AbilityManagerService::StartSelfUIAbilityInCurrentProcess(const Want &wa
 
     auto useStartOptions = startOptions;
     useStartOptions.SetCurrentProcessName(processInfo.processName_);
+    if (useStartOptions.processOptions == nullptr) {
+        useStartOptions.processOptions = std::make_shared<ProcessOptions>();
+    }
+    useStartOptions.processOptions->selfPid = callingPid;
     auto useWant = want;
     if (abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
         useWant.SetParam(KEY_SPECIFIED_FLAG, specifiedFlag);

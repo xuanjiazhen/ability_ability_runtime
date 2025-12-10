@@ -401,6 +401,94 @@ HWTEST_F(AppMgrServiceInnerTest, PreStartNWebSpawnProcess_001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: HandleExistingAppRecordAfterFound_FlagsUpdated_NoProcCache
+ * @tc.desc: verify keepAlive/mainElement flags and preload reset without process cache
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, HandleExistingAppRecordAfterFound_001, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    HapModuleInfo hapModuleInfo;
+    auto want = std::make_shared<AAFwk::Want>();
+    BundleInfo info;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, info, "");
+
+    appRecord->SetKeepAliveDkv(false);
+    appRecord->SetMainElementRunning(false);
+    appRecord->SetPreloadMode(PreloadMode::PRE_LAUNCH);
+    appRecord->SetPreloadState(PreloadState::PRELOADING);
+
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.isKeepAlive = true;
+    loadParam.isMainElementRunning = true;
+
+    appMgrServiceInner->HandleExistingAppRecordAfterFound(appRecord, abilityInfo_, hapModuleInfo, want, false,
+        std::make_shared<AbilityRuntime::LoadParam>(loadParam));
+
+    EXPECT_TRUE(appRecord->IsKeepAliveDkv());
+    EXPECT_TRUE(appRecord->IsMainElementRunning());
+    EXPECT_EQ(appRecord->GetPreloadMode(), PreloadMode::PRELOAD_NONE);
+}
+
+/**
+ * @tc.name: HandleExistingAppRecordAfterFound_RequestProcCode_Set
+ * @tc.desc: verify request proc code propagation from want to record
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, HandleExistingAppRecordAfterFound_002, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    HapModuleInfo hapModuleInfo;
+    auto want = std::make_shared<AAFwk::Want>();
+    want->SetParam(Want::PARAM_RESV_REQUEST_PROC_CODE, 5);
+    BundleInfo info;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, info, "");
+
+    EXPECT_EQ(appRecord->GetRequestProcCode(), 0);
+
+    AbilityRuntime::LoadParam loadParam;
+    appMgrServiceInner->HandleExistingAppRecordAfterFound(appRecord, abilityInfo_, hapModuleInfo, want, false,
+        std::make_shared<AbilityRuntime::LoadParam>(loadParam));
+
+    EXPECT_EQ(appRecord->GetRequestProcCode(), 5);
+}
+
+/**
+ * @tc.name: HandleExistingAppRecordAfterFound_ExtensionTypeMismatch_ResetProcessType
+ * @tc.desc: when extension type mismatches in EXTENSION process, reset to NORMAL
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, HandleExistingAppRecordAfterFound_003, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    HapModuleInfo hapModuleInfo;
+    BundleInfo info;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, info, "");
+
+    appRecord->SetProcessType(ProcessType::EXTENSION);
+    appRecord->SetExtensionType(ExtensionAbilityType::SERVICE);
+    abilityInfo_->extensionAbilityType = ExtensionAbilityType::UI_SERVICE;
+
+    AbilityRuntime::LoadParam loadParam;
+    appMgrServiceInner->HandleExistingAppRecordAfterFound(appRecord, abilityInfo_, hapModuleInfo, want, false,
+        std::make_shared<AbilityRuntime::LoadParam>(loadParam));
+
+    EXPECT_EQ(appRecord->GetProcessType(), ProcessType::NORMAL);
+}
+
+/**
  * @tc.name: PreStartNWebSpawnProcess_002
  * @tc.desc: prestart nwebspawn process.
  * @tc.type: FUNC
@@ -6265,5 +6353,7 @@ HWTEST_F(AppMgrServiceInnerTest, UpdateConfigurationByUserIds_0002, TestSize.Lev
     EXPECT_EQ(res, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "UpdateConfigurationByUserIds_0002 end");
 }
+
+
 } // namespace AppExecFwk
 } // namespace OHOS
