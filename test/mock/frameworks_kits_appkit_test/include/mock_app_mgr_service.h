@@ -318,7 +318,7 @@ public:
         }
     }
 
-    void ScheduleConfigurationUpdated(const Configuration& config)
+    void ScheduleConfigurationUpdated(const Configuration& config, uint32_t flag = 0)
     {
         if (Appthread_ != nullptr) {
             Appthread_->ScheduleConfigurationUpdated(config);

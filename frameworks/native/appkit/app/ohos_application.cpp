@@ -264,7 +264,7 @@ void OHOSApplication::SetAbilityRecordMgr(const std::shared_ptr<AbilityRecordMgr
  *
  * @param config Indicates the new Configuration object.
  */
-void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntime::SetLevel level)
+void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntime::SetLevel level, uint32_t flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!abilityRecordMgr_ || !configuration_ || !abilityRuntimeContext_) {
@@ -307,6 +307,8 @@ void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntim
             abilityStage->OnConfigurationUpdated(config);
         }
     }
+    TAG_LOGD(AAFwkTag::APPKIT, "configuration_: flag:%{public}u", flag);
+    abilityRuntimeContext_->SetUpdateFlag(flag);
 #ifdef SUPPORT_GRAPHICS
     auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
     auto ignoreWindowContext = AbilityRuntime::ApplicationConfigurationManager::GetInstance().
