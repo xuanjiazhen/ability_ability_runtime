@@ -1183,10 +1183,15 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
         if (appRecord) {
             TAG_LOGD(AAFwkTag::APPMGR, "Notification app [%{public}s]", appRecord->GetName().c_str());
             std::lock_guard guard(updateConfigurationDelayedLock_);
-            if (appRecord->NeedUpdateConfigurationBackground() ||
+            bool needUpdate = appRecord->NeedUpdateConfigurationBackground();
+            if (needUpdate ||
                 appRecord->GetState() != ApplicationState::APP_STATE_BACKGROUND) {
                 updateConfigurationDelayedMap_[appRecord->GetRecordId()] = false;
-                result = appRecord->UpdateConfiguration(config);
+                uint32_t updateConfigurationFlag = 0;
+                if (needUpdate) {
+                    updateConfigurationFlag |= 0x2;
+                }
+                result = appRecord->UpdateConfiguration(config, updateConfigurationFlag);
             } else {
                 auto delayConfig = appRecord->GetDelayConfiguration();
                 std::vector<std::string> diffVe;

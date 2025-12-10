@@ -539,7 +539,7 @@ public:
     * @param config System environment change parameters.
     * @return Returns ERR_OK on success, others on failure.
     */
-    int32_t UpdateConfiguration(const Configuration &config);
+    int32_t UpdateConfiguration(const Configuration &config, unit32_t flag = 0);
 
     void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler);
     void SetEventHandler(const std::shared_ptr<AMSEventHandler> &handler);

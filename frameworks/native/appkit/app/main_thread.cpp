@@ -893,18 +893,18 @@ void MainThread::ScheduleProfileChanged(const Profile &profile)
  * @param config The updated config.
  *
  */
-void MainThread::ScheduleConfigurationUpdated(const Configuration &config)
+void MainThread::ScheduleConfigurationUpdated(const Configuration &config, uint32_t flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     wptr<MainThread> weak = this;
-    auto task = [weak, config]() {
+    auto task = [weak, config, flag]() {
         auto appThread = weak.promote();
         if (appThread == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
-        appThread->HandleConfigurationUpdated(config);
+        appThread->HandleConfigurationUpdated(config, flag);
     };
     if (!mainHandler_->PostTask(task, "MainThread:ConfigurationUpdated")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
@@ -2879,7 +2879,7 @@ void MainThread::HandleMemoryLevel(int level)
  * @param config The updated config.
  *
  */
-void MainThread::HandleConfigurationUpdated(const Configuration &config)
+void MainThread::HandleConfigurationUpdated(const Configuration &config, uint32_t flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (applicationImpl_ == nullptr) {
@@ -2887,7 +2887,7 @@ void MainThread::HandleConfigurationUpdated(const Configuration &config)
         return;
     }
 
-    applicationImpl_->PerformConfigurationUpdated(config);
+    applicationImpl_->PerformConfigurationUpdated(config, flag);
 }
 
 void MainThread::TaskTimeoutDetected(const std::shared_ptr<EventRunner> &runner)

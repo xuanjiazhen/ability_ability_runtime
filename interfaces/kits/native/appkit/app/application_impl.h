@@ -129,7 +129,7 @@ public:
      * @param config Indicates the updated configuration information.
      *
      */
-    void PerformConfigurationUpdated(const Configuration &config);
+    void PerformConfigurationUpdated(const Configuration &config, uint32_t flag = 0);
 
     enum {
         APP_STATE_CREATE = 0,

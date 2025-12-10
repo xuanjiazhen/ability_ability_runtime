@@ -1848,10 +1848,10 @@ std::string ContextImpl::GetLatestParameter()
     return "";
 }
 
-void ContextImpl::SetUpdateFlag(unit8_t updateFlag)
+void ContextImpl::SetUpdateFlag(uint32_t flag)
 {
     std::lock_guard<std::mutex> lock(updateFlagMutex_);
-    return updateFlag_ |= updateFlag;
+    updateFlag_ = flag;
 }
 
 int32_t ContextImpl::GetUpdateFlag()
