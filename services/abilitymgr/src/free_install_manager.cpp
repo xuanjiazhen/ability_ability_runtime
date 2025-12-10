@@ -114,6 +114,7 @@ int FreeInstallManager::StartFreeInstall(const Want &want, int32_t userId, int r
     sptr<IRemoteObject> callerToken, std::shared_ptr<FreeInstallParams> param)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::FREE_INSTALL, "StartFreeInstall:%{public}s", want.GetElement().GetBundleName().c_str());
     if (!VerifyStartFreeInstallPermission(callerToken)) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "permission denied");
         return NOT_TOP_ABILITY;
