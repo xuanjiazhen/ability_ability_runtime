@@ -951,6 +951,11 @@ void ApplicationContext::SetLatestParameter(const AAFwk::Want &want)
     contextImpl_->SetLatestParameter(want);
 }
 
+int32_t ApplicationContext::GetUpdateFlag()
+{
+    return (contextImpl_ != nullptr) ? contextImpl_->GetUpdateFlag() : 0;
+}
+
 sptr<IRemoteObject> ApplicationContext::GetToken()
 {
     return (contextImpl_ != nullptr) ? contextImpl_->GetToken() : nullptr;
