@@ -404,7 +404,7 @@ void AppSchedulerProxy::ScheduleProfileChanged(const Profile &profile)
     }
 }
 
-void AppSchedulerProxy::ScheduleConfigurationUpdated(const Configuration &config)
+void AppSchedulerProxy::ScheduleConfigurationUpdated(const Configuration &config, uint32_t flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     MessageParcel data;
@@ -416,6 +416,10 @@ void AppSchedulerProxy::ScheduleConfigurationUpdated(const Configuration &config
     if (!data.WriteParcelable(&config)) {
         TAG_LOGD(AAFwkTag::APPMGR, "write profile failed");
         return;
+    }
+    if (!data.WriteUint32(flag)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write flag failed.");
+        return ERR_INVALID_DATA;
     }
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CONFIGURATION_UPDATED), data, reply, option);

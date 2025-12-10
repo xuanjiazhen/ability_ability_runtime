@@ -199,6 +199,7 @@ public:
     std::string GetLaunchParameter() const;
     std::string GetLatestParameter() const;
     int32_t GetUpdateFlag();
+    void SetUpdateFlag(uint32_t flag);
 
 protected:
     bool IsContext(size_t contextTypeId) override
