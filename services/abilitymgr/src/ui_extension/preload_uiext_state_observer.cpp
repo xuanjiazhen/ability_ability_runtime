@@ -27,7 +27,7 @@ PreLoadUIExtStateObserver::PreLoadUIExtStateObserver(
 void PreLoadUIExtStateObserver::OnProcessDied(const AppExecFwk::ProcessData &processData)
 {
     auto diedProcessName = processData.processName;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "pname:%{public}s", diedProcessName.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "pname:%{public}s", diedProcessName.c_str());
     auto extensionRecord = extensionRecord_.lock();
     if (extensionRecord != nullptr) {
         auto hostPid = extensionRecord->hostPid_;

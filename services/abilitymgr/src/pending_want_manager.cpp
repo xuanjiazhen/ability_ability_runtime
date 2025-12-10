@@ -245,7 +245,7 @@ void PendingWantManager::MakeWantSenderCanceledLocked(PendingWantRecord &record)
 sptr<PendingWantRecord> PendingWantManager::GetPendingWantRecordByKey(const std::shared_ptr<PendingWantKey> &key)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
+    TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
     for (const auto &item : wantRecords_) {
         const auto pendingKey = item.first;
         const auto pendingRecord = item.second;
