@@ -1848,6 +1848,18 @@ std::string ContextImpl::GetLatestParameter()
     return "";
 }
 
+void ContextImpl::SetUpdateFlag(uint32_t flag)
+{
+    std::lock_guard<std::mutex> lock(updateFlagLock_);
+    updateFlag_ = flag;
+}
+
+int32_t ContextImpl::GetUpdateFlag()
+{
+    std::lock_guard<std::mutex> lock(updateFlagLock_);
+    return updateFlag_;
+}
+
 #ifdef SUPPORT_GRAPHICS
 std::shared_ptr<Context> ContextImpl::CreateDisplayContext(uint64_t displayId)
 {
