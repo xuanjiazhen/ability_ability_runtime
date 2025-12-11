@@ -15,8 +15,10 @@
 
 import StartOptions from '@ohos.app.ability.StartOptions';
 import { RecordData } from '@ohos.base';
+import CompletionHandlerForAtomicService from '@ohos.app.ability.CompletionHandlerForAtomicService';
 
 export default class AtomicServiceOptions extends StartOptions {
   flags?: int;
   parameters?: Record<string, RecordData>;
+  completionHandlerForAtomicService?: CompletionHandlerForAtomicService;
 }
