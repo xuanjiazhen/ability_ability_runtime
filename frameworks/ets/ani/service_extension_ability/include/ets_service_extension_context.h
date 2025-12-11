@@ -135,10 +135,6 @@ private:
         ani_object optionsObj, ani_object callbackobj);
     void UnWrapCompletionHandlerForAtomicService(ani_env *env, ani_object param, AAFwk::StartOptions &options,
         const std::string &appId);
-    void CreateOnAtomicRequestFailureResultCallback(ani_env *env, ani_ref refCompletionHandler,
-        OnAtomicRequestFailure &onRequestCallback, const char *callbackName);
-    void CreateOnAtomicRequestSuccessResultCallback(ani_env *env, ani_ref refCompletionHandler,
-        OnAtomicRequestSuccess &onRequestCallback, const char *callbackName);
     void OnStartAbilityAsCaller(ani_env *env, ani_object obj, ani_object wantObj, ani_object callbackobj,
         ani_object optionsObj);
     void OnOpenLink(ani_env *env, ani_object obj, ani_string link, ani_object callbackobj,
