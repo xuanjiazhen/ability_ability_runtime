@@ -28,6 +28,10 @@
 #include "support_system_ability_permission.h"
 #include "utils/app_mgr_util.h"
 #include "uri_utils.h"
+#ifdef SUPPORT_SCREEN
+#include "scene_board_judgement.h"
+#include "window_manager.h"
+#endif // SUPPORT_SCREEN
 
 namespace OHOS {
 namespace AAFwk {
@@ -83,13 +87,6 @@ FreeInstallManager::FreeInstallManager()
 
 bool FreeInstallManager::IsTopAbility(sptr<IRemoteObject> callerToken)
 {
-    AppExecFwk::ElementName elementName = IN_PROCESS_CALL(
-        DelayedSingleton<AbilityManagerService>::GetInstance()->GetTopAbility());
-    if (elementName.GetBundleName().empty() || elementName.GetAbilityName().empty()) {
-        TAG_LOGE(AAFwkTag::FREE_INSTALL, "GetBundleName or GetAbilityName empty");
-        return false;
-    }
-
     auto caller = Token::GetAbilityRecordByToken(callerToken);
     if (caller == nullptr) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "null caller");
@@ -102,12 +99,14 @@ bool FreeInstallManager::IsTopAbility(sptr<IRemoteObject> callerToken)
         return true;
     }
 
-    AppExecFwk::ElementName callerElementName = caller->GetElementName();
-    std::string callerBundleName = callerElementName.GetBundleName();
-    std::string callerAbilityName = callerElementName.GetAbilityName();
-    std::string callerModuleName = callerElementName.GetModuleName();
-    return (elementName.GetBundleName() == callerBundleName && elementName.GetAbilityName() == callerAbilityName &&
-        elementName.GetModuleName() == callerModuleName);
+#ifdef SUPPORT_SCREEN
+    if (OHOS::Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        OHOS::Rosen::FocusChangeInfo focusChangeInfo;
+        OHOS::Rosen::WindowManager::GetInstance().GetFocusWindowInfoByAbilityToken(focusChangeInfo, callerToken);
+        return focusChangeInfo.abilityToken_ == callerToken;
+    }
+#endif
+    return false;
 }
 
 int FreeInstallManager::StartFreeInstall(const Want &want, int32_t userId, int requestCode,
