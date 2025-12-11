@@ -98,7 +98,7 @@ public:
     void RemoveDeathProcess(std::string bundleName);
     void ResetAppfreezeState(int32_t pid, const std::string& bundleName);
     bool IsValidFreezeFilter(int32_t pid, const std::string& bundleName);
-    void ReportAppFreezeSysEvents(int32_t pid, const std::string& bundleName);
+    void ReportAppFreezeSysEvents(int32_t pid, const std::string& bundleName, bool isRepeatKilledThread = false);
     void RegisterAppKillTime(int32_t pid, uint64_t killTime);
     void InitWarningCpuInfo(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     bool CheckInBackGround(const FaultData &faultData);
@@ -133,6 +133,7 @@ private:
         int pid = 0;
         int reportTimes = DEFAULT_APPFREEZE_REPORT_TIMES;
         int64_t occurTime = 0;
+        bool isRepeatKilled = false;
     };
 
     AppfreezeManager& operator=(const AppfreezeManager&) = delete;
