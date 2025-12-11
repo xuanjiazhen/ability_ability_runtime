@@ -615,7 +615,7 @@ void AppRunningRecord::ResetNewProcessRequest()
 {
 }
 
-int32_t AppRunningRecord::UpdateConfiguration(const Configuration &config)
+int32_t AppRunningRecord::UpdateConfiguration(const Configuration &config, uint32_t flag)
 {
     return 0;
 }

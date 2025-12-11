@@ -66,7 +66,7 @@ public:
     {}
     void ScheduleProfileChanged(const Profile&) override
     {}
-    void ScheduleConfigurationUpdated(const Configuration&) override
+    void ScheduleConfigurationUpdated(const Configuration&, uint32_t flag = 0) override
     {}
     void ScheduleProcessSecurityExit() override
     {}

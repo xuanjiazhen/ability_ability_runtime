@@ -119,7 +119,7 @@ public:
     {
         scheduled_ |= PROFILE_CHANGED_SCHEDULED;
     }
-    void ScheduleConfigurationUpdated(const Configuration& config)
+    void ScheduleConfigurationUpdated(const Configuration& config, uint32_t flag = 0)
     {
         scheduled_ |= SCHEDULE_CONFIGURATION_UPDATED;
     }

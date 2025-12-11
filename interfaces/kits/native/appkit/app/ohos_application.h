@@ -78,7 +78,7 @@ public:
      * @param config Indicates the new Configuration object.
      */
     virtual void OnConfigurationUpdated(Configuration config,
-        AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::System);
+        AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::System, uint32_t flag = 0);
 
     /**
      *

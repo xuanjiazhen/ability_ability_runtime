@@ -26,6 +26,8 @@ struct RunningProcessInfo;
 class BundleMgrHelper;
 class OverlayEventSubscriber;
 class Configuration;
+constexpr uint8_t NOT_IN_WHITE_LIST = 0x1;
+constexpr uint8_t EXTENSION_UPDATE_BG = 0x2;
 }
 namespace AAFwk {
 class Want;
@@ -442,6 +444,10 @@ public:
 
     std::string GetLatestParameter();
 
+    int32_t GetUpdateFlag() override;
+
+    void SetUpdateFlag(uint32_t flag);
+
 #ifdef SUPPORT_SCREEN
     /**
      * @brief Query all UIAbilities of the current process.
@@ -598,6 +604,8 @@ private:
     std::shared_ptr<AAFwk::WantParams> launchParameter_ = nullptr;
     std::mutex latestParameterMutex_;
     std::shared_ptr<AAFwk::WantParams> latestParameter_ = nullptr;
+    std::mutex updateFlagLock_;
+    uint8_t updateFlag_ = AppExecFwk::NOT_IN_WHITE_LIST;
 
 #ifdef SUPPORT_GRAPHICS
     static std::mutex getDisplayConfigCallbackMutex_;

@@ -282,12 +282,12 @@ HWTEST_F(AmsIpcAppSchedulerModuleTest, ExcuteApplicationIPCInterface_010, TestSi
         sptr<IAppScheduler> client = iface_cast<IAppScheduler>(mockAppScheduler);
         bool testResult = false;
 
-        auto mockHandler = [&](const Configuration& config) {
+        auto mockHandler = [&](const Configuration& config, uint32_t flag) {
             testResult = (val == config.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE));
             sem.Post();
         };
 
-        EXPECT_CALL(*mockAppScheduler, ScheduleConfigurationUpdated(_)).Times(1).WillOnce(Invoke(mockHandler));
+        EXPECT_CALL(*mockAppScheduler, ScheduleConfigurationUpdated(_, _)).Times(1).WillOnce(Invoke(mockHandler));
 
         client->ScheduleConfigurationUpdated(testConfig);
 

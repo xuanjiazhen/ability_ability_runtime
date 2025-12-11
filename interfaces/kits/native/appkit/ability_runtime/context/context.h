@@ -305,6 +305,8 @@ public:
      */
     virtual std::shared_ptr<Context> CreateAreaModeContext(int areaMode) = 0;
 
+    virtual int32_t GetUpdateFlag() { return 1; }
+
 #ifdef SUPPORT_GRAPHICS
     /**
      * @brief Create a context by displayId. This Context updates the density and direction properties

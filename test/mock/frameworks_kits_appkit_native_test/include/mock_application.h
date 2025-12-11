@@ -54,7 +54,7 @@ public:
     }
 
     virtual void OnConfigurationUpdated(Configuration config,
-        AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::System)
+        AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::System, uint32_t flag = 0)
     {
         GTEST_LOG_(INFO) << "MockApplication::OnConfigurationUpdated called";
         onConfigurationUpdatedCalled_ = true;

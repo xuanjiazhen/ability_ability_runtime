@@ -279,7 +279,7 @@ public:
      * @param config The updated config.
      *
      */
-    void ScheduleConfigurationUpdated(const Configuration &config) override;
+    void ScheduleConfigurationUpdated(const Configuration &config, uint32_t flag = 0) override;
 
     /**
      *
@@ -541,7 +541,7 @@ private:
      * @param config The updated config.
      *
      */
-    void HandleConfigurationUpdated(const Configuration &config);
+    void HandleConfigurationUpdated(const Configuration &config, uint32_t flag = 0);
 
     /**
      *

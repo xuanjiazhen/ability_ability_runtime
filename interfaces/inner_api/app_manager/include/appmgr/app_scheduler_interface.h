@@ -181,7 +181,7 @@ public:
      * @param The configuration data.
      * @return
      */
-    virtual void ScheduleConfigurationUpdated(const Configuration &config) = 0;
+    virtual void ScheduleConfigurationUpdated(const Configuration &config, uint32_t flag = 0) = 0;
 
     /**
      * ScheduleProcessSecurityExit, call ScheduleProcessSecurityExit() through proxy project,
