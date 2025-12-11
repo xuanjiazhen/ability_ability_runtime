@@ -223,7 +223,6 @@ bool UnwrapChildProcessOptions(ani_env* env, ani_object object, ChildProcessOpti
     ani_status status = env->Object_GetPropertyByName_Ref(object, "isolationMode", &propRef);
     if (status != ANI_OK || propRef == nullptr) {
         options.isolationMode = false;
-        return true;
     }
     ani_boolean isUndefined = false;
     status = env->Reference_IsUndefined(propRef, &isUndefined);
@@ -233,7 +232,6 @@ bool UnwrapChildProcessOptions(ani_env* env, ani_object object, ChildProcessOpti
     }
     if (isUndefined) {
         options.isolationMode = false;
-        return true;
     }
     ani_boolean flag = false;
     status = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(propRef), "valueOf", ":Z", &flag);
@@ -242,6 +240,27 @@ bool UnwrapChildProcessOptions(ani_env* env, ani_object object, ChildProcessOpti
         return false;
     }
     options.isolationMode = flag;
+
+    status = env->Object_GetPropertyByName_Ref(object, "isolationUid", &propRef);
+    if (status != ANI_OK || propRef == nullptr) {
+        options.isolationUid = false;
+    }
+    isUndefined = false;
+    status = env->Reference_IsUndefined(propRef, &isUndefined);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to check undefined for 'isolationUid', status: %{public}d", status);
+        return false;
+    }
+    if (isUndefined) {
+        options.isolationUid = false;
+    }
+    flag = false;
+    status = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(propRef), "valueOf", ":Z", &flag);
+    if (status != ANI_OK) {
+        errorMsg = "Failed to get boolean value for isolationUid.";
+        return false;
+    }
+    options.isolationUid = flag;
     return true;
 }
 } // namespace AppExecFwk
