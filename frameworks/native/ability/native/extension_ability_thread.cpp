@@ -79,8 +79,6 @@ const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_
 #endif //SUPPORT_GRAPHICS
 };
 
-std::map<std::string, std::shared_ptr<AppExecFwk::EventRunner>> ExtensionAbilityThread::contentEmbedEventRunnerMap_;
-
 ExtensionAbilityThread::ExtensionAbilityThread() : extensionImpl_(nullptr), currentExtension_(nullptr) {}
 
 ExtensionAbilityThread::~ExtensionAbilityThread()
@@ -240,7 +238,7 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
     }
     TAG_LOGD(AAFwkTag::EXT, "abilityInfo: %{public}s", abilityInfo->name.c_str());
     if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::CONTENT_EMBED) {
-        HandleContentEmbedExtensionAttach(application, abilityRecord, abilityName);
+        HandleNativeExtensionAttach(application, abilityRecord, abilityName);
     } else {
         HandleNormalExtensionAttach(abilityRecord, mainRunner, abilityName);
     }
@@ -263,12 +261,12 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
     HandleAttachInner(application, abilityRecord);
 }
 
-void ExtensionAbilityThread::HandleContentEmbedExtensionAttach(
+void ExtensionAbilityThread::HandleNativeExtensionAttach(
     const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
     const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
     const std::string &abilityName)
 {
-    TAG_LOGI(AAFwkTag::EXT, "HandleContentEmbedExtensionAttach");
+    TAG_LOGI(AAFwkTag::EXT, "HandleNativeExtensionAttach");
     std::string bundleName = application->GetBundleName();
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::EXT, "Empty bundle name for ContentEmbed Extension");
@@ -276,11 +274,9 @@ void ExtensionAbilityThread::HandleContentEmbedExtensionAttach(
     }
  
     // Check if we already have an EventRunner for this application
-    std::lock_guard<std::mutex> lock(contentEmbedEventRunnerMapMutex_);
-    auto it = contentEmbedEventRunnerMap_.find(bundleName);
-    if (it != contentEmbedEventRunnerMap_.end()) {
+    if (contentEmbedEventRunner_ != nullptr) {
         // Reuse existing EventRunner for Content Embed Extensions in the same application
-        runner_ = it->second;
+        runner_ = contentEmbedEventRunner_;
         abilityHandler_ = std::make_shared<AppExecFwk::AbilityHandler>(runner_);
         TAG_LOGI(AAFwkTag::EXT, "Reusing existing Content Embed EventRunner for bundle: %{public}s", bundleName.c_str());
     } else {
@@ -296,7 +292,7 @@ void ExtensionAbilityThread::HandleContentEmbedExtensionAttach(
             return;
         }
         // Store the EventRunner for reuse by other Content Embed Extensions in the same application
-        contentEmbedEventRunnerMap_[bundleName] = runner_;
+        contentEmbedEventRunner_ = runner_;
         TAG_LOGI(AAFwkTag::EXT, "Created new Content Embed EventRunner for bundle: %{public}s", bundleName.c_str());
     }
 }
