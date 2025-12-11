@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
+import CompletionHandler from '@ohos.app.ability.CompletionHandler';
 import { RecordData } from '@ohos.base';
 
 export default interface OpenLinkOptions {
     appLinkingOnly?: boolean;
     parameters?: Record<string, RecordData>;
-}
-
-class OpenLinkOptionsImpl implements OpenLinkOptions {
-    appLinkingOnly?: boolean|undefined;
-    parameters?: Record<string, RecordData>|undefined;
+    hideFailureTipDialog?: boolean;
+    completionHandler?: CompletionHandler;
 }
