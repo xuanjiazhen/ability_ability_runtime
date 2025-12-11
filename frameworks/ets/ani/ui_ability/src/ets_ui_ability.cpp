@@ -77,7 +77,7 @@ constexpr const char *ON_SHARE_SIGNATURE = "Lescompat/Record;:V";
 constexpr const char *ON_COLLABORATE =
     "Lescompat/Record;:L@ohos/app/ability/AbilityConstant/AbilityConstant/CollaborateResult;";
 constexpr const char *ON_CONTINUE_SIG =
-    "C{std.core.Record}:C{@ohos.app.ability.AbilityConstant.AbilityConstant.OnContinueResult}";
+    "Lescompat/Record;:L@ohos/app/ability/AbilityConstant/AbilityConstant/OnContinueResult;";
 
 #define DISPATCH_ABILITY_INTEROP(type, applicationContext, etsRuntime, ability)                      \
     do {                                                                                            \
@@ -337,7 +337,7 @@ bool EtsUIAbility::BindNativeMethods()
             ani_native_function { "nativeOnDestroyCallback", ":V", reinterpret_cast<void *>(OnDestroyPromiseCallback) },
             ani_native_function { "nativeOnPrepareToTerminateCallback", "Z:V",
                 reinterpret_cast<void *>(OnPrepareTerminatePromiseCallback) },
-            ani_native_function { "nativeOnContinueCallback", ON_CONTINUE_SIG,
+            ani_native_function { "nativeOnContinueCallback", nullptr,
                 reinterpret_cast<void*>(OnContinuePromiseCallback) },
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
