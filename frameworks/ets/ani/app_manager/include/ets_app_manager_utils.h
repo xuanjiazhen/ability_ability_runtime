@@ -19,6 +19,7 @@
 
 #include "ability_state_data.h"
 #include "ani.h"
+#include "application_state_filter.h"
 #include "app_state_data.h"
 #include "ets_runtime.h"
 #include "keep_alive_info.h"
