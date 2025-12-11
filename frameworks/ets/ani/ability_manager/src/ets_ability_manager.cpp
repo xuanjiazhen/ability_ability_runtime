@@ -147,6 +147,8 @@ public:
     static void NativeClearPreloadedUIExtensionAbility(ani_env *env, ani_int preloadId, ani_object callback);
     static void NativeClearPreloadedUIExtensionAbilities(ani_env *env, ani_object callback);
     static void CheckPreloadUIExtensionAbilityPermission(ani_env *env);
+    static void nativeNotifySaveAsResult(ani_env *env, ani_object aniParameter,
+        ani_int requestCode, ani_object callback);
 
 private:
     static sptr<AppExecFwk::IAbilityManager> GetAbilityManagerInstance();
@@ -1037,6 +1039,30 @@ void EtsAbilityManager::NativeClearPreloadedUIExtensionAbilities(ani_env *env, a
     }
 }
 
+void EtsAbilityManager::nativeNotifySaveAsResult(
+    ani_env *env, ani_object aniParameter, ani_int requestCode, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NotifySaveAsResult");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    AppExecFwk::Want want;
+    int resultCode = ERR_OK;
+    if (!AppExecFwk::UnWrapAbilityResult(env, aniParameter, resultCode, want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "unwrap abilityResult failed");
+        return;
+    }
+    ErrCode errorCode = AAFwk::AbilityManagerClient::GetInstance()->
+        NotifySaveAsResult(want, resultCode, static_cast<int32_t>(requestCode));
+    if (errorCode != ERR_OK) {
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errorCode)), nullptr);
+        return;
+    }
+    AppExecFwk::AsyncCallback(env, callback, nullptr, nullptr);
+}
+
 void EtsAbilityManagerRegistryInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call EtsAbilityManagerRegistryInit");
@@ -1118,6 +1144,8 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::NativeClearPreloadedUIExtensionAbilities) },
         ani_native_function { "nativeCheckPreloadUIExtensionAbilityPermission", ETS_ABILITY_MANAGER_SIGNATURE_VOID,
             reinterpret_cast<void *>(EtsAbilityManager::CheckPreloadUIExtensionAbilityPermission) },
+        ani_native_function { "nativeNotifySaveAsResult",
+            nullptr, reinterpret_cast<void *>(EtsAbilityManager::nativeNotifySaveAsResult) }
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (status != ANI_OK) {
