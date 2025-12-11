@@ -398,11 +398,11 @@ std::vector<std::string> DataObsMgrService::GetGroupInfosFromCache(const std::st
         return it->second;
     }
     std::vector<std::string> groupIds;
-    for (auto it : infos) {
-        groupIds.push_back(it.dataGroupId);
+    for (auto &it : infos) {
+        groupIds.push_back(std::move(it.dataGroupId));
     }
     if (groupsIdCache_.size() >= CACHE_SIZE_THRESHOLD) {
-        LOG_INFO("groups id cache is full:%{public}d", groupsIdCache_.size());
+        LOG_INFO("groups id cache is full:%{public}zu", groupsIdCache_.size());
         groupsIdCache_.pop_front();
     }
     groupsIdCache_.emplace_back(key, groupIds);
