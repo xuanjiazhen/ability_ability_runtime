@@ -1173,7 +1173,7 @@ HWTEST_F(ExtensionAbilityThreadTest, ExtensionAbilityThread_HandleNormalExtensio
     ExtensionAbilityThread thread;
     thread.HandleNormalExtensionAttach(abilityRecord, nullptr, abilityName);
  
-    EXPECT_EQ(thread.runner_, nullptr);
+    EXPECT_NE(thread.runner_, nullptr);
     EXPECT_NE(thread.abilityHandler_, nullptr);
 }
  
