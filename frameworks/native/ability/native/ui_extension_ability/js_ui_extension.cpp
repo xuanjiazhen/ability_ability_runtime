@@ -753,6 +753,7 @@ void JsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
             napi_value argv[] = {contentSessions_[componentId]->GetNapiValue()};
             CallObjectMethod("onSessionDestroy", argv, ARGC_ONE);
         }
+        jsRuntime_.FreeNativeReference(std::move(contentSessions_[componentId]));
     }
     TAG_LOGI(AAFwkTag::UI_EXT, "Befor window destory, UIExtcomponent id: %{public}" PRId64,
         sessionInfo->uiExtensionComponentId);
