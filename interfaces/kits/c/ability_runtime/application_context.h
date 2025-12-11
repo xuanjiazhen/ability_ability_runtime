@@ -404,5 +404,13 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLogFileDir(
 } // extern "C"
 #endif
 
+/**
+ * @brief Notify page changed.
+ *
+ * @param targetPageName The target page name.
+ * @since 21
+ */
+void OH_AbilityRuntime_ApplicationContextNotifyPageChanged(char* targetPageName);
+
 /** @} */
 #endif // ABILITY_RUNTIME_APPLICATION_CONTEXT_H
