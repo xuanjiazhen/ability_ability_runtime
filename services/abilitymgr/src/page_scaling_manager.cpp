@@ -92,7 +92,7 @@ void PageScalingManager::ParseWhitelistConfig(const std::string &bundleName, con
             // 保存当前的condition和value到PageScalingConfig中
             config.bundleName = configBundleName;
             config.page.pageName = configPageName;
-            config.page.patternType = patternType;
+            config.page.patternType = jsonObj.value("page.patternType", "");
             
             // 解析dpi配置
             if (jsonObj.contains("dpi") && jsonObj["dpi"].is_array()) {
@@ -166,9 +166,57 @@ void PageScalingManager::NotifyPageChanged(char* targetPageName) {
     for (const auto& key : keys) {
         PageScalingConfig config;
         GetPageScalingConfig(key, bundleName, targetPageNameStr, config);
+        // 处理页面变化
+        HandleNavigateChangeInternal(key, targetPageNameStr, config);
     }
-    // 注册回调
-    RegisterPageChangeListeners(key, config);
+}
+
+void PageScalingManager::HandleNavigateChangeInternal(const std::string key, const std::string& targetPageName, const PageScalingConfig& config) {
+    if (targetPageName == config.page.pageName) {
+        // 处理页面变化
+        ApplyConfig(config, key);
+    }
+}
+
+void PageScalingManager::ApplyConfig(const PageScalingConfig& config, const std::string& key) {
+    switch(key) {
+        case "page_level_config_dpi":
+            // 应用DPI配置  
+            for (const auto& dpiConfig : config.dpi) {
+                // 这里可以根据条件判断是否应用配置
+                if (dpiConfig.condition.orientation.empty()) {
+                    // set Dpi ?? 
+                }
+            }
+            break;
+        case "page_level_config_hideStatusBar":
+            // 应用隐藏状态栏配置
+            for (const auto& hideConfig : config.hideStatusBar) {
+                
+                if (hideConfig.condition.orientation.empty()) {
+                    // set HideStatusBar ?? 
+                }
+            }
+            break;
+        case "page_level_config_videoShrink":
+            // 应用视频压缩配置
+            for (const auto& videoConfig : config.videoShrink) {
+                
+            }
+            break;
+        case "page_level_config_verticalDisplay":
+            // 应用垂直显示配置
+            for (const auto& verticalConfig : config.verticalDisplay) {
+                if (verticalConfig.condition.orientation == targetPageName.displayInfo.orientation) {
+                    // set VerticalDisplay ?? 
+                }
+            }
+            break;
+        default:
+            HILOG_ERROR(HILOG_MODULE_ABILITY_RUNTIME, "%{public}s: ApplyConfig failed, unknown key: %{public}s", TAG.c_str(), key.c_str());
+            break;
+    }
+    
 }
 
 // 根据key 和获取到的配置，调用对应的设置接口 
@@ -182,27 +230,7 @@ void PageScalingManager::RegisterPageChangeListeners(const std::string &key, con
         [window, key, config](const OHOS::Ace::NavigateChangeInfo& from, const OHOS::Ace::NavigateChangeInfo& to) {
         // TODO：不同的key，要调用什么接口去设置? 
         // 只拿到window对象，能否获取到需要比较的信息？
-        
-        switch (key) {
-            case "apps_page_level_config_dpi":
-
-                break;
-            case "apps_page_level_config_hideStatusBar":
-                
-                break;
-            case "apps_page_level_config_videoShrink":
-                
-                break;
-            case "apps_page_level_config_verticalDisplay":
-            // 如果目标页面是配置的页面，才设置
-                if(to.name == config.page.pageName) {
-                    // 比较目标页面的orientation 是否 == config.condition.orientation 
-                }
-                break;
-            default:
-                HILOG_ERROR(HILOG_MODULE_ABILITY_RUNTIME, "%{public}s: Unknown key: %{public}s", TAG.c_str(), key.c_str());
-                break;
-        }
+        HandleNavigateChangeInternal(to.name, config);
     });
 }
 
