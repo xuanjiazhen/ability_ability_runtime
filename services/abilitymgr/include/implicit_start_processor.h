@@ -133,6 +133,8 @@ private:
     bool FindAbilityAppClone(std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
     bool FindExtensionAppClone(std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
 
+    int32_t HandleSelfRedirection(bool isFromOpenLink, const std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+
 private:
     bool IsExtensionInWhiteList(AppExecFwk::ExtensionAbilityType type);
     ffrt::mutex identityListLock_;

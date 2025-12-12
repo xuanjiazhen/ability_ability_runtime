@@ -99,6 +99,7 @@ struct StartAbilityWrapParam {
     bool isFreeInstallFromService = false;
     uint64_t specifiedFullTokenId = 0;
     bool removeInsightIntentFlag = false;
+    bool isFromOpenLink = false;
 };
 }
 }
