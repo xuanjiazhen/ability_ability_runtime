@@ -16,6 +16,7 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "app_scheduler.h"
 #include "app_utils.h"
 #include "dialog_session_manager.h"
 #include "ecological_rule/ability_ecological_rule_mgr_service.h"
@@ -367,6 +368,25 @@ static void ProcessLinkType(std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
     }
 }
 
+int32_t ImplicitStartProcessor::HandleSelfRedirection(bool isFromOpenLink,
+    const std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
+{
+    if (!isFromOpenLink || abilityInfos.empty() || abilityInfos.size() > 1) {
+        return ERR_OK;
+    }
+    const AppExecFwk::AbilityInfo &abilityInfo = abilityInfos[0];
+    if (abilityInfo.allowSelfRedirect) {
+        return ERR_OK;
+    }
+    AppExecFwk::RunningProcessInfo processInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(
+        IPCSkeleton::GetCallingPid(), processInfo);
+    if (processInfo.bundleNames.empty() || processInfo.bundleNames[0] != abilityInfo.bundleName) {
+        return ERR_OK;
+    }
+    return ERR_SELF_REDIRECTION_DISALLOWED;
+}
+
 void ImplicitStartProcessor::OnlyKeepReserveApp(std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
     std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos, const AbilityRequest &request)
 {
@@ -494,6 +514,10 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
         request.want, abilityInfoFlag, userId, withDefault, abilityInfos, extensionInfos,
         genReqParam.findDefaultApp));
 
+    if (auto ret = HandleSelfRedirection(request.isFromOpenLink, abilityInfos); ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "disallow self redirection");
+        return ret;
+    }
     OnlyKeepReserveApp(abilityInfos, extensionInfos, request);
     if (isOpenLink && extensionInfos.size() > 0) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "clear extensionInfos");
