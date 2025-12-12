@@ -1804,7 +1804,7 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
     if (callerRecord != nullptr) {
         eventInfo.callerBundleName = callerRecord->GetBundleName();
     } else {
-        TAG_LOGD(AAFwkTag::APPMGR, "callerRecord null");
+        TAG_LOGW(AAFwkTag::APPMGR, "callerRecord null");
     }
     AAFwk::EventReport::SendAppForegroundEvent(AAFwk::EventName::APP_FOREGROUND, eventInfo);
     if (appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
