@@ -156,19 +156,20 @@ namespace {
         return ERR_NOT_SYSTEM_APP;                                                             \
     }
 
-#define OPEN_LINK_START_ABILITY(WANT, TOKEN, USER, CODE, REMOVE_INSIGHT, HIDE_FAILURE)  \
-    do {                                                                                \
-        StartAbilityWrapParam param = {                                                 \
-            .want = WANT,                                                               \
-            .callerToken = TOKEN,                                                       \
-            .requestCode = CODE,                                                        \
-            .userId = USER,                                                             \
-            .removeInsightIntentFlag = REMOVE_INSIGHT,                                  \
-            .hideFailureTipDialog = HIDE_FAILURE,                                       \
-        };                                                                              \
-        int retCode = StartAbilityWithRemoveIntentFlag(param);                          \
-        CHECK_RET_RETURN_RET(retCode, "startAbility failed");                           \
-        return ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK;                                  \
+#define OPEN_LINK_START_ABILITY(WANT, TOKEN, USER, CODE, REMOVE_INSIGHT, HIDE_FAILURE, FROM_OPEN_LINK)  \
+    do {                                                                                                \
+        StartAbilityWrapParam PARAM = {                                                                 \
+            .want = WANT,                                                                               \
+            .callerToken = TOKEN,                                                                       \
+            .requestCode = CODE,                                                                        \
+            .userId = USER,                                                                             \
+            .hideFailureTipDialog = HIDE_FAILURE,                                                       \
+            .removeInsightIntentFlag = REMOVE_INSIGHT,                                                  \
+            .isFromOpenLink = FROM_OPEN_LINK,                                                           \
+        };                                                                                              \
+        int retCode = StartAbilityWithRemoveIntentFlag(PARAM);                                          \
+        CHECK_RET_RETURN_RET(retCode, "startAbility failed");                                           \
+        return ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK;                                                  \
     } while (0)
 
 #define IS_FOUNDATION_CALL  \
@@ -690,8 +691,8 @@ int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObje
     StartAbilityWrapParam param = {
         .want = want,
         .callerToken = callerToken,
-        .userId = userId,
         .requestCode = requestCode,
+        .userId = userId,
         .specifiedFullTokenId = specifiedFullTokenId,
         .removeInsightIntentFlag = true,
     };
@@ -1369,6 +1370,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     AbilityRequest abilityRequest;
     abilityRequest.hideFailureTipDialog = param.hideFailureTipDialog;
     abilityRequest.isFromIcon = param.isBySCB;
+    abilityRequest.isFromOpenLink = param.isFromOpenLink;
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(param.want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
@@ -14869,22 +14871,32 @@ ErrCode AbilityManagerService::OpenLinkInner(const Want& want, sptr<IRemoteObjec
     if (!WantUtils::IsShortUrl(want) || ((!IS_FOUNDATION_CALL || callerBundleName.empty()) &&
         WantUtils::GetCallerBundleName(callerBundleName) != ERR_OK)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability by default");
-        OPEN_LINK_START_ABILITY(want, callerToken, userId, requestCode, removeInsightIntentFlag, hideFailureTipDialog);
+        OPEN_LINK_START_ABILITY(want, callerToken, userId, requestCode, removeInsightIntentFlag,
+            hideFailureTipDialog, true);
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "callerBundleName=%{public}s", callerBundleName.c_str());
     convertedWant.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
     uint32_t targetType = TARGET_TYPE_INIT;
     if (WantUtils::ConvertToExplicitWant(convertedWant, targetType) != ERR_OK) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ConvertToExplicitWant fail. start ability by default");
-        OPEN_LINK_START_ABILITY(want, callerToken, userId, requestCode, removeInsightIntentFlag, hideFailureTipDialog);
+        OPEN_LINK_START_ABILITY(want, callerToken, userId, requestCode, removeInsightIntentFlag,
+            hideFailureTipDialog, true);
     }
     if (WantUtils::IsNormalApp(targetType)) {
         OPEN_LINK_START_ABILITY(convertedWant, callerToken, userId, requestCode, removeInsightIntentFlag,
-            hideFailureTipDialog);
+            hideFailureTipDialog, true);
     }
     if (WantUtils::IsAtomicService(targetType)) {
-        return OpenLinkFreeInstallAtomicService(convertedWant, want, callerToken, userId, requestCode,
-            removeInsightIntentFlag, hideFailureTipDialog);
+        StartAbilityWrapParam param = {
+            .want = convertedWant,
+            .callerToken = callerToken,
+            .requestCode = requestCode,
+            .userId = userId,
+            .removeInsightIntentFlag = removeInsightIntentFlag,
+            .hideFailureTipDialog = hideFailureTipDialog,
+            .isFromOpenLink = true,
+        };
+        return OpenLinkFreeInstallAtomicService(param, want);
     }
     bool curAppLinkingOnlyFlag = convertedWant.GetBoolParam(APP_LINKING_ONLY, false);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "openLink not specific app or atomicService. AppLinkingOnly: %{public}d",
@@ -14893,25 +14905,23 @@ ErrCode AbilityManagerService::OpenLinkInner(const Want& want, sptr<IRemoteObjec
         return RESOLVE_ABILITY_ERR;
     }
     OPEN_LINK_START_ABILITY(convertedWant, callerToken, userId, requestCode, removeInsightIntentFlag,
-        hideFailureTipDialog);
+        hideFailureTipDialog, true);
 }
 
-int32_t AbilityManagerService::OpenLinkFreeInstallAtomicService(Want &convertedWant,
-    const Want &originalWant, sptr<IRemoteObject> callerToken, int32_t userId, int32_t requestCode,
-    bool removeInsightIntentFlag, bool hideFailureTipDialog)
+int32_t AbilityManagerService::OpenLinkFreeInstallAtomicService(StartAbilityWrapParam &param, const Want &originalWant)
 {
     if (freeInstallManager_ == nullptr) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "freeInstallManager_ nullptr. start ability by default");
-        OPEN_LINK_START_ABILITY(originalWant, callerToken, userId, requestCode,
-            removeInsightIntentFlag, hideFailureTipDialog);
+        OPEN_LINK_START_ABILITY(originalWant, param.callerToken, param.userId, param.requestCode,
+            param.removeInsightIntentFlag, param.hideFailureTipDialog, param.isFromOpenLink);
     }
-    convertedWant.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
-    auto param = std::make_shared<FreeInstallParams>();
-    param->isAsync = true;
-    param->isOpenAtomicServiceShortUrl = true;
-    param->originalWant = std::make_shared<Want>(originalWant);
-    ErrCode retCode = freeInstallManager_->StartFreeInstall(convertedWant, GetValidUserId(userId),
-        requestCode, callerToken, param);
+    param.want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
+    auto freeInstallParam = std::make_shared<FreeInstallParams>();
+    freeInstallParam->isAsync = true;
+    freeInstallParam->isOpenAtomicServiceShortUrl = true;
+    freeInstallParam->originalWant = std::make_shared<Want>(originalWant);
+    ErrCode retCode = freeInstallManager_->StartFreeInstall(param.want, GetValidUserId(param.userId),
+        param.requestCode, param.callerToken, freeInstallParam);
     if (retCode != ERR_OK) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "startFreeInstall returns errCode=%{public}d", retCode);
         if (retCode == NOT_TOP_ABILITY) {
@@ -14919,8 +14929,8 @@ int32_t AbilityManagerService::OpenLinkFreeInstallAtomicService(Want &convertedW
             return retCode;
         }
         TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability by default");
-        OPEN_LINK_START_ABILITY(originalWant, callerToken, userId, requestCode,
-            removeInsightIntentFlag, hideFailureTipDialog);
+        OPEN_LINK_START_ABILITY(originalWant, param.callerToken, param.userId, param.requestCode,
+            param.removeInsightIntentFlag, param.hideFailureTipDialog, param.isFromOpenLink);
     }
     return ERR_OK;
 }
