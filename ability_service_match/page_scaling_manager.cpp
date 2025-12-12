@@ -179,8 +179,9 @@ void PageScalingManager::ApplyConfig(const PageScalingConfig& config, const std:
         case "apps_page_level_config_hideStatusBar":
             for (const auto& hideConfig : config.hideStatusBar) {
                 if (hideConfig.condition.empty()) {
-                    std::optional<Rosen::SystemBarProperty> prop;
-                    prop->enable_ = hideConfig.value;
+                    auto prop = window->GetSystemBarPropertyForPage(Rosen::WidnowType::WINDOW_STATUS_BAR);
+                    bool hideValue = (hideConfig.value == "true");
+                    prop->enable_ = !hideValue;
                     window->SetSystemBarPropertyForPage(Rosen::WidnowType::WINDOW_STATUS_BAR, prop);
                     break;
                 }
