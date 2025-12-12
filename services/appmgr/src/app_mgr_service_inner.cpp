@@ -209,6 +209,7 @@ constexpr const int32_t BETA_APPFREEZE_KILL_WAIT_TIME = 6000; // 6s
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
 #endif // WITH_DLP
 
+constexpr const char* ALLOW_AA_MEMORY_ASYN = "persist.sys.abilityms.allow_aa_memory_asynchronous";
 constexpr const char* SUPPORT_ISOLATION_MODE = "persist.bms.supportIsolationMode";
 constexpr const char* SUPPORT_SERVICE_EXT_MULTI_PROCESS = "component.startup.extension.multiprocess.enable";
 constexpr const char* SERVICE_EXT_MULTI_PROCESS_WHITE_LIST = "component.startup.extension.multiprocess.whitelist";
@@ -2960,6 +2961,10 @@ int32_t AppMgrServiceInner::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLe
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager null");
         return ERR_INVALID_VALUE;
+    }
+    std::string allowShellCallAsyn = OHOS::system::GetParameter(ALLOW_AA_MEMORY_ASYN, "true");
+    if (allowShellCallAsyn == "true") {
+        isShellCall = false;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "isShellCall %{public}d", isShellCall);
     return appRunningManager_->NotifyProcMemoryLevel(procLevelMap, isShellCall);
