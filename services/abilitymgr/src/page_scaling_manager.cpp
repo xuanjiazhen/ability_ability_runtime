@@ -184,24 +184,29 @@ void PageScalingManager::ApplyConfig(const PageScalingConfig& config, const std:
             // 应用DPI配置  
             for (const auto& dpiConfig : config.dpi) {
                 // 这里可以根据条件判断是否应用配置
-                if (dpiConfig.condition.orientation.empty()) {
-                    // set Dpi ?? 
+                if (dpiConfig.condition.empty()) {
+                    bool applyToSubwindow = false;
+                    float density = std::stof(dpiConfig.value);
+                    window->SetCustomDensity(density, applyToSubwindow);
+                    break;
                 }
             }
             break;
         case "page_level_config_hideStatusBar":
             // 应用隐藏状态栏配置
             for (const auto& hideConfig : config.hideStatusBar) {
-                
-                if (hideConfig.condition.orientation.empty()) {
-                    // set HideStatusBar ?? 
+                if (hideConfig.condition.empty()) {
+                    std::optional<Rosen::SystemBarProperty> prop;
+                    prop->enable_ = hideConfig.value;
+                    window->SetSystemBarPropertyForPage(Rosen::WidnowType::WINDOW_STATUS_BAR, prop);
+                    break;
                 }
             }
             break;
         case "page_level_config_videoShrink":
             // 应用视频压缩配置
             for (const auto& videoConfig : config.videoShrink) {
-                
+
             }
             break;
         case "page_level_config_verticalDisplay":
