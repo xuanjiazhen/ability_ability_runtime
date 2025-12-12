@@ -555,7 +555,6 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLogFileDir(
 
 void OH_AbilityRuntime_ApplicationContextNotifyPageChanged(char* targetPageName)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "notifyPageChanged called, targetPageName: %{public}s", targetPageName);
-    // Call PageScalingManager's NotifyPageChanged method
+    TAG_LOGD(AAFwkTag::APPKIT, "notifyPageChanged called");
     OHOS::AbilityRuntime::PageScalingManager::GetInstance().NotifyPageChanged(targetPageName);
 }

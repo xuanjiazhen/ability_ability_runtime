@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_PAGE_SCALING_MANAGER_H
-#define OHOS_ABILITY_RUNTIME_PAGE_SCALING_MANAGER_H
+#ifndef FOUNDATION_ABILITY_RUNTIME_SERVICE_MATCH_PAGE_SCALING_MANAGER_H
+#define FOUNDATION_ABILITY_RUNTIME_SERVICE_MATCH_PAGE_SCALING_MANAGER_H
 
 #include <string>
 #include <vector>
@@ -22,43 +22,36 @@
 #include <mutex>
 #include "nlohmann/json.hpp"
 #include "setting_data_manager.h"
-
-// 窗口模块相关头文件（示例，实际需要根据具体的窗口模块接口进行调整）
-// #include "window_manager.h"
+#include "ui_content.h"
+#include "window.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 
-// 通用条件结构体
 typedef struct {
     std::string orientation;
 } Condition;
 
-// DPI配置结构体
 typedef struct {
     Condition condition;
     std::string value;
 } DpiConfig;
 
-// 状态栏隐藏配置结构体
 typedef struct {
     Condition condition;
     std::string value;
 } HideStatusBarConfig;
 
-// 视频缩放配置结构体
 typedef struct {
     Condition condition;
     std::string value;
 } VideoShrinkConfig;
 
-// 垂直显示配置结构体
 typedef struct {
     Condition condition;
     std::string value;
 } VerticalDisplayConfig;
 
-// 页面缩放配置结构体
 typedef struct {
     std::string bundleName;
     struct {
@@ -71,31 +64,21 @@ typedef struct {
     std::vector<VerticalDisplayConfig> verticalDisplay;
 } PageScalingConfig;
 
-// 页面缩放管理类
 class PageScalingManager {
 public:
-    // 获取单例实例
     static PageScalingManager &GetInstance();
-
-    // 初始化
-    void Initialize(const std::string &key, const std::string &bundleName, const std::string &pageName);
-
-    // 获取当前页面的缩放配置
-    PageScalingConfig GetPageScalingConfig(const std::string &key, const std::string &bundleName, const std::string &pageName);
-
-    // 三方框架通知页面变化
+    void Initialize(sptr<Rosen::Window>& window, const std::string &key, const std::string &bundleName, const std::string &pageName);
+    void GetPageScalingConfig(const std::string &key, const std::string &bundleName, const std::string &pageName, PageScalingConfig &config);
     void NotifyPageChanged(char* targetPageName);
 
 private:
     PageScalingManager();
     ~PageScalingManager() = default;
 
-    // 解析白名单配置
     void ParseWhitelistConfig(const std::string &bundleName, const std::string &pageName, const std::string &configJson, PageScalingConfig &config);
-
-    // 处理页面导航变化
-    void HandleNavigateChange(const NavigateChangeInfo& from, const NavigateChangeInfo& to);
-
+    void RegisterPageChangeListeners(const std::string &key, const PageScalingConfig &config);
+    void HandleNavigateChangeInternal(const std::string key, const std::string& targetPageName, const PageScalingConfig& config);
+    void ApplyConfig(const PageScalingConfig& config, const std::string& key);
 };
 
 } // namespace AbilityRuntime

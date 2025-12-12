@@ -15,86 +15,77 @@
 
 #include "page_scaling_manager.h"
 
-#include "hilog/log.h"
+#include <map>
+#include <optional>
 #include <string>
 #include <vector>
 #include <mutex>
+#include "hilog_tag_wrapper.h"
 #include "setting_data_manager.h"
 #include "ui_content.h"
+#include "window.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 
-static const std::string TAG = "PageScalingManager";
-
-// 实现单例模式
 PageScalingManager &PageScalingManager::GetInstance() {
     static PageScalingManager instance;
     return instance;
 }
 
-// 初始化
-void PageScalingManager::Initialize(sptr<Rosen::Window>& window, const std::string &key, const std::string &bundleName, const std::string &pageName) {
+void PageScalingManager::Initialize(sptr<Rosen::Window>& window, const std::string &key,
+    const std::string &bundleName, const std::string &pageName)
+{
     if (window == nullptr) {
-        HILOG_ERROR(HILOG_MODULE_ABILITY_RUNTIME, "%{public}s: window is null", TAG.c_str());
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "window null");
         return;
     }
     
-    // 调用getPageScalingConfig获取配置
     PageScalingConfig config;
     GetPageScalingConfig(window, key, bundleName, pageName, config);
-    
-    
-    // 注册页面监听回调
     RegisterPageChangeListeners(key, config);
 }
 
-// 获取当前页面的缩放配置
-void PageScalingManager::GetPageScalingConfig(const std::string &key, const std::string &bundleName, const std::string &pageName, PageScalingConfig &config) {
+void PageScalingManager::GetPageScalingConfig(const std::string &key, const std::string &bundleName,
+    const std::string &pageName, PageScalingConfig &config)
+{
     
-    // 从SettingData中获取白名单信息
     SettingDataManager &settingManager = SettingDataManager::GetInstance();
     
-    // 检查SettingDataManager是否已初始化
     if (!settingManager.IsInitialized()) {
-        HILOG_ERROR(HILOG_MODULE_ABILITY_RUNTIME, "%{public}s: SettingDataManager is not initialized", TAG.c_str());
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SettingDataManager invalid");
         return;
     }
 
-    // 从SettingData获取白名单配置
     std::string configJson;
     ErrCode ret = settingManager.GetStringValue(key, configJson);
     if (ret != ERR_OK) {
-        HILOG_ERROR(HILOG_MODULE_ABILITY_RUNTIME, "%{public}s: Failed to get string value for key: %{public}s, ret: %{public}d", TAG.c_str(), key.c_str(), ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get value key: %{public}s, ret: %{public}d", key.c_str(), ret);
         return;
     }
 
-    // 解析白名单配置
     ParseWhitelistConfig(bundleName, pageName, configJson, config);
 }
 
 
-// 解析白名单配置
-void PageScalingManager::ParseWhitelistConfig(const std::string &bundleName, const std::string &pageName, const std::string &configJson, PageScalingConfig &config) {
+void PageScalingManager::ParseWhitelistConfig(const std::string &bundleName, const std::string &pageName,
+    const std::string &configJson, PageScalingConfig &config)
+{
     try {
-        // 把configJson从string变成Array<Object>
         nlohmann::json jsonArray = nlohmann::json::parse(configJson);
         
-        // 遍历jsonArray
         for (auto& jsonObj : jsonArray) {
-            // 比较bundleName pageName是否一致
             std::string configBundleName = jsonObj.value("bundleName", "");
             std::string configPageName = jsonObj.value("page.pageName", "");
             if (configPageName != targetPageName) {
                 continue;
             }
-            HILOG_INFO(HILOG_MODULE_ABILITY_RUNTIME, "found current page");
-            // 保存当前的condition和value到PageScalingConfig中
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "found page config");
+            
             config.bundleName = configBundleName;
             config.page.pageName = configPageName;
             config.page.patternType = jsonObj.value("page.patternType", "");
             
-            // 解析dpi配置
             if (jsonObj.contains("dpi") && jsonObj["dpi"].is_array()) {
                 for (const auto& dpiJson : jsonObj["dpi"]) {
                     DpiConfig dpiConfig;
@@ -104,7 +95,6 @@ void PageScalingManager::ParseWhitelistConfig(const std::string &bundleName, con
                 }
             }
             
-            // 解析hideStatusBar配置
             if (jsonObj.contains("hideStatusBar") && jsonObj["hideStatusBar"].is_array()) {
                 for (const auto& hideStatusBarJson : jsonObj["hideStatusBar"]) {
                     HideStatusBarConfig hideStatusBarConfig;
@@ -114,7 +104,6 @@ void PageScalingManager::ParseWhitelistConfig(const std::string &bundleName, con
                 }
             }
             
-            // 解析videoShrink配置
             if (jsonObj.contains("videoShrink") && jsonObj["videoShrink"].is_array()) {
                 for (const auto& videoShrinkJson : jsonObj["videoShrink"]) {
                     VideoShrinkConfig videoShrinkConfig;
@@ -124,7 +113,6 @@ void PageScalingManager::ParseWhitelistConfig(const std::string &bundleName, con
                 }
             }
             
-            // 解析verticalDisplay配置
             if (jsonObj.contains("verticalDisplay") && jsonObj["verticalDisplay"].is_array()) {
                 for (const auto& verticalDisplayJson : jsonObj["verticalDisplay"]) {
                     VerticalDisplayConfig verticalDisplayConfig;
@@ -138,52 +126,48 @@ void PageScalingManager::ParseWhitelistConfig(const std::string &bundleName, con
             }
         }
     } catch (const std::exception& e) {
-        HILOG_ERROR(HILOG_MODULE_ABILITY_RUNTIME, "%{public}s: ParseWhitelistConfig failed, exception: %{public}s", TAG.c_str(), e.what());
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ParseWhitelistConfig failed, exception: %{public}s", e.what());
     }
 }
 
 
-
-// 三方框架通知页面变化
-void PageScalingManager::NotifyPageChanged(char* targetPageName) {
+void PageScalingManager::NotifyPageChanged(char* targetPageName)
+{
     if (targetPageName == nullptr) {
-        HILOG_ERROR(HILOG_MODULE_ABILITY_RUNTIME, "%{public}s: targetPageName is nullptr", TAG.c_str());
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "targetPage null");
         return;
     }
 
     std::string targetPageNameStr(targetPageName);
-    HILOG_INFO(HILOG_MODULE_ABILITY_RUNTIME, "%{public}s: NotifyPageChanged, targetPageName: %{public}s", TAG.c_str(), targetPageNameStr.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyPageChanged, targetPageName: %{public}s", targetPageNameStr.c_str());
 
-    // 定义白名单key列表
     std::vector<std::string> keys = {
-        "page_level_config_dpi",
-        "page_level_config_hideStatusBar",
-        "page_level_config_videoShrink",
-        "page_level_config_verticalDisplay"
+        "apps_page_level_config_dpi",
+        "apps_page_level_config_hideStatusBar",
+        "apps_page_level_config_videoShrink",
+        "apps_page_level_config_verticalDisplay"
     };
 
-    // 获取目标页面的白名单信息
     for (const auto& key : keys) {
         PageScalingConfig config;
         GetPageScalingConfig(key, bundleName, targetPageNameStr, config);
-        // 处理页面变化
         HandleNavigateChangeInternal(key, targetPageNameStr, config);
     }
 }
 
-void PageScalingManager::HandleNavigateChangeInternal(const std::string key, const std::string& targetPageName, const PageScalingConfig& config) {
+void PageScalingManager::HandleNavigateChangeInternal(const std::string key,
+    const std::string& targetPageName, const PageScalingConfig& config)
+{
     if (targetPageName == config.page.pageName) {
-        // 处理页面变化
         ApplyConfig(config, key);
     }
 }
 
-void PageScalingManager::ApplyConfig(const PageScalingConfig& config, const std::string& key) {
+void PageScalingManager::ApplyConfig(const PageScalingConfig& config, const std::string& key)
+{
     switch(key) {
-        case "page_level_config_dpi":
-            // 应用DPI配置  
+        case "apps_page_level_config_dpi":
             for (const auto& dpiConfig : config.dpi) {
-                // 这里可以根据条件判断是否应用配置
                 if (dpiConfig.condition.empty()) {
                     bool applyToSubwindow = false;
                     float density = std::stof(dpiConfig.value);
@@ -192,8 +176,7 @@ void PageScalingManager::ApplyConfig(const PageScalingConfig& config, const std:
                 }
             }
             break;
-        case "page_level_config_hideStatusBar":
-            // 应用隐藏状态栏配置
+        case "apps_page_level_config_hideStatusBar":
             for (const auto& hideConfig : config.hideStatusBar) {
                 if (hideConfig.condition.empty()) {
                     std::optional<Rosen::SystemBarProperty> prop;
@@ -203,31 +186,24 @@ void PageScalingManager::ApplyConfig(const PageScalingConfig& config, const std:
                 }
             }
             break;
-        case "page_level_config_videoShrink":
-            // 应用视频压缩配置
+        case "apps_page_level_config_videoShrink":
             for (const auto& videoConfig : config.videoShrink) {
-
             }
             break;
-        case "page_level_config_verticalDisplay":
-            // 应用垂直显示配置
+        case "apps_page_level_config_verticalDisplay":
             for (const auto& verticalConfig : config.verticalDisplay) {
-                if (verticalConfig.condition.orientation == targetPageName.displayInfo.orientation) {
-                    // set VerticalDisplay ?? 
-                }
             }
             break;
         default:
-            HILOG_ERROR(HILOG_MODULE_ABILITY_RUNTIME, "%{public}s: ApplyConfig failed, unknown key: %{public}s", TAG.c_str(), key.c_str());
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "unknown key: %{public}s", key.c_str());
             break;
     }
-    
 }
 
-// 根据key 和获取到的配置，调用对应的设置接口 
-void PageScalingManager::RegisterPageChangeListeners(const std::string &key, const PageScalingConfig &config) {
+void PageScalingManager::RegisterPageChangeListeners(const std::string &key, const PageScalingConfig &config)
+{
     if (!window || !window->GetUIContent()) {
-        HILOG_ERROR(HILOG_MODULE_ABILITY_RUNTIME, "Window or UIContent is null");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "window or uicontent ull");
         return;
     }
     //TODO：注册页面监听回调？
