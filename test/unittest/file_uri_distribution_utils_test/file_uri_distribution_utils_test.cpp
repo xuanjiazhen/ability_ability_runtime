@@ -175,6 +175,18 @@ HWTEST_F(FileUriDistributionUtilsTest, GetTokenIdByBundleName_001, TestSize.Leve
 
 /*
  * Feature: FUDUtils
+ * Function: IsPrivliegedSACall
+ * SubFunction: NA
+ * FunctionPoints: FUDUtils IsPrivliegedSACall
+ */
+HWTEST_F(FileUriDistributionUtilsTest, IsPrivliegedSACall_001, TestSize.Level1)
+{
+    bool ret = FUDUtils::IsPrivliegedSACall();
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: FUDUtils
  * Function: IsUdmfOrPasteboardCall
  * SubFunction: NA
  * FunctionPoints: FUDUtils IsUdmfOrPasteboardCall
