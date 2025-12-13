@@ -3599,18 +3599,18 @@ bool MainThread::GetHqfFileAndHapPath(const std::string &bundleName,
         TAG_LOGE(AAFwkTag::APPKIT, "Get bundle info of %{public}s failed", bundleName.c_str());
         return false;
     }
-    
+
     for (auto hapInfo : bundleInfo.hapModuleInfos) {
-        if (processInfo_ == nullptr || hapInfo.hqfInfo.hqfFilePath.empty()) {
-            break;
+        if (!hapInfo.hqfInfo.hqfFilePath.empty()) {
+            std::string resolvedHapPath(AbilityBase::GetLoadPath(hapInfo.hapPath));
+            std::string resolvedHqfFile(AbilityBase::GetLoadPath(hapInfo.hqfInfo.hqfFilePath));
+            TAG_LOGD(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s, processName: %{private}s, "
+                "hqf file: %{private}s, hap path: %{private}s", bundleName.c_str(), hapInfo.moduleName.c_str(),
+                hapInfo.process.c_str(), resolvedHqfFile.c_str(), resolvedHapPath.c_str());
+            fileMap.push_back(std::pair<std::string, std::string>(resolvedHqfFile, resolvedHapPath));
         }
-        std::string resolvedHapPath(AbilityBase::GetLoadPath(hapInfo.hapPath));
-        std::string resolvedHqfFile(AbilityBase::GetLoadPath(hapInfo.hqfInfo.hqfFilePath));
-        TAG_LOGD(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s, processName: %{private}s, "
-            "hqf file: %{private}s, hap path: %{private}s", bundleName.c_str(), hapInfo.moduleName.c_str(),
-            hapInfo.process.c_str(), resolvedHqfFile.c_str(), resolvedHapPath.c_str());
-        fileMap.push_back(std::pair<std::string, std::string>(resolvedHqfFile, resolvedHapPath));
     }
+
     return true;
 }
 
