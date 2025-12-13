@@ -421,12 +421,9 @@ bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<JsRuntime> &
 
 void ETSRuntime::FinishPreload()
 {
-    if (jsRuntime_ != nullptr) {
-        jsRuntime_->FinishPreload();
-    }
-
     napi_env napiEnv = nullptr;
     if (jsRuntime_ != nullptr) {
+        jsRuntime_->FinishPreload();
         napiEnv = static_cast<AbilityRuntime::JsRuntime *>(jsRuntime_.get())->GetNapiEnv();
     }
 
