@@ -164,12 +164,12 @@ void ApplicationImpl::PerformMemoryLevel(int level)
  * @param config Indicates the updated configuration information.
  *
  */
-void ApplicationImpl::PerformConfigurationUpdated(const Configuration &config)
+void ApplicationImpl::PerformConfigurationUpdated(const Configuration &config, ConfigUpdateReason reason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     if (application_ != nullptr) {
-        application_->OnConfigurationUpdated(config, AbilityRuntime::SetLevel::System);
+        application_->OnConfigurationUpdated(config, AbilityRuntime::SetLevel::System, reason);
     }
 }
 

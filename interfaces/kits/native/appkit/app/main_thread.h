@@ -279,7 +279,8 @@ public:
      * @param config The updated config.
      *
      */
-    void ScheduleConfigurationUpdated(const Configuration &config) override;
+    void ScheduleConfigurationUpdated(const Configuration &config,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) override;
 
     /**
      *
@@ -539,9 +540,11 @@ private:
      * @brief send the new config to the application.
      *
      * @param config The updated config.
+     * @param reason The updated configuration scene flag.
      *
      */
-    void HandleConfigurationUpdated(const Configuration &config);
+    void HandleConfigurationUpdated(const Configuration &config,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT);
 
     /**
      *

@@ -32,7 +32,9 @@ MockApplication::MockApplication()
     lifecycleCallBack_ = std::make_shared<MockModuleLifecycleCallbacks>();
 }
 
-void MockApplication::OnConfigurationUpdated(const Configuration& config)
+void MockApplication::OnConfigurationUpdated(Configuration config,
+        AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::System,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT)
 {
     GTEST_LOG_(INFO) << "MockApplication::OnConfigurationUpdated called";
     bool iscalled = true;

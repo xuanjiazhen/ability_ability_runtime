@@ -26,7 +26,9 @@ public:
     MockApplication();
     virtual ~MockApplication() = default;
 
-    virtual void OnConfigurationUpdated(const Configuration& config);
+    virtual void OnConfigurationUpdated(Configuration config,
+        AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::System,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) override;
     virtual void OnMemoryLevel(int level);
     virtual void OnForeground();
     virtual void OnBackground();
