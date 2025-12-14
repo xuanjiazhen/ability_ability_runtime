@@ -318,7 +318,8 @@ public:
         }
     }
 
-    void ScheduleConfigurationUpdated(const Configuration& config)
+    void ScheduleConfigurationUpdated(
+        const Configuration& config, UpdateConfigReason reason = UpdateConfigReason::CONFIG_UPDATE_REASON_DEFAULT)
     {
         if (Appthread_ != nullptr) {
             Appthread_->ScheduleConfigurationUpdated(config);

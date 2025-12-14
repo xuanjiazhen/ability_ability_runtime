@@ -27,6 +27,7 @@ constexpr const int32_t DEFAULT_MAX_EXT_PER_PROC = 10;
 constexpr const int32_t DEFAULT_MAX_EXT_PER_DEV = 100;
 constexpr const int32_t DEFAULT_INVALID_VALUE = -1;
 constexpr const int32_t DEFAULT_MAX_CHILD_PROCESS = 0;
+
 template<typename T>
 class DeviceConfiguration {
 public:

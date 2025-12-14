@@ -38,6 +38,7 @@ using GetDisplayConfigCallback = std::function<bool(uint64_t displayId, float &d
 class UIAbility;
 using GetAllUIAbilitiesCallback = std::function<void(std::vector<std::shared_ptr<UIAbility>> &uiAbility)>;
 #endif
+using ConfigUpdateReason = OHOS::AppExecFwk::ConfigUpdateReason;
 class ContextImpl : public Context {
 public:
     ContextImpl();
@@ -442,6 +443,10 @@ public:
 
     std::string GetLatestParameter();
 
+    ConfigUpdateReason GetConfigUpdateReason() override;
+
+    void SetConfigUpdateReason(ConfigUpdateReason reason);
+
 #ifdef SUPPORT_SCREEN
     /**
      * @brief Query all UIAbilities of the current process.
@@ -598,6 +603,8 @@ private:
     std::shared_ptr<AAFwk::WantParams> launchParameter_ = nullptr;
     std::mutex latestParameterMutex_;
     std::shared_ptr<AAFwk::WantParams> latestParameter_ = nullptr;
+    std::mutex configUpdateReasonLock_;
+    ConfigUpdateReason configUpdateReason_ = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT;
 
 #ifdef SUPPORT_GRAPHICS
     static std::mutex getDisplayConfigCallbackMutex_;
