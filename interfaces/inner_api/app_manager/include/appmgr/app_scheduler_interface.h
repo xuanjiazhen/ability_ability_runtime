@@ -178,10 +178,12 @@ public:
      * ScheduleConfigurationUpdated, call ScheduleConfigurationUpdated() through proxy project,
      * Notify application to configuration update.
      *
-     * @param The configuration data.
+     * @param config, The configuration data.
+     * @param reason, The configuration update scene flag.
      * @return
      */
-    virtual void ScheduleConfigurationUpdated(const Configuration &config) = 0;
+    virtual void ScheduleConfigurationUpdated(const Configuration &config,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) = 0;
 
     /**
      * ScheduleProcessSecurityExit, call ScheduleProcessSecurityExit() through proxy project,

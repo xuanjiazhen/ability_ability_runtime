@@ -66,7 +66,8 @@ public:
     {}
     void ScheduleProfileChanged(const Profile&) override
     {}
-    void ScheduleConfigurationUpdated(const Configuration&) override
+    void ScheduleConfigurationUpdated(
+        const Configuration&, ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) override
     {}
     void ScheduleProcessSecurityExit() override
     {}

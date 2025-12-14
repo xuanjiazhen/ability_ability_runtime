@@ -119,7 +119,8 @@ public:
     {
         scheduled_ |= PROFILE_CHANGED_SCHEDULED;
     }
-    void ScheduleConfigurationUpdated(const Configuration& config)
+    void ScheduleConfigurationUpdated(
+        const Configuration& config, ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT)
     {
         scheduled_ |= SCHEDULE_CONFIGURATION_UPDATED;
     }
