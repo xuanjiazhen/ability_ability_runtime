@@ -368,7 +368,6 @@ ohos_shared_library("abilitykit_native") {
 
   external_deps = [
     "ability_base:base",
-    "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
