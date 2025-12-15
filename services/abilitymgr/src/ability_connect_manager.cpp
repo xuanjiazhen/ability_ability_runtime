@@ -181,7 +181,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
         //  Do not distinguishing specific error codes
         return ERR_INVALID_VALUE;
     }
-
+    //获取record 各自实现
     std::shared_ptr<BaseExtensionRecord> targetService;
     bool isLoadedAbility = false;
     std::string hostBundleName;
@@ -234,6 +234,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     }
 
     ReportEventToRSS(abilityRequest.abilityInfo, targetService, abilityRequest.callerToken);
+    //以下子类重写
     if (!isLoadedAbility) {
         TAG_LOGD(AAFwkTag::EXT, "targetService has not been loaded");
         SetLastExitReason(abilityRequest, targetService);
@@ -389,6 +390,7 @@ int AbilityConnectManager::TerminateAbilityLocked(const sptr<IRemoteObject> &tok
         connectManager->HandleStopTimeoutTask(abilityRecord);
     };
     abilityRecord->Terminate(timeoutTask);
+    //奇怪的逻辑......可以单独覆写一段逻辑，不下沉
     if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         AddUIExtensionAbilityRecordToTerminatedList(abilityRecord);
     } else {
@@ -1137,6 +1139,7 @@ void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
             }
         }
     });
+    //添加函数special for uiExtension
     if (info.state == AppState::TERMINATED) {
         UnRegisterPreloadUIExtensionHostClient(info.pid);
     }
