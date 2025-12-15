@@ -36,6 +36,7 @@ enum DeviceType : int32_t;
 }
 }
 namespace AbilityRuntime {
+using AppExecFwk::ConfigUpdateReason;
 class ApplicationContext;
 
 class Context : public Bindable,
@@ -303,9 +304,9 @@ public:
      */
     virtual std::shared_ptr<Context> CreateAreaModeContext(int areaMode) = 0;
 
-    virtual AppExecFwk::ConfigUpdateReason GetConfigUpdateReason()
+    virtual ConfigUpdateReason GetConfigUpdateReason()
     {
-        return AppExecFwk::ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT;
+        return ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT;
     }
 
 #ifdef SUPPORT_GRAPHICS
