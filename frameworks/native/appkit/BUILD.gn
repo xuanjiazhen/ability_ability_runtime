@@ -491,6 +491,7 @@ ohos_shared_library("app_context") {
   ]
 
   external_deps = [
+    "ability_base:configuration",
     "ability_base:extractortool",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
