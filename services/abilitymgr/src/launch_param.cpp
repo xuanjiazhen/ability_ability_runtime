@@ -42,6 +42,7 @@ bool LaunchParam::ReadFromParcel(Parcel &parcel)
         return false;
     }
     lastExitDetailInfo = *detailInfo;
+    startTimeStamp = parcel.ReadInt64();
 
     return true;
 }
@@ -81,6 +82,11 @@ bool LaunchParam::Marshalling(Parcel &parcel) const
     // write lastExitDetailInfo
     if (!parcel.WriteParcelable(&lastExitDetailInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write lastExitDetailInfo failed");
+        return false;
+    }
+    // write startTimeStamp
+    if (!parcel.WriteInt64(startTimeStamp)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write startTimeStamp failed");
         return false;
     }
     return true;
