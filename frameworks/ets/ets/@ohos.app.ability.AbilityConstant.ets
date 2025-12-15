@@ -126,6 +126,8 @@ class LaunchParamImpl implements AbilityConstant.LaunchParam {
   lastExitReason: AbilityConstant.LastExitReason = AbilityConstant.LastExitReason.UNKNOWN;
   lastExitMessage: string = '';
   lastExitDetailInfo?: AbilityConstant.LastExitDetailInfo = undefined;
+  startUpTime?: long = 0;
+  startUtcTime?: long = 0;
 }
 
 class LastExitDetailInfoImpl implements AbilityConstant.LastExitDetailInfo {
