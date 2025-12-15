@@ -165,6 +165,7 @@ int AbilityConnectManager::StopServiceAbility(const AbilityRequest &abilityReque
     return StopServiceAbilityLocked(abilityRequest);
 }
 
+// todo 待定
 int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityRequest)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
@@ -264,6 +265,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     return ERR_OK;
 }
 
+// todo UI
 void AbilityConnectManager::SetLastExitReason(
     const AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecordBase> &targetRecord)
 {
@@ -293,6 +295,7 @@ void AbilityConnectManager::SetLastExitReason(
     targetRecord->SetLastExitReason(exitReason, processInfo, time_stamp, withKillMsg);
 }
 
+// todo UI
 void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<ExtensionRecordBase> abilityRecord,
     const AbilityRequest &abilityRequest)
 {
@@ -328,6 +331,7 @@ void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<ExtensionRec
     EnqueueStartServiceReq(abilityRequest, abilityRecord->GetURI());
 }
 
+// todo 待定
 void AbilityConnectManager::EnqueueStartServiceReq(const AbilityRequest &abilityRequest, const std::string &serviceUri)
 {
     std::lock_guard guard(startServiceReqListLock_);
@@ -364,6 +368,7 @@ void AbilityConnectManager::EnqueueStartServiceReq(const AbilityRequest &ability
     }
 }
 
+// todo 待定
 int AbilityConnectManager::TerminateAbilityLocked(const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -398,6 +403,7 @@ int AbilityConnectManager::TerminateAbilityLocked(const sptr<IRemoteObject> &tok
     return ERR_OK;
 }
 
+// todo 待定
 int AbilityConnectManager::StopServiceAbilityLocked(const AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -432,6 +438,7 @@ int AbilityConnectManager::StopServiceAbilityLocked(const AbilityRequest &abilit
     return ERR_OK;
 }
 
+// todo UI
 int32_t AbilityConnectManager::GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest, bool isCreatedByConnect,
     const std::string &hostBundleName, std::shared_ptr<ExtensionRecordBase> &extensionRecord, bool &isLoaded)
 {
@@ -461,6 +468,7 @@ int32_t AbilityConnectManager::GetOrCreateExtensionRecord(const AbilityRequest &
     return ERR_INVALID_VALUE;
 }
 
+// todo Common
 void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abilityRequest,
     const bool isCreatedByConnect, std::shared_ptr<ExtensionRecordBase> &targetService, bool &isLoadedAbility)
 {
@@ -508,6 +516,7 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
     TAG_LOGD(AAFwkTag::EXT, "service map add, serviceKey: %{public}s", serviceKey.c_str());
 }
 
+// todo Common
 void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abilityRequest,
     ExtensionRecordBase &targetService)
 {
@@ -531,6 +540,7 @@ void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abili
     }
 }
 
+// todo Common
 void AbilityConnectManager::RemoveServiceFromMapSafe(const std::string &serviceKey)
 {
     std::lock_guard lock(serviceMapMutex_);
@@ -538,7 +548,7 @@ void AbilityConnectManager::RemoveServiceFromMapSafe(const std::string &serviceK
     TAG_LOGD(AAFwkTag::EXT, "ServiceMap remove, size:%{public}zu", serviceMap_.size());
 }
 
-
+// todo 待定
 void AbilityConnectManager::GetConnectRecordListFromMap(
     const sptr<IAbilityConnection> &connect, std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList)
 {
@@ -550,6 +560,7 @@ void AbilityConnectManager::GetConnectRecordListFromMap(
     }
 }
 
+// todo 待定
 int32_t AbilityConnectManager::GetOrCreateTargetServiceRecord(
     const AbilityRequest &abilityRequest, const sptr<UIExtensionAbilityConnectInfo> &connectInfo,
     std::shared_ptr<ExtensionRecordBase> &targetService, bool &isLoadedAbility)
@@ -570,6 +581,7 @@ int32_t AbilityConnectManager::GetOrCreateTargetServiceRecord(
     return ERR_OK;
 }
 
+// todo UI
 int AbilityConnectManager::PreloadUIExtensionAbilityLocked(
     const AbilityRequest &abilityRequest, std::string &hostBundleName, int32_t hostPid)
 {
@@ -577,6 +589,7 @@ int AbilityConnectManager::PreloadUIExtensionAbilityLocked(
     return PreloadUIExtensionAbilityInner(abilityRequest, hostBundleName, hostPid);
 }
 
+// todo UI
 int AbilityConnectManager::PreloadUIExtensionAbilityInner(
     const AbilityRequest &abilityRequest, std::string &hostBundleName, int32_t hostPid)
 {
@@ -620,6 +633,7 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(
     return ERR_OK;
 }
 
+// todo UI
 int AbilityConnectManager::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::ExtensionRecordBase> &abilityRecord,
     pid_t &hostPid)
 {
@@ -663,6 +677,7 @@ void AbilityConnectManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
         }, ffrt::task_attr().timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
 }
 
+// todo 待定
 int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityRequest,
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
     sptr<UIExtensionAbilityConnectInfo> connectInfo)
@@ -757,6 +772,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     return ret;
 }
 
+// todo 待定
 void AbilityConnectManager::HandleConnectionCountIncrement(int32_t pid, const std::string &callerBundleName,
     const std::string &targetName)
 {
@@ -776,6 +792,7 @@ void AbilityConnectManager::HandleConnectionCountIncrement(int32_t pid, const st
     }
 }
 
+// todo 待定
 void AbilityConnectManager::DecrementConnectionCountAndCleanup(int32_t pid)
 {
     std::lock_guard<std::mutex> guard(callerPidConnectionCountMapMutex_);
@@ -790,6 +807,7 @@ void AbilityConnectManager::DecrementConnectionCountAndCleanup(int32_t pid)
     }
 }
 
+// todo 待定
 void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<ExtensionRecordBase> &targetService,
     std::shared_ptr<ConnectionRecord> &connectRecord)
 {
@@ -822,6 +840,7 @@ void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<ExtensionRecordB
     }
 }
 
+// todo 待定
 std::shared_ptr<ConnectionRecord> AbilityConnectManager::GetAbilityConnectedRecordFromRecordList(
     const std::shared_ptr<ExtensionRecordBase> &targetService,
     std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList)
@@ -842,12 +861,14 @@ std::shared_ptr<ConnectionRecord> AbilityConnectManager::GetAbilityConnectedReco
     return nullptr;
 }
 
+// todo 待定
 int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection> &connect)
 {
     std::lock_guard guard(serialMutex_);
     return DisconnectAbilityLocked(connect, false);
 }
 
+// todo 待定
 int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection> &connect, bool callerDied)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -898,6 +919,7 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
     return result;
 }
 
+// todo Common
 int32_t AbilityConnectManager::SuspendExtensionAbilityLocked(const sptr<IAbilityConnection> &connect)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

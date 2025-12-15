@@ -673,14 +673,13 @@ private:
      */
     void RemoveExtensionDelayDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
 
-private:
     bool IsNeedToRestart(const std::shared_ptr<ExtensionRecordBase> &abilityRecord,
         const std::string &bundleName, const std::string &abilityName);
     void TerminateRecord(std::shared_ptr<ExtensionRecordBase> abilityRecord);
     int DisconnectRecordNormal(ConnectListType &list, std::shared_ptr<ConnectionRecord> connectRecord,
         bool callerDied) const;
     void DisconnectRecordForce(ConnectListType &list, std::shared_ptr<ConnectionRecord> connectRecord);
-    int TerminateAbilityInner(const sptr<IRemoteObject> &token);
+    virtual int TerminateAbilityInner(const sptr<IRemoteObject> &token);
     bool IsLauncher(std::shared_ptr<ExtensionRecordBase> serviceExtension) const;
     void KillProcessesByUserId() const;
     void SetLastExitReason(const AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecordBase> &targetService);
@@ -741,12 +740,12 @@ private:
     private:
         PreloadUIExtensionHostClientDiedHandler diedHandler_;
     };
-private:
+
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";
 
     int userId_;
-    std::atomic_uint32_t sceneBoardTokenId_ = 0;
+    std::atomic_uint32_t sceneBoardTokenId_ = 0; // todo 删除
 
     ConnectMapType connectMap_;
     ServiceMapType serviceMap_;
