@@ -47,7 +47,7 @@ class JsEnvironment;
 class SourceMapOperator;
 struct ErrorObject;
 struct UncaughtExceptionInfo;
-using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject)>;
+using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject, napi_env env)>;
 } // namespace JsEnv
 
 using AppLibPathMap = std::map<std::string, std::vector<std::string>>;

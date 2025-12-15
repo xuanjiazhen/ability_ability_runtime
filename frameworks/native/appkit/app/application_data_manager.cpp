@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-ApplicationDataManager::ApplicationDataManager() {}
+ApplicationDataManager::ApplicationDataManager():uncatchReport_(false) {}
 
 ApplicationDataManager::~ApplicationDataManager() {}
 
@@ -117,6 +117,16 @@ bool ApplicationDataManager::GetIsUncatchable()
 {
     bool isUncatchable = isUncatchable_.load();
     return isUncatchable;
+}
+
+void ApplicationDataManager::SetUncatchReport()
+{
+    uncatchReport_.store(true);
+}
+
+bool ApplicationDataManager::GetUncatchReport()
+{
+    return uncatchReport_.load();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
