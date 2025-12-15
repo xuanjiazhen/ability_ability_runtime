@@ -142,6 +142,14 @@ bool WrapLaunchParamInner(ani_env *env, const AAFwk::LaunchParam &launchParam, a
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed to set lastExitDetailInfo");
         return false;
     }
+    if ((status = env->Object_SetPropertyByName_Long(object, "startUpTime", launchParam.startUpTime)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed to set startUpTime");
+        return false;
+    }
+    if ((status = env->Object_SetPropertyByName_Long(object, "startUtcTime", launchParam.startUtcTime)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed to set startUtcTime");
+        return false;
+    }
     return true;
 }
 } // namespace

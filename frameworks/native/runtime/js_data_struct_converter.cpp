@@ -103,6 +103,8 @@ napi_value CreateJsLaunchParam(napi_env env, const AAFwk::LaunchParam& launchPar
     napi_set_named_property(env, object, "lastExitMessage", CreateJsValue(env, launchParam.lastExitMessage));
     napi_set_named_property(env, object, "lastExitDetailInfo", CreateLastExitDetailInfo(
         env, launchParam.lastExitDetailInfo));
+    napi_set_named_property(env, object, "startUpTime", CreateJsValue(env, launchParam.startUpTime));
+    napi_set_named_property(env, object, "startUtcTime", CreateJsValue(env, launchParam.startUtcTime));
     return object;
 }
 
