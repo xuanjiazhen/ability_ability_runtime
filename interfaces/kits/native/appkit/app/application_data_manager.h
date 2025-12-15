@@ -36,13 +36,15 @@ public:
     bool NotifyETSExceptionObject(const AppExecFwk::ErrorObject &errorObj);
     void SetIsUncatchable(bool isUncatchable);
     bool GetIsUncatchable();
-
+    void SetUncatchReport();
+    bool GetUncatchReport();
 private:
     ApplicationDataManager();
     ~ApplicationDataManager();
     DISALLOW_COPY_AND_MOVE(ApplicationDataManager);
     std::shared_ptr<IErrorObserver> errorObserver_;
     std::atomic_bool isUncatchable_;
+    std::atomic_bool uncatchReport_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
