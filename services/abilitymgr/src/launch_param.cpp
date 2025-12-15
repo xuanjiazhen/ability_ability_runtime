@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,7 @@ bool LaunchParam::ReadFromParcel(Parcel &parcel)
         return false;
     }
     lastExitDetailInfo = *detailInfo;
+    startTimeStamp = parcel.ReadInt64();
 
     return true;
 }
@@ -81,6 +82,11 @@ bool LaunchParam::Marshalling(Parcel &parcel) const
     // write lastExitDetailInfo
     if (!parcel.WriteParcelable(&lastExitDetailInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write lastExitDetailInfo failed");
+        return false;
+    }
+    // write startTimeStamp
+    if (!parcel.WriteInt64(startTimeStamp)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write startTimeStamp failed");
         return false;
     }
     return true;
