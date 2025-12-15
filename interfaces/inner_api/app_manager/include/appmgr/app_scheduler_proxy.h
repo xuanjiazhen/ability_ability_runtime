@@ -175,7 +175,7 @@ public:
      * @param reason, The configuration update scene flag.
      * @return
      */
-    virtual void ScheduleConfigurationUpdated(const Configuration &config,
+    void ScheduleConfigurationUpdated(const Configuration &config,
         ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) override;
 
     /**
