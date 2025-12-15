@@ -55,7 +55,7 @@ class Runtime;
 namespace OHOS {
 namespace JsEnv {
 struct ErrorObject;
-using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject)>;
+using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject, napi_env env)>;
 }  // namespace JsEnv
 namespace EtsEnv {
 struct ETSUncaughtExceptionInfo;
@@ -79,6 +79,17 @@ struct RuntimeUpdateParam {
     AbilityRuntime::Runtime::Options option;
     UncatchableTaskInfo uncatchableTaskInfo;
     std::string hapPath;
+};
+struct ProcessExitInfo
+{
+    std::string bundleName;
+    std::string errorObjectName;
+    std::string summary;
+    std::string appRunningId;
+    bool foreground;
+    bool isUncatchable;
+    int32_t pid;
+    std::string processName;
 };
 class ContextDeal;
 struct ModuleTestRunner;
@@ -458,6 +469,15 @@ private:
      */
     void InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, const UncatchableTaskInfo &uncatchableTaskInfo,
         bool isUncatchable = false);
+
+    /**
+    *
+    * @brief Handle process exit.
+    *
+    * @param processExitInfo The info of the process exit info.
+    *
+    */
+    static void HandleProcessExit(const ProcessExitInfo& info);
 
     /**
      *
