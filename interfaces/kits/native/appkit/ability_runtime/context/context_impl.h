@@ -25,7 +25,6 @@ namespace AppExecFwk {
 struct RunningProcessInfo;
 class BundleMgrHelper;
 class OverlayEventSubscriber;
-class Configuration;
 }
 namespace AAFwk {
 class Want;
@@ -38,7 +37,6 @@ using GetDisplayConfigCallback = std::function<bool(uint64_t displayId, float &d
 class UIAbility;
 using GetAllUIAbilitiesCallback = std::function<void(std::vector<std::shared_ptr<UIAbility>> &uiAbility)>;
 #endif
-using ConfigUpdateReason = OHOS::AppExecFwk::ConfigUpdateReason;
 class ContextImpl : public Context {
 public:
     ContextImpl();

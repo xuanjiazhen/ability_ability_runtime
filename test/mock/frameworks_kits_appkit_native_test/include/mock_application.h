@@ -53,9 +53,9 @@ public:
         state_ = APP_STATE_BACKGROUND;
     }
 
-    virtual void OnConfigurationUpdated(Configuration config,
+    void OnConfigurationUpdated(Configuration config,
         AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::System,
-        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT)
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) override
     {
         GTEST_LOG_(INFO) << "MockApplication::OnConfigurationUpdated called";
         onConfigurationUpdatedCalled_ = true;
