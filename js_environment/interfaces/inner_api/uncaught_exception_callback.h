@@ -33,13 +33,13 @@ struct ErrorObject {
 
 struct UncaughtExceptionInfo {
     std::string hapPath;
-    std::function<void(std::string summary, const JsEnv::ErrorObject errorObj)> uncaughtTask;
+    std::function<void(std::string summary, const JsEnv::ErrorObject errorObj, napi_env env)> uncaughtTask;
 };
 
 class NapiUncaughtExceptionCallback final {
 public:
     NapiUncaughtExceptionCallback(
-        std::function<void(const std::string summary, const JsEnv::ErrorObject errorObj)> uncaughtTask,
+        std::function<void(const std::string summary, const JsEnv::ErrorObject errorObj, napi_env env)> uncaughtTask,
         std::shared_ptr<SourceMapOperator> sourceMapOperator, napi_env env)
         : uncaughtTask_(uncaughtTask), sourceMapOperator_(sourceMapOperator), env_(env)
     {}
@@ -65,7 +65,7 @@ public:
 #endif // SUPPORT_GRAPHICS
 
 private:
-    std::function<void(std::string summary, const JsEnv::ErrorObject errorObj)> uncaughtTask_;
+    std::function<void(std::string summary, const JsEnv::ErrorObject errorObj, napi_env napi)> uncaughtTask_;
     std::shared_ptr<SourceMapOperator> sourceMapOperator_ = nullptr;
     napi_env env_ = nullptr;
 };

@@ -30,7 +30,7 @@ class JsEnvironmentImpl;
 using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
 using RequestAotCallback =
     std::function<int32_t(const std::string& bundleName, const std::string& moduleName, int32_t triggerMode)>;
-using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject)>;
+using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject, napi_env env)>;
 class JsEnvironment final : public std::enable_shared_from_this<JsEnvironment> {
 public:
     JsEnvironment() {}
