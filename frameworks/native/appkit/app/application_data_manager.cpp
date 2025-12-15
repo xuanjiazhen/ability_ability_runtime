@@ -20,7 +20,13 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-ApplicationDataManager::ApplicationDataManager() {}
+namespace {
+    constexpr size_t STACK_MAX_SZIE = 1024;
+    constexpr size_t AT_SKIP_SZIE = 3;
+    constexpr const char* TASK_POOL_THREAD = "Taskpool Thread";
+}
+
+ApplicationDataManager::ApplicationDataManager():uncatchReport_(false) {}
 
 ApplicationDataManager::~ApplicationDataManager() {}
 
@@ -94,7 +100,7 @@ bool ApplicationDataManager::NotifyCJExceptionObject(const AppExecFwk::ErrorObje
     }
 
     // if apprecovery is enabled, we could callback to save current state
-    // and restart as developer wants
+    // and re as developer wants
     return AppRecovery::GetInstance().TryRecoverApp(StateReason::CJ_ERROR);
 }
 
@@ -117,6 +123,69 @@ bool ApplicationDataManager::GetIsUncatchable()
 {
     bool isUncatchable = isUncatchable_.load();
     return isUncatchable;
+}
+
+void ApplicationDataManager::SetUncatchReport()
+{
+    uncatchReport_.store(true);
+}
+
+bool ApplicationDataManager::GetUncatchReport()
+{
+    return uncatchReport_.load();
+}
+
+std::string ApplicationDataManager::GetFuncNameFromError(napi_env env, napi_value error)
+{
+    if (error == nullptr) {
+        return TASK_POOL_THREAD;
+    }
+
+    napi_value stack;
+    if (napi_get_named_property(env, error, "stack", &stack) != napi_ok ||stack == nullptr) {
+        retrun TASK_POOL_THREAD;
+    }
+
+    size_t bufferSize;
+    napi_get_value_string_utf8(env, stack, nullptr, 0, &bufferSize);
+    bufferSize = std::min(bufferSize, STACK_MAX_SZIE);
+    std::string rawStack(bufferSize, '\0');
+    napi_get_value_string_utf8(env, stack, &rawStack[0], rawStack.size() + 1, &bufferSize);
+    rawStack.resize(bufferSize);
+
+    size_t pos = rawStack.find("at");
+    if (pos == std::string::npos) {
+        return TASK_POOL_THREAD;
+    }
+    size_t endPos = rawStack.find("(", pos);
+    if (endPos == std::string::npos) {
+        return TASK_POOL_THREAD;
+    }
+    size_t startPos = pos + AT_SKIP_SZIE;
+    if (endPos <= startPos + 1) {
+        return TASK_POOL_THREAD;
+    }
+
+    std::string funcName = std::string(TASK_POOL_THREAD);
+    funcName.append(rawStack.substr(startPos, endPos - startPos - 1));
+    return funcName;
+}
+
+std::string ApplicationDataManager::GetFuncNameFromError(napi_env env, napi_value mainEnv, napi_value exception,
+    const std::string& summary, const AppExecFwk::ErrorObject &errorObj)
+{
+    auto napiEnv = env ? env : mainEnv;
+    if (env == mainEnv) {
+        if (NapiErrorManager::GetInstance()->NotifyUncaughtException(napiEnv, summary,
+            appExecErrorObj.name, appExecErrorObj.message, appExecErrorObj.stack)) {
+            TAG_LOGI(AAFwkTag::APPKIT, "Complete all callbacks");
+            if (!isUncatchable) {
+                return true;
+            }
+        }
+    } else {
+        
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
