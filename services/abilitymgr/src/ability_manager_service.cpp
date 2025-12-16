@@ -11779,7 +11779,7 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
         CHECK_POINTER_AND_RETURN(connectManager, false);
         bool matched = false;
         std::list<sptr<IRemoteObject>> callerList;
-        connectManager->GetUIExtensionCallerTokenList(callerAbility, callerList);
+        connectManager->GetUIExtensionCallerTokenList(BaseExtensionRecord::TransferToExtensionRecordBase(callerAbility), callerList);
         for (auto &item : callerList) {
             auto ability = AAFwk::Token::GetAbilityRecordByToken(item);
             if (ability == nullptr) {
