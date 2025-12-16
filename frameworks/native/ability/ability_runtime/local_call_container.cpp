@@ -100,7 +100,11 @@ int LocalCallContainer::ReleaseCall(const std::shared_ptr<CallerCallBack>& callb
             "ust release this callback");
         return ERR_OK;
     }
-    auto connect = iface_cast<CallerConnection>(localCallRecord->GetConnection());
+    if (localCallRecord->GetConnection() == nullptr) {
+        TAG_LOGE(AAFwkTag::LOCAL_CALL, "null GetConnection");
+        return ERR_INVALID_VALUE;      
+    }
+    auto connect = static_cast<CallerConnection*>(localCallRecord->GetConnection().GetRefPtr());
     if (connect == nullptr) {
         TAG_LOGE(AAFwkTag::LOCAL_CALL, "null connect");
         return ERR_INVALID_VALUE;
@@ -142,8 +146,11 @@ void LocalCallContainer::ClearFailedCallConnection(const std::shared_ptr<CallerC
         TAG_LOGE(AAFwkTag::LOCAL_CALL, "null localCallRecord");
         return;
     }
-
-    auto connect = iface_cast<CallerConnection>(localCallRecord->GetConnection());
+    if (localCallRecord->GetConnection() == nullptr) {
+        TAG_LOGE(AAFwkTag::LOCAL_CALL, "null GetConnection");
+        return;
+    }
+    auto connect = static_cast<CallerConnection*>(localCallRecord->GetConnection().GetRefPtr());
     if (connect == nullptr) {
         TAG_LOGE(AAFwkTag::LOCAL_CALL, "null connect");
         return;
