@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,8 +53,9 @@ public:
         state_ = APP_STATE_BACKGROUND;
     }
 
-    virtual void OnConfigurationUpdated(Configuration config,
-        AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::System)
+    void OnConfigurationUpdated(Configuration config,
+        AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::System,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) override
     {
         GTEST_LOG_(INFO) << "MockApplication::OnConfigurationUpdated called";
         onConfigurationUpdatedCalled_ = true;
