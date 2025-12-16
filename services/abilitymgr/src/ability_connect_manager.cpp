@@ -132,6 +132,7 @@ int AbilityConnectManager::TerminateAbility(const sptr<IRemoteObject> &token)
     return TerminateAbilityInner(token);
 }
 
+// todo
 int AbilityConnectManager::TerminateAbilityInner(const sptr<IRemoteObject> &token)
 {
     auto abilityRecord = GetExtensionByTokenFromServiceMap(token);
@@ -364,6 +365,7 @@ void AbilityConnectManager::EnqueueStartServiceReq(const AbilityRequest &ability
     }
 }
 
+// todo
 int AbilityConnectManager::TerminateAbilityLocked(const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -663,6 +665,7 @@ void AbilityConnectManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
         }, ffrt::task_attr().timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
 }
 
+// todo
 int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityRequest,
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
     sptr<UIExtensionAbilityConnectInfo> connectInfo)
@@ -1341,6 +1344,7 @@ void AbilityConnectManager::TerminateOrCacheAbility(std::shared_ptr<BaseExtensio
     TerminateRecord(abilityRecord);
 }
 
+// todo
 int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1940,6 +1944,7 @@ void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<BaseExtensionR
     }
 }
 
+// todo
 void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     TAG_LOGW(AAFwkTag::EXT, "load timeout");
@@ -2035,6 +2040,7 @@ void AbilityConnectManager::HandleCommandWindowTimeoutTask(const std::shared_ptr
     TAG_LOGD(AAFwkTag::ABILITYMGR, "end");
 }
 
+// todo
 void AbilityConnectManager::HandleStopTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::EXT, "Complete stop ability timeout start.");
@@ -2306,6 +2312,7 @@ void AbilityConnectManager::TerminateAbilityWindowLocked(const std::shared_ptr<B
     }
 }
 
+// todo
 void AbilityConnectManager::TerminateDone(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -2547,6 +2554,7 @@ void AbilityConnectManager::HandleInactiveTimeout(const std::shared_ptr<BaseExte
     TAG_LOGI(AAFwkTag::EXT, "HandleInactiveTimeout end");
 }
 
+// todo
 void AbilityConnectManager::CleanActivatingTimeoutAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
@@ -2711,6 +2719,7 @@ void AbilityConnectManager::DisconnectBeforeCleanup()
     TAG_LOGI(AAFwkTag::EXT, "cleanup end");
 }
 
+// todo
 void AbilityConnectManager::HandleAbilityDiedTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::EXT, "called");
@@ -2941,6 +2950,7 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
     return serviceKey;
 }
 
+// todo
 void AbilityConnectManager::DumpState(std::vector<std::string> &info, bool isClient, const std::string &args)
 {
     TAG_LOGI(AAFwkTag::EXT, "args:%{public}s", args.c_str());
@@ -3020,6 +3030,7 @@ void AbilityConnectManager::DumpStateByUri(std::vector<std::string> &info, bool 
     }
 }
 
+// todo
 void AbilityConnectManager::GetExtensionRunningInfos(int upperLimit, std::vector<ExtensionRunningInfo> &info,
     const int32_t userId, bool isPerm)
 {
