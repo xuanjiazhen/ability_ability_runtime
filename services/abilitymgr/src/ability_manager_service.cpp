@@ -6126,7 +6126,7 @@ int AbilityManagerService::SendWantSender(sptr<IWantSender> target, SenderInfo &
         TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
         return ERR_INVALID_VALUE;
     }
-    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    sptr<PendingWantRecord> record = reinterpret_cast<PendingWantRecord*>(obj);
     CHECK_POINTER_AND_RETURN(record, ERR_INVALID_VALUE);
     int32_t userId = -1;
     if (record->GetKey() != nullptr) {
@@ -6165,7 +6165,7 @@ void AbilityManagerService::CancelWantSender(const sptr<IWantSender> &sender)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
         return;
     }
-    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    sptr<PendingWantRecord> record = reinterpret_cast<PendingWantRecord*>(obj);
     CHECK_POINTER(record);
 
     int32_t userId = -1;
@@ -6194,7 +6194,7 @@ void AbilityManagerService::CancelWantSenderByFlags(const sptr<IWantSender> &sen
         TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
         return;
     }
-    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    sptr<PendingWantRecord> record = reinterpret_cast<PendingWantRecord*>(obj);
     CHECK_POINTER(record);
 
     int32_t userId = -1;
@@ -6235,7 +6235,7 @@ int AbilityManagerService::GetPendingWantUid(const sptr<IWantSender> &target)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
         return -1;
     }
-    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    sptr<PendingWantRecord> record = reinterpret_cast<PendingWantRecord*>(obj);
     CHECK_POINTER_AND_RETURN(record, -1);
 
     int32_t userId = -1;
@@ -6275,7 +6275,7 @@ std::string AbilityManagerService::GetPendingWantBundleName(const sptr<IWantSend
         TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
         return "";
     }
-    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    sptr<PendingWantRecord> record = reinterpret_cast<PendingWantRecord*>(obj);
     CHECK_POINTER_AND_RETURN(record, "");
 
     int32_t userId = -1;
@@ -6304,7 +6304,7 @@ int AbilityManagerService::GetPendingWantCode(const sptr<IWantSender> &target)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
         return -1;
     }
-    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    sptr<PendingWantRecord> record = reinterpret_cast<PendingWantRecord*>(obj);
     CHECK_POINTER_AND_RETURN(record, -1);
 
     int32_t userId = -1;
@@ -6334,7 +6334,7 @@ int AbilityManagerService::GetPendingWantType(const sptr<IWantSender> &target)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
         return -1;
     }
-    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    sptr<PendingWantRecord> record = reinterpret_cast<PendingWantRecord*>(obj);
     CHECK_POINTER_AND_RETURN(record, -1);
 
     int32_t userId = -1;
@@ -6385,7 +6385,7 @@ int AbilityManagerService::GetPendingRequestWant(const sptr<IWantSender> &target
         TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
         return -1;
     }
-    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    sptr<PendingWantRecord> record = reinterpret_cast<PendingWantRecord*>(obj);
     CHECK_POINTER_AND_RETURN(record, -1);
 
     int32_t userId = -1;
