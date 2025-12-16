@@ -372,7 +372,7 @@ void MissionListManager::StartWaitingAbility()
 }
 
 void MissionListManager::AddRecord(const AbilityRequest &abilityRequest,
-    std::shared_ptr<AbilityRecord> &targetAbilityRecord)
+    std::shared_ptr<AbilityRecord> targetAbilityRecord)
 {
     std::string srcAbilityId = "";
     if (abilityRequest.want.GetBoolParam(Want::PARAM_RESV_FOR_RESULT, false)) {
@@ -391,7 +391,7 @@ void MissionListManager::AddRecord(const AbilityRequest &abilityRequest,
 }
 
 int MissionListManager::GetTargetMission(const AbilityRequest &abilityRequest, std::shared_ptr<Mission> &targetMission,
-    std::shared_ptr<AbilityRecord> &targetAbilityRecord)
+    std::shared_ptr<AbilityRecord> targetAbilityRecord)
 {
     bool isReachToLimit = false;
     GetTargetMissionAndAbility(abilityRequest, targetMission, targetAbilityRecord, isReachToLimit);
@@ -444,7 +444,7 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
 
     // 2. get target mission
     std::shared_ptr<Mission> targetMission;
-    std::shared_ptr<AbilityRecord> targetAbilityRecord;
+    MissionAbilityRecordPtr targetAbilityRecord;
     int ret = GetTargetMission(abilityRequest, targetMission, targetAbilityRecord);
     if (ret != GET_TARGET_MISSION_OVER) {
         return ret;
@@ -474,9 +474,11 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
             targetAbilityRecord->SetNeedBackToOtherMissionStack(true);
             auto focusAbility = AbilityManagerService::GetPubInstance()->GetFocusAbility();
             if (focusAbility && (GetMissionIdByAbilityTokenInner(focusAbility->GetToken()) != -1)) {
-                targetAbilityRecord->SetOtherMissionStackAbilityRecord(focusAbility);
+                targetAbilityRecord->SetOtherMissionStackAbilityRecord(
+                    MissionAbilityRecord::FromBaseRecord(focusAbility));
             } else {
-                targetAbilityRecord->SetOtherMissionStackAbilityRecord(currentTopAbility);
+                targetAbilityRecord->SetOtherMissionStackAbilityRecord(
+                    MissionAbilityRecord::FromBaseRecord(currentTopAbility));
             }
         }
     }
@@ -522,7 +524,7 @@ static bool CallTypeFilter(int32_t callType)
 }
 
 bool MissionListManager::HandleReusedMissionAndAbility(const AbilityRequest &abilityRequest,
-    std::shared_ptr<Mission> &targetMission, std::shared_ptr<AbilityRecord> &targetRecord)
+    std::shared_ptr<Mission> &targetMission, MissionAbilityRecordPtr &targetRecord)
 {
     auto startMethod = CallType2StartMethod(abilityRequest.callType);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "HandleReusedMissionAndAbility called startMethod is %{public}d.", startMethod);
@@ -620,7 +622,7 @@ bool MissionListManager::CreateOrReusedMissionInfo(const AbilityRequest &ability
 }
 
 void MissionListManager::GetTargetMissionAndAbility(const AbilityRequest &abilityRequest,
-    std::shared_ptr<Mission> &targetMission, std::shared_ptr<AbilityRecord> &targetRecord, bool &isReachToLimit)
+    std::shared_ptr<Mission> &targetMission, MissionAbilityRecordPtr &targetRecord, bool &isReachToLimit)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (HandleReusedMissionAndAbility(abilityRequest, targetMission, targetRecord)) {
@@ -1152,7 +1154,7 @@ std::shared_ptr<AbilityRecord> MissionListManager::GetAbilityRecordByToken(
     return GetAbilityRecordByTokenInner(token);
 }
 
-std::shared_ptr<AbilityRecord> MissionListManager::GetAbilityRecordByTokenInner(
+MissionAbilityRecordPtr MissionListManager::GetAbilityRecordByTokenInner(
     const sptr<IRemoteObject> &token) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1162,11 +1164,11 @@ std::shared_ptr<AbilityRecord> MissionListManager::GetAbilityRecordByTokenInner(
     // first find in terminating list
     for (auto ability : terminateAbilityList_) {
         if (ability && token == ability->GetToken()->AsObject()) {
-            return ability;
+            return MissionAbilityRecord::FromBaseRecord(ability);
         }
     }
 
-    return GetAliveAbilityRecordByToken(token);
+    return MissionAbilityRecord::FromBaseRecord(GetAliveAbilityRecordByToken(token));
 }
 
 std::shared_ptr<AbilityRecord> MissionListManager::GetAliveAbilityRecordByToken(
@@ -1236,7 +1238,7 @@ int MissionListManager::AbilityTransactionDone(const sptr<IRemoteObject> &token,
     return DispatchState(abilityRecord, targetState);
 }
 
-int MissionListManager::DispatchState(const std::shared_ptr<AbilityRecord> &abilityRecord, int state)
+int MissionListManager::DispatchState(MissionAbilityRecordPtr abilityRecord, int state)
 {
     switch (state) {
         case AbilityState::INITIAL: {
@@ -1262,7 +1264,7 @@ int MissionListManager::DispatchState(const std::shared_ptr<AbilityRecord> &abil
     }
 }
 
-int MissionListManager::DispatchForeground(const std::shared_ptr<AbilityRecord> &abilityRecord, bool success,
+int MissionListManager::DispatchForeground(MissionAbilityRecordPtr abilityRecord, bool success,
     AbilityState state)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
@@ -1312,7 +1314,7 @@ int MissionListManager::DispatchForeground(const std::shared_ptr<AbilityRecord> 
     return ERR_OK;
 }
 
-void MissionListManager::CompleteForegroundSuccess(const std::shared_ptr<AbilityRecord> &abilityRecord)
+void MissionListManager::CompleteForegroundSuccess(MissionAbilityRecordPtr abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard guard(managerLock_);
@@ -1375,7 +1377,7 @@ void MissionListManager::CompleteForegroundSuccess(const std::shared_ptr<Ability
     }
 }
 
-void MissionListManager::TerminatePreviousAbility(const std::shared_ptr<AbilityRecord> &abilityRecord)
+void MissionListManager::TerminatePreviousAbility(MissionAbilityRecordPtr abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
     auto terminatingAbilityRecord = abilityRecord->GetPreAbilityRecord();
@@ -1402,7 +1404,7 @@ void MissionListManager::TerminatePreviousAbility(const std::shared_ptr<AbilityR
     }
 }
 
-int MissionListManager::DispatchBackground(const std::shared_ptr<AbilityRecord> &abilityRecord)
+int MissionListManager::DispatchBackground(MissionAbilityRecordPtr abilityRecord)
 {
     auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
     CHECK_POINTER_AND_RETURN_LOG(handler, ERR_INVALID_VALUE, "Fail to get AbilityTasktHandler.");
@@ -1459,7 +1461,7 @@ void MissionListManager::CompleteBackground(const std::shared_ptr<AbilityRecord>
         if (terminateAbility->GetAbilityState() == AbilityState::BACKGROUND) {
             auto timeoutTask = [terminateAbility, self]() {
                 TAG_LOGW(AAFwkTag::ABILITYMGR, "terminate ability timeout after background");
-                self->DelayCompleteTerminate(terminateAbility);
+                self->DelayCompleteTerminate(MissionAbilityRecord::FromBaseRecord(terminateAbility));
             };
             terminateAbility->Terminate(timeoutTask);
         }
@@ -1520,18 +1522,19 @@ int32_t MissionListManager::BackToCallerAbilityWithResult(std::shared_ptr<Abilit
         TAG_LOGI(AAFwkTag::ABILITYMGR, "caller is uiExtension");
         callerAbilityRecord = callerAbilityRecord->GetCallerRecord();
     }
-    return MoveAbilityToBackgroundLocked(abilityRecord, callerAbilityRecord);
+    return MoveAbilityToBackgroundLocked(MissionAbilityRecord::FromBaseRecord(abilityRecord),
+        MissionAbilityRecord::FromBaseRecord(callerAbilityRecord));
 }
 
 int MissionListManager::MoveAbilityToBackground(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard guard(managerLock_);
-    return MoveAbilityToBackgroundLocked(abilityRecord);
+    return MoveAbilityToBackgroundLocked(MissionAbilityRecord::FromBaseRecord(abilityRecord));
 }
 
-int MissionListManager::MoveAbilityToBackgroundLocked(const std::shared_ptr<AbilityRecord> &abilityRecord,
-    const std::shared_ptr<AbilityRecord> &specifiedNextRecord)
+int MissionListManager::MoveAbilityToBackgroundLocked(MissionAbilityRecordPtr abilityRecord,
+    MissionAbilityRecordPtr specifiedNextRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (abilityRecord == nullptr) {
@@ -1590,7 +1593,7 @@ std::shared_ptr<MissionList> MissionListManager::GetMissionList(int32_t missionI
     return mission->GetMissionList();
 }
 
-void MissionListManager::RemoveBackgroundingAbility(const std::shared_ptr<AbilityRecord> &abilityRecord)
+void MissionListManager::RemoveBackgroundingAbility(MissionAbilityRecordPtr abilityRecord)
 {
     CHECK_POINTER_LOG(abilityRecord, "RemoveBackgroundingAbility fail, ability record is null.")
     auto missionList = GetMissionList(abilityRecord->GetMissionId());
@@ -1614,7 +1617,7 @@ void MissionListManager::RemoveBackgroundingAbility(const std::shared_ptr<Abilit
         return;
     }
 
-    std::shared_ptr<AbilityRecord> needTopAbility;
+    MissionAbilityRecordPtr needTopAbility;
     if (!missionList->IsEmpty()) {
         needTopAbility = missionList->GetTopAbility();
     } else {
@@ -1692,10 +1695,10 @@ int MissionListManager::TerminateAbilityInner(const std::shared_ptr<AbilityRecor
         abilityRecord->SaveResultToCallers(resultCode, &want);
     }
 
-    return TerminateAbilityLocked(abilityRecord, flag);
+    return TerminateAbilityLocked(MissionAbilityRecord::FromBaseRecord(abilityRecord), flag);
 }
 
-int MissionListManager::TerminateAbilityLocked(const std::shared_ptr<AbilityRecord> &abilityRecord, bool flag)
+int MissionListManager::TerminateAbilityLocked(MissionAbilityRecordPtr abilityRecord, bool flag)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "terminate ability locked, ability is %{public}s/%{public}s.",
@@ -1762,7 +1765,7 @@ int MissionListManager::TerminateAbilityLocked(const std::shared_ptr<AbilityReco
  *
  * @param abilityRecord the ability that was terminating
  */
-void MissionListManager::RemoveTerminatingAbility(const std::shared_ptr<AbilityRecord> &abilityRecord, bool flag)
+void MissionListManager::RemoveTerminatingAbility(MissionAbilityRecordPtr abilityRecord, bool flag)
 {
     CHECK_POINTER(abilityRecord);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Remove terminating ability, ability is %{public}s/%{public}s.",
@@ -1801,7 +1804,7 @@ void MissionListManager::RemoveTerminatingAbility(const std::shared_ptr<AbilityR
     }
 
     // 4. the ability should find the next ability to foreground
-    std::shared_ptr<AbilityRecord> needTopAbility;
+    MissionAbilityRecordPtr needTopAbility;
     if (!missionList->IsEmpty()) {
         needTopAbility = missionList->GetTopAbility();
     } else {
@@ -1859,7 +1862,7 @@ void MissionListManager::RemoveMissionList(const std::shared_ptr<MissionList> &m
     }
 }
 
-int MissionListManager::DispatchTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord)
+int MissionListManager::DispatchTerminate(MissionAbilityRecordPtr abilityRecord)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (abilityRecord->GetAbilityState() != AbilityState::TERMINATING) {
@@ -1879,7 +1882,7 @@ int MissionListManager::DispatchTerminate(const std::shared_ptr<AbilityRecord> &
     return ERR_OK;
 }
 
-void MissionListManager::DelayCompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord)
+void MissionListManager::DelayCompleteTerminate(MissionAbilityRecordPtr abilityRecord)
 {
     auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
     CHECK_POINTER(handler);
@@ -1894,7 +1897,7 @@ void MissionListManager::DelayCompleteTerminate(const std::shared_ptr<AbilityRec
     handler->SubmitTask(timeoutTask, "DELAY_KILL_PROCESS", killTimeout);
 }
 
-void MissionListManager::CompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord)
+void MissionListManager::CompleteTerminate(MissionAbilityRecordPtr abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
     std::lock_guard guard(managerLock_);
@@ -1961,7 +1964,7 @@ std::shared_ptr<AbilityRecord> MissionListManager::GetAbilityFromTerminateList(c
     return GetAbilityFromTerminateListInner(token);
 }
 
-std::shared_ptr<AbilityRecord> MissionListManager::GetAbilityFromTerminateListInner(const sptr<IRemoteObject> &token)
+MissionAbilityRecordPtr MissionListManager::GetAbilityFromTerminateListInner(const sptr<IRemoteObject> &token)
 {
     if (!token) {
         return nullptr;
@@ -1970,7 +1973,7 @@ std::shared_ptr<AbilityRecord> MissionListManager::GetAbilityFromTerminateListIn
     for (auto abilityRecord : terminateAbilityList_) {
         // token is type of IRemoteObject, abilityRecord->GetToken() is type of Token extending from IRemoteObject.
         if (abilityRecord && abilityRecord->GetToken() && token == abilityRecord->GetToken()->AsObject()) {
-            return abilityRecord;
+            return MissionAbilityRecord::FromBaseRecord(abilityRecord);
         }
     }
     return nullptr;
@@ -2038,7 +2041,7 @@ int MissionListManager::ClearMissionLocked(int missionId, const std::shared_ptr<
     abilityRecord->SetClearMissionFlag(true);
     Want want;
     abilityRecord->SaveResultToCallers(-1, &want);
-    auto ret = TerminateAbilityLocked(abilityRecord, false);
+    auto ret = TerminateAbilityLocked(MissionAbilityRecord::FromBaseRecord(abilityRecord), false);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "clear error: %{public}d", ret);
         return REMOVE_MISSION_FAILED;
@@ -2430,8 +2433,7 @@ void MissionListManager::HandleForegroundTimeout(const std::shared_ptr<AbilityRe
     HandleTimeoutAndResumeAbility(ability, state);
 }
 
-void MissionListManager::CompleteForegroundFailed(const std::shared_ptr<AbilityRecord> &abilityRecord,
-    AbilityState state)
+void MissionListManager::CompleteForegroundFailed(MissionAbilityRecordPtr abilityRecord, AbilityState state)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "CompleteForegroundFailed come, state: %{public}d.", static_cast<int32_t>(state));
     std::lock_guard guard(managerLock_);
@@ -3349,8 +3351,10 @@ bool MissionListManager::IsAbilityStarted(AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> &targetRecord)
 {
     std::shared_ptr<Mission> targetMission;
-
-    return HandleReusedMissionAndAbility(abilityRequest, targetMission, targetRecord);
+    MissionAbilityRecordPtr tempRecord;
+    auto ret = HandleReusedMissionAndAbility(abilityRequest, targetMission, tempRecord);
+    targetRecord = tempRecord;
+    return ret;
 }
 
 int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
@@ -3365,7 +3369,7 @@ int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
     }
 
     // Get target mission and ability record.
-    std::shared_ptr<AbilityRecord> targetAbilityRecord;
+    MissionAbilityRecordPtr targetAbilityRecord;
     std::shared_ptr<Mission> targetMission;
     bool isReachToLimit = false;
     GetTargetMissionAndAbility(abilityRequest, targetMission, targetAbilityRecord, isReachToLimit);
@@ -3624,7 +3628,7 @@ void MissionListManager::OnAcceptWantResponse(const AAFwk::Want &want, const std
     waitingAbilityQueue_.pop();
 
     auto currentTopAbility = GetCurrentTopAbilityLocked();
-    auto callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
+    std::shared_ptr<AbilityRecord> callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
 
     if (!flag.empty()) {
         auto mission = GetMissionBySpecifiedFlag(want, flag);
@@ -4074,7 +4078,7 @@ int32_t MissionListManager::IsValidMissionIds(
 }
 
 bool MissionListManager::UpdateAbilityRecordLaunchReason(
-    const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord)
+    const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> abilityRecord)
 {
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "input record null");
@@ -4388,12 +4392,6 @@ public:
         return DelayedSingleton<MissionInfoMgr>::GetInstance()->GetInnerMissionInfoById(
             missionId, innerMissionInfo);
     }
-#ifdef SUPPORT_SCREEN
-    std::shared_ptr<Media::PixelMap> GetSnapshot(int32_t missionId) override
-    {
-        return DelayedSingleton<MissionInfoMgr>::GetInstance()->GetSnapshot(missionId);
-    }
-#endif
 };
 }  // namespace AAFwk
 }  // namespace OHOS
