@@ -4388,12 +4388,6 @@ public:
         return DelayedSingleton<MissionInfoMgr>::GetInstance()->GetInnerMissionInfoById(
             missionId, innerMissionInfo);
     }
-#ifdef SUPPORT_SCREEN
-    std::shared_ptr<Media::PixelMap> GetSnapshot(int32_t missionId) override
-    {
-        return DelayedSingleton<MissionInfoMgr>::GetInstance()->GetSnapshot(missionId);
-    }
-#endif
 };
 }  // namespace AAFwk
 }  // namespace OHOS

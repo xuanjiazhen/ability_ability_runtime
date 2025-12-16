@@ -89,47 +89,6 @@ void MissionListManagerFirstTest::InitMockMission(std::shared_ptr<MissionListMan
 bool g_notifyWindowTransitionCalled = false;
 bool g_cancelStartingWindowCalled = false;
 
-class MockWMSHandler : public IWindowManagerServiceHandler {
-public:
-    virtual void NotifyWindowTransition(sptr<AbilityTransitionInfo> fromInfo, sptr<AbilityTransitionInfo> toInfo,
-        bool& animaEnabled)
-    {
-        g_notifyWindowTransitionCalled = true;
-    }
-
-    virtual int32_t GetFocusWindow(sptr<IRemoteObject>& abilityToken)
-    {
-        return 0;
-    }
-
-    virtual void StartingWindow(sptr<AbilityTransitionInfo> info,
-        std::shared_ptr<Media::PixelMap> pixelMap, uint32_t bgColor) {}
-
-    virtual void StartingWindow(sptr<AbilityTransitionInfo> info, std::shared_ptr<Media::PixelMap> pixelMap) {}
-
-    virtual void CancelStartingWindow(sptr<IRemoteObject> abilityToken)
-    {
-        g_cancelStartingWindowCalled = true;
-    }
-
-    virtual int32_t MoveMissionsToForeground(const std::vector<int32_t>& missionIds, int32_t topMissionId)
-    {
-        return 0;
-    }
-
-    virtual int32_t MoveMissionsToBackground(const std::vector<int32_t>& missionIds, std::vector<int32_t>& result)
-    {
-        return 0;
-    }
-
-    virtual sptr<IRemoteObject> AsObject()
-    {
-        return nullptr;
-    }
-
-    virtual void NotifyAnimationAbilityDied(sptr<AbilityTransitionInfo> info) {}
-};
-
 std::shared_ptr<AbilityRecord> MissionListManagerFirstTest::InitAbilityRecord()
 {
     AbilityRequest abilityRequest;

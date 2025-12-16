@@ -392,30 +392,7 @@ void AbilityRecord::RemoveLoadTimeoutTask()
 {
 }
 
-std::string AbilityRecord::GetLabel()
-{
-    return abilityInfo_.applicationInfo.label;
-}
-
 #ifdef SUPPORT_SCREEN
-void AbilityRecord::ProcessForegroundAbility(const std::shared_ptr<AbilityRecord> &callerAbility, bool needExit,
-    uint32_t sceneFlag)
-{
-}
-
-void AbilityRecord::NotifyAnimationFromTerminatingAbility(const std::shared_ptr<AbilityRecord>& callerAbility,
-    bool needExit, bool flag)
-{
-}
-
-void AbilityRecord::NotifyAnimationFromTerminatingAbility() const
-{
-}
-
-void AbilityRecord::NotifyAnimationFromMinimizeAbility(bool& animaEnabled)
-{
-}
-
 void AbilityRecord::SetAbilityTransitionInfo(sptr<AbilityTransitionInfo>& info) const
 {
 }
@@ -425,24 +402,9 @@ sptr<AbilityTransitionInfo> AbilityRecord::CreateAbilityTransitionInfo()
     return nullptr;
 }
 
-void AbilityRecord::StartingWindowHot()
-{
-}
-
-void AbilityRecord::ProcessForegroundAbility(bool isRecent, const AbilityRequest &abilityRequest,
-    std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<AbilityRecord> &callerAbility,
-    uint32_t sceneFlag)
-{
-}
-
 std::shared_ptr<Want> AbilityRecord::GetWantFromMission() const
 {
     return nullptr;
-}
-
-void AbilityRecord::AnimationTask(bool isRecent, const AbilityRequest &abilityRequest,
-    const std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<AbilityRecord> &callerAbility)
-{
 }
 
 void AbilityRecord::SetShowWhenLocked(const AppExecFwk::AbilityInfo &abilityInfo,
@@ -452,21 +414,6 @@ void AbilityRecord::SetShowWhenLocked(const AppExecFwk::AbilityInfo &abilityInfo
 
 void AbilityRecord::SetAbilityTransitionInfo(const AppExecFwk::AbilityInfo &abilityInfo,
     sptr<AbilityTransitionInfo> &info) const
-{
-}
-
-void AbilityRecord::NotifyAnimationFromRecentTask(const std::shared_ptr<StartOptions> &startOptions,
-    const std::shared_ptr<Want> &want) const
-{
-}
-
-void AbilityRecord::NotifyAnimationFromStartingAbility(const std::shared_ptr<AbilityRecord> &callerAbility,
-    const AbilityRequest &abilityRequest) const
-{
-}
-
-void AbilityRecord::StartingWindowTask(bool isRecent, bool isCold, const AbilityRequest &abilityRequest,
-    std::shared_ptr<StartOptions> &startOptions)
 {
 }
 
@@ -501,41 +448,11 @@ sptr<AbilityTransitionInfo> AbilityRecord::CreateAbilityTransitionInfo(const Abi
     return info;
 }
 
-std::shared_ptr<Global::Resource::ResourceManager> AbilityRecord::CreateResourceManager() const
-{
-    return nullptr;
-}
-
-std::shared_ptr<Media::PixelMap> AbilityRecord::GetPixelMap(const uint32_t windowIconId,
-    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr) const
-{
-    return nullptr;
-}
-
 sptr<AbilityTransitionInfo> AbilityRecord::CreateAbilityTransitionInfo(
     const std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<Want> &want,
     const AbilityRequest &abilityRequest)
 {
     return nullptr;
-}
-
-void AbilityRecord::StartingWindowHot(const std::shared_ptr<StartOptions> &startOptions,
-    const std::shared_ptr<Want> &want, const AbilityRequest &abilityRequest)
-{
-}
-
-void AbilityRecord::StartingWindowCold(const std::shared_ptr<StartOptions> &startOptions,
-    const std::shared_ptr<Want> &want, const AbilityRequest &abilityRequest)
-{
-}
-
-void AbilityRecord::GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor)
-{
-}
-
-void AbilityRecord::InitColdStartingWindowResource(
-    const std::shared_ptr<Global::Resource::ResourceManager> &resourceMgr)
-{
 }
 
 bool AbilityRecord::ReportAtomicServiceDrawnCompleteEvent()
@@ -634,9 +551,6 @@ bool AbilityRecord::GetAbilityForegroundingFlag() const
     return isAbilityForegrounding_;
 }
 
-void AbilityRecord::SetAbilityForegroundingFlag()
-{
-}
 #ifdef SUPPORT_SCREEN
 void AbilityRecord::SetAbilityState(AbilityState state)
 {
@@ -679,13 +593,6 @@ bool AbilityRecord::IsReady() const
 {
     return isReady_;
 }
-
-#ifdef SUPPORT_SCREEN
-bool AbilityRecord::IsWindowAttached() const
-{
-    return isWindowAttached_;
-}
-#endif
 
 bool AbilityRecord::IsLauncherAbility() const
 {
@@ -1654,26 +1561,6 @@ AbilityState AbilityRecord::GetPendingState() const
     return pendingState_.load();
 }
 
-bool AbilityRecord::IsNeedBackToOtherMissionStack()
-{
-    return isNeedBackToOtherMissionStack_;
-}
-
-void AbilityRecord::SetNeedBackToOtherMissionStack(bool isNeedBackToOtherMissionStack)
-{
-    isNeedBackToOtherMissionStack_ = isNeedBackToOtherMissionStack;
-}
-
-std::shared_ptr<AbilityRecord> AbilityRecord::GetOtherMissionStackAbilityRecord() const
-{
-    return otherMissionStackAbilityRecord_.lock();
-}
-
-void AbilityRecord::SetOtherMissionStackAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord)
-{
-    otherMissionStackAbilityRecord_ = abilityRecord;
-}
-
 int32_t AbilityRecord::GetCollaboratorType() const
 {
     return collaboratorType_;
@@ -1846,10 +1733,6 @@ void AbilityRecord::UpdateDmsCallerInfo(Want &want)
 }
 
 void AbilityRecord::SetDebugUIExtension()
-{
-}
-
-void AbilityRecord::ScheduleCollaborate(const Want &want)
 {
 }
 
