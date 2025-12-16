@@ -263,8 +263,10 @@ void OHOSApplication::SetAbilityRecordMgr(const std::shared_ptr<AbilityRecordMgr
  * @brief Will be Called when the system configuration of the device changes.
  *
  * @param config Indicates the new Configuration object.
+ * @param reason Indicates the Configuration update scene flag.
  */
-void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntime::SetLevel level)
+void OHOSApplication::OnConfigurationUpdated(
+    Configuration config, AbilityRuntime::SetLevel level, ConfigUpdateReason reason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!abilityRecordMgr_ || !configuration_ || !abilityRuntimeContext_) {
@@ -307,6 +309,8 @@ void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntim
             abilityStage->OnConfigurationUpdated(config);
         }
     }
+    TAG_LOGD(AAFwkTag::APPKIT, "configuration update scene:%{public}u", static_cast<uint8_t>(reason));
+    abilityRuntimeContext_->SetConfigUpdateReason(reason);
 #ifdef SUPPORT_GRAPHICS
     auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
     auto ignoreWindowContext = AbilityRuntime::ApplicationConfigurationManager::GetInstance().
