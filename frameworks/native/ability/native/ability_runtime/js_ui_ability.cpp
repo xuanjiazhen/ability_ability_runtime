@@ -1668,7 +1668,19 @@ int32_t JsUIAbility::OnContinueAsyncCB(napi_ref jsWantParamsRef, int32_t status,
         JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
         applicationContext->DispatchOnAbilityContinue(ability);
     }
-
+#ifdef SUPPORT_GRAPHICS
+    auto value = wantParams.GetParam(SUPPORT_CONTINUE_PAGE_STACK_PROPERTY_NAME);
+    bool IsContinuePageStack = true;
+    IBoolean *ao = IBoolean::Query(value);
+    if (ao != nullptr && AAFwk::Boolean::Unbox(ao)) {
+        std::shared_ptr<UIAbility> ability = shared_from_this();
+        std::string pageStack = ability->GetContentInfo();
+        if (pageStack.empty()) {
+            TAG_LOGE(AAFwkTag::CONTINUATION, "GetContentInfo failed");
+            status = CONTINUE_GET_CONTENT_FAILED;
+        }
+    }
+#endif
     Want want;
     want.SetParams(wantParams);
     want.AddFlags(want.FLAG_ABILITY_CONTINUATION);
