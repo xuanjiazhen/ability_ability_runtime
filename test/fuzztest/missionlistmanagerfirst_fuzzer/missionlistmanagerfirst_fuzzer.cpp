@@ -66,18 +66,14 @@ uint32_t GetU32Data(const char* ptr)
         ptr[INPUT_THREE];
 }
 
-std::shared_ptr<AbilityRecord> GetFuzzAbilityRecord()
+MissionAbilityRecordPtr GetFuzzAbilityRecord()
 {
     sptr<Token> token = nullptr;
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.bundleName = "com.example.fuzzTest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AbilityType::DATA;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    if (!abilityRecord) {
-        return nullptr;
-    }
-    return abilityRecord;
+    return MissionAbilityRecord::CreateAbilityRecord(abilityRequest);
 }
 
 sptr<Token> GetFuzzAbilityToken()
@@ -119,7 +115,7 @@ void DoSomethingTestWithMyAPI0(std::shared_ptr<MissionListManager> missionListMg
     missionListMgr->EnqueueWaitingAbilityToFront(abilityRequest);
     missionListMgr->StartWaitingAbility();
     missionListMgr->UnRegisterMissionListener(nullptr);
-    std::shared_ptr<AbilityRecord> targetAbilityRecord = GetFuzzAbilityRecord();
+    auto targetAbilityRecord = GetFuzzAbilityRecord();
     missionListMgr->AddRecord(abilityRequest, targetAbilityRecord);
     std::shared_ptr<Mission> targetMission = std::make_shared<Mission>(int32Param, targetAbilityRecord);
     missionListMgr->GetTargetMission(abilityRequest, targetMission, targetAbilityRecord);

@@ -1536,7 +1536,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_StartAbilityLocked_001, Test
         abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName);
     EXPECT_EQ(element.GetURI(), stringUri);
     abilityRecord->currentState_ = AbilityState::ACTIVE;
-    abilityRecord->SetPreAbilityRecord(serviceRecord1_);
     connectManager->serviceMap_.emplace(stringUri, abilityRecord);
     int res = connectManager->StartAbilityLocked(abilityRequest);
     EXPECT_EQ(res, ERR_OK);
@@ -2616,7 +2615,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_StartAbilityLocked_With_Sess
         abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName);
     EXPECT_EQ(element.GetURI(), stringUri);
     abilityRecord->currentState_ = AbilityState::ACTIVE;
-    abilityRecord->SetPreAbilityRecord(serviceRecord1_);
     connectManager->serviceMap_.emplace(stringUri, abilityRecord);
     abilityRequest.sessionInfo = MockSessionInfo(0);
     int res = connectManager->StartAbilityLocked(abilityRequest);
