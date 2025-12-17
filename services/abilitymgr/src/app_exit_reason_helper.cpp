@@ -190,11 +190,11 @@ int32_t AppExitReasonHelper::RecordProcessExtensionExitReason(
     CHECK_POINTER_AND_RETURN(connectManager, ERR_NULL_OBJECT);
     std::vector<std::string> extensionList;
     int32_t resultCode = ERR_OK;
-    if (pid <= NO_PID) {
-        resultCode = connectManager->GetActiveUIExtensionList(bundleName, extensionList);
-    } else {
-        resultCode = connectManager->GetActiveUIExtensionList(pid, extensionList);
-    }
+    // if (pid <= NO_PID) {
+    //     resultCode = connectManager->GetActiveUIExtensionList(bundleName, extensionList);
+    // } else {
+    //     resultCode = connectManager->GetActiveUIExtensionList(pid, extensionList);
+    // }
     if (resultCode != ERR_OK) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "ResultCode: %{public}d", resultCode);
         return ERR_GET_ACTIVE_EXTENSION_LIST_EMPTY;

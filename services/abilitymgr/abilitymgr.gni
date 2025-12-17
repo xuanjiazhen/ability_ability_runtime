@@ -80,6 +80,7 @@ abilityms_files = [
   "src/start_ability_handler/start_ability_sandbox_savefile.cpp",
 
   # new ability manager service here
+  "src/ui_extension/ui_extension_ability_manager.cpp",
   "src/ui_extension/preload_uiext_state_observer.cpp",
   "src/ui_extension_record/ui_extension_record.cpp",
   "src/ui_extension_record/ui_extension_record_factory.cpp",
