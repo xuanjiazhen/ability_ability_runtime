@@ -1997,7 +1997,8 @@ int AbilityManagerService::StartAbilityForResultAsCaller(
     }
     auto connectManager = GetConnectManagerByUserId(validUserId);
     CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
-    auto asCallerSourceToken = connectManager->GetUIExtensionSourceToken(callerToken);
+    // auto asCallerSourceToken = connectManager->GetUIExtensionSourceToken(callerToken);
+    auto asCallerSourceToken = nullptr;
     UpdateCallerInfoUtil::GetInstance().UpdateAsCallerSourceInfo(newWant, asCallerSourceToken, callerToken);
     StartAbilityWrapParam startAbilityWrapParam = {
         .want = newWant,
@@ -2028,7 +2029,8 @@ int AbilityManagerService::StartAbilityForResultAsCaller(const Want &want, const
     }
     auto connectManager = GetConnectManagerByUserId(validUserId);
     CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
-    auto asCallerSourceToken = connectManager->GetUIExtensionSourceToken(callerToken);
+    // auto asCallerSourceToken = connectManager->GetUIExtensionSourceToken(callerToken);
+    auto asCallerSourceToken = nullptr;
     UpdateCallerInfoUtil::GetInstance().UpdateAsCallerSourceInfo(newWant, asCallerSourceToken, callerToken);
     return StartAbilityForOptionWrap(newWant, startOptions, callerToken, false, userId, requestCode, true);
 }
@@ -3732,7 +3734,7 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(
         SendExtensionReport(eventInfo, CONNECT_MAMAGER_NOT_FIND_BY_USERID);
         return ERR_INVALID_VALUE;
     }
-    result = connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName, hostPid);
+    // result = connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName, hostPid);
     if (result != ERR_OK) {
         eventInfo.errReason = "PreloadUIExtensionAbilityLocked error";
         SendExtensionReport(eventInfo, result);
@@ -3750,7 +3752,8 @@ int AbilityManagerService::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk:
         TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null");
         return ERR_INVALID_VALUE;
     }
-    return connectManager->UnloadUIExtensionAbility(abilityRecord, hostPid);
+    // return connectManager->UnloadUIExtensionAbility(abilityRecord, hostPid);
+    return 0;
 }
 
 int AbilityManagerService::RequestModalUIExtension(const Want &want)
@@ -5103,7 +5106,7 @@ int AbilityManagerService::MinimizeUIExtensionAbility(const sptr<SessionInfo> &e
     TAG_LOGD(AAFwkTag::ABILITYMGR, "UIExtension component id: %{public}" PRId64 ", element: %{public}s/%{public}s",
         extensionSessionInfo->uiExtensionComponentId, extensionSessionInfo->want.GetElement().GetBundleName().c_str(),
         extensionSessionInfo->want.GetElement().GetAbilityName().c_str());
-    connectManager->BackgroundAbilityWindowLocked(targetRecord, extensionSessionInfo);
+    // connectManager->BackgroundAbilityWindowLocked(targetRecord, extensionSessionInfo);
     return ERR_OK;
 }
 
@@ -5638,7 +5641,9 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     }
 
     SetAbilityRequestSessionInfo(abilityRequest, targetExtensionType);
-    return connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo, connectInfo);
+    return connectInfo == nullptr
+        ? connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo);
+        : connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo, connectInfo);
 }
 
 int AbilityManagerService::ConnectRemoteAbility(Want &want, const sptr<IRemoteObject> &callerToken,
@@ -7672,7 +7677,7 @@ void AbilityManagerService::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null userId=%{public}d", userId);
                 return;
             }
-            connectManager->OnAbilityRequestDone(token, state);
+            // connectManager->OnAbilityRequestDone(token, state);
             break;
         }
         default: {
@@ -11779,7 +11784,7 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
         CHECK_POINTER_AND_RETURN(connectManager, false);
         bool matched = false;
         std::list<sptr<IRemoteObject>> callerList;
-        connectManager->GetUIExtensionCallerTokenList(BaseExtensionRecord::TransferToExtensionRecordBase(callerAbility), callerList);
+        // connectManager->GetUIExtensionCallerTokenList(BaseExtensionRecord::TransferToExtensionRecordBase(callerAbility), callerList);
         for (auto &item : callerList) {
             auto ability = AAFwk::Token::GetAbilityRecordByToken(item);
             if (ability == nullptr) {
@@ -12210,7 +12215,8 @@ int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId
     int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
     auto connectManager = GetConnectManagerByUserId(userId);
     if (connectManager) {
-        focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token)
+        // focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token)
+        focused = true
             || connectManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
     } else {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager null, userId:%{public}d", userId);
@@ -12219,7 +12225,8 @@ int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Check connectManager in user0");
         connectManager = GetConnectManagerByUserId(U0_USER_ID);
         if (connectManager) {
-            focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token)
+            // focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token)
+            focused = true
                 || connectManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
         } else {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager null, userId: 0");
@@ -12529,7 +12536,8 @@ void AbilityManagerService::GetConnectManagerAndUIExtensionBySessionInfo(const s
     TAG_LOGD(AAFwkTag::ABILITYMGR, "userId=%{public}d", userId);
     connectManager = GetConnectManagerByUserId(userId);
     if (connectManager) {
-        targetAbility = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
+        // targetAbility = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
+        targetAbility = nullptr;
         if (needCheck && targetAbility == nullptr) {
             targetAbility = connectManager->GetUIExtensionBySessionFromServiceMap(sessionInfo);
         }
@@ -12540,7 +12548,8 @@ void AbilityManagerService::GetConnectManagerAndUIExtensionBySessionInfo(const s
         TAG_LOGD(AAFwkTag::ABILITYMGR, "try to find UIExtension in user0");
         connectManager = GetConnectManagerByUserId(U0_USER_ID);
         if (connectManager) {
-            targetAbility = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
+            // targetAbility = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
+            targetAbility = nullptr;
             if (needCheck && targetAbility == nullptr) {
                 targetAbility = connectManager->GetUIExtensionBySessionFromServiceMap(sessionInfo);
             }
@@ -13745,14 +13754,16 @@ std::shared_ptr<AbilityRecord> AbilityManagerService::GetUIExtensionRootCaller(c
         return nullptr;
     }
 
-    auto callerRecord = connectManager->GetUIExtensionRootHostInfo(token);
+    // auto callerRecord = connectManager->GetUIExtensionRootHostInfo(token);
+    auto callerRecord = nullptr;
     if (callerRecord == nullptr && validUserId != U0_USER_ID) {
         connectManager = GetConnectManagerByUserId(U0_USER_ID);
         if (connectManager == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "manager null, userId: %{public}d", U0_USER_ID);
             return nullptr;
         }
-        callerRecord = connectManager->GetUIExtensionRootHostInfo(token);
+        // callerRecord = connectManager->GetUIExtensionRootHostInfo(token);
+        callerRecord = nullptr;
     }
 
     return callerRecord;
@@ -13777,7 +13788,8 @@ int32_t AbilityManagerService::GetUIExtensionSessionInfo(const sptr<IRemoteObjec
         return ERR_INVALID_VALUE;
     }
 
-    auto ret = connectManager->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
+    // auto ret = connectManager->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
+    auto ret = ERR_OK;
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get ui extension session info failed");
         return ret;
@@ -15397,8 +15409,9 @@ int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(const AppExecFwk::E
       TAG_LOGE(AAFwkTag::UI_EXT, "connectManager null. userId=%{public}d", userId);
       return ERR_INVALID_VALUE;
   }
-  return connectManager->QueryPreLoadUIExtensionRecordInner(
-      element, moduleName, hostPid, recordNum);
+//   return connectManager->QueryPreLoadUIExtensionRecordInner(
+//       element, moduleName, hostPid, recordNum);
+  return 0;
 }
 
 int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
@@ -16116,7 +16129,8 @@ int32_t AbilityManagerService::ClearPreloadedUIExtensionAbilities(int32_t userId
         TAG_LOGE(AAFwkTag::UI_EXT, "null connectManager");
         return ERR_INVALID_VALUE;
     }
-    int32_t ret = connectManager->ClearAllPreloadUIExtensionAbilityLocked();
+    // int32_t ret = connectManager->ClearAllPreloadUIExtensionAbilityLocked();
+    int32_t ret = ERR_OK;
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT,
             "ClearAllPreloadUIExtensionAbilityLocked failed, ret: %{public}d", ret);
@@ -16145,7 +16159,8 @@ int32_t AbilityManagerService::RegisterPreloadUIExtensionHostClient(const sptr<I
         TAG_LOGE(AAFwkTag::UI_EXT, "null connectManager");
         return ERR_INVALID_VALUE;
     }
-    return connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
+    // return connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
+    return 0;
 }
 
 int32_t AbilityManagerService::UnRegisterPreloadUIExtensionHostClient(int32_t callerPid)
@@ -16164,7 +16179,8 @@ int32_t AbilityManagerService::UnRegisterPreloadUIExtensionHostClient(int32_t ca
         TAG_LOGE(AAFwkTag::UI_EXT, "null connectManager");
         return ERR_INVALID_VALUE;
     }
-    return connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
+    // return connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
+    return 0;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
