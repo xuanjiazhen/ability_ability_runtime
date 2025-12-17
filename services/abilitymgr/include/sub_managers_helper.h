@@ -21,6 +21,8 @@
 #include <unordered_map>
 
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "ability_event_handler.h"
 #include "cpp/mutex.h"
 #include "data_ability_manager.h"
@@ -44,6 +46,8 @@ public:
     void InitConnectManager(int32_t userId, bool switchUser);
     void InitDataAbilityManager(int32_t userId, bool switchUser);
     void InitPendWantManager(int32_t userId, bool switchUser);
+    void InitUIExtensionAbilityManager(int32_t userId, bool switchUser);
+    void InitCommonExtensionManager(int32_t userId, bool switchUser);
 
     void ClearSubManagers(int userId);
 
@@ -72,6 +76,18 @@ public:
     std::shared_ptr<UIAbilityLifecycleManager> GetUIAbilityManagerByUserId(int32_t userId);
     std::shared_ptr<UIAbilityLifecycleManager> GetUIAbilityManagerByUid(int32_t uid);
 
+    std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> GetUIExtensionAbilityManagers();
+    std::shared_ptr<UIExtensionAbilityManager> GetCurrentUIExtensionAbilityManager();
+    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByUserId(int32_t userId);
+    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByToken(const sptr<IRemoteObject> &token);
+    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByAbilityRecordId(const int64_t &abilityRecordId);
+
+    std::unordered_map<int, std::shared_ptr<CommonExtensionManager>> GetCommonExtensionManagers();
+    std::shared_ptr<CommonExtensionManager> GetCurrentCommonExtensionManager();
+    std::shared_ptr<CommonExtensionManager> GetCommonExtensionManagerByUserId(int32_t userId);
+    std::shared_ptr<CommonExtensionManager> GetCommonExtensionManagerByToken(const sptr<IRemoteObject> &token);
+    std::shared_ptr<CommonExtensionManager> GetCommonExtensionManagerByAbilityRecordId(const int64_t &abilityRecordId);
+
     void UninstallApp(const std::string &bundleName, int32_t uid);
     void UninstallAppInUIAbilityManagers(int32_t userId, const std::string &bundleName, int32_t uid);
     void UninstallAppInMissionListManagers(int32_t userId, const std::string &bundleName, int32_t uid);
@@ -90,12 +106,16 @@ private:
     std::shared_ptr<PendingWantManager> currentPendingWantManager_;
     std::shared_ptr<MissionListManagerInterface> currentMissionListManager_;
     std::shared_ptr<UIAbilityLifecycleManager> currentUIAbilityManager_;
+    std::shared_ptr<UIExtensionAbilityManager> currentUIExtensionAbilityManager_;
+    std::shared_ptr<CommonExtensionManager> currentCommonExtensionManager_;
     std::shared_ptr<MissionListWrap> missionListWrap_;
     std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> connectManagers_;
     std::unordered_map<int, std::shared_ptr<DataAbilityManager>> dataAbilityManagers_;
     std::unordered_map<int, std::shared_ptr<PendingWantManager>> pendingWantManagers_;
     std::unordered_map<int, std::shared_ptr<MissionListManagerInterface>> missionListManagers_;
     std::unordered_map<int, std::shared_ptr<UIAbilityLifecycleManager>> uiAbilityManagers_;
+    std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> uiExtensionAbilityManagers_;
+    std::unordered_map<int, std::shared_ptr<CommonExtensionManager>> commonExtensionManagers_;
 
     std::mutex missionListWrapMutex_;
     ffrt::mutex managersMutex_;

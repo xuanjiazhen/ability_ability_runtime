@@ -46,10 +46,14 @@ void SubManagersHelper::InitSubManagers(int userId, bool switchUser)
 {
     if (userId == U1_USER_ID) {
         InitConnectManager(userId, false);
+        InitUIExtensionAbilityManager(userId, false);
+        InitCommonExtensionManager(userId, false);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Init U1");
         return;
     }
     InitConnectManager(userId, switchUser);
+    InitUIExtensionAbilityManager(userId, switchUser);
+    InitCommonExtensionManager(userId, switchUser);
     InitDataAbilityManager(userId, switchUser);
     InitPendWantManager(userId, switchUser);
     if (userId != U0_USER_ID) {
@@ -79,6 +83,45 @@ void SubManagersHelper::InitConnectManager(int32_t userId, bool switchUser)
         currentConnectManager_ = manager;
     }
 }
+
+void SubManagersHelper::InitUIExtensionAbilityManager(int32_t userId, bool switchUser)
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    auto it = uiExtensionAbilityManagers_.find(userId);
+    if (it != uiExtensionAbilityManagers_.end()) {
+        if (switchUser) {
+            currentUIExtensionAbilityManager_ = it->second;
+        }
+        return;
+    }
+    auto manager = std::make_shared<UIExtensionAbilityManager>(userId);
+    manager->SetTaskHandler(taskHandler_);
+    manager->SetEventHandler(eventHandler_);
+    uiExtensionAbilityManagers_.emplace(userId, manager);
+    if (switchUser) {
+        currentUIExtensionAbilityManager_ = manager;
+    }
+}
+
+void SubManagersHelper::InitCommonExtensionManager(int32_t userId, bool switchUser)
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    auto it = commonExtensionManagers_.find(userId);
+    if (it != commonExtensionManagers_.end()) {
+        if (switchUser) {
+            currentCommonExtensionManager_ = it->second;
+        }
+        return;
+    }
+    auto manager = std::make_shared<CommonExtensionManager>(userId);
+    manager->SetTaskHandler(taskHandler_);
+    manager->SetEventHandler(eventHandler_);
+    commonExtensionManagers_.emplace(userId, manager);
+    if (switchUser) {
+        currentCommonExtensionManager_ = manager;
+    }
+}
+
 
 void SubManagersHelper::InitDataAbilityManager(int32_t userId, bool switchUser)
 {
@@ -168,6 +211,8 @@ void SubManagersHelper::ClearSubManagers(int userId)
     connectManagers_.erase(userId);
     dataAbilityManagers_.erase(userId);
     pendingWantManagers_.erase(userId);
+    uiExtensionAbilityManagers_.erase(userId);
+    commonExtensionManagers_.erase(userId);
 }
 
 std::shared_ptr<DataAbilityManager> SubManagersHelper::GetCurrentDataAbilityManager()
@@ -272,6 +317,134 @@ std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByAbi
 {
     std::lock_guard<ffrt::mutex> lock(managersMutex_);
     for (auto& item: connectManagers_) {
+        if (item.second == nullptr) {
+            continue;
+        }
+        if (item.second->GetExtensionByIdFromServiceMap(abilityRecordId)) {
+            return item.second;
+        }
+        if (item.second->GetExtensionByIdFromTerminatingMap(abilityRecordId)) {
+            return item.second;
+        }
+    }
+
+    return nullptr;
+}
+
+std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> SubManagersHelper::GetUIExtensionAbilityManagers()
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    return uiExtensionAbilityManagers_;
+}
+
+std::shared_ptr<UIExtensionAbilityManager> SubManagersHelper::GetCurrentUIExtensionAbilityManager()
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    return currentUIExtensionAbilityManager_;
+}
+
+std::shared_ptr<UIExtensionAbilityManager> SubManagersHelper::GetUIExtensionAbilityManagerByUserId(int32_t userId)
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    auto it = uiExtensionAbilityManagers_.find(userId);
+    if (it != uiExtensionAbilityManagers_.end()) {
+        return it->second;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "failed. UserId: %{public}d", userId);
+    return nullptr;
+}
+
+std::shared_ptr<UIExtensionAbilityManager> SubManagersHelper::GetUIExtensionAbilityManagerByToken(const sptr<IRemoteObject> &token)
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    for (auto& item: uiExtensionAbilityManagers_) {
+        if (item.second && item.second->GetExtensionByTokenFromServiceMap(token)) {
+            return item.second;
+        }
+        if (item.second && item.second->GetExtensionByTokenFromTerminatingMap(token)) {
+            return item.second;
+        }
+    }
+    auto abilityRecord = AbilityCacheManager::GetInstance().FindRecordByToken(token);
+    if (abilityRecord == nullptr) {
+        return nullptr;
+    }
+    auto iter = uiExtensionAbilityManagers_.find(abilityRecord->GetOwnerMissionUserId());
+    if (iter == uiExtensionAbilityManagers_.end()) {
+        return nullptr;
+    }
+    return iter->second;
+}
+
+std::shared_ptr<UIExtensionAbilityManager> SubManagersHelper::GetUIExtensionAbilityManagerByAbilityRecordId(
+    const int64_t &abilityRecordId)
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    for (auto& item: uiExtensionAbilityManagers_) {
+        if (item.second == nullptr) {
+            continue;
+        }
+        if (item.second->GetExtensionByIdFromServiceMap(abilityRecordId)) {
+            return item.second;
+        }
+        if (item.second->GetExtensionByIdFromTerminatingMap(abilityRecordId)) {
+            return item.second;
+        }
+    }
+
+    return nullptr;
+}
+
+std::unordered_map<int, std::shared_ptr<CommonExtensionManager>> SubManagersHelper::GetCommonExtensionManagers()
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    return commonExtensionManagers_;
+}
+
+std::shared_ptr<CommonExtensionManager> SubManagersHelper::GetCurrentCommonExtensionManager()
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    return currentCommonExtensionManager_;
+}
+
+std::shared_ptr<CommonExtensionManager> SubManagersHelper::GetCommonExtensionManagerByUserId(int32_t userId)
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    auto it = commonExtensionManagers_.find(userId);
+    if (it != commonExtensionManagers_.end()) {
+        return it->second;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "failed. UserId: %{public}d", userId);
+    return nullptr;
+}
+
+std::shared_ptr<CommonExtensionManager> SubManagersHelper::GetCommonExtensionManagerByToken(const sptr<IRemoteObject> &token)
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    for (auto& item: commonExtensionManagers_) {
+        if (item.second && item.second->GetExtensionByTokenFromServiceMap(token)) {
+            return item.second;
+        }
+        if (item.second && item.second->GetExtensionByTokenFromTerminatingMap(token)) {
+            return item.second;
+        }
+    }
+    auto abilityRecord = AbilityCacheManager::GetInstance().FindRecordByToken(token);
+    if (abilityRecord == nullptr) {
+        return nullptr;
+    }
+    auto iter = commonExtensionManagers_.find(abilityRecord->GetOwnerMissionUserId());
+    if (iter == commonExtensionManagers_.end()) {
+        return nullptr;
+    }
+    return iter->second;
+}
+
+std::shared_ptr<CommonExtensionManager> SubManagersHelper::GetCommonExtensionManagerByAbilityRecordId(
+    const int64_t &abilityRecordId)
+{
+    std::lock_guard<ffrt::mutex> lock(managersMutex_);
+    for (auto& item: commonExtensionManagers_) {
         if (item.second == nullptr) {
             continue;
         }
