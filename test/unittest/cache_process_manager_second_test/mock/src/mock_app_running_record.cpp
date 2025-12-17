@@ -1190,6 +1190,16 @@ bool AppRunningRecord::GetProcessCacheBlocked()
     return processCacheBlocked;
 }
 
+void AppRunningRecord::SetProcessCacheLocked(bool locked)
+{
+    processCacheLocked_ = locked;
+}
+
+bool AppRunningRecord::GetProcessCacheLocked()
+{
+    return processCacheLocked_;
+}
+
 bool AppRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()
 {
     return false;
