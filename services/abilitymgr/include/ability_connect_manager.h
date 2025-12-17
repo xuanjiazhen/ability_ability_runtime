@@ -230,12 +230,6 @@ public:
         eventHandler_ = handler;
     }
 
-    uint32_t GetSceneBoardTokenId() const
-    {
-        return sceneBoardTokenId_;
-    }
-
-
     void OnLoadAbilityFailed(std::shared_ptr<BaseExtensionRecord> abilityRecord);
 
     /**
@@ -443,16 +437,6 @@ private:
      */
     void RemoveServiceAbility(const std::shared_ptr<BaseExtensionRecord> &service);
 
-    /**
-     * GetOrCreateServiceRecord.
-     *
-     * @param abilityRequest, Special want for service type's ability.
-     * @param isCreatedByConnect, whether is created by connect ability mode.
-     * @param targetAbilityRecord, the target service ability record.
-     * @param isLoadedAbility, whether the target ability has been loaded.
-     */
-    void GetOrCreateServiceRecord(const AbilityRequest &abilityRequest, const bool isCreatedByConnect,
-        std::shared_ptr<BaseExtensionRecord> &targetAbilityRecord, bool &isLoadedAbility);
     void SetServiceAfterNewCreate(const AbilityRequest &abilityRequest, BaseExtensionRecord &targetService);
 
     void RemoveServiceFromMapSafe(const std::string &serviceKey);
@@ -594,10 +578,9 @@ protected:
      */
     virtual int32_t StartAbilityLocked(const AbilityRequest &abilityRequest);
     virtual int AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
-        const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-    {
-        return -1;
-    }
+        const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    virtual void GetOrCreateServiceRecord(const AbilityRequest &abilityRequest, const bool isCreatedByConnect,
+        std::shared_ptr<BaseExtensionRecord> &targetAbilityRecord, bool &isLoadedAbility) {}
     virtual void HandlePreloadUIExtensionSuccess(int32_t extensionRecordId, bool isPreloadedSuccess) {}
     virtual void LoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
     virtual void ForegroundTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
@@ -647,17 +630,16 @@ protected:
     int TerminateAbilityInner(const sptr<IRemoteObject> &token);//一会再看下
     bool IsAbilityNeedKeepAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 protected:
+    int userId_;
+    ServiceMapType serviceMap_;
+    ffrt::mutex serviceMapMutex_;
     ffrt::mutex serialMutex_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
 private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";
 
-    int userId_;
-    std::atomic_uint32_t sceneBoardTokenId_ = 0;
-
     ConnectMapType connectMap_;
-    ServiceMapType serviceMap_;
     RecipientMapType recipientMap_;
     WindowExtensionMapType windowExtensionMap_;
     std::map<int32_t, int32_t> callerPidConnectionCountMap_;
@@ -668,7 +650,6 @@ private:
     std::unordered_map<std::string, std::shared_ptr<std::list<AbilityRequest>>> startServiceReqList_;
 
     std::mutex connectMapMutex_;
-    ffrt::mutex serviceMapMutex_;
     std::mutex recipientMapMutex_;
     std::mutex windowExtensionMapMutex_;
     std::mutex startServiceReqListLock_;

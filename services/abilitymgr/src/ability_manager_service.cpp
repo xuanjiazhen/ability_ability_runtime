@@ -3186,8 +3186,9 @@ bool AbilityManagerService::IsCallerSceneBoard()
     int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
     auto connectManager = GetConnectManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(connectManager, false);
-    auto sceneBoardTokenId = connectManager->GetSceneBoardTokenId();
-    return sceneBoardTokenId != 0 && IPCSkeleton::GetCallingTokenID() == sceneBoardTokenId;
+    // auto sceneBoardTokenId = connectManager->GetSceneBoardTokenId();
+    // return sceneBoardTokenId != 0 && IPCSkeleton::GetCallingTokenID() == sceneBoardTokenId;
+    return false; // todo
 }
 
 bool AbilityManagerService::IsBackgroundTaskUid(const int uid)

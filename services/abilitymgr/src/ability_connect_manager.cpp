@@ -312,76 +312,6 @@ int AbilityConnectManager::StopServiceAbilityLocked(const AbilityRequest &abilit
     return ERR_OK;
 }
 
-void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abilityRequest,
-    const bool isCreatedByConnect, std::shared_ptr<BaseExtensionRecord> &targetService, bool &isLoadedAbility)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    // lifecycle is not complete when window extension is reused
-    bool noReuse = UIExtensionUtils::IsWindowExtension(abilityRequest.abilityInfo.extensionAbilityType);
-    AppExecFwk::ElementName element(abilityRequest.abilityInfo.deviceId, GenerateBundleName(abilityRequest),
-        abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName);
-    std::string serviceKey = element.GetURI();
-    if (FRS_BUNDLE_NAME == abilityRequest.abilityInfo.bundleName) {
-        serviceKey = element.GetURI() + std::to_string(abilityRequest.want.GetIntParam(FRS_APP_INDEX, 0));
-    }
-    {
-        std::lock_guard lock(serviceMapMutex_);
-        auto serviceMapIter = serviceMap_.find(serviceKey);
-        targetService = serviceMapIter == serviceMap_.end() ? nullptr : serviceMapIter->second;
-    }
-    if (targetService == nullptr &&
-        IsCacheExtensionAbilityByInfo(abilityRequest.abilityInfo)) {
-        targetService = AbilityCacheManager::GetInstance().Get(abilityRequest);
-        if (targetService != nullptr) {
-            AddToServiceMap(serviceKey, targetService);
-        }
-    }
-    if (noReuse && targetService) {
-        if (IsSpecialAbility(abilityRequest.abilityInfo)) {
-            TAG_LOGI(AAFwkTag::EXT, "removing ability: %{public}s/%{public}s",
-                element.GetBundleName().c_str(),
-                element.GetAbilityName().c_str());
-        }
-        RemoveServiceFromMapSafe(serviceKey);
-    }
-    isLoadedAbility = true;
-    if (noReuse || targetService == nullptr) {
-        targetService = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-        CHECK_POINTER(targetService);
-        targetService->SetOwnerMissionUserId(userId_);
-        if (isCreatedByConnect) {
-            targetService->SetCreateByConnectMode();
-        }
-        SetServiceAfterNewCreate(abilityRequest, *targetService);
-        AddToServiceMap(serviceKey, targetService);
-        isLoadedAbility = false;
-    }
-    TAG_LOGD(AAFwkTag::EXT, "service map add, serviceKey: %{public}s", serviceKey.c_str());
-}
-
-void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abilityRequest,
-    BaseExtensionRecord &targetService)
-{
-    if (abilityRequest.abilityInfo.name == AbilityConfig::LAUNCHER_ABILITY_NAME) {
-        targetService.SetLauncherRoot();
-        if (abilityRequest.restart) {
-            targetService.SetRestartTime(abilityRequest.restartTime);
-            targetService.SetRestartCount(abilityRequest.restartCount);
-        }
-    } else if (IsAbilityNeedKeepAlive(BaseExtensionRecord::TransferToExtensionRecordBase(
-        targetService.shared_from_this())) && abilityRequest.restart) {
-        targetService.SetRestartTime(abilityRequest.restartTime);
-        targetService.SetRestartCount(abilityRequest.restartCount);
-    }
-    if (MultiInstanceUtils::IsMultiInstanceApp(abilityRequest.appInfo)) {
-        targetService.SetInstanceKey(MultiInstanceUtils::GetValidExtensionInstanceKey(abilityRequest));
-    }
-    if (targetService.IsSceneBoard()) {
-        TAG_LOGI(AAFwkTag::EXT, "create sceneboard");
-        sceneBoardTokenId_ = abilityRequest.appInfo.accessTokenId;
-    }
-}
-
 void AbilityConnectManager::RemoveServiceFromMapSafe(const std::string &serviceKey)
 {
     std::lock_guard lock(serviceMapMutex_);
@@ -423,8 +353,7 @@ void AbilityConnectManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
 }
 
 int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityRequest,
-    const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
-    sptr<UIExtensionAbilityConnectInfo> connectInfo)
+    const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
@@ -450,6 +379,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     std::shared_ptr<BaseExtensionRecord> targetService;
     bool isLoadedAbility = false;
     GetOrCreateServiceRecord(abilityRequest, true, targetService, isLoadedAbility);
+    CHECK_POINTER_AND_RETURN(targetService, ERR_INVALID_VALUE);
 
     ReportEventToRSS(abilityRequest.abilityInfo, targetService, callerToken);
     // 2. get target connectRecordList, and check whether this callback has been connected.
@@ -804,6 +734,20 @@ int AbilityConnectManager::AttachAbilityThreadLocked(
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     int ret = AttachAbilityThreadInner(scheduler, token, abilityRecord);
     return ret;
+}
+
+int AbilityConnectManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
+    const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::string element = abilityRecord->GetURI();
+    TAG_LOGD(AAFwkTag::EXT, "ability:%{public}s", element.c_str());
+    abilityRecord->RemoveLoadTimeoutTask();
+    AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
+    abilityRecord->SetScheduler(scheduler);
+    TAG_LOGD(AAFwkTag::EXT, "Inactivate");
+    abilityRecord->Inactivate();
+    return ERR_OK;
 }
 
 void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
