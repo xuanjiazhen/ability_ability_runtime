@@ -112,7 +112,7 @@ private:
     std::unordered_map<int, std::shared_ptr<PendingWantManager>> pendingWantManagers_;
     std::unordered_map<int, std::shared_ptr<MissionListManagerInterface>> missionListManagers_;
     std::unordered_map<int, std::shared_ptr<UIAbilityLifecycleManager>> uiAbilityManagers_;
-    std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>>     ;
+    std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> uiExtensionAbilityManagers_;
     std::unordered_map<int, std::shared_ptr<CommonExtensionManager>> commonExtensionManagers_;
 
     std::mutex missionListWrapMutex_;
