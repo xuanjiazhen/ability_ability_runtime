@@ -17,17 +17,20 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 # 页面缩放管理库
 ohos_shared_library("page_scaling_manager") {
   sources = [
-    "services/src/page_scaling_manager.cpp",
+    "page_scaling_manager.cpp",
+    "sensor_data_manager.cpp",
+    "match_data_manager.cpp",
   ]
   
   include_dirs = [
-    "services/include/",
+    "./",
   ]
   
   external_deps = [
     "json:nlohmann_json_static",
     "hilog:libhilog",
     "c_utils:utils",
+    "datashare:datashare_helper",
   ]
   
   subsystem_name = "ability"
@@ -36,7 +39,7 @@ ohos_shared_library("page_scaling_manager") {
 
 # 导出头文件
 ohos_shared_headers("page_scaling_manager_headers") {
-  include_dirs = [ "services/include/" ]
+  include_dirs = [ "./" ]
   deps = [
     ":page_scaling_manager",
   ]

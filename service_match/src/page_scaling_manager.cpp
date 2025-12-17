@@ -16,55 +16,66 @@
 #include "page_scaling_manager.h"
 
 #include <map>
-#include <optional>
 #include <string>
 #include <vector>
 #include <mutex>
-#include "hilog_tag_wrapper.h"
-#include "setting_data_manager.h"
+#include "match_tag_wrapper.h"
+#include "page_data_manager.h"
 #include "ui_content.h"
 #include "window.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 
-PageScalingManager &PageScalingManager::GetInstance() {
-    static PageScalingManager instance;
-    return instance;
+{
+    std::vector<std::string> PAGE_CONFIG_KEYS = {
+        "apps_page_level_config_dpi",
+        "apps_page_level_config_hideStatusBar",
+        "apps_page_level_config_videoShrink",
+        "apps_page_level_config_verticalDisplay"
+    };
 }
 
-void PageScalingManager::Initialize(sptr<Rosen::Window>& window, const std::string &key,
+PageScalingManager::PageScalingManager() {
+    // 构造函数实现
+}
+
+void PageScalingManager::Initialize(std::weak_ptr<AbilityRuntime::AbilityContext> &context,sptr<Rosen::Window>& window, const std::string &key,
     const std::string &bundleName, const std::string &pageName)
 {
     if (window == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "window null");
         return;
     }
-    
-    PageScalingConfig config;
-    GetPageScalingConfig(window, key, bundleName, pageName, config);
-    RegisterPageChangeListeners(key, config);
+
+    auto& dataMgr = PageDataManager::GetInstance();
+    if (!dataMgr.IsInitialized()) {
+        ErrCode ret = dataMgr.Initialize(context);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to initialize page data manager, ret: %{public}d", ret);
+            return;
+        }
+    }
+    bundleName_ = bundleName;
+    // 初始化config_的bundleName和pageName
+    config_.bundleName = bundleName;
+    config_.page.pageName = pageName;
+    RetrivePageScalingConfig(dataMgr, window, bundleName_, pageName, config_);
+    RegisterPageChangeListeners(window, key, config_);
 }
 
-void PageScalingManager::GetPageScalingConfig(const std::string &key, const std::string &bundleName,
-    const std::string &pageName, PageScalingConfig &config)
+void PageScalingManager::RetrivePageScalingConfig(PageDataManager &dataMgr, sptr<Rosen::Window>& window,
+    const std::string &bundleName, const std::string &pageName, PageScalingConfig &config)
 {
-    
-    SettingDataManager &settingManager = SettingDataManager::GetInstance();
-    
-    if (!settingManager.IsInitialized()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SettingDataManager invalid");
-        return;
+    for (auto configKey : PAGE_CONFIG_KEYS) {
+        std::string configJson;
+        ErrCode ret = dataMgr.GetStringValue(configKey, configJson);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get value key: %{public}s, ret: %{public}d", configKey.c_str(), ret);
+            continue;
+        }
+        ParseWhitelistConfig(bundleName, pageName, configJson, config);
     }
-
-    std::string configJson;
-    ErrCode ret = settingManager.GetStringValue(key, configJson);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get value key: %{public}s, ret: %{public}d", key.c_str(), ret);
-        return;
-    }
-
-    ParseWhitelistConfig(bundleName, pageName, configJson, config);
 }
 
 
@@ -77,14 +88,23 @@ void PageScalingManager::ParseWhitelistConfig(const std::string &bundleName, con
         for (auto& jsonObj : jsonArray) {
             std::string configBundleName = jsonObj.value("bundleName", "");
             std::string configPageName = jsonObj.value("page.pageName", "");
-            if (configPageName != targetPageName) {
+            if (configBundleName != bundleName) {
+                continue;
+            }
+            if (configPageName != pageName) {
                 continue;
             }
             TAG_LOGI(AAFwkTag::ABILITYMGR, "found page config");
             
-            config.bundleName = configBundleName;
-            config.page.pageName = configPageName;
-            config.page.patternType = jsonObj.value("page.patternType", "");
+            if (config.bundleName.empty()) {
+                config.bundleName = configBundleName;
+            }
+            if (config.page.pageName.empty()) {
+                config.page.pageName = configPageName;
+            }
+            if (config.page.patternType.empty()) {
+                config.page.patternType = jsonObj.value("page.patternType", "");
+            }
             
             if (jsonObj.contains("dpi") && jsonObj["dpi"].is_array()) {
                 for (const auto& dpiJson : jsonObj["dpi"]) {
@@ -131,39 +151,51 @@ void PageScalingManager::ParseWhitelistConfig(const std::string &bundleName, con
 }
 
 
-void PageScalingManager::NotifyPageChanged(char* targetPageName)
+void PageScalingManager::NotifyPageChanged(char* targetPageName, uint32_t windowId)
 {
     if (targetPageName == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "targetPage null");
         return;
     }
 
+    auto window = Rosen::Window::GetWindowWithId(windowId);
+    if (window == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "window null");
+        return;
+    }
+
     std::string targetPageNameStr(targetPageName);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyPageChanged, targetPageName: %{public}s", targetPageNameStr.c_str());
 
-    std::vector<std::string> keys = {
-        "apps_page_level_config_dpi",
-        "apps_page_level_config_hideStatusBar",
-        "apps_page_level_config_videoShrink",
-        "apps_page_level_config_verticalDisplay"
-    };
-
-    for (const auto& key : keys) {
-        PageScalingConfig config;
-        GetPageScalingConfig(key, bundleName, targetPageNameStr, config);
-        HandleNavigateChangeInternal(key, targetPageNameStr, config);
+    for (const auto& key : PAGE_CONFIG_KEYS) {
+        HandleNavigateChangeInternal(window, key, targetPageNameStr, config_);
     }
 }
 
-void PageScalingManager::HandleNavigateChangeInternal(const std::string key,
+void PageScalingManager::RegisterPageChangeListeners(const Rosen::Window& window, const std::string &key, const PageScalingConfig &config)
+{
+    if (!window || !window->GetUIContent()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "window or uicontent ull");
+        return;
+    }
+    //TODO：注册页面监听回调？
+    window->GetUIContent()->RegisterPageChangedCallback(
+        [window, key, config](const OHOS::Ace::NavigateChangeInfo& from, const OHOS::Ace::NavigateChangeInfo& to) {
+        // TODO：不同的key，要调用什么接口去设置? 
+        // 只拿到window对象，能否获取到需要比较的信息？
+        HandleNavigateChangeInternal(window, key, to.name, config);
+    });
+}
+
+void PageScalingManager::HandleNavigateChangeInternal(const Rosen::Window& window, const std::string& key,
     const std::string& targetPageName, const PageScalingConfig& config)
 {
-    if (targetPageName == config.page.pageName) {
-        ApplyConfig(config, key);
+    if (targetPageName == config.page.pageName && bundleName_ == config.page.bundleName) {
+        ApplyConfig(window, config, key);
     }
 }
 
-void PageScalingManager::ApplyConfig(const PageScalingConfig& config, const std::string& key)
+void PageScalingManager::ApplyConfig(const Rosen::Window& window, const PageScalingConfig& config, const std::string& key)
 {
     switch(key) {
         case "apps_page_level_config_dpi":
@@ -200,21 +232,5 @@ void PageScalingManager::ApplyConfig(const PageScalingConfig& config, const std:
             break;
     }
 }
-
-void PageScalingManager::RegisterPageChangeListeners(const std::string &key, const PageScalingConfig &config)
-{
-    if (!window || !window->GetUIContent()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "window or uicontent ull");
-        return;
-    }
-    //TODO：注册页面监听回调？
-    window->GetUIContent()->RegisterPageChangedCallback(
-        [window, key, config](const OHOS::Ace::NavigateChangeInfo& from, const OHOS::Ace::NavigateChangeInfo& to) {
-        // TODO：不同的key，要调用什么接口去设置? 
-        // 只拿到window对象，能否获取到需要比较的信息？
-        HandleNavigateChangeInternal(to.name, config);
-    });
-}
-
 } // namespace AbilityRuntime
 } // namespace OHOS

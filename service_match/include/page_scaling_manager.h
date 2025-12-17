@@ -21,7 +21,7 @@
 #include <functional>
 #include <mutex>
 #include "nlohmann/json.hpp"
-#include "setting_data_manager.h"
+#include "sensor_data_manager.h"
 #include "ui_content.h"
 #include "window.h"
 
@@ -66,9 +66,12 @@ typedef struct {
 
 class PageScalingManager {
 public:
-    static PageScalingManager &GetInstance();
+
     void Initialize(sptr<Rosen::Window>& window, const std::string &key, const std::string &bundleName, const std::string &pageName);
-    void GetPageScalingConfig(const std::string &key, const std::string &bundleName, const std::string &pageName, PageScalingConfig &config);
+
+    void RetrivePageScalingConfig(PageDataManager &dataMgr, sptr<Rosen::Window>& window, const std::string &bundleName,
+        const std::string &pageName, PageScalingConfig &config);
+
     void NotifyPageChanged(char* targetPageName);
 
 private:
@@ -76,9 +79,17 @@ private:
     ~PageScalingManager() = default;
 
     void ParseWhitelistConfig(const std::string &bundleName, const std::string &pageName, const std::string &configJson, PageScalingConfig &config);
+
     void RegisterPageChangeListeners(const std::string &key, const PageScalingConfig &config);
+
     void HandleNavigateChangeInternal(const std::string key, const std::string& targetPageName, const PageScalingConfig& config);
+
     void ApplyConfig(const PageScalingConfig& config, const std::string& key);
+
+    // sptr<Rosen::Window> window_; // 窗口对象
+    std::string bundleName_; // 应用包名
+    PageScalingConfig config_; // 页面缩放配置
+    // std::string targetPageName_; // 目标页面名称
 };
 
 } // namespace AbilityRuntime
