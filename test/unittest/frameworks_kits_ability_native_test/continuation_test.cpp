@@ -1473,6 +1473,7 @@ HWTEST_F(ContinuationTest, continue_manager_stage_OnContinue_003, TestSize.Level
     EXPECT_CALL(*mockUIAbility_, OnContinue(_, _, _))
         .Times(1)
         .WillOnce(Return(ContinuationManagerStage::OnContinueResult::AGREE));
+    EXPECT_CALL(*mockUIAbility_, IsContinuePageStack(_)).Times(1).WillOnce(Return(true));
     EXPECT_CALL(*mockUIAbility_, GetContentInfo()).Times(1).WillOnce(Return("ContentInfo"));
     std::weak_ptr<ContinuationManagerStage> continuationManagerStage = continuationManagerStage_;
     std::weak_ptr<AbilityRuntime::UIAbility> abilityTmp = mockUIAbility_;
@@ -1480,7 +1481,7 @@ HWTEST_F(ContinuationTest, continue_manager_stage_OnContinue_003, TestSize.Level
     continuationManagerStage_->Init(mockUIAbility_, continueToken_, abilityInfo_, continuationHandlerStage);
     WantParams wantParams;
     ability_->abilityInfo_->isStageBasedModel = true;
-    bool isAsyncOnContinue = true;
+    bool isAsyncOnContinue = false;
     AbilityInfo tmpAbilityInfo;
     int32_t result = continuationManagerStage_->OnContinue(wantParams, isAsyncOnContinue, tmpAbilityInfo);
     EXPECT_EQ(ERR_OK, result);
