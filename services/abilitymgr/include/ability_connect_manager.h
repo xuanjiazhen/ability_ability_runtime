@@ -565,7 +565,7 @@ private:
     void HandleNotifyAssertFaultDialogDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     EventInfo BuildEventInfo(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
-
+    bool AddToServiceMap(std::string &key, std::shared_ptr<BaseExtensionRecord> abilityRecord);
     ServiceMapType GetServiceMap();
 
     void AddConnectObjectToMap(sptr<IRemoteObject> connectObject, const ConnectListType &connectRecordList,
