@@ -478,6 +478,11 @@ public:
         return 0;
     }
 
+    virtual int32_t LockProcessCache(int32_t pid, bool lock)
+    {
+        return 0;
+    }
+
     virtual void SetAppAssertionPauseState(bool flag) {}
 
     virtual void SaveBrowserChannel(sptr<IRemoteObject> browser) {}
