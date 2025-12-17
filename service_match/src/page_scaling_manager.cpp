@@ -16,24 +16,28 @@
 #include "page_scaling_manager.h"
 
 #include <map>
-#include <optional>
 #include <string>
 #include <vector>
 #include <mutex>
-#include "hilog_tag_wrapper.h"
-#include "setting_data_manager.h"
+#include "match_tag_wrapper.h"
+#include "page_data_manager.h"
 #include "ui_content.h"
 #include "window.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 
+
 PageScalingManager &PageScalingManager::GetInstance() {
     static PageScalingManager instance;
     return instance;
 }
 
-void PageScalingManager::Initialize(sptr<Rosen::Window>& window, const std::string &key,
+PageScalingManager::PageScalingManager() {
+    // 构造函数实现
+}
+
+void PageScalingManager::Initialize(std::weak_ptr<AbilityRuntime::AbilityContext> &context,sptr<Rosen::Window>& window, const std::string &key,
     const std::string &bundleName, const std::string &pageName)
 {
     if (window == nullptr) {
@@ -42,23 +46,34 @@ void PageScalingManager::Initialize(sptr<Rosen::Window>& window, const std::stri
     }
     
     PageScalingConfig config;
-    GetPageScalingConfig(window, key, bundleName, pageName, config);
+    GetPageScalingConfig(context, window, key, bundleName, pageName, config);
     RegisterPageChangeListeners(key, config);
 }
 
-void PageScalingManager::GetPageScalingConfig(const std::string &key, const std::string &bundleName,
+std::shared_ptr<DataShare::DataShareHelper> PageScalingManager::CreateDataShareHelper(
+    const sptr<IRemoteObject> &token, std::shared_ptr<DataShare::DataShareHelper> &dataShareHelper)
+{
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "token null");
+        return ERR_INVALID_PARAM;
+    }
+    const auto [errCode, helper] =
+        DataShare::DataShareHelper::Create(remoteObject_,TEST_URI);
+    if (errCode != DataShare::E_OK) {
+        LOGE("create data share helper failed: %{public}d", errCode);
+        return nullptr;
+    }
+    return helper;
+}
+
+void PageScalingManager::GetPageScalingConfig(sptr<Rosen::Window>& window, const std::string &key, const std::string &bundleName,
     const std::string &pageName, PageScalingConfig &config)
 {
     
-    SettingDataManager &settingManager = SettingDataManager::GetInstance();
-    
-    if (!settingManager.IsInitialized()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SettingDataManager invalid");
-        return;
-    }
 
     std::string configJson;
-    ErrCode ret = settingManager.GetStringValue(key, configJson);
+    ErrCode ret = dataShareHelper->GetStringValue(key, configJson);
+   
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get value key: %{public}s, ret: %{public}d", key.c_str(), ret);
         return;

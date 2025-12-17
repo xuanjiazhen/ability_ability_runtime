@@ -21,7 +21,7 @@
 #include <functional>
 #include <mutex>
 #include "nlohmann/json.hpp"
-#include "setting_data_manager.h"
+#include "sensor_data_manager.h"
 #include "ui_content.h"
 #include "window.h"
 
@@ -79,6 +79,10 @@ private:
     void RegisterPageChangeListeners(const std::string &key, const PageScalingConfig &config);
     void HandleNavigateChangeInternal(const std::string key, const std::string& targetPageName, const PageScalingConfig& config);
     void ApplyConfig(const PageScalingConfig& config, const std::string& key);
+
+    sptr<Rosen::Window> window_; // 窗口对象
+    std::string bundleName_; // 应用包名
+    std::string targetPageName_; // 目标页面名称
 };
 
 } // namespace AbilityRuntime
