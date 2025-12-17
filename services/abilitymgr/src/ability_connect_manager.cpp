@@ -2450,10 +2450,10 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
     return serviceKey;
 }
 
-void AbilityConnectManager::DumpState(std::vector<std::string> &info, bool isClient, const std::string &args)
+void AbilityConnectManager::DumpState(ServiceMapType &serviceMapBack, std::vector<std::string> &info, bool isClient,
+    const std::string &args)
 {
     TAG_LOGI(AAFwkTag::EXT, "args:%{public}s", args.c_str());
-    auto serviceMapBack = GetServiceMap();
     auto cacheList = AbilityCacheManager::GetInstance().GetAbilityList();
     if (!args.empty()) {
         auto it = std::find_if(serviceMapBack.begin(), serviceMapBack.end(), [&args](const auto &service) {
@@ -2499,22 +2499,19 @@ void AbilityConnectManager::DumpState(std::vector<std::string> &info, bool isCli
     }
 }
 
-void AbilityConnectManager::DumpStateByUri(std::vector<std::string> &info, bool isClient, const std::string &args,
-    std::vector<std::string> &params)
+void AbilityConnectManager::DumpStateByUri(ServiceMapType &serviceMapBack, std::vector<std::string> &info,
+    bool isClient, const std::string &args, std::vector<std::string> &params)
 {
     TAG_LOGI(AAFwkTag::EXT, "args:%{public}s, params size: %{public}zu", args.c_str(), params.size());
     std::shared_ptr<BaseExtensionRecord> extensionAbilityRecord = nullptr;
-    {
-        std::lock_guard lock(serviceMapMutex_);
-        auto it = std::find_if(serviceMap_.begin(), serviceMap_.end(), [&args](const auto &service) {
-            return service.first.compare(args) == 0;
-        });
-        if (it != serviceMap_.end()) {
-            info.emplace_back("uri [ " + it->first + " ]");
-            extensionAbilityRecord = it->second;
-        } else {
-            info.emplace_back(args + ": Nothing to dump from serviceMap.");
-        }
+    auto it = std::find_if(serviceMapBack.begin(), serviceMapBack.end(), [&args](const auto &service) {
+        return service.first.compare(args) == 0;
+    });
+    if (it != serviceMapBack.end()) {
+        info.emplace_back("uri [ " + it->first + " ]");
+        extensionAbilityRecord = it->second;
+    } else {
+        info.emplace_back(args + ": Nothing to dump from serviceMap.");
     }
     if (extensionAbilityRecord != nullptr) {
         extensionAbilityRecord->DumpService(info, params, isClient);
@@ -2529,11 +2526,10 @@ void AbilityConnectManager::DumpStateByUri(std::vector<std::string> &info, bool 
     }
 }
 
-void AbilityConnectManager::GetExtensionRunningInfos(int upperLimit, std::vector<ExtensionRunningInfo> &info,
-    const int32_t userId, bool isPerm)
+void AbilityConnectManager::GetExtensionRunningInfos(ServiceMapType &serviceMapBack, int upperLimit,
+    std::vector<ExtensionRunningInfo> &info, const int32_t userId, bool isPerm)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto serviceMapBack = GetServiceMap();
     auto queryInfo = [&](ServiceMapType::reference service) {
         if (static_cast<int>(info.size()) >= upperLimit) {
             return;
@@ -2571,27 +2567,6 @@ void AbilityConnectManager::GetExtensionRunningInfos(int upperLimit, std::vector
         }
     };
     std::for_each(cacheAbilityList.begin(), cacheAbilityList.end(), queryInfoForCache);
-}
-
-void AbilityConnectManager::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info, bool isPerm)
-{
-    auto serviceMapBack = GetServiceMap();
-    auto queryInfo = [&info, isPerm](ServiceMapType::reference service) {
-        auto abilityRecord = service.second;
-        CHECK_POINTER(abilityRecord);
-
-        if (isPerm) {
-            DelayedSingleton<AbilityManagerService>::GetInstance()->GetAbilityRunningInfo(info, abilityRecord);
-        } else {
-            auto callingTokenId = IPCSkeleton::GetCallingTokenID();
-            auto tokenID = abilityRecord->GetApplicationInfo().accessTokenId;
-            if (callingTokenId == tokenID) {
-                DelayedSingleton<AbilityManagerService>::GetInstance()->GetAbilityRunningInfo(info, abilityRecord);
-            }
-        }
-    };
-
-    std::for_each(serviceMapBack.begin(), serviceMapBack.end(), queryInfo);
 }
 
 void AbilityConnectManager::GetExtensionRunningInfo(std::shared_ptr<BaseExtensionRecord> &abilityRecord,

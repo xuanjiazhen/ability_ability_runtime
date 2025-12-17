@@ -205,12 +205,10 @@ public:
     std::shared_ptr<BaseExtensionRecord> GetUIExtensionBySessionFromServiceMap(const sptr<SessionInfo> &sessionInfo);
     ConnectListType GetConnectRecordListByCallback(sptr<IAbilityConnection> callback);
 
-    void GetExtensionRunningInfos(int upperLimit, std::vector<ExtensionRunningInfo> &info,
-        const int32_t userId, bool isPerm);
+    static void GetExtensionRunningInfos(ServiceMapType &serviceMapBack, int upperLimit,
+        std::vector<ExtensionRunningInfo> &info, const int32_t userId, bool isPerm);
 
-    void GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info, bool isPerm);
-
-    void GetExtensionRunningInfo(std::shared_ptr<BaseExtensionRecord> &abilityRecord, const int32_t userId,
+    static void GetExtensionRunningInfo(std::shared_ptr<BaseExtensionRecord> &abilityRecord, const int32_t userId,
         std::vector<ExtensionRunningInfo> &info);
 
     /**
@@ -245,10 +243,11 @@ public:
      */
     void DisconnectBeforeCleanup();
 
-    void DumpState(std::vector<std::string> &info, bool isClient, const std::string &args = "");
+    static void DumpState(ServiceMapType &serviceMapBack, std::vector<std::string> &info, bool isClient,
+        const std::string &args = "");
 
-    void DumpStateByUri(std::vector<std::string> &info, bool isClient, const std::string &args,
-        std::vector<std::string> &params);
+    static void DumpStateByUri(ServiceMapType &serviceMapBack, std::vector<std::string> &info, bool isClient,
+        const std::string &args, std::vector<std::string> &params);
 
     void PauseExtensions();
 
@@ -300,6 +299,8 @@ public:
      * @return Returns BaseExtensionRecord shared_ptr.
      */
     std::shared_ptr<BaseExtensionRecord> GetServiceRecordByAbilityRequest(const AbilityRequest &abilityRequest);
+
+    ServiceMapType GetServiceMap() const;
 
     bool HasRequestIdInLoadAbilityQueue(int32_t requestId);
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId);
@@ -550,7 +551,6 @@ private:
     EventInfo BuildEventInfo(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
     bool AddToServiceMap(const std::string &key, std::shared_ptr<BaseExtensionRecord> abilityRecord);
-    ServiceMapType GetServiceMap();
 
     void AddConnectObjectToMap(sptr<IRemoteObject> connectObject, const ConnectListType &connectRecordList,
         bool updateOnly);
