@@ -36,13 +36,6 @@ public:
     using UIExtWindowMapValType = std::pair<std::weak_ptr<BaseExtensionRecord>, sptr<SessionInfo>>;
     using UIExtensionMapType = std::map<sptr<IRemoteObject>, UIExtWindowMapValType>;
 
-    struct LoadAbilityContext {
-        std::shared_ptr<AbilityRuntime::LoadParam> loadParam;
-        std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo;
-        std::shared_ptr<AppExecFwk::ApplicationInfo> appInfo;
-        std::shared_ptr<AAFwk::Want> want;
-    };
-
     explicit UIExtensionAbilityManager(int userId);
     virtual ~UIExtensionAbilityManager();
 
@@ -169,17 +162,14 @@ protected:
     void TerminateUIExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
     void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
-    void RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token) override;
-    void CallEnqueueStartServiceReq(const AbilityRequest &abilityRequest, const std::string &uri) {
-        EnqueueStartServiceReq(abilityRequest, uri);
-    }
+    int RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token) override;
 private:   
 
     void SetLastExitReason(const AbilityRequest &abilityRequest, std::shared_ptr<BaseExtensionRecord> &targetService);
 
     bool IsCallerValid(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
-    void HandleUIExtensionDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    void HandleUIExtensionDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
 
     void DoForegroundUIExtension(std::shared_ptr<BaseExtensionRecord> abilityRecord, const AbilityRequest &abilityRequest);
 
@@ -194,7 +184,7 @@ private:
 
     void HandleUIExtWindowDiedTask(const sptr<IRemoteObject> &remote);
 
-    bool IsUIExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
+    bool IsUIExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
     bool CheckUIExtensionAbilitySessionExist(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
 
@@ -212,8 +202,10 @@ private:
     void UpdateUIExtensionInfo(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
 
-    void CheckUIExtensionAbilitySessionExist(
-        const std::shared_ptr<BaseExtensionRecord> &abilityRecord, std::string callerBundleName, int32_t notifyProcessBind) override;
+    void UpdateUIExtensionBindInfo(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        std::string callerBundleName, int32_t notifyProcessBind);
+
+    int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord) override;
     
     class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
