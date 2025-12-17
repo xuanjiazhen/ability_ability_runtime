@@ -4763,7 +4763,7 @@ int AbilityManagerService::TerminateUIExtensionAbility(const sptr<SessionInfo> &
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Terminate ui extension ability begin.");
     CHECK_POINTER_AND_RETURN(extensionSessionInfo, ERR_INVALID_VALUE);
     auto abilityRecord = Token::GetAbilityRecordByToken(extensionSessionInfo->callerToken);
-    std::shared_ptr<AbilityConnectManager> connectManager;
+    std::shared_ptr<UIExtensionAbilityManager> connectManager;
     std::shared_ptr<BaseExtensionRecord> targetRecord;
     GetConnectManagerAndUIExtensionBySessionInfo(extensionSessionInfo, connectManager, targetRecord, true);
     CHECK_POINTER_AND_RETURN(targetRecord, ERR_INVALID_VALUE);
@@ -4831,7 +4831,7 @@ int AbilityManagerService::CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject
         return ERR_INVALID_VALUE;
     }
 
-    std::shared_ptr<AbilityConnectManager> connectManager;
+    std::shared_ptr<UIExtensionAbilityManager> connectManager;
     std::shared_ptr<BaseExtensionRecord> targetRecord;
     GetConnectManagerAndUIExtensionBySessionInfo(sessionInfo, connectManager, targetRecord, true);
     if (connectManager == nullptr) {
@@ -5092,7 +5092,7 @@ int AbilityManagerService::MinimizeUIExtensionAbility(const sptr<SessionInfo> &e
         return CHECK_PERMISSION_FAILED;
     }
 
-    std::shared_ptr<AbilityConnectManager> connectManager;
+    std::shared_ptr<UIExtensionAbilityManager> connectManager;
     std::shared_ptr<BaseExtensionRecord> targetRecord;
     GetConnectManagerAndUIExtensionBySessionInfo(extensionSessionInfo, connectManager, targetRecord);
     CHECK_POINTER_AND_RETURN(targetRecord, ERR_INVALID_VALUE);
@@ -5652,9 +5652,13 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     }
 
     SetAbilityRequestSessionInfo(abilityRequest, targetExtensionType);
-    return connectInfo == nullptr
-        ? connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo);
-        : connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo, connectInfo);
+    int ret = -1;
+    if(connectInfo == nullptr) {
+        ret = connectManager->ConnectUIExtensionAbilityLocked(abilityRequest, connect, callerToken, sessionInfo, connectInfo);
+    }else{
+        ret = connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo);
+    }
+    return ret;
 }
 
 int AbilityManagerService::ConnectRemoteAbility(Want &want, const sptr<IRemoteObject> &callerToken,
@@ -7051,21 +7055,17 @@ void AbilityManagerService::DumpSysStateInner(
     const std::string& args, std::vector<std::string>& info, bool isClient, bool isUserID, int userId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "dumpSysStateInner begin:%{public}s", args.c_str());
-    std::shared_ptr<AbilityConnectManager> targetManager;
+    AbilityConnectManager::ServiceMapType serviceMap;
+    auto dumpUserId = isUserID ? userId : AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    auto ret = GetServiceMapByUserId(serviceMap, dumpUserId);
 
-    if (isUserID) {
-        auto connectManager = GetConnectManagerByUserId(userId);
-        if (connectManager == nullptr) {
+    if (ret == ERR_INVALID_VALUE) {
+        if (isUserId) {
             info.push_back("error: No user found.");
-            return;
         }
-        targetManager = connectManager;
-    } else {
-        auto callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-        targetManager = GetConnectManagerByUserId(callerUserId);
+        return;
     }
-
-    CHECK_POINTER(targetManager);
+       
 
     std::vector<std::string> argList;
     SplitStr(args, " ", argList);
@@ -7756,14 +7756,10 @@ void AbilityManagerService::OnAppStateChanged(const AppInfo &info)
     
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
     CHECK_POINTER_LOG(commonExtensionManager, "Connect manager not init.");
-    if (commonExtensionManager->OnAppStateChanged((info) == ERR_OK) {
-        return ERR_OK;
-    }
+    commonExtensionManager->OnAppStateChanged(info);
     auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
     CHECK_POINTER_LOG(uiExtensionAbilityManager, "Connect manager not init.");
-    if (uiExtensionAbilityManager->OnAppStateChanged((info) == ERR_OK) {
-        return ERR_OK;
-    }
+    uiExtensionAbilityManager->OnAppStateChanged(info);
 
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
@@ -8089,7 +8085,7 @@ int AbilityManagerService::StopServiceAbility(const Want &want, int32_t userId, 
     }
 
     // auto connectManager = GetConnectManagerByUserId(validUserId);
-    auto connectManager = GetConnectManagerByUserId(userId, abilityRecord->GetAbilityInfo().extensionAbilityType);
+    auto connectManager = GetConnectManagerByUserId(validUserId, abilityInfo.extensionAbilityType);
 
     if (connectManager == nullptr) {
         return ERR_INVALID_VALUE;
@@ -8301,8 +8297,8 @@ int32_t AbilityManagerService::UninstallAppInner(const std::string &bundleName, 
     if (commonExtensionManager) {
         commonExtensionManager->UninstallApp(bundleName, uid);
     }
-    auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(validUserId);
-    if (uiExtensionAbiluiExtensionAbilityManager) {
+    auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
+    if (uiExtensionAbilityManager) {
         uiExtensionAbilityManager->UninstallApp(bundleName, uid);
     }
 
@@ -8409,12 +8405,12 @@ void AbilityManagerService::HandleLoadTimeOut(int64_t abilityRecordId, bool isHa
         // if (connectManager != nullptr) {
         //     connectManager->OnTimeOut(AbilityManagerService::LOAD_TIMEOUT_MSG, abilityRecordId, isHalf);
         // }
-        auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
+        auto commonExtensionManager = GetCommonExtensionManagerByAbilityRecordId(abilityRecordId);
         if (commonExtensionManager != nullptr) {
             commonExtensionManager->OnTimeOut(AbilityManagerService::LOAD_TIMEOUT_MSG, abilityRecordId, isHalf);
         }
-        auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
-        if (commonExtenuiExtensionAbilityManagersionManager != nullptr) {
+        auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByAbilityRecordId(abilityRecordId);
+        if (uiExtensionAbilityManager != nullptr) {
             uiExtensionAbilityManager->OnTimeOut(AbilityManagerService::LOAD_TIMEOUT_MSG, abilityRecordId, isHalf);
         }   
         return;
@@ -8484,12 +8480,12 @@ void AbilityManagerService::HandleForegroundTimeOut(int64_t abilityRecordId, boo
         // if (connectManager != nullptr) {
         //     connectManager->OnTimeOut(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, abilityRecordId, isHalf);
         // }
-        auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
+        auto commonExtensionManager = GetCommonExtensionManagerByAbilityRecordId(abilityRecordId);
         if (commonExtensionManager != nullptr) {
             commonExtensionManager->OnTimeOut(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, abilityRecordId, isHalf);
         }
-        auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
-        if (commonExtenuiExtensionAbilityManagersionManager != nullptr) {
+        auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByAbilityRecordId(abilityRecordId);
+        if (uiExtensionAbilityManager != nullptr) {
             uiExtensionAbilityManager->OnTimeOut(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, abilityRecordId, isHalf);
         }  
         return;
@@ -8609,11 +8605,23 @@ std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerB
     return connectManager;
 }
 
-std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerByToken(
-    const sptr<IRemoteObject> &token)
+std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerByUserId(int32_t userId)
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
-    return subManagersHelper_->GetConnectManagerByToken(token);
+    return subManagersHelper_->GetConnectManagerByUserId(userId);
+}
+
+std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerByToken(
+    const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionAbilityType type)
+{
+    CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
+    std::shared_ptr<AbilityConnectManager> connectManager = nullptr;
+    if(UIExtensionUtils::IsUIExtension(type)){
+        connectManager = GetUIExtensionAbilityManagerByToken(token);
+    }else{
+        connectManager = GetCommonExtensionManagerByToken(token);
+    }
+    return connectManager;
 }
 
 std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerByAbilityRecordId(
@@ -8627,6 +8635,24 @@ std::shared_ptr<PendingWantManager> AbilityManagerService::GetCurrentPendingWant
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
     return subManagersHelper_->GetCurrentPendingWantManager();
+}
+
+int32_t AbilityManagerService::GetServiceMapByUserId(ServiceMapType &serviceMap, int32_t userId)
+{
+    CHECK_POINTER_AND_RETURN(subManagersHelper_, ERR_INVALID_VALUE);
+    // todo
+    auto commonExtensionManager = subManagersHelper_->GetConnectManagerByUserId(userId);
+    auto uiExtensionManager = subManagersHelper_->GetUIExtensionManagerByUserId(userId);
+    if (!commonExtensionManager || !uiExtensionManager) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "manager null");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto serviceMapCommon = commonExtensionManager->GetServiceMap();
+    serviceMap.insert(serviceMapCommon.begin(), serviceMapCommon.end());
+    auto serviceMapUI = uiExtensionManager->GetServiceMap();
+    serviceMap.insert(serviceMapUI.begin(), serviceMapUI.end());
+    return ERR_OK;
 }
 
 std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> AbilityManagerService::GetUIExtensionAbilityManagers()
@@ -9750,9 +9776,12 @@ int AbilityManagerService::GetExtensionRunningInfos(int upperLimit, std::vector<
     AbilityRuntime::UserController::GetInstance().GetAllForegroundUserId(userIds);
     auto iter = userIds.begin();
     while (iter != userIds.end()) {
-        auto connectManager = GetConnectManagerByUserId(*iter);
-        CHECK_POINTER_AND_RETURN(connectManager, ERR_INVALID_VALUE);
-        connectManager->GetExtensionRunningInfos(upperLimit, info, *iter, isPerm);
+        AbilityConnectManager::ServiceMapType serviceMap;
+        auto ret = GetServiceMapByUserId(serviceMap, *iter);
+        if (ret == ERR_INVALID_VALUE) {
+            return ret;
+        }
+        AbilityConnectManager::GetExtensionRunningInfos(serviceMap, upperLimit, info, *iter, isPerm);
         iter++;
     }
     return ERR_OK;
@@ -9797,11 +9826,11 @@ void AbilityManagerService::DisconnectBeforeCleanupByUserId(int32_t userId) {
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "handle all abilities die before clear data, userId:%{public}d", userId);
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
-    CHECK_POINTER(commonExtensionManager, ERR_NO_INIT);
+    CHECK_POINTER(commonExtensionManager);
     commonExtensionManager->DisconnectBeforeCleanup();
     
     auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(validUserId);
-    CHECK_POINTER(uiExtensionAbilityManager, ERR_NO_INIT);
+    CHECK_POINTER(uiExtensionAbilityManager);
     uiExtensionAbilityManager->DisconnectBeforeCleanup();
 
     // CHECK_POINTER(connectManager);
@@ -12712,7 +12741,7 @@ bool AbilityManagerService::CheckCollaboratorType(int32_t type)
 }
 
 void AbilityManagerService::GetConnectManagerAndUIExtensionBySessionInfo(const sptr<SessionInfo> &sessionInfo,
-    std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<BaseExtensionRecord> &targetAbility,
+    std::shared_ptr<UIExtensionAbilityManager> &connectManager, std::shared_ptr<BaseExtensionRecord> &targetAbility,
     bool needCheck)
 {
     int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
@@ -14164,11 +14193,11 @@ int32_t AbilityManagerService::SignRestartProcess(int32_t pid, int32_t userId)
     // CHECK_POINTER_AND_RETURN(connectManager, ERR_INVALID_VALUE);
     // connectManager->SignRestartProcess(pid);
 
-    auto commonExtensionManager = GetCommonExtensionManagerByUserId(param.userId);
+    auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(commonExtensionManager, ERR_INVALID_VALUE);
     commonExtensionManager->SignRestartProcess(pid);
 
-    auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(param.userId);
+    auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityManager, ERR_INVALID_VALUE);
     uiExtensionAbilityManager->SignRestartProcess(pid);
 
@@ -14662,11 +14691,11 @@ void AbilityManagerService::NotifyFrozenProcessByRSS(const std::vector<int32_t> 
     // connectManager->HandleProcessFrozen(pidList, uid);
 
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
-    CHECK_POINTER_AND_RETURN(commonExtensionManager, ERR_INVALID_VALUE);
+    CHECK_POINTER_LOG(commonExtensionManager, "can't find user connect manager");
     commonExtensionManager->HandleProcessFrozen(pidList, uid);
 
     auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
-    CHECK_POINTER_AND_RETURN(uiExtensionAbilityManager, ERR_INVALID_VALUE);
+    CHECK_POINTER_LOG(uiExtensionAbilityManager, "can't find user connect manager");
     uiExtensionAbilityManager->HandleProcessFrozen(pidList, uid);
 }
 

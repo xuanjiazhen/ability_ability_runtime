@@ -2557,7 +2557,9 @@ private:
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByAbilityRecordId(const int64_t &abilityRecordId);
 
+    int32_t GetServiceMapByUserId(ServiceMapType &serviceMap, int32_t userId);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId, const AppExecFwk::ExtensionAbilityType type);
+    std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionAbilityType type);
 
     std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> GetUIExtensionAbilityManagers();
     std::shared_ptr<UIExtensionAbilityManager> GetCurrentUIExtensionAbilityManager();
@@ -2792,7 +2794,7 @@ private:
     bool CheckUserIdActive(int32_t userId);
 
     void GetConnectManagerAndUIExtensionBySessionInfo(const sptr<SessionInfo> &sessionInfo,
-        std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<BaseExtensionRecord> &targetAbility,
+        std::shared_ptr<UIExtensionAbilityManager> &connectManager, std::shared_ptr<BaseExtensionRecord> &targetAbility,
         bool needCheck = false);
 
     virtual int RegisterSessionHandler(const sptr<IRemoteObject> &object) override;
