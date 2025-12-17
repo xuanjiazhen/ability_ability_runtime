@@ -15,21 +15,33 @@
 
 #include "ui_extension_ability_manager.h"
 
-#include "ability_connect_manager.h"
+#include "ability_manager_service.h"
 #include "ability_manager_constants.h"
 #include "ability_permission_util.h"
-#include "base_extension_record.h"
-#include "connection_record.h"
-#include "extension_record_manager.h"
+#include "ability_resident_process_rdb.h"
+#include "appfreeze_manager.h"
+#include "app_exit_reason_data_manager.h"
+#include "assert_fault_callback_death_mgr.h"
+#include "extension_ability_info.h"
+#include "foreground_app_connection_manager.h"
+#include "global_constant.h"
 #include "hitrace_meter.h"
 #include "int_wrapper.h"
-#include "ipc_skeleton.h"
+#include "multi_instance_utils.h"
+#include "param.h"
+#include "request_id_util.h"
+#include "res_sched_util.h"
 #include "session/host/include/zidl/session_interface.h"
-#include "string_wrapper.h"
-#include "token.h"
+#include "startup_util.h"
+#include "timeout_state_utils.h"
 #include "ui_extension_utils.h"
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
+#include "app_utils.h"
+#include "datetime_ex.h"
+#include "init_reboot.h"
+#include "string_wrapper.h"
+#include "user_controller/user_controller.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -42,6 +54,8 @@ const std::string UIEXTENSION_HOST_BUNDLENAME = "ability.want.params.uiExtension
 const std::string UIEXTENSION_BIND_ABILITY_ID = "ability.want.params.uiExtensionBindAbilityId";
 const std::string UIEXTENSION_NOTIFY_BIND = "ohos.uiextension.params.notifyProcessBind";
 const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
+const std::string SEPARATOR = ":";
+const int DEFAULT_INVAL_VALUE = -1;
 #ifdef SUPPORT_ASAN
 const int COMMAND_WINDOW_TIMEOUT_MULTIPLE = 75;
 #else
@@ -97,9 +111,9 @@ int UIExtensionAbilityManager::PreloadUIExtensionAbilityInner(
 
     std::string extensionRecordKey = element.GetURI() + std::to_string(targetService->GetUIExtensionAbilityId());
     targetService->SetURI(extensionRecordKey);
-    AddToServiceMap(extensionRecordKey, targetService);
+    CallAddToServiceMap(extensionRecordKey, targetService);
 
-    auto updateRecordCallback = [hostPid, mgr = shared_from_this()](
+    auto updateRecordCallback = [hostPid, mgr = std::static_pointer_cast<UIExtensionAbilityManager>(shared_from_this())](
         const std::shared_ptr<BaseExtensionRecord>& targetService) {
         if (mgr != nullptr) {
             mgr->UpdateUIExtensionInfo(targetService, hostPid);
@@ -163,29 +177,6 @@ void UIExtensionAbilityManager::ClearPreloadUIExtensionRecord(const std::shared_
         abilityRecord->GetWant().GetElement().GetBundleName(),
         abilityRecord->GetWant().GetElement().GetModuleName(), hostPid);
     uiExtensionAbilityRecordMgr_->RemovePreloadUIExtensionRecordById(extensionRecordMapKey, extensionRecordId);
-}
-
-int UIExtensionAbilityManager::ConnectUIExtensionAbilityLocked(const AbilityRequest &abilityRequest,
-    const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
-    sptr<UIExtensionAbilityConnectInfo> connectInfo)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
-    ConnectConfig config;
-    config.getServiceFunc = [this, &abilityRequest, connectInfo](std::shared_ptr<BaseExtensionRecord>& service, bool& loaded) {
-        return GetOrCreateTargetServiceRecord(abilityRequest, connectInfo, service, loaded);
-    };
-    config.loadAbilityFunc = [this](std::shared_ptr<BaseExtensionRecord>& service) {
-        auto updateRecordCallback = [mgr = shared_from_this()](
-            const std::shared_ptr<BaseExtensionRecord>& targetService) {
-            if (mgr != nullptr) {
-                mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
-            }
-        };
-        LoadAbility(service, updateRecordCallback);
-    };
-    
-    return ConnectAbilityCommon(abilityRequest, connect, callerToken, sessionInfo, config);
 }
 
 int UIExtensionAbilityManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler, 
@@ -379,63 +370,6 @@ std::shared_ptr<AAFwk::AbilityRecord> UIExtensionAbilityManager::GetUIExtensionR
     return uiExtensionAbilityRecordMgr_->GetUIExtensionRootHostInfo(token);
 }
 
-bool UIExtensionAbilityManager::HasRequestIdInLoadAbilityQueue(int32_t requestId)
-{
-    std::lock_guard<std::mutex> guard(loadAbilityQueueLock_);
-    for (const auto &map : loadAbilityQueue_) {
-        if (map.find(requestId) != map.end()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void UIExtensionAbilityManager::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId)
-{
-    std::lock_guard<std::mutex> guard(loadAbilityQueueLock_);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessResponse, requestId: %{public}d, flag: %{public}s",
-        requestId, flag.c_str());
-
-    if (!loadAbilityQueue_.empty()) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessResponse LoadAbility");
-        auto &front = loadAbilityQueue_.front();
-        front[requestId].want->SetParam(PARAM_SPECIFIED_PROCESS_FLAG, flag);
-        DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(*front[requestId].loadParam,
-            *(front[requestId].abilityInfo), *(front[requestId].appInfo), *(front[requestId].want));
-        loadAbilityQueue_.pop_front();
-    }
-}
-
-void UIExtensionAbilityManager::OnStartSpecifiedProcessTimeoutResponse(int32_t requestId)
-{
-    std::lock_guard<std::mutex> guard(loadAbilityQueueLock_);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessTimeoutResponse requestId: %{public}d", requestId);
-
-    if (!loadAbilityQueue_.empty()) {
-        auto &front = loadAbilityQueue_.front();
-        DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(*(front[requestId].loadParam),
-            *(front[requestId].abilityInfo), *(front[requestId].appInfo), *(front[requestId].want));
-        loadAbilityQueue_.pop_front();
-    }
-}
-
-void UIExtensionAbilityManager::StartSpecifiedProcess(const LoadAbilityContext &context,
-    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-    std::lock_guard<std::mutex> guard(loadAbilityQueueLock_);
-    auto requestId = RequestIdUtil::GetRequestId();
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedProcess, requestId: %{public}d,", requestId);
-
-    std::map<int32_t, LoadAbilityContext> mapContext_ = { { requestId, context } };
-    loadAbilityQueue_.push_back(mapContext_);
-    if (loadAbilityQueue_.size() > 1) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "loadAbilityQueue_ size > 1, requestId: %{public}d", requestId);
-        return;
-    }
-
-    DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(
-        *context.want, *context.abilityInfo, requestId, context.loadParam->customProcessFlag);
-}
 
 int UIExtensionAbilityManager::UnPreloadUIExtensionAbilityLocked(int32_t extensionAbilityId)
 {
@@ -499,7 +433,7 @@ int32_t UIExtensionAbilityManager::RegisterPreloadUIExtensionHostClient(const sp
 
     sptr<PreloadUIExtensionHostClientDeathRecipient> deathRecipient = new PreloadUIExtensionHostClientDeathRecipient(
         [self = weak_from_this(), callerPid](const wptr<IRemoteObject> &remote) {
-            auto selfObj = self.lock();
+            auto selfObj = std::static_pointer_cast<UIExtensionAbilityManager>(self.lock());
             if (selfObj != nullptr) {
                 selfObj->UnRegisterPreloadUIExtensionHostClient(callerPid);
             }
@@ -614,7 +548,7 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
         SetLastExitReason(abilityRequest, targetService);
         targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_ABILITY);
 
-        auto updateRecordCallback = [mgr = shared_from_this()](
+        auto updateRecordCallback = [mgr = std::static_pointer_cast<UIExtensionAbilityManager>(shared_from_this())](
             const std::shared_ptr<BaseExtensionRecord>& targetService) {
             if (mgr != nullptr) {
                 mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
@@ -717,29 +651,6 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
     CallEnqueueStartServiceReq(abilityRequest, abilityRecord->GetURI());
 }
 
-void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const sptr<SessionInfo> &sessionInfo)
-{
-    CHECK_POINTER(abilityRecord);
-    CHECK_POINTER(sessionInfo);
-
-    auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s, persistentId:%{public}d, abilityState:%{public}s",
-        abilityRecord->GetElementName().GetBundleName().c_str(),
-        abilityRecord->GetElementName().GetAbilityName().c_str(),
-        sessionInfo->persistentId, abilitystateStr.c_str());
-
-    if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
-        MoveToBackground(abilityRecord);
-    } else if (abilityRecord->IsAbilityState(AbilityState::INITIAL) ||
-        abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING)) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "exist initial or foregrounding task");
-        abilityRecord->DoBackgroundAbilityWindowDelayed(true);
-    } else if (!abilityRecord->IsAbilityState(AbilityState::BACKGROUNDING)) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid ability state");
-    }
-}
-
 void UIExtensionAbilityManager::AddUIExtWindowDeathRecipient(const sptr<IRemoteObject> &session)
 {
     CHECK_POINTER(session);
@@ -749,7 +660,7 @@ void UIExtensionAbilityManager::AddUIExtWindowDeathRecipient(const sptr<IRemoteO
         TAG_LOGE(AAFwkTag::ABILITYMGR, "recipient added before");
         return;
     } else {
-        std::weak_ptr<UIExtensionAbilityManager> thisWeakPtr(shared_from_this());
+        std::weak_ptr<UIExtensionAbilityManager> thisWeakPtr(std::static_pointer_cast<UIExtensionAbilityManager>(shared_from_this()));
         sptr<IRemoteObject::DeathRecipient> deathRecipient =
             new AbilityConnectCallbackRecipient([thisWeakPtr](const wptr<IRemoteObject> &remote) {
                 auto abilityConnectManager = thisWeakPtr.lock();
@@ -782,7 +693,7 @@ void UIExtensionAbilityManager::OnUIExtWindowDied(const wptr<IRemoteObject> &rem
     CHECK_POINTER(object);
     if (taskHandler_) {
         auto task = [object, connectManagerWeak = weak_from_this()]() {
-            auto connectManager = connectManagerWeak.lock();
+            auto connectManager = std::static_pointer_cast<UIExtensionAbilityManager>(connectManagerWeak.lock());
             CHECK_POINTER(connectManager);
             connectManager->HandleUIExtWindowDiedTask(object);
         };
@@ -879,7 +790,7 @@ int32_t UIExtensionAbilityManager::GetOrCreateExtensionRecord(const AbilityReque
 
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Service map add, hostBundleName:%{public}s, key: %{public}s",
             hostBundleName.c_str(), extensionRecordKey.c_str());
-        AddToServiceMap(extensionRecordKey, extensionRecord);
+        CallAddToServiceMap(extensionRecordKey, extensionRecord);
 
         if (IsAbilityNeedKeepAlive(extensionRecord)) {
             extensionRecord->SetRestartTime(abilityRequest.restartTime);
@@ -1034,8 +945,9 @@ bool UIExtensionAbilityManager::IsCallerValid(const std::shared_ptr<BaseExtensio
 
 void UIExtensionAbilityManager::HandlePreloadUIExtensionSuccess(int32_t extensionRecordId, bool isPreloadedSuccess)
 {
-    CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_INVALID_VALUE);
-    uiExtensionAbilityRecordMgr_->HandlePreloadUIExtensionSuccess(extensionRecordId, isPreloadedSuccess);
+    if (uiExtensionAbilityRecordMgr_ != nullptr) {
+        uiExtensionAbilityRecordMgr_->HandlePreloadUIExtensionSuccess(extensionRecordId, isPreloadedSuccess);
+    }
 }
 void UIExtensionAbilityManager::LoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
@@ -1082,10 +994,16 @@ void UIExtensionAbilityManager::TerminateUIExtensionAbility(const std::shared_pt
     }
 }
 
-void UIExtensionAbilityManager::RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token)
+int UIExtensionAbilityManager::RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token)
 {
     std::lock_guard guard(uiExtensionMapMutex_);
-    ret = uiExtensionMap_.erase(token);
+    return uiExtensionMap_.erase(token);
+}
+
+int32_t UIExtensionAbilityManager::AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord)
+{
+    CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_INVALID_VALUE);
+    return uiExtensionAbilityRecordMgr_->AddPreloadUIExtensionRecord(abilityRecord);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
