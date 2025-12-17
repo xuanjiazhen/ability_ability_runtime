@@ -25,6 +25,22 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 const std::string FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
+const std::string FRS_APP_INDEX = "ohos.extra.param.key.frs_index";
+
+bool IsSpecialAbility(const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    std::vector<std::pair<std::string, std::string>> trustAbilities{
+        { AbilityConfig::SCENEBOARD_BUNDLE_NAME, AbilityConfig::SCENEBOARD_ABILITY_NAME },
+        { AbilityConfig::SYSTEM_UI_BUNDLE_NAME, AbilityConfig::SYSTEM_UI_ABILITY_NAME },
+        { AbilityConfig::LAUNCHER_BUNDLE_NAME, AbilityConfig::LAUNCHER_ABILITY_NAME }
+    };
+    for (const auto &pair : trustAbilities) {
+        if (pair.first == abilityInfo.bundleName && pair.second == abilityInfo.name) {
+            return true;
+        }
+    }
+    return false;
+}
 }
 
 CommonExtensionManager::CommonExtensionManager(int userId) : AbilityConnectManager(userId)
@@ -54,7 +70,7 @@ void CommonExtensionManager::GetOrCreateServiceRecord(const AbilityRequest &abil
         IsCacheExtensionAbilityByInfo(abilityRequest.abilityInfo)) {
         targetService = AbilityCacheManager::GetInstance().Get(abilityRequest);
         if (targetService != nullptr) {
-            AddToServiceMap(serviceKey, targetService);
+            CallAddToServiceMap(serviceKey, targetService);
         }
     }
     if (noReuse && targetService) {
@@ -74,7 +90,7 @@ void CommonExtensionManager::GetOrCreateServiceRecord(const AbilityRequest &abil
             targetService->SetCreateByConnectMode();
         }
         SetServiceAfterNewCreate(abilityRequest, *targetService);
-        AddToServiceMap(serviceKey, targetService);
+        CallAddToServiceMap(serviceKey, targetService);
         isLoadedAbility = false;
     }
     TAG_LOGD(AAFwkTag::EXT, "service map add, serviceKey: %{public}s", serviceKey.c_str());

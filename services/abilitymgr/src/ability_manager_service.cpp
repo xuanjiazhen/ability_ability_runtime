@@ -1650,7 +1650,7 @@ int AbilityManagerService::StartAbilityByConnectManager(const Want& want, const 
     const AppExecFwk::AbilityInfo& abilityInfo, int validUserId, sptr<IRemoteObject> callerToken)
 {
     // auto connectManager = GetConnectManagerByUserId(validUserId);
-    auto connectManager = GeUIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)
+    auto connectManager = UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)
                             ? GetUIExtensionAbilityManagerByUserId(validUserId)
                             : GetCommonExtensionManagerByUserId(validUserId);
     if (!connectManager) {
@@ -2895,7 +2895,7 @@ int32_t AbilityManagerService::RequestDialogServiceInner(const Want &want, const
     }
 
     // auto connectManager = GetConnectManagerByUserId(validUserId);
-    auto connectManager = GeUIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)
+    auto connectManager = UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)
                             ? GetUIExtensionAbilityManagerByUserId(validUserId)
                             : GetCommonExtensionManagerByUserId(validUserId);
     if (!connectManager) {
@@ -4475,7 +4475,7 @@ int AbilityManagerService::StopExtensionAbility(const Want &want, const sptr<IRe
     }
 
     // auto connectManager = GetConnectManagerByUserId(validUserId);
-    auto connectManager = GeUIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)
+    auto connectManager = UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)
                             ? GetUIExtensionAbilityManagerByUserId(validUserId)
                             : GetCommonExtensionManagerByUserId(validUserId);
     if (!connectManager) {
@@ -4543,7 +4543,7 @@ void AbilityManagerService::StopSwitchUserDialogInner(const Want &want, const in
     }
 
     // auto connectManager = GetConnectManagerByUserId(stopUserId);
-    auto connectManager = GeUIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)
+    auto connectManager = UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)
                             ? GetUIExtensionAbilityManagerByUserId(stopUserId)
                             : GetCommonExtensionManagerByUserId(stopUserId);
     if (connectManager == nullptr) {
