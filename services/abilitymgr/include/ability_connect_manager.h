@@ -343,13 +343,6 @@ private:
     int DisconnectAbilityLocked(const sptr<IAbilityConnection> &connect, bool callerDied);
 
     /**
-     * LoadAbility.
-     *
-     * @param abilityRecord, the ptr of the ability to load.
-     */
-    void LoadAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-        std::function<void(const std::shared_ptr<BaseExtensionRecord> &)> updateRecordCallback = nullptr);
-    /**
      * ConnectAbility.Schedule connect ability
      *
      * @param abilityRecord, the ptr of the ability to connect.
@@ -529,7 +522,6 @@ private:
 
     void PostRestartResidentTask(const AbilityRequest &abilityRequest);
 
-    bool IsAbilityNeedKeepAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
     void ProcessPreload(const std::shared_ptr<BaseExtensionRecord> &record) const;
 
@@ -565,7 +557,6 @@ private:
     int DisconnectRecordNormal(ConnectListType &list, std::shared_ptr<ConnectionRecord> connectRecord,
         bool callerDied) const;
     void DisconnectRecordForce(ConnectListType &list, std::shared_ptr<ConnectionRecord> connectRecord);
-    int TerminateAbilityInner(const sptr<IRemoteObject> &token);//一会再看下
     bool IsLauncher(std::shared_ptr<BaseExtensionRecord> serviceExtension) const;
     void KillProcessesByUserId() const;
     inline bool IsUIExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
@@ -628,8 +619,36 @@ protected:
     {
         return true;
     }
+    virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid) 
+    {
+        return -1;
+    }
+    virtual int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord)
+    {
+        return -1;
+    }
+    void CallEnqueueStartServiceReq(const AbilityRequest &abilityRequest, const std::string &uri) {
+        EnqueueStartServiceReq(abilityRequest, uri);
+    }
+    int32_t ReportXiaoYiToRSSIfNeeded(const AppExecFwk::AbilityInfo &abilityInfo);
+    int32_t ReportAbilityStartInfoToRSS(const AppExecFwk::AbilityInfo &abilityInfo);
+    void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
+        const std::shared_ptr<BaseExtensionRecord> abilityRecord, sptr<IRemoteObject> callerToken);
+    /**
+    * LoadAbility.
+    *
+    * @param abilityRecord, the ptr of the ability to load.
+    */
+    void LoadAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        std::function<void(const std::shared_ptr<BaseExtensionRecord> &)> updateRecordCallback = nullptr);
+    void CallAddToServiceMap(const std::string &key, std::shared_ptr<BaseExtensionRecord> abilityRecord) {
+        AddToServiceMap(key, abilityRecord);
+    }
+    int TerminateAbilityInner(const sptr<IRemoteObject> &token);//一会再看下
+    bool IsAbilityNeedKeepAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 protected:
     ffrt::mutex serialMutex_;
+    std::shared_ptr<TaskHandlerWrap> taskHandler_;
 private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";
@@ -644,7 +663,6 @@ private:
     std::map<int32_t, int32_t> callerPidConnectionCountMap_;
 
     std::list<std::shared_ptr<BaseExtensionRecord>> terminatingExtensionList_;
-    std::shared_ptr<TaskHandlerWrap> taskHandler_;
     std::shared_ptr<EventHandlerWrap> eventHandler_;
     std::vector<AbilityRequest> restartResidentTaskList_;
     std::unordered_map<std::string, std::shared_ptr<std::list<AbilityRequest>>> startServiceReqList_;
