@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,8 +21,6 @@
 #include <functional>
 #include <mutex>
 #include "nlohmann/json.hpp"
-#include "setting_data_manager.h"
-#include "ui_content.h"
 #include "window.h"
 
 namespace OHOS {
@@ -66,9 +64,12 @@ typedef struct {
 
 class PageScalingManager {
 public:
-    static PageScalingManager &GetInstance();
+
     void Initialize(sptr<Rosen::Window>& window, const std::string &key, const std::string &bundleName, const std::string &pageName);
-    void GetPageScalingConfig(const std::string &key, const std::string &bundleName, const std::string &pageName, PageScalingConfig &config);
+
+    void RetrivePageScalingConfig(PageDataManager &dataMgr, sptr<Rosen::Window>& window, const std::string &bundleName,
+        const std::string &pageName, PageScalingConfig &config);
+
     void NotifyPageChanged(char* targetPageName);
 
 private:
@@ -76,9 +77,18 @@ private:
     ~PageScalingManager() = default;
 
     void ParseWhitelistConfig(const std::string &bundleName, const std::string &pageName, const std::string &configJson, PageScalingConfig &config);
-    void RegisterPageChangeListeners(const std::string &key, const PageScalingConfig &config);
-    void HandleNavigateChangeInternal(const std::string key, const std::string& targetPageName, const PageScalingConfig& config);
-    void ApplyConfig(const PageScalingConfig& config, const std::string& key);
+
+    void RegisterPageChangeListeners(const Rosen::Window& window, const std::string &key, const PageScalingConfig &config);
+
+    void HandleNavigateChangeInternal(const Rosen::Window& window, const std::string& key,
+        const std::string& targetPageName, const PageScalingConfig& config);
+
+    void ApplyConfig(const Rosen::Window& window, const PageScalingConfig& config, const std::string& key);
+
+    // sptr<Rosen::Window> window_; // 窗口对象
+    std::string bundleName_; // 应用包名
+    PageScalingConfig config_; // 页面缩放配置
+    // std::string targetPageName_; // 目标页面名称
 };
 
 } // namespace AbilityRuntime
