@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,33 +18,33 @@
 
 #include <string>
 #include <vector>
-#include <functional>
 #include <mutex>
+
+#include "ability_context.h"
 #include "nlohmann/json.hpp"
-#include "setting_data_manager.h"
-#include "ui_content.h"
+#include "page_data_manager.h"
 #include "window.h"
 
 namespace OHOS {
-namespace AbilityRuntime {
+namespace AppExecFwk {
 
 typedef struct {
     std::string orientation;
 } Condition;
 
 typedef struct {
-    Condition condition;
+    std::string condition;
     std::string value;
 } DpiConfig;
 
 typedef struct {
-    Condition condition;
-    std::string value;
+    std::string condition;
+    bool value;
 } HideStatusBarConfig;
 
 typedef struct {
-    Condition condition;
-    std::string value;
+    std::string condition;
+    bool value;
 } VideoShrinkConfig;
 
 typedef struct {
@@ -66,22 +66,33 @@ typedef struct {
 
 class PageScalingManager {
 public:
-    static PageScalingManager &GetInstance();
-    void Initialize(sptr<Rosen::Window>& window, const std::string &key, const std::string &bundleName, const std::string &pageName);
-    void GetPageScalingConfig(const std::string &key, const std::string &bundleName, const std::string &pageName, PageScalingConfig &config);
-    void NotifyPageChanged(char* targetPageName);
+
+    void Initialize(std::weak_ptr<OHOS::AbilityRuntime::AbilityContext> &context, const sptr<Rosen::Window>& window,
+        const std::string &key, const std::string &bundleName, const std::string &pageName);
+
+    void RetrivePageScalingConfig(PageDataManager &dataMgr, const sptr<Rosen::Window>& window, const std::string &bundleName,
+        const std::string &pageName, PageScalingConfig &config);
+
+    void NotifyPageChanged(char* targetPageName, uint32_t windowId);
 
 private:
     PageScalingManager();
     ~PageScalingManager() = default;
 
     void ParseWhitelistConfig(const std::string &bundleName, const std::string &pageName, const std::string &configJson, PageScalingConfig &config);
-    void RegisterPageChangeListeners(const std::string &key, const PageScalingConfig &config);
-    void HandleNavigateChangeInternal(const std::string key, const std::string& targetPageName, const PageScalingConfig& config);
-    void ApplyConfig(const PageScalingConfig& config, const std::string& key);
+
+    void RegisterPageChangeListeners(const sptr<Rosen::Window>& window, const std::string &key, const PageScalingConfig &config);
+
+    void HandleNavigateChangeInternal(const sptr<Rosen::Window>& window, const std::string& key,
+        const std::string& targetPageName, const PageScalingConfig& config);
+
+    void ApplyConfig(const sptr<Rosen::Window>& window, const PageScalingConfig& config, const std::string& key);
+
+    std::string bundleName_; // 应用包名
+    PageScalingConfig config_; // 页面缩放配置
 };
 
-} // namespace AbilityRuntime
+} // namespace AppExecFwk
 } // namespace OHOS
 
 #endif // OHOS_ABILITY_RUNTIME_PAGE_SCALING_MANAGER_H
