@@ -44,7 +44,6 @@ public:
     void InitSubManagers(int userId, bool switchUser);
     void InitMissionListManager(int userId, bool switchUser);
     void InitUIAbilityManager(int userId, bool switchUser);
-    void InitConnectManager(int32_t userId, bool switchUser);
     void InitDataAbilityManager(int32_t userId, bool switchUser);
     void InitPendWantManager(int32_t userId, bool switchUser);
     void InitUIExtensionAbilityManager(int32_t userId, bool switchUser);
@@ -61,7 +60,7 @@ public:
     // std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
     std::vector<std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
     // std::shared_ptr<AbilityConnectManager> GetCurrentConnectManager();
-    std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId);
+    // std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId);
     // std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token);
     // std::shared_ptr<AbilityConnectManager> GetConnectManagerByAbilityRecordId(const int64_t &abilityRecordId);
 
@@ -111,7 +110,7 @@ private:
     std::shared_ptr<UIExtensionAbilityManager> currentUIExtensionAbilityManager_;
     std::shared_ptr<CommonExtensionManager> currentCommonExtensionManager_;
     std::shared_ptr<MissionListWrap> missionListWrap_;
-    std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> connectManagers_;
+    // std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> connectManagers_;
     std::unordered_map<int, std::shared_ptr<DataAbilityManager>> dataAbilityManagers_;
     std::unordered_map<int, std::shared_ptr<PendingWantManager>> pendingWantManagers_;
     std::unordered_map<int, std::shared_ptr<MissionListManagerInterface>> missionListManagers_;

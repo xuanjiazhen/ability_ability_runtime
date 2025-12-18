@@ -45,13 +45,11 @@ SubManagersHelper::~SubManagersHelper()
 void SubManagersHelper::InitSubManagers(int userId, bool switchUser)
 {
     if (userId == U1_USER_ID) {
-        InitConnectManager(userId, false);
         InitUIExtensionAbilityManager(userId, false);
         InitCommonExtensionManager(userId, false);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Init U1");
         return;
     }
-    InitConnectManager(userId, switchUser);
     InitUIExtensionAbilityManager(userId, switchUser);
     InitCommonExtensionManager(userId, switchUser);
     InitDataAbilityManager(userId, switchUser);
@@ -65,24 +63,24 @@ void SubManagersHelper::InitSubManagers(int userId, bool switchUser)
     }
 }
 
-void SubManagersHelper::InitConnectManager(int32_t userId, bool switchUser)
-{
-    std::lock_guard<ffrt::mutex> lock(managersMutex_);
-    auto it = connectManagers_.find(userId);
-    if (it != connectManagers_.end()) {
-        if (switchUser) {
-            currentConnectManager_ = it->second;
-        }
-        return;
-    }
-    auto manager = std::make_shared<AbilityConnectManager>(userId);
-    manager->SetTaskHandler(taskHandler_);
-    manager->SetEventHandler(eventHandler_);
-    connectManagers_.emplace(userId, manager);
-    if (switchUser) {
-        currentConnectManager_ = manager;
-    }
-}
+// void SubManagersHelper::InitConnectManager(int32_t userId, bool switchUser)
+// {
+//     std::lock_guard<ffrt::mutex> lock(managersMutex_);
+//     auto it = connectManagers_.find(userId);
+//     if (it != connectManagers_.end()) {
+//         if (switchUser) {
+//             currentConnectManager_ = it->second;
+//         }
+//         return;
+//     }
+//     auto manager = std::make_shared<AbilityConnectManager>(userId);
+//     manager->SetTaskHandler(taskHandler_);
+//     manager->SetEventHandler(eventHandler_);
+//     connectManagers_.emplace(userId, manager);
+//     if (switchUser) {
+//         currentConnectManager_ = manager;
+//     }
+// }
 
 void SubManagersHelper::InitUIExtensionAbilityManager(int32_t userId, bool switchUser)
 {
@@ -208,7 +206,7 @@ void SubManagersHelper::ClearSubManagers(int userId)
     } else {
         missionListManagers_.erase(userId);
     }
-    connectManagers_.erase(userId);
+    // connectManagers_.erase(userId);
     dataAbilityManagers_.erase(userId);
     pendingWantManagers_.erase(userId);
     uiExtensionAbilityManagers_.erase(userId);
@@ -294,16 +292,16 @@ std::vector<std::shared_ptr<AbilityConnectManager>> SubManagersHelper::GetConnec
 //     return currentConnectManager_;
 // }
 
-std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByUserId(int32_t userId)
-{
-    std::lock_guard<ffrt::mutex> lock(managersMutex_);
-    auto it = connectManagers_.find(userId);
-    if (it != connectManagers_.end()) {
-        return it->second;
-    }
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "failed. UserId: %{public}d", userId);
-    return nullptr;
-}
+// std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByUserId(int32_t userId)
+// {
+//     std::lock_guard<ffrt::mutex> lock(managersMutex_);
+//     auto it = connectManagers_.find(userId);
+//     if (it != connectManagers_.end()) {
+//         return it->second;
+//     }
+//     TAG_LOGE(AAFwkTag::ABILITYMGR, "failed. UserId: %{public}d", userId);
+//     return nullptr;
+// }
 
 // std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByToken(const sptr<IRemoteObject> &token)
 // {
