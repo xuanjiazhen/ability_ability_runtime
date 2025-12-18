@@ -105,9 +105,6 @@ public:
     int32_t ConnectUIExtensionAbilityLocked(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo = nullptr,
         sptr<UIExtensionAbilityConnectInfo> connectInfo = nullptr);
-    //是否要基类实现部分，待定
-    int32_t ConnectAbilityCommon(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
-        const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo, const ConnectConfig &config);
 
     /**
      * DisconnectAbilityLocked, disconnect session with callback.

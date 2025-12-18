@@ -5653,7 +5653,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
 
     SetAbilityRequestSessionInfo(abilityRequest, targetExtensionType);
     int ret = -1;
-    if(connectInfo == nullptr) {
+    if(connectInfo != nullptr) {
         ret = connectManager->ConnectUIExtensionAbilityLocked(abilityRequest, connect, callerToken, sessionInfo, connectInfo);
     }else{
         ret = connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo);
@@ -8644,7 +8644,7 @@ int32_t AbilityManagerService::GetServiceMapByUserId(AbilityConnectManager::Serv
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, ERR_INVALID_VALUE);
     // todo
-    auto commonExtensionManager = subManagersHelper_->GetConnectManagerByUserId(userId);
+    auto commonExtensionManager = subManagersHelper_->GetCommonExtensionManagerByUserId(userId);
     auto uiExtensionManager = subManagersHelper_->GetUIExtensionAbilityManagerByUserId(userId);
     if (!commonExtensionManager || !uiExtensionManager) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "manager null");
