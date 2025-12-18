@@ -44,6 +44,37 @@ const std::string DOCUMENTS_PATH = "/storage/Users/currentUser/Documents";
 const std::string CURRENTUSER = "currentUser";
 const std::string BACKFLASH = "/";
 
+DllWrapper FilePermissionManager::g_dll;
+
+DllWrapper::~DllWrapper()
+{
+    if (handle_ != nullptr) {
+        dlclose(handle_);
+    }
+}
+
+void* DllWrapper::GetDlSymbol(const char* name, const char* funcName)
+{
+    std::lock_guard<ffrt::mutex> lock(funcLock_);
+    if (func_ != nullptr) {
+        TAG_LOGD(AAFwkTag::URIPERMMGR, "func is valid.");
+        return func_;
+    }
+    if (handle_ == nullptr) {
+        handle_ = dlopen(name, RTLD_NOW);
+        if (handle_ == nullptr) {
+            TAG_LOGE(AAFwkTag::URIPERMMGR, "dlopen failed %{public}s, %{public}s", name, dlerror());
+            return nullptr;
+        }
+    }
+    auto func_ = dlsym(handle_, funcName);
+    if (func_ == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "dlsym failed %{public}s, %{public}s", funcName, dlerror());
+        return nullptr;
+    }
+    return func_;
+}
+
 static bool CheckPermission(uint32_t tokenCaller, const std::string &permission)
 {
     return PermissionVerification::GetInstance()->VerifyPermissionByTokenId(tokenCaller, permission);
@@ -56,21 +87,18 @@ bool FilePermissionManager::CheckDocsUriPermission(uint32_t callerTokenId, bool 
         return hasSandboxManagerPerm;
     }
 
-    void* handle = dlopen(URI_CHECK_SO_NAME, RTLD_NOW);
-    if (handle != nullptr) {
-        CheckUriFunc checkUriFunc = reinterpret_cast<CheckUriFunc>(dlsym(handle, URI_CHECK_FUNC_NAME));
+    auto symbol = g_dll.GetDlSymbol(URI_CHECK_SO_NAME, URI_CHECK_FUNC_NAME);
+    if (symbol != nullptr) {
+        CheckUriFunc checkUriFunc = reinterpret_cast<CheckUriFunc>(dlsym(g_handle, URI_CHECK_FUNC_NAME));
         if (checkUriFunc != nullptr) {
             int32_t ret = checkUriFunc(path, callerTokenId);
             if (ret == PERMISSION_GRANTED) {
-                dlclose(handle);
                 return true;
             }
             if (ret == PERMISSION_DENIED) {
-                dlclose(handle);
                 return false;
             }
         }
-        dlclose(handle);
     }
 
     if (path.find(STORAGE_URI) == 0 && path.find(APPDATA_URI) != 0) {
