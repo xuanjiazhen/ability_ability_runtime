@@ -301,7 +301,7 @@ public:
      */
     std::shared_ptr<BaseExtensionRecord> GetServiceRecordByAbilityRequest(const AbilityRequest &abilityRequest);
 
-    ServiceMapType GetServiceMap() const;
+    ServiceMapType GetServiceMap();
 
     bool HasRequestIdInLoadAbilityQueue(int32_t requestId);
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId);
@@ -555,7 +555,7 @@ private:
 
     void KeepAbilityAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void ProcessEliminateAbilityRecord(std::shared_ptr<BaseExtensionRecord> eliminateRecord);
-    std::string GetServiceKey(const std::shared_ptr<BaseExtensionRecord> &service);
+    static std::string GetServiceKey(const std::shared_ptr<BaseExtensionRecord> &service);
 
     void SetExtensionLoadParam(AbilityRuntime::LoadParam &loadParam,
         std::shared_ptr<BaseExtensionRecord> abilityRecord);
@@ -628,7 +628,7 @@ protected:
     int TerminateAbilityInner(const sptr<IRemoteObject> &token);//一会再看下
     bool IsAbilityNeedKeepAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
-    inline bool IsCacheExtensionAbilityByInfo(const AppExecFwk::AbilityInfo &abilityInfo);
+    bool IsCacheExtensionAbilityByInfo(const AppExecFwk::AbilityInfo &abilityInfo);
     void RemoveServiceFromMapSafe(const std::string &serviceKey);
 protected:
     int userId_;
