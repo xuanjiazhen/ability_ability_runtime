@@ -34,6 +34,32 @@ constexpr int32_t PERMISSION_GRANTED = 1;
 constexpr int32_t PERMISSION_DENIED = 2;
 constexpr const char* URI_CHECK_SO_NAME = "libcollaborator_uri_permission_checker.z.so";
 constexpr const char* URI_CHECK_FUNC_NAME = "CheckCollaboratorUriPermission";
+void *g_handle = nullptr;
+std::mutex g_handleMutex;
+CheckUriFunc g_checkUriFunc = nullptr;
+
+void InitDlFunc()
+{
+    std::lock_guard<std::mutex> lock(g_handleMutex);
+    if (g_checkUriFunc != nullptr) {
+        TAG_LOGD(AAFwkTag::URIPERMMGR, "func is valid.");
+        return;
+    }
+    if (g_handle == nullptr) {
+        g_handle = dlopen(URI_CHECK_SO_NAME, RTLD_NOW);
+        if (g_handle == nullptr) {
+            TAG_LOGE(AAFwkTag::URIPERMMGR, "dlopen failed %{public}s, %{public}s", URI_CHECK_SO_NAME, dlerror());
+            return;
+        }
+    }
+
+    g_checkUriFunc = reinterpret_cast<CheckUriFunc>(dlsym(g_handle, URI_CHECK_FUNC_NAME));
+    if (g_checkUriFunc == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "dlsym failed %{public}s, %{public}s", URI_CHECK_FUNC_NAME, dlerror());
+        dlclose(g_handle);
+        g_handle = nullptr;
+    }
+}
 }
 const std::string FILE_MANAGER_AUTHORITY = "docs";
 const std::string STORAGE_URI = "/storage";
@@ -56,21 +82,15 @@ bool FilePermissionManager::CheckDocsUriPermission(uint32_t callerTokenId, bool 
         return hasSandboxManagerPerm;
     }
 
-    void* handle = dlopen(URI_CHECK_SO_NAME, RTLD_NOW);
-    if (handle != nullptr) {
-        CheckUriFunc checkUriFunc = reinterpret_cast<CheckUriFunc>(dlsym(handle, URI_CHECK_FUNC_NAME));
-        if (checkUriFunc != nullptr) {
-            int32_t ret = checkUriFunc(path, callerTokenId);
-            if (ret == PERMISSION_GRANTED) {
-                dlclose(handle);
-                return true;
-            }
-            if (ret == PERMISSION_DENIED) {
-                dlclose(handle);
-                return false;
-            }
+    InitDlFunc();
+    if (g_checkUriFunc != nullptr) {
+        int32_t ret = g_checkUriFunc(path, callerTokenId);
+        if (ret == PERMISSION_GRANTED) {
+            return true;
         }
-        dlclose(handle);
+        if (ret == PERMISSION_DENIED) {
+            return false;
+        }
     }
 
     if (path.find(STORAGE_URI) == 0 && path.find(APPDATA_URI) != 0) {
