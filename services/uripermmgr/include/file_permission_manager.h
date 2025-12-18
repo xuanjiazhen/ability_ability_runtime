@@ -22,6 +22,7 @@
 #include "uri.h"
 
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+#include "ffrt.h"
 #include "sandbox_manager_kit.h"
 #include "policy_info.h"
 #else
@@ -38,6 +39,17 @@ typedef enum OperationMode {
     WRITE_MODE = 1 << 1,
 } OperationMode;
 
+class DllWrapper {
+public:
+    DllWrapper() = default;
+    ~DllWrapper();
+    void* GetDlSymbol(const char* name, const char* funcName);
+private:
+    void* handle_ = nullptr;
+    void* func_ = nullptr;
+    ffrt::mutex funcLock_;
+};
+
 class FilePermissionManager {
 public:
     static std::vector<bool> CheckUriPersistentPermission(std::vector<Uri> &uriVec, uint32_t callerTokenId,
@@ -48,6 +60,8 @@ public:
 private:
     static bool CheckDocsUriPermission(uint32_t callerTokenId, bool hasFileManagerPerm, bool hasSandboxManagerPerm,
         const std::string &path);
+
+    static DllWrapper g_dll;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
