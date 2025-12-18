@@ -224,7 +224,6 @@ private:
     std::mutex uiExtRecipientMapMutex_;
     std::mutex uiExtensionMapMutex_;
     std::mutex loadAbilityQueueLock_;
-    std::deque<std::map<int32_t, LoadAbilityContext>> loadAbilityQueue_;
     std::mutex preloadUIExtRecipientMapMutex_;
     std::map<int32_t, sptr<IRemoteObject::DeathRecipient>> preloadUIExtensionHostClientDeathRecipients_;
 
