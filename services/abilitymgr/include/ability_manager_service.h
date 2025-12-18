@@ -2553,7 +2553,7 @@ private:
         std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)>);
     std::vector<std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
     // std::shared_ptr<AbilityConnectManager> GetCurrentConnectManager();
-    // std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId);
+    // std::shared_ptr<AbilityConnectManager> GetConnectManagerByUsaerId(int32_t userId);
     // std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token);
     // std::shared_ptr<AbilityConnectManager> GetConnectManagerByAbilityRecordId(const int64_t &abilityRecordId);
 

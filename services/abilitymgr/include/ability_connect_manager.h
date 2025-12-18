@@ -625,6 +625,12 @@ protected:
     bool IsCacheExtensionAbilityByInfo(const AppExecFwk::AbilityInfo &abilityInfo);
     void RemoveServiceFromMapSafe(const std::string &serviceKey);
     bool IsSpecialAbility(const AppExecFwk::AbilityInfo &abilityInfo);
+    virtual int32_t GetOrCreateTargetServiceRecord(
+        const AbilityRequest &abilityRequest, const sptr<UIExtensionAbilityConnectInfo> &connectInfo,
+        std::shared_ptr<BaseExtensionRecord> &targetService, bool &isLoadedAbility)
+    {
+        return 0;
+    }
 protected:
     int userId_;
     ServiceMapType serviceMap_;
