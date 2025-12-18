@@ -7059,13 +7059,12 @@ void AbilityManagerService::DumpSysStateInner(
     auto dumpUserId = isUserID ? userId : AbilityRuntime::UserController::GetInstance().GetCallerUserId();
     auto ret = GetServiceMapByUserId(serviceMap, dumpUserId);
 
-    if (ret == ERR_INVALID_VALUE) {
-        if (isUserId) {
+    if (ret != ERR_OK) {
+        if (isUserID) {
             info.push_back("error: No user found.");
         }
         return;
     }
-       
 
     std::vector<std::string> argList;
     SplitStr(args, " ", argList);
@@ -7074,13 +7073,13 @@ void AbilityManagerService::DumpSysStateInner(
     }
 
     if (argList.size() == MIN_DUMP_ARGUMENT_NUM) {
-        targetManager->DumpState(info, isClient, argList[1]);
+        AbilityConnectManager::DumpState(serviceMap, info, isClient, argList[1]);
     } else if (argList.size() < MIN_DUMP_ARGUMENT_NUM) {
-        targetManager->DumpState(info, isClient);
+        AbilityConnectManager::DumpState(serviceMap, info, isClient);
     } else {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "uri=%{public}s", argList[1].c_str());
         std::vector<std::string> params(argList.begin() + MIN_DUMP_ARGUMENT_NUM, argList.end());
-        targetManager->DumpStateByUri(info, isClient, argList[1], params);
+        AbilityConnectManager::DumpStateByUri(serviceMap, info, isClient, argList[1], params);
     }
 }
 
@@ -7326,17 +7325,21 @@ void AbilityManagerService::DumpMissionInner(const std::string &args, std::vecto
 void AbilityManagerService::DumpStateInner(const std::string &args, std::vector<std::string> &info)
 {
     auto userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-    auto connectManager = GetConnectManagerByUserId(userId);
-    CHECK_POINTER_LOG(connectManager, "Current mission manager not init.");
+    AbilityConnectManager::ServiceMapType serviceMap;
+    auto ret = GetServiceMapByUserId(serviceMap, userId);
+    if (ret != ERR_OK) {
+        return;
+    }
+
     std::vector<std::string> argList;
     SplitStr(args, " ", argList);
     if (argList.empty()) {
         return;
     }
     if (argList.size() == MIN_DUMP_ARGUMENT_NUM) {
-        connectManager->DumpState(info, false, argList[1]);
+        AbilityConnectManager::DumpState(serviceMap, info, false, argList[1]);
     } else if (argList.size() < MIN_DUMP_ARGUMENT_NUM) {
-        connectManager->DumpState(info, false);
+        AbilityConnectManager::DumpState(serviceMap, info, false);
     } else {
         info.emplace_back("error: invalid argument, please see 'ability dump -h'.");
     }
@@ -8637,12 +8640,12 @@ std::shared_ptr<PendingWantManager> AbilityManagerService::GetCurrentPendingWant
     return subManagersHelper_->GetCurrentPendingWantManager();
 }
 
-int32_t AbilityManagerService::GetServiceMapByUserId(ServiceMapType &serviceMap, int32_t userId)
+int32_t AbilityManagerService::GetServiceMapByUserId(AbilityConnectManager::ServiceMapType &serviceMap, int32_t userId)
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, ERR_INVALID_VALUE);
     // todo
     auto commonExtensionManager = subManagersHelper_->GetConnectManagerByUserId(userId);
-    auto uiExtensionManager = subManagersHelper_->GetUIExtensionManagerByUserId(userId);
+    auto uiExtensionManager = subManagersHelper_->GetUIExtensionAbilityManagerByUserId(userId);
     if (!commonExtensionManager || !uiExtensionManager) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "manager null");
         return ERR_INVALID_VALUE;
@@ -9778,7 +9781,7 @@ int AbilityManagerService::GetExtensionRunningInfos(int upperLimit, std::vector<
     while (iter != userIds.end()) {
         AbilityConnectManager::ServiceMapType serviceMap;
         auto ret = GetServiceMapByUserId(serviceMap, *iter);
-        if (ret == ERR_INVALID_VALUE) {
+        if (ret != ERR_OK) {
             return ret;
         }
         AbilityConnectManager::GetExtensionRunningInfos(serviceMap, upperLimit, info, *iter, isPerm);
