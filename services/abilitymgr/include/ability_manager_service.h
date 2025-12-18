@@ -2551,13 +2551,13 @@ private:
     std::shared_ptr<DataAbilityManager> GetDataAbilityManagerByToken(const sptr<IRemoteObject> &token);
     int32_t HandleExtensionAbility(sptr<IAbilityConnection> connect,
         std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)>);
-    std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
-    std::shared_ptr<AbilityConnectManager> GetCurrentConnectManager();
+    std::vector<std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
+    // std::shared_ptr<AbilityConnectManager> GetCurrentConnectManager();
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId);
-    std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token);
-    std::shared_ptr<AbilityConnectManager> GetConnectManagerByAbilityRecordId(const int64_t &abilityRecordId);
+    // std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token);
+    // std::shared_ptr<AbilityConnectManager> GetConnectManagerByAbilityRecordId(const int64_t &abilityRecordId);
 
-    int32_t GetServiceMapByUserId(ServiceMapType &serviceMap, int32_t userId);
+    int32_t GetServiceMapByUserId(AbilityConnectManager::ServiceMapType &serviceMap, int32_t userId);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId, const AppExecFwk::ExtensionAbilityType type);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionAbilityType type);
 

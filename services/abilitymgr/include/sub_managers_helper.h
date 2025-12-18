@@ -19,6 +19,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "ability_connect_manager.h"
 #include "ui_extension_ability_manager.h"
@@ -57,11 +58,12 @@ public:
     std::shared_ptr<DataAbilityManager> GetDataAbilityManagerByUserId(int32_t userId);
     std::shared_ptr<DataAbilityManager> GetDataAbilityManagerByToken(const sptr<IRemoteObject> &token);
 
-    std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
-    std::shared_ptr<AbilityConnectManager> GetCurrentConnectManager();
+    // std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
+    std::vector<std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
+    // std::shared_ptr<AbilityConnectManager> GetCurrentConnectManager();
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId);
-    std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token);
-    std::shared_ptr<AbilityConnectManager> GetConnectManagerByAbilityRecordId(const int64_t &abilityRecordId);
+    // std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token);
+    // std::shared_ptr<AbilityConnectManager> GetConnectManagerByAbilityRecordId(const int64_t &abilityRecordId);
 
     std::shared_ptr<PendingWantManager> GetCurrentPendingWantManager();
     std::shared_ptr<PendingWantManager> GetPendingWantManagerByUserId(int32_t userId);
@@ -101,7 +103,7 @@ private:
 
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AbilityEventHandler> eventHandler_;
-    std::shared_ptr<AbilityConnectManager> currentConnectManager_;
+    // std::shared_ptr<AbilityConnectManager> currentConnectManager_;
     std::shared_ptr<DataAbilityManager> currentDataAbilityManager_;
     std::shared_ptr<PendingWantManager> currentPendingWantManager_;
     std::shared_ptr<MissionListManagerInterface> currentMissionListManager_;

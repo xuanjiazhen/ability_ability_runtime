@@ -267,17 +267,32 @@ std::shared_ptr<DataAbilityManager> SubManagersHelper::GetDataAbilityManagerByTo
     return nullptr;
 }
 
-std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> SubManagersHelper::GetConnectManagers()
+std::vector<std::shared_ptr<AbilityConnectManager>> SubManagersHelper::GetConnectManagers()
 {
     std::lock_guard<ffrt::mutex> lock(managersMutex_);
-    return connectManagers_;
+    
+    size_t totalSize = uiExtensionAbilityManagers_.size() + 
+                      commonExtensionManagers_.size();
+    
+    std::vector<std::shared_ptr<AbilityConnectManager>> result;
+    result.reserve(totalSize);
+    
+    for (const auto& [key, value] : uiExtensionAbilityManagers_) {
+        result.push_back(value);
+    }
+    
+    for (const auto& [key, value] : commonExtensionManagers_) {
+        result.push_back(value);
+    }
+    
+    return result;
 }
 
-std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetCurrentConnectManager()
-{
-    std::lock_guard<ffrt::mutex> lock(managersMutex_);
-    return currentConnectManager_;
-}
+// std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetCurrentConnectManager()
+// {
+//     std::lock_guard<ffrt::mutex> lock(managersMutex_);
+//     return currentConnectManager_;
+// }
 
 std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByUserId(int32_t userId)
 {
@@ -290,46 +305,46 @@ std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByUse
     return nullptr;
 }
 
-std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByToken(const sptr<IRemoteObject> &token)
-{
-    std::lock_guard<ffrt::mutex> lock(managersMutex_);
-    for (auto& item: connectManagers_) {
-        if (item.second && item.second->GetExtensionByTokenFromServiceMap(token)) {
-            return item.second;
-        }
-        if (item.second && item.second->GetExtensionByTokenFromTerminatingMap(token)) {
-            return item.second;
-        }
-    }
-    auto abilityRecord = AbilityCacheManager::GetInstance().FindRecordByToken(token);
-    if (abilityRecord == nullptr) {
-        return nullptr;
-    }
-    auto iter = connectManagers_.find(abilityRecord->GetOwnerMissionUserId());
-    if (iter == connectManagers_.end()) {
-        return nullptr;
-    }
-    return iter->second;
-}
+// std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByToken(const sptr<IRemoteObject> &token)
+// {
+//     std::lock_guard<ffrt::mutex> lock(managersMutex_);
+//     for (auto& item: connectManagers_) {
+//         if (item.second && item.second->GetExtensionByTokenFromServiceMap(token)) {
+//             return item.second;
+//         }
+//         if (item.second && item.second->GetExtensionByTokenFromTerminatingMap(token)) {
+//             return item.second;
+//         }
+//     }
+//     auto abilityRecord = AbilityCacheManager::GetInstance().FindRecordByToken(token);
+//     if (abilityRecord == nullptr) {
+//         return nullptr;
+//     }
+//     auto iter = connectManagers_.find(abilityRecord->GetOwnerMissionUserId());
+//     if (iter == connectManagers_.end()) {
+//         return nullptr;
+//     }
+//     return iter->second;
+// }
 
-std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByAbilityRecordId(
-    const int64_t &abilityRecordId)
-{
-    std::lock_guard<ffrt::mutex> lock(managersMutex_);
-    for (auto& item: connectManagers_) {
-        if (item.second == nullptr) {
-            continue;
-        }
-        if (item.second->GetExtensionByIdFromServiceMap(abilityRecordId)) {
-            return item.second;
-        }
-        if (item.second->GetExtensionByIdFromTerminatingMap(abilityRecordId)) {
-            return item.second;
-        }
-    }
+// std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByAbilityRecordId(
+//     const int64_t &abilityRecordId)
+// {
+//     std::lock_guard<ffrt::mutex> lock(managersMutex_);
+//     for (auto& item: connectManagers_) {
+//         if (item.second == nullptr) {
+//             continue;
+//         }
+//         if (item.second->GetExtensionByIdFromServiceMap(abilityRecordId)) {
+//             return item.second;
+//         }
+//         if (item.second->GetExtensionByIdFromTerminatingMap(abilityRecordId)) {
+//             return item.second;
+//         }
+//     }
 
-    return nullptr;
-}
+//     return nullptr;
+// }
 
 std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> SubManagersHelper::GetUIExtensionAbilityManagers()
 {
@@ -616,10 +631,10 @@ bool SubManagersHelper::VerificationAllTokenForConnectManagers(const sptr<IRemot
 {
     auto connectManagers = GetConnectManagers();
     for (auto& item: connectManagers) {
-        if (item.second && item.second->GetExtensionByTokenFromServiceMap(token)) {
+        if (item && item->GetExtensionByTokenFromServiceMap(token)) {
             return true;
         }
-        if (item.second && item.second->GetExtensionByTokenFromTerminatingMap(token)) {
+        if (item && item->GetExtensionByTokenFromTerminatingMap(token)) {
             return true;
         }
     }

@@ -2477,7 +2477,7 @@ void AbilityConnectManager::DumpState(ServiceMapType &serviceMapBack, std::vecto
         }
 
         std::string serviceKey;
-        auto iter = std::find_if(cacheList.begin(), cacheList.end(), [&args, &serviceKey, this](const auto &service) {
+        auto iter = std::find_if(cacheList.begin(), cacheList.end(), [&args, &serviceKey](const auto &service) {
             serviceKey = GetServiceKey(service);
             return serviceKey.compare(args) == 0;
         });
