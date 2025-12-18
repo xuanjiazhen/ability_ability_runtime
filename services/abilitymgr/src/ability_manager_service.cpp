@@ -8608,11 +8608,11 @@ std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerB
     return connectManager;
 }
 
-std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerByUserId(int32_t userId)
-{
-    CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
-    return subManagersHelper_->GetConnectManagerByUserId(userId);
-}
+// std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerByUserId(int32_t userId)
+// {
+//     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
+//     return subManagersHelper_->GetConnectManagerByUserId(userId);
+// }
 
 std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerByToken(
     const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionAbilityType type)
