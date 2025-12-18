@@ -1005,5 +1005,75 @@ int32_t UIExtensionAbilityManager::AddPreloadUIExtensionRecord(const std::shared
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_INVALID_VALUE);
     return uiExtensionAbilityRecordMgr_->AddPreloadUIExtensionRecord(abilityRecord);
 }
+
+int UIExtensionAbilityManager::ConnectUIExtensionAbilityLocked(const AbilityRequest &abilityRequest,
+    const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
+    sptr<UIExtensionAbilityConnectInfo> connectInfo)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    int32_t ret = ERR_OK;
+
+    // 1. 复用基类的保护方法：公共前置检查（直接调用，因为是protected）
+    if (!PreCheckAndGrantUri(abilityRequest, connect, ret)) {
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard guard(serialMutex_); // 基类的serialMutex_需为protected，让子类访问
+
+    // 2. 复用基类的保护方法：检查多实例权限
+    ret = CheckMultiInstancePermission(abilityRequest);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // 3. 子类特有逻辑：获取/创建带connectInfo的目标服务记录（子类自己的方法）
+    std::shared_ptr<BaseExtensionRecord> targetService;
+    bool isLoadedAbility = false;
+    ret = GetOrCreateTargetServiceRecord(abilityRequest, connectInfo, targetService, isLoadedAbility);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // 4. 复用基类的通用方法：上报事件到RSS（基类的protected/public方法）
+    ReportEventToRSS(abilityRequest.abilityInfo, targetService, callerToken);
+
+    // 5. 复用基类的通用方法：检查回调是否已连接
+    std::vector<sptr<ConnectionRecord>> connectRecordList;
+    GetConnectRecordListFromMap(connect, connectRecordList);
+    bool isCallbackConnected = !connectRecordList.empty();
+    auto connectedRecord = GetAbilityConnectedRecordFromRecordList(targetService, connectRecordList);
+
+    // 6. 复用基类的通用逻辑：若已连接，直接返回
+    if (isLoadedAbility && isCallbackConnected && (connectedRecord != nullptr)) {
+        TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
+        connectedRecord->CompleteConnectAndOnlyCallConnectDone();
+        return ERR_OK;
+    }
+
+    // 7. 复用基类的保护方法：处理连接记录
+    ret = ProcessConnectRecord(connect, callerToken, targetService, abilityRequest, sessionInfo, connectRecordList, isCallbackConnected);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // 8. 复用基类的通用方法：上报XiaoYi到RSS
+    ret = ReportXiaoYiToRSSIfNeeded(abilityRequest.abilityInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // 9. 子类特有逻辑：定义回调，调用子类的UpdateUIExtensionInfo
+    auto updateRecordCallback = [self = shared_from_this()](
+        const std::shared_ptr<BaseExtensionRecord>& targetService) {
+        if (self != nullptr) {
+            // 调用子类的特有方法（self是UIExtensionManager的shared_ptr）
+            self->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
+        }
+    };
+
+    // 10. 复用基类的保护方法：处理能力加载状态（传递子类的回调）
+    ProcessAbilityLoadState(targetService, abilityRequest, isLoadedAbility, nullptr, updateRecordCallback);
+
+    return ret;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

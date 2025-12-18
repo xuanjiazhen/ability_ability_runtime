@@ -5654,6 +5654,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     SetAbilityRequestSessionInfo(abilityRequest, targetExtensionType);
     int ret = -1;
     if(connectInfo != nullptr) {
+        connectManager = GetUIExtensionAbilityManagerByUserId(validUserId, abilityInfo.extensionAbilityType);
         ret = connectManager->ConnectUIExtensionAbilityLocked(abilityRequest, connect, callerToken, sessionInfo, connectInfo);
     }else{
         ret = connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo);

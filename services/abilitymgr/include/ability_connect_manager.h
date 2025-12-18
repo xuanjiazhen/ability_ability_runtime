@@ -102,9 +102,6 @@ public:
      */
     int32_t ConnectAbilityLocked(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo = nullptr);
-    int32_t ConnectUIExtensionAbilityLocked(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
-        const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo = nullptr,
-        sptr<UIExtensionAbilityConnectInfo> connectInfo = nullptr);
 
     /**
      * DisconnectAbilityLocked, disconnect session with callback.
@@ -631,6 +628,18 @@ protected:
     {
         return 0;
     }
+        // 原有私有辅助函数...
+    bool PreCheckAndGrantUri(const AbilityRequest& abilityRequest, const sptr<IAbilityConnection>& connect, int32_t& ret);
+    int32_t CheckMultiInstancePermission(const AbilityRequest& abilityRequest);
+    int32_t ProcessConnectRecord(const sptr<IAbilityConnection>& connect, const sptr<IRemoteObject>& callerToken,
+                                const std::shared_ptr<BaseExtensionRecord>& targetService,
+                                const AbilityRequest& abilityRequest, sptr<SessionInfo> sessionInfo,
+                                ConnectListType& connectRecordList, bool isCallbackConnected);
+    void ProcessAbilityLoadState(const std::shared_ptr<BaseExtensionRecord>& targetService,
+                                const AbilityRequest& abilityRequest, bool isLoadedAbility,
+                                const std::shared_ptr<ConnectionRecord>& connectRecord = nullptr,
+                                std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateRecordCallback = nullptr);
+
 protected:
     int userId_;
     ServiceMapType serviceMap_;

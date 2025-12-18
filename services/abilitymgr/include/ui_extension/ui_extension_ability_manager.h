@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_UI_EXTENSION_ABILITY_MANAGER_H
 
 #include "ability_connect_manager.h"
-
 #include "extension_record_manager.h"
 #include "nocopyable.h"
 

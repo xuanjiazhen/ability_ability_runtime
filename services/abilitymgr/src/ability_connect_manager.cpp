@@ -342,173 +342,70 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
-    auto connectObject = connect->AsObject();
-#ifdef SUPPORT_UPMS
-    // grant uri to service extension by connect, must call out of serialMutex_
-    int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
-    if (userId_ == U0_USER_ID || callerUser == U0_USER_ID || callerUser == U1_USER_ID ||
-        userId_ == AbilityRuntime::UserController::GetInstance().GetCallerUserId()) {
-        UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
-    } else {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "cross user, without grantUriPermission");
-    }
-#endif // SUPPORT_UPMS
-    std::lock_guard guard(serialMutex_);
+    int32_t ret = ERR_OK;
 
-    // 1. get target service ability record, and check whether it has been loaded.
-    int32_t ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
-    if (ret != ERR_OK) {
-        //  Do not distinguishing specific error codes
+    // 1. 调用基类保护方法：公共前置检查
+    if (!PreCheckAndGrantUri(abilityRequest, connect, ret)) {
         return ERR_INVALID_VALUE;
     }
+    std::lock_guard guard(serialMutex_);
+
+    // 2. 调用基类保护方法：检查多实例权限
+    ret = CheckMultiInstancePermission(abilityRequest);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // 3. 基类特有逻辑：获取/创建服务记录（无connectInfo）
     std::shared_ptr<BaseExtensionRecord> targetService;
     bool isLoadedAbility = false;
     GetOrCreateServiceRecord(abilityRequest, true, targetService, isLoadedAbility);
-    CHECK_POINTER_AND_RETURN(targetService, ERR_INVALID_VALUE);
+    if (targetService == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
 
+    // 4. 基类通用逻辑：上报事件到RSS
     ReportEventToRSS(abilityRequest.abilityInfo, targetService, callerToken);
-    // 2. get target connectRecordList, and check whether this callback has been connected.
-    ConnectListType connectRecordList;
+
+    // 5. 基类通用逻辑：检查回调是否已连接
+    std::vector<sptr<ConnectionRecord>> connectRecordList;
     GetConnectRecordListFromMap(connect, connectRecordList);
     bool isCallbackConnected = !connectRecordList.empty();
     auto connectedRecord = GetAbilityConnectedRecordFromRecordList(targetService, connectRecordList);
-    // 3. If this service ability and callback has been connected, There is no need to connect repeatedly
-    if (isLoadedAbility && (isCallbackConnected) && (connectedRecord != nullptr)) {
+
+    // 6. 基类通用逻辑：若已连接，直接返回
+    if (isLoadedAbility && isCallbackConnected && (connectedRecord != nullptr)) {
         TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
         connectedRecord->CompleteConnectAndOnlyCallConnectDone();
         return ERR_OK;
     }
 
-    // 4. Other cases , need to connect the service ability
-    auto connectRecord = ConnectionRecord::CreateConnectionRecord(
-        callerToken, targetService, connect, shared_from_this());
-    CHECK_POINTER_AND_RETURN(connectRecord, ERR_INVALID_VALUE);
-    connectRecord->AttachCallerInfo();
-    connectRecord->SetConnectState(ConnectionState::CONNECTING);
-    if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
-        connectRecord->SetConnectWant(abilityRequest.want);
-    }
-    targetService->AddConnectRecordToList(connectRecord);
-    targetService->SetSessionInfo(sessionInfo);
-    connectRecordList.push_back(connectRecord);
-    AddConnectObjectToMap(connectObject, connectRecordList, isCallbackConnected);
-    HandleConnectionCountIncrement(connectRecord->GetCallerPid(), connectRecord->GetCallerName(),
-        abilityRequest.abilityInfo.bundleName + "/" + abilityRequest.abilityInfo.name);
-    targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_CONNECT_EXTENSION);
-
-    if (UIExtensionUtils::IsWindowExtension(targetService->GetAbilityInfo().extensionAbilityType)
-        && abilityRequest.sessionInfo) {
-        std::lock_guard guard(windowExtensionMapMutex_);
-        windowExtensionMap_.emplace(connectObject,
-            WindowExtMapValType(targetService->GetApplicationInfo().accessTokenId, abilityRequest.sessionInfo));
-    }
-
-    auto &abilityInfo = abilityRequest.abilityInfo;
-    ret = ReportXiaoYiToRSSIfNeeded(abilityInfo);
+    // 7. 调用基类保护方法：处理连接记录
+    ret = ProcessConnectRecord(connect, callerToken, targetService, abilityRequest, sessionInfo, connectRecordList, isCallbackConnected);
     if (ret != ERR_OK) {
         return ret;
     }
 
-    if (!isLoadedAbility) {
-        TAG_LOGI(AAFwkTag::EXT, "load");
-        LoadAbility(targetService);
-    } else if (targetService->IsAbilityState(AbilityState::ACTIVE)) {
-        targetService->SetWant(abilityRequest.want);
-        HandleActiveAbility(targetService, connectRecord);
-    } else {
-        TAG_LOGI(AAFwkTag::EXT, "targetService activing");
-        targetService->SaveConnectWant(abilityRequest.want);
+    // 8. 基类特有逻辑：处理windowExtensionMap
+    if (UIExtensionUtils::IsWindowExtension(targetService->GetAbilityInfo().extensionAbilityType)
+        && abilityRequest.sessionInfo) {
+        std::lock_guard guard(windowExtensionMapMutex_);
+        auto connectObject = connect->AsObject();
+        windowExtensionMap_.emplace(connectObject,
+            WindowExtMapValType(targetService->GetApplicationInfo().accessTokenId, abilityRequest.sessionInfo));
     }
+
+    // 9. 基类通用逻辑：上报XiaoYi到RSS
+    ret = ReportXiaoYiToRSSIfNeeded(abilityRequest.abilityInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // 10. 调用基类保护方法：处理能力加载状态（无回调）
+    auto connectRecord = connectRecordList.back();
+    ProcessAbilityLoadState(targetService, abilityRequest, isLoadedAbility, connectRecord);
+
     return ret;
-}
-
-int AbilityConnectManager::ConnectUIExtensionAbilityLocked(const AbilityRequest &abilityRequest,
-    const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
-    sptr<UIExtensionAbilityConnectInfo> connectInfo)
-{
-//     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-//     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
-//     auto connectObject = connect->AsObject();
-// #ifdef SUPPORT_UPMS
-//     // grant uri to service extension by connect, must call out of serialMutex_
-//     int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
-//     if (userId_ == U0_USER_ID || callerUser == U0_USER_ID || callerUser == U1_USER_ID ||
-//         userId_ == AbilityRuntime::UserController::GetInstance().GetCallerUserId()) {
-//         UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
-//     } else {
-//         TAG_LOGD(AAFwkTag::ABILITYMGR, "cross user, without grantUriPermission");
-//     }
-// #endif // SUPPORT_UPMS
-//     std::lock_guard guard(serialMutex_);
-
-//     // 1. get target service ability record, and check whether it has been loaded.
-//     int32_t ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
-//     if (ret != ERR_OK) {
-//         //  Do not distinguishing specific error codes
-//         return ERR_INVALID_VALUE;
-//     }
-//     std::shared_ptr<BaseExtensionRecord> targetService;
-//     bool isLoadedAbility = false;
-//     ret = GetOrCreateTargetServiceRecord(abilityRequest, connectInfo, targetService, isLoadedAbility);
-//     if (ret != ERR_OK) {
-//         return ret;
-//     }
-
-//     ReportEventToRSS(abilityRequest.abilityInfo, targetService, callerToken);
-//     // 2. get target connectRecordList, and check whether this callback has been connected.
-//     ConnectListType connectRecordList;
-//     GetConnectRecordListFromMap(connect, connectRecordList);
-//     bool isCallbackConnected = !connectRecordList.empty();
-//     auto connectedRecord = GetAbilityConnectedRecordFromRecordList(targetService, connectRecordList);
-//     // 3. If this service ability and callback has been connected, There is no need to connect repeatedly
-//     if (isLoadedAbility && (isCallbackConnected) && (connectedRecord != nullptr)) {
-//         TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
-//         connectedRecord->CompleteConnectAndOnlyCallConnectDone();
-//         return ERR_OK;
-//     }
-
-//     // 4. Other cases , need to connect the service ability
-//     auto connectRecord = ConnectionRecord::CreateConnectionRecord(
-//         callerToken, targetService, connect, shared_from_this());
-//     CHECK_POINTER_AND_RETURN(connectRecord, ERR_INVALID_VALUE);
-//     connectRecord->AttachCallerInfo();
-//     connectRecord->SetConnectState(ConnectionState::CONNECTING);
-//     if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
-//         connectRecord->SetConnectWant(abilityRequest.want);
-//     }
-//     targetService->AddConnectRecordToList(connectRecord);
-//     targetService->SetSessionInfo(sessionInfo);
-//     connectRecordList.push_back(connectRecord);
-//     AddConnectObjectToMap(connectObject, connectRecordList, isCallbackConnected);
-//     HandleConnectionCountIncrement(connectRecord->GetCallerPid(), connectRecord->GetCallerName(),
-//         abilityRequest.abilityInfo.bundleName + "/" + abilityRequest.abilityInfo.name);
-//     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_CONNECT_EXTENSION);
-
-//     auto &abilityInfo = abilityRequest.abilityInfo;
-//     ret = ReportXiaoYiToRSSIfNeeded(abilityInfo);
-//     if (ret != ERR_OK) {
-//         return ret;
-//     }
-
-//     if (!isLoadedAbility) {
-//         TAG_LOGI(AAFwkTag::EXT, "load");
-//         auto updateRecordCallback = [mgr = shared_from_this()](
-//             const std::shared_ptr<BaseExtensionRecord>& targetService) {
-//             if (mgr != nullptr) {
-//                 mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
-//             }
-//         };
-//         LoadAbility(targetService, updateRecordCallback);
-//     } else if (targetService->IsAbilityState(AbilityState::ACTIVE)) {
-//         targetService->SetWant(abilityRequest.want);
-//         HandleActiveAbility(targetService, connectRecord);
-//     } else {
-//         TAG_LOGI(AAFwkTag::EXT, "targetService activing");
-//         targetService->SaveConnectWant(abilityRequest.want);
-//     }
-//     return ret;
-return 0;
 }
 
 void AbilityConnectManager::HandleConnectionCountIncrement(int32_t pid, const std::string &callerBundleName,
@@ -3272,6 +3169,85 @@ bool AbilityConnectManager::IsSpecialAbility(const AppExecFwk::AbilityInfo &abil
         }
     }
     return false;
+}
+// 1. 公共前置检查：URI授权、连接指针检查
+bool AbilityConnectManager::PreCheckAndGrantUri(const AbilityRequest& abilityRequest, const sptr<IAbilityConnection>& connect, int32_t& ret) {
+    // 原有逻辑：检查connect指针、URI授权等
+    if (connect == nullptr) {
+        ret = ERR_INVALID_VALUE;
+        return false;
+    }
+#ifdef SUPPORT_UPMS
+    int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    if (userId_ == U0_USER_ID || callerUser == U0_USER_ID || callerUser == U1_USER_ID ||
+        userId_ == AbilityRuntime::UserController::GetInstance().GetCallerUserId()) {
+        UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
+    } else {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "cross user, without grantUriPermission");
+    }
+#endif // SUPPORT_UPMS
+    ret = ERR_OK;
+    return true;
+}
+
+// 2. 检查多实例权限并返回结果
+int32_t AbilityConnectManager::CheckMultiInstancePermission(const AbilityRequest& abilityRequest) {
+    int32_t ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
+    if (ret != ERR_OK) {
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+// 3. 处理连接记录的公共逻辑：创建、初始化、加入容器
+int32_t AbilityConnectManager::ProcessConnectRecord(const sptr<IAbilityConnection>& connect, const sptr<IRemoteObject>& callerToken,
+                            const std::shared_ptr<BaseExtensionRecord>& targetService,
+                            const AbilityRequest& abilityRequest, sptr<SessionInfo> sessionInfo,
+                            std::vector<sptr<ConnectionRecord>>& connectRecordList, bool isCallbackConnected) {
+    // 原有逻辑：创建连接记录、初始化属性、加入容器等
+    auto connectObject = connect->AsObject();
+    auto connectRecord = ConnectionRecord::CreateConnectionRecord(
+        callerToken, targetService, connect, shared_from_this());
+    if (connectRecord == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    connectRecord->AttachCallerInfo();
+    connectRecord->SetConnectState(ConnectionState::CONNECTING);
+    if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+        connectRecord->SetConnectWant(abilityRequest.want);
+    }
+    targetService->AddConnectRecordToList(connectRecord);
+    targetService->SetSessionInfo(sessionInfo);
+    connectRecordList.push_back(connectRecord);
+    AddConnectObjectToMap(connectObject, connectRecordList, isCallbackConnected);
+    HandleConnectionCountIncrement(connectRecord->GetCallerPid(), connectRecord->GetCallerName(),
+        abilityRequest.abilityInfo.bundleName + "/" + abilityRequest.abilityInfo.name);
+    targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_CONNECT_EXTENSION);
+    return ERR_OK;
+}
+
+// 4. 处理能力加载状态的公共逻辑（带回调参数，适配子类）
+void AbilityConnectManager::ProcessAbilityLoadState(const std::shared_ptr<BaseExtensionRecord>& targetService,
+                            const AbilityRequest& abilityRequest, bool isLoadedAbility,
+                            const sptr<ConnectionRecord>& connectRecord = nullptr,
+                            std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateRecordCallback = nullptr) {
+    // 原有逻辑：根据加载状态处理能力加载、激活等
+    if (!isLoadedAbility) {
+        TAG_LOGI(AAFwkTag::EXT, "load");
+        if (updateRecordCallback) {
+            LoadAbility(targetService, updateRecordCallback);
+        } else {
+            LoadAbility(targetService);
+        }
+    } else if (targetService->IsAbilityState(AbilityState::ACTIVE)) {
+        targetService->SetWant(abilityRequest.want);
+        if (connectRecord) {
+            HandleActiveAbility(targetService, connectRecord);
+        }
+    } else {
+        TAG_LOGI(AAFwkTag::EXT, "targetService activing");
+        targetService->SaveConnectWant(abilityRequest.want);
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS
