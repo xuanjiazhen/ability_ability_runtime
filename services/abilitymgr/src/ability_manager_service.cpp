@@ -5691,7 +5691,7 @@ int AbilityManagerService::DisconnectLocalAbility(const sptr<IAbilityConnection>
     if (commonExtensionManager->DisconnectAbilityLocked(connect) == ERR_OK) {
         return ERR_OK;
     }
-    auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(validUserId);
+    auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityManager, ERR_NO_INIT);
     if (uiExtensionAbilityManager->DisconnectAbilityLocked(connect) == ERR_OK) {
         return ERR_OK;
@@ -7711,8 +7711,7 @@ void AbilityManagerService::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
         case AppExecFwk::AbilityType::SERVICE:
         case AppExecFwk::AbilityType::EXTENSION: {
             // auto connectManager = GetConnectManagerByUserId(userId);
-    auto connectManager = GetConnectManagerByUserId(userId, abilityRecord->GetAbilityInfo().extensionAbilityType);
-  
+            auto connectManager = GetUIExtensionAbilityManagerByUserId(userId);
             if (!connectManager) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null userId=%{public}d", userId);
                 return;
@@ -9832,7 +9831,7 @@ void AbilityManagerService::DisconnectBeforeCleanupByUserId(int32_t userId) {
     CHECK_POINTER(commonExtensionManager);
     commonExtensionManager->DisconnectBeforeCleanup();
     
-    auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(validUserId);
+    auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
     CHECK_POINTER(uiExtensionAbilityManager);
     uiExtensionAbilityManager->DisconnectBeforeCleanup();
 
@@ -13564,9 +13563,7 @@ void AbilityManagerService::OnStartProcessFailed(const std::vector<sptr<IRemoteO
             abilityRecord->GetAbilityInfo().name.c_str(), abilityRecord->GetAbilityInfo().bundleName.c_str());
         if (abilityRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::EXTENSION) {
             // auto connectManager = GetConnectManagerByToken(token);
-            auto connectManager = UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)
-                        ? GetUIExtensionAbilityManagerByToken(token)
-                        : GetCommonExtensionManagerByToken(token);
+            auto connectManager = GetConnectManagerByToken(token, abilityRecord->GetAbilityInfo().extensionAbilityType);
             if (connectManager == nullptr) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null connectManager");
                 continue;
