@@ -1146,5 +1146,41 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_001, TestSize.L
     EXPECT_EQ(manager->records_.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "InsightIntentExecuteManagerSecondTest OnInsightAppDied_001 end");
 }
+
+
+/**
+ * @tc.name: UpdateEntryDecoratorParams_0300
+ * @tc.desc: UpdateEntryDecoratorParams_0300
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, UpdateEntryDecoratorParams_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    Want want;
+    auto mode = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
+    int32_t userId = -1;
+    auto ret = InsightIntentExecuteManager::UpdateEntryDecoratorParams(want, mode, userId);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CheckAndUpdateDecoratorParams_001
+ * @tc.desc: CheckAndUpdateDecoratorParams_001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateDecoratorParams_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    Want want;
+    AbilityRuntime::ExtractInsightIntentGenericInfo infos;
+    auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    paramPtr->userId_ = -1;
+    auto ret = InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(paramPtr, infos, want);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
 } // namespace AAFwk
 } // namespace OHOS
