@@ -218,5 +218,66 @@ HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_003, TestSize.Level1)
     ASSERT_FALSE(ret);
 }
 
+/*
+ * Feature: GetDlSymbol
+ * Function: GetDlSymbol
+ * SubFunction: NA
+ * FunctionPoints: GetDlSymbol
+ */
+HWTEST_F(FilePermissionManagerTest, GetDlSymbol_001, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    wrapper.func_ = &wrapper;
+    const char* soName = "test.z.so";
+    const char* funcName = "testFunc";
+    bool ret = wrapper.InitDlSymbol(soName, funcName);
+    ASSERT_TRUE(ret);
+}
+
+/*
+ * Feature: GetDlSymbol
+ * Function: GetDlSymbol
+ * SubFunction: NA
+ * FunctionPoints: GetDlSymbol
+ */
+HWTEST_F(FilePermissionManagerTest, GetDlSymbol_002, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    const char* soName = "test.z.so";
+    const char* funcName = "testFunc";
+    bool ret = wrapper.InitDlSymbol(soName, funcName);
+    ASSERT_FALSE(ret);
+}
+
+/*
+ * Feature: GetDlSymbol
+ * Function: GetDlSymbol
+ * SubFunction: NA
+ * FunctionPoints: GetDlSymbol
+ */
+HWTEST_F(FilePermissionManagerTest, GetDlSymbol_003, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    const char* soName = "libmission_list.z.so";
+    const char* funcName = "testFunc";
+    bool ret = wrapper.InitDlSymbol(soName, funcName);
+    ASSERT_FALSE(ret);
+}
+
+/*
+ * Feature: GetDlSymbol
+ * Function: GetDlSymbol
+ * SubFunction: NA
+ * FunctionPoints: GetDlSymbol
+ */
+HWTEST_F(FilePermissionManagerTest, GetDlSymbol_004, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    const char* soName = "libmission_list.z.so";
+    const char* funcName = "CreateMissionListWrap";
+    bool ret = wrapper.InitDlSymbol(soName, funcName);
+    ASSERT_TRUE(ret);
+}
+
 }
 }
