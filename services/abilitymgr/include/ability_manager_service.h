@@ -2460,6 +2460,8 @@ private:
         sptr<UIExtensionAbilityConnectInfo> connectInfo = nullptr,
         uint64_t specifiedFullTokenId = 0);
     int DisconnectLocalAbility(const sptr<IAbilityConnection> &connect);
+    int32_t HandleExtesnionConnectionByUserId(sptr<IAbilityConnection> connect, int32_t userId,
+        std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)> func);
     int ConnectRemoteAbility(Want &want, const sptr<IRemoteObject> &callerToken, const sptr<IRemoteObject> &connect);
     int DisconnectRemoteAbility(const sptr<IRemoteObject> &connect);
     int PreLoadAppDataAbilities(const std::string &bundleName, const int32_t userId);
