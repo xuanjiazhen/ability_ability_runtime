@@ -332,8 +332,6 @@ private:
      */
     int DisconnectAbilityLocked(const sptr<IAbilityConnection> &connect, bool callerDied);
 
-    void HandleLoadAbilityOrStartSpecifiedProcess(
-        const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     /**
      * ConnectAbility.Schedule connect ability
      *

@@ -3329,6 +3329,7 @@ int32_t AbilityConnectManager::ProcessConnectRecord(const sptr<IAbilityConnectio
     HandleConnectionCountIncrement(connectRecord->GetCallerPid(), connectRecord->GetCallerName(),
         abilityRequest.abilityInfo.bundleName + "/" + abilityRequest.abilityInfo.name);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_CONNECT_EXTENSION);
+    return ERR_OK;
 }
 
 void AbilityConnectManager::ProcessAbilityLoadState(std::shared_ptr<BaseExtensionRecord>& targetService,
@@ -3337,13 +3338,7 @@ void AbilityConnectManager::ProcessAbilityLoadState(std::shared_ptr<BaseExtensio
 {
     if (!isLoadedAbility) {
         TAG_LOGI(AAFwkTag::EXT, "load");
-        auto updateRecordCallback = [mgr = shared_from_this()](
-            const std::shared_ptr<BaseExtensionRecord>& targetService) {
-            if (mgr != nullptr) {
-                mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
-            }
-        };
-        LoadAbility(targetService, updateRecordCallback);
+        LoadAbility(targetService);
     } else if (targetService->IsAbilityState(AbilityState::ACTIVE)) {
         targetService->SetWant(abilityRequest.want);
         HandleActiveAbility(targetService, connectRecord);
