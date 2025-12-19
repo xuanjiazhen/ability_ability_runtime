@@ -332,14 +332,6 @@ private:
      */
     int DisconnectAbilityLocked(const sptr<IAbilityConnection> &connect, bool callerDied);
 
-    /**
-     * LoadAbility.
-     *
-     * @param abilityRecord, the ptr of the ability to load.
-     */
-    void LoadAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-        std::function<void(const std::shared_ptr<BaseExtensionRecord> &)> updateRecordCallback = nullptr,
-        bool isPreloadUIExtension = false);
     void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     /**
@@ -620,12 +612,13 @@ protected:
     void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
         const std::shared_ptr<BaseExtensionRecord> abilityRecord, sptr<IRemoteObject> callerToken);
     /**
-    * LoadAbility.
-    *
-    * @param abilityRecord, the ptr of the ability to load.
-    */
+     * LoadAbility.
+     *
+     * @param abilityRecord, the ptr of the ability to load.
+     */
     void LoadAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-        std::function<void(const std::shared_ptr<BaseExtensionRecord> &)> updateRecordCallback = nullptr);
+        std::function<void(const std::shared_ptr<BaseExtensionRecord> &)> updateRecordCallback = nullptr,
+        bool isPreloadUIExtension = false);
     void CallAddToServiceMap(const std::string &key, std::shared_ptr<BaseExtensionRecord> abilityRecord) {
         AddToServiceMap(key, abilityRecord);
     }
