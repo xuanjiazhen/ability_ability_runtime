@@ -1145,5 +1145,20 @@ ErrCode BundleMgrHelper::GetTestRunnerTypeAndPath(const std::string &bundleName,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     return bundleMgr->GetTestRunner(bundleName, moduleName, testRunner);
 }
+
+ErrCode GetPluginExtensionInfo(const srd::string &hostBundleName, const Want &want, int32_t userId,
+    ExtensionAbilityInfo &pluginExtensionInfo)
+{
+    TAG_LOGI(AAFwkTag::BUNDLEMGRHELPER, "GetPluginExtensionInfo");
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
+        return ERR_APPEXECFWK_SERVICE_INTERNAL_ERROR;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    AAFwk::Want newWant = want;
+    newWant.RemoveAllFd();
+    return bundleMgr->GetPluginExtensionInfo(hostBundleName, newWant, userId, pluginExtensionInfo);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

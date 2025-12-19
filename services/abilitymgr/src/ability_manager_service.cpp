@@ -7906,7 +7906,13 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
         if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
             return ERR_APP_CLONE_INDEX_INVALID;
         }
-        abilityInfo = StartAbilityInfo::CreateStartExtensionInfo(want, userId, appIndex);
+        auto caller = Token::GetAbilityRecordByToken(callerToken);
+        if (caller == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is nullptr");
+            return ERR_INVALID_CALLER;
+        }
+        std::string hostBundleName = caller->GetAbilityInfo().bundleName;
+        abilityInfo = StartAbilityInfo::CreateStartExtensionInfo(want, userId, appIndex, hostBundleName);
     }
     CHECK_POINTER_AND_RETURN(abilityInfo, GET_ABILITY_SERVICE_FAILED);
     if (abilityInfo->status != ERR_OK) {
