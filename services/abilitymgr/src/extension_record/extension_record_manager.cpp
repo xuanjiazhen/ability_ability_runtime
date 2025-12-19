@@ -26,6 +26,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char *SEPARATOR = ":";
+constexpr const char *EMBEDDEDUI = "embeddedUI";
 const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 constexpr size_t HOST_PID_INDEX = 3;
 }
@@ -252,6 +253,11 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
     std::shared_ptr<AAFwk::AbilityRecord> abilityRecord = record->abilityRecord_;
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     switch (record->processMode_) {
+        case PROCESS_MODE_PLUGIN: {
+            std::string process = record->hostBundleName_ + SEPARATOR + abilityRequest.abilityInfo.bundleName + SEPARATOR + EMBEDDEDUI;
+            abilityRecord->SetProcessName(process);
+            break;
+        }
         case PROCESS_MODE_INSTANCE: {
             std::string process = abilityRequest.abilityInfo.bundleName + SEPARATOR + abilityRequest.abilityInfo.name
                 + SEPARATOR + std::to_string(abilityRecord->GetUIExtensionAbilityId());
