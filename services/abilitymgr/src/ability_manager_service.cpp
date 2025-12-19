@@ -5680,30 +5680,45 @@ int AbilityManagerService::DisconnectLocalAbility(const sptr<IAbilityConnection>
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     auto userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-    // auto connectManager = GetConnectManagerByUserId(userId);
-    // CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
-    // if (connectManager->DisconnectAbilityLocked(connect) == ERR_OK) {
-    //     return ERR_OK;
-    // }
-
-    auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
-    CHECK_POINTER_AND_RETURN(commonExtensionManager, ERR_NO_INIT);
-    if (commonExtensionManager->DisconnectAbilityLocked(connect) == ERR_OK) {
-        return ERR_OK;
-    }
-    auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
-    CHECK_POINTER_AND_RETURN(uiExtensionAbilityManager, ERR_NO_INIT);
-    if (uiExtensionAbilityManager->DisconnectAbilityLocked(connect) == ERR_OK) {
+    auto func = [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+        return connectManager->DisconnectAbilityLocked(connect);
+    };
+    if (HandleExtesnionConnectionByUserId(connect, userId, func) == ERR_OK) {
         return ERR_OK;
     }
 
-    auto connectManagers = GetConnectManagers();
-    for (auto& item : connectManagers) {
-        if (item.second && item.second->DisconnectAbilityLocked(connect) == ERR_OK) {
+    auto commonManagers = GetCommonExtensionManagers();
+    for (auto &item : commonManagers) {
+        auto userId = item.first;
+        if (HandleExtesnionConnectionByUserId(connect, userId, func) == ERR_OK) {
             return ERR_OK;
         }
     }
     return CONNECT_MAMAGER_NOT_FIND_BY_USERID;
+}
+
+int32_t AbilityManagerService::HandleExtesnionConnectionByUserId(sptr<IAbilityConnection> connect, int32_t userId,
+    std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)> func)
+{
+    auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
+    auto uiExtensionManager = GetUIExtensionAbilityManagerByUserId(userId);
+    CHECK_POINTER_AND_RETURN(commonExtensionManager, ERR_NO_INIT);
+    CHECK_POINTER_AND_RETURN(uiExtensionManager, ERR_NO_INIT);
+
+    auto retCommon = func(commonExtensionManager, connect);
+    bool commonFailed = retCommon != ERR_OK && retCommon != CONNECTION_NOT_EXIST;
+    if (commonFailed) {
+        return retCommon;
+    }
+    auto retUI = func(uiExtensionManager, connect);
+    bool uiFailed = retUI != ERR_OK && retUI != CONNECTION_NOT_EXIST;
+    if (uiFailed) {
+        return retUI;
+    }
+    if (retCommon == ERR_OK || retUI == ERR_OK) {
+        return ERR_OK;
+    }
+    return CONNECTION_NOT_EXIST;
 }
 
 int AbilityManagerService::DisconnectRemoteAbility(const sptr<IRemoteObject> &connect)
@@ -16166,9 +16181,10 @@ int32_t AbilityManagerService::HandleExtensionAbility(sptr<IAbilityConnection> c
         std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)> func)
 {
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
-    auto connectManagers = GetConnectManagers();
-    for (auto& item : connectManagers) {
-        if (item.second && func(item.second, connect) == ERR_OK) {
+    auto commonManagers = GetCommonExtensionManagers();
+    for (auto &item : commonManagers) {
+        auto userId = item.first;
+        if (HandleExtesnionConnectionByUserId(connect, userId, func) == ERR_OK) {
             return ERR_OK;
         }
     }
