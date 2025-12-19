@@ -1032,16 +1032,10 @@ int UIExtensionAbilityManager::ConnectUIExtensionAbilityLocked(const AbilityRequ
 
     ReportEventToRSS(abilityRequest.abilityInfo, targetService, callerToken);
 	
+    std::shared_ptr<ConnectionRecord> connectRecord = nullptr;
 	ret = ProcessConnectRecord(connect, callerToken, targetService, abilityRequest,sessionInfo,connectObject, isLoadedAbility);
     if (ret == ERR_OK) {
         return ret;
-    }
-
-    if (UIExtensionUtils::IsWindowExtension(targetService->GetAbilityInfo().extensionAbilityType)
-        && abilityRequest.sessionInfo) {
-        std::lock_guard guard(windowExtensionMapMutex_);
-        windowExtensionMap_.emplace(connectObject,
-            WindowExtMapValType(targetService->GetApplicationInfo().accessTokenId, abilityRequest.sessionInfo));
     }
 	
     auto &abilityInfo = abilityRequest.abilityInfo;
