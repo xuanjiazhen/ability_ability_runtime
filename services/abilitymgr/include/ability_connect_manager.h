@@ -632,16 +632,14 @@ protected:
         return 0;
     }
         // 原有私有辅助函数...
-    bool PreCheckAndGrantUri(const AbilityRequest& abilityRequest, const sptr<IAbilityConnection>& connect, int32_t& ret);
+    void GrantUriPermission(const AbilityRequest& abilityRequest);
     int32_t CheckMultiInstancePermission(const AbilityRequest& abilityRequest);
     int32_t ProcessConnectRecord(const sptr<IAbilityConnection>& connect, const sptr<IRemoteObject>& callerToken,
-                                const std::shared_ptr<BaseExtensionRecord>& targetService,
-                                const AbilityRequest& abilityRequest, sptr<SessionInfo> sessionInfo,
-                                ConnectListType& connectRecordList, bool isCallbackConnected);
-    void ProcessAbilityLoadState(const std::shared_ptr<BaseExtensionRecord>& targetService,
+        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
+        sptr<SessionInfo> sessionInfo, sptr<IRemoteObject> connectObject, bool isLoadedAbility);
+    void ProcessAbilityLoadState(std::shared_ptr<BaseExtensionRecord>& targetService,
                                 const AbilityRequest& abilityRequest, bool isLoadedAbility,
-                                const std::shared_ptr<ConnectionRecord>& connectRecord = nullptr,
-                                std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateRecordCallback = nullptr);
+                                std::shared_ptr<ConnectionRecord>& connectRecord);
 
 protected:
     int userId_;

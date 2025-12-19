@@ -3273,5 +3273,83 @@ bool AbilityConnectManager::IsSpecialAbility(const AppExecFwk::AbilityInfo &abil
     }
     return false;
 }
+
+void AbilityConnectManager::GrantUriPermission(const AbilityRequest& abilityRequest) {
+    #ifdef SUPPORT_UPMS
+        // grant uri to service extension by connect, must call out of serialMutex_
+        int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        if (userId_ == U0_USER_ID || callerUser == U0_USER_ID || callerUser == U1_USER_ID ||
+            userId_ == AbilityRuntime::UserController::GetInstance().GetCallerUserId()) {
+            UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
+        } else {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "cross user, without grantUriPermission");
+        }
+    #endif // SUPPORT_UPMS
+}
+
+// 2. 检查多实例权限并返回结果
+int32_t AbilityConnectManager::CheckMultiInstancePermission(const AbilityRequest& abilityRequest) {
+    int32_t ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
+    if (ret != ERR_OK) {
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+// 3. 处理连接记录的公共逻辑：创建、初始化、加入容器
+int32_t AbilityConnectManager::ProcessConnectRecord(const sptr<IAbilityConnection>& connect, const sptr<IRemoteObject>& callerToken,
+        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
+        sptr<SessionInfo> sessionInfo, sptr<IRemoteObject> connectObject, bool isLoadedAbility)
+{
+    ConnectListType connectRecordList;
+    GetConnectRecordListFromMap(connect, connectRecordList);
+    bool isCallbackConnected = !connectRecordList.empty();
+    auto connectedRecord = GetAbilityConnectedRecordFromRecordList(targetService, connectRecordList);
+    // 3. If this service ability and callback has been connected, There is no need to connect repeatedly
+    if (isLoadedAbility && (isCallbackConnected) && (connectedRecord != nullptr)) {
+        TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
+        connectedRecord->CompleteConnectAndOnlyCallConnectDone();
+        return ERR_OK;
+    }
+
+    // 4. Other cases , need to connect the service ability
+    auto connectRecord = ConnectionRecord::CreateConnectionRecord(
+        callerToken, targetService, connect, shared_from_this());
+    CHECK_POINTER_AND_RETURN(connectRecord, ERR_INVALID_VALUE);
+    connectRecord->AttachCallerInfo();
+    connectRecord->SetConnectState(ConnectionState::CONNECTING);
+    if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+        connectRecord->SetConnectWant(abilityRequest.want);
+    }
+    targetService->AddConnectRecordToList(connectRecord);
+    targetService->SetSessionInfo(sessionInfo);
+    connectRecordList.push_back(connectRecord);
+    AddConnectObjectToMap(connectObject, connectRecordList, isCallbackConnected);
+    HandleConnectionCountIncrement(connectRecord->GetCallerPid(), connectRecord->GetCallerName(),
+        abilityRequest.abilityInfo.bundleName + "/" + abilityRequest.abilityInfo.name);
+    targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_CONNECT_EXTENSION);
+}
+
+void AbilityConnectManager::ProcessAbilityLoadState(std::shared_ptr<BaseExtensionRecord>& targetService,
+                            const AbilityRequest& abilityRequest, bool isLoadedAbility,
+                            std::shared_ptr<ConnectionRecord>& connectRecord) 
+{
+    if (!isLoadedAbility) {
+        TAG_LOGI(AAFwkTag::EXT, "load");
+        auto updateRecordCallback = [mgr = shared_from_this()](
+            const std::shared_ptr<BaseExtensionRecord>& targetService) {
+            if (mgr != nullptr) {
+                mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
+            }
+        };
+        LoadAbility(targetService, updateRecordCallback);
+    } else if (targetService->IsAbilityState(AbilityState::ACTIVE)) {
+        targetService->SetWant(abilityRequest.want);
+        HandleActiveAbility(targetService, connectRecord);
+    } else {
+        TAG_LOGI(AAFwkTag::EXT, "targetService activing");
+        targetService->SaveConnectWant(abilityRequest.want);
+    }
+}
 }  // namespace AAFwk
 }  // namespace OHOS

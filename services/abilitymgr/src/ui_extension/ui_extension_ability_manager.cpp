@@ -1010,7 +1010,47 @@ int UIExtensionAbilityManager::ConnectUIExtensionAbilityLocked(const AbilityRequ
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
     sptr<UIExtensionAbilityConnectInfo> connectInfo)
 {
-    return 0;
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
+    auto connectObject = connect->AsObject();
+	GrantUriPermission(abilityRequest);
+	
+    std::lock_guard guard(serialMutex_);
+	
+	int32_t ret = ERR_INVALID_VALUE;
+    ret = CheckMultiInstancePermission(abilityRequest);
+    if (ret != ERR_OK) {
+        return ret;
+    }	
+	
+    std::shared_ptr<BaseExtensionRecord> targetService;
+    bool isLoadedAbility = false;
+    ret = GetOrCreateTargetServiceRecord(abilityRequest, connectInfo, targetService, isLoadedAbility);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    ReportEventToRSS(abilityRequest.abilityInfo, targetService, callerToken);
+	
+	ret = ProcessConnectRecord(connect, callerToken, targetService, abilityRequest,sessionInfo,connectObject, isLoadedAbility);
+    if (ret == ERR_OK) {
+        return ret;
+    }
+
+    if (UIExtensionUtils::IsWindowExtension(targetService->GetAbilityInfo().extensionAbilityType)
+        && abilityRequest.sessionInfo) {
+        std::lock_guard guard(windowExtensionMapMutex_);
+        windowExtensionMap_.emplace(connectObject,
+            WindowExtMapValType(targetService->GetApplicationInfo().accessTokenId, abilityRequest.sessionInfo));
+    }
+	
+    auto &abilityInfo = abilityRequest.abilityInfo;
+    ret = ReportXiaoYiToRSSIfNeeded(abilityInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+	ProcessAbilityLoadState(targetService, abilityRequest, isLoadedAbility,connectRecord);
+	return ret;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
