@@ -31,9 +31,9 @@ void AbilityManagerEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventDa
 {
     const AAFwk::Want &want = data.GetWant();
     std::string action = want.GetAction();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "zfm The action: %{public}s.", action.c_str());
     if (userScreenUnlockCallback_ == nullptr || screenUnlockCallback_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr callback");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "zfm nullptr callback");
         return;
     }
     auto handleEvent = [&](const std::string &event, int32_t userId) {
@@ -50,12 +50,12 @@ void AbilityManagerEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventDa
     };
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
         int32_t userId = data.GetCode();
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "The userId: %{public}d.", userId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "zfm COMMON_EVENT_USER_UNLOCKED The userId: %{public}d.", userId);
         handleEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED, userId);
         userScreenUnlockCallback_();
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
         int32_t userId = want.GetIntParam("userId", -1);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "The userId: %{public}d.", userId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "zfm The COMMON_EVENT_SCREEN_UNLOCKED userId: %{public}d.", userId);
         handleEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, userId);
     }
 }
