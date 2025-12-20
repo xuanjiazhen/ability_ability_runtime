@@ -100,7 +100,7 @@ private:
     std::shared_ptr<PendingWantKey> key_;
 };
 
-class MockIWantSender : public IWantSender {
+class MockIWantSender : public PendingWantRecord {
 public:
     virtual ~MockIWantSender() {};
 
