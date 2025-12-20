@@ -102,6 +102,18 @@ ani_object SetDialogAbilityOtherInfo(ani_env *env, ani_object etsObject, const A
         etsObject, "multiAppMode", WrapMultiAppModeData(env, info.multiAppMode));
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DIALOG, "multiAppMode failed status:%{public}d", status);
+        return etsObject;
+    }
+    status = env->Object_SetPropertyByName_Int(
+        etsObject, "codePath", static_cast<ani_int>(info.codePath));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::DIALOG, "codePath failed status:%{public}d", status);
+        return etsObject;
+    }
+    status = env->Object_SetPropertyByName_Int(
+        etsObject, "installSource", static_cast<ani_int>(info.installSource));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::DIALOG, "installSource failed status:%{public}d", status);
     }
     return etsObject;
 }
