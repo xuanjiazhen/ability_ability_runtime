@@ -92,8 +92,9 @@ void CallContainer::AddCallRecord(const sptr<IAbilityConnection> & connect,
     callRecord->SetConCallBack(connect);
     InsertCallRecordMap(connect->AsObject(), callRecord);
 
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Add call record to callcontainer, target: %{public}s",
-        callRecord->GetTargetServiceName().GetURI().c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Add call record to callcontainer, target: %{public}s/%{public}s",
+        callRecord->GetTargetServiceName().GetElementName().GetBundleName().c_str(),
+        callRecord->GetTargetServiceName().GetElementName().GetAbilityName().c_str());
 }
 
 std::shared_ptr<CallRecord> CallContainer::GetCallRecord(const sptr<IAbilityConnection> & connect) const

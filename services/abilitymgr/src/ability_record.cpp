@@ -1715,7 +1715,8 @@ void AbilityRecord::Inactivate()
 void AbilityRecord::Terminate(const Closure &task)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Terminate: %{public}s.", GetURI().c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Terminate: %{public}s/%{public}s.",
+        GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
     CHECK_POINTER(lifecycleDeal_);
     if (!IsDebug()) {
         auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();

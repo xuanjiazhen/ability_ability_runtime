@@ -5272,6 +5272,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
 
     Want abilityWant = want;
     AbilityRequest abilityRequest;
+    //不确定
     std::string uri = abilityWant.GetUri().ToString();
     bool isFileUri = (abilityWant.GetUri().GetScheme() == "file");
     if (!uri.empty() && !isFileUri) {
@@ -9267,7 +9268,9 @@ int AbilityManagerService::ReleaseCall(
     CHECK_POINTER_AND_RETURN(connect->AsObject(), ERR_INVALID_VALUE);
 
     std::string elementName = element.GetURI();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "try to release called ability, name: %{public}s.", elementName.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "try to release called ability, name: %{public}s/%{public}s.",
+        abilityRecord->GetElementName().GetBundleName().c_str(),
+        abilityRecord->GetElementName().GetAbilityName().c_str());
 
     if (CheckIsRemote(element.GetDeviceID())) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "release remote ability");
@@ -13733,8 +13736,10 @@ int32_t AbilityManagerService::GetUIExtensionRootHostInfo(const sptr<IRemoteObje
     if (sessionInfo != nullptr) {
         hostInfo.sessionName = sessionInfo->sessionName;
     }
-    TAG_LOGD(AAFwkTag::UI_EXT, "uri: %{public}s, sessionName: %{public}s.",
-             hostInfo.elementName_.GetURI().c_str(), hostInfo.sessionName.c_str());
+    TAG_LOGD(AAFwkTag::UI_EXT, "uri: %{public}s/%{public}s, sessionName: %{public}s.",
+            hostInfo.elementName_.GetElementName().GetBundleName().c_str(),
+            hostInfo.elementName_.GetElementName().GetAbilityName().c_str(),
+            hostInfo.sessionName.c_str());
     return ERR_OK;
 }
 

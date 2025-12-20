@@ -561,7 +561,7 @@ bool DataAbilityHelperImpl::CheckUriParam(const Uri &uri)
 {
     Uri checkUri(uri.ToString());
     if (!CheckOhosUri(checkUri)) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Check failed, uri: %{public}s", uri.ToString().c_str());
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Check failed.");
         return false;
     }
 
@@ -597,7 +597,7 @@ bool DataAbilityHelperImpl::CheckOhosUri(const Uri &checkUri)
     Uri uri(checkUri);
     if (uri.GetScheme() != SchemeOhos) {
         TAG_LOGE(
-            AAFwkTag::DATA_ABILITY, "not dataability uri: %{public}s", uri.ToString().c_str());
+            AAFwkTag::DATA_ABILITY, "not dataability");
         return false;
     }
 
@@ -752,6 +752,7 @@ Uri DataAbilityHelperImpl::NormalizeUri(Uri &uri)
     urivalue = dataAbilityProxy->NormalizeUri(uri);
 
     ReleaseDataAbility(dataAbilityProxy);
+    //不确定要不要改
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "uri: %{public}s", urivalue.ToString().c_str());
     return urivalue;
 }
@@ -778,6 +779,7 @@ Uri DataAbilityHelperImpl::DenormalizeUri(Uri &uri)
     urivalue = dataAbilityProxy->DenormalizeUri(uri);
 
     ReleaseDataAbility(dataAbilityProxy);
+    //不确定要不要改
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "uri: %{public}s", urivalue.ToString().c_str());
     return urivalue;
 }

@@ -139,7 +139,7 @@ bool CallRecord::SchedulerConnectDone()
     state_ = CallState::REQUESTED;
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "element: %{public}s, mode: %{public}d. connectstate:%{public}d.",
-        element.GetURI().c_str(), static_cast<int32_t>(abilityInfo.launchMode), state_);
+        element.GetURI().c_str(), static_cast<int32_t>(abilityInfo.launchMode), state_);//
     return true;
 }
 

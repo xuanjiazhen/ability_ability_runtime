@@ -347,8 +347,8 @@ int32_t DataObsMgrClient::TryRegisterObserver(const Uri &uri, sptr<IDataAbilityO
         }
         if (ret != SUCCESS) {
             TAG_LOGE(AAFwkTag::DBOBSMGR,
-                "RegisterObserver failed, uri:%{public}s, ret:%{public}d, isExtension %{public}d, attempt:%{public}d",
-                CommonUtils::Anonymous(uri.ToString()).c_str(), ret, isExtension, retryCount + 1
+                "RegisterObserver failed, ret:%{public}d, isExtension %{public}d, attempt:%{public}d",
+                ret, isExtension, retryCount + 1
                 );
         }
         ++retryCount;
@@ -367,8 +367,7 @@ void DataObsMgrClient::ReRegister()
                 : TryRegisterObserver(val.uri, key, val.userId, false);
 
             if (ret != SUCCESS) {
-                TAG_LOGE(AAFwkTag::DBOBSMGR, "RegisterObserver failed after 3 attempts, uri:%{public}s, ret:%{public}d",
-                    CommonUtils::Anonymous(val.uri.ToString()).c_str(), ret);
+                TAG_LOGE(AAFwkTag::DBOBSMGR, "RegisterObserver failed after 3 attempts, ret:%{public}d", ret);
             }
         }
         return false;
@@ -380,8 +379,8 @@ void DataObsMgrClient::ReRegister()
             int32_t ret = RegisterObserverExt(param.uri, key, param.isDescendants);
             if (ret != SUCCESS) {
                 TAG_LOGE(AAFwkTag::DBOBSMGR,
-                    "RegisterObserverExt failed, param.uri:%{public}s, ret:%{public}d, param.isDescendants:%{public}d",
-                    CommonUtils::Anonymous(param.uri.ToString()).c_str(), ret, param.isDescendants
+                    "RegisterObserverExt failed, ret:%{public}d, param.isDescendants:%{public}d",
+                    ret, param.isDescendants
                 );
             }
         }
