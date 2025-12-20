@@ -430,10 +430,13 @@ int AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &ab
     if (!isLoadedAbility) {
         TAG_LOGI(AAFwkTag::EXT, "load");
         if (updateCallback) {
-            auto updateRecordCallback = [this, updateCallback](
+            auto weakSelf = std::weak_ptr<AbilityConnectManager>(shared_from_this());
+            auto updateRecordCallback = [weakSelf, updateCallback](
                 const std::shared_ptr<BaseExtensionRecord>& targetService) {
-                if (updateCallback) {
-                    updateCallback(targetService);
+                if (auto self = weakSelf.lock()) {
+                    if (updateCallback) {
+                        updateCallback(targetService);
+                    }
                 }
             };
             LoadAbility(targetService, updateRecordCallback);
