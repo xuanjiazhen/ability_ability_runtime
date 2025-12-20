@@ -134,8 +134,10 @@ std::shared_ptr<BaseExtensionRecord> AbilityCacheManager::Put(std::shared_ptr<Ba
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null abilityRecord");
         return nullptr;
     }
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "Put the ability to lru, service:%{public}s, extension type %{public}d",
-        abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "Put the ability to lru, service:%{public}s/%{public}s, extension type %{public}d",
+        abilityRecord->GetElementName().GetBundleName().c_str(),
+        abilityRecord->GetElementName().GetAbilityName().c_str(),
+        abilityRecord->GetAbilityInfo().extensionAbilityType);
     std::lock_guard<std::mutex> lock(mutex_);
     std::shared_ptr<BaseExtensionRecord> rec = AddToProcLru(abilityRecord);
     return AddToDevLru(abilityRecord, rec);
@@ -147,8 +149,11 @@ void AbilityCacheManager::Remove(std::shared_ptr<BaseExtensionRecord> abilityRec
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null abilityRecord");
         return;
     }
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "Remove the ability from lru, service:%{public}s, extension type %{public}d",
-        abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT,
+        "Remove the ability from lru, service:%{public}s/%{public}s, extension type %{public}d",
+        abilityRecord->GetElementName().GetBundleName().c_str(),
+        abilityRecord->GetElementName().GetAbilityName().c_str(),
+        abilityRecord->GetAbilityInfo().extensionAbilityType);
     std::lock_guard<std::mutex> lock(mutex_);
     RemoveAbilityRecInProcList(abilityRecord);
     RemoveAbilityRecInDevList(abilityRecord);
@@ -212,8 +217,10 @@ std::shared_ptr<BaseExtensionRecord> AbilityCacheManager::FindRecordByToken(cons
             if (srcToken == token) {
                 std::shared_ptr<BaseExtensionRecord> &abilityRecord = *it;
                 TAG_LOGD(AAFwkTag::SERVICE_EXT,
-                    "Find the ability by token from lru, service:%{public}s, extension type %{public}d",
-                    abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
+                    "Find the ability by token from lru, service:%{public}s/%{public}s, extension type %{public}d",
+                    abilityRecord->GetElementName().GetBundleName().c_str(),
+                    abilityRecord->GetElementName().GetAbilityName().c_str(),
+                    abilityRecord->GetAbilityInfo().extensionAbilityType);
                 return abilityRecord;
             }
         }
@@ -241,8 +248,10 @@ std::shared_ptr<BaseExtensionRecord> AbilityCacheManager::FindRecordBySessionId(
         if (assertSessionStr == assertSessionId) {
             std::shared_ptr<BaseExtensionRecord> &abilityRecord = *it;
             TAG_LOGD(AAFwkTag::SERVICE_EXT,
-                "Find the ability by sessionId from lru, service:%{public}s, extension type %{public}d",
-                abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
+                "Find the ability by sessionId from lru, service:%{public}s/%{public}s, extension type %{public}d",
+                abilityRecord->GetElementName().GetBundleName().c_str(),
+                abilityRecord->GetElementName().GetAbilityName().c_str(),
+                abilityRecord->GetAbilityInfo().extensionAbilityType);
             return abilityRecord;
         } else {
             it++;
@@ -267,8 +276,10 @@ std::shared_ptr<BaseExtensionRecord> AbilityCacheManager::FindRecordByServiceKey
         if (curServiceKey.compare(serviceKey) == 0) {
             std::shared_ptr<BaseExtensionRecord> &abilityRecord = *it;
             TAG_LOGD(AAFwkTag::SERVICE_EXT,
-                "Find the ability by serviceKey from lru, service:%{public}s, extension type %{public}d",
-                abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
+                "Find the ability by serviceKey from lru, service:%{public}s/%{public}s, extension type %{public}d",
+                abilityRecord->GetElementName().GetBundleName().c_str(),
+                abilityRecord->GetElementName().GetAbilityName().c_str(),
+                abilityRecord->GetAbilityInfo().extensionAbilityType);
             return abilityRecord;
         } else {
             it++;
