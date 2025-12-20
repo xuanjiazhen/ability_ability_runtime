@@ -245,7 +245,6 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
     auto displayInfo = display->GetDisplayInfo();
     auto orientation = displayInfo.orientation;
     
-    // 1. Handle DPI configuration
     for (const auto& dpiConfig : config.dpi) {
         const std::string& condition = dpiConfig.condition;
         float dpiValue = dpiConfig.value;
@@ -258,7 +257,6 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
         }
     }
     
-    // 2. Handle verticalDisplay configuration
     for (const auto& verticalConfig : config.verticalDisplay) {
         const std::string& condition = verticalConfig.condition.orientation;
         const std::string& value = verticalConfig.value;
@@ -270,6 +268,20 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
                 condition.c_str(), value.c_str());
             break;
         }
+    }
+
+    for (const auto& hideConfig : config.hideStatusBar) {
+        TAG_LOGD(AAFwkTag::ABILITY, "hideStatusCofig value %{public}d", hideConfig.value);
+        auto prop = window->GetSystemBarPropertyForPage(Rosen::WindowType::WINDOW_STATUS_BAR);
+        prop.enable_ = hideConfig.value;
+        window->SetSystemBarPropertyForPage(Rosen::WindowType::WINDOW_STATUS_BAR, prop);
+        break;
+    }
+
+    for (const auto& videoShrinkConfig : config.videoShrink) {
+        TAG_LOGD(AAFwkTag::ABILITY, "videoShrinkConfig value %{public}d", videoShrinkConfig.value);
+        // TODO: Implement videoShrink logic based on value
+        break;
     }
 }
 
