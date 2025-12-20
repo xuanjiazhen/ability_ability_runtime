@@ -100,7 +100,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, DumpStateInner_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTenhtTest DumpStateInner_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    abilityMs_->subManagersHelper_->currentConnectManager_ = std::make_shared<AbilityConnectManager>(0);
+    abilityMs_->subManagersHelper_->currentCommonExtensionManager_ = std::make_shared<CommonExtensionManager>(0);
 
     std::string args = "";
     std::vector<std::string> info;
@@ -189,8 +189,8 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleConnectAbilityDone_001, TestSiz
     ret = abilityMs_->ScheduleConnectAbilityDone(callerToken, token);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
 
-    auto connectManager = std::make_shared<AbilityConnectManager>(0);
-    abilityMs_->subManagersHelper_->connectManagers_[2000 / BASE_USER_RANGE] = connectManager;
+    auto connectManager = std::make_shared<CommonExtensionManager>(0);
+    abilityMs_->subManagersHelper_->commonExtensionManagers_[2000 / BASE_USER_RANGE] = connectManager;
     ret = abilityMs_->ScheduleConnectAbilityDone(callerToken, token);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
 }
@@ -237,8 +237,8 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleDisconnectAbilityDone_001, Test
     ret = abilityMs_->ScheduleDisconnectAbilityDone(callerToken);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
 
-    auto connectManager = std::make_shared<AbilityConnectManager>(0);
-    abilityMs_->subManagersHelper_->connectManagers_[2000 / BASE_USER_RANGE] = connectManager;
+    auto connectManager = std::make_shared<CommonExtensionManager>(0);
+    abilityMs_->subManagersHelper_->commonExtensionManagers_[2000 / BASE_USER_RANGE] = connectManager;
     ret = abilityMs_->ScheduleDisconnectAbilityDone(callerToken);
     ASSERT_NE(ret, ERR_INVALID_VALUE);
 }
@@ -282,8 +282,8 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleCommandAbilityDone_001, TestSiz
     ret = abilityMs_->ScheduleCommandAbilityDone(callerToken);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
 
-    auto connectManager = std::make_shared<AbilityConnectManager>(0);
-    abilityMs_->subManagersHelper_->connectManagers_[2000 / BASE_USER_RANGE] = connectManager;
+    auto connectManager = std::make_shared<CommonExtensionManager>(0);
+    abilityMs_->subManagersHelper_->commonExtensionManagers_[2000 / BASE_USER_RANGE] = connectManager;
     ret = abilityMs_->ScheduleCommandAbilityDone(callerToken);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
 }
@@ -573,8 +573,8 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleCommandAbilityWindowDone_004, T
     int32_t num = 10;
     abilityMs_->subManagersHelper_->dataAbilityManagers_.insert(std::make_pair(num, dataAbilityManager));
 
-    auto abilityConnectManager = std::make_shared<AbilityConnectManager>(num);
-    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(num, abilityConnectManager));
+    auto abilityConnectManager = std::make_shared<CommonExtensionManager>(num);
+    abilityMs_->subManagersHelper_->commonExtensionManagers_.insert(std::make_pair(num, abilityConnectManager));
     sptr<IRemoteObject> token = new Token(abilityRecord);
     sptr<SessionInfo> sessionInfo;
     WindowCommand winCmd = WIN_CMD_FOREGROUND;

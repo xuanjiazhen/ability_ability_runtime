@@ -326,11 +326,11 @@ HWTEST_F(AbilityManagerServiceNinthTest, GetUIExtensionRootCaller_001, TestSize.
     auto taskHandler = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
     auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs_);
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
-    abilityMs_->subManagersHelper_->currentConnectManager_ = std::make_shared<AbilityConnectManager>(0);
-    abilityMs_->subManagersHelper_->connectManagers_.insert({100,
-        abilityMs_->subManagersHelper_->currentConnectManager_});
-    abilityMs_->subManagersHelper_->connectManagers_.insert({0,
-        abilityMs_->subManagersHelper_->currentConnectManager_});
+    abilityMs_->subManagersHelper_->currentUIExtensionAbilityManager_ = std::make_shared<UIExtensionAbilityManager>(0);
+    abilityMs_->subManagersHelper_->commonExtensionManagers_.insert({100,
+        abilityMs_->subManagersHelper_->currentUIExtensionAbilityManager_});
+    abilityMs_->subManagersHelper_->commonExtensionManagers_.insert({0,
+        abilityMs_->subManagersHelper_->currentUIExtensionAbilityManager_});
     result = abilityMs_->GetUIExtensionRootCaller(token, userId);
     EXPECT_EQ(result, nullptr);
     userId = 0;
@@ -349,11 +349,11 @@ HWTEST_F(AbilityManagerServiceNinthTest, GetUIExtensionRootCaller_001, TestSize.
     userId = 100;
     result = abilityMs_->GetUIExtensionRootCaller(tokens, userId);
     EXPECT_EQ(result, nullptr);
-    abilityMs_->subManagersHelper_->connectManagers_.clear();
-    abilityMs_->subManagersHelper_->connectManagers_.insert({100,
-        abilityMs_->subManagersHelper_->currentConnectManager_});
-    abilityMs_->subManagersHelper_->connectManagers_.insert({1,
-        abilityMs_->subManagersHelper_->currentConnectManager_});
+    abilityMs_->subManagersHelper_->commonExtensionManagers_.clear();
+    abilityMs_->subManagersHelper_->commonExtensionManagers_.insert({100,
+        abilityMs_->subManagersHelper_->currentUIExtensionAbilityManager_});
+    abilityMs_->subManagersHelper_->commonExtensionManagers_.insert({1,
+        abilityMs_->subManagersHelper_->currentUIExtensionAbilityManager_});
     result = abilityMs_->GetUIExtensionRootCaller(token, userId);
     EXPECT_EQ(result, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceNinthTest GetUIExtensionRootCaller_001 end");
