@@ -159,10 +159,10 @@ protected:
     void ForegroundTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
     void BackgroundTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
     void TerminateTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
-    void HandleUIExtensionAbilityRecordTermination(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    void HandleUIExtensionAbilityRecordTermination(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
     void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
-    int RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token);
+    int RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token) override;
 private:   
 
     void SetLastExitReason(const AbilityRequest &abilityRequest, std::shared_ptr<BaseExtensionRecord> &targetService);

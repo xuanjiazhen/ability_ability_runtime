@@ -311,7 +311,7 @@ protected:
     virtual void ForegroundTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
     virtual void BackgroundTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
     virtual void TerminateTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
-    virtual void TerminateUIExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
+    virtual void HandleUIExtensionAbilityRecordTermination(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
     virtual void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     virtual int RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token)
