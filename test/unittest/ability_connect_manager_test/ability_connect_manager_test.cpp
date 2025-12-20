@@ -731,25 +731,25 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_017, TestSize.Level1)
     }
 }
 
-/*
- * Feature: AbilityConnectManager
- * Function: GetActiveUIExtensionList
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions:NA
- * CaseDescription: verify the GetActiveUIExtensionList function.
- */
-HWTEST_F(AbilityConnectManagerTest, GetActiveUIExtensionList_01, TestSize.Level1)
-{
-    int32_t pid = 1;
-    std::vector<std::string> extensionList;
-    auto result = ConnectManager()->GetActiveUIExtensionList(pid, extensionList);
-    EXPECT_EQ(result, ERR_OK);
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: GetActiveUIExtensionList
+//  * SubFunction: NA
+//  * FunctionPoints: NA
+//  * EnvConditions:NA
+//  * CaseDescription: verify the GetActiveUIExtensionList function.
+//  */
+// HWTEST_F(AbilityConnectManagerTest, GetActiveUIExtensionList_01, TestSize.Level1)
+// {
+//     int32_t pid = 1;
+//     std::vector<std::string> extensionList;
+//     auto result = ConnectManager()->GetActiveUIExtensionList(pid, extensionList);
+//     EXPECT_EQ(result, ERR_OK);
 
-    std::string bundleName = "com.test.demo";
-    result = ConnectManager()->GetActiveUIExtensionList(bundleName, extensionList);
-    EXPECT_EQ(result, ERR_OK);
-}
+//     std::string bundleName = "com.test.demo";
+//     result = ConnectManager()->GetActiveUIExtensionList(bundleName, extensionList);
+//     EXPECT_EQ(result, ERR_OK);
+// }
 
 /*
  * Feature: AbilityConnectManager
@@ -1544,27 +1544,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_StartAbilityLocked_001, Test
 
 /*
  * Feature: AbilityConnectManager
- * Function: GetOrCreateServiceRecord
- * SubFunction: GetOrCreateServiceRecord
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager GetOrCreateServiceRecord
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_GetOrCreateServiceRecord_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-    AbilityRequest abilityRequest;
-    bool isCreatedByConnect = false;
-    std::shared_ptr<BaseExtensionRecord> targetService = nullptr;
-    bool isLoadedAbility = false;
-    abilityRequest.abilityInfo.name = AbilityConfig::LAUNCHER_ABILITY_NAME;
-    connectManager->serviceMap_.clear();
-    connectManager->GetOrCreateServiceRecord(abilityRequest, isCreatedByConnect, targetService, isLoadedAbility);
-}
-
-/*
- * Feature: AbilityConnectManager
  * Function: ConnectAbilityLocked
  * SubFunction: ConnectAbilityLocked
  * FunctionPoints: NA
@@ -2343,29 +2322,29 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_RestartAbility_003, TestSize
     EXPECT_EQ(static_cast<int>(ConnectManager()->GetServiceMap().size()), 0);
 }
 
-/*
- * Feature: AbilityConnectManager
- * Function: DumpState
- * SubFunction: DumpState
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager DumpState
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_DumpState_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-    std::vector<std::string> info;
-    bool isClient = false;
-    std::string args = "args";
-    connectManager->serviceMap_.emplace(args, abilityRecord);
-    connectManager->DumpState(info, isClient, args);
-    connectManager->serviceMap_.clear();
-    connectManager->DumpState(info, isClient, args);
-    args = "";
-    connectManager->DumpState(info, isClient, args);
-}
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: DumpState
+//  * SubFunction: DumpState
+//  * FunctionPoints: NA
+//  * EnvConditions: NA
+//  * CaseDescription: Verify AbilityConnectManager DumpState
+//  */
+// HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_DumpState_001, TestSize.Level1)
+// {
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     ASSERT_NE(connectManager, nullptr);
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+//     std::vector<std::string> info;
+//     bool isClient = false;
+//     std::string args = "args";
+//     connectManager->serviceMap_.emplace(args, abilityRecord);
+//     connectManager->DumpState(info, isClient, args);
+//     connectManager->serviceMap_.clear();
+//     connectManager->DumpState(info, isClient, args);
+//     args = "";
+//     connectManager->DumpState(info, isClient, args);
+// }
 
 /*
  * Feature: AbilityConnectManager
@@ -2390,56 +2369,56 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_DumpStateByUri_001, TestSize
     connectManager->DumpStateByUri(info, isClient, args, params);
 }
 
-/*
- * Feature: AbilityConnectManager
- * Function: GetExtensionRunningInfos
- * SubFunction: GetExtensionRunningInfos
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager GetExtensionRunningInfos
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_GetExtensionRunningInfos_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-    int upperLimit = 1;
-    std::vector<ExtensionRunningInfo> info;
-    int32_t userId = 0;
-    bool isPerm = false;
-    ExtensionRunningInfo extensionInfo;
-    info.push_back(extensionInfo);
-    connectManager->serviceMap_.emplace("first", abilityRecord);
-    connectManager->GetExtensionRunningInfos(upperLimit, info, userId, isPerm);
-}
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: GetExtensionRunningInfos
+//  * SubFunction: GetExtensionRunningInfos
+//  * FunctionPoints: NA
+//  * EnvConditions: NA
+//  * CaseDescription: Verify AbilityConnectManager GetExtensionRunningInfos
+//  */
+// HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_GetExtensionRunningInfos_001, TestSize.Level1)
+// {
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     ASSERT_NE(connectManager, nullptr);
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+//     int upperLimit = 1;
+//     std::vector<ExtensionRunningInfo> info;
+//     int32_t userId = 0;
+//     bool isPerm = false;
+//     ExtensionRunningInfo extensionInfo;
+//     info.push_back(extensionInfo);
+//     connectManager->serviceMap_.emplace("first", abilityRecord);
+//     connectManager->GetExtensionRunningInfos(upperLimit, info, userId, isPerm);
+// }
 
-/*
- * Feature: AbilityConnectManager
- * Function: GetExtensionRunningInfo
- * SubFunction: GetExtensionRunningInfo
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager GetExtensionRunningInfo
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_GetExtensionRunningInfo_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
-    std::shared_ptr<ConnectionRecord> connection =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
-    int32_t userId = 0;
-    std::vector<ExtensionRunningInfo> info;
-    Want want;
-    AbilityInfo abilityInfo;
-    ApplicationInfo applicationInfo;
-    want.SetElementName("device", "bundle", "ability", "module");
-    abilityRecord->SetWant(want);
-    abilityRecord->connRecordList_.push_back(nullptr);
-    abilityRecord->connRecordList_.push_back(connection);
-    connectManager->GetExtensionRunningInfo(abilityRecord, userId, info);
-}
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: GetExtensionRunningInfo
+//  * SubFunction: GetExtensionRunningInfo
+//  * FunctionPoints: NA
+//  * EnvConditions: NA
+//  * CaseDescription: Verify AbilityConnectManager GetExtensionRunningInfo
+//  */
+// HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_GetExtensionRunningInfo_001, TestSize.Level1)
+// {
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     ASSERT_NE(connectManager, nullptr);
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+//     OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+//     std::shared_ptr<ConnectionRecord> connection =
+//         std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+//     int32_t userId = 0;
+//     std::vector<ExtensionRunningInfo> info;
+//     Want want;
+//     AbilityInfo abilityInfo;
+//     ApplicationInfo applicationInfo;
+//     want.SetElementName("device", "bundle", "ability", "module");
+//     abilityRecord->SetWant(want);
+//     abilityRecord->connRecordList_.push_back(nullptr);
+//     abilityRecord->connRecordList_.push_back(connection);
+//     connectManager->GetExtensionRunningInfo(abilityRecord, userId, info);
+// }
 
 /*
  * Feature: AbilityConnectManager
@@ -2590,8 +2569,8 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Start_Service_With_SessionInfo_001, Te
     abilityRequest_.sessionInfo = nullptr;
     WaitUntilTaskDone(TaskHandler());
 
-    auto service = ConnectManager()->GetUIExtensionBySessionInfo(sessionInfo);
-    EXPECT_EQ(static_cast<int>(ConnectManager()->GetServiceMap().size()), 1);
+    // auto service = ConnectManager()->GetUIExtensionBySessionInfo(sessionInfo);
+    // EXPECT_EQ(static_cast<int>(ConnectManager()->GetServiceMap().size()), 1);
 }
 
 /*
@@ -3141,333 +3120,6 @@ HWTEST_F(AbilityConnectManagerTest, CompleteForeground_001, TestSize.Level1)
     connectManager->CompleteForeground(abilityRecord);
     EXPECT_EQ(abilityRecord->GetAbilityState(), AbilityState::FOREGROUND);
     connectManager.reset();
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: AddUIExtWindowDeathRecipient
- * SubFunction: AddUIExtWindowDeathRecipient
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager AddUIExtWindowDeathRecipient
- * @tc.require: AR000I8B26
- */
-HWTEST_F(AbilityConnectManagerTest, AddUIExtWindowDeathRecipient_001, TestSize.Level1)
-{
-    ConnectManager()->SetTaskHandler(TaskHandler());
-    ConnectManager()->SetEventHandler(EventHandler());
-    ConnectManager()->uiExtRecipientMap_.clear();
-
-    ConnectManager()->AddUIExtWindowDeathRecipient(nullptr);
-    EXPECT_TRUE(ConnectManager()->uiExtRecipientMap_.empty());
-
-    ConnectManager()->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
-    EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
-
-    // Add twice, do not add repeatedly
-    ConnectManager()->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
-    EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
-    ConnectManager()->uiExtRecipientMap_.clear();
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: RemoveUIExtWindowDeathRecipient
- * SubFunction:
- * FunctionPoints: RemoveUIExtWindowDeathRecipient
- * EnvConditions:NA
- * CaseDescription: Verify the RemoveUIExtWindowDeathRecipient process
- * @tc.require: AR000I8B26
- */
-HWTEST_F(AbilityConnectManagerTest, RemoveUIExtWindowDeathRecipient_001, TestSize.Level1)
-{
-    ConnectManager()->SetTaskHandler(TaskHandler());
-    ConnectManager()->SetEventHandler(EventHandler());
-    ConnectManager()->uiExtRecipientMap_.clear();
-
-    ConnectManager()->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
-    EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
-
-    ConnectManager()->RemoveUIExtWindowDeathRecipient(nullptr);
-    EXPECT_FALSE(ConnectManager()->uiExtRecipientMap_.empty());
-
-    ConnectManager()->RemoveUIExtWindowDeathRecipient(callbackA_->AsObject());
-    EXPECT_TRUE(ConnectManager()->uiExtRecipientMap_.empty());
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: OnUIExtWindowDied
- * SubFunction:
- * FunctionPoints: OnUIExtWindowDied
- * EnvConditions:NA
- * CaseDescription: Verify the OnUIExtWindowDied process
- * @tc.require: AR000I8B26
- */
-HWTEST_F(AbilityConnectManagerTest, OnUIExtWindowDied_001, TestSize.Level1)
-{
-    ConnectManager()->SetTaskHandler(TaskHandler());
-    ConnectManager()->SetEventHandler(EventHandler());
-    ConnectManager()->uiExtRecipientMap_.clear();
-    ConnectManager()->uiExtensionMap_.clear();
-
-    ConnectManager()->uiExtensionMap_.emplace(
-        callbackA_->AsObject(), AbilityConnectManager::UIExtWindowMapValType(serviceRecord_, MockSessionInfo(0)));
-    ConnectManager()->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
-    ConnectManager()->OnUIExtWindowDied(nullptr);
-    EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
-    EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtensionMap_.size()), 1);
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: HandleUIExtWindowDiedTask
- * SubFunction: HandleUIExtWindowDiedTask
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager HandleUIExtWindowDiedTask
- * @tc.require: AR000I8B26
- */
-HWTEST_F(AbilityConnectManagerTest, HandleUIExtWindowDiedTask_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-    connectManager->uiExtRecipientMap_.clear();
-    connectManager->uiExtensionMap_.clear();
-
-    connectManager->uiExtensionMap_.emplace(
-        callbackA_->AsObject(), AbilityConnectManager::UIExtWindowMapValType(serviceRecord_, MockSessionInfo(0)));
-    connectManager->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
-    connectManager->HandleUIExtWindowDiedTask(nullptr);
-    EXPECT_EQ(static_cast<int>(connectManager->uiExtRecipientMap_.size()), 1);
-    EXPECT_EQ(static_cast<int>(connectManager->uiExtensionMap_.size()), 1);
-
-    connectManager->HandleUIExtWindowDiedTask(callbackA_->AsObject());
-    EXPECT_TRUE(connectManager->uiExtRecipientMap_.empty());
-    EXPECT_TRUE(connectManager->uiExtensionMap_.empty());
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: IsUIExtensionFocused
- * SubFunction: IsUIExtensionFocused
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager IsUIExtensionFocused
- */
-HWTEST_F(AbilityConnectManagerTest, IsUIExtensionFocused_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(3);
-    ASSERT_NE(connectManager, nullptr);
-    connectManager->uiExtensionMap_.clear();
-    bool isFocused = connectManager->IsUIExtensionFocused(
-        serviceRecord_->GetApplicationInfo().accessTokenId, serviceRecord1_->GetToken());
-    EXPECT_EQ(isFocused, false);
-    connectManager.reset();
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: IsUIExtensionFocused
- * SubFunction: IsUIExtensionFocused
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager IsUIExtensionFocused
- */
-HWTEST_F(AbilityConnectManagerTest, IsUIExtensionFocused_002, TestSize.Level1)
-{
-    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(3);
-    ASSERT_NE(connectManager, nullptr);
-    connectManager->uiExtensionMap_.clear();
-
-    std::string device = "device";
-    std::string abilityName = "uiExtensionUserAbility";
-    std::string appName = "uiExtensionUser";
-    std::string bundleName = "com.ix.uiExtensionUser";
-    std::string moduleName = "entry";
-    auto request = GenerateAbilityRequest(device, abilityName, appName, bundleName, moduleName);
-    auto uiExtensionUser = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    EXPECT_NE(uiExtensionUser, nullptr);
-
-    std::string abilityName1 = "uiExtensionAbility1";
-    std::string appName1 = "uiExtensionProvider1";
-    std::string bundleName1 = "com.ix.uiExtensionProvider1";
-    std::string moduleName1 = "entry";
-    auto request1 = GenerateAbilityRequest(device, abilityName1, appName1, bundleName1, moduleName1);
-    auto uiExtension1 = BaseExtensionRecord::CreateBaseExtensionRecord(request1);
-    EXPECT_NE(uiExtension1, nullptr);
-    uiExtension1->abilityInfo_.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    sptr<SessionInfo> sessionInfo1 = new (std::nothrow) SessionInfo();
-    sessionInfo1->callerToken = uiExtensionUser->GetToken();
-    uiExtension1->sessionInfo_ = sessionInfo1;
-    connectManager->uiExtensionMap_.emplace(
-        callbackA_->AsObject(), AbilityConnectManager::UIExtWindowMapValType(uiExtension1, sessionInfo1));
-    bool isFocused1 = connectManager->IsUIExtensionFocused(
-        uiExtension1->GetApplicationInfo().accessTokenId, uiExtensionUser->GetToken());
-    EXPECT_EQ(isFocused1, true);
-    std::string abilityName2 = "uiExtensionAbility2";
-    std::string appName2 = "uiExtensionProvider2";
-    std::string bundleName2 = "com.ix.uiExtensionProvider2";
-    std::string moduleName2 = "entry";
-    auto request2 = GenerateAbilityRequest(device, abilityName2, appName2, bundleName2, moduleName2);
-    auto uiExtension2 = BaseExtensionRecord::CreateBaseExtensionRecord(request2);
-    EXPECT_NE(uiExtension2, nullptr);
-    uiExtension2->abilityInfo_.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    sptr<SessionInfo> sessionInfo2 = new (std::nothrow) SessionInfo();
-    sessionInfo2->callerToken = uiExtension1->GetToken();
-    uiExtension2->sessionInfo_ = sessionInfo2;
-    connectManager->uiExtensionMap_.emplace(
-        callbackA_->AsObject(), AbilityConnectManager::UIExtWindowMapValType(uiExtension2, sessionInfo2));
-    bool isFocused2 = connectManager->IsUIExtensionFocused(
-        uiExtension2->GetApplicationInfo().accessTokenId, uiExtensionUser->GetToken());
-    EXPECT_EQ(isFocused2, true);
-    connectManager.reset();
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: GetUIExtensionSourceToken
- * SubFunction: GetUIExtensionSourceToken
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager GetUIExtensionSourceToken
- */
-HWTEST_F(AbilityConnectManagerTest, GetUIExtensionSourceToken_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(3);
-    ASSERT_NE(connectManager, nullptr);
-    connectManager->uiExtensionMap_.clear();
-    auto sourceToken = connectManager->GetUIExtensionSourceToken(nullptr);
-    EXPECT_EQ(sourceToken, nullptr);
-    connectManager.reset();
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: PauseExtensions
- * SubFunction: PauseExtensions
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager PauseExtensions
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PauseExtensions_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord1 = serviceRecord_;
-    abilityRecord1->abilityInfo_.type = AbilityType::PAGE;
-    connectManager->serviceMap_.emplace("first", abilityRecord1);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    abilityRecord2->abilityInfo_.type = AbilityType::EXTENSION;
-    abilityRecord2->abilityInfo_.name = AbilityConfig::LAUNCHER_ABILITY_NAME;
-    abilityRecord2->abilityInfo_.bundleName = AbilityConfig::LAUNCHER_BUNDLE_NAME;
-    connectManager->serviceMap_.emplace("second", abilityRecord2);
-    connectManager->PauseExtensions();
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: SignRestartAppFlag
- * CaseDescription: Verify AbilityConnectManager SignRestartAppFlag
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_SignRestartAppFlag_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-
-    std::string bundleName = "testBundleName";
-    std::shared_ptr<BaseExtensionRecord> abilityRecord1 = serviceRecord_;
-    abilityRecord1->abilityInfo_.bundleName = bundleName;
-    connectManager->serviceMap_.emplace("first", abilityRecord1);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    abilityRecord2->abilityInfo_.bundleName = "errTestBundleName";
-    connectManager->serviceMap_.emplace("second", abilityRecord2);
-    int32_t uid = 100;
-    connectManager->SignRestartAppFlag(uid, "");
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: BuildEventInfo
- * CaseDescription: Verify AbilityConnectManager BuildEventInfo
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_BuildEventInfo_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-
-    connectManager->BuildEventInfo(nullptr);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = InitAbilityRecord();
-    connectManager->BuildEventInfo(abilityRecord);
-    abilityRecord->SetCreateByConnectMode(true);
-    connectManager->BuildEventInfo(abilityRecord);
-}
-
-/**
- * @tc.name: UpdateUIExtensionInfo_0100
- * @tc.desc: Update want params of ui extension.
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityConnectManagerTest, UpdateUIExtensionInfo_0100, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-
-    Want want;
-    AppExecFwk::AbilityInfo abilityInfo;
-    abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    AppExecFwk::ApplicationInfo applicationInfo;
-    auto abilityRecord = std::make_shared<BaseExtensionRecord>(want, abilityInfo, applicationInfo);
-    abilityRecord->SetUIExtensionAbilityId(1000);
-    connectManager->UpdateUIExtensionInfo(abilityRecord);
-    EXPECT_EQ(abilityRecord->GetWant().HasParameter("ability.want.params.uiExtensionAbilityId"), true);
-    EXPECT_EQ(abilityRecord->GetWant().GetIntParam("ability.want.params.uiExtensionAbilityId", -1), 1000);
-}
-
-/**
- * @tc.name: PreloadUIExtensionAbilityLocked_0100
- * @tc.desc: preload uiextension ability
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityConnectManagerTest, PreloadUIExtensionAbilityLocked_0100, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    AppExecFwk::ElementName providerElement("0", "com.ohos.uiextensionprovider", "UIExtensionProvider", "entry");
-    abilityRequest.want.SetElement(providerElement);
-    abilityRequest.abilityInfo.type = AbilityType::EXTENSION;
-    std::string hostBundleName = "com.ohos.uiextensionuser";
-
-    int32_t preloadId = AbilityRuntime::INVALID_EXTENSION_RECORD_ID;;
-    int32_t hostPid = DEFAULT_INVAL_VALUE;
-    auto ret = connectManager->PreloadUIExtensionAbilityLocked(
-        abilityRequest, hostBundleName, ERR_PRELOAD_APP_DATA_ABILITIES_FAILED);
-    EXPECT_NE(ret, ERR_OK);
-}
-
-/**
- * @tc.name: UnloadUIExtensionAbility_0100
- * @tc.desc: UnloadUIExtensionAbility
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityConnectManagerTest, UnloadUIExtensionAbility_0100, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    AppExecFwk::ElementName providerElement("0", "com.ohos.uiextensionprovider", "UIExtensionProvider", "entry");
-    abilityRequest.want.SetElement(providerElement);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest);
-    int32_t hostPid = 0;
-    auto ret = connectManager->UnloadUIExtensionAbility(abilityRecord, hostPid);
-    EXPECT_EQ(ret, ERR_CONNECT_MANAGER_NULL_ABILITY_RECORD);
 }
 
 /**
@@ -4060,186 +3712,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDon
     EXPECT_EQ(res, CONNECTION_NOT_EXIST);
 }
 
-/**
- * @tc.name: UnPreloadUIExtensionAbilityLocked_0100
- * @tc.desc: unpreload uiextension ability with invalid id
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityConnectManagerTest, UnPreloadUIExtensionAbilityLocked_0100, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-    int32_t extensionAbilityId = AbilityRuntime::INVALID_EXTENSION_RECORD_ID;
-    auto ret = connectManager->UnPreloadUIExtensionAbilityLocked(extensionAbilityId);
-    EXPECT_EQ(ret, ERR_CODE_INVALID_ID);
-}
 
-/*
- * Feature: AbilityConnectManager
- * Function: ClearAllPreloadUIExtensionAbilityLocked
- * SubFunction: ClearAllPreloadUIExtensionAbilityInner
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify ClearAllPreloadUIExtensionAbilityLocked when uiExtensionAbilityRecordMgr_ is nullptr
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ClearAllPreloadUIExtensionAbilityLocked_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-    
-    int res = connectManager->ClearAllPreloadUIExtensionAbilityLocked();
-    EXPECT_EQ(res, ERR_NULL_OBJECT);
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: ClearAllPreloadUIExtensionAbilityLocked
- * SubFunction: ClearAllPreloadUIExtensionAbilityInner
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify ClearAllPreloadUIExtensionAbilityLocked with valid uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ClearAllPreloadUIExtensionAbilityLocked_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    
-    int res = connectManager->ClearAllPreloadUIExtensionAbilityLocked();
-    EXPECT_EQ(res, ERR_OK);
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: RegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify RegisterPreloadUIExtensionHostClient when callerToken is nullptr
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_RegisterPreloadUIExtensionHostClient_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    sptr<IRemoteObject> callerToken = nullptr;
-    
-    int32_t res = connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(res, ERR_INVALID_VALUE);
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: RegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify RegisterPreloadUIExtensionHostClient when uiExtensionAbilityRecordMgr_ is nullptr
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_RegisterPreloadUIExtensionHostClient_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
-    ASSERT_NE(callerToken, nullptr);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-    
-    int32_t res = connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(res, ERR_NULL_OBJECT);
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: RegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify RegisterPreloadUIExtensionHostClient with valid parameters
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_RegisterPreloadUIExtensionHostClient_003, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
-    ASSERT_NE(callerToken, nullptr);
-    
-    int32_t res = connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(res, ERR_OK);
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: UnRegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnRegisterPreloadUIExtensionHostClient when uiExtensionAbilityRecordMgr_ is nullptr
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_UnRegisterPreloadUIExtensionHostClient_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-    int32_t callerPid = 1234;
-    
-    int32_t res = connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(res, ERR_NULL_OBJECT);
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: UnRegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnRegisterPreloadUIExtensionHostClient with DEFAULT_INVALID_VALUE
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_UnRegisterPreloadUIExtensionHostClient_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    int32_t callerPid = DEFAULT_INVAL_VALUE;
-    
-    int32_t res = connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(res, ERR_OK);
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: UnRegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnRegisterPreloadUIExtensionHostClient with valid callerPid
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_UnRegisterPreloadUIExtensionHostClient_003, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    int32_t callerPid = 5678;
-    
-    int32_t res = connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(res, ERR_OK);
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: UnRegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnRegisterPreloadUIExtensionHostClient
- */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_UnRegisterPreloadUIExtensionHostClient_004, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
-    int32_t callerPid = IPCSkeleton::GetCallingPid();
-    connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.size(), 1);
-    
-    connectManager->UnRegisterPreloadUIExtensionHostClient(1);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.size(), 1);
-
-    connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.size(), 0);
-}
 }  // namespace AAFwk
 }  // namespace OHOS

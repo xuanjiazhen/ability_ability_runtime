@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "ability_bundle_event_callback.h"
-#include "ability_connect_manager.h"
+// #include "ability_connect_manager.h"
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "connection_data.h"

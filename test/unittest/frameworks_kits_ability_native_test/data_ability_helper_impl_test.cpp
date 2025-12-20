@@ -18,7 +18,7 @@
 #define private public
 #define protected public
 
-#include "ability_connect_manager.h"
+// #include "ability_connect_manager.h"
 #include "ability_context.h"
 #include "ability_manager_client.h"
 #include "ability_scheduler_proxy.h"

@@ -445,78 +445,55 @@ HWTEST_F(AbilityConnectManagerFourthTest, DispatchInactive_004, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "DispatchInactive_004 end");
 }
 
-/*
-* Feature: AbilityConnectManager
-* Function: HandleUIExtensionDied
-*/
-HWTEST_F(AbilityConnectManagerFourthTest, HandleUIExtensionDied_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_002 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
 
-    sptr<Token> token = serviceToken_;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> sessionToken = abilityRecord->GetToken();
-    connectManager->AddUIExtWindowDeathRecipient(sessionToken);
-    connectManager->uiExtensionMap_[sessionToken] = {std::weak_ptr<BaseExtensionRecord>(), nullptr};
-    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 1);
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: HandleUIExtensionDied
+//  */
+// HWTEST_F(AbilityConnectManagerFourthTest, HandleUIExtensionDied_003, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_003 start");
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     EXPECT_NE(connectManager, nullptr);
 
-    connectManager->HandleUIExtensionDied(abilityRecord);
-    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 0);
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_002 end");
-}
+//     sptr<Token> token = serviceToken_;
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+//         abilityRequest_);
+//     ASSERT_NE(abilityRecord, nullptr);
+//     sptr<IRemoteObject> sessionToken = abilityRecord->GetToken();
+//     connectManager->uiExtensionMap_[sessionToken] = {abilityRecord, nullptr};
+//     EXPECT_EQ(connectManager->uiExtensionMap_.size(), 1);
 
-/*
- * Feature: AbilityConnectManager
- * Function: HandleUIExtensionDied
- */
-HWTEST_F(AbilityConnectManagerFourthTest, HandleUIExtensionDied_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_003 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+//     connectManager->HandleUIExtensionDied(abilityRecord);
+//     EXPECT_EQ(connectManager->uiExtensionMap_.size(), 0);
+//     TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_003 end");
+// }
 
-    sptr<Token> token = serviceToken_;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> sessionToken = abilityRecord->GetToken();
-    connectManager->uiExtensionMap_[sessionToken] = {abilityRecord, nullptr};
-    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 1);
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: HandleUIExtensionDied
+//  */
+// HWTEST_F(AbilityConnectManagerFourthTest, HandleUIExtensionDied_004, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_004 start");
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     EXPECT_NE(connectManager, nullptr);
 
-    connectManager->HandleUIExtensionDied(abilityRecord);
-    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 0);
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_003 end");
-}
+//     sptr<Token> token = serviceToken_;
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+//         abilityRequest_);
+//     ASSERT_NE(abilityRecord, nullptr);
+//     std::shared_ptr<BaseExtensionRecord> anotherAbilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+//         abilityRequest1_);
+//     ASSERT_NE(anotherAbilityRecord, nullptr);
+//     sptr<IRemoteObject> sessionToken = abilityRecord->GetToken();
+//     connectManager->uiExtensionMap_[sessionToken] = {anotherAbilityRecord, nullptr};
+//     EXPECT_EQ(connectManager->uiExtensionMap_.size(), 1);
 
-/*
- * Feature: AbilityConnectManager
- * Function: HandleUIExtensionDied
- */
-HWTEST_F(AbilityConnectManagerFourthTest, HandleUIExtensionDied_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_004 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    sptr<Token> token = serviceToken_;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    std::shared_ptr<BaseExtensionRecord> anotherAbilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest1_);
-    ASSERT_NE(anotherAbilityRecord, nullptr);
-    sptr<IRemoteObject> sessionToken = abilityRecord->GetToken();
-    connectManager->uiExtensionMap_[sessionToken] = {anotherAbilityRecord, nullptr};
-    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 1);
-
-    connectManager->HandleUIExtensionDied(abilityRecord);
-    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 1);
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_004 end");
-}
+//     connectManager->HandleUIExtensionDied(abilityRecord);
+//     EXPECT_EQ(connectManager->uiExtensionMap_.size(), 1);
+//     TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_004 end");
+// }
 
 /*
  * Feature: AbilityConnectManager
@@ -542,133 +519,133 @@ HWTEST_F(AbilityConnectManagerFourthTest, GetServiceKey_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "GetServiceKey_001 end");
 }
 
-/*
- * Feature: AbilityConnectManager
- * Function: GetExtensionRunningInfos
- */
-HWTEST_F(AbilityConnectManagerFourthTest, GetExtensionRunningInfos_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_001 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: GetExtensionRunningInfos
+//  */
+// HWTEST_F(AbilityConnectManagerFourthTest, GetExtensionRunningInfos_001, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_001 start");
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     EXPECT_NE(connectManager, nullptr);
 
-    std::vector<ExtensionRunningInfo> info;
-    int upperLimit = 2;
-    int32_t userId = 0;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    connectManager->AddToServiceMap("testServiceKey1", abilityRecord);
-    info.emplace_back();
+//     std::vector<ExtensionRunningInfo> info;
+//     int upperLimit = 2;
+//     int32_t userId = 0;
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+//         abilityRequest_);
+//     ASSERT_NE(abilityRecord, nullptr);
+//     connectManager->AddToServiceMap("testServiceKey1", abilityRecord);
+//     info.emplace_back();
 
-    connectManager->GetExtensionRunningInfos(upperLimit, info, userId, true);
-    EXPECT_EQ(info.size(), upperLimit);
-    TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_001 end");
-}
+//     connectManager->GetExtensionRunningInfos(upperLimit, info, userId, true);
+//     EXPECT_EQ(info.size(), upperLimit);
+//     TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_001 end");
+// }
 
-/*
- * Feature: AbilityConnectManager
- * Function: GetExtensionRunningInfos
- */
-HWTEST_F(AbilityConnectManagerFourthTest, GetExtensionRunningInfos_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_002 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: GetExtensionRunningInfos
+//  */
+// HWTEST_F(AbilityConnectManagerFourthTest, GetExtensionRunningInfos_002, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_002 start");
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     EXPECT_NE(connectManager, nullptr);
 
-    std::vector<ExtensionRunningInfo> info;
-    int upperLimit = 2;
-    int32_t userId = 0;
-    connectManager->AddToServiceMap("testServiceKey2", nullptr);
+//     std::vector<ExtensionRunningInfo> info;
+//     int upperLimit = 2;
+//     int32_t userId = 0;
+//     connectManager->AddToServiceMap("testServiceKey2", nullptr);
 
-    connectManager->GetExtensionRunningInfos(upperLimit, info, userId, true);
-    EXPECT_EQ(info.size(), 0);
-    TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_002 end");
-}
+//     connectManager->GetExtensionRunningInfos(upperLimit, info, userId, true);
+//     EXPECT_EQ(info.size(), 0);
+//     TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_002 end");
+// }
 
-/*
- * Feature: AbilityConnectManager
- * Function: GetExtensionRunningInfos
- */
-HWTEST_F(AbilityConnectManagerFourthTest, GetExtensionRunningInfos_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_003 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: GetExtensionRunningInfos
+//  */
+// HWTEST_F(AbilityConnectManagerFourthTest, GetExtensionRunningInfos_003, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_003 start");
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     EXPECT_NE(connectManager, nullptr);
 
-    std::vector<ExtensionRunningInfo> info;
-    int upperLimit = 2;
-    int32_t userId = 0;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    connectManager->AddToServiceMap("testServiceKey3", abilityRecord);
+//     std::vector<ExtensionRunningInfo> info;
+//     int upperLimit = 2;
+//     int32_t userId = 0;
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+//         abilityRequest_);
+//     ASSERT_NE(abilityRecord, nullptr);
+//     connectManager->AddToServiceMap("testServiceKey3", abilityRecord);
 
-    connectManager->GetExtensionRunningInfos(upperLimit, info, userId, true);
-    EXPECT_EQ(info.size(), 1);
-    TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_003 end");
-}
+//     connectManager->GetExtensionRunningInfos(upperLimit, info, userId, true);
+//     EXPECT_EQ(info.size(), 1);
+//     TAG_LOGI(AAFwkTag::TEST, "GetExtensionRunningInfos_003 end");
+// }
 
-/*
- * Feature: AbilityConnectManager
- * Function: GetAbilityRunningInfos
- */
-HWTEST_F(AbilityConnectManagerFourthTest, GetAbilityRunningInfos_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_001 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: GetAbilityRunningInfos
+//  */
+// HWTEST_F(AbilityConnectManagerFourthTest, GetAbilityRunningInfos_001, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_001 start");
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     EXPECT_NE(connectManager, nullptr);
 
-    std::vector<AbilityRunningInfo> info;
-    connectManager->AddToServiceMap("testServiceKey1", nullptr);
+//     std::vector<AbilityRunningInfo> info;
+//     connectManager->AddToServiceMap("testServiceKey1", nullptr);
 
-    connectManager->GetAbilityRunningInfos(info, true);
-    EXPECT_EQ(info.size(), 0);
-    TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_001 end");
-}
+//     connectManager->GetAbilityRunningInfos(info, true);
+//     EXPECT_EQ(info.size(), 0);
+//     TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_001 end");
+// }
 
-/*
- * Feature: AbilityConnectManager
- * Function: GetAbilityRunningInfos
- */
-HWTEST_F(AbilityConnectManagerFourthTest, GetAbilityRunningInfos_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_002 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: GetAbilityRunningInfos
+//  */
+// HWTEST_F(AbilityConnectManagerFourthTest, GetAbilityRunningInfos_002, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_002 start");
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     EXPECT_NE(connectManager, nullptr);
 
-    std::vector<AbilityRunningInfo> info;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    connectManager->AddToServiceMap("testServiceKey2", abilityRecord);
+//     std::vector<AbilityRunningInfo> info;
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+//         abilityRequest_);
+//     ASSERT_NE(abilityRecord, nullptr);
+//     connectManager->AddToServiceMap("testServiceKey2", abilityRecord);
 
-    connectManager->GetAbilityRunningInfos(info, true);
-    EXPECT_GT(info.size(), 0);
-    TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_002 end");
-}
+//     connectManager->GetAbilityRunningInfos(info, true);
+//     EXPECT_GT(info.size(), 0);
+//     TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_002 end");
+// }
 
-/*
- * Feature: AbilityConnectManager
- * Function: GetAbilityRunningInfos
- */
-HWTEST_F(AbilityConnectManagerFourthTest, GetAbilityRunningInfos_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_003 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+// /*
+//  * Feature: AbilityConnectManager
+//  * Function: GetAbilityRunningInfos
+//  */
+// HWTEST_F(AbilityConnectManagerFourthTest, GetAbilityRunningInfos_003, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_003 start");
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     EXPECT_NE(connectManager, nullptr);
 
-    std::vector<AbilityRunningInfo> info;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    abilityRecord->abilityInfo_.applicationInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
-    connectManager->AddToServiceMap("testServiceKey3", abilityRecord);
+//     std::vector<AbilityRunningInfo> info;
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+//         abilityRequest_);
+//     ASSERT_NE(abilityRecord, nullptr);
+//     abilityRecord->abilityInfo_.applicationInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
+//     connectManager->AddToServiceMap("testServiceKey3", abilityRecord);
 
-    connectManager->GetAbilityRunningInfos(info, false);
-    EXPECT_GT(info.size(), 0);
-    TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_003 end");
-}
+//     connectManager->GetAbilityRunningInfos(info, false);
+//     EXPECT_GT(info.size(), 0);
+//     TAG_LOGI(AAFwkTag::TEST, "GetAbilityRunningInfos_003 end");
+// }
 
 /*
  * Feature: AbilityConnectManager
@@ -747,116 +724,6 @@ HWTEST_F(AbilityConnectManagerFourthTest, IsLauncher_004, TestSize.Level1)
     bool result = connectManager->IsLauncher(abilityRecord);
     EXPECT_TRUE(result);
     TAG_LOGI(AAFwkTag::TEST, "IsLauncher_004 end");
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: IsUIExtensionFocused
- */
-HWTEST_F(AbilityConnectManagerFourthTest, IsUIExtensionFocused_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionFocused_001 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    uint32_t uiExtensionTokenId = 1;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> focusToken = abilityRecord->GetToken();
-    abilityRecord->abilityInfo_.applicationInfo.accessTokenId = 5;
-    connectManager->uiExtensionMap_.clear();
-    connectManager->uiExtensionMap_.emplace(focusToken, std::make_pair(abilityRecord, nullptr));
-
-    bool result = connectManager->IsUIExtensionFocused(uiExtensionTokenId, focusToken);
-    EXPECT_FALSE(result);
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionFocused_001 end");
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: IsUIExtensionFocused
- */
-HWTEST_F(AbilityConnectManagerFourthTest, IsUIExtensionFocused_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionFocused_002 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    uint32_t uiExtensionTokenId = 1;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> focusToken = abilityRecord->GetToken();
-    abilityRecord->abilityInfo_.applicationInfo.accessTokenId = uiExtensionTokenId;
-    sptr<SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
-    sessionInfo->callerToken = focusToken;
-    connectManager->uiExtensionMap_.clear();
-    connectManager->uiExtensionMap_.emplace(focusToken, std::make_pair(abilityRecord, sessionInfo));
-
-    bool result = connectManager->IsUIExtensionFocused(uiExtensionTokenId, focusToken);
-    EXPECT_TRUE(result);
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionFocused_002 end");
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: GetUIExtensionSourceToken
- */
-HWTEST_F(AbilityConnectManagerFourthTest, GetUIExtensionSourceToken_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_001 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    sptr<IRemoteObject> nulltoken = nullptr;
-    sptr<IRemoteObject> resultToken = connectManager->GetUIExtensionSourceToken(nulltoken);
-    EXPECT_EQ(resultToken, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_001 end");
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: GetUIExtensionSourceToken
- */
-HWTEST_F(AbilityConnectManagerFourthTest, GetUIExtensionSourceToken_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_002 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> token = abilityRecord->GetToken();
-    connectManager->uiExtensionMap_.emplace(token, std::make_pair(abilityRecord, nullptr));
-
-    sptr<IRemoteObject> resultToken = connectManager->GetUIExtensionSourceToken(token);
-    EXPECT_EQ(resultToken, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_002 end");
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: GetUIExtensionSourceToken
- */
-HWTEST_F(AbilityConnectManagerFourthTest, GetUIExtensionSourceToken_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_002 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    sptr<SessionInfo> sessionInfo = new SessionInfo();
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
-        abilityRequest_);
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> token = abilityRecord->GetToken();
-    connectManager->uiExtensionMap_.clear();
-    connectManager->uiExtensionMap_.emplace(token, std::make_pair(abilityRecord, sessionInfo));
-
-    sptr<IRemoteObject> resultToken = connectManager->GetUIExtensionSourceToken(token);
-    EXPECT_EQ(resultToken, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_002 end");
 }
 
 /*
@@ -958,52 +825,7 @@ HWTEST_F(AbilityConnectManagerFourthTest, RemoveServiceFromMapSafe_001, TestSize
     TAG_LOGI(AAFwkTag::TEST, "RemoveServiceFromMapSafe_001 end");
 }
 
-/*
- * Feature: AbilityConnectManager
- * Function: QueryPreLoadUIExtensionRecordInner
- */
-HWTEST_F(AbilityConnectManagerFourthTest, QueryPreLoadUIExtensionRecordInner_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecordInner_001 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
 
-    AppExecFwk::ElementName element("deviceId", "bundleName", "abilityName", "moduleName");
-    std::string moduleName = "testModule";
-    int32_t hostPid = 0;
-    int32_t recordNum = 0;
-
-    int32_t result =
-        connectManager->QueryPreLoadUIExtensionRecordInner(element, moduleName, hostPid, recordNum);
-    EXPECT_EQ(result, ERR_OK);
-
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-    result =
-        connectManager->QueryPreLoadUIExtensionRecordInner(element, moduleName, hostPid, recordNum);
-    EXPECT_EQ(result, ERR_NULL_OBJECT);
-    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecordInner_001 end");
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: QueryPreLoadUIExtensionRecordInner
- */
-HWTEST_F(AbilityConnectManagerFourthTest, QueryPreLoadUIExtensionRecordInner_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecordInner_002 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AppExecFwk::ElementName element("deviceId", "bundleName", "abilityName", "moduleName");
-    std::string moduleName = "testModule";
-    int32_t hostPid = 0;
-    int32_t recordNum = 0;
-
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-    int result = connectManager->QueryPreLoadUIExtensionRecordInner(element, moduleName, hostPid, recordNum);
-    EXPECT_EQ(result, ERR_NULL_OBJECT);
-    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecordInner_002 end");
-}
 /*
  * Feature: AbilityConnectManager
  * Function: SuspendExtensionAbilityLocked

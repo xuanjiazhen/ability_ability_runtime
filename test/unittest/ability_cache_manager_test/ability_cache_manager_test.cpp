@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "ability_connect_manager.h"
+// #include "ability_connect_manager.h"
 
 #include "ability_config.h"
 #include "ability_manager_errors.h"

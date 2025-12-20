@@ -67,16 +67,6 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     return ERR_OK;
 }
 
-void AbilityConnectManager::SetLastExitReason(
-    const AbilityRequest &abilityRequest, std::shared_ptr<BaseExtensionRecord> &targetRecord)
-{
-}
-
-void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<BaseExtensionRecord> abilityRecord,
-    const AbilityRequest &abilityRequest)
-{
-}
-
 void AbilityConnectManager::EnqueueStartServiceReq(const AbilityRequest &abilityRequest, const std::string &serviceUri)
 {
 }
@@ -91,17 +81,6 @@ int AbilityConnectManager::StopServiceAbilityLocked(const AbilityRequest &abilit
     return ERR_OK;
 }
 
-int32_t AbilityConnectManager::GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest, bool isCreatedByConnect,
-    const std::string &hostBundleName, std::shared_ptr<BaseExtensionRecord> &extensionRecord, bool &isLoaded)
-{
-    return ERR_OK;
-}
-
-void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abilityRequest,
-    const bool isCreatedByConnect, std::shared_ptr<BaseExtensionRecord> &targetService, bool &isLoadedAbility)
-{
-}
-
 void AbilityConnectManager::RemoveServiceFromMapSafe(const std::string &serviceKey)
 {
 }
@@ -110,31 +89,6 @@ void AbilityConnectManager::RemoveServiceFromMapSafe(const std::string &serviceK
 void AbilityConnectManager::GetConnectRecordListFromMap(
     const sptr<IAbilityConnection> &connect, std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList)
 {
-}
-
-int32_t AbilityConnectManager::GetOrCreateTargetServiceRecord(
-    const AbilityRequest &abilityRequest, const sptr<UIExtensionAbilityConnectInfo> &connectInfo,
-    std::shared_ptr<BaseExtensionRecord> &targetService, bool &isLoadedAbility)
-{
-    return ERR_OK;
-}
-
-int AbilityConnectManager::PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest,
-    std::string &hostBundleName, int32_t hostPid)
-{
-    return ERR_OK;
-}
-
-int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest,
-    std::string &hostBundleName, int32_t hostPid)
-{
-    return ERR_OK;
-}
-
-int AbilityConnectManager::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
-    int32_t &hostPid)
-{
-    return ERR_OK;
 }
 
 void AbilityConnectManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
@@ -299,12 +253,6 @@ std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetExtensionByIdFrom
     return nullptr;
 }
 
-std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetUIExtensionBySessionInfo(
-    const sptr<SessionInfo> &sessionInfo)
-{
-    return MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_;
-}
-
 std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetExtensionByTokenFromTerminatingMap(
     const sptr<IRemoteObject> &token)
 {
@@ -422,10 +370,10 @@ void AbilityConnectManager::BackgroundAbilityWindowLocked(const std::shared_ptr<
 {
 }
 
-void AbilityConnectManager::DoBackgroundAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const sptr<SessionInfo> &sessionInfo)
-{
-}
+// void AbilityConnectManager::DoBackgroundAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+//     const sptr<SessionInfo> &sessionInfo)
+// {
+// }
 
 void AbilityConnectManager::TerminateAbilityWindowLocked(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
     const sptr<SessionInfo> &sessionInfo)
@@ -460,18 +408,6 @@ void AbilityConnectManager::HandleCallBackDiedTask(const sptr<IRemoteObject> &co
 {
 }
 
-int32_t AbilityConnectManager::GetActiveUIExtensionList(
-    const int32_t pid, std::vector<std::string> &extensionList)
-{
-    return 0;
-}
-
-int32_t AbilityConnectManager::GetActiveUIExtensionList(
-    const std::string &bundleName, std::vector<std::string> &extensionList)
-{
-    return 0;
-}
-
 void AbilityConnectManager::OnLoadAbilityFailed(std::shared_ptr<BaseExtensionRecord> abilityRecord)
 {
 }
@@ -495,10 +431,6 @@ void AbilityConnectManager::CleanActivatingTimeoutAbility(std::shared_ptr<BaseEx
 bool AbilityConnectManager::IsAbilityNeedKeepAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     return true;
-}
-
-void AbilityConnectManager::ClearPreloadUIExtensionRecord(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
 }
 
 void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
@@ -533,10 +465,6 @@ void AbilityConnectManager::CloseAssertDialog(const std::string &assertSessionId
 {
 }
 
-void AbilityConnectManager::HandleUIExtensionDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-}
-
 void AbilityConnectManager::RestartAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
     int32_t currentUserId)
 {
@@ -547,28 +475,28 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
     return "";
 }
 
-void AbilityConnectManager::DumpState(std::vector<std::string> &info, bool isClient, const std::string &args)
-{
-}
+// void AbilityConnectManager::DumpState(std::vector<std::string> &info, bool isClient, const std::string &args)
+// {
+// }
 
-void AbilityConnectManager::DumpStateByUri(std::vector<std::string> &info, bool isClient, const std::string &args,
-    std::vector<std::string> &params)
-{
-}
+// void AbilityConnectManager::DumpStateByUri(std::vector<std::string> &info, bool isClient, const std::string &args,
+//     std::vector<std::string> &params)
+// {
+// }
 
-void AbilityConnectManager::GetExtensionRunningInfos(int upperLimit, std::vector<ExtensionRunningInfo> &info,
-    const int32_t userId, bool isPerm)
-{
-}
+// void AbilityConnectManager::GetExtensionRunningInfos(int upperLimit, std::vector<ExtensionRunningInfo> &info,
+//     const int32_t userId, bool isPerm)
+// {
+// }
 
-void AbilityConnectManager::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info, bool isPerm)
-{
-}
+// void AbilityConnectManager::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info, bool isPerm)
+// {
+// }
 
-void AbilityConnectManager::GetExtensionRunningInfo(std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const int32_t userId, std::vector<ExtensionRunningInfo> &info)
-{
-}
+// void AbilityConnectManager::GetExtensionRunningInfo(std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+//     const int32_t userId, std::vector<ExtensionRunningInfo> &info)
+// {
+// }
 
 void AbilityConnectManager::PauseExtensions()
 {
@@ -617,37 +545,6 @@ void AbilityConnectManager::MoveToTerminatingMap(const std::shared_ptr<BaseExten
 {
 }
 
-void AbilityConnectManager::AddUIExtWindowDeathRecipient(const sptr<IRemoteObject> &session)
-{
-}
-
-void AbilityConnectManager::RemoveUIExtWindowDeathRecipient(const sptr<IRemoteObject> &session)
-{
-}
-
-void AbilityConnectManager::OnUIExtWindowDied(const wptr<IRemoteObject> &remote)
-{
-}
-
-void AbilityConnectManager::HandleUIExtWindowDiedTask(const sptr<IRemoteObject> &remote)
-{
-}
-
-bool AbilityConnectManager::IsUIExtensionFocused(uint32_t uiExtensionTokenId, const sptr<IRemoteObject>& focusToken)
-{
-    return true;
-}
-
-sptr<IRemoteObject> AbilityConnectManager::GetUIExtensionSourceToken(const sptr<IRemoteObject> &token)
-{
-    return nullptr;
-}
-
-void AbilityConnectManager::GetUIExtensionCallerTokenList(const std::shared_ptr<AbilityRecord> &abilityRecord,
-    std::list<sptr<IRemoteObject>> &callerList)
-{
-}
-
 bool AbilityConnectManager::IsWindowExtensionFocused(uint32_t extensionTokenId, const sptr<IRemoteObject>& focusToken)
 {
     return true;
@@ -669,11 +566,6 @@ void AbilityConnectManager::HandleExtensionDisconnectTask(const std::shared_ptr<
 {
 }
 
-bool AbilityConnectManager::IsUIExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-    return true;
-}
-
 bool AbilityConnectManager::IsCacheExtensionAbilityByInfo(const AppExecFwk::AbilityInfo &abilityInfo)
 {
     return true;
@@ -684,36 +576,11 @@ bool AbilityConnectManager::IsCacheExtensionAbility(const std::shared_ptr<BaseEx
     return true;
 }
 
-bool AbilityConnectManager::CheckUIExtensionAbilitySessionExist(
-    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-    return true;
-}
-
-void AbilityConnectManager::RemoveUIExtensionAbilityRecord(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-}
-
-void AbilityConnectManager::AddUIExtensionAbilityRecordToTerminatedList(
-    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-}
-
-bool AbilityConnectManager::IsCallerValid(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-    return true;
-}
-
-std::shared_ptr<AAFwk::AbilityRecord> AbilityConnectManager::GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token)
-{
-    return nullptr;
-}
-
-int32_t AbilityConnectManager::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
-    UIExtensionSessionInfo &uiExtensionSessionInfo)
-{
-    return ERR_OK;
-}
+// int32_t AbilityConnectManager::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
+//     UIExtensionSessionInfo &uiExtensionSessionInfo)
+// {
+//     return ERR_OK;
+// }
 
 void AbilityConnectManager::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {
@@ -741,11 +608,6 @@ EventInfo AbilityConnectManager::BuildEventInfo(const std::shared_ptr<BaseExtens
     return eventInfo;
 }
 
-void AbilityConnectManager::UpdateUIExtensionInfo(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    int32_t hostPid)
-{
-}
-
 std::string AbilityConnectManager::GenerateBundleName(const AbilityRequest &abilityRequest) const
 {
     return "";
@@ -771,60 +633,9 @@ int32_t AbilityConnectManager::UpdateKeepAliveEnableState(const std::string &bun
     return ERR_OK;
 }
 
-int32_t AbilityConnectManager::QueryPreLoadUIExtensionRecordInner(const AppExecFwk::ElementName &element,
-                                                                  const std::string &moduleName,
-                                                                  const int32_t hostPid,
-                                                                  int32_t &recordNum)
-{
-    return ERR_OK;
-}
-
-std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetUIExtensionBySessionFromServiceMap(
-    const sptr<SessionInfo> &sessionInfo)
-{
-    return MyStatus::GetInstance().acmGetUIExtensionBySessionFromServiceMap_;
-}
-
-void AbilityConnectManager::UpdateUIExtensionBindInfo(
-    const std::shared_ptr<BaseExtensionRecord> &abilityRecord, std::string callerBundleName, int32_t notifyProcessBind)
-{
-}
-
-int AbilityConnectManager::UnPreloadUIExtensionAbilityLocked(int32_t extensionAbilityId)
-{
-    return 0;
-}
-
-int AbilityConnectManager::ClearAllPreloadUIExtensionAbilityLocked()
-{
-    return 0;
-}
-
-int32_t AbilityConnectManager::RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken)
-{
-    return 0;
-}
-
-int32_t AbilityConnectManager::UnRegisterPreloadUIExtensionHostClient(int32_t key)
-{
-    return 0;
-}
-
-class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
-public:
-    using PreloadUIExtensionHostClientDiedHandler = std::function<void(const wptr<IRemoteObject> &)>;
-    explicit PreloadUIExtensionHostClientDeathRecipient(PreloadUIExtensionHostClientDiedHandler handler)
-        : diedHandler_(handler)
-    {}
-    ~PreloadUIExtensionHostClientDeathRecipient() = default;
-    void OnRemoteDied(const wptr<IRemoteObject> &remote) final
-    {
-        if (diedHandler_) {
-            diedHandler_(remote);
-        }
-    }
-private:
-    PreloadUIExtensionHostClientDiedHandler diedHandler_;
-};
+// int AbilityConnectManager::ClearAllPreloadUIExtensionAbilityLocked()
+// {
+//     return 0;
+// }
 }  // namespace AAFwk
 }  // namespace OHOS

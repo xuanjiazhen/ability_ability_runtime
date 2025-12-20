@@ -21,6 +21,8 @@
 #include <unordered_map>
 
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "ability_event_handler.h"
 #include "cpp/mutex.h"
 #include "data_ability_manager.h"

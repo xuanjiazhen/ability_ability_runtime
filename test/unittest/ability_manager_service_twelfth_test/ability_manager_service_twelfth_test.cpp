@@ -24,6 +24,8 @@
 #include "utils/modal_system_dialog_util.h"
 #include "remote_on_listener_stub_mock.h"
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "ability_bundle_event_callback.h"
 #include "session/host/include/session.h"
