@@ -985,7 +985,8 @@ void UIExtensionAbilityManager::BackgroundAbilityWindowLocked(const std::shared_
     DoBackgroundAbilityWindow(abilityRecord, sessionInfo);
 }
 
-void UIExtensionAbilityManager::TerminateUIExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+void UIExtensionAbilityManager::HandleUIExtensionAbilityRecordTermination(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         AddUIExtensionAbilityRecordToTerminatedList(abilityRecord);
