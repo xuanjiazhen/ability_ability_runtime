@@ -4004,7 +4004,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
         return result;
     }
 
-    auto connectManager = GetCommonExtensionManagerByUserId(validUserId);
+    auto connectManager = GetConnectManagerByUserId(validUserId, abilityInfo.extensionAbilityType);
     if (!connectManager) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "connectManager null userId=%{public}d", validUserId);
         if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {

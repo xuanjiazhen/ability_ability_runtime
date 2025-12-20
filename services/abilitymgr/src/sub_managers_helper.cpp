@@ -254,11 +254,11 @@ std::vector<std::shared_ptr<AbilityConnectManager>> SubManagersHelper::GetConnec
     std::vector<std::shared_ptr<AbilityConnectManager>> result;
     result.reserve(totalSize);
     
-    for (const auto& [key, value] : uiExtensionAbilityManagers_) {
+    for (const auto& [key, value] : commonExtensionManagers_) {
         result.push_back(value);
     }
-    
-    for (const auto& [key, value] : commonExtensionManagers_) {
+
+    for (const auto& [key, value] : uiExtensionAbilityManagers_) {
         result.push_back(value);
     }
     
