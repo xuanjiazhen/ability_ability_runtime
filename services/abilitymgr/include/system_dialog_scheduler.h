@@ -63,6 +63,8 @@ struct DialogAppInfo {
     bool isAppLink = false;
     int32_t appIndex = 0;
     AppExecFwk::MultiAppModeData multiAppMode;
+    std::string codePath = "";
+    std::string installSource = "";
 };
 /**
  * @class SystemDialogScheduler
