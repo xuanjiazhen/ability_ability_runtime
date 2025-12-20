@@ -2028,7 +2028,6 @@ int AbilityManagerService::StartAbilityForResultAsCaller(const Want &want, const
         validUserId =
             AbilityRuntime::UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
     }
-    // auto connectManager = GetConnectManagerByUserId(validUserId);
     auto connectManager = GetUIExtensionAbilityManagerByUserId(validUserId);
     CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
     auto asCallerSourceToken = connectManager->GetUIExtensionSourceToken(callerToken);
@@ -11935,7 +11934,6 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
             validUserId =
                 AbilityRuntime::UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
         }
-        // auto connectManager = GetConnectManagerByUserId(validUserId);
         auto connectManager = GetUIExtensionAbilityManagerByUserId(validUserId);
 
         CHECK_POINTER_AND_RETURN(connectManager, false);
@@ -13503,7 +13501,6 @@ void AbilityManagerService::OnStartProcessFailed(const std::vector<sptr<IRemoteO
         TAG_LOGW(AAFwkTag::ABILITYMGR, "NotifyStartProcessFailed, ability:%{public}s, bundle:%{public}s",
             abilityRecord->GetAbilityInfo().name.c_str(), abilityRecord->GetAbilityInfo().bundleName.c_str());
         if (abilityRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::EXTENSION) {
-            // auto connectManager = GetConnectManagerByToken(token);
             auto connectManager = GetConnectManagerByToken(token, abilityRecord->GetAbilityInfo().extensionAbilityType);
             if (connectManager == nullptr) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null connectManager");
@@ -15170,7 +15167,6 @@ void AbilityManagerService::ForceTerminateServiceExtensionByPid(int32_t pid, int
     std::vector<sptr<IRemoteObject>> tokens;
     IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(
         pid, tokens));
-    // auto connectManager = GetConnectManagerByUserId(userId);
     auto connectManager = GetCommonExtensionManagerByUserId(userId);
     if (connectManager) {
         for (const auto& token : tokens) {
@@ -16296,7 +16292,6 @@ int32_t AbilityManagerService::ClearPreloadedUIExtensionAbility(int32_t extensio
     }
     int32_t validUserId = GetValidUserId(userId);
     AbilityRequest abilityRequest;
-    // auto connectManager = GetConnectManagerByUserId(validUserId);
     auto connectManager = GetUIExtensionAbilityManagerByUserId(validUserId);    
     if (connectManager == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null connectManager");
@@ -16323,7 +16318,6 @@ int32_t AbilityManagerService::ClearPreloadedUIExtensionAbilities(int32_t userId
         return ERR_PERMISSION_DENIED;
     }
     int32_t validUserId = GetValidUserId(userId);
-    // auto connectManager = GetConnectManagerByUserId(validUserId);
     auto connectManager = GetUIExtensionAbilityManagerByUserId(validUserId);
     if (connectManager == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null connectManager");
@@ -16353,7 +16347,6 @@ int32_t AbilityManagerService::RegisterPreloadUIExtensionHostClient(const sptr<I
         return ERR_INVALID_VALUE;
     }
     int32_t validUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-    // auto connectManager = GetConnectManagerByUserId(validUserId);
     auto connectManager = GetUIExtensionAbilityManagerByUserId(validUserId);
     if (connectManager == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null connectManager");
@@ -16373,7 +16366,6 @@ int32_t AbilityManagerService::UnRegisterPreloadUIExtensionHostClient(int32_t ca
         return ERR_PERMISSION_DENIED;
     }
     int32_t validUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-    // auto connectManager = GetConnectManagerByUserId(validUserId);
     auto connectManager = GetUIExtensionAbilityManagerByUserId(validUserId);
     if (connectManager == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null connectManager");
