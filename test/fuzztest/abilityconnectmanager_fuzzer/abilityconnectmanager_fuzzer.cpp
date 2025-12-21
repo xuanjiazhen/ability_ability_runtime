@@ -152,13 +152,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     abilityConnectManager->IsAbilityNeedKeepAlive(abilityRecord);
     abilityConnectManager->HandleAbilityDiedTask(abilityRecord, int32Param);
     std::vector<std::string> info;
-    abilityConnectManager->DumpState(info, boolParam, stringParam);
-    abilityConnectManager->DumpStateByUri(info, boolParam, stringParam, info);
     std::vector<ExtensionRunningInfo> extensionRunningInfo;
-    abilityConnectManager->GetExtensionRunningInfos(intParam, extensionRunningInfo, int32Param, boolParam);
     std::vector<AbilityRunningInfo> abilityRunningInfo;
-    // abilityConnectManager->GetAbilityRunningInfos(abilityRunningInfo, boolParam);
-    abilityConnectManager->GetExtensionRunningInfo(abilityRecord, int32Param, extensionRunningInfo);
     abilityConnectManager->PauseExtensions();
     return true;
 }
