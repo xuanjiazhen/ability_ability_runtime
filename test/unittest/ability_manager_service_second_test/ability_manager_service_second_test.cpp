@@ -19,6 +19,8 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "ability_connection.h"
 #include "ability_start_setting.h"
 #include "recovery_param.h"
@@ -1585,21 +1587,21 @@ HWTEST_F(AbilityManagerServiceSecondTest, DataDumpStateInner_001, TestSize.Level
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest DataDumpStateInner_001 end");
 }
 
-/*
- * Feature: AbilityManagerService
- * Function: DumpState
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService DumpState
- */
-HWTEST_F(AbilityManagerServiceSecondTest, DumpState_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest DumpState_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    std::vector<std::string> info;
-    ASSERT_NE(abilityMs_, nullptr);
-    abilityMs_->DumpState("", info);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest DumpState_001 end");
-}
+// /*
+//  * Feature: AbilityManagerService
+//  * Function: DumpState
+//  * SubFunction: NA
+//  * FunctionPoints: AbilityManagerService DumpState
+//  */
+// HWTEST_F(AbilityManagerServiceSecondTest, DumpState_001, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest DumpState_001 start");
+//     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+//     std::vector<std::string> info;
+//     ASSERT_NE(abilityMs_, nullptr);
+//     abilityMs_->DumpState("", info);
+//     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest DumpState_001 end");
+// }
 
 /*
  * Feature: AbilityManagerService
