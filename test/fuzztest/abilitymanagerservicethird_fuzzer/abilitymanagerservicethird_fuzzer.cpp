@@ -82,7 +82,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     abilityms->GetMissionListManagerByUserId(int32Param);
     abilityms->GetConnectManagerByUserId(int32Param);
     abilityms->GetDataAbilityManagerByUserId(int32Param);
-    abilityms->GetConnectManagerByToken(token);
     abilityms->GetAutoStartupStatusForSelf(isAutoStartEnabled);
 
     return true;
