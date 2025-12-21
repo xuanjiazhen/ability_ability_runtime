@@ -20,7 +20,6 @@ namespace OHOS {
 namespace AAFwk {
 AbilityConnectManager::AbilityConnectManager(int userId) : userId_(userId)
 {
-    uiExtensionAbilityRecordMgr_ = std::make_unique<AbilityRuntime::ExtensionRecordManager>(userId);
 }
 
 AbilityConnectManager::~AbilityConnectManager()
@@ -365,16 +364,6 @@ void AbilityConnectManager::CommandAbilityWindow(const std::shared_ptr<BaseExten
 {
 }
 
-void AbilityConnectManager::BackgroundAbilityWindowLocked(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const sptr<SessionInfo> &sessionInfo)
-{
-}
-
-// void AbilityConnectManager::DoBackgroundAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-//     const sptr<SessionInfo> &sessionInfo)
-// {
-// }
-
 void AbilityConnectManager::TerminateAbilityWindowLocked(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
     const sptr<SessionInfo> &sessionInfo)
 {
@@ -576,12 +565,6 @@ bool AbilityConnectManager::IsCacheExtensionAbility(const std::shared_ptr<BaseEx
     return true;
 }
 
-// int32_t AbilityConnectManager::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
-//     UIExtensionSessionInfo &uiExtensionSessionInfo)
-// {
-//     return ERR_OK;
-// }
-
 void AbilityConnectManager::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {
 }
@@ -633,9 +616,5 @@ int32_t AbilityConnectManager::UpdateKeepAliveEnableState(const std::string &bun
     return ERR_OK;
 }
 
-// int AbilityConnectManager::ClearAllPreloadUIExtensionAbilityLocked()
-// {
-//     return 0;
-// }
 }  // namespace AAFwk
 }  // namespace OHOS

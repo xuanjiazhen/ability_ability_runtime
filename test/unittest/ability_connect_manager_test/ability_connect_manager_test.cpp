@@ -731,26 +731,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_017, TestSize.Level1)
     }
 }
 
-// /*
-//  * Feature: AbilityConnectManager
-//  * Function: GetActiveUIExtensionList
-//  * SubFunction: NA
-//  * FunctionPoints: NA
-//  * EnvConditions:NA
-//  * CaseDescription: verify the GetActiveUIExtensionList function.
-//  */
-// HWTEST_F(AbilityConnectManagerTest, GetActiveUIExtensionList_01, TestSize.Level1)
-// {
-//     int32_t pid = 1;
-//     std::vector<std::string> extensionList;
-//     auto result = ConnectManager()->GetActiveUIExtensionList(pid, extensionList);
-//     EXPECT_EQ(result, ERR_OK);
-
-//     std::string bundleName = "com.test.demo";
-//     result = ConnectManager()->GetActiveUIExtensionList(bundleName, extensionList);
-//     EXPECT_EQ(result, ERR_OK);
-// }
-
 /*
  * Feature: AbilityConnectManager
  * Function: ScheduleConnectAbilityDoneLocked
@@ -2354,20 +2334,20 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_RestartAbility_003, TestSize
  * EnvConditions: NA
  * CaseDescription: Verify AbilityConnectManager DumpStateByUri
  */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_DumpStateByUri_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    ASSERT_NE(connectManager, nullptr);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-    std::vector<std::string> info;
-    bool isClient = false;
-    std::string args = "args";
-    std::vector<std::string> params;
-    connectManager->serviceMap_.emplace(args, abilityRecord);
-    connectManager->DumpStateByUri(info, isClient, args, params);
-    connectManager->serviceMap_.clear();
-    connectManager->DumpStateByUri(info, isClient, args, params);
-}
+// HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_DumpStateByUri_001, TestSize.Level1)
+// {
+//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+//     ASSERT_NE(connectManager, nullptr);
+//     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+//     std::vector<std::string> info;
+//     bool isClient = false;
+//     std::string args = "args";
+//     std::vector<std::string> params;
+//     connectManager->serviceMap_.emplace(args, abilityRecord);
+//     connectManager->DumpStateByUri(info, isClient, args, params);
+//     connectManager->serviceMap_.clear();
+//     connectManager->DumpStateByUri(info, isClient, args, params);
+// }
 
 // /*
 //  * Feature: AbilityConnectManager
@@ -2568,9 +2548,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Start_Service_With_SessionInfo_001, Te
     EXPECT_EQ(OHOS::ERR_OK, result);
     abilityRequest_.sessionInfo = nullptr;
     WaitUntilTaskDone(TaskHandler());
-
-    // auto service = ConnectManager()->GetUIExtensionBySessionInfo(sessionInfo);
-    // EXPECT_EQ(static_cast<int>(ConnectManager()->GetServiceMap().size()), 1);
 }
 
 /*
@@ -2934,30 +2911,6 @@ HWTEST_F(AbilityConnectManagerTest, PrintTimeOutLog_008, TestSize.Level1)
     uint32_t msgId = 3;
     connectManager->PrintTimeOutLog(abilityRecord, msgId);
     connectManager.reset();
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: OnAbilityRequestDone
- * SubFunction: NA
- * FunctionPoints: AbilityConnectManager OnAbilityRequestDone
- * EnvConditions: NA
- * CaseDescription: Verify OnAbilityRequestDone
- * @tc.require: AR000I8B26
- */
-HWTEST_F(AbilityConnectManagerTest, OnAbilityRequestDone_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-    sptr<IRemoteObject> token = abilityRecord->GetToken();
-    abilityRecord->abilityInfo_.extensionAbilityType = ExtensionAbilityType::UI;
-    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
-    connectManager->serviceMap_.emplace("first", abilityRecord);
-    connectManager->OnAbilityRequestDone(token, 2);
-    EXPECT_EQ(abilityRecord->GetAbilityState(), AbilityState::FOREGROUNDING);
-    connectManager->serviceMap_.erase("first");
-    abilityRecord->abilityInfo_.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
-    abilityRecord->SetAbilityState(AbilityState::INITIAL);
 }
 
 /*

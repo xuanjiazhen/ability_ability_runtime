@@ -496,7 +496,7 @@ private:
      * RemoveConnectionRecordFromMap.
      *
      * @param connect, the ptr of the connect record.
-     */
+     */SetServiceAfterNewCreate
     void RemoveConnectionRecordFromMap(std::shared_ptr<ConnectionRecord> connect);
 
     /**
