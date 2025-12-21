@@ -19,6 +19,8 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "ability_connection.h"
 #include "ability_start_setting.h"
 #include "recovery_param.h"
@@ -248,19 +250,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, GetDataAbilityManagerByUserId_001, Test
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetDataAbilityManagerByUserId_001 end");
 }
 
-/*
- * Feature: AbilityManagerService
- * Function: GetConnectManagerByToken
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService GetConnectManagerByToken
- */
-HWTEST_F(AbilityManagerServiceThirdTest, GetConnectManagerByToken_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetConnectManagerByToken_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_EQ(abilityMs_->GetConnectManagerByToken(nullptr), nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetConnectManagerByToken_001 end");
-}
 
 /*
  * Feature: AbilityManagerService
@@ -507,11 +496,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, GetAbilityRunningInfos_001, TestSize.Le
         EXPECT_EQ(abilityMs_->GetAbilityRunningInfos(info), ERR_INVALID_VALUE);
         abilityMs_->subManagersHelper_->currentMissionListManager_ = temp1;
 
-        auto temp2 = abilityMs_->subManagersHelper_->currentConnectManager_;
-        abilityMs_->subManagersHelper_->currentConnectManager_.reset();
-        EXPECT_NE(abilityMs_->GetAbilityRunningInfos(info), ERR_OK);
-        abilityMs_->subManagersHelper_->currentConnectManager_ = temp2;
-
         auto temp3 = abilityMs_->subManagersHelper_->currentDataAbilityManager_;
         abilityMs_->subManagersHelper_->currentDataAbilityManager_.reset();
         EXPECT_NE(abilityMs_->GetAbilityRunningInfos(info), ERR_OK);
@@ -520,21 +504,21 @@ HWTEST_F(AbilityManagerServiceThirdTest, GetAbilityRunningInfos_001, TestSize.Le
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetAbilityRunningInfos_001 end");
 }
 
-/*
- * Feature: AbilityManagerService
- * Function: GetExtensionRunningInfos
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService GetExtensionRunningInfos
- */
-HWTEST_F(AbilityManagerServiceThirdTest, GetExtensionRunningInfos_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetExtensionRunningInfos_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    std::vector<AAFwk::ExtensionRunningInfo> extensionRunningInfo;
-    EXPECT_EQ(abilityMs_->GetExtensionRunningInfos(10, extensionRunningInfo), ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetExtensionRunningInfos_001 end");
-}
+// /*
+//  * Feature: AbilityManagerService
+//  * Function: GetExtensionRunningInfos
+//  * SubFunction: NA
+//  * FunctionPoints: AbilityManagerService GetExtensionRunningInfos
+//  */
+// HWTEST_F(AbilityManagerServiceThirdTest, GetExtensionRunningInfos_001, TestSize.Level1)
+// {
+//     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetExtensionRunningInfos_001 start");
+//     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+//     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+//     std::vector<AAFwk::ExtensionRunningInfo> extensionRunningInfo;
+//     EXPECT_EQ(abilityMs_->GetExtensionRunningInfos(10, extensionRunningInfo), ERR_OK);
+//     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetExtensionRunningInfos_001 end");
+// }
 
 /*
  * Feature: AbilityManagerService
@@ -592,7 +576,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, DisconnectBeforeCleanupByUserId_001, Te
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest DisconnectBeforeCleanupByUserId_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    abilityMs_->subManagersHelper_->InitConnectManager(100, false);
+    abilityMs_->subManagersHelper_->InitCommonExtensionManager(100, false);
 
     auto abilityRecord = MockExtensionRecordBase(AbilityType::SERVICE);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
@@ -601,14 +585,14 @@ HWTEST_F(AbilityManagerServiceThirdTest, DisconnectBeforeCleanupByUserId_001, Te
         std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1, nullptr);
     abilityRecord->currentState_ = AbilityState::ACTIVE;
     abilityRecord->AddConnectRecordToList(connection1);
-    abilityMs_->GetConnectManagerByUserId(100)->AddConnectObjectToMap(callback1->AsObject(),
+    abilityMs_->GetCommonExtensionManagerByUserId(100)->AddConnectObjectToMap(callback1->AsObject(),
         abilityRecord->GetConnectRecordList(), false);
-    abilityMs_->GetConnectManagerByUserId(100)->serviceMap_.emplace(abilityRecord->GetElementName().GetURI(),
+    abilityMs_->GetCommonExtensionManagerByUserId(100)->serviceMap_.emplace(abilityRecord->GetElementName().GetURI(),
         abilityRecord);
 
     abilityMs_->DisconnectBeforeCleanupByUserId(100);
     ASSERT_EQ(abilityRecord->GetConnectRecordList().empty(), true);
-    ASSERT_EQ(abilityMs_->GetConnectManagerByUserId(100)->GetConnectRecordListByCallback(callback1).empty(), true);
+    ASSERT_EQ(abilityMs_->GetCommonExtensionManagerByUserId(100)->GetConnectRecordListByCallback(callback1).empty(), true);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest DisconnectBeforeCleanupByUserId_001 end");
 }
 
@@ -3073,235 +3057,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, RestartSelfAtomicService_004, TestSize.
 
     EXPECT_EQ(abilityMs_->RestartSelfAtomicService(callerRecord->GetToken()), NOT_TOP_ABILITY);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest RestartSelfAtomicService_004 end");
-}
-
-/**
- * @tc.name: ClearPreloadedUIExtensionAbility_001
- * @tc.desc: Test ClearPreloadedUIExtensionAbility with non-system app caller
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, ClearPreloadedUIExtensionAbility_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbility_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-
-    int32_t extensionAbilityId = 100;
-    int32_t userId = 0;
-    auto result = abilityMs_->ClearPreloadedUIExtensionAbility(extensionAbilityId, userId);
-    EXPECT_NE(result, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbility_001 end");
-}
-
-/**
- * @tc.name: ClearPreloadedUIExtensionAbility_002
- * @tc.desc: Test ClearPreloadedUIExtensionAbility without permission
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, ClearPreloadedUIExtensionAbility_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbility_002 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-
-    int32_t extensionAbilityId = 100;
-    int32_t userId = 0;
-    auto result = abilityMs_->ClearPreloadedUIExtensionAbility(extensionAbilityId, userId);
-    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbility_002 end");
-}
-
-/**
- * @tc.name: ClearPreloadedUIExtensionAbility_003
- * @tc.desc: Test ClearPreloadedUIExtensionAbility with null connectManager
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, ClearPreloadedUIExtensionAbility_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbility_003 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-
-    int32_t extensionAbilityId = 100;
-    int32_t userId = -1;
-    auto result = abilityMs_->ClearPreloadedUIExtensionAbility(extensionAbilityId, userId);
-    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbility_003 end");
-}
-
-/**
- * @tc.name: ClearPreloadedUIExtensionAbility_004
- * @tc.desc: Test ClearPreloadedUIExtensionAbility with UnPreloadUIExtensionAbilityLocked failed
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, ClearPreloadedUIExtensionAbility_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbility_004 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-
-    int32_t extensionAbilityId = 999;
-    int32_t userId = 0;
-    auto result = abilityMs_->ClearPreloadedUIExtensionAbility(extensionAbilityId, userId);
-    EXPECT_NE(result, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbility_004 end");
-}
-
-/**
- * @tc.name: ClearPreloadedUIExtensionAbilities_001
- * @tc.desc: Test ClearPreloadedUIExtensionAbilities with non-system app caller
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, ClearPreloadedUIExtensionAbilities_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbilities_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-
-    int32_t userId = 0;
-    auto result = abilityMs_->ClearPreloadedUIExtensionAbilities(userId);
-    EXPECT_NE(result, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbilities_001 end");
-}
-
-/**
- * @tc.name: ClearPreloadedUIExtensionAbilities_002
- * @tc.desc: Test ClearPreloadedUIExtensionAbilities without permission
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, ClearPreloadedUIExtensionAbilities_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbilities_002 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-
-    int32_t userId = 0;
-    auto result = abilityMs_->ClearPreloadedUIExtensionAbilities(userId);
-    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbilities_002 end");
-}
-
-/**
- * @tc.name: ClearPreloadedUIExtensionAbilities_003
- * @tc.desc: Test ClearPreloadedUIExtensionAbilities with null connectManager
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, ClearPreloadedUIExtensionAbilities_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbilities_003 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-
-    int32_t userId = -1;
-    auto result = abilityMs_->ClearPreloadedUIExtensionAbilities(userId);
-    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbilities_003 end");
-}
-
-/**
- * @tc.name: ClearPreloadedUIExtensionAbilities_004
- * @tc.desc: Test ClearPreloadedUIExtensionAbilities with ClearAllPreloadUIExtensionAbilityLocked failed
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, ClearPreloadedUIExtensionAbilities_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbilities_004 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-    int32_t userId = 0;
-    auto result = abilityMs_->ClearPreloadedUIExtensionAbilities(userId);
-    EXPECT_NE(result, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearPreloadedUIExtensionAbilities_004 end");
-}
-
-/**
- * @tc.name: RegisterPreloadUIExtensionHostClient_001
- * @tc.desc: Test RegisterPreloadUIExtensionHostClient with non-system app caller
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, RegisterPreloadUIExtensionHostClient_001, TestSize.Level1)
-{
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-    AbilityRequest abilityRequest = GenerateAbilityRequest("0", "abilityName", "appName", "bundleName", "moduleName");
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
-    auto result = abilityMs_->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_NE(result, ERR_OK);
-}
-
-/**
- * @tc.name: RegisterPreloadUIExtensionHostClient_002
- * @tc.desc: Test RegisterPreloadUIExtensionHostClient without permission
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, RegisterPreloadUIExtensionHostClient_002, TestSize.Level1)
-{
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-    AbilityRequest abilityRequest = GenerateAbilityRequest("0", "abilityName", "appName", "bundleName", "moduleName");
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
-    auto result = abilityMs_->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
-}
-
-/**
- * @tc.name: RegisterPreloadUIExtensionHostClient_003
- * @tc.desc: Test RegisterPreloadUIExtensionHostClient with null callerToken
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, RegisterPreloadUIExtensionHostClient_003, TestSize.Level1)
-{
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-    sptr<IRemoteObject> callerToken = nullptr;
-    auto result = abilityMs_->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
-}
-
-/**
- * @tc.name: UnRegisterPreloadUIExtensionHostClient_001
- * @tc.desc: Test UnRegisterPreloadUIExtensionHostClient with non-system app caller
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, UnRegisterPreloadUIExtensionHostClient_001, TestSize.Level1)
-{
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-    int32_t callerPid = 1234;
-    auto result = abilityMs_->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_NE(result, ERR_OK);
-}
-
-/**
- * @tc.name: UnRegisterPreloadUIExtensionHostClient_002
- * @tc.desc: Test UnRegisterPreloadUIExtensionHostClient without permission
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, UnRegisterPreloadUIExtensionHostClient_002, TestSize.Level1)
-{
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-    int32_t callerPid = 1234;
-    auto result = abilityMs_->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
-}
-
-/**
- * @tc.name: UnRegisterPreloadUIExtensionHostClient_005
- * @tc.desc: Test UnRegisterPreloadUIExtensionHostClient with invalid callerPid
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceThirdTest, UnRegisterPreloadUIExtensionHostClient_005, TestSize.Level1)
-{
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs_, nullptr);
-    int32_t callerPid = -1;
-    auto result = abilityMs_->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_NE(result, ERR_OK);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

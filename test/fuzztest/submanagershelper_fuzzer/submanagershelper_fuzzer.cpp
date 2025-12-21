@@ -59,8 +59,6 @@ void SubManagersHelperFuzztest(bool switchUser, int64_t abilityRecordId,
     helper->GetDataAbilityManager(scheduler);
     helper->GetDataAbilityManagerByUserId(USER0_ID);
     helper->GetDataAbilityManagerByToken(token);
-    helper->GetConnectManagerByToken(token);
-    helper->GetConnectManagerByAbilityRecordId(abilityRecordId);
 }
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
