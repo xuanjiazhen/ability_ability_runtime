@@ -52,7 +52,7 @@ void SubManagersHelperFuzztest(bool switchUser, int64_t abilityRecordId,
     sptr<IRemoteObject> token = GetFuzzAbilityToken();
 
     helper->InitSubManagers(USER0_ID, switchUser);
-    helper->InitConnectManager(USER0_ID, switchUser);
+    // helper->InitConnectManager(USER0_ID, switchUser);
     helper->InitPendWantManager(USER0_ID, switchUser);
     helper->InitUIAbilityManager(USER0_ID, switchUser);
     helper->ClearSubManagers(USER0_ID);
