@@ -96,8 +96,7 @@ void AbilityConnectManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
 }
 
 int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityRequest,
-    const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
-    sptr<UIExtensionAbilityConnectInfo> connectInfo)
+    const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo)
 {
     return ERR_OK;
 }
@@ -153,10 +152,6 @@ int AbilityConnectManager::AttachAbilityThreadLocked(
     const sptr<IAbilityScheduler> &scheduler, const sptr<IRemoteObject> &token)
 {
     return ERR_OK;
-}
-
-void AbilityConnectManager::OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state)
-{
 }
 
 void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
@@ -463,29 +458,6 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
 {
     return "";
 }
-
-// void AbilityConnectManager::DumpState(std::vector<std::string> &info, bool isClient, const std::string &args)
-// {
-// }
-
-// void AbilityConnectManager::DumpStateByUri(std::vector<std::string> &info, bool isClient, const std::string &args,
-//     std::vector<std::string> &params)
-// {
-// }
-
-// void AbilityConnectManager::GetExtensionRunningInfos(int upperLimit, std::vector<ExtensionRunningInfo> &info,
-//     const int32_t userId, bool isPerm)
-// {
-// }
-
-// void AbilityConnectManager::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info, bool isPerm)
-// {
-// }
-
-// void AbilityConnectManager::GetExtensionRunningInfo(std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-//     const int32_t userId, std::vector<ExtensionRunningInfo> &info)
-// {
-// }
 
 void AbilityConnectManager::PauseExtensions()
 {

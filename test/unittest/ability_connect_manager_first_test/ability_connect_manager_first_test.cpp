@@ -566,7 +566,7 @@ HWTEST_F(AbilityConnectManagerTest, NeedExtensionControl_002, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerTest, StartAbilityLocked_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityLocked_001 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;

@@ -361,7 +361,7 @@ HWTEST_F(AbilityConnectManagerFourthTest, DispatchInactive_001, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerFourthTest, DispatchInactive_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "DispatchInactive_002 start");
-    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
     std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(

@@ -178,7 +178,6 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, CloseUIExtensionAbilityBySCB_001, Tes
         abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
         IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
         std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(ONE);
-        connectManager->sceneBoardTokenId_ = ONE;
         abilityMs_->subManagersHelper_->uiExtensionAbilityManagers_.insert(std::make_pair(ONE, connectManager));
         IPCSkeleton::SetCallingTokenID(ONE);
         EXPECT_EQ(abilityMs_->CloseUIExtensionAbilityBySCB(callerToken), ERR_INVALID_VALUE);

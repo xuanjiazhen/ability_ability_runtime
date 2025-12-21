@@ -21,7 +21,7 @@
 #include "mock_ability_scheduler_for_observer.h"
 #include "mock_ability_manager_client.h"
 #include "context.h"
-// #include "ability_connect_manager.h"
+#include "ability_connect_manager.h"
 #include "ability_context.h"
 #include "data_ability_helper.h"
 

@@ -18,7 +18,7 @@
 #define protected public
 #include "ability_manager_client.h"
 #include "ability_manager_stub_mock_second_test.h"
-// #include "ability_connect_manager.h"
+#include "ability_connect_manager.h"
 #include "ability_manager_interface.h"
 #undef private
 #undef protected

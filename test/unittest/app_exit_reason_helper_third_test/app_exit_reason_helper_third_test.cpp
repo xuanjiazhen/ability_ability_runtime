@@ -88,7 +88,7 @@ HWTEST_F(AppExitReasonHelperThirdTest, RecordProcessExtensionExitReason_0100, Te
     ASSERT_NE(abilityRecord, nullptr);
     auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     appExitReasonHelper_->subManagersHelper_->currentUIExtensionAbilityManager_
-        = std::make_shared<AAFwk::AbilityConnectManager>(0);
+        = std::make_shared<AAFwk::UIExtensionAbilityManager>(0);
     appExitReasonHelper_->subManagersHelper_->currentUIExtensionAbilityManager_
         ->uiExtensionAbilityRecordMgr_->extensionRecords_.clear();
     pid = 1;
