@@ -588,5 +588,47 @@ int32_t AbilityConnectManager::UpdateKeepAliveEnableState(const std::string &bun
     return ERR_OK;
 }
 
+void AbilityConnectManager::DumpState(
+    ServiceMapType &serviceMapBack, std::vector<std::string> &info, bool isClient, const std::string &args = "")
+{
+    return 0;
+}
+
+void AbilityConnectManager::DumpStateByUri(ServiceMapType &serviceMapBack, std::vector<std::string> &info, bool isClient,
+    const std::string &args, std::vector<std::string> &params)
+{
+    return 0;
+}
+
+void AbilityConnectManager::GetExtensionRunningInfos(ServiceMapType &serviceMapBack, int upperLimit,
+    std::vector<ExtensionRunningInfo> &info, const int32_t userId, bool isPerm)
+{
+}
+
+void AbilityConnectManager::GetExtensionRunningInfo(std::shared_ptr<BaseExtensionRecord> &abilityRecord, const int32_t userId,
+    std::vector<ExtensionRunningInfo> &info)
+{
+}
+
+std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetUIExtensionBySessionFromServiceMap(const sptr<SessionInfo> &sessionInfo)
+{
+    return nullptr;
+}
+
+int32_t AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
+    const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
+    std::function<int(const AbilityRequest&, 
+                    std::shared_ptr<BaseExtensionRecord>&, 
+                    bool&)> getRecordFunc,
+    std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateCallback)
+{
+    return 0;
+}
+
+int AbilityConnectManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
+        const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+    return 0;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
