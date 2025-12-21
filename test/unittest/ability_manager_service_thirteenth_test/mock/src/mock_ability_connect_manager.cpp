@@ -589,15 +589,13 @@ int32_t AbilityConnectManager::UpdateKeepAliveEnableState(const std::string &bun
 }
 
 void AbilityConnectManager::DumpState(
-    ServiceMapType &serviceMapBack, std::vector<std::string> &info, bool isClient, const std::string &args = "")
+    ServiceMapType &serviceMapBack, std::vector<std::string> &info, bool isClient, const std::string &args)
 {
-    return 0;
 }
 
 void AbilityConnectManager::DumpStateByUri(ServiceMapType &serviceMapBack, std::vector<std::string> &info, bool isClient,
     const std::string &args, std::vector<std::string> &params)
 {
-    return 0;
 }
 
 void AbilityConnectManager::GetExtensionRunningInfos(ServiceMapType &serviceMapBack, int upperLimit,
@@ -629,6 +627,16 @@ int AbilityConnectManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler
         const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     return 0;
+}
+
+void AbilityConnectManager::HandleLoadAbilityOrStartSpecifiedProcess(
+        const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+}
+
+bool AbilityConnectManager::IsSpecialAbility(const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
