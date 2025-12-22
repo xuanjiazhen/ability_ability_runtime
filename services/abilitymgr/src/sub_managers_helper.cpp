@@ -248,7 +248,7 @@ std::vector<std::shared_ptr<AbilityConnectManager>> SubManagersHelper::GetConnec
 {
     std::lock_guard<ffrt::mutex> lock(managersMutex_);
     
-    size_t totalSize = uiExtensionAbilityManagers_.size() + 
+    size_t totalSize = uiExtensionAbilityManagers_.size() +
                       commonExtensionManagers_.size();
     
     std::vector<std::shared_ptr<AbilityConnectManager>> result;

@@ -593,8 +593,8 @@ void AbilityConnectManager::DumpState(
 {
 }
 
-void AbilityConnectManager::DumpStateByUri(ServiceMapType &serviceMapBack, std::vector<std::string> &info, bool isClient,
-    const std::string &args, std::vector<std::string> &params)
+void AbilityConnectManager::DumpStateByUri(ServiceMapType &serviceMapBack, std::vector<std::string> &info, 
+    bool isClient, const std::string &args, std::vector<std::string> &params)
 {
 }
 
@@ -603,21 +603,22 @@ void AbilityConnectManager::GetExtensionRunningInfos(ServiceMapType &serviceMapB
 {
 }
 
-void AbilityConnectManager::GetExtensionRunningInfo(std::shared_ptr<BaseExtensionRecord> &abilityRecord, const int32_t userId,
-    std::vector<ExtensionRunningInfo> &info)
+void AbilityConnectManager::GetExtensionRunningInfo(
+    std::shared_ptr<BaseExtensionRecord> &abilityRecord, const int32_t userId, std::vector<ExtensionRunningInfo> &info)
 {
 }
 
-std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetUIExtensionBySessionFromServiceMap(const sptr<SessionInfo> &sessionInfo)
+std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetUIExtensionBySessionFromServiceMap(
+    const sptr<SessionInfo> &sessionInfo)
 {
     return nullptr;
 }
 
-int32_t AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
-    const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
-    std::function<int(const AbilityRequest&, 
-                    std::shared_ptr<BaseExtensionRecord>&, 
-                    bool&)> getRecordFunc,
+int32_t AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest, 
+    const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
+    std::function<int(const AbilityRequest&,
+                      std::shared_ptr<BaseExtensionRecord>&,
+                      bool&)> getRecordFunc,
     std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateCallback)
 {
     return 0;
@@ -630,7 +631,7 @@ int AbilityConnectManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler
 }
 
 void AbilityConnectManager::HandleLoadAbilityOrStartSpecifiedProcess(
-        const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+    const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
 }
 

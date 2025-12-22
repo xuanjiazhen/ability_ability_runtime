@@ -75,7 +75,7 @@ HWTEST_F(AppExitReasonHelperThirdTest, RecordProcessExtensionExitReason_0100, Te
     bool withKillMsg = false;
     OHOS::AAFwk::ExitReason exitReason = {AAFwk::REASON_JS_ERROR, "Js Error."};
     int32_t pid = -2;
-    appExitReasonHelper_->subManagersHelper_->currentUIExtensionAbilityManager_ -> uiExtensionAbilityRecordMgr_ = nullptr;
+    appExitReasonHelper_->subManagersHelper_->currentUIExtensionAbilityManager_->uiExtensionAbilityRecordMgr_ = nullptr;
     int32_t result = appExitReasonHelper_->RecordProcessExtensionExitReason(pid, bundleName, exitReason,
         processInfo, withKillMsg);
     EXPECT_EQ(result, AAFwk::ERR_GET_ACTIVE_EXTENSION_LIST_EMPTY);

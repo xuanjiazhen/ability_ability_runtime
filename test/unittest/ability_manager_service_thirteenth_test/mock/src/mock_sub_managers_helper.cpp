@@ -110,7 +110,8 @@ std::shared_ptr<UIExtensionAbilityManager> SubManagersHelper::GetUIExtensionAbil
     return nullptr;
 }
 
-std::shared_ptr<UIExtensionAbilityManager> SubManagersHelper::GetUIExtensionAbilityManagerByToken(const sptr<IRemoteObject> &token)
+std::shared_ptr<UIExtensionAbilityManager> SubManagersHelper::GetUIExtensionAbilityManagerByToken(
+    const sptr<IRemoteObject> &token)
 {
     return nullptr;
 }
@@ -139,7 +140,8 @@ std::shared_ptr<CommonExtensionManager> SubManagersHelper::GetCommonExtensionMan
     return nullptr;
 }
 
-std::shared_ptr<CommonExtensionManager> SubManagersHelper::GetCommonExtensionManagerByToken(const sptr<IRemoteObject> &token)
+std::shared_ptr<CommonExtensionManager> SubManagersHelper::GetCommonExtensionManagerByToken(
+    const sptr<IRemoteObject> &token)
 {
 
     return nullptr;

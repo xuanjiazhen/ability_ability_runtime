@@ -319,7 +319,7 @@ protected:
         return -1;
     }
     virtual void HandleUIExtensionDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
-    virtual void RemoveUIExtensionAbilityRecord(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {} 
+    virtual void RemoveUIExtensionAbilityRecord(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
     virtual void RemoveUIExtWindowDeathRecipient(const sptr<IRemoteObject> &session) {}
     virtual void DoBackgroundAbilityWindow(
         const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<SessionInfo> &sessionInfo) {}
@@ -327,7 +327,7 @@ protected:
     {
         return true;
     }
-    virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid) 
+    virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid)
     {
         return -1;
     }
@@ -335,7 +335,8 @@ protected:
     {
         return -1;
     }
-    void CallEnqueueStartServiceReq(const AbilityRequest &abilityRequest, const std::string &uri) {
+    void CallEnqueueStartServiceReq(const AbilityRequest &abilityRequest, const std::string &uri)
+    {
         EnqueueStartServiceReq(abilityRequest, uri);
     }
     int32_t ReportXiaoYiToRSSIfNeeded(const AppExecFwk::AbilityInfo &abilityInfo);
@@ -346,10 +347,11 @@ protected:
     void LoadAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         std::function<void(const std::shared_ptr<BaseExtensionRecord> &)> updateRecordCallback = nullptr,
         bool isPreloadUIExtension = false);
-    void CallAddToServiceMap(const std::string &key, std::shared_ptr<BaseExtensionRecord> abilityRecord) {
+    void CallAddToServiceMap(const std::string &key, std::shared_ptr<BaseExtensionRecord> abilityRecord)
+    {
         AddToServiceMap(key, abilityRecord);
     }
-    int TerminateAbilityInner(const sptr<IRemoteObject> &token);//一会再看下
+    int TerminateAbilityInner(const sptr<IRemoteObject> &token);
     bool IsAbilityNeedKeepAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
     bool IsCacheExtensionAbilityByInfo(const AppExecFwk::AbilityInfo &abilityInfo);
@@ -364,8 +366,8 @@ protected:
 
     int32_t ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
-        std::function<int(const AbilityRequest&, 
-                        std::shared_ptr<BaseExtensionRecord>&, 
+        std::function<int(const AbilityRequest&,
+                        std::shared_ptr<BaseExtensionRecord>&,
                         bool&)> getRecordFunc,
         std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateCallback = nullptr);
 
@@ -629,7 +631,6 @@ private:
     bool IsStrictMode(std::shared_ptr<BaseExtensionRecord> abilityRecord);
     bool NeedExtensionControl(std::shared_ptr<BaseExtensionRecord> abilityRecord);
     bool GetTimeoutMsgContent(uint32_t msgId, std::string &msgContent, int &typeId);
-
 
     void HandleConnectionCountIncrement(int32_t pid, const std::string &callerBundleName,
         const std::string &targetName);
