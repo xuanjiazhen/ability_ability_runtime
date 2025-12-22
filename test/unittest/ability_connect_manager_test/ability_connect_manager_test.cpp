@@ -221,7 +221,7 @@ void AbilityConnectManagerTest::TearDown(void)
     serviceRecord_ = nullptr;
 }
 
-AbilityConnectManager* AbilityConnectManagerTest::GetCommonExtensionManager() const
+AbilityConnectManager* AbilityConnectManagerTest::ConnectManager() const
 {
     return connectManager_.get();
 }

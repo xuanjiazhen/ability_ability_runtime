@@ -582,7 +582,6 @@ private:
     void HandleInactiveTimeout(const std::shared_ptr<BaseExtensionRecord> &ability);
     void CleanActivatingTimeoutAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
 
-
     /**
      * When a service is under starting, enque the request and handle it after the service starting completes
      */
