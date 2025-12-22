@@ -80,9 +80,10 @@ napi_value CreateJSObject(napi_env env)
 
 napi_value WrapInt32ToJS(napi_env env, int32_t value)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_int32(env, value, &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 int UnwrapInt32FromJS(napi_env env, napi_value param, int defaultValue)
@@ -212,9 +213,10 @@ bool UnwrapDoubleFromJS2(napi_env env, napi_value param, double &value)
 
 napi_value WrapStringToJS(napi_env env, const std::string &value)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 std::string UnwrapStringFromJS(napi_env env, napi_value param, const std::string &defaultValue)
@@ -513,6 +515,7 @@ bool UnwrapArrayBoolFromJS(napi_env env, napi_value param, std::vector<bool> &va
 
 napi_value WrapArrayStringToJS(napi_env env, const std::vector<std::string> &value)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value jsArray = nullptr;
     napi_value jsValue = nullptr;
     uint32_t index = 0;
@@ -526,7 +529,7 @@ napi_value WrapArrayStringToJS(napi_env env, const std::vector<std::string> &val
             }
         }
     }
-    return jsArray;
+    return handleEscape.Escape(jsArray);
 }
 
 bool UnwrapArrayStringFromJS(napi_env env, napi_value param, std::vector<std::string> &value)
@@ -683,6 +686,7 @@ bool IsExistsByPropertyName(napi_env env, napi_value jsObject, const char *prope
 napi_value GetPropertyValueByPropertyName(
     napi_env env, napi_value jsObject, const char *propertyName, napi_valuetype expectType)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value value = nullptr;
     if (IsExistsByPropertyName(env, jsObject, propertyName) == false) {
         return nullptr;
@@ -696,7 +700,7 @@ napi_value GetPropertyValueByPropertyName(
         return nullptr;
     }
 
-    return value;
+    return handleEscape.Escape(value);
 }
 
 bool SetPropertyValueByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, napi_value value)
