@@ -192,7 +192,7 @@ bool JsEnvironment::LoadScript(const std::string& path, std::vector<uint8_t>* bu
         TAG_LOGE(AAFwkTag::JSENV, "Invalid Native Engine");
         return false;
     }
-
+    HandleScope handleScope(engine_);
     if (buffer == nullptr) {
         return engine_->RunScriptPath(path.c_str());
     }
