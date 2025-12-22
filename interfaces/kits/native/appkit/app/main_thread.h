@@ -660,7 +660,10 @@ private:
      *
      * @param runtime runtime the ability runtime
      */
-    void UpdateRuntimeModuleChecker(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
+    void UpdateRuntimeModuleChecker(const std::shared_ptr<OHOSApplication> &application,
+        const std::shared_ptr<AbilityLocalRecord> &abilityRecord);
+
+    bool NeedUpdateRuntimeModuleChecker(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);
 
     static void HandleDumpHeapPrepare();
     static void HandleDumpHeap(bool isPrivate);
