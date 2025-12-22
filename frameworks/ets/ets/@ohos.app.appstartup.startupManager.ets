@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License"),
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +40,7 @@ export default namespace startupManager {
             throw new BusinessError(16000050, "internal error.");
         }
         let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
-            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null, data: undefined)=>{
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
                 if (err === null || err.code === 0) {
                     resolve(undefined);
                 } else {
@@ -60,7 +60,7 @@ export default namespace startupManager {
             throw new BusinessError(16000050, "internal error.");
         }
         let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
-            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null, data: undefined)=>{
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
                 if (err === null || err.code === 0) {
                     resolve(undefined);
                 } else {
