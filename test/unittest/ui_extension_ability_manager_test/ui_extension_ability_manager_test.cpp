@@ -708,7 +708,7 @@ HWTEST_F(UIExtensionAbilityManagerTest, HandleUIExtWindowDiedTask_001, TestSize.
  * EnvConditions: NA
  * CaseDescription: Verify UIExtensionAbilityManager IsUIExtensionFocused
  */
-HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_001, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_003, TestSize.Level1)
 {
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(3);
     ASSERT_NE(connectManager, nullptr);
@@ -727,7 +727,7 @@ HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_001, TestSize.Level
  * EnvConditions: NA
  * CaseDescription: Verify UIExtensionAbilityManager IsUIExtensionFocused
  */
-HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_002, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_004, TestSize.Level1)
 {
     AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(3);
@@ -1134,7 +1134,7 @@ HWTEST_F(UIExtensionAbilityManagerTest, HandleUIExtensionDied_002, TestSize.Leve
  * Feature: UIExtensionAbilityManager
  * Function: IsUIExtensionFocused
  */
-HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_001, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_005, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionFocused_001 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
@@ -1158,7 +1158,7 @@ HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_001, TestSize.Level
  * Feature: UIExtensionAbilityManager
  * Function: IsUIExtensionFocused
  */
-HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_002, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_006, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionFocused_002 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
