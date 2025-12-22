@@ -5672,21 +5672,22 @@ int AbilityManagerService::DisconnectLocalAbility(const sptr<IAbilityConnection>
     auto func = [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
         return connectManager->DisconnectAbilityLocked(connect);
     };
-    if (HandleExtesnionConnectionByUserId(connect, userId, func) == ERR_OK) {
-        return ERR_OK;
+    auto ret = HandleExtensionConnectionByUserId(connect, userId, func);
+    if (ret == ERR_OK || ret == ERR_NO_INIT) {
+        return ret;
     }
 
     auto commonManagers = GetCommonExtensionManagers();
     for (auto &item : commonManagers) {
         auto userId = item.first;
-        if (HandleExtesnionConnectionByUserId(connect, userId, func) == ERR_OK) {
+        if (HandleExtensionConnectionByUserId(connect, userId, func) == ERR_OK) {
             return ERR_OK;
         }
     }
     return CONNECT_MAMAGER_NOT_FIND_BY_USERID;
 }
 
-int32_t AbilityManagerService::HandleExtesnionConnectionByUserId(sptr<IAbilityConnection> connect, int32_t userId,
+int32_t AbilityManagerService::HandleExtensionConnectionByUserId(sptr<IAbilityConnection> connect, int32_t userId,
     std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)> func)
 {
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
@@ -15382,18 +15383,21 @@ int32_t AbilityManagerService::UpdateKeepAliveEnableState(const std::string &bun
 {
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(commonExtensionManager, ERR_NULL_OBJECT);
-    int32_t ret = commonExtensionManager->UpdateKeepAliveEnableState(bundleName, moduleName, mainElement, updateEnable);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKeepAliveEnableState failed, err:%{public}d", ret);
+    int32_t retCommon = commonExtensionManager->UpdateKeepAliveEnableState(bundleName, moduleName, mainElement, updateEnable);
+    if (retCommon != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKeepAliveEnableState failed, err:%{public}d", retCommon);
     }
     
     auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityManager, ERR_NULL_OBJECT);
-    ret = commonExtensionManager->UpdateKeepAliveEnableState(bundleName, moduleName, mainElement, updateEnable);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKeepAliveEnableState failed, err:%{public}d", ret);
+    int32_t retUI = commonExtensionManager->UpdateKeepAliveEnableState(bundleName, moduleName, mainElement, updateEnable);
+    if (retUI != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKeepAliveEnableState failed, err:%{public}d", retUI);
     }
-    return ret;
+    if (retCommon != ERR_OK) {
+        return retCommon;
+    }
+    return retUI;
 }
 
 bool AbilityManagerService::IsInStatusBar(uint32_t accessTokenId, int32_t uid, bool isMultiInstance)
@@ -16116,7 +16120,7 @@ int32_t AbilityManagerService::HandleExtensionAbility(sptr<IAbilityConnection> c
     auto commonManagers = GetCommonExtensionManagers();
     for (auto &item : commonManagers) {
         auto userId = item.first;
-        if (HandleExtesnionConnectionByUserId(connect, userId, func) == ERR_OK) {
+        if (HandleExtensionConnectionByUserId(connect, userId, func) == ERR_OK) {
             return ERR_OK;
         }
     }
