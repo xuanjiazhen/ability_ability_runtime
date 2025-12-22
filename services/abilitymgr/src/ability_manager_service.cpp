@@ -15382,18 +15382,21 @@ int32_t AbilityManagerService::UpdateKeepAliveEnableState(const std::string &bun
 {
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(commonExtensionManager, ERR_NULL_OBJECT);
-    int32_t ret = commonExtensionManager->UpdateKeepAliveEnableState(bundleName, moduleName, mainElement, updateEnable);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKeepAliveEnableState failed, err:%{public}d", ret);
+    int32_t retCommon = commonExtensionManager->UpdateKeepAliveEnableState(bundleName, moduleName, mainElement, updateEnable);
+    if (retCommon != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKeepAliveEnableState failed, err:%{public}d", retCommon);
     }
     
     auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityManager, ERR_NULL_OBJECT);
-    ret = commonExtensionManager->UpdateKeepAliveEnableState(bundleName, moduleName, mainElement, updateEnable);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKeepAliveEnableState failed, err:%{public}d", ret);
+    int32_t retUI = commonExtensionManager->UpdateKeepAliveEnableState(bundleName, moduleName, mainElement, updateEnable);
+    if (retUI != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKeepAliveEnableState failed, err:%{public}d", retUI);
     }
-    return ret;
+    if (retCommon != ERR_OK) {
+        return retCommon;
+    }
+    return retUI;
 }
 
 bool AbilityManagerService::IsInStatusBar(uint32_t accessTokenId, int32_t uid, bool isMultiInstance)
