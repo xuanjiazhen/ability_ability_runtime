@@ -19,6 +19,8 @@
 #define private public
 #define protected public
 #include "ability_connect_manager.h"
+#include "common_extension_manager.h"
+#include "ui_extension_ability_manager.h"
 #undef private
 #undef protected
 
@@ -59,6 +61,7 @@ public:
     void TearDown();
 
     AbilityConnectManager* ConnectManager() const;
+    CommonExtensionManager* GetCommonExtensionManager() const;
     std::shared_ptr<MockTaskHandlerWrap> TaskHandler() const;
     std::shared_ptr<EventHandlerWrap> EventHandler() const;
 
@@ -83,6 +86,7 @@ protected:
 
 private:
     std::shared_ptr<AbilityConnectManager> connectManager_;
+    std::shared_ptr<CommonExtensionManager> commonExtensionManager_;
     std::shared_ptr<EventHandlerWrap> eventHandler_;
 };
 
@@ -145,6 +149,7 @@ void AbilityConnectManagerFourthTest::TearDownTestCase(void)
 void AbilityConnectManagerFourthTest::SetUp(void)
 {
     connectManager_ = std::make_unique<AbilityConnectManager>(0);
+    commonExtensionManager_ = std::make_unique<CommonExtensionManager>(0);
     taskHandler_ = MockTaskHandlerWrap::CreateQueueHandler("AbilityConnectManagerFourthTest");
     eventHandler_ = std::make_shared<EventHandlerWrap>(taskHandler_);
     // generate ability request
@@ -187,6 +192,11 @@ void AbilityConnectManagerFourthTest::TearDown(void)
 AbilityConnectManager* AbilityConnectManagerFourthTest::ConnectManager() const
 {
     return connectManager_.get();
+}
+
+CommonExtensionManager* AbilityConnectManagerFourthTest::GetCommonExtensionManager() const
+{
+    return commonExtensionManager_.get();
 }
 
 std::shared_ptr<MockTaskHandlerWrap> AbilityConnectManagerFourthTest::TaskHandler() const
@@ -420,7 +430,7 @@ HWTEST_F(AbilityConnectManagerFourthTest, DispatchInactive_003, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerFourthTest, DispatchInactive_004, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "DispatchInactive_004 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
     std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
@@ -660,27 +670,27 @@ HWTEST_F(AbilityConnectManagerFourthTest, RemoveServiceFromMapSafe_001, TestSize
  */
 HWTEST_F(AbilityConnectManagerFourthTest, AAFWK_Kit_SuspendExtensionAbilityLocked_001, TestSize.Level1)
 {
-    ConnectManager()->SetTaskHandler(TaskHandler());
-    ConnectManager()->SetEventHandler(EventHandler());
+    GetCommonExtensionManager()->SetTaskHandler(TaskHandler());
+    GetCommonExtensionManager()->SetEventHandler(EventHandler());
 
     auto callback = new AbilityConnectCallback();
-    auto result = ConnectManager()->SuspendExtensionAbilityLocked(callback);
+    auto result = GetCommonExtensionManager()->SuspendExtensionAbilityLocked(callback);
     EXPECT_EQ(result, OHOS::AAFwk::CONNECTION_NOT_EXIST);
 
-    auto result1 = ConnectManager()->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
+    auto result1 = GetCommonExtensionManager()->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
     EXPECT_EQ(0, result1);
 
-    auto result2 = ConnectManager()->SuspendExtensionAbilityLocked(callbackA_);
+    auto result2 = GetCommonExtensionManager()->SuspendExtensionAbilityLocked(callbackA_);
     EXPECT_EQ(result2, OHOS::AAFwk::INVALID_CONNECTION_STATE);
 
-    auto list = ConnectManager()->GetConnectRecordListByCallback(callbackA_);
+    auto list = GetCommonExtensionManager()->GetConnectRecordListByCallback(callbackA_);
     EXPECT_EQ(static_cast<int>(list.size()), 1);
 
     for (auto& it : list) {
         it->SetConnectState(ConnectionState::CONNECTED);
     }
 
-    auto result3 = ConnectManager()->SuspendExtensionAbilityLocked(callbackA_);
+    auto result3 = GetCommonExtensionManager()->SuspendExtensionAbilityLocked(callbackA_);
     EXPECT_EQ(result3, OHOS::ERR_OK);
 }
 
@@ -696,18 +706,18 @@ HWTEST_F(AbilityConnectManagerFourthTest, AAFWK_Kit_SuspendExtensionAbilityLocke
  */
 HWTEST_F(AbilityConnectManagerFourthTest, AAFWK_Kit_ResumeExtensionAbilityLocked_001, TestSize.Level1)
 {
-    ConnectManager()->SetTaskHandler(TaskHandler());
-    ConnectManager()->SetEventHandler(EventHandler());
+    GetCommonExtensionManager()->SetTaskHandler(TaskHandler());
+    GetCommonExtensionManager()->SetEventHandler(EventHandler());
 
     auto callback = new AbilityConnectCallback();
 
-    auto result1 = ConnectManager()->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
+    auto result1 = GetCommonExtensionManager()->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
     EXPECT_EQ(0, result1);
 
-    auto result2 = ConnectManager()->ResumeExtensionAbilityLocked(callbackA_);
+    auto result2 = GetCommonExtensionManager()->ResumeExtensionAbilityLocked(callbackA_);
     EXPECT_EQ(result2, OHOS::AAFwk::INVALID_CONNECTION_STATE);
 
-    auto list = ConnectManager()->GetConnectRecordListByCallback(callbackA_);
+    auto list = GetCommonExtensionManager()->GetConnectRecordListByCallback(callbackA_);
     EXPECT_EQ(static_cast<int>(list.size()), 1);
 
 
@@ -715,9 +725,9 @@ HWTEST_F(AbilityConnectManagerFourthTest, AAFWK_Kit_ResumeExtensionAbilityLocked
         it->SetConnectState(ConnectionState::CONNECTED);
     }
 
-    ConnectManager()->SuspendExtensionAbilityLocked(callbackA_);
+    GetCommonExtensionManager()->SuspendExtensionAbilityLocked(callbackA_);
 
-    auto result3 = ConnectManager()->ResumeExtensionAbilityLocked(callbackA_);
+    auto result3 = GetCommonExtensionManager()->ResumeExtensionAbilityLocked(callbackA_);
     EXPECT_EQ(result3, OHOS::ERR_OK);
 }
 

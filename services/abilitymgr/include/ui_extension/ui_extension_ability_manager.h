@@ -107,7 +107,7 @@ public:
     int AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
         const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
 
-    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state) override; // 需要外部保障，非uiExtension Manager不调用
+    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state) override;
 
     /**
      * GetUIExtensionBySessionInfo.

@@ -120,7 +120,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, GetExtensionByIdFromTerminatingMap_001
     TAG_LOGI(AAFwkTag::TEST, "GetExtensionByIdFromTerminatingMap_001 start");
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
-    int64_t abilityRecordId = 1;
+    int64_t abilityRecordId = -1;
 
     std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
         abilityRequest_);

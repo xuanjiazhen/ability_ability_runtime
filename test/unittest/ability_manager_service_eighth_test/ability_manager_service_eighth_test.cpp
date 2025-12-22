@@ -464,6 +464,10 @@ HWTEST_F(AbilityManagerServiceEighthTest, SignRestartProcess_001, TestSize.Level
     ret = abilityMs->SignRestartProcess(uid, uid);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
+    abilityMs->subManagersHelper_->uiExtensionAbilityManagers_.emplace(uid, std::make_shared<UIExtensionAbilityManager>(uid));
+    ret = abilityMs->SignRestartProcess(uid, uid);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
     abilityMs->subManagersHelper_->uiAbilityManagers_.emplace(uid, std::make_shared<UIAbilityLifecycleManager>());
     ret = abilityMs->SignRestartProcess(uid, uid);
     EXPECT_EQ(ret, ERR_OK);

@@ -19,6 +19,7 @@
 #define private public
 #define protected public
 #include "ability_connect_manager.h"
+#include "common_extension_manager.h"
 #undef private
 #undef protected
 
@@ -231,7 +232,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_001, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "HandleActiveAbility_002 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
     EXPECT_NE(connectManager, nullptr);
     auto result = connectManager->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
     EXPECT_EQ(0, result);
@@ -262,7 +263,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_002, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_003, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "HandleActiveAbility_003 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
     auto result = connectManager->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
@@ -652,7 +653,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_005, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerTest, SuspendExtensionAbilityLocked_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "SuspendExtensionAbilityLocked start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
     auto result = connectManager->SuspendExtensionAbilityLocked(callbackA_);
@@ -683,7 +684,7 @@ HWTEST_F(AbilityConnectManagerTest, SuspendExtensionAbilityLocked_001, TestSize.
 HWTEST_F(AbilityConnectManagerTest, ResumeExtensionAbilityLocked_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "ResumeExtensionAbilityLocked start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
     auto result = connectManager->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
