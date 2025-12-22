@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <memory>
 
 #include "ability_context.h"
 #include "nlohmann/json.hpp"
@@ -27,7 +28,6 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-
 
 typedef struct {
     std::string condition;
@@ -58,14 +58,11 @@ typedef struct {
     std::vector<VerticalDisplayConfig> verticalDisplay;
 } PageScalingConfig;
 
-class PageScalingManager {
+class PageScalingManager : public std::enable_shared_from_this<PageScalingManager> {
 public:
 
     void Initialize(std::string configJson, const sptr<Rosen::Window>& window,
         const std::string &pageName);
-
-    void RetrivePageScalingConfig(std::string configJson, const sptr<Rosen::Window>& window,
-        const std::string &pageName, PageScalingConfig &config);
 
     void NotifyPageChanged(char* targetPageName, uint32_t windowId);
 
@@ -75,8 +72,6 @@ private:
 
     void ParseWhitelistConfig(const std::string &pageName, const std::string &configJson, PageScalingConfig &config);
 
-    void RegisterPageChangeListeners(const sptr<Rosen::Window>& window, const PageScalingConfig &config);
-
     void HandleNavigateChangeInternal(const sptr<Rosen::Window>& window,
         const std::string& targetPageName, const PageScalingConfig& config);
 
@@ -84,7 +79,26 @@ private:
     
     bool ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode);
 
-    PageScalingConfig config_; // 页面缩放配置
+    bool ComparePage(const std::string &pageName, const std::string &targetPageName, std::string &patternType);
+
+    void RestoreConfig(const sptr<Rosen::Window>& window);
+
+    class WindowUIContentImpl : public Rosen::IWindowUIContentListener {
+    public:
+        WindowUIContentImpl(const std::shared_ptr<PageScalingManager>& owner, const PageScalingConfig& config, const sptr<Rosen::Window>& window)
+            : owner_(owner), config_(config), window_(window) {}
+        virtual ~WindowUIContentImpl() override = default;
+        
+        void OnUIContentCreate(OHOS::Ace::UIContent* uiContent) override;
+        
+    private:
+        std::weak_ptr<PageScalingManager> owner_;
+        PageScalingConfig config_;
+        sptr<Rosen::Window> window_;
+    };
+
+    PageScalingConfig config_; // 页面缩放配置 
+    sptr<WindowUIContentImpl> uiContentListener_ = nullptr;
 };
 
 } // namespace AppExecFwk
