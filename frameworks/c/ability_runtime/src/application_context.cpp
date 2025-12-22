@@ -44,6 +44,10 @@ using namespace OHOS;
 
 namespace {
 constexpr int32_t ATTACH_ABILITY_THREAD_TIMEOUT_TIME = 100 * 1000; // attach ability thread timeout, 100s
+constexpr char *PAGE_CONFIG_LIBNAME = "libhmos_pageconfig.z.so";
+using NotifyPageChanged = void(*)(char*, uint32_t);
+NotifyPageChanged g_notifyPageChangedFunc = nullptr;
+}
 std::mutex g_appMgrMutex;
 sptr<AppExecFwk::IAppMgr> g_appMgr = nullptr;
 
@@ -550,4 +554,32 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLogFileDir(
         return ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST;
     }
     return WriteStringToBuffer(logFileDir, buffer, bufferSize, writeLength);
+}
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
+    char* targetPageName, uint32_t windowId)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "NotifyPageChanged called");
+    if (targetPageName == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "targetPageName is null");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::string pageNameStr(targetPageName);
+    
+    if (g_notifyPageChangedFunc == nullptr) {
+        auto handle = dlopen(PAGE_CONFIG_LIBNAME, RTLD_LAZY);
+        if (handle == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "dlopen %{public}s error: %{public}s", PAGE_CONFIG_LIBNAME, dlerror());
+            return;
+        }
+        auto symbol = dlsym(handle, "NotifyPageChanged");
+        if (symbol == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "dlsym error: %{public}s", dlerror());
+            dlclose(handle);
+            return;
+        }
+
+        g_notifyPageChangedFunc = reinterpret_cast<NotifyPageChanged>(symbol);
+    }
+    g_notifyPageChangedFunc(targetPageName, windowId);
 }

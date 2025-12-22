@@ -400,6 +400,15 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbilityWithPidResult(Abili
 AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLogFileDir(
     char* buffer, const int32_t bufferSize, int32_t* writeLength);
 
+/**
+ * @brief Notify page changed.
+ *
+ * @param targetPageName The target page name.
+ * @since 23
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
+    char* targetPageName, uint32_t windowId);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
