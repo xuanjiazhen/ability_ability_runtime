@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <memory>
 
 #include "ability_context.h"
 #include "nlohmann/json.hpp"
@@ -58,7 +59,7 @@ typedef struct {
     std::vector<VerticalDisplayConfig> verticalDisplay;
 } PageScalingConfig;
 
-class PageScalingManager {
+class PageScalingManager : public std::enable_shared_from_this<PageScalingManager> {
 public:
 
     void Initialize(std::string configJson, const sptr<Rosen::Window>& window,
@@ -84,7 +85,21 @@ private:
     
     bool ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode);
 
-    PageScalingConfig config_; // 页面缩放配置
+    class WindowUIContentImpl : public Rosen::IWindowUIContentListener {
+    public:
+        WindowUIContentImpl(const std::shared_ptr<PageScalingManager>& owner, const PageScalingConfig& config)
+            : owner_(owner), config_(config) {}
+        virtual ~WindowUIContentImpl() override = default;
+        
+        void OnUIContentCreate(OHOS::Ace::UIContent* uiContent) override;
+        
+    private:
+        std::weak_ptr<PageScalingManager> owner_;
+        PageScalingConfig config_;
+    };
+
+    PageScalingConfig config_; // 页面缩放配置 
+    sptr<WindowUIContentImpl> uiContentListener_ = nullptr;
 };
 
 } // namespace AppExecFwk

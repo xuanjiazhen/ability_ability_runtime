@@ -28,12 +28,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-std::vector<std::string> PAGE_CONFIG_KEYS = {
-    "apps_page_level_config_dpi",
-    "apps_page_level_config_hideStatusBar",
-    "apps_page_level_config_videoShrink",
-    "apps_page_level_config_verticalDisplay"
-};
+const uint8_t CONDITION_LIST_SIZE_ = 2;
 }
 
 PageScalingManager::PageScalingManager() {}
@@ -48,10 +43,46 @@ void PageScalingManager::Initialize(std::string configJson, const sptr<Rosen::Wi
     }
 
     config_.page.pageName = pageName;
-    ParseWhitelistConfig(pageName, configJson, config);
-    RegisterPageChangeListeners(window, config_);
+    ParseWhitelistConfig(pageName, configJson, config_);
+    
+    // Create and register UI content listener
+    uiContentListener_ = new WindowUIContentImpl(shared_from_this(), config_);
+    window->RegisterWindowUIContentListener(uiContentListener_);
+    
+    // If UI content already exists, register page change listeners immediately
+    if (window->GetUIContent()) {
+        RegisterPageChangeListeners(window, config_);
+    }
 }
 
+void PageScalingManager::WindowUIContentImpl::OnUIContentCreate(OHOS::Ace::UIContent* uiContent)
+{
+    if (uiContent == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "OnUIContentCreate: uiContent null");
+        return;
+    }
+    
+    auto owner = owner_.lock();
+    if (!owner) {
+        TAG_LOGE(AAFwkTag::ABILITY, "OnUIContentCreate: owner has been destroyed");
+        return;
+    }
+    
+    TAG_LOGI(AAFwkTag::ABILITY, "OnUIContentCreate: uiContent created, registering navigate change callback");
+    
+    // Register navigate change callback to the created UI content
+    uiContent->RegisterNavigateChangeCallback(
+        [owner, this](const OHOS::Ace::NavigateChangeInfo& from, const OHOS::Ace::NavigateChangeInfo& to) {
+            // Get window from UI content
+            auto window = Rosen::Window::GetWindowWithUIContent(uiContent);
+            if (!window) {
+                TAG_LOGE(AAFwkTag::ABILITY, "OnUIContentCreate: window not found");
+                return;
+            }
+            
+            owner->HandleNavigateChangeInternal(window, to.name, config_);
+        });
+}
 
 void PageScalingManager::ParseWhitelistConfig(const std::string &pageName,
     const std::string &configJson, PageScalingConfig &config)
@@ -163,6 +194,7 @@ void PageScalingManager::RegisterPageChangeListeners(const sptr<Rosen::Window>& 
         TAG_LOGE(AAFwkTag::ABILITY, "window or uicontent ull");
         return;
     }
+
     window->GetUIContent()->RegisterNavigateChangeCallback(
         [this, window, config](const OHOS::Ace::NavigateChangeInfo& from, const OHOS::Ace::NavigateChangeInfo& to) {
         HandleNavigateChangeInternal(window, to.name, config);
@@ -177,7 +209,7 @@ void PageScalingManager::HandleNavigateChangeInternal(const sptr<Rosen::Window>&
     }
 }
 
-bool PageScalingManager::ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation, int32_t foldMode)
+bool PageScalingManager::ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode)
 {
     // Check if it's a combo condition
     if (condition.find(",") != std::string::npos) {
@@ -193,7 +225,7 @@ bool PageScalingManager::ConditionCheck(const std::string& condition, Rosen::Dis
         }
         condList.push_back(conditionCopy);
         
-        if (condList.size() != 2) {
+        if (condList.size() != CONDITION_LIST_SIZE_) {
             return false;
         }
         
@@ -245,7 +277,6 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
     auto displayInfo = display->GetDisplayInfo();
     auto orientation = displayInfo.orientation;
     
-    // 1. Handle DPI configuration
     for (const auto& dpiConfig : config.dpi) {
         const std::string& condition = dpiConfig.condition;
         float dpiValue = dpiConfig.value;
@@ -258,7 +289,6 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
         }
     }
     
-    // 2. Handle verticalDisplay configuration
     for (const auto& verticalConfig : config.verticalDisplay) {
         const std::string& condition = verticalConfig.condition.orientation;
         const std::string& value = verticalConfig.value;
@@ -270,6 +300,20 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
                 condition.c_str(), value.c_str());
             break;
         }
+    }
+
+    for (const auto& hideConfig : config.hideStatusBar) {
+        TAG_LOGD(AAFwkTag::ABILITY, "hideStatusCofig value %{public}d", hideConfig.value);
+        auto prop = window->GetSystemBarPropertyForPage(Rosen::WindowType::WINDOW_STATUS_BAR);
+        prop.enable_ = hideConfig.value;
+        window->SetSystemBarPropertyForPage(Rosen::WindowType::WINDOW_STATUS_BAR, prop);
+        break;
+    }
+
+    for (const auto& videoShrinkConfig : config.videoShrink) {
+        TAG_LOGD(AAFwkTag::ABILITY, "videoShrinkConfig value %{public}d", videoShrinkConfig.value);
+        // TODO: Implement videoShrink logic based on value
+        break;
     }
 }
 
