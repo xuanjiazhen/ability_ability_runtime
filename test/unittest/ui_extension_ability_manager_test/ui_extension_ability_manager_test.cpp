@@ -786,7 +786,7 @@ HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_002, TestSize.Level
  * EnvConditions: NA
  * CaseDescription: Verify UIExtensionAbilityManager GetUIExtensionSourceToken
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_001, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_004, TestSize.Level1)
 {
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(3);
     ASSERT_NE(connectManager, nullptr);
@@ -1184,7 +1184,7 @@ HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_002, TestSize.Level
  * Feature: UIExtensionAbilityManager
  * Function: GetUIExtensionSourceToken
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_001, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_005, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_001 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
@@ -1200,7 +1200,7 @@ HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_001, TestSize.
  * Feature: UIExtensionAbilityManager
  * Function: GetUIExtensionSourceToken
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_002, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_006, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_002 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
@@ -1221,7 +1221,7 @@ HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_002, TestSize.
  * Feature: UIExtensionAbilityManager
  * Function: GetUIExtensionSourceToken
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_003, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_007, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_002 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
