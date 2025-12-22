@@ -16,7 +16,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 module_output_path = "ability_runtime/ability_runtime/abilitymgr"
 
-ohos_unittest("ui_extension_ability_manager") {
+ohos_unittest("ui_extension_ability_manager_test") {
   module_out_path = module_output_path
   sanitize = {
     cfi = true
@@ -37,7 +37,7 @@ ohos_unittest("ui_extension_ability_manager") {
     # add mock file
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/src/appmgr/mock_app_scheduler.cpp",
     "${ability_runtime_test_path}/mock/task_handler_wrap_mock/src/mock_task_handler_wrap.cpp",
-    "ability_connect_manager_first_test.cpp",
+    "ui_extension_ability_manager_test.cpp",
   ]
 
   configs = [
@@ -97,5 +97,5 @@ ohos_unittest("ui_extension_ability_manager") {
 
 group("unittest") {
   testonly = true
-  deps = [ ":ability_connect_manager_first_test" ]
+  deps = [ ":ui_extension_ability_manager_test" ]
 }
