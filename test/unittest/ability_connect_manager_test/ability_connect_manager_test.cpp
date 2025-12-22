@@ -85,7 +85,7 @@ public:
     void SetUp();
     void TearDown();
 
-    AbilityConnectManager* GetCommonExtensionManager() const;
+    AbilityConnectManager* ConnectManager() const;
     CommonExtensionManager* GetCommonExtensionManager() const;
     std::shared_ptr<MockTaskHandlerWrap> TaskHandler() const;
     std::shared_ptr<EventHandlerWrap> EventHandler() const;
@@ -2311,104 +2311,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_RestartAbility_003, TestSize
     connectManager->HandleAbilityDiedTask(abilityRecord);
     EXPECT_EQ(static_cast<int>(GetCommonExtensionManager()->GetServiceMap().size()), 0);
 }
-
-// /*
-//  * Feature: AbilityConnectManager
-//  * Function: DumpState
-//  * SubFunction: DumpState
-//  * FunctionPoints: NA
-//  * EnvConditions: NA
-//  * CaseDescription: Verify AbilityConnectManager DumpState
-//  */
-// HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_DumpState_001, TestSize.Level1)
-// {
-//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-//     ASSERT_NE(connectManager, nullptr);
-//     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-//     std::vector<std::string> info;
-//     bool isClient = false;
-//     std::string args = "args";
-//     connectManager->serviceMap_.emplace(args, abilityRecord);
-//     connectManager->DumpState(info, isClient, args);
-//     connectManager->serviceMap_.clear();
-//     connectManager->DumpState(info, isClient, args);
-//     args = "";
-//     connectManager->DumpState(info, isClient, args);
-// }
-
-/*
- * Feature: AbilityConnectManager
- * Function: DumpStateByUri
- * SubFunction: DumpStateByUri
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager DumpStateByUri
- */
-// HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_DumpStateByUri_001, TestSize.Level1)
-// {
-//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-//     ASSERT_NE(connectManager, nullptr);
-//     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-//     std::vector<std::string> info;
-//     bool isClient = false;
-//     std::string args = "args";
-//     std::vector<std::string> params;
-//     connectManager->serviceMap_.emplace(args, abilityRecord);
-//     connectManager->DumpStateByUri(info, isClient, args, params);
-//     connectManager->serviceMap_.clear();
-//     connectManager->DumpStateByUri(info, isClient, args, params);
-// }
-
-// /*
-//  * Feature: AbilityConnectManager
-//  * Function: GetExtensionRunningInfos
-//  * SubFunction: GetExtensionRunningInfos
-//  * FunctionPoints: NA
-//  * EnvConditions: NA
-//  * CaseDescription: Verify AbilityConnectManager GetExtensionRunningInfos
-//  */
-// HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_GetExtensionRunningInfos_001, TestSize.Level1)
-// {
-//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-//     ASSERT_NE(connectManager, nullptr);
-//     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-//     int upperLimit = 1;
-//     std::vector<ExtensionRunningInfo> info;
-//     int32_t userId = 0;
-//     bool isPerm = false;
-//     ExtensionRunningInfo extensionInfo;
-//     info.push_back(extensionInfo);
-//     connectManager->serviceMap_.emplace("first", abilityRecord);
-//     connectManager->GetExtensionRunningInfos(upperLimit, info, userId, isPerm);
-// }
-
-// /*
-//  * Feature: AbilityConnectManager
-//  * Function: GetExtensionRunningInfo
-//  * SubFunction: GetExtensionRunningInfo
-//  * FunctionPoints: NA
-//  * EnvConditions: NA
-//  * CaseDescription: Verify AbilityConnectManager GetExtensionRunningInfo
-//  */
-// HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_GetExtensionRunningInfo_001, TestSize.Level1)
-// {
-//     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-//     ASSERT_NE(connectManager, nullptr);
-//     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-//     OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
-//     std::shared_ptr<ConnectionRecord> connection =
-//         std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
-//     int32_t userId = 0;
-//     std::vector<ExtensionRunningInfo> info;
-//     Want want;
-//     AbilityInfo abilityInfo;
-//     ApplicationInfo applicationInfo;
-//     want.SetElementName("device", "bundle", "ability", "module");
-//     abilityRecord->SetWant(want);
-//     abilityRecord->connRecordList_.push_back(nullptr);
-//     abilityRecord->connRecordList_.push_back(connection);
-//     connectManager->GetExtensionRunningInfo(abilityRecord, userId, info);
-// }
 
 /*
  * Feature: AbilityConnectManager
