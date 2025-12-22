@@ -592,7 +592,6 @@ private:
      */
     void CompleteStartServiceReq(const std::string &serviceUri);
 
-
     /**
      * Post an extension's disconnect task, auto disconnect when extension connected timeout.
      */

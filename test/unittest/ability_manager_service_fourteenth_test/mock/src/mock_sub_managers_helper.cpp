@@ -143,7 +143,6 @@ std::shared_ptr<CommonExtensionManager> SubManagersHelper::GetCommonExtensionMan
 std::shared_ptr<CommonExtensionManager> SubManagersHelper::GetCommonExtensionManagerByToken(
     const sptr<IRemoteObject> &token)
 {
-
     return nullptr;
 }
 

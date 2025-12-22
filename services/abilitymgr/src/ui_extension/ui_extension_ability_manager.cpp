@@ -772,7 +772,7 @@ void UIExtensionAbilityManager::AddUIExtensionAbilityRecordToTerminatedList(
 }
 
 int32_t UIExtensionAbilityManager::GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest,
-    bool isCreatedByConnect, const std::string &hostBundleName, 
+    bool isCreatedByConnect, const std::string &hostBundleName,
     std::shared_ptr<BaseExtensionRecord> &extensionRecord, bool &isLoaded)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
