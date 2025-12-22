@@ -12370,18 +12370,28 @@ int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId
     bool focused = false;
     int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
     auto connectManager = GetUIExtensionAbilityManagerByUserId(userId);
-    if (connectManager) {
-        focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token)
-            || connectManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
+    auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
+    if (connectManager || commonExtensionManager) {
+        if (connectManager) {
+            focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token);
+        }
+        if (!focused && commonExtensionManager) {
+            focused = commonExtensionManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
+        }
     } else {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager null, userId:%{public}d", userId);
     }
     if (!focused && userId != U0_USER_ID) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Check connectManager in user0");
-        auto connectManager = GetUIExtensionAbilityManagerByUserId(U0_USER_ID);    
-        if (connectManager) {
-            focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token)
-                || connectManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
+        auto connectManager = GetUIExtensionAbilityManagerByUserId(U0_USER_ID); 
+        auto commonExtensionManager = GetCommonExtensionManagerByUserId(U0_USER_ID);  
+        if (connectManager || commonExtensionManager) {
+            if (connectManager) {
+                focused = connectManagerU0->IsUIExtensionFocused(uiExtensionTokenId, token);
+            }
+            if (!focused && commonExtensionManager) {
+                focused = commonExtensionManagerU0->IsWindowExtensionFocused(uiExtensionTokenId, token);
+            }
         } else {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager null, userId: 0");
         }
