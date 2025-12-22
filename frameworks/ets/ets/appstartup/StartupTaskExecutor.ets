@@ -39,7 +39,7 @@ export default class StartupTaskExecutor {
 
   executeStartupTaskOnMainThread(startup: StartupTask, context: common.AbilityStageContext, 
     callback: long): void {
-    startup.init(context).then((result: Any) => {
+    (startup.init(context) as Promise<Any>).then((result: Any) => {
       this.nativeOnTaskSuccess(callback, result);
     }).catch((error: Error) => {
       this.nativeOnTaskFailure(callback, error.message);
