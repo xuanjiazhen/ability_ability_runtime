@@ -817,6 +817,187 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, TerminateAbilityWithFlag_006, Test
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest TerminateAbilityWithFlag_006 end");
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Name: GetConnectManagerAndUIExtensionBySessionInfo_001
+ * Function: GetConnectManagerAndUIExtensionBySessionInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetConnectManagerAndUIExtensionBySessionInfo
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionBySessionInfo_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_001 start");
+    MyStatus::GetInstance().smhGetConnectManagerByToken_ = false;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = nullptr;
+    std::shared_ptr<BaseExtensionRecord> targetAbility = nullptr;
+    abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, true);
+    EXPECT_EQ(connectManager, nullptr);
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetConnectManagerAndUIExtensionBySessionInfo_002
+ * Function: GetConnectManagerAndUIExtensionBySessionInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetConnectManagerAndUIExtensionBySessionInfo
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionBySessionInfo_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_002 start");
+    MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
+    MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
+    MyStatus::GetInstance().acmGetUIExtensionBySessionFromServiceMap_ = MockExtensionRecordBase(AbilityType::SERVICE);
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockCurrentConnectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mockCurrentConnectManager, nullptr);
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+    abilityMs_->subManagersHelper_->currentUIExtensionAbilityManager_ = mockCurrentConnectManager;
+
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = nullptr;
+    std::shared_ptr<BaseExtensionRecord> targetAbility = nullptr;
+    abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, true);
+    EXPECT_NE(connectManager, nullptr);
+    EXPECT_NE(targetAbility, nullptr);
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetConnectManagerAndUIExtensionBySessionInfo_003
+ * Function: GetConnectManagerAndUIExtensionBySessionInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetConnectManagerAndUIExtensionBySessionInfo
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionBySessionInfo_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_003 start");
+    MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
+    MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
+    MyStatus::GetInstance().ipcGetCallingUid_ = U0_USER_ID;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockCurrentConnectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mockCurrentConnectManager, nullptr);
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+    abilityMs_->subManagersHelper_->currentUIExtensionAbilityManager_ = mockCurrentConnectManager;
+
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = nullptr;
+    std::shared_ptr<BaseExtensionRecord> targetAbility = nullptr;
+    abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(
+        MockSessionInfo(0), connectManager, targetAbility, false);
+    EXPECT_NE(connectManager, nullptr);
+    EXPECT_EQ(targetAbility, nullptr);
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetConnectManagerAndUIExtensionBySessionInfo_004
+ * Function: GetConnectManagerAndUIExtensionBySessionInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetConnectManagerAndUIExtensionBySessionInfo
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionBySessionInfo_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_004 start");
+    MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
+    MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
+    MyStatus::GetInstance().ipcGetCallingUid_ = -1;
+    MyStatus::GetInstance().acmGetUIExtensionBySessionFromServiceMap_ = nullptr;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockCurrentConnectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mockCurrentConnectManager, nullptr);
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+    abilityMs_->subManagersHelper_->currentUIExtensionAbilityManager_ = mockCurrentConnectManager;
+
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = nullptr;
+    std::shared_ptr<BaseExtensionRecord> targetAbility = nullptr;
+    abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, true);
+    EXPECT_NE(connectManager, nullptr);
+    EXPECT_EQ(targetAbility, nullptr);
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetConnectManagerAndUIExtensionBySessionInfo_005
+ * Function: GetConnectManagerAndUIExtensionBySessionInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetConnectManagerAndUIExtensionBySessionInfo
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionBySessionInfo_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_005 start");
+    MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
+    MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
+    MyStatus::GetInstance().ipcGetCallingUid_ = -1;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockCurrentConnectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mockCurrentConnectManager, nullptr);
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+    abilityMs_->subManagersHelper_->currentUIExtensionAbilityManager_ = mockCurrentConnectManager;
+
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = nullptr;
+    std::shared_ptr<BaseExtensionRecord> targetAbility = nullptr;
+    abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, false);
+    EXPECT_NE(connectManager, nullptr);
+    EXPECT_EQ(targetAbility, nullptr);
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetConnectManagerAndUIExtensionBySessionInfo_006
+ * Function: GetConnectManagerAndUIExtensionBySessionInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetConnectManagerAndUIExtensionBySessionInfo
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionBySessionInfo_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_006 start");
+    MyStatus::GetInstance().smhGetConnectManagerByToken_ = false;
+    MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
+    MyStatus::GetInstance().ipcGetCallingUid_ = -1;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = nullptr;
+    std::shared_ptr<BaseExtensionRecord> targetAbility = nullptr;
+    abilityMs_->GetConnectManagerAndUIExtensionBySessionInfo(MockSessionInfo(0), connectManager, targetAbility, false);
+    EXPECT_EQ(connectManager, nullptr);
+    EXPECT_EQ(targetAbility, nullptr);
+    TAG_LOGI(AAFwkTag::TEST,
+             "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_006 end");
+}
 
 /*
  * Feature: AbilityManagerService
