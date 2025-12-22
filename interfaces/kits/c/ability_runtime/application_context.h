@@ -400,6 +400,22 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbilityWithPidResult(Abili
 AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLogFileDir(
     char* buffer, const int32_t bufferSize, int32_t* writeLength);
 
+/**
+ * @brief Notify page changed to the page configuration subsystem.
+ * 
+ * @param targetPageName The target page name.
+ * @param windowId The window identifier associated with the page change.
+ * 
+ * @return The error code.
+ * {@link ABILITY_RUNTIME_ERROR_CODE_OK} if the operation is successful.
+ * {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if targetPageName is null or invalid.
+ * {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs. such as connect system service failed.
+ * 
+ * @since 23
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
+    char* targetPageName, uint32_t windowId);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
