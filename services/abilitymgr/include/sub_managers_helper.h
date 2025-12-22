@@ -76,7 +76,8 @@ public:
     std::shared_ptr<UIExtensionAbilityManager> GetCurrentUIExtensionAbilityManager();
     std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByUserId(int32_t userId);
     std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByToken(const sptr<IRemoteObject> &token);
-    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByAbilityRecordId(const int64_t &abilityRecordId);
+    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByAbilityRecordId(
+        const int64_t &abilityRecordId);
 
     std::unordered_map<int, std::shared_ptr<CommonExtensionManager>> GetCommonExtensionManagers();
     std::shared_ptr<CommonExtensionManager> GetCurrentCommonExtensionManager();

@@ -352,8 +352,8 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 int AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest,
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
         std::function<int(const AbilityRequest&, 
-                        std::shared_ptr<BaseExtensionRecord>&, 
-                        bool&)> getRecordFunc,
+                          std::shared_ptr<BaseExtensionRecord>&,
+                          bool&)> getRecordFunc,
         std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateCallback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -2702,7 +2702,7 @@ void AbilityConnectManager::MoveToBackground(const std::shared_ptr<BaseExtension
             return;
         }
         CHECK_POINTER(abilityRecord);
-        if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType) ) {
+        if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Start background timeout.");
             BackgroundTimeout(abilityRecord);
         }

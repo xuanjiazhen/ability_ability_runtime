@@ -113,8 +113,8 @@ int UIExtensionAbilityManager::PreloadUIExtensionAbilityInner(
     targetService->SetURI(extensionRecordKey);
     CallAddToServiceMap(extensionRecordKey, targetService);
 
-    auto updateRecordCallback = [hostPid, mgr = std::static_pointer_cast<UIExtensionAbilityManager>(shared_from_this())](
-        const std::shared_ptr<BaseExtensionRecord>& targetService) {
+    auto updateRecordCallback = [hostPid, mgr = std::static_pointer_cast<UIExtensionAbilityManager>(
+        shared_from_this())](const std::shared_ptr<BaseExtensionRecord>& targetService) {
         if (mgr != nullptr) {
             mgr->UpdateUIExtensionInfo(targetService, hostPid);
         }
@@ -179,7 +179,7 @@ void UIExtensionAbilityManager::ClearPreloadUIExtensionRecord(const std::shared_
     uiExtensionAbilityRecordMgr_->RemovePreloadUIExtensionRecordById(extensionRecordMapKey, extensionRecordId);
 }
 
-int UIExtensionAbilityManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler, 
+int UIExtensionAbilityManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
     const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
@@ -327,7 +327,7 @@ sptr<IRemoteObject> UIExtensionAbilityManager::GetUIExtensionSourceToken(const s
     return nullptr;
 }
 
-void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, 
+void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
     const sptr<SessionInfo> &sessionInfo)
 {
     CHECK_POINTER(abilityRecord);
@@ -363,7 +363,8 @@ void UIExtensionAbilityManager::GetUIExtensionCallerTokenList(const std::shared_
     uiExtensionAbilityRecordMgr_->GetCallerTokenList(abilityRecord, callerList);
 }
 
-std::shared_ptr<AAFwk::AbilityRecord> UIExtensionAbilityManager::GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token)
+std::shared_ptr<AAFwk::AbilityRecord> UIExtensionAbilityManager::GetUIExtensionRootHostInfo(
+    const sptr<IRemoteObject> token)
 {
     CHECK_POINTER_AND_RETURN(token, nullptr);
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, nullptr);
@@ -660,7 +661,8 @@ void UIExtensionAbilityManager::AddUIExtWindowDeathRecipient(const sptr<IRemoteO
         TAG_LOGE(AAFwkTag::ABILITYMGR, "recipient added before");
         return;
     } else {
-        std::weak_ptr<UIExtensionAbilityManager> thisWeakPtr(std::static_pointer_cast<UIExtensionAbilityManager>(shared_from_this()));
+        std::weak_ptr<UIExtensionAbilityManager> thisWeakPtr(
+            std::static_pointer_cast<UIExtensionAbilityManager>(shared_from_this()));
         sptr<IRemoteObject::DeathRecipient> deathRecipient =
             new AbilityConnectCallbackRecipient([thisWeakPtr](const wptr<IRemoteObject> &remote) {
                 auto abilityConnectManager = thisWeakPtr.lock();
@@ -750,7 +752,8 @@ bool UIExtensionAbilityManager::CheckUIExtensionAbilitySessionExist(
     return false;
 }
 
-void UIExtensionAbilityManager::RemoveUIExtensionAbilityRecord(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+void UIExtensionAbilityManager::RemoveUIExtensionAbilityRecord(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
     CHECK_POINTER(uiExtensionAbilityRecordMgr_);
@@ -768,8 +771,9 @@ void UIExtensionAbilityManager::AddUIExtensionAbilityRecordToTerminatedList(
     uiExtensionAbilityRecordMgr_->AddExtensionRecordToTerminatedList(abilityRecord->GetUIExtensionAbilityId());
 }
 
-int32_t UIExtensionAbilityManager::GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest, bool isCreatedByConnect,
-    const std::string &hostBundleName, std::shared_ptr<BaseExtensionRecord> &extensionRecord, bool &isLoaded)
+int32_t UIExtensionAbilityManager::GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest,
+    bool isCreatedByConnect, const std::string &hostBundleName, 
+    std::shared_ptr<BaseExtensionRecord> &extensionRecord, bool &isLoaded)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AppExecFwk::ElementName element(abilityRequest.abilityInfo.deviceId, abilityRequest.abilityInfo.bundleName,
@@ -890,7 +894,8 @@ UIExtensionAbilityManager::PreloadUIExtensionHostClientDeathRecipient::PreloadUI
     : diedHandler_(handler)
 {}
 
-void UIExtensionAbilityManager::PreloadUIExtensionHostClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+void UIExtensionAbilityManager::PreloadUIExtensionHostClientDeathRecipient::OnRemoteDied(
+    const wptr<IRemoteObject> &remote)
 {
     TAG_LOGE(AAFwkTag::UI_EXT, "OnRemoteDied");
     if (diedHandler_) {
@@ -1001,7 +1006,8 @@ int UIExtensionAbilityManager::RemoveUIExtensionBySessionInfoToken(sptr<IRemoteO
     return uiExtensionMap_.erase(token);
 }
 
-int32_t UIExtensionAbilityManager::AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord)
+int32_t UIExtensionAbilityManager::AddPreloadUIExtensionRecord(
+    const std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord)
 {
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_INVALID_VALUE);
     return uiExtensionAbilityRecordMgr_->AddPreloadUIExtensionRecord(abilityRecord);
@@ -1014,15 +1020,15 @@ int UIExtensionAbilityManager::ConnectUIExtensionAbilityLocked(const AbilityRequ
     auto getRecordFunc = [this, connectInfo](const AbilityRequest &abilityRequest,
                                             std::shared_ptr<BaseExtensionRecord> &targetService,
                                             bool &isLoadedAbility) -> int {
-        return GetOrCreateTargetServiceRecord(abilityRequest, connectInfo, 
-                                             targetService, isLoadedAbility);
+        return GetOrCreateTargetServiceRecord(abilityRequest, connectInfo, targetService, isLoadedAbility);
     };
     
     auto updateCallback = [this](const std::shared_ptr<BaseExtensionRecord>& targetService) {
         UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
     };
     
-    return ConnectAbilityLockedTemplate(abilityRequest, connect, callerToken, sessionInfo, getRecordFunc, updateCallback);
+    return ConnectAbilityLockedTemplate(
+        abilityRequest, connect, callerToken, sessionInfo, getRecordFunc, updateCallback);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

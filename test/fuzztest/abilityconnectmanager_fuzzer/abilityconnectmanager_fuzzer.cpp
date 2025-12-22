@@ -96,7 +96,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     abilityConnectManager->StopServiceAbilityLocked(abilityRequest);
     bool boolParam = *data % ENABLE;
     std::shared_ptr<BaseExtensionRecord> targetService = GetFuzzAbilityRecord();
-    // abilityConnectManager->GetOrCreateServiceRecord(abilityRequest, boolParam, targetService, boolParam);
     const sptr<IAbilityConnection> connect = new AbilityConnectCallback();
     std::list<std::shared_ptr<ConnectionRecord>> connectRecordList;
     abilityConnectManager->GetConnectRecordListFromMap(connect, connectRecordList);

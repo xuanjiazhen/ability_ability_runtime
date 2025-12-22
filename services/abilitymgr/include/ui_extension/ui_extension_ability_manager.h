@@ -132,7 +132,7 @@ public:
     int32_t GetActiveUIExtensionList(const std::string &bundleName, std::vector<std::string> &extensionList);
 
     void BackgroundAbilityWindowLocked(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-        const sptr<SessionInfo> &sessionInfo); 
+        const sptr<SessionInfo> &sessionInfo);
 
     bool IsUIExtensionFocused(uint32_t uiExtensionTokenId, const sptr<IRemoteObject>& focusToken);
 
@@ -163,7 +163,7 @@ protected:
     void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
     int RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token) override;
-private:   
+private:
 
     void SetLastExitReason(const AbilityRequest &abilityRequest, std::shared_ptr<BaseExtensionRecord> &targetService);
 
@@ -171,7 +171,8 @@ private:
 
     void HandleUIExtensionDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
 
-    void DoForegroundUIExtension(std::shared_ptr<BaseExtensionRecord> abilityRecord, const AbilityRequest &abilityRequest);
+    void DoForegroundUIExtension(
+        std::shared_ptr<BaseExtensionRecord> abilityRecord, const AbilityRequest &abilityRequest);
 
     void DoBackgroundAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         const sptr<SessionInfo> &sessionInfo) override;
@@ -216,7 +217,7 @@ private:
 
     private:
         PreloadUIExtensionHostClientDiedHandler diedHandler_;
-    };    
+    };
 private:
     RecipientMapType uiExtRecipientMap_;
     UIExtensionMapType uiExtensionMap_;

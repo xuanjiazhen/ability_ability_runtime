@@ -576,7 +576,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, DisconnectBeforeCleanupByUserId_001, Te
 
     abilityMs_->DisconnectBeforeCleanupByUserId(100);
     ASSERT_EQ(abilityRecord->GetConnectRecordList().empty(), true);
-    ASSERT_EQ(abilityMs_->GetCommonExtensionManagerByUserId(100)->GetConnectRecordListByCallback(callback1).empty(), true);
+    ASSERT_EQ(
+        abilityMs_->GetCommonExtensionManagerByUserId(100)->GetConnectRecordListByCallback(callback1).empty(), true);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest DisconnectBeforeCleanupByUserId_001 end");
 }
 

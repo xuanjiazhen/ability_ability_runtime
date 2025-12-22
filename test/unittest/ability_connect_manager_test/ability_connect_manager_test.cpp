@@ -1374,11 +1374,13 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_025, TestSize.Level1)
     auto token = abilityRecord->GetToken();
 
     abilityRecord->SetAbilityState(OHOS::AAFwk::AbilityState::ACTIVE);
-    auto result1 = GetCommonExtensionManager()->DispatchInactive(abilityRecord, OHOS::AAFwk::AbilityState::INACTIVATING);
+    auto result1 = GetCommonExtensionManager()->DispatchInactive(
+        abilityRecord, OHOS::AAFwk::AbilityState::INACTIVATING);
     EXPECT_EQ(result1, OHOS::ERR_INVALID_VALUE);
 
     abilityRecord->SetAbilityState(OHOS::AAFwk::AbilityState::INACTIVATING);
-    auto result2 = GetCommonExtensionManager()->DispatchInactive(abilityRecord, OHOS::AAFwk::AbilityState::INACTIVATING);
+    auto result2 = GetCommonExtensionManager()->DispatchInactive(
+        abilityRecord, OHOS::AAFwk::AbilityState::INACTIVATING);
     EXPECT_EQ(result2, OHOS::ERR_OK);
     EXPECT_EQ(abilityRecord->GetAbilityState(), OHOS::AAFwk::AbilityState::INACTIVE);
 }
@@ -1410,11 +1412,13 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_026, TestSize.Level1)
     auto token = abilityRecord->GetToken();
 
     abilityRecord->SetAbilityState(OHOS::AAFwk::AbilityState::ACTIVE);
-    auto result1 = GetCommonExtensionManager()->DispatchInactive(abilityRecord, OHOS::AAFwk::AbilityState::INACTIVATING);
+    auto result1 = GetCommonExtensionManager()->DispatchInactive(
+        abilityRecord, OHOS::AAFwk::AbilityState::INACTIVATING);
     EXPECT_EQ(result1, OHOS::ERR_INVALID_VALUE);
 
     abilityRecord->SetAbilityState(OHOS::AAFwk::AbilityState::INACTIVATING);
-    auto result2 = GetCommonExtensionManager()->DispatchInactive(abilityRecord, OHOS::AAFwk::AbilityState::INACTIVATING);
+    auto result2 = GetCommonExtensionManager()->DispatchInactive(
+        abilityRecord, OHOS::AAFwk::AbilityState::INACTIVATING);
     EXPECT_EQ(result2, OHOS::ERR_OK);
     EXPECT_EQ(abilityRecord->GetAbilityState(), OHOS::AAFwk::AbilityState::INACTIVE);
 }
@@ -2410,7 +2414,8 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_RestartAbility_003, TestSize.Level1)
     WaitUntilTaskDone(TaskHandler());
 
     auto elementName = abilityRequest2_.want.GetElement().GetURI();
-    std::shared_ptr<BaseExtensionRecord> service = GetCommonExtensionManager()->GetServiceRecordByElementName(elementName);
+    std::shared_ptr<BaseExtensionRecord> service =
+        GetCommonExtensionManager()->GetServiceRecordByElementName(elementName);
     EXPECT_NE(service, nullptr);
     EXPECT_EQ(static_cast<int>(GetCommonExtensionManager()->GetServiceMap().size()), 1);
     // set the over interval time according the config; without init config, the interval time is 0.
