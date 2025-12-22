@@ -193,6 +193,8 @@ bool JsEnvironment::LoadScript(const std::string& path, std::vector<uint8_t>* bu
         return false;
     }
 
+    napi_handle_scope handleScope;
+    napi_open_handle_scope(reinterpret_cast<napi_env>(engine_), &handleScope);
     if (buffer == nullptr) {
         return engine_->RunScriptPath(path.c_str());
     }
@@ -201,6 +203,7 @@ bool JsEnvironment::LoadScript(const std::string& path, std::vector<uint8_t>* bu
     auto end = std::chrono::high_resolution_clock::now();
     auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     TAG_LOGI(AAFwkTag::JSENV, "timing: %{public}lld", duration_ms);
+    napi_close_handle_scope(reinterpret_cast<napi_env>(engine_), handleScope);
     return ret;
 }
 
