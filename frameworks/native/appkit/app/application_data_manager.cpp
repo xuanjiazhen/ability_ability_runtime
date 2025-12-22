@@ -171,21 +171,54 @@ std::string ApplicationDataManager::GetFuncNameFromError(napi_env env, napi_valu
     return funcName;
 }
 
-std::string ApplicationDataManager::GetFuncNameFromError(napi_env env, napi_value mainEnv, napi_value exception,
+std::string ApplicationDataManager::NotifyUncaughtException(napi_env env, napi_value mainEnv, napi_value exception,
     const std::string& summary, const AppExecFwk::ErrorObject &errorObj)
 {
-    auto napiEnv = env ? env : mainEnv;
+    auto napiEnv = env ? env : mainEnv;  // 无论是可捕获还是不可捕获，都用传过来的env
     if (env == mainEnv) {
+        TAG_LOGI(AAFwkTag::APPKIT, "ZCK1219 env === mainEnv");
         if (NapiErrorManager::GetInstance()->NotifyUncaughtException(napiEnv, summary,
-            appExecErrorObj.name, appExecErrorObj.message, appExecErrorObj.stack)) {
-            TAG_LOGI(AAFwkTag::APPKIT, "Complete all callbacks");
+            appExecErrorObj.name, appExecErrorObj.message, appExecErrorObj.stack)) { // 根据napiEnv判断走到error_manage的回调（主线程还是worker线程）
+            TAG_LOGI(AAFwkTag::APPKIT, "ZCK1219 Complete all callbacks");
             if (!isUncatchable) {
                 return true;
             }
         }
     } else {
-        
-    }
+        TAG_LOGI(AAFwkTag::APPKIT, "ZCK1219 env != mainEnv , isUncatchable");
+        NativeEngine* workerEngine = reinterpret_cast<NativeEngine*>(napiEnv);
+        std::string workerName = "";
+        uint32_t type = -1;
+        if (workerEngine->IsWorkerThread()) {
+            type = 1;
+            TAG_LOGE(AAFwkTag::APPKIT, "ZCK1219 type = 1");
+ 
+            napi_value workerGlobalObject = nullptr;
+            napi_get_global(napiEnv, &workerGlobalObject);
+            napi_value valueStr = nullptr;
+            napi_get_named_property(napiEnv, workerGlobalObject, "name", &valueStr);
+            napi_valuetype valueType = napi_undefined;
+            napi_typeof(napiEnv, valueStr, &valueType);
+ 
+            if (valueType == napi_string) {
+                size_t valueStrBufLength = 0;
+                napi_get_value_string_utf8(napiEnv, valueStr, nullptr, 0, &valueStrBufLength);
+                auto valueCStr = std::make_unique<char[]>(valueStrBufLength + 1);
+                size_t valueStrLength = 0;
+                napi_get_value_string_utf8(napiEnv, valueStr, valueCStr.get(), valueStrBufLength + 1, &valueStrLength);
+                    workerName = std::string(valueCStr.get(), valueStrLength);
+            }
+            TAG_LOGE(AAFwkTag::APPKIT, "ZCK1219 workerName = %{public}s", workerName.c_str());
+        } else if (workerEngine->IsTaskPoolThread()) {
+            type = 2;
+            TAG_LOGE(AAFwkTag::APPKIT, "ZCK1219 type = 2");
+            workerName = GetFuncNameFromError(napiEnv, exception);
+            TAG_LOGE(AAFwkTag::APPKIT, "ZCK1219 workerName = %{public}s", workerName.c_str());
+        }
+        TAG_LOGI(AAFwkTag::APPKIT, "ZCK1219 env != mainEnv");
+        NapiErrorManager::GetInstance()->NotifyUncaughtException(napiEnv, exception, workerName, type);
+        }
+        return false;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
