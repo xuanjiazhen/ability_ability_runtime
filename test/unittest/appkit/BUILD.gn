@@ -19,6 +19,7 @@ group("unittest") {
   deps = [
     "ohos_application_first_test:unittest",
     "ohos_application_test:unittest",
+    "main_thread_second_test:unittest",
   ]
   if (ability_runtime_child_process) {
     deps += [
