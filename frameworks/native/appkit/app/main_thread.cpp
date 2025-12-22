@@ -2084,10 +2084,10 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
             EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName(), EVENT_KEY_PROCESS_LIFETIME, lifeTime);
 
         ApplicationDataManager::GetInstance().SetIsUncatchable(isUncatchable);
-        ErrorObject appExecErrorObj = { errorObject.name, errorObject.message, errorObject.stack};
 
+        ErrorObject appExecErrorObj = { errorObject.name, errorObject.message, errorObject.stack};
         auto mainEnv = (static_cast<AbilityRuntime::JsRuntime&>(*appThread->application_->GetRuntime())).GetNapiEnv();
-        if (ApplicationDataManager::xxxx ) {
+        if (ApplicationDataManager::NotifyUncaughtException(env, mainEnv, appExecErrorObj, summary, exception)) {
             return;
         }
 
