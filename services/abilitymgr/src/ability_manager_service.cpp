@@ -12387,10 +12387,10 @@ int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId
         auto commonExtensionManager = GetCommonExtensionManagerByUserId(U0_USER_ID);  
         if (connectManager || commonExtensionManager) {
             if (connectManager) {
-                focused = connectManagerU0->IsUIExtensionFocused(uiExtensionTokenId, token);
+                focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token);
             }
             if (!focused && commonExtensionManager) {
-                focused = commonExtensionManagerU0->IsWindowExtensionFocused(uiExtensionTokenId, token);
+                focused = commonExtensionManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
             }
         } else {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager null, userId: 0");
