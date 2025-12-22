@@ -2353,7 +2353,8 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_RestartAbility_001, TestSize.Level1)
     EXPECT_EQ(OHOS::ERR_OK, result);
 
     auto elementName = abilityRequest_.want.GetElement().GetURI();
-    std::shared_ptr<BaseExtensionRecord> service = GetCommonExtensionManager()->GetServiceRecordByElementName(elementName);
+    std::shared_ptr<BaseExtensionRecord> service =
+        GetCommonExtensionManager()->GetServiceRecordByElementName(elementName);
     EXPECT_NE(service, nullptr);
     EXPECT_EQ(static_cast<int>(GetCommonExtensionManager()->GetServiceMap().size()), 1);
 

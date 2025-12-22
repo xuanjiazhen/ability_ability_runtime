@@ -593,7 +593,7 @@ void AbilityConnectManager::DumpState(
 {
 }
 
-void AbilityConnectManager::DumpStateByUri(ServiceMapType &serviceMapBack, std::vector<std::string> &info, 
+void AbilityConnectManager::DumpStateByUri(ServiceMapType &serviceMapBack, std::vector<std::string> &info,
     bool isClient, const std::string &args, std::vector<std::string> &params)
 {
 }
@@ -614,7 +614,7 @@ std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetUIExtensionBySess
     return nullptr;
 }
 
-int32_t AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest, 
+int32_t AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest,
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
     std::function<int(const AbilityRequest&,
                       std::shared_ptr<BaseExtensionRecord>&,
@@ -625,7 +625,7 @@ int32_t AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest
 }
 
 int AbilityConnectManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
-        const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+    const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     return 0;
 }
