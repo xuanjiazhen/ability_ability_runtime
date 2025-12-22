@@ -207,6 +207,8 @@ private:
         std::string callerBundleName, int32_t notifyProcessBind);
 
     int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord) override;
+
+    int TerminateAbilityInner(const sptr<IRemoteObject> &token) override;
     
     class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
