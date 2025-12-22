@@ -2551,6 +2551,26 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
     return true;
 }
 
+bool MainThread::NeedUpdateRuntimeModuleChecker(const std::shared_ptr<AbilityLocalRecord> &abilityRecord)
+{
+    if (abilityRecord == nullptr) {
+        return false;
+    }
+    auto abilityInfo = abilityRecord->GetAbilityInfo();
+    if (abilityInfo == nullptr) {
+        return false;
+    }
+    auto extensionType = abilityInfo->extensionAbilityType;
+    if (extensionType == ExtensionAbilityType::SERVICE || extensionType == ExtensionAbilityType::DATASHARE) {
+        return false;
+    }
+    if (abilityInfo->applicationInfo.allowMultiProcess) {
+        TAG_LOGD(AAFwkTag::APPKIT, "allowMultiProcess");
+        return false;
+    }
+    return true;
+}
+
 /**
  *
  * @brief launch the ability.
@@ -2604,14 +2624,12 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
-        appThread->SetProcessExtensionType(abilityRecord);
         auto application = appThread->GetApplication();
         if (application == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null application");
             return;
         }
-        auto &runtime = application->GetRuntime();
-        appThread->UpdateRuntimeModuleChecker(runtime);
+        appThread->UpdateRuntimeModuleChecker(application, abilityRecord);
 #ifdef APP_ABILITY_USE_TWO_RUNNER
         AbilityThread::AbilityThreadMain(application, abilityRecord, stageContext);
 #else
@@ -2636,9 +2654,7 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
     if (isAsyncCallback) {
         return;
     }
-    SetProcessExtensionType(abilityRecord);
-    auto &runtime = application_->GetRuntime();
-    UpdateRuntimeModuleChecker(runtime);
+    UpdateRuntimeModuleChecker(application_, abilityRecord);
 #ifdef APP_ABILITY_USE_TWO_RUNNER
     AbilityThread::AbilityThreadMain(application_, abilityRecord, stageContext);
 #else
@@ -3730,10 +3746,25 @@ void MainThread::AddExtensionBlockItem(const std::string &extensionName, int32_t
     extensionConfigMgr_->AddBlockListItem(extensionName, type);
 }
 
-void MainThread::UpdateRuntimeModuleChecker(const std::unique_ptr<AbilityRuntime::Runtime> &runtime)
+void MainThread::UpdateRuntimeModuleChecker(const std::shared_ptr<OHOSApplication> &application,
+    const std::shared_ptr<AbilityLocalRecord> &abilityRecord)
 {
+    if (!NeedUpdateRuntimeModuleChecker(abilityRecord)) {
+        TAG_LOGD(AAFwkTag::APPKIT, "not update module checker");
+        return;
+    }
     if (!extensionConfigMgr_) {
         TAG_LOGE(AAFwkTag::APPKIT, "null extensionConfigMgr_");
+        return;
+    }
+    SetProcessExtensionType(abilityRecord);
+    if (application == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null application");
+        return;
+    }
+    auto &runtime = application->GetRuntime();
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
     }
     extensionConfigMgr_->UpdateRuntimeModuleChecker(runtime);
