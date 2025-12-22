@@ -3044,7 +3044,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, RestartSelfAtomicService_004, TestSize.
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest RestartSelfAtomicService_004 end");
 }
 
-
 /**
  * @tc.name: ClearPreloadedUIExtensionAbility_001
  * @tc.desc: Test ClearPreloadedUIExtensionAbility with non-system app caller
