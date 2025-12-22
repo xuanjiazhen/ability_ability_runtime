@@ -80,6 +80,7 @@ napi_value CreateJSObject(napi_env env)
 
 napi_value WrapInt32ToJS(napi_env env, int32_t value)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_int32(env, value, &result));
     return result;
@@ -212,6 +213,7 @@ bool UnwrapDoubleFromJS2(napi_env env, napi_value param, double &value)
 
 napi_value WrapStringToJS(napi_env env, const std::string &value)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result));
     return result;
@@ -513,6 +515,7 @@ bool UnwrapArrayBoolFromJS(napi_env env, napi_value param, std::vector<bool> &va
 
 napi_value WrapArrayStringToJS(napi_env env, const std::vector<std::string> &value)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value jsArray = nullptr;
     napi_value jsValue = nullptr;
     uint32_t index = 0;
@@ -662,6 +665,7 @@ bool UnwrapArrayComplexFromJS(napi_env env, napi_value param, ComplexArrayData &
  */
 bool IsExistsByPropertyName(napi_env env, napi_value jsObject, const char *propertyName)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     bool result = false;
     if (napi_has_named_property(env, jsObject, propertyName, &result) == napi_ok) {
         return result;
