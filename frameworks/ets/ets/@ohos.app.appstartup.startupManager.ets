@@ -40,7 +40,7 @@ export default namespace startupManager {
             throw new BusinessError(16000050, "internal error.");
         }
         let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
-            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null, data: undefined)=>{
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
                 if (err === null || err.code === 0) {
                     resolve(undefined);
                 } else {
@@ -60,7 +60,7 @@ export default namespace startupManager {
             throw new BusinessError(16000050, "internal error.");
         }
         let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
-            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null, data: undefined)=>{
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
                 if (err === null || err.code === 0) {
                     resolve(undefined);
                 } else {
