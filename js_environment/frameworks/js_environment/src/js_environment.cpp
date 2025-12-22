@@ -21,6 +21,7 @@
 #include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "js_environment_impl.h"
+#include "js_runtime_utils.h"
 #include "uncaught_exception_callback.h"
 #include "worker_info.h"
 
@@ -192,7 +193,7 @@ bool JsEnvironment::LoadScript(const std::string& path, std::vector<uint8_t>* bu
         TAG_LOGE(AAFwkTag::JSENV, "Invalid Native Engine");
         return false;
     }
-
+    HandleScope handleScope(engine_);
     if (buffer == nullptr) {
         return engine_->RunScriptPath(path.c_str());
     }

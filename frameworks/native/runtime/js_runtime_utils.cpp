@@ -45,9 +45,10 @@ std::unique_ptr<NapiAsyncTask> CreateAsyncTaskWithLastParam(napi_env env, napi_v
 // Help Functions
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message)
 {
+    HandleEscape handleEscape(env);
     napi_value result = nullptr;
     napi_create_error(env, CreateJsValue(env, errCode), CreateJsValue(env, message), &result);
-    return result;
+    return handleEscape.Escape(result);
 }
 
 void BindNativeFunction(napi_env env, napi_value object, const char* name,
@@ -56,6 +57,7 @@ void BindNativeFunction(napi_env env, napi_value object, const char* name,
     std::string fullName(moduleName);
     fullName += ".";
     fullName += name;
+    HandleScope handleScope(env);
     napi_value result = nullptr;
     napi_create_function(env, fullName.c_str(), fullName.length(), func, nullptr, &result);
     napi_set_named_property(env, object, name, result);
@@ -63,6 +65,7 @@ void BindNativeFunction(napi_env env, napi_value object, const char* name,
 
 void BindNativeProperty(napi_env env, napi_value object, const char* name, napi_callback getter)
 {
+    HandleScope handleScope(env);
     napi_property_descriptor properties[1];
     properties[0].utf8name = name;
     properties[0].name = nullptr;
@@ -113,6 +116,7 @@ void* GetNapiCallbackInfoAndThis(napi_env env, napi_callback_info info, NapiCall
 
 void SetNamedNativePointer(napi_env env, napi_value object, const char* name, void* ptr, napi_finalize func)
 {
+    HandleScope handleScope(env);
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     napi_wrap(env, objValue, ptr, func, nullptr, nullptr);
@@ -270,6 +274,7 @@ void NapiAsyncTask::Resolve(napi_env env, napi_value value)
 void NapiAsyncTask::ResolveWithNoError(napi_env env, napi_value value)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
+    HandleScope handleScope(env);
     if (deferred_) {
         napi_resolve_deferred(env, deferred_, value);
         deferred_ = nullptr;
@@ -289,6 +294,7 @@ void NapiAsyncTask::ResolveWithNoError(napi_env env, napi_value value)
 
 void NapiAsyncTask::Reject(napi_env env, napi_value error)
 {
+    HandleScope handleScope(env);
     if (deferred_) {
         napi_reject_deferred(env, deferred_, error);
         deferred_ = nullptr;
