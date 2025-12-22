@@ -117,19 +117,6 @@ int AbilityConnectManager::TerminateAbilityInner(const sptr<IRemoteObject> &toke
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_CONNECT_MANAGER_NULL_ABILITY_RECORD);
     std::string element = abilityRecord->GetURI();
     TAG_LOGD(AAFwkTag::EXT, "terminate ability, ability is %{public}s", element.c_str());
-    if (IsUIExtensionAbility(abilityRecord)) {
-        if (!abilityRecord->IsConnectListEmpty()) {
-            TAG_LOGD(AAFwkTag::EXT, "exist connection, don't terminate");
-            return ERR_OK;
-        } else if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND) ||
-            abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING) ||
-            abilityRecord->IsAbilityState(AbilityState::BACKGROUNDING)) {
-            TAG_LOGD(AAFwkTag::EXT, "current ability is active");
-            DoBackgroundAbilityWindow(abilityRecord, abilityRecord->GetSessionInfo());
-            MoveToTerminatingMap(abilityRecord);
-            return ERR_OK;
-        }
-    }
     MoveToTerminatingMap(abilityRecord);
     return TerminateAbilityLocked(token);
 }

@@ -351,7 +351,7 @@ protected:
     {
         AddToServiceMap(key, abilityRecord);
     }
-    int TerminateAbilityInner(const sptr<IRemoteObject> &token);
+    virtual int TerminateAbilityInner(const sptr<IRemoteObject> &token);
     bool IsAbilityNeedKeepAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
     bool IsCacheExtensionAbilityByInfo(const AppExecFwk::AbilityInfo &abilityInfo);
@@ -370,16 +370,7 @@ protected:
                         std::shared_ptr<BaseExtensionRecord>&,
                         bool&)> getRecordFunc,
         std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateCallback = nullptr);
-
-protected:
-    int userId_;
-    ServiceMapType serviceMap_;
-    ffrt::mutex serviceMapMutex_;
-    ffrt::mutex serialMutex_;
-    std::shared_ptr<TaskHandlerWrap> taskHandler_;
-
-private:
-
+    void MoveToTerminatingMap(const std::shared_ptr<BaseExtensionRecord>& abilityRecord);
     /**
      * TerminateAbilityLocked with token and result want.
      *
@@ -389,6 +380,15 @@ private:
      * @return Returns ERR_OK on success, others on failure.
      */
     int TerminateAbilityLocked(const sptr<IRemoteObject> &token);
+protected:
+    int userId_;
+    ServiceMapType serviceMap_;
+    ffrt::mutex serviceMapMutex_;
+    ffrt::mutex serialMutex_;
+    std::shared_ptr<TaskHandlerWrap> taskHandler_;
+
+private:
+
 
     /**
      * StopAbilityLocked with request.
@@ -581,7 +581,6 @@ private:
 
     void HandleInactiveTimeout(const std::shared_ptr<BaseExtensionRecord> &ability);
     void CleanActivatingTimeoutAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
-    void MoveToTerminatingMap(const std::shared_ptr<BaseExtensionRecord>& abilityRecord);
 
 
     /**
