@@ -389,5 +389,430 @@ HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_010, TestSize.Level1)
         OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
     EXPECT_EQ(ret, 0);
 }
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_011
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_011, TestSize.Level1)
+{
+    std::string eventName = "THREAD_BLOCK_3S";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_012
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_012, TestSize.Level1)
+{
+    std::string eventName = "THREAD_BLOCK_3S";
+    int testValue = 120; // test value
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = testValue;
+    eventInfo.pid = testValue;
+    eventInfo.uid = testValue;
+    eventInfo.eventId = testValue;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_013
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_013, TestSize.Level1)
+{
+    std::string eventName = "THREAD_BLOCK_3S";
+    std::string testName = "SendAppfreezeEvent_Test_013";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int testValue = 120; // test value
+    eventInfo.eventId = testValue;
+    eventInfo.bundleName = testName;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_014
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_014, TestSize.Level1)
+{
+    std::string eventName = "THREAD_BLOCK_3S";
+    std::string testName = "SendAppfreezeEvent_Test_014";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int testValue = 120; // test value
+    eventInfo.eventId = testValue;
+    eventInfo.bundleName = testName;
+    testName = "SendAppfreezeEvent_Test_014;SendAppfreezeEvent_Test_014";
+    eventInfo.processName = testName;
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_015
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_015, TestSize.Level1)
+{
+    std::string eventName = "THREAD_BLOCK_3S";
+    std::string testName = "";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int testValue = 120; // test value
+    eventInfo.eventId = testValue;
+    eventInfo.bundleName = testName;
+    eventInfo.processName = testName;
+    eventInfo.binderInfo = testName;
+    eventInfo.freezeMemory = testName;
+    eventInfo.appRunningUniqueId = testName;
+    eventInfo.errorStack = testName;
+    eventInfo.errorName = testName;
+    eventInfo.errorMessage = testName;
+    eventInfo.freezeInfoFile = testName;
+    eventInfo.hitraceInfo = testName;
+    eventInfo.foregroundState = true;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_016
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_016, TestSize.Level1)
+{
+    std::string eventName = "THREAD_BLOCK_6S";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_017s
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_017, TestSize.Level1)
+{
+    std::string eventName = "THREAD_BLOCK_6S";
+    int testValue = 120; // test value
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = testValue;
+    eventInfo.pid = testValue;
+    eventInfo.uid = testValue;
+    eventInfo.eventId = testValue;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_018
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_018, TestSize.Level1)
+{
+    std::string eventName = "THREAD_BLOCK_6S";
+    std::string testName = "SendAppfreezeEvent_Test_018";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int testValue = 69; // test value
+    eventInfo.eventId = testValue;
+    eventInfo.bundleName = testName;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_019
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_019, TestSize.Level1)
+{
+    std::string eventName = "THREAD_BLOCK_6S";
+    std::string testName = "";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    eventInfo.eventId = -1; // test value
+    eventInfo.bundleName = testName;
+    eventInfo.processName = testName;
+    eventInfo.binderInfo = testName;
+    eventInfo.freezeMemory = testName;
+    eventInfo.appRunningUniqueId = testName;
+    eventInfo.errorStack = testName;
+    eventInfo.errorName = testName;
+    eventInfo.errorMessage = testName;
+    eventInfo.freezeInfoFile = testName;
+    eventInfo.hitraceInfo = testName;
+    eventInfo.foregroundState = true;
+    eventInfo.applicationHeapInfo = testName;
+    eventInfo.processLifeTime = testName;
+    eventInfo.mainStack = testName;
+    eventInfo.enableFreeze = true;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_020
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_020, TestSize.Level1)
+{
+    std::string eventName = "LIFECYCLE_TIMEOUT";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_021
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_021, TestSize.Level1)
+{
+    std::string eventName = "LIFECYCLE_TIMEOUT";
+    int testValue = 120; // test value
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = testValue;
+    eventInfo.pid = testValue;
+    eventInfo.uid = testValue;
+    eventInfo.eventId = testValue;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_022
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_022, TestSize.Level1)
+{
+    std::string eventName = "LIFECYCLE_TIMEOUT";
+    std::string testName = "SendAppfreezeEvent_Test_022";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int testValue = 69; // test value
+    eventInfo.eventId = testValue;
+    eventInfo.bundleName = testName;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_023
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_023, TestSize.Level1)
+{
+    std::string eventName = "LIFECYCLE_TIMEOUT";
+    std::string testName = "";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    eventInfo.eventId = -1; // test value
+    eventInfo.bundleName = testName;
+    eventInfo.processName = testName;
+    eventInfo.binderInfo = testName;
+    eventInfo.freezeMemory = testName;
+    eventInfo.appRunningUniqueId = testName;
+    eventInfo.errorStack = testName;
+    eventInfo.errorName = testName;
+    eventInfo.errorMessage = testName;
+    eventInfo.freezeInfoFile = testName;
+    eventInfo.hitraceInfo = testName;
+    eventInfo.foregroundState = true;
+    eventInfo.applicationHeapInfo = testName;
+    eventInfo.processLifeTime = testName;
+    eventInfo.enableFreeze = false;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_024
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_024, TestSize.Level1)
+{
+    std::string eventName = "APP_INPUT_BLOCK";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_025
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_025, TestSize.Level1)
+{
+    std::string eventName = "APP_INPUT_BLOCK";
+    int testValue = 120; // test value
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = testValue;
+    eventInfo.pid = testValue;
+    eventInfo.uid = testValue;
+    eventInfo.eventId = testValue;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_026
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_026, TestSize.Level1)
+{
+    std::string eventName = "APP_INPUT_BLOCK";
+    std::string testName = "SendAppfreezeEvent_Test_026";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    int testValue = 69; // test value
+    eventInfo.eventId = testValue;
+    eventInfo.bundleName = testName;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.number: SendAppfreezeEvent_Test_027
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_027, TestSize.Level1)
+{
+    std::string eventName = "APP_INPUT_BLOCK";
+    std::string testName = "";
+    int tid = static_cast<int>(gettid());
+    int pid = static_cast<int>(getpid());
+    int uid = static_cast<int>(getuid());
+    AppfreezeEventInfo eventInfo;
+    eventInfo.tid = tid;
+    eventInfo.pid = pid;
+    eventInfo.uid = uid;
+    eventInfo.eventId = -1; // test value
+    eventInfo.bundleName = testName;
+    eventInfo.processName = testName;
+    eventInfo.binderInfo = testName;
+    eventInfo.freezeMemory = testName;
+    eventInfo.appRunningUniqueId = testName;
+    eventInfo.errorStack = testName;
+    eventInfo.errorName = testName;
+    eventInfo.errorMessage = testName;
+    eventInfo.freezeInfoFile = testName;
+    eventInfo.hitraceInfo = testName;
+    eventInfo.foregroundState = true;
+    eventInfo.applicationHeapInfo = testName;
+    eventInfo.processLifeTime = testName;
+    eventInfo.dispatchedEventId = 0;
+    eventInfo.processedId = 0;
+    eventInfo.markedId = 0;
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    EXPECT_EQ(ret, 0);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
