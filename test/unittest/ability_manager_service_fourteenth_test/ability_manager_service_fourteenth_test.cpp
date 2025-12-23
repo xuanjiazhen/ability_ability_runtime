@@ -1434,6 +1434,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyStartupExceptionBySCB_002, T
     auto mockCurrentConnectManager = std::make_shared<CommonExtensionManager>(0);
     EXPECT_NE(mockCurrentConnectManager, nullptr);
     abilityMs->subManagersHelper_ = mockSubManagersHelper;
+    mockCurrentConnectManager->sceneBoardTokenId_ = 1;
     abilityMs->subManagersHelper_->currentCommonExtensionManager_ = mockCurrentConnectManager;
     auto mockCurrentUIAbilityManager = std::make_shared<UIAbilityLifecycleManager>(0);
     abilityMs->subManagersHelper_->currentUIAbilityManager_ = mockCurrentUIAbilityManager;

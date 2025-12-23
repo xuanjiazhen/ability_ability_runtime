@@ -596,7 +596,7 @@ HWTEST_F(AbilityConnectManagerTest, StartAbilityLocked_001, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_004, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "HandleActiveAbility_004 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
     AbilityRequest abilityRequest;
@@ -623,7 +623,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_004, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_005, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "HandleActiveAbility_005 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
     EXPECT_NE(connectManager, nullptr);
 
     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
