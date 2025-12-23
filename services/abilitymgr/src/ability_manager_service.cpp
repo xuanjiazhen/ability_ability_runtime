@@ -27,6 +27,7 @@
 #include "ability_start_with_wait_observer_utils.h"
 #include "ability_start_with_wait_observer_manager.h"
 #include "accesstoken_kit.h"
+#include "appspawn.h"
 #include "app_utils.h"
 #include "app_exit_reason_data_manager.h"
 #include "app_mgr_constants.h"
@@ -269,6 +270,8 @@ const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
 std::atomic<bool> g_isDmsAlive = false;
 constexpr int32_t PIPE_MSG_READ_BUFFER = 1024;
 constexpr const char* APPSPAWN_STARTED = "startup.service.ctl.appspawn.pid";
+constexpr const char* HYBRIDSPAWN_EXIT = "startup.service.ctl.hybridspawn";
+constexpr const char* HYBRIDSPAWN_EXIT_SIGNAL = "5";
 constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
 constexpr const char* SCREENCONFIG_SCREENMODE = "ohos.verticalpanel.screenconfig.screenmode";
 constexpr const char* UD_KEY = "ability.want.params.udKey";
@@ -462,6 +465,7 @@ bool AbilityManagerService::Init()
     SubscribeScreenUnlockedEvent();
     AddWatchParameters();
     appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(subManagersHelper_);
+    InitHybridSpawnMsgPipe();
     insightIntentEventMgr_ = std::make_shared<AbilityRuntime::InsightIntentEventMgr>();
     insightIntentEventMgr_->SubscribeSysEventReceiver();
     ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent();
@@ -501,6 +505,104 @@ void AbilityManagerService::InitInterceptor()
         TAG_LOGI(AAFwkTag::ABILITYMGR, "add BlockAllAppStartInterceptor");
         interceptorExecuter_->AddInterceptor("BlockAllAppStart", std::make_shared<BlockAllAppStartInterceptor>());
     }
+}
+
+static void ProcessSignalData(void *token, uint32_t event)
+{
+    int rFd = *(reinterpret_cast<int*>(token));
+    // read data from appspawn
+    char buffer[PIPE_MSG_READ_BUFFER] = {0};
+    std::string readResult = "";
+    int count = read(rFd, buffer, PIPE_MSG_READ_BUFFER - 1);
+    if (count == -1) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read pipe failed");
+    } else if (count == 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write end closed");
+        close(rFd);
+    } else {
+        int32_t pid = -1;
+        int32_t signal = -1;
+        int32_t uid = 0;
+        std::string bundleName = "";
+        std::string bufferStr = buffer;
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "buffer read: %{public}s", bufferStr.c_str());
+        nlohmann::json jsonObject = nlohmann::json::parse(bufferStr, nullptr, false);
+        if (jsonObject.is_discarded()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "parse json string failed");
+            return;
+        }
+        if (!jsonObject.contains("pid") || !jsonObject.contains("signal") || !jsonObject.contains("uid")
+            || !jsonObject.contains("bundleName")) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "info lost!");
+            return;
+        }
+        pid = jsonObject["pid"];
+        signal = jsonObject["signal"];
+        uid = jsonObject["uid"];
+        bundleName = jsonObject["bundleName"];
+        if (signal == 0) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "ignore signal 0, pid: %{public}d", pid);
+            return;
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "To update reason detail info because of SIGNAL");
+        if(DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->RecordSignalReason(
+            pid, uid, signal, bundleName) != 0) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "RecordSignalReason failed");
+        }
+    }
+}
+
+static void HybridSpawnExitCallback(const char *key, const char *value, void *context)
+{
+    if (value == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "value nullptr");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "value is: %{public}s", value);
+    // set flag
+    if (strcmp(value, HYBRIDSPAWN_EXIT_SIGNAL) == 0) {
+        int ret = HybridSpawnListenCloseSet();
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "HybridSpawnListenCloseSet failed");
+        }
+    }
+}
+
+void AbilityManagerService::InitHybridSpawnMsgPipe()
+{
+    int pipeFd[2];
+    if (pipe(pipeFd) != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "create pipe failed");
+        return;
+    }
+    hrFd_ = pipeFd[0];
+    hwFd_ = pipeFd[1];
+	*ptrHRFd_ = hrFd_;
+	TAG_LOGI(AAFwkTag::ABILITYMGR, "hrFd is: %{public}d, hwFd is: %{public}d", hrFd_, hwFd_);
+    // send fd
+    int ret = HybridSpawnListenFdSet(hwFd_);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send fd to hybridspawn failed, ret: %{public}d", ret);
+        close(hrFd_);
+        close(hwFd_);
+        return;
+    }
+    ret = WatchParameter(HYBRIDSPAWN_EXIT, HybridSpawnExitCallback, nullptr);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "watch parameter ret: %{public}d", ret);
+		close(hrFd_);
+        close(hwFd_);
+        return;
+    }
+    ffrt_qos_t taskQos = 0;
+    ret = ffrt_epoll_ctl(taskQos, EPOLL_CTL_ADD, hrFd_, EPOLLIN, static_cast<void*>(ptrHRFd_.get()), ProcessSignalData);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ffrt_epoll_ctl failed, ret: %{public}d", ret);
+        close(hrFd_);
+		close(hwFd_);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Listen signal msg ...");
 }
 
 void AbilityManagerService::InitInterceptorForScreenUnlock()
