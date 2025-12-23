@@ -323,6 +323,7 @@ group("unittest") {
       "cj_ui_ability_test:unittest",
       "cj_utils_ffi_test:unittest",
       "cj_want_ffi_test:unittest",
+      "common_extension_manager_test:unittest",
       "completed_dispatcher_test:unittest",
       "configuration_test:unittest",
       "connect_server_manager_test:unittest",

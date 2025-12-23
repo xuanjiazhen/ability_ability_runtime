@@ -1589,6 +1589,22 @@ HWTEST_F(AbilityManagerServiceSecondTest, DataDumpStateInner_001, TestSize.Level
 
 /*
  * Feature: AbilityManagerService
+ * Function: DumpState
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService DumpState
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, DumpState_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest DumpState_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    std::vector<std::string> info;
+    ASSERT_NE(abilityMs_, nullptr);
+    abilityMs_->DumpState("", info);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest DumpState_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: DumpSysState
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService DumpSysState

@@ -8599,7 +8599,6 @@ std::shared_ptr<PendingWantManager> AbilityManagerService::GetCurrentPendingWant
 int32_t AbilityManagerService::GetServiceMapByUserId(AbilityConnectManager::ServiceMapType &serviceMap, int32_t userId)
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, ERR_INVALID_VALUE);
-    // todo
     auto commonExtensionManager = subManagersHelper_->GetCommonExtensionManagerByUserId(userId);
     auto uiExtensionManager = subManagersHelper_->GetUIExtensionAbilityManagerByUserId(userId);
     if (!commonExtensionManager || !uiExtensionManager) {
