@@ -643,6 +643,9 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             } else {
                 HandleExecuteInsightIntentForeground(want, ret);
             }
+            if (ability_ != nullptr) {
+                PageConfigManager::GetInstance().Initialize(targetState.pageConfig, ability_->GetWindow());
+            }
 #endif
             break;
         }
