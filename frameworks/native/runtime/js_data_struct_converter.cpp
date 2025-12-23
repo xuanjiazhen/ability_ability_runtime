@@ -91,6 +91,7 @@ napi_value CreateLastExitDetailInfo(napi_env env, const AAFwk::LastExitDetailInf
 }
 napi_value CreateJsLaunchParam(napi_env env, const AAFwk::LaunchParam& launchParam)
 {
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -103,11 +104,12 @@ napi_value CreateJsLaunchParam(napi_env env, const AAFwk::LaunchParam& launchPar
     napi_set_named_property(env, object, "lastExitMessage", CreateJsValue(env, launchParam.lastExitMessage));
     napi_set_named_property(env, object, "lastExitDetailInfo", CreateLastExitDetailInfo(
         env, launchParam.lastExitDetailInfo));
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value CreateJsConfiguration(napi_env env, const AppExecFwk::Configuration& configuration)
 {
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -156,12 +158,13 @@ napi_value CreateJsConfiguration(napi_env env, const AppExecFwk::Configuration& 
     napi_set_named_property(env, object, "mnc", CreateJsValue(env,
         configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MNC)));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value CreateJsExtensionAbilityInfo(napi_env env, const AppExecFwk::ExtensionAbilityInfo& info)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -169,11 +172,12 @@ napi_value CreateJsExtensionAbilityInfo(napi_env env, const AppExecFwk::Extensio
         return nullptr;
     }
     AppExecFwk::CommonFunc::ConvertExtensionInfo(env, info, object);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value CreateJsHapModuleInfo(napi_env env, const AppExecFwk::HapModuleInfo& hapModuleInfo)
 {
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -181,11 +185,12 @@ napi_value CreateJsHapModuleInfo(napi_env env, const AppExecFwk::HapModuleInfo& 
         return nullptr;
     }
     AppExecFwk::CommonFunc::ConvertHapModuleInfo(env, hapModuleInfo, object);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value CreateJsLocale(napi_env env, const std::string &locale)
 {
+    HandleEscape handleEscape(env);
     napi_value global = nullptr;
     napi_status status = napi_get_global(env, &global);
     if (status != napi_ok || global == nullptr) {
@@ -222,7 +227,7 @@ napi_value CreateJsLocale(napi_env env, const std::string &locale)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Create Intl.Locale instance failed");
         return nullptr;
     }
-    return intlLocale;
+    return handleEscape.Escape(intlLocale);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

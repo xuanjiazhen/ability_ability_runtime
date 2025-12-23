@@ -980,6 +980,7 @@ void BindPropertyAndFunction(napi_env env, napi_value object, const char* module
 }
 napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, bool keepContext)
 {
+    HandleEscape handle(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -1025,7 +1026,7 @@ napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, b
 
     const char *moduleName = "JsBaseContext";
     BindPropertyAndFunction(env, object, moduleName);
-    return object;
+    return handle.Escape(object);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

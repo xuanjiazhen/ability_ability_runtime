@@ -115,6 +115,7 @@ inline napi_value CreateJsNumber(napi_env env, double value)
 template<class T>
 inline napi_value CreateJsValue(napi_env env, const T& value)
 {
+    HandleEscape handleEscape(env);
     using ValueType = std::remove_cv_t<std::remove_reference_t<T>>;
     napi_value result = nullptr;
     if constexpr (std::is_same_v<ValueType, bool>) {
@@ -124,13 +125,13 @@ inline napi_value CreateJsValue(napi_env env, const T& value)
         return CreateJsNumber(env, value);
     } else if constexpr (std::is_same_v<ValueType, std::string>) {
         napi_create_string_utf8(env, value.c_str(), value.length(), &result);
-        return result;
+        return handleEscape.Escape(result);
     } else if constexpr (std::is_enum_v<ValueType>) {
         return CreateJsNumber(env, static_cast<std::make_signed_t<ValueType>>(value));
     } else if constexpr (std::is_same_v<ValueType, const char*>) {
         (value != nullptr) ? napi_create_string_utf8(env, value, strlen(value), &result) :
             napi_get_undefined(env, &result);
-        return result;
+        return handleEscape.Escape(result);
     }
 }
 
