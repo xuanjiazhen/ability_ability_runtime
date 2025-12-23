@@ -996,6 +996,22 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrintTimeOutLog_008, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UIAbilityLifecycleManager_PrintTimeOutLog_0900
+ * @tc.desc: PrintTimeOutLog
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, PrintTimeOutLog_009, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(uiAbilityLifecycleManager, nullptr);
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
+    uint32_t msgId = 0;
+    bool isHalf = false;
+    uiAbilityLifecycleManager->PrintTimeOutLog(abilityRecord, msgId, isHalf);
+    uiAbilityLifecycleManager.reset();
+}
+
+/**
  * @tc.name: UIAbilityLifecycleManager_CompleteBackground_0100
  * @tc.desc: CompleteBackground
  * @tc.type: FUNC
