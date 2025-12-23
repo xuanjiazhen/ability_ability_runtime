@@ -809,7 +809,6 @@ private:
 
     void PostRestartResidentTask(const AbilityRequest &abilityRequest);
 
-
     void ProcessPreload(const std::shared_ptr<BaseExtensionRecord> &record) const;
 
     void HandleInactiveTimeout(const std::shared_ptr<BaseExtensionRecord> &ability);

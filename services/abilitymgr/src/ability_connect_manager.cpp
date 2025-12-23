@@ -421,9 +421,7 @@ int AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &ab
             auto updateRecordCallback = [weakSelf, updateCallback](
                 const std::shared_ptr<BaseExtensionRecord>& targetService) {
                 if (auto self = weakSelf.lock()) {
-                    if (updateCallback) {
-                        updateCallback(targetService);
-                    }
+                    updateCallback(targetService);
                 }
             };
             LoadAbility(targetService, updateRecordCallback);

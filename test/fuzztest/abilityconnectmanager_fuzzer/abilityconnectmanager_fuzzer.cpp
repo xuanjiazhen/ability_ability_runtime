@@ -154,7 +154,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     AbilityConnectManager::ServiceMapType serviceMap;
     AbilityConnectManager::DumpState(serviceMap, info, boolParam, stringParam);
     AbilityConnectManager::DumpStateByUri(serviceMap, info, boolParam, stringParam, info);
-    std::vector<ExtensionRunningInfo> extensionRunningInfo;	
+    std::vector<ExtensionRunningInfo> extensionRunningInfo;
     AbilityConnectManager::GetExtensionRunningInfos(serviceMap, intParam, extensionRunningInfo, int32Param, boolParam);
     AbilityConnectManager::GetExtensionRunningInfo(abilityRecord, int32Param, extensionRunningInfo);
     abilityConnectManager->PauseExtensions();

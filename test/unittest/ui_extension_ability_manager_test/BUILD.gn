@@ -80,6 +80,7 @@ ohos_unittest("ui_extension_ability_manager_test") {
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   if (ability_runtime_graphics) {
