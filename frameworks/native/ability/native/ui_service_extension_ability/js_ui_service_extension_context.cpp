@@ -224,6 +224,7 @@ private:
     napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::UISERVC_EXT, "Call");
+        AbilityRuntime::HandleEscape handleEscape(env);
         if (info.argc < ARGC_THREE) {
             TAG_LOGE(AAFwkTag::UISERVC_EXT, "not enough params");
             ThrowTooFewParametersError(env);
@@ -276,7 +277,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnStartAbilityByType",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool CheckConnectionParam(napi_env env, napi_value value,

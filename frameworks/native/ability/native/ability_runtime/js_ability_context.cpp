@@ -515,6 +515,7 @@ OnRequestResult JsAbilityContext::UnwrapCompletionHandlerOnRequestResult(napi_en
     }
     return [env, ref, funcName](const AppExecFwk::ElementName &element, const std::string &message) {
         napi_value completionHandler = ref->GetNapiValue();
+        AbilityRuntime::HandleScope handleScope(env);
         napi_value onRequestResultObj = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandler,
             funcName, napi_function);
         size_t argc = ARGC_TWO;
@@ -529,6 +530,7 @@ OnRequestResult JsAbilityContext::UnwrapCompletionHandlerOnRequestResult(napi_en
 void JsAbilityContext::UnwrapCompletionHandlerInStartOptions(napi_env env, napi_value param,
     AAFwk::StartOptions &options)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value completionHandler = AppExecFwk::GetPropertyValueByPropertyName(env, param,
         "completionHandler", napi_object);
     if (completionHandler == nullptr) {
@@ -2957,6 +2959,7 @@ napi_value JsAbilityContext::OnSetAbilityInstanceInfo(napi_env env, NapiCallback
 napi_value JsAbilityContext::OnStartAbilityByType(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGI(AAFwkTag::CONTEXT, "call");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (info.argc < ARGC_THREE) {
         TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
         ThrowTooFewParametersError(env);
@@ -3010,7 +3013,7 @@ napi_value JsAbilityContext::OnStartAbilityByType(napi_env env, NapiCallbackInfo
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartAbilityByType",
         env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsAbilityContext::OnRequestModalUIExtension(napi_env env, NapiCallbackInfo& info)

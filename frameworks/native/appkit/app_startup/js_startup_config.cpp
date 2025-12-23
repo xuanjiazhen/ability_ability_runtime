@@ -192,7 +192,7 @@ void JsStartupConfig::InitCustomization(napi_env env, napi_value configEntry, st
         TAG_LOGD(AAFwkTag::STARTUP, "want is null");
         return;
     }
-
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, *want);
     napi_value method = nullptr;
     napi_get_named_property(env, configEntry, "onRequestCustomMatchRule", &method);

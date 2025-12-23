@@ -35,6 +35,7 @@ bool InnerWrapConfigurationString(
 {
     if (!value.empty()) {
         TAG_LOGI(AAFwkTag::JSNAPI, "key=%{public}s, value=%{private}s", key.c_str(), value.c_str());
+        AbilityRuntime::HandleScope handleScope(env);
         napi_value jsValue = WrapStringToJS(env, value);
         if (jsValue != nullptr) {
             NAPI_CALL_BASE(env, napi_set_named_property(env, jsObject, key.c_str(), jsValue), false);

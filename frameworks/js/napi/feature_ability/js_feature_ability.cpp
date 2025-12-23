@@ -190,7 +190,7 @@ napi_value JsFeatureAbility::OnFinishWithResult(napi_env env, NapiCallbackInfo& 
         TAG_LOGE(AAFwkTag::FA, "invalid args[PARAM0]");
         return CreateJsUndefined(env);
     }
-
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value jsResultObj = GetPropertyValueByPropertyName(env, info.argv[0], "result", napi_object);
     if (jsResultObj == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "get result failed");
@@ -222,7 +222,7 @@ napi_value JsFeatureAbility::OnFinishWithResult(napi_env env, NapiCallbackInfo& 
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JSFeatureAbility::OnFinishWithResult",
         env, CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsFeatureAbility::OnGetDeviceList(napi_env env, const NapiCallbackInfo& info)
