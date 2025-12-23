@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <memory>
 
 #include "ability_context.h"
 #include "nlohmann/json.hpp"
@@ -27,7 +28,6 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-
 
 typedef struct {
     std::string condition;
@@ -58,14 +58,10 @@ typedef struct {
     std::vector<VerticalDisplayConfig> verticalDisplay;
 } PageScalingConfig;
 
-class PageScalingManager {
+class PageScalingManager : public std::enable_shared_from_this<PageScalingManager> {
 public:
 
-    void Initialize(std::string configJson, const sptr<Rosen::Window>& window,
-        const std::string &pageName);
-
-    void RetrivePageScalingConfig(std::string configJson, const sptr<Rosen::Window>& window,
-        const std::string &pageName, PageScalingConfig &config);
+    void Initialize(std::string configJson, const sptr<Rosen::Window>& window);
 
     void NotifyPageChanged(char* targetPageName, uint32_t windowId);
 
@@ -73,18 +69,36 @@ private:
     PageScalingManager();
     ~PageScalingManager() = default;
 
-    void ParseWhitelistConfig(const std::string &pageName, const std::string &configJson, PageScalingConfig &config);
-
-    void RegisterPageChangeListeners(const sptr<Rosen::Window>& window, const PageScalingConfig &config);
+    void ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs);
 
     void HandleNavigateChangeInternal(const sptr<Rosen::Window>& window,
-        const std::string& targetPageName, const PageScalingConfig& config);
+        const std::string& targetPageName, const std::vector<PageScalingConfig>& configs);
 
-    void ApplyConfig(const sptr<Rosen::Window>& window, const PageScalingConfig& config);
+    void ApplyConfig(const sptr<Rosen::Window>& window, const std::vector<PageScalingConfig>& configs);
     
     bool ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode);
 
-    PageScalingConfig config_; // 页面缩放配置
+    bool ComparePage(const std::string &pageName, const std::string &targetPageName, std::string &patternType);
+
+    void RestoreConfig(const sptr<Rosen::Window>& window);
+
+    class WindowUIContentImpl : public Rosen::IWindowUIContentListener {
+    public:
+        WindowUIContentImpl(const std::shared_ptr<PageScalingManager>& owner, const std::vector<PageScalingConfig>& configs, const sptr<Rosen::Window>& window)
+            : owner_(owner), configs_(configs), window_(window) {}
+        virtual ~WindowUIContentImpl() override = default;
+        
+        void OnUIContentCreate(OHOS::Ace::UIContent* uiContent) override;
+        
+    private:
+        std::weak_ptr<PageScalingManager> owner_;
+        std::vector<PageScalingConfig> configs_;
+        sptr<Rosen::Window> window_;
+    };
+
+    std::vector<PageScalingConfig> configs_;
+    sptr<WindowUIContentImpl> uiContentListener_ = nullptr;
+    bool isInitialized_ = false;
 };
 
 } // namespace AppExecFwk
