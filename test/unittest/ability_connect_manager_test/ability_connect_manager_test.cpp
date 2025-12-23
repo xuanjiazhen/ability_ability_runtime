@@ -2478,7 +2478,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Start_Service_With_SessionInfo_001, Te
  */
 HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_StartAbilityLocked_With_SessionInfo_001, TestSize.Level1)
 {
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo.deviceId = "id";

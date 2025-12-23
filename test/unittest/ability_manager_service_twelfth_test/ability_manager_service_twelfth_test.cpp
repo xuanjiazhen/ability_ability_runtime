@@ -338,11 +338,12 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, DisconnectLocalAbility_001, TestSize.
 
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
-    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(ONE);
-    connectManager->sceneBoardTokenId_ = ONE;
-    abilityMs_->subManagersHelper_->currentCommonExtensionManager_ = connectManager;
-    IPCSkeleton::SetCallingTokenID(ONE);
     connect = new AbilityConnectCallback();
+    std::shared_ptr<CommonExtensionManager> commonManager = std::make_shared<CommonExtensionManager>(0);
+    std::shared_ptr<UIExtensionAbilityManager> uiExtManager = std::make_shared<UIExtensionAbilityManager>(0);
+    commonManager->sceneBoardTokenId_ = TWO;
+    abilityMs_->subManagersHelper_->commonExtensionManagers_.insert(std::make_pair(0, commonManager));
+    abilityMs_->subManagersHelper_->uiExtensionAbilityManagers_.insert(std::make_pair(0, uiExtManager));
     std::shared_ptr<CommonExtensionManager> connectManager2 = std::make_shared<CommonExtensionManager>(TWO);
     connectManager2->sceneBoardTokenId_ = TWO;
     abilityMs_->subManagersHelper_->commonExtensionManagers_.insert(std::make_pair(0, connectManager2));
