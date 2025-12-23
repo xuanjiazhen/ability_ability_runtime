@@ -333,10 +333,10 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
         return ERR_OK;
     };
     
-    return ConnectAbilityLockedTemplate(abilityRequest, connect, callerToken, sessionInfo, getRecordFunc);
+    return ConnectAbilityLockedImpl(abilityRequest, connect, callerToken, sessionInfo, getRecordFunc);
 }
 
-int AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest,
+int AbilityConnectManager::ConnectAbilityLockedImpl(const AbilityRequest &abilityRequest,
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
     std::function<int(const AbilityRequest&,
                         std::shared_ptr<BaseExtensionRecord>&,

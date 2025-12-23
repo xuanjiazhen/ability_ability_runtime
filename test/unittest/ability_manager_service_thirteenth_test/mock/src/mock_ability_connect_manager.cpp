@@ -614,7 +614,7 @@ std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetUIExtensionBySess
     return nullptr;
 }
 
-int32_t AbilityConnectManager::ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest,
+int32_t AbilityConnectManager::ConnectAbilityLockedImpl(const AbilityRequest &abilityRequest,
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
     std::function<int(const AbilityRequest&,
                       std::shared_ptr<BaseExtensionRecord>&,

@@ -9627,7 +9627,6 @@ void AbilityManagerService::OnStartSpecifiedProcessResponse(const std::string &f
     const std::string &callerProcessName, int32_t recordId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "flag = %{public}s", flag.c_str());
-    // auto connectManager = GetConnectManagerByUserId(userId);  待确认，代码未隔离，实现在基类
     auto connectManager = GetUIExtensionAbilityManagerByUserId(userId);
     CHECK_POINTER(connectManager);
     if (connectManager->HasRequestIdInLoadAbilityQueue(requestId)) {
@@ -9648,7 +9647,6 @@ void AbilityManagerService::OnStartSpecifiedProcessResponse(const std::string &f
 void AbilityManagerService::OnStartSpecifiedProcessTimeoutResponse(int32_t requestId, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessTimeoutResponse %{public}d", requestId);
-    // auto connectManager = GetConnectManagerByUserId(userId);  待确认，代码未隔离，实现在基类
     auto connectManager = GetUIExtensionAbilityManagerByUserId(userId);
     CHECK_POINTER(connectManager);
     if (connectManager->HasRequestIdInLoadAbilityQueue(requestId)) {

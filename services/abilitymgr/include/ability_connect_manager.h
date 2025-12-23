@@ -312,7 +312,7 @@ protected:
     * @param updateCallback Callback to update record.
     * @return Returns error code.
     */
-    int32_t ConnectAbilityLockedTemplate(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
+    int32_t ConnectAbilityLockedImpl(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
         std::function<int(const AbilityRequest&,
                         std::shared_ptr<BaseExtensionRecord>&,

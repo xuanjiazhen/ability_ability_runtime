@@ -1027,7 +1027,7 @@ int UIExtensionAbilityManager::ConnectUIExtensionAbilityLocked(const AbilityRequ
         UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
     };
     
-    return ConnectAbilityLockedTemplate(
+    return ConnectAbilityLockedImpl(
         abilityRequest, connect, callerToken, sessionInfo, getRecordFunc, updateCallback);
 }
 
