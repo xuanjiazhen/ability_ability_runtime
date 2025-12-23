@@ -2854,6 +2854,7 @@ private:
     void InitInterceptor();
     void InitInterceptorForScreenUnlock();
     void InitPushTask();
+    void InitHybridSpawnMsgPipe();
     void InitDeepLinkReserve();
 
     bool CheckSenderWantInfo(int32_t callerUid, const WantSenderInfo &wantSenderInfo);
@@ -3081,6 +3082,10 @@ private:
 
     std::shared_ptr<AbilityDebugDeal> abilityDebugDeal_;
     std::shared_ptr<AppExitReasonHelper> appExitReasonHelper_;
+
+    int hrFd_ = -1;
+    int hwFd_ = -1;
+    std::shared_ptr<int> ptrHRFd_ = std::make_shared<int>(-1);
 
     ffrt::mutex globalLock_;
     ffrt::mutex bgtaskObserverMutex_;
