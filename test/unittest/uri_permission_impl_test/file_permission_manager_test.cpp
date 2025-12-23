@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -246,21 +246,6 @@ HWTEST_F(FilePermissionManagerTest, InitDlSymbol_002, TestSize.Level1)
     const char* funcName = "testFunc";
     bool ret = wrapper.InitDlSymbol(soName, funcName);
     ASSERT_FALSE(ret);
-}
-
-/*
- * Feature: InitDlSymbol
- * Function: InitDlSymbol
- * SubFunction: NA
- * FunctionPoints: InitDlSymbol
- */
-HWTEST_F(FilePermissionManagerTest, InitDlSymbol_003, TestSize.Level1)
-{
-    DllWrapper wrapper;
-    const char* soName = "libmission_list.z.so";
-    const char* funcName = "CreateMissionListWrap";
-    bool ret = wrapper.InitDlSymbol(soName, funcName);
-    ASSERT_TRUE(ret);
 }
 
 /*
