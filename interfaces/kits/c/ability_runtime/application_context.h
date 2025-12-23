@@ -408,9 +408,13 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLogFileDir(
  * @brief Notify page changed.
  *
  * @param targetPageName The target page name.
- * @since 21
+ * @param windowId The window id.
+ * @return Returns {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the call is successful.
+ * Returns {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided is invalid.
+ * @since 23
  */
-void OH_AbilityRuntime_ApplicationContextNotifyPageChanged(char* targetPageName);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
+    char* targetPageName, uint32_t windowId);
 
 /** @} */
 #endif // ABILITY_RUNTIME_APPLICATION_CONTEXT_H
