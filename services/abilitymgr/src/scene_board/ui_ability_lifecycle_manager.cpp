@@ -3051,12 +3051,13 @@ void UIAbilityLifecycleManager::SetLastExitReasonAsync(UIAbilityRecordPtr abilit
 
 void UIAbilityLifecycleManager::SyncLoadAbilityTask(int32_t abilityRecordId)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::optional<ffrt::task_handle> taskHandle;
     {
         std::lock_guard lock(exitReasonTaskMutex_);
         auto it = exitReasonTasks_.find(abilityRecordId);
         if (it != exitReasonTasks_.end()) {
-            auto taskHandle = it->second;
+            taskHandle = it->second;
             exitReasonTasks_.erase(it);
         }
     }
