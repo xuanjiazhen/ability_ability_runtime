@@ -1903,6 +1903,10 @@ void UIAbilityLifecycleManager::PrintTimeOutLog(UIAbilityRecordPtr ability, uint
     } else {
         info.msg = msgContent;
     }
+    if (!isHalf) {
+        AAFWK::ExitReason exitReason = {REASON_APP_FREEZE, "Kill Reason:" + eventName};
+        DelayedSingleton<AbilityManagerService>::GetInstance()->RecordProcessEixtReason(info.pid, exitReason);
+    }
     AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info, flow);
 }
 
