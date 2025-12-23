@@ -31,7 +31,7 @@
 #include "hilog_tag_wrapper.h"
 #include "load_ability_callback_impl.h"
 #include "load_ability_callback_manager.h"
-#include "page_scaling_manager.h"
+#include "page_config_manager.h"
 #include "start_options_impl.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
@@ -553,8 +553,14 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLogFileDir(
     return WriteStringToBuffer(logFileDir, buffer, bufferSize, writeLength);
 }
 
-void OH_AbilityRuntime_ApplicationContextNotifyPageChanged(char* targetPageName)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
+    char* targetPageName, uint32_t windowId)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "notifyPageChanged called");
-    OHOS::AbilityRuntime::PageScalingManager::GetInstance().NotifyPageChanged(targetPageName);
+    auto ret = PageConfigManager::GetInstance().NotifyPageChanged(targetPageName, windowId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "notifyPageChanged error:%{public}d", ret);
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
