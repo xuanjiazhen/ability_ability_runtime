@@ -80,6 +80,7 @@ napi_value WrapDialogAbilityInfo(napi_env env, const AAFwk::DialogAbilityInfo &d
 
 napi_value WrapDialogSessionInfo(napi_env env, const AAFwk::DialogSessionInfo &dialogSessionInfo)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
     NAPI_CALL(env, napi_create_object(env, &jsObject));
@@ -94,7 +95,8 @@ napi_value WrapDialogSessionInfo(napi_env env, const AAFwk::DialogSessionInfo &d
     jsValue = AppExecFwk::WrapWantParams(env, dialogSessionInfo.parameters);
     SetPropertyValueByPropertyName(env, jsObject, "parameters", jsValue);
 
-    return jsObject;
+    return handleEscape.Escape(jsObject);
+
 }
 
 napi_value WrapMultiAppModeData(napi_env env, const AppExecFwk::MultiAppModeData &multiAppMode)

@@ -43,6 +43,7 @@ napi_value JsAutoFillExtensionContext::ReloadInModal(napi_env env, napi_callback
 napi_value JsAutoFillExtensionContext::OnReloadInModal(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "called");
+     AbilityRuntime::HandleEscape handleEscape(env);
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "invalid argc");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
@@ -88,7 +89,7 @@ napi_value JsAutoFillExtensionContext::OnReloadInModal(napi_env env, NapiCallbac
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsAutoFillExtensionContext::OnReloadInModal",
         env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsAutoFillExtensionContext::CreateJsAutoFillExtensionContext(

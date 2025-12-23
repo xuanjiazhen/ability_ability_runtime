@@ -28,6 +28,7 @@ bool UnwrapChildProcessArgs(napi_env env, napi_value jsValue, AppExecFwk::ChildP
         errorMsg =  "Parameter error. The type of args must be ProcessArgs.";
         return false;
     }
+    AbilityRuntime::HandleScope handleScope(env);
 
     if (IsExistsByPropertyName(env, jsValue, "entryParams") &&
         !UnwrapStringByPropertyName(env, jsValue, "entryParams", args.entryParams)) {

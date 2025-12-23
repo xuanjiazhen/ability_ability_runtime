@@ -180,6 +180,7 @@ napi_value JsAutoFillExtensionUtil::WrapRectData(const napi_env env, const Abili
 void JsAutoFillExtensionUtil::UnwrapViewData(
     const napi_env env, const napi_value value, AbilityBase::ViewData &viewData)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "called");
     napi_value jsViewData = GetPropertyValueByPropertyName(env, value, VIEW_DATA_VIEW_DATA, napi_object);
     if (jsViewData == nullptr) {
@@ -221,6 +222,7 @@ void JsAutoFillExtensionUtil::UnwrapViewData(
 void JsAutoFillExtensionUtil::UnwrapPageNodeInfo(
     const napi_env env, const napi_value jsNode, AbilityBase::PageNodeInfo &node)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "called");
     UnwrapInt32ByPropertyName(env, jsNode, PAGE_INFO_ID, node.id);
     UnwrapInt32ByPropertyName(env, jsNode, PAGE_INFO_DEPTH, node.depth);
@@ -262,6 +264,7 @@ void JsAutoFillExtensionUtil::SetTriggerTypeParam(const napi_env env, napi_value
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "env or jsObject is null");
         return;
     }
+    AbilityRuntime::HandleScope handleScope(env);
     if (want.HasParameter(WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY)) {
         auto type = want.GetIntParam(WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY, -1);
         TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Auto fill Trigger type: %{public}d", type);

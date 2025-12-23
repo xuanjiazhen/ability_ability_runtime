@@ -292,6 +292,7 @@ napi_value JsFeatureAbility::OnStartAbilityForResult(napi_env env, NapiCallbackI
     std::shared_ptr<CallAbilityParam> abilityParam = std::make_shared<CallAbilityParam>();
     std::shared_ptr<CallbackInfo> startAbilityCallback = std::make_shared<CallbackInfo>();
     startAbilityCallback->env = env;
+    AbilityRuntime::HandleEscape handleEscape(env);
 
     if (UnwrapForResultParam(*abilityParam, env, info.argv[0]) == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "unwrapForResultParam failed");
@@ -316,8 +317,7 @@ napi_value JsFeatureAbility::OnStartAbilityForResult(napi_env env, NapiCallbackI
         Want resultData;
         AbilityProcess::GetInstance()->OnAbilityResult(ability_, abilityParam->requestCode, 0, resultData);
     }
-
-    return result;
+return handleEscape.Escape(result);
 }
 
 napi_value JsFeatureAbility::OnFinishWithResult(napi_env env, NapiCallbackInfo& info)
@@ -730,6 +730,7 @@ bool InnerUnwrapWant(napi_env env, napi_value args, Want &want)
         TAG_LOGE(AAFwkTag::FA, "wrong argument type");
         return false;
     }
+AbilityRuntime::HandleScope handleScope(env);
 
     napi_value jsWant = GetPropertyValueByPropertyName(env, args, "want", napi_object);
     if (jsWant == nullptr) {

@@ -491,6 +491,7 @@ void JsUIExtensionContentSession::StartAbilityForResultRuntimeTask(napi_env env,
         &observer = freeInstallObserver_](int resultCode, const AAFwk::Want& want, bool isInner) {
         std::string bundleName = element.GetBundleName();
         std::string abilityName = element.GetAbilityName();
+        HandleScope handleScope(env);
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
@@ -894,6 +895,7 @@ napi_value JsUIExtensionContentSession::OnSetWindowPrivacyMode(napi_env env, Nap
 
 napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiCallbackInfo& info)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     std::string type;
     AAFwk::WantParams wantParam;
     if (!CheckStartAbilityByTypeParam(env, info, type, wantParam)) {
@@ -912,7 +914,7 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
 #endif
     std::shared_ptr<JsUIExtensionCallback> uiExtensionCallback = std::make_shared<JsUIExtensionCallback>(env);
     uiExtensionCallback->SetJsCallbackObject(info.argv[INDEX_TWO]);
-    napi_value completionHandler = AppExecFwk::GetPropertyValueByPropertyName(
+    napi_value SSSSSSSSSSSSASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS = AppExecFwk::GetPropertyValueByPropertyName(
         env, info.argv[INDEX_TWO], "completionHandler", napi_object);
     if (completionHandler != nullptr) {
         uiExtensionCallback->SetCompletionHandler(env, completionHandler);
@@ -963,7 +965,7 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnStartAbilityByType",
         env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 bool JsUIExtensionContentSession::CheckStartAbilityByTypeParam(napi_env env,
