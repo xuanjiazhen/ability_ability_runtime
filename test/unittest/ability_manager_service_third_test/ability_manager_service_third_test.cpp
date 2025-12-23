@@ -506,6 +506,22 @@ HWTEST_F(AbilityManagerServiceThirdTest, GetAbilityRunningInfos_001, TestSize.Le
 
 /*
  * Feature: AbilityManagerService
+ * Function: GetExtensionRunningInfos
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetExtensionRunningInfos
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, GetExtensionRunningInfos_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetExtensionRunningInfos_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    std::vector<AAFwk::ExtensionRunningInfo> extensionRunningInfo;
+    EXPECT_EQ(abilityMs_->GetExtensionRunningInfos(10, extensionRunningInfo), ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetExtensionRunningInfos_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: GetProcessRunningInfos
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService GetProcessRunningInfos
