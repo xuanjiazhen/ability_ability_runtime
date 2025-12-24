@@ -31,6 +31,7 @@
 #include "hilog_tag_wrapper.h"
 #include "load_ability_callback_impl.h"
 #include "load_ability_callback_manager.h"
+#include "page_config_manager.h"
 #include "start_options_impl.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
@@ -550,4 +551,21 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLogFileDir(
         return ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST;
     }
     return WriteStringToBuffer(logFileDir, buffer, bufferSize, writeLength);
+}
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
+    char* targetPageName, int16_t len, int32_t windowId)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "NotifyPageChanged called");
+    if (targetPageName == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "targetPageName is null");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+
+    auto err = PageConfigManager::GetInstance().NotifyPageChanged(targetPageName, len, windowId);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed: %{public}d", err);
+        return ConvertToAPI21BusinessErrorCode(err);
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
