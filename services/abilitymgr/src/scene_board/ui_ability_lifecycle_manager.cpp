@@ -1908,6 +1908,14 @@ void UIAbilityLifecycleManager::PrintTimeOutLog(UIAbilityRecordPtr ability, uint
     } else {
         info.msg = msgContent;
     }
+    if (!isHalf && DelayedSingleton<AbilityManagerService>::GetInstance()->appExitReasonHelper_ != nullptr) {
+        ExitReason exitReason = { Reason::REASON_APP_FREEZE, "Kill Reason:" + eventName };
+        std::vector<std::string> abilityList;
+        const AppExecFwk::AbilityInfo &abilityInfo = ability->GetAbilityInfo();
+        GetActiveAbilityListNoLock(abilityInfo.applicationInfo.uid, abilityList, processInfo.pid_);
+        DelayedSingleton<AbilityManagerService>::GetInstance()->appExitReasonHelper_->
+            RecordProcessExitReasonForTimeout(abilityInfo, exitReason, abilityList, processInfo);
+    }
     AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info, flow);
 }
 
@@ -3113,6 +3121,36 @@ void UIAbilityLifecycleManager::GetActiveAbilityList(int32_t uid, std::vector<st
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
+    for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
+        if (abilityRecord == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "null second");
+            continue;
+        }
+        if (!CheckPid(abilityRecord, pid)) {
+            continue;
+        }
+        const auto &abilityInfo = abilityRecord->GetAbilityInfo();
+        if (abilityInfo.applicationInfo.uid == uid && !abilityInfo.name.empty()) {
+            std::string abilityName = abilityInfo.name;
+            if (abilityInfo.launchMode == AppExecFwk::LaunchMode::STANDARD &&
+                abilityRecord->GetSessionInfo() != nullptr) {
+                abilityName += std::to_string(abilityRecord->GetSessionInfo()->persistentId);
+            }
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "find ability name is %{public}s.", abilityName.c_str());
+            abilityList.push_back(abilityName);
+        }
+    }
+    if (!abilityList.empty()) {
+        sort(abilityList.begin(), abilityList.end());
+        abilityList.erase(unique(abilityList.begin(), abilityList.end()), abilityList.end());
+    }
+}
+
+void UIAbilityLifecycleManager::GetActiveAbilityListNoLock(int32_t uid, std::vector<std::string> &abilityList,
+    int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "GetActiveAbilityListNoLock called");
     for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
         if (abilityRecord == nullptr) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "null second");

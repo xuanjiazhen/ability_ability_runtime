@@ -1243,6 +1243,7 @@ private:
     void RemoveInstanceKey(const AbilityRequest &abilityRequest) const;
     bool HandleRestartUIAbility(sptr<SessionInfo> sessionInfo);
     void CheckPrelaunchTag(const AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo);
+    void GetActiveAbilityListNoLock(int32_t uid, std::vector<std::string> &abilityList, int32_t pid);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
