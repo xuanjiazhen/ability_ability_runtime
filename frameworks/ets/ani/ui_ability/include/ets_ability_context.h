@@ -248,6 +248,8 @@ private:
     void UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &options);
     void AddCompletionHandlerForOpenLink(ani_env *env, ani_ref refCompletionHandler, AAFwk::Want &want,
         OnRequestResult &onRequestSucc, OnRequestResult &onRequestFail);
+    void UnWrapCompletionHandlerForAtomicService(ani_env *env, ani_object param,
+        AAFwk::StartOptions &options, const std::string &appId);
 
     ani_env *env_ = nullptr;
     std::weak_ptr<AbilityContext> context_;

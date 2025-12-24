@@ -47,6 +47,10 @@ bool UnwrapOpenLinkCompletionHandler(ani_env *env, ani_object param, ani_ref ref
 void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
     const char *callbackName, AbilityRuntime::OnRequestResult &onRequestCallback);
 void HandleCreateCallbackFailure(ani_env *env, ani_ref refCompletionHandler, const char *message);
+void CreateOnAtomicRequestSuccessResultCallback(ani_env *env, ani_ref refCompletionHandler,
+    AbilityRuntime::OnAtomicRequestSuccess &onRequestCallback, const char *callbackName);
+void CreateOnAtomicRequestFailureResultCallback(ani_env *env, ani_ref refCompletionHandler,
+    AbilityRuntime::OnAtomicRequestFailure &onRequestCallback, const char *callbackName);
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_ANI_COMMON_START_OPTIONS_H
