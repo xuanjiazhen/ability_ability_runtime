@@ -35,6 +35,7 @@
       *AbilityStartWithWaitObserverManager*;
       *AmsConfigurationParameter*;
       *AppExitReasonDataManager*;
+      *AppExitReasonHelper*;
       *ApplicationAnrListener*;
       *AppMgrUtil*;
       *AppScheduler*;
