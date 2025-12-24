@@ -14,6 +14,7 @@
  */
 
 import { AbilityResult } from 'ability.abilityResult';
+import { CompletionHandlerForAbilityStartCallback } from '../@ohos.app.ability.CompletionHandlerForAbilityStartCallback';
 
 type OnResultFn = (parameter: AbilityResult) => void;
 
@@ -21,4 +22,6 @@ export default interface AbilityStartCallback {
   onError(code: int, name: string, message: string): void;
 
   onResult?: OnResultFn;
+
+  completionHandler?: CompletionHandlerForAbilityStartCallback;
 }

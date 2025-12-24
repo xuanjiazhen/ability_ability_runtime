@@ -18,6 +18,7 @@
 #include "ability_business_error.h"
 #include "ani_common_ability_result.h"
 #include "ani_common_util.h"
+#include "ani_enum_convert.h"
 #include "hilog_tag_wrapper.h"
 #ifdef SUPPORT_SCREEN
 #include "ui_content.h"
@@ -32,6 +33,7 @@ constexpr const char* ERROR_MSG_INNER = "Inner error.";
 
 namespace {
 constexpr const char *ABILITY_START_CLASS_NAME = "application.AbilityStartCallback.AbilityStartCallback";
+constexpr const char *ABILITY_START_FAILURE_CODE_CLASS_NAME = "@ohos.app.ability.CompletionHandlerForAbilityStartCallback.AbilityStartFailureCode;";
 }
 
 EtsUIExtensionCallback::~EtsUIExtensionCallback()
@@ -44,6 +46,14 @@ EtsUIExtensionCallback::~EtsUIExtensionCallback()
     if (callback_ != nullptr) {
         env->GlobalReference_Delete(callback_);
         callback_ = nullptr;
+    }
+    if (onRequestSuccess_ != nullptr) {
+        env->GlobalReference_Delete(onRequestSuccess_);
+        onRequestSuccess_ = nullptr;
+    }
+    if (onRequestFailure_ != nullptr) {
+        env->GlobalReference_Delete(onRequestFailure_);
+        onRequestFailure_ = nullptr;
     }
 }
 
@@ -176,6 +186,115 @@ ani_env* EtsUIExtensionCallback::GetAniEnv()
         return nullptr;
     }
     return env;
+}
+
+void EtsUIExtensionCallback::SetCompletionHandler(ani_env *env, ani_object completionHandler)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "call");
+    if (env == nullptr || completionHandler == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid parameters");
+        return;
+    }
+    ani_ref onRequestSuccess;
+    if (!AppExecFwk::GetFieldRefByName(env, completionHandler, 
+        "onRequestSuccess", onRequestSuccess)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "create onRequestSuccess, failed");
+    }
+    if (onRequestSuccess != nullptr) {
+        ani_ref refOnRequestSuccess = nullptr;
+        if (env->GlobalReference_Create(completionHandler, &refOnRequestSuccess) != ANI_OK ||
+            !refOnRequestSuccess) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Failed to create global ref for completionHandler");
+            return;
+        }
+        onRequestSuccess_ = refOnRequestSuccess;
+    }
+    ani_ref onRequestFailure;
+    if (!AppExecFwk::GetFieldRefByName(env, completionHandler, 
+        "onRequestFailure", onRequestFailure)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "create onRequestFailure, failed");
+    }
+    if (onRequestFailure != nullptr) {
+        ani_ref refOnRequestFailure = nullptr;
+        if (env->GlobalReference_Create(completionHandler, &refOnRequestFailure) != ANI_OK ||
+            !refOnRequestFailure) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Failed to create global ref for completionHandler");
+            return;
+        }
+        onRequestFailure_ = refOnRequestFailure;
+    }
+}
+
+void EtsUIExtensionCallback::OnRequestSuccess(const std::string& name)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "call");
+    if (onRequestSuccess_ == nullptr || vm_ == nullptr) {
+        return;
+    }
+    ani_env *env = GetAniEnv();
+    if (env == nullptr) {
+        return;
+    }
+
+    ani_string nameStr = nullptr;
+    if (env->String_NewUTF8(name.c_str(), name.size(), &nameStr) != ANI_OK || !nameStr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "String_NewUTF8 for message failed");
+        return;
+    }
+    if (!AppExecFwk::IsValidProperty(env, onRequestSuccess_)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "IsValidProperty failed");
+        return;
+    }
+    ani_ref result = nullptr;
+    ani_status status = ANI_ERROR;
+    std::vector<ani_ref> argv = { nameStr };
+    if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(onRequestSuccess_), argv.size(), argv.data(),
+        &result)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "FunctionalObject_Call failed");
+        return;
+    }
+}
+
+void EtsUIExtensionCallback::OnRequestFailure(const std::string& name,
+    int32_t failureCode, const std::string& failureMessage)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "call");
+    if (onRequestFailure_ == nullptr || vm_ == nullptr) {
+        return;
+    }
+    ani_env *env = GetAniEnv();
+    if (env == nullptr) {
+        return;
+    }
+
+    ani_string nameStr = nullptr;
+    if (env->String_NewUTF8(name.c_str(), name.size(), &nameStr) != ANI_OK || !nameStr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "String_NewUTF8 for message failed");
+        return;
+    }
+    ani_enum_item failureCodeItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
+        env, ABILITY_START_FAILURE_CODE_CLASS_NAME, failureCode, failureCodeItem);
+    ani_string aniFailureMessage = nullptr;
+    if (env->String_NewUTF8(failureMessage.c_str(),
+        failureMessage.length(), &aniFailureMessage) != ANI_OK || !aniFailureMessage) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "String_NewUTF8 for failureMessage failed");
+        return;
+    }
+
+    if (!AppExecFwk::IsValidProperty(env, onRequestFailure_)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "IsValidProperty failed");
+        return;
+    }
+
+    ani_ref result = nullptr;
+    ani_status status = ANI_ERROR;
+    std::vector<ani_ref> argv = { nameStr , failureCodeItem, aniFailureMessage};
+    if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(onRequestFailure_), argv.size(), argv.data(),
+        &result)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "FunctionalObject_Call failed");
+        return;
+    }
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

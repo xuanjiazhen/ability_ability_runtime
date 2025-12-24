@@ -1535,6 +1535,11 @@ ani_object EtsAbilityContext::OnStartAbilityByType(
     ErrCode innerErrCode = ERR_OK;
     std::shared_ptr<EtsUIExtensionCallback> callback = std::make_shared<EtsUIExtensionCallback>(vm);
     callback->SetEtsCallbackObject(startCallback);
+    ani_ref completionHandler;
+    AppExecFwk::GetFieldRefByName(env, startCallback, "completionHandler", completionHandler);
+    if (completionHandler != nullptr) {
+        callback->SetCompletionHandler(env, static_cast<ani_object>(completionHandler));
+    }
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
