@@ -50,12 +50,12 @@ void AbilityManagerEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventDa
     };
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
         int32_t userId = data.GetCode();
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "The userId: %{public}d.", userId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "COMMON_EVENT_USER_UNLOCKED userId: %{public}d.", userId);
         handleEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED, userId);
         userScreenUnlockCallback_();
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
         int32_t userId = want.GetIntParam("userId", -1);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "The userId: %{public}d.", userId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "COMMON_EVENT_SCREEN_UNLOCKED userId: %{public}d.", userId);
         handleEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, userId);
     }
 }
