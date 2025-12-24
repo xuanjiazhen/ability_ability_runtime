@@ -12693,6 +12693,7 @@ void AbilityManagerService::GetConnectManagerAndUIExtensionBySessionInfo(const s
     std::shared_ptr<UIExtensionAbilityManager> &connectManager, std::shared_ptr<BaseExtensionRecord> &targetAbility,
     bool needCheck)
 {
+    targetAbility = nullptr;
     int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "userId=%{public}d", userId);
     connectManager = GetUIExtensionAbilityManagerByUserId(userId);
@@ -12706,7 +12707,7 @@ void AbilityManagerService::GetConnectManagerAndUIExtensionBySessionInfo(const s
     }
     if (targetAbility == nullptr && userId != U0_USER_ID) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "try to find UIExtension in user0");
-        connectManager = GetUIExtensionAbilityManagerByUserId(U0_USER_ID);    
+        connectManager = GetUIExtensionAbilityManagerByUserId(U0_USER_ID);
         if (connectManager) {
             targetAbility = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
             if (needCheck && targetAbility == nullptr) {
