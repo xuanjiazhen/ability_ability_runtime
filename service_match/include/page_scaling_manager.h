@@ -48,28 +48,33 @@ typedef struct {
 } VerticalDisplayConfig;
 
 typedef struct {
+    std::string condition;
+    std::string value;
+} Config;
+
+typedef struct {
     struct {
         std::string pageName;
         std::string patternType;
     } page;
-    std::vector<DpiConfig> dpi;
-    std::vector<HideStatusBarConfig> hideStatusBar;
-    std::vector<VideoShrinkConfig> videoShrink;
-    std::vector<VerticalDisplayConfig> verticalDisplay;
+    std::vector<Config> dpi;
+    std::vector<Config> hideStatusBar;
+    std::vector<Config> videoShrink;
+    std::vector<Config> verticalDisplay;
 } PageScalingConfig;
 
 class PageScalingManager : public std::enable_shared_from_this<PageScalingManager> {
 public:
 
-    void Initialize(std::string configJson, const sptr<Rosen::Window>& window);
+    int Initialize(std::string configJson, const sptr<Rosen::Window>& window);
 
-    void NotifyPageChanged(char* targetPageName, uint32_t windowId);
+    int NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId);
 
 private:
     PageScalingManager();
     ~PageScalingManager() = default;
 
-    void ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs);
+    int ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs);
 
     void HandleNavigateChangeInternal(const sptr<Rosen::Window>& window,
         const std::string& targetPageName, const std::vector<PageScalingConfig>& configs);
@@ -81,6 +86,8 @@ private:
     bool ComparePage(const std::string &pageName, const std::string &targetPageName, std::string &patternType);
 
     void RestoreConfig(const sptr<Rosen::Window>& window);
+    
+    void StoreConfig(const nlohmann::json& jsonItem, Config& config);
 
     class WindowUIContentImpl : public Rosen::IWindowUIContentListener {
     public:

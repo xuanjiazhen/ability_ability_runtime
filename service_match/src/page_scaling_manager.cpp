@@ -20,6 +20,7 @@
 #include <mutex>
 
 #include "ability_manager_errors.h"
+#include "errors.h"
 #include "match_tag_wrapper.h"
 #include "ui_content.h"
 #include "window.h"
@@ -32,19 +33,23 @@ const uint8_t CONDITION_LIST_SIZE = 2;
 
 PageScalingManager::PageScalingManager() {}
 
-void PageScalingManager::Initialize(std::string configJson, const sptr<Rosen::Window>& window)
+int PageScalingManager::Initialize(std::string configJson, const sptr<Rosen::Window>& window)
 {
     TAG_LOGW(AAFwkTag::ABILITY, "czx intialize mgr");
     if (window == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "window null");
-        return;
+        return ERR_NO_INIT;
     }
 
-    ParseWhitelistConfig(configJson, configs_);
-    
-    // Create and register UI content listener
+    auto ret = ParseWhitelistConfig(configJson, configs_);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "ParseWhitelistConfig failed, ret: %{public}d", ret);
+        return ret;
+    }
+
     uiContentListener_ = new WindowUIContentImpl(shared_from_this(), configs_, window);
     window->RegisterWindowUIContentListener(uiContentListener_);
+    return ERR_OK;
 }
 
 void PageScalingManager::WindowUIContentImpl::OnUIContentCreate(OHOS::Ace::UIContent* uiContent)
@@ -73,18 +78,18 @@ void PageScalingManager::WindowUIContentImpl::OnUIContentCreate(OHOS::Ace::UICon
         });
 }
 
-void PageScalingManager::ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs)
+int PageScalingManager::ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs)
 {
     auto parseResult = nlohmann::json::parse(configJson, nullptr, false);
     if (parseResult.is_discarded()) {
         TAG_LOGE(AAFwkTag::ABILITY, "ParseWhitelistConfig failed, configJson: %{public}s", configJson.c_str());
-        return;
+        return ERR_INVALID_VALUE;
     }
     
     nlohmann::json jsonObj = parseResult;
     if (!jsonObj.is_array()) {
         TAG_LOGE(AAFwkTag::ABILITY, "configJson is not an array, configJson: %{public}s", configJson.c_str());
-        return;
+        return ERR_INVALID_VALUE;
     }
     
     // 遍历数组，保存所有配置
@@ -93,8 +98,8 @@ void PageScalingManager::ParseWhitelistConfig(const std::string &configJson, std
             continue;
         }
         // 获取页面配置
-        std::string configPageName = item["page"].value("pageName", "");
-        std::string patternType = item["page"].value("patternType", "");
+        std::string configPageName = item["page"].value("pn", "");
+        std::string patternType = item["page"].value("pt", "");
         
         // 创建新的配置对象
         PageScalingConfig config;
@@ -107,57 +112,59 @@ void PageScalingManager::ParseWhitelistConfig(const std::string &configJson, std
         // 解析DPI配置
         if (item.contains("dpi") && item["dpi"].is_array()) {
             for (const auto& dpiItem : item["dpi"]) {
-                DpiConfig dpiConfig;
-                dpiConfig.condition = dpiItem.value("condition", "");
-                std::string valueStr = dpiItem.value("value", "0");
-                dpiConfig.value = std::stof(valueStr);
-                TAG_LOGI(AAFwkTag::ABILITY, "DPI condition: %{public}s, value: %{public}f", 
-                    dpiConfig.condition.c_str(), dpiConfig.value);
+                Config dpiConfig;
+                StoreConfig(dpiItem, dpiConfig);
+                TAG_LOGI(AAFwkTag::ABILITY, "DPI condition: %{public}s, value: %{public}s", 
+                    dpiConfig.condition.c_str(), dpiConfig.value.c_str());
                 config.dpi.push_back(dpiConfig);
             }
         }
         
         // 解析hideStatusBar配置
-        if (item.contains("hideStatusBar") && item["hideStatusBar"].is_array()) {
-            for (const auto& hideItem : item["hideStatusBar"]) {
-                HideStatusBarConfig hideConfig;
-                std::string valueStr = hideItem.value("value", "false");
-                hideConfig.value = !(valueStr == "true");
-                TAG_LOGI(AAFwkTag::ABILITY, "HideStatusBar value: %{public}d", hideConfig.value);
+        if (item.contains("hsb") && item["hsb"].is_array()) {
+            for (const auto& hideItem : item["hsb"]) {
+                Config hideConfig;
+                StoreConfig(hideItem, hideConfig);
+                TAG_LOGI(AAFwkTag::ABILITY, "HideStatusBar value: %{public}s", hideConfig.value.c_str());
                 config.hideStatusBar.push_back(hideConfig);
             }
         }
         
         // 解析videoShrink配置
-        if (item.contains("videoShrink") && item["videoShrink"].is_array()) {
-            for (const auto& videoItem : item["videoShrink"]) {
-                VideoShrinkConfig videoConfig;
-                std::string valueStr = videoItem.value("value", "false");
-                videoConfig.value = (valueStr == "true");
-                TAG_LOGI(AAFwkTag::ABILITY, "VideoShrink value: %{public}d", videoConfig.value);
+        if (item.contains("vsk") && item["vsk"].is_array()) {
+            for (const auto& videoItem : item["vsk"]) {
+                Config videoConfig;
+                StoreConfig(videoItem, videoConfig);
+                TAG_LOGI(AAFwkTag::ABILITY, "VideoShrink value: %{public}s", videoConfig.value.c_str());
                 config.videoShrink.push_back(videoConfig);
             }
         }
         
         // 解析verticalDisplay配置
-        if (item.contains("verticalDisplay") && item["verticalDisplay"].is_array()) {
-            for (const auto& verticalItem : item["verticalDisplay"]) {
-                VerticalDisplayConfig verticalConfig;
-                verticalConfig.condition = verticalItem.value("condition", "");
-                verticalConfig.value = verticalItem.value("value", "");
-                TAG_LOGI(AAFwkTag::ABILITY, "VerticalDisplay condition: %{public}s, value: %{public}s", 
+        if (item.contains("vd") && item["vd"].is_array()) {
+            for (const auto& verticalItem : item["vd"]) {
+                Config verticalConfig;
+                StoreConfig(verticalItem, verticalConfig);
+                TAG_LOGI(AAFwkTag::ABILITY, "VerticalDisplay condition: %{public}s, value: %{public}s",
                     verticalConfig.condition.c_str(), verticalConfig.value.c_str());
                 config.verticalDisplay.push_back(verticalConfig);
             }
         }
-        
-        // 保存配置到vector
-        configs.push_back(config);
     }
-    }
+    return ERR_OK;
 }
 
-int PageScalingManager::NotifyPageChanged(char* targetPageName, uint32_t windowId)
+void PageScalingManager::StoreConfig(const nlohmann::json& jsonItem, Config& config)
+{
+    if (jsonItem.contains("condition")) {
+        config.condition = jsonItem.value("condition", "");
+    } else {
+        config.condition = "";
+    }
+    config.value = jsonItem.value("val", "");
+}
+
+int PageScalingManager::NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId)
 {
     if (targetPageName == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "targetPage null");
@@ -173,25 +180,33 @@ int PageScalingManager::NotifyPageChanged(char* targetPageName, uint32_t windowI
     std::string targetPageNameStr(targetPageName);
     TAG_LOGI(AAFwkTag::ABILITY, "targetPageName: %{public}s", targetPageNameStr.c_str());
 
-    HandleNavigateChangeInternal(window, targetPageNameStr, configs_);
+    HandleNavigateChangeInternal(window, targetPageNameStr, targetPageNameLen, configs_);
     return ERR_OK;
 }
 
 void PageScalingManager::HandleNavigateChangeInternal(const sptr<Rosen::Window>& window,
-    const std::string& targetPageName, const PageScalingConfig& config)
+    const std::string& targetPageName, int32_t targetPageNameLen, const std::vector<PageScalingConfig>& configs)
 {
-    if (ComparePage(config.page.pageName, targetPageName, config.page.patternType)) {
-        ApplyConfig(window, config);
-    } else {
-        RestoreConfig(window);
+    //TODO: 遍历所有配置，如果targetpagename 有匹配的配置，就应用该配置，否则就恢复默认配置
+    for (const auto& config : configs) {
+        if (ComparePage(config.page.pageName, targetPageName, config.page.patternType, targetPageNameLen)) {
+            ApplyConfig(window, config);
+            TAG_LOGD(AAFwkTag::ABILITY, "Apply config for page %{public}s", config.page.pageName.c_str());
+            return;
+        }
     }
+    RestoreConfig(window);
+    TAG_LOGD(AAFwkTag::ABILITY, "Restore config for page %{public}s", targetPageName.c_str());
 }
 
 bool PageScalingManager::ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode)
 {
-    // Check if it's a combo condition
+    // no condtion always true
+    if (condition.empty()) {
+        return true;
+    }
+    // combo condition
     if (condition.find(",") != std::string::npos) {
-        // Split condition by comma
         std::vector<std::string> condList;
         size_t pos = 0;
         std::string token;
@@ -210,11 +225,14 @@ bool PageScalingManager::ConditionCheck(const std::string& condition, Rosen::Dis
         const std::string& cond1 = condList[0];
         const std::string& cond2 = condList[1];
         
-        // Check all possible combo conditions
         if (cond1 == "A" && cond2 == "D") {
             return (foldMode == Rosen::FoldDisplayMode::FOLD_DISPLAY_MODE_MAIN && 
                    orientation == Rosen::DisplayOrientation::PORTRAIT);
-        } else if (cond1 == "B" && cond2 == "C") {
+        } else if  (cond1 == "A" && cond2 == "C") {
+            return (foldMode == Rosen::FoldDisplayMode::FOLD_DISPLAY_MODE_MAIN && 
+                   orientation == Rosen::DisplayOrientation::LANDSCAPE);
+        }
+        else if (cond1 == "B" && cond2 == "C") {
             return (foldMode == Rosen::FoldDisplayMode::FOLD_DISPLAY_MODE_FULL && 
                    orientation == Rosen::DisplayOrientation::LANDSCAPE);
         } else if (cond1 == "B" && cond2 == "D") {
@@ -222,8 +240,7 @@ bool PageScalingManager::ConditionCheck(const std::string& condition, Rosen::Dis
                    orientation == Rosen::DisplayOrientation::PORTRAIT);
         }
         return false;
-    } else {
-        // Single condition check
+    } else { // single condition
         if (condition == "A") {
             return (foldMode == Rosen::FoldDisplayMode::FOLD_DISPLAY_MODE_MAIN);
         } else if (condition == "B") {
@@ -257,10 +274,11 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
     
     for (const auto& dpiConfig : config.dpi) {
         const std::string& condition = dpiConfig.condition;
-        float dpiValue = dpiConfig.value;
+        float dpiValue = std::stof(dpiConfig.value);
         
         if (ConditionCheck(condition, orientation, foldDisplayMode)) {
-            window->SetCustomDensity(dpiValue);
+            bool applyToSubWindow = false;
+            window->SetCustomDensity(dpiValue, applyToSubWindow);
             TAG_LOGI(AAFwkTag::ABILITY, "ApplyConfig: SetCustomDensity %{public}f for condition %{public}s", 
                 dpiValue, condition.c_str());
             break;
@@ -272,7 +290,6 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
         const std::string& value = verticalConfig.value;
         
         if (ConditionCheck(condition, orientation, foldDisplayMode)) {
-            // Apply verticalDisplay configuration
             // TODO: Implement verticalDisplay logic based on value
             TAG_LOGI(AAFwkTag::ABILITY, "ApplyConfig: verticalDisplay condition matched %{public}s, value: %{public}s", 
                 condition.c_str(), value.c_str());
@@ -281,15 +298,17 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
     }
 
     for (const auto& hideConfig : config.hideStatusBar) {
-        TAG_LOGD(AAFwkTag::ABILITY, "hideStatusCofig value %{public}d", hideConfig.value);
+        TAG_LOGD(AAFwkTag::ABILITY, "hideStatusCofig value %{public}s", hideConfig.value.c_str());
         auto prop = window->GetSystemBarPropertyForPage(Rosen::WindowType::WINDOW_STATUS_BAR);
-        prop.enable_ = hideConfig.value;
+        // TODO：hideconfig.value 类型从string转换成bool
+        
+        prop.enable_ = !(hideConfig.value == "true");
         window->SetSystemBarPropertyForPage(Rosen::WindowType::WINDOW_STATUS_BAR, prop);
         break;
     }
 
     for (const auto& videoShrinkConfig : config.videoShrink) {
-        TAG_LOGD(AAFwkTag::ABILITY, "videoShrinkConfig value %{public}d", videoShrinkConfig.value);
+        TAG_LOGD(AAFwkTag::ABILITY, "videoShrinkConfig value %{public}s", videoShrinkConfig.value.c_str());
         // TODO: Implement videoShrink logic based on value
         break;
     }
@@ -310,16 +329,22 @@ void PageScalingManager::RestoreConfig(const sptr<Rosen::Window>& window)
     
 }
 
-bool PageScalingManager::ComparePage(const std::string &whitelistPageName, const std::string &actualPageName, const std::string &patternType)
+bool PageScalingManager::ComparePage(const std::string &whitelistPageName, 
+    const std::string &targetPageName, const std::string &patternType, int32_t targetPageNameLen)
 {
     if (patternType == "equals") {
+        if (whitelistPageName.length() != actualPageName.length()) {
+            return false;
+        }
         return actualPageName == whitelistPageName;
+    } else if (patternType == "prefix") {
+        size_t whitelistLen = whitelistPageName.length();
+        if (targetPageNameLen >= whitelistLen) {
+            return targetPageName.compare(0, whitelistLen, whitelistPageName) == 0;
+        } else {
+            return whitelistPageName.compare(0, targetPageNameLen, targetPageName) == 0;
+        }
     }
-    if (patternType == "prefix") {
-        return actualPageName.find(whitelistPageName) == 0;
-    }
-    TAG_LOGE(AAFwkTag::ABILITY, "unknown patternType: %{public}s", patternType.c_str());
-    return false;
 }
 } // namespace AppExecFwk
 } // namespace OHOS
