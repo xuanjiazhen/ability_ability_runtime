@@ -281,14 +281,22 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
         }
         case PROCESS_MODE_HOST_SPECIFIED: {
             std::string processName = abilityRequest.want.GetStringParam(PROCESS_MODE_HOST_SPECIFIED_KEY);
-            if (abilityRecord->GetAppIndex() > 0) {
+            int32_t processAppIndex = 0;
+            
+            if (abilityRequest.abilityInfo.bundleName == AAFwk::AbilityConfig::SCENEBOARD_ABILITY_NAME) {
+                processAppIndex = abilityRecord->GetWant().GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+            } else {
+                processAppIndex = abilityRecord->GetAppIndex();
+            }
+            
+            if (processAppIndex > 0) {
                 auto isStrEndWith = [](const std::string &targetStr, const std::string &suffix) {
                     if (targetStr.length() >= suffix.length()) {
                         return targetStr.substr(targetStr.length() - suffix.length()) == suffix;
                     }
                     return false;
                 };
-                std::string suffix = ":" + std::to_string(abilityRecord->GetAppIndex());
+                std::string suffix = ":" + std::to_string(processAppIndex);
                 if (!isStrEndWith(processName, suffix)) {
                     TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid name, %{public}s", processName.c_str());
                     return ERR_INVALID_VALUE;
@@ -299,8 +307,8 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid name, %{public}s", processName.c_str());
                 return ERR_INVALID_VALUE;
             }
-            if (abilityRecord->GetAppIndex() > 0) {
-                processName += SEPARATOR + std::to_string(abilityRecord->GetAppIndex());
+            if (processAppIndex > 0) {
+                processName += SEPARATOR + std::to_string(processAppIndex);
             }
             abilityRecord->SetProcessName(processName);
             abilityRecord->SetCustomProcessFlag(abilityRequest.customProcess);
