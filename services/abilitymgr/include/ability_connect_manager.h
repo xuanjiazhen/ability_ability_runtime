@@ -453,7 +453,7 @@ private:
      */
     void LoadAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         std::function<void(const std::shared_ptr<BaseExtensionRecord> &)> updateRecordCallback = nullptr,
-        bool isPreloadUIExtension = false);
+        bool isPreloadUIExtension = false, int32_t loadTimeout = AAFwk::DEFAULT_INVAL_VALUE);
     void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     /**
@@ -630,6 +630,8 @@ private:
     void PostTimeOutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, uint32_t messageId);
     void PostTimeOutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int connectRecordId,
         uint32_t messageId);
+    void PostLoadTimeOutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int32_t loadTimeout);
+    int32_t GetLoadTimeout(int32_t loadTimeout);
 
     void CompleteForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void CompleteBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
