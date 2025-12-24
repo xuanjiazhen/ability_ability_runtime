@@ -8682,6 +8682,7 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId)
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAutoStartupApps userId:%{public}d", userId);
     StartAutoStartupApps(infoQueue, userId);
+    abilityAutoStartupService_->AddHandledAutoStartupUsers(userId);
     auto removeParameterWatcherTask = []() {
         int32_t ret = RemoveParameterWatcher(
             AUTO_STARTUP_READY, AbilityManagerService::HandleAutoStartupReadyCallback, nullptr);
@@ -8736,7 +8737,7 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
 
 void AbilityManagerService::SubscribeScreenUnlockedEvent()
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SubscribeScreenUnlockedEvent called");
     std::lock_guard<std::mutex> lock(subscribedMutex_);
     if (isSubscribed_) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Screen unlocked event subscriber already exists");
@@ -8812,7 +8813,7 @@ std::function<void()> AbilityManagerService::GetUserScreenUnlockCallback()
 
 void AbilityManagerService::UnSubscribeScreenUnlockedEvent()
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "UnSubscribeScreenUnlockedEvent called");
     std::lock_guard<std::mutex> lock(subscribedMutex_);
     bool subResult = EventFwk::CommonEventManager::UnSubscribeCommonEvent(screenSubscriber_);
     if (subResult) {
@@ -9309,10 +9310,8 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "startUser in service:%{public}d, displayId:%{public}" PRIu64"", userId, displayId);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    if (callback == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "startUser callback is nullptr");
-        return INVALID_PARAMETERS_ERR;
-    }
+
+    CHECK_POINTER_AND_RETURN_LOG(callback, INVALID_PARAMETERS_ERR, "startUser callback is nullptr");
     auto checkRet = AbilityRuntime::UserController::GetInstance().CheckUserParam(userId);
     if (checkRet != ERR_OK) {
         callback->OnStartUserDone(userId, checkRet);
@@ -9334,6 +9333,12 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
         TAG_LOGI(AAFwkTag::ABILITYMGR, "low-mem mode, disallow");
         callback->OnStartUserDone(userId, ERR_ALL_APP_START_BLOCKED);
         return ERR_ALL_APP_START_BLOCKED;
+    }
+    // Lister screen unlock for auto startup apps.
+    if (system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false) && abilityAutoStartupService_ &&
+        !abilityAutoStartupService_->FindHandledAutoStartupUsers(userId)) {
+        InitInterceptorForScreenUnlock();
+        SubscribeScreenUnlockedEvent();
     }
 
     DelayedSingleton<AppScheduler>::GetInstance()->SetEnableStartProcessFlagByUserId(userId, true);
@@ -9433,10 +9438,8 @@ int AbilityManagerService::LogoutUser(int32_t userId, sptr<IUserCallback> callba
         return checkRet;
     }
 
-    // Lister screen unlock for auto startup apps.
-    if (system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
-        InitInterceptorForScreenUnlock();
-        SubscribeScreenUnlockedEvent();
+    if (system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false) && abilityAutoStartupService_) {
+        abilityAutoStartupService_->RemoveHandledAutoStartupUsers(userId);
     }
 
     RemoveLauncherDeathRecipient(userId);
