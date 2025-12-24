@@ -12709,7 +12709,6 @@ void AbilityManagerService::GetConnectManagerAndUIExtensionBySessionInfo(const s
         connectManager = GetUIExtensionAbilityManagerByUserId(U0_USER_ID);    
         if (connectManager) {
             targetAbility = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
-            targetAbility = nullptr;
             if (needCheck && targetAbility == nullptr) {
                 targetAbility = connectManager->GetUIExtensionBySessionFromServiceMap(sessionInfo);
             }
