@@ -1592,6 +1592,14 @@ ani_object EtsAbilityContext::OnStartAbilityByType(
     ErrCode innerErrCode = ERR_OK;
     std::shared_ptr<EtsUIExtensionCallback> callback = std::make_shared<EtsUIExtensionCallback>(vm);
     callback->SetEtsCallbackObject(startCallback);
+    ani_ref completionHandler;
+    ani_boolean isUndefined = false;
+    AppExecFwk::GetPropertyRef(env, startCallback, "completionHandler", completionHandler, isUndefined);
+    if (!isUndefined && completionHandler != nullptr) {
+        callback->SetCompletionHandler(env, static_cast<ani_object>(completionHandler));
+        callback->OnRequestSuccess("testRequestSuccess");
+        callback->OnRequestFailure("testRequestFailure", 0, "testRequestFailureMessage");
+    }
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
