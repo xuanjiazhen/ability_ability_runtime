@@ -134,7 +134,6 @@ void JsPanelStartCallback::CallJsResult(int32_t resultCode, const AAFwk::Want &w
         TAG_LOGE(AAFwkTag::VERTICAL_PANEL, "null env_");
         return;
     }
-
     napi_value abilityResult = OHOS::AppExecFwk::WrapAbilityResult(env_, resultCode, want);
     if (abilityResult == nullptr) {
         TAG_LOGE(AAFwkTag::VERTICAL_PANEL, "null abilityResult");

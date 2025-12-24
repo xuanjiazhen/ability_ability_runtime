@@ -162,8 +162,8 @@ napi_value JsPhotoEditorExtensionContext::OnSaveEditedContentWithImage(napi_env 
         }
 
         AAFwk::Want newWant;
-        PhotoEditorErrorCode errCode = context->SaveEditedContent(image, packOption, newWant);
         HandleScope handleScope(env);
+        PhotoEditorErrorCode errCode = context->SaveEditedContent(image, packOption, newWant);
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, static_cast<int>(errCode), newWant);
         if (abilityResult == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null abilityResult");
@@ -186,6 +186,7 @@ napi_value JsPhotoEditorExtensionContext::OnSaveEditedContentWithImage(napi_env 
 
 bool JsPhotoEditorExtensionContext::UnwrapPackOption(napi_env env, napi_value jsOption, Media::PackOption &packOption)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     if (!AppExecFwk::IsTypeForNapiValue(env, jsOption, napi_object)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "not object");
         ThrowError(env, static_cast<int32_t>(PhotoEditorErrorCode::ERROR_CODE_PARAM_ERROR), ERR_MSG_PARAMS_ERROR);
