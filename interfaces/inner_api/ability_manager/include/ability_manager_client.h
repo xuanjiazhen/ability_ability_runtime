@@ -589,9 +589,11 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param loadTimeout, timeout for ability loading stage, not work on asan
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId);
+    ErrCode ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId,
+        int32_t loadTimeout = DEFAULT_INVAL_VALUE);
 
     /**
      * ConnectAbility, connect session with service ability.
@@ -655,10 +657,11 @@ public:
      * @param want, special want for the extension ability.
      * @param connect, callback used to notify caller the result of connecting or disconnecting.
      * @param userId, the extension runs in.
+     * @param loadTimeout, timeout for ability loading stage, not work on asan
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ConnectExtensionAbility(const Want &want, sptr<IAbilityConnection> connect,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t loadTimeout = DEFAULT_INVAL_VALUE);
 
     /**
      * Connect ui extension ability.
