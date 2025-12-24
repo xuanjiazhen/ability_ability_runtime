@@ -240,6 +240,12 @@ private:
     void UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &options);
     void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
         OnRequestResult &onRequestCallback, const char *callbackName);
+    void CreateOnAtomicRequestFailureResultCallback(ani_env *env, ani_ref refCompletionHandler,
+        OnAtomicRequestFailure &onRequestCallback, const char *callbackName);
+    void CreateOnAtomicRequestSuccessResultCallback(ani_env *env, ani_ref refCompletionHandler,
+        OnAtomicRequestSuccess &onRequestCallback, const char *callbackName);
+    void UnWrapCompletionHandlerForAtomicService(ani_env *env, ani_object param, AAFwk::StartOptions &options,
+        const std::string &appId);
 
     ani_env *env_ = nullptr;
     std::weak_ptr<AbilityContext> context_;
