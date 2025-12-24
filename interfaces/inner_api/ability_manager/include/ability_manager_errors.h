@@ -1015,6 +1015,15 @@ enum {
     ERR_INVALID_FD = 2097403,
 
     /**
+     * Result (2097404-2097406) for AbilityEventMapManager.
+     */
+    NOT_FOUND_USERID_IN_EVENT_MAP = 2097404,
+
+    FOUND_USERID_ONLY_IN_EVENT_MAP = 2097405,
+
+    FOUND_USERID_AND_EVENT_IN_EVENT_MAP = 2097406,
+
+    /**
      * Result (2098000-2098049) Error code refinement INVALID_VALUE.
      */
     ERR_REFINEMENT_INVALID_VALUE_BEGIN = 2098000,
