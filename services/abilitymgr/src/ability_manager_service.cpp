@@ -3698,8 +3698,12 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     int32_t callerAppIndex = 0;
     if (IN_PROCESS_CALL(bms->GetNameAndIndexForUid(callerUid, hostBundleName, callerAppIndex)) == ERR_OK) {
-        if (!want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY) || want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0)
-            != callerAppIndex) {
+        if (hostBundleName == AbilityConfig::SCENEBOARD_BUNDLE_NAME) { // deal appIndex from scb
+            if (!want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
+                want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+            }
+        } else if (!want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY) ||
+            want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0) != callerAppIndex) {
             AppExecFwk::ExtensionAbilityInfo extensionInfo;
             IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneExtensionAbilityInfoWithAppIndex(want.GetElement(),
                 AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_DEFAULT, callerAppIndex, extensionInfo, validUserId));
@@ -7936,7 +7940,13 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
         std::string extensionTypeStr = want.GetStringParam(UIEXTENSION_TYPE_KEY);
         if (AppExecFwk::ConvertToExtensionAbilityType(extensionTypeStr) ==
             AppExecFwk::ExtensionAbilityType::EMBEDDED_UI) {
-            (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, abilityRecord->GetAppIndex());
+            if (abilityRecord->GetFirstCallerBundleName() == AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
+                if (!want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
+                    (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, abilityRecord->GetAppIndex());
+                }
+            } else {
+                (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, abilityRecord->GetAppIndex());
+            }
         }
     }
     if (abilityRecord && abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX &&
