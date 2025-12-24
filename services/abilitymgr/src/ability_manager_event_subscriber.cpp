@@ -15,49 +15,115 @@
 
 #include "ability_manager_event_subscriber.h"
 
+#include "ability_manager_errors.h"
+#include "ability_util.h"
 #include "common_event_support.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-AbilityManagerEventSubscriber::AbilityManagerEventSubscriber(
+AbilityEventMapManager::AbilityEventMapManager() {}
+AbilityEventMapManager::~AbilityEventMapManager() {}
+
+void AbilityEventMapManager::AddEvent(int32_t userId, const std::string& event)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AddEvent userId: %{public}d, event: %{public}s.",
+        userId, event.c_str());
+    auto iter = eventMap_.find(userId);
+    if (iter != eventMap_.end()) {
+        if (event == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
+            iter->second.userUnlock_ = true;
+            return;
+        }
+        iter->second.screenUnlock_ = true;
+        return;
+    }
+    if (event == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
+        eventMap_[userId] = LockEventData(true, false);
+        return;
+    }
+    eventMap_[userId] = LockEventData(false, true);
+}
+
+void AbilityEventMapManager::RemoveUser(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "RemoveUser userId: %{public}d.", userId);
+    eventMap_.erase(userId);
+}
+
+bool AbilityEventMapManager::CheckAllUnlocked(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = eventMap_.find(userId);
+    if (iter != eventMap_.end()) {
+        return iter->second.userUnlock_ && iter->second.screenUnlock_;
+    }
+    return false;
+}
+
+void AbilityEventMapManager::ClearAllEvents()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ClearAllEvents");
+    eventMap_.clear();
+}
+
+AMSScreenUnlockEventSubscriber::AMSScreenUnlockEventSubscriber(
+    const EventFwk::CommonEventSubscribeInfo &subscribeInfo, const std::function<void(int32_t)> &screenUnlockCallback)
+    : EventFwk::CommonEventSubscriber(subscribeInfo), screenUnlockCallback_(screenUnlockCallback)
+{}
+
+void AMSScreenUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
+{
+    const AAFwk::Want &want = data.GetWant();
+    std::string action = want.GetAction();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
+    if (action != EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
+        return;
+    }
+    if (screenUnlockCallback_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "screenUnlockCallback_ nullptr");
+        return;
+    }
+    auto eventMapManager = DelayedSingleton<AbilityEventMapManager>::GetInstance();
+    CHECK_POINTER_LOG(eventMapManager, "eventMapManager nullptr");
+    eventMapManager->AddEvent(userId, action);
+    if (eventMapManager->CheckAllUnlocked(userId)) {
+        screenUnlockCallback_(userId);
+        eventMapManager->RemoveUser(userId);
+    }
+}
+
+AMSUserUnlockEventSubscriber::AMSUserUnlockEventSubscriber(
     const EventFwk::CommonEventSubscribeInfo &subscribeInfo, const std::function<void(int32_t)> &screenUnlockCallback,
     const std::function<void()> &userScreenUnlockCallback)
     : EventFwk::CommonEventSubscriber(subscribeInfo), screenUnlockCallback_(screenUnlockCallback),
     userScreenUnlockCallback_(userScreenUnlockCallback)
 {}
 
-void AbilityManagerEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
+void AMSUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
 {
     const AAFwk::Want &want = data.GetWant();
     std::string action = want.GetAction();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
+    if (action != EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
+        return;
+    }
     if (userScreenUnlockCallback_ == nullptr || screenUnlockCallback_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr callback");
         return;
     }
-    auto handleEvent = [&](const std::string &event, int32_t userId) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        auto iter = eventMap_.find(userId);
-        if (iter != eventMap_.end()) {
-            if (iter->second == event) {
-                screenUnlockCallback_(userId);
-                eventMap_.erase(iter);
-            }
-            return;
-        }
-        eventMap_.emplace(userId, action);
-    };
-    if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
-        int32_t userId = data.GetCode();
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "The userId: %{public}d.", userId);
-        handleEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED, userId);
-        userScreenUnlockCallback_();
-    } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
-        int32_t userId = want.GetIntParam("userId", -1);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "The userId: %{public}d.", userId);
-        handleEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, userId);
+    auto eventMapManager = DelayedSingleton<AbilityEventMapManager>::GetInstance();
+    CHECK_POINTER_LOG(eventMapManager, "eventMapManager nullptr");
+    eventMapManager->AddEvent(userId, action);
+    if (eventMapManager->CheckAllUnlocked(userId)) {
+        screenUnlockCallback_(userId);
+        eventMapManager->RemoveUser(userId);
+        return;
     }
+    userScreenUnlockCallback_();
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
