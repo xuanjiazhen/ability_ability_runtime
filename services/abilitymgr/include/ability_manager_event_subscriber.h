@@ -17,11 +17,12 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_EVENT_SUBSCRIBER_H
 
 #include <mutex>
-#include <unordered_set>
 
 #include "common_event_data.h"
 #include "common_event_subscribe_info.h"
 #include "common_event_subscriber.h"
+#include "nocopyable.h"
+#include "singleton.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -39,8 +40,20 @@ public:
 private:
     std::function<void(int32_t)> screenUnlockCallback_;
     std::function<void()> userScreenUnlockCallback_;
+};
+
+class AbilityEventMapManager : public std::enable_shared_from_this<AbilityEventMapManager> {
+    DECLARE_DELAYED_SINGLETON(AbilityEventMapManager)
+public:
+    void AddEvent(int32_t userId, const std::string& event);
+    int32_t CheckAndRemoveEvent(int32_t userId, const std::string& expectedEvent);
+    void ClearAllEvents();
+
+private:
     std::unordered_map<int32_t, std::string> eventMap_;
     std::mutex mutex_;
+
+    DISALLOW_COPY_AND_MOVE(AbilityEventMapManager);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
