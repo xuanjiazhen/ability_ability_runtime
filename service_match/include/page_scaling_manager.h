@@ -81,13 +81,13 @@ private:
 
     void ApplyConfig(const sptr<Rosen::Window>& window, const std::vector<PageScalingConfig>& configs);
     
-    bool ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode);
-
-    bool ComparePage(const std::string &pageName, const std::string &targetPageName, std::string &patternType);
-
     void RestoreConfig(const sptr<Rosen::Window>& window);
     
     void StoreConfig(const nlohmann::json& jsonItem, Config& config);
+    
+    bool ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode);
+
+    bool ComparePage(const std::string &pageName, const std::string &targetPageName, std::string &patternType);
 
     class WindowUIContentImpl : public Rosen::IWindowUIContentListener {
     public:
