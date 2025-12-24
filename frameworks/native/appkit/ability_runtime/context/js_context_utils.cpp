@@ -980,6 +980,7 @@ void BindPropertyAndFunction(napi_env env, napi_value object, const char* module
 }
 napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, bool keepContext)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
