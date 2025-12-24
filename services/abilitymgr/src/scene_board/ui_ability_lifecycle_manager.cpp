@@ -2297,43 +2297,60 @@ void UIAbilityLifecycleManager::OnTimeOut(uint32_t msgId, int64_t abilityRecordI
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call, msgId is %{public}d", msgId);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    UIAbilityRecordPtr abilityRecord;
-    for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
-        if (iter->second != nullptr && iter->second->GetAbilityRecordId() == abilityRecordId) {
-            abilityRecord = iter->second;
-            break;
-        }
-    }
-    if (abilityRecord == nullptr) {
-        for (auto abilityIter : terminateAbilityList_) {
-            if (abilityIter && abilityIter->GetAbilityRecordId() == abilityRecordId) {
-                abilityRecord = abilityIter;
+    AppExecFwk::AbilityInfo abilityInfo;
+    ExitReason exitReason;
+    std::vector<std::string> abilityList;
+    AppExecFwk::RunningProcessInfo processInfo;
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        UIAbilityRecordPtr abilityRecord;
+        for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
+            if (iter->second != nullptr && iter->second->GetAbilityRecordId() == abilityRecordId) {
+                abilityRecord = iter->second;
                 break;
             }
         }
         if (abilityRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
+            for (auto abilityIter : terminateAbilityList_) {
+                if (abilityIter && abilityIter->GetAbilityRecordId() == abilityRecordId) {
+                    abilityRecord = abilityIter;
+                    break;
+                }
+            }
+            if (abilityRecord == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
+                return;
+            }
+        }
+        abilityInfo = abilityRecord->GetAbilityInfo();
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "call, msgId:%{public}d, name:%{public}s", msgId, abilityInfo.name.c_str());
+        PrintTimeOutLog(abilityRecord, msgId, isHalf);
+        if (isHalf) {
             return;
         }
+        GetActiveAbilityListNoLock(abilityInfo.applicationInfo.uid, abilityList, processInfo.pid_);
+        switch (msgId) {
+            case AbilityManagerService::LOAD_TIMEOUT_MSG:
+                abilityRecord->SetLoading(false);
+                HandleLoadTimeout(abilityRecord);
+                break;
+            case AbilityManagerService::FOREGROUND_TIMEOUT_MSG:
+                HandleForegroundTimeout(abilityRecord);
+                break;
+            default:
+                break;
+        }
+        CHECK_POINTER(DelayedSingleton<AbilityManagerService>::GetInstance()->appExitReasonHelper_);
+        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByToken(
+            abilityRecord->GetToken(), processInfo);
+        if (processInfo.pid_ == 0) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "ability:%{public}s, invalid pid", abilityInfo.name.data());
+            return;
+        }
+        exitReason = { Reason::REASON_APP_FREEZE, "Kill Reason:LIFECYCLE_TIMEOUT" };
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call, msgId:%{public}d, name:%{public}s", msgId,
-        abilityRecord->GetAbilityInfo().name.c_str());
-    PrintTimeOutLog(abilityRecord, msgId, isHalf);
-    if (isHalf) {
-        return;
-    }
-    switch (msgId) {
-        case AbilityManagerService::LOAD_TIMEOUT_MSG:
-            abilityRecord->SetLoading(false);
-            HandleLoadTimeout(abilityRecord);
-            break;
-        case AbilityManagerService::FOREGROUND_TIMEOUT_MSG:
-            HandleForegroundTimeout(abilityRecord);
-            break;
-        default:
-            break;
-    }
+    DelayedSingleton<AbilityManagerService>::GetInstance()->appExitReasonHelper_->
+        RecordProcessExitReasonForTimeout(abilityInfo, exitReason, abilityList, processInfo);
 }
 
 void UIAbilityLifecycleManager::SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession)
@@ -3112,7 +3129,13 @@ void UIAbilityLifecycleManager::GetActiveAbilityList(int32_t uid, std::vector<st
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "GetActiveAbilityList called");
+    GetActiveAbilityListNoLock(uid, abilityList, pid);
+}
+
+void UIAbilityLifecycleManager::GetActiveAbilityListNoLock(int32_t uid, std::vector<std::string> &abilityList,
+    int32_t pid)
+{
     for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
         if (abilityRecord == nullptr) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "null second");
