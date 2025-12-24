@@ -101,6 +101,7 @@ struct AbilityRequest {
     std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
     bool isFromOpenLink = false;
     std::pair<bool, LaunchReason> IsContinuation() const;
+    int32_t loadExtensionTimeout = -1; // only for connectAbility
 
     bool IsAcquireShareData() const
     {
