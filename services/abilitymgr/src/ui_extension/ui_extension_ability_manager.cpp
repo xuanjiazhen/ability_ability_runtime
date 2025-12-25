@@ -1186,7 +1186,7 @@ int UIExtensionAbilityManager::DispatchInactive(const std::shared_ptr<BaseExtens
     DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
         token, AppExecFwk::ExtensionState::EXTENSION_STATE_CREATE);
     auto preloadTask = [owner = weak_from_this(), abilityRecord] {
-        auto acm = owner.lock();
+        auto acm = std::static_pointer_cast<UIExtensionAbilityManager>(owner.lock());
         if (acm == nullptr) {
             TAG_LOGE(AAFwkTag::EXT, "null AbilityConnectManager");
             return;
