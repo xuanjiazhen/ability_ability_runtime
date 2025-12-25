@@ -1619,7 +1619,7 @@ public:
     void SendProcessKillEvent(std::shared_ptr<AppRunningRecord> appRecord, const std::string &defaultReason);
 
     void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId);
-
+    void SetProcessTerminating(int32_t pid);
     void AllowScbProcessMoveToBackground();
 
     int32_t KillChildProcessByPid(int32_t pid);

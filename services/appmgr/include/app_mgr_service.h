@@ -1092,6 +1092,8 @@ private:
      */
     virtual void PreloadModuleFinished(const int32_t recordId) override;
 
+    void SetProcessTerminating(int32_t pid) override;
+
     enum DumpIpcKey {
         KEY_DUMP_IPC_START = 0,
         KEY_DUMP_IPC_STOP,

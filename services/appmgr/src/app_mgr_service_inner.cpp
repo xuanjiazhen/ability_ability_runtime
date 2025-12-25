@@ -11086,5 +11086,17 @@ int32_t AppMgrServiceInner::KillChildProcessByPid(int32_t pid)
     OnChildProcessDied(childRecord);
     return ERR_OK;
 }
+
+void AppMgrServiceInner::SetProcessTerminating(int32_t pid)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "SetProcessTerminating %{public}d", pid);
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SetProcessTerminating appRecord null: %{public}d", pid);
+        return;
+    }
+    appRecord->SetTerminating();
+}
+
 } // namespace AppExecFwk
 }  // namespace OHOS
