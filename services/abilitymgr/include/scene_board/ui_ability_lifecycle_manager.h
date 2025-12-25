@@ -1184,6 +1184,7 @@ private:
      * @return true if updated, false otherwise
      */
     bool UpdateSpecifiedFlag(UIAbilityRecordPtr abilityRequest, const std::string &flag);
+    void SetProcessTerminating(int32_t pid, size_t remainingTokensSize, size_t abilityToTerminateSize) const;
 
     /**
      * @brief Process cold start branch

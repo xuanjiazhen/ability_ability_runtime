@@ -1691,6 +1691,26 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAbilityRecordReused_005, Test
 }
 
 /**
+ * @tc.name: SetProcessTerminating_001
+ * @tc.desc: SetProcessTerminating
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SetProcessTerminating_001, TestSize.Level2)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto appmgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
+    
+    AppMgrUtil::appMgr_ = appmgr;
+    mgr->StartSpecifiedRequest(specifiedRequest);
+    EXPECT_CALL(*appmgr, SetProcessTerminating).Times(1);
+    mgr->SetProcessTerminating(0, 0u, 0u);
+    EXPECT_CALL(*appmgr, SetProcessTerminating).Times(0);
+    mgr->SetProcessTerminating(0, 0u, 1u);
+    AppMgrUtil::appMgr_ = originAppMgr;
+}
+
+/**
  * @tc.name: SetLastExitReasonAsync_001
  * @tc.desc: SetLastExitReasonAsync
  * @tc.type: FUNC
