@@ -768,6 +768,7 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
     auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
     auto appRecord = CreateAppRunningRecord(loadParam, appInfo, abilityInfo, processName, bundleInfo, hapModuleInfo, want);
     if (appRecord != nullptr) {
+        appRecord->AllowPreload();
         appRecord->SetPreloadState(PreloadState::PRELOADING);
         appRecord->SetPreloadMode(request.preloadMode);
         appRecord->SetPreloadPhase(request.preloadPhase);
