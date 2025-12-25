@@ -481,6 +481,7 @@ bool AppRunningRecord::IsLastPageAbilityRecord(const sptr<IRemoteObject> &token)
 
 void AppRunningRecord::SetTerminating()
 {
+    isTerminating = true;
 }
 
 bool AppRunningRecord::IsTerminating()

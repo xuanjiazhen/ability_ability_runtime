@@ -1039,5 +1039,27 @@ HWTEST_F(AppMgrStubTest, HandleUpdateConfigurationMultiUser_0100, TestSize.Level
     EXPECT_EQ(replyResult, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "HandleUpdateConfigurationMultiUser_0100 end.");
 }
+
+/**
+ * @tc.name: SetProcessTerminating_0100
+ * @tc.desc: Test SetProcessTerminating.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, SetProcessTerminating_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1;
+    data.WriteInt32(pid);
+
+    EXPECT_CALL(*mockAppMgrService_, SetProcessTerminating(_)).Times(1);
+
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::SET_PROCESS_TERMINATING), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

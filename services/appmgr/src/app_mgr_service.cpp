@@ -2081,5 +2081,21 @@ int32_t AppMgrService::KillChildProcessByPid(int32_t pid)
     }
     return appMgrServiceInner_->KillChildProcessByPid(pid);
 }
+
+void AppMgrService::SetProcessTerminating(int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return;
+    }
+    bool isCallingPermission =
+        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
+    if (!isCallingPermission) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
+        return;
+    }
+    appMgrServiceInner_->SetProcessTerminating(pid);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
