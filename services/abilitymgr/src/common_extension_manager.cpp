@@ -21,6 +21,7 @@
 #include "hitrace_meter.h"
 #include "multi_instance_utils.h"
 #include "ui_extension_utils.h"
+#include "appfreeze_manager.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -102,16 +103,6 @@ void CommonExtensionManager::SetServiceAfterNewCreate(const AbilityRequest &abil
     if (targetService.IsSceneBoard()) {
         TAG_LOGI(AAFwkTag::EXT, "create sceneboard");
         sceneBoardTokenId_ = abilityRequest.appInfo.accessTokenId;
-    }
-}
-
-void CommonExtensionManager::SetTimeoutInfo(const std::shared_ptr<BaseExtensionRecord> &ability,
-    AppExecFwk::AppfreezeManager::ParamInfo &info, bool isHalf)
-{
-    if (!ability->IsSceneBoard()) {
-        info.needKillProcess = false;
-        info.eventName = isHalf ? AppExecFwk::AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING :
-            AppExecFwk::AppFreezeType::LIFECYCLE_TIMEOUT_WARNING;
     }
 }
 
