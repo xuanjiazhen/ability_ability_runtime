@@ -88,14 +88,26 @@ HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0100, TestSize.Level1)
 }
 
 /**
- * @tc.name: NotifyPageChanged_0100
+ * @tc.name: NotifyPageChanged_0200
  * @tc.desc: NotifyPageChanged
  * @tc.type: FUNC
  */
-HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0100, TestSize.Level1)
+HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "PageConfigManagerTest, NotifyPageChanged_0100, TestSize.Level1";
+    GTEST_LOG_(INFO) << "PageConfigManagerTest, NotifyPageChanged_0200, TestSize.Level1";
     int32_t result = PageConfigManager::GetInstance().NotifyPageChanged("", 0, -1);
+    EXPECT_EQ(result, ERR_NO_INIT);
+}
+
+/**
+ * @tc.name: NotifyPageChanged_0200
+ * @tc.desc: NotifyPageChanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "PageConfigManagerTest, NotifyPageChanged_0200, TestSize.Level1";
+    int32_t result = PageConfigManager::GetInstance().NotifyPageChanged("com.exmaple.testapplication ", 0, -1);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
 } // namespace AppExecFwk
