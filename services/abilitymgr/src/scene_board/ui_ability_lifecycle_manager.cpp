@@ -3634,13 +3634,22 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
         std::vector<sptr<IRemoteObject>> tokens;
         IN_PROCESS_CALL_WITHOUT_RET(
             DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(pid, tokens));
-        for (const auto &token : PrepareTerminateAppAndGetRemaining(pid, tokens)) {
+        auto remianningTokens = PrepareTerminateAppAndGetRemaining(pid, tokens);
+        for (const auto &token : remianningTokens) {
             auto abilityRecord = Token::GetAbilityRecordByToken(token);
             if (PrepareTerminateAbility(abilityRecord, true)) {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "terminate blocked");
                 continue;
             }
             abilitysToTerminate.emplace(abilityRecord);
+        }
+        if (remianningTokens.size() == abilitysToTerminate.size()) {
+            auto appMgr = AppMgrUtil::GetAppMgr();
+            if (appMgr == nullptr) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "AppMgrUtil::GetAppMgr failed");
+            } else {
+                appMgr->SetProcessTerminating(pid);
+            }
         }
         for (const auto &abilityRecord : abilitysToTerminate) {
             TerminateSession(abilityRecord);
