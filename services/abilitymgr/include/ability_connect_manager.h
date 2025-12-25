@@ -646,8 +646,6 @@ protected:
     std::shared_ptr<EventHandlerWrap> eventHandler_;
 
 private:
-
-
     /**
      * StopAbilityLocked with request.
      *

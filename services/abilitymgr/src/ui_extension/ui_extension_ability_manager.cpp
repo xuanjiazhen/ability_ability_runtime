@@ -1196,8 +1196,6 @@ int UIExtensionAbilityManager::DispatchInactive(const std::shared_ptr<BaseExtens
     if (taskHandler_ != nullptr) {
         taskHandler_->SubmitTask(preloadTask);
     }
-    
-
     CHECK_POINTER_AND_RETURN(eventHandler_, ERR_INVALID_VALUE);
     if (!abilityRecord->IsAbilityState(AbilityState::INACTIVATING)) {
         TAG_LOGE(AAFwkTag::EXT,
@@ -1249,7 +1247,8 @@ int UIExtensionAbilityManager::CheckAbilityStateForDisconnect(const std::shared_
     return ERR_OK;
 }
 
-int UIExtensionAbilityManager::CleanupConnectionAndTerminateIfNeeded(std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+int UIExtensionAbilityManager::CleanupConnectionAndTerminateIfNeeded(
+    std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     if (abilityRecord->IsConnectListEmpty() && abilityRecord->GetStartId() == 0) {
         if (IsUIExtensionAbility(abilityRecord) && CheckUIExtensionAbilitySessionExist(abilityRecord)) {

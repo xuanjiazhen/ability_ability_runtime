@@ -1358,7 +1358,8 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_024, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_025, TestSize.Level1)
 {
     std::shared_ptr<BaseExtensionRecord> ability = nullptr;
-    auto result = GetCommonExtensionManager()->DispatchInactive(ability, OHOS::AAFwk::AbilityState::INACTIVATING, ability->GetToken());
+    auto result = GetCommonExtensionManager()->DispatchInactive(
+        ability, OHOS::AAFwk::AbilityState::INACTIVATING, ability->GetToken());
     EXPECT_EQ(result, OHOS::ERR_INVALID_VALUE);
 
     GetCommonExtensionManager()->SetTaskHandler(TaskHandler());
@@ -2897,7 +2898,7 @@ HWTEST_F(AbilityConnectManagerTest, DispatchForeground_001, TestSize.Level1)
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(3);
     ASSERT_NE(connectManager, nullptr);
     std::shared_ptr<BaseExtensionRecord> ability = nullptr;
-    auto result = connectManager->DispatchForeground(ability,nullptr);
+    auto result = connectManager->DispatchForeground(ability, nullptr);
     EXPECT_EQ(result, OHOS::ERR_INVALID_VALUE);
 
     result = connectManager->DispatchForeground(serviceRecord_, serviceRecord_->GetToken());

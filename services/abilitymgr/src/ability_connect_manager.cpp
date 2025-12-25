@@ -928,7 +928,7 @@ int AbilityConnectManager::CheckAbilityStateForDisconnect(const std::shared_ptr<
     return ERR_OK;
 }
 
-int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, 
+int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
     const std::shared_ptr<ConnectionRecord> &connect, const sptr<IRemoteObject> &token)
 {
     if (abilityRecord->GetAbilityInfo().type == AbilityType::SERVICE) {
@@ -1428,7 +1428,6 @@ void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<BaseExtensionR
     CHECK_POINTER(taskHandler_);
 
     std::string taskName;
-    int32_t delayTime = 0;
     auto recordId = abilityRecord->GetAbilityRecordId();
     TAG_LOGD(AAFwkTag::EXT, "task: %{public}s, %{public}d, %{public}" PRId64,
         abilityRecord->GetURI().c_str(), connectRecordId, recordId);
@@ -2201,8 +2200,6 @@ void AbilityConnectManager::HandleAbilityDiedTask(const std::shared_ptr<BaseExte
 
 void AbilityConnectManager::HandleAbilityDiedTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
-    TAG_LOGD(AAFwkTag::EXT, "called");
-    std::lock_guard guard(serialMutex_);
     CHECK_POINTER(abilityRecord);
     TAG_LOGD(AAFwkTag::EXT, "ability died: %{public}s", abilityRecord->GetURI().c_str());
     HandleConnectRecordOnAbilityDied(abilityRecord);
@@ -2245,10 +2242,16 @@ void AbilityConnectManager::HandleAfterServiceRemoved(const std::shared_ptr<Base
 
 void AbilityConnectManager::HandleConnectRecordOnAbilityDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
-    if (IsAbilityNeedKeepAlive(abilityRecord)) {
-        KeepAbilityAlive(abilityRecord);
-    } else {
-        HandleNotifyAssertFaultDialogDied(abilityRecord);
+    abilityRecord->SetConnRemoteObject(nullptr);
+    ConnectListType connlist = abilityRecord->GetConnectRecordList();
+    for (auto &connectRecord : connlist) {
+        CHECK_POINTER_CONTINUE(connectRecord);
+        TAG_LOGW(AAFwkTag::EXT, "record complete disconnect. recordId:%{public}d",
+            connectRecord->GetRecordId());
+        RemoveExtensionDelayDisconnectTask(connectRecord);
+        connectRecord->CompleteDisconnect(ERR_OK, false, true);
+        abilityRecord->RemoveConnectRecordFromList(connectRecord);
+        RemoveConnectionRecordFromMap(connectRecord);
     }
 }
 
