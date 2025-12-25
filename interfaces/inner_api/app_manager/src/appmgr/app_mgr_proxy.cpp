@@ -2705,5 +2705,20 @@ int32_t AppMgrProxy::KillChildProcessByPid(int32_t pid)
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::KILL_CHILD_PROCESS_BY_PID, data, reply, option);
     return reply.ReadInt32();
 }
+
+void AppMgrProxy::SetProcessTerminating(int32_t pid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+
+    PARCEL_UTIL_WRITE_NORET(data, Int32, pid);
+    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::KILL_CHILD_PROCESS_BY_PID, data, reply, option);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
