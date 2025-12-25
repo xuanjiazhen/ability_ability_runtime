@@ -5642,9 +5642,8 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     SetAbilityRequestSessionInfo(abilityRequest, targetExtensionType);
     int ret = ERR_OK;
     if(AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)) {
-        abilityRequest.uiExtensionAbilityConnectInfo = connectInfo;
         auto uiExtensionManager = GetUIExtensionAbilityManagerByUserId(validUserId);
-        ret = uiExtensionManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo);
+        ret = uiExtensionManager->ConnectUIExtensionAbilityLocked(abilityRequest, connect, callerToken, sessionInfo, connectInfo);
     }else{
         ret = connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo);
     }
