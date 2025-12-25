@@ -223,7 +223,7 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
     for (const auto& hideConfig : config.hideStatusBar) {
         TAG_LOGD(AAFwkTag::ABILITY, "hideStatusCofig value %{public}s", hideConfig.value.c_str());
         auto prop = window->GetSystemBarPropertyForPage(Rosen::WindowType::WINDOW_STATUS_BAR);
-        prop.enable_ = !(hideConfig.value == "true");
+        prop.enable_ = !(hideConfig.value == "1");
         window->SetSystemBarPropertyForPage(Rosen::WindowType::WINDOW_STATUS_BAR, prop);
         break;
     }
