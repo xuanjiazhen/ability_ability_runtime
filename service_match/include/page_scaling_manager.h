@@ -66,18 +66,18 @@ typedef struct {
 class PageScalingManager : public std::enable_shared_from_this<PageScalingManager> {
 public:
 
-    int Initialize(std::string configJson, const sptr<Rosen::Window>& window);
+    int32_t Initialize(std::string configJson, const sptr<Rosen::Window>& window);
 
-    int NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId);
+    int32_t NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId);
 
 private:
     PageScalingManager();
     ~PageScalingManager() = default;
 
-    int ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs);
+    int32_t ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs);
 
     void HandleNavigateChangeInternal(const sptr<Rosen::Window>& window,
-        const std::string& targetPageName, const std::vector<PageScalingConfig>& configs);
+        const std::string& targetPageName, int32_t targetPageNameLen, const std::vector<PageScalingConfig>& configs);
 
     void ApplyConfig(const sptr<Rosen::Window>& window, const std::vector<PageScalingConfig>& configs);
     
@@ -95,7 +95,7 @@ private:
             : owner_(owner), configs_(configs), window_(window) {}
         virtual ~WindowUIContentImpl() override = default;
         
-        void OnUIContentCreate(OHOS::Ace::UIContent* uiContent) override;
+        void OnUIContentCreate(std::weak_ptr<Ace::UIContent> uiContent) override;
         
     private:
         std::weak_ptr<PageScalingManager> owner_;
@@ -104,7 +104,8 @@ private:
     };
 
     std::vector<PageScalingConfig> configs_;
-    sptr<WindowUIContentImpl> uiContentListener_ = nullptr;
+    // RegisterUIContentListener(const sptr<IWindowUIContentListener>& listener)
+    sptr<Rosen::IWindowUIContentListener> uiContentListener_ = nullptr;
 };
 
 } // namespace AppExecFwk

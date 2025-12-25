@@ -32,7 +32,7 @@ const uint8_t CONDITION_LIST_SIZE = 2;
 
 PageScalingManager::PageScalingManager() {}
 
-int PageScalingManager::Initialize(std::string configJson, const wptr<Rosen::Window>& window)
+int32_t PageScalingManager::Initialize(std::string configJson, const wptr<Rosen::Window>& window)
 {
     TAG_LOGW(AAFwkTag::ABILITY, "czx intialize mgr");
     if (window == nullptr) {
@@ -50,12 +50,13 @@ int PageScalingManager::Initialize(std::string configJson, const wptr<Rosen::Win
         TAG_LOGE(AAFwkTag::ABILITY, "windowPtr null");
         return ERR_NO_INIT;
     }
-    uiContentListener_ = new WindowUIContentImpl(shared_from_this(), configs_, windowPtr);
-    windowPtr->RegisterWindowUIContentListener(uiContentListener_);
+    uiContentListener_ = sptr<Rosen::IWindowUIContentListener>(new WindowUIContentImpl(shared_from_this(), configs_, windowPtr));
+    // RegisterUIContentListener(const sptr<IWindowUIContentListener>& listener)
+    windowPtr->RegisterUIContentListener(uiContentListener_);
     return ERR_OK;
 }
 
-int PageScalingManager::NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId)
+int32_t PageScalingManager::NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId)
 {
     if (targetPageName == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "targetPage null");
@@ -74,10 +75,15 @@ int PageScalingManager::NotifyPageChanged(char* targetPageName, int32_t targetPa
     return ERR_OK;
 }
 
-void PageScalingManager::WindowUIContentImpl::OnUIContentCreate(OHOS::Ace::UIContent* uiContent)
+void PageScalingManager::WindowUIContentImpl::OnUIContentCreate(std::weak_ptr<Ace::UIContent> uiContent)
 {
     if (uiContent == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "uiContent null");
+        return;
+    }
+    auto uiContentPtr = uiContent.lock();
+    if (uiContentPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "uiContentPtr null");
         return;
     }
     
@@ -88,18 +94,19 @@ void PageScalingManager::WindowUIContentImpl::OnUIContentCreate(OHOS::Ace::UICon
     }
 
     TAG_LOGI(AAFwkTag::ABILITY, "uiContent created, registering navigate change callback");
-    
-    uiContent->RegisterNavigateChangeCallback(
-        [owner, window_, configs_, this](const OHOS::Ace::NavigateChangeInfo& from, const OHOS::Ace::NavigateChangeInfo& to) {
-            if (!window_) {
+    auto window = window_;
+    auto configs = configs_;
+    uiContentPtr->RegisterNavigateChangeCallback(
+        [owner, window, configs, this](const OHOS::Ace::NavigateChangeInfo& from, const OHOS::Ace::NavigateChangeInfo& to) {
+            if (!window) {
                 TAG_LOGE(AAFwkTag::ABILITY, "window not found");
                 return;
             }
-            owner->HandleNavigateChangeInternal(window_, to.name, to.name.length(), configs_);
+            owner->HandleNavigateChangeInternal(window, to.name, to.name.length(), configs);
         });
 }
 
-int PageScalingManager::ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs)
+int32_t PageScalingManager::ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs)
 {
     auto parseResult = nlohmann::json::parse(configJson, nullptr, false);
     if (parseResult.is_discarded()) {
@@ -165,7 +172,7 @@ int PageScalingManager::ParseWhitelistConfig(const std::string &configJson, std:
 }
 
 void PageScalingManager::HandleNavigateChangeInternal(const sptr<Rosen::Window>& window,
-    const std::string& targetPageName, int32_t targetPageNameLen, const std::vector<PageScalingConfig>& configs)
+    const std::string& targetPageName, i n, const std::vector<PageScalingConfig>& configs)
 {
     for (const auto& config : configs) {
         if (ComparePage(config.page.pageName, targetPageName, config.page.patternType, targetPageNameLen)) {
