@@ -38,7 +38,6 @@
 #include "want.h"
 #include "iremote_object.h"
 #include "nocopyable.h"
-#include "appfreeze_manager.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -505,10 +504,6 @@ protected:
     virtual void HandleStopTimeoutTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
     virtual void CleanActivatingTimeoutAbilityInner(std::shared_ptr<BaseExtensionRecord> abilityRecord);
-
-    virtual void SetTimeoutInfo(const std::shared_ptr<BaseExtensionRecord> &ability,
-        AppExecFwk::AppfreezeManager::ParamInfo &processInfo, bool isHalf) {}
-    
 
 
     virtual void HandleAbilityDiedTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);

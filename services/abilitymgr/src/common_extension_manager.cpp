@@ -105,16 +105,6 @@ void CommonExtensionManager::SetServiceAfterNewCreate(const AbilityRequest &abil
     }
 }
 
-void CommonExtensionManager::SetTimeoutInfo(const std::shared_ptr<BaseExtensionRecord> &ability,
-    AppExecFwk::AppfreezeManager::ParamInfo &info, bool isHalf)
-{
-    if (!ability->IsSceneBoard()) {
-        info.needKillProcess = false;
-        info.eventName = isHalf ? AppExecFwk::AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING :
-            AppExecFwk::AppFreezeType::LIFECYCLE_TIMEOUT_WARNING;
-    }
-}
-
 int CommonExtensionManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
     const sptr<IRemoteObject> &token)
 {

@@ -2710,7 +2710,11 @@ void AbilityConnectManager::PrintTimeOutLog(const std::shared_ptr<BaseExtensionR
         .bundleName = ability->GetAbilityInfo().bundleName,
         .msg = msgContent
     };
-    SetTimeoutInfo(ability, info, isHalf);
+    if (!IsUIExtensionAbility(ability) && !ability->IsSceneBoard()) {	
+        info.needKillProcess = false;
+        info.eventName = isHalf ? AppExecFwk::AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING :
+            AppExecFwk::AppFreezeType::LIFECYCLE_TIMEOUT_WARNING;
+    }
     TAG_LOGW(AAFwkTag::EXT,
         "%{public}s: uid: %{public}d, pid: %{public}d, bundleName: %{public}s, abilityName: %{public}s,"
         "msg: %{public}s", info.eventName.c_str(), processInfo.uid_, processInfo.pid_,
