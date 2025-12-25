@@ -449,6 +449,8 @@ protected:
      * @param abilityRecord, the ptr of the ability to connect.
      */
     void ConnectAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    void ProcessPreload(const std::shared_ptr<BaseExtensionRecord> &record) const;
 protected:
     /**
     * Start ability with locking mechanism.
@@ -641,6 +643,7 @@ protected:
     ffrt::mutex serviceMapMutex_;
     ffrt::mutex serialMutex_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
+    std::shared_ptr<EventHandlerWrap> eventHandler_;
 
 private:
 
@@ -786,8 +789,6 @@ private:
 
     void PostRestartResidentTask(const AbilityRequest &abilityRequest);
 
-    void ProcessPreload(const std::shared_ptr<BaseExtensionRecord> &record) const;
-
     void HandleInactiveTimeout(const std::shared_ptr<BaseExtensionRecord> &ability);
     void CleanActivatingTimeoutAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
 
@@ -841,7 +842,6 @@ private:
     std::map<int32_t, int32_t> callerPidConnectionCountMap_;
 
     std::list<std::shared_ptr<BaseExtensionRecord>> terminatingExtensionList_;
-    std::shared_ptr<EventHandlerWrap> eventHandler_;
     std::vector<AbilityRequest> restartResidentTaskList_;
     std::unordered_map<std::string, std::shared_ptr<std::list<AbilityRequest>>> startServiceReqList_;
 
