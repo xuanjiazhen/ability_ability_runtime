@@ -223,8 +223,8 @@ private:
 
     void HandlePostLoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId) override;
 
-    int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteOject> &token) override;
-    int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteOject> &token) override;
+    int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token) override;
+    int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token) override;
     int DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int state, 
         const sptr<IRemoteObject> &token) override;
 

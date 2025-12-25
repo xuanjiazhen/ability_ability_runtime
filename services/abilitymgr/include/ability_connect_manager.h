@@ -526,8 +526,8 @@ protected:
 
     virtual void HandlePostLoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId);
 
-    virtual int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteOject> &token);
-    virtual int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteOject> &token);
+    virtual int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token);
+    virtual int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token);
 
     /**
      * dispatch service ability life cycle .
@@ -539,7 +539,7 @@ protected:
         const sptr<IRemoteObject> &token);
 
     virtual int CheckAbilityStateForDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
-    virtual int CleanupConnectionAndTerminateIfNeeded(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    virtual int CleanupConnectionAndTerminateIfNeeded(std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     virtual void CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     virtual int32_t ConnectAbilityLockedInner(bool isLoadedAbility,
         std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
@@ -708,7 +708,7 @@ private:
         const std::shared_ptr<BaseExtensionRecord> &targetService,
         std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList);
 
-    int DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,  const sptr<IRemoteOject> &token);
+    int DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,  const sptr<IRemoteObject> &token);
 
     void HandleStartTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void HandleStopTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);

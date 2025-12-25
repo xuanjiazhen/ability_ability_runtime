@@ -56,11 +56,6 @@ const std::string UIEXTENSION_NOTIFY_BIND = "ohos.uiextension.params.notifyProce
 const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 const std::string SEPARATOR = ":";
 const int DEFAULT_INVAL_VALUE = -1;
-#ifdef SUPPORT_ASAN
-const int COMMAND_WINDOW_TIMEOUT_MULTIPLE = 75;
-#else
-const int COMMAND_WINDOW_TIMEOUT_MULTIPLE = 5;
-#endif
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 #ifdef SUPPORT_ASAN
 const int LOAD_TIMEOUT_MULTIPLE = 150;
@@ -1114,10 +1109,6 @@ void UIExtensionAbilityManager::TerminateDone(const std::shared_ptr<BaseExtensio
         return;
     }
     abilityRecord->RemoveAbilityDeathRecipient();
-    // if (abilityRecord->IsSceneBoard()) { // uiExtension应该不需要
-    //     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb exit, kill processes");
-    //     KillProcessesByUserId();
-    // }
     DelayedSingleton<AppScheduler>::GetInstance()->TerminateAbility(abilityRecord->GetToken(), false);
     if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         RemoveUIExtensionAbilityRecord(abilityRecord);
@@ -1173,7 +1164,7 @@ void UIExtensionAbilityManager::HandlePostLoadTimeout(const std::shared_ptr<Base
 }
 
 int UIExtensionAbilityManager::DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const sptr<IRemoteOject> &token)
+    const sptr<IRemoteObject> &token)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (IsUIExtensionAbility(abilityRecord)) {
@@ -1184,7 +1175,7 @@ int UIExtensionAbilityManager::DispatchForeground(const std::shared_ptr<BaseExte
 }
 
 int UIExtensionAbilityManager::DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const sptr<IRemoteOject> &token)
+    const sptr<IRemoteObject> &token)
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (IsUIExtensionAbility(abilityRecord)) {
         DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(

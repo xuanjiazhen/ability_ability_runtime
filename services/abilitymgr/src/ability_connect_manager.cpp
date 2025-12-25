@@ -954,7 +954,7 @@ int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_pt
     return ERR_OK;
 }
 
-int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     if (abilityRecord->IsConnectListEmpty() && abilityRecord->GetStartId() == 0) {
         if (abilityRecord->GetAbilityInfo().extensionAbilityType ==
@@ -1663,7 +1663,7 @@ int AbilityConnectManager::DispatchInactive(const std::shared_ptr<BaseExtensionR
 }
 
 int AbilityConnectManager::DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const sptr<IRemoteOject> &token)
+    const sptr<IRemoteObject> &token)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     abilityRecord->RemoveSignatureInfo();
@@ -1682,7 +1682,7 @@ int AbilityConnectManager::DispatchForeground(const std::shared_ptr<BaseExtensio
 }
 
 int AbilityConnectManager::DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const sptr<IRemoteOject> &token)
+    const sptr<IRemoteObject> &token)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(taskHandler_, ERR_INVALID_VALUE);
@@ -1700,7 +1700,7 @@ int AbilityConnectManager::DispatchBackground(const std::shared_ptr<BaseExtensio
 }
 
 int AbilityConnectManager::DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const sptr<IRemoteOject> &token)
+    const sptr<IRemoteObject> &token)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (abilityRecord->GetAbilityInfo().type == AbilityType::SERVICE) {
