@@ -1087,6 +1087,8 @@ public:
     {
         return 0;
     }
+
+    virtual void SetProcessTerminating(int32_t pid) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
