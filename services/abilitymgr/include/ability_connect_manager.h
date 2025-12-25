@@ -706,7 +706,7 @@ private:
         const std::shared_ptr<BaseExtensionRecord> &targetService,
         std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList);
 
-    int DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,  const sptr<IRemoteObject> &token);
+    int DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token);
 
     void HandleStartTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void HandleStopTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
