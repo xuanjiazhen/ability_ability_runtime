@@ -608,5 +608,90 @@ HWTEST_F(AppPreloaderTest, AppPreloaderTest_GetBundleManagerHelper_0100, TestSiz
     manager->remoteClientManager_ = remoteClientManager_;
     EXPECT_EQ(ret, nullptr);
 }
+
+/**
+ * @tc.number: AppPreloaderTest_GeneratePreloadExtensionRequest_0100
+ * @tc.desc: Test GeneratePreloadExtensionRequest works
+ * @tc.type: FUNC
+ * @tc.Function: GeneratePreloadExtensionRequest
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppPreloaderTest, AppPreloaderTest_GeneratePreloadExtensionRequest_0100, TestSize.Level2)
+{
+    TAG_LOGD(AAFwkTag::TEST, "AppPreloaderTest_GeneratePreloadExtensionRequest_0100 start.");
+    auto manager = std::make_shared<AppPreloader>(remoteClientManager_);
+    EXPECT_NE(manager, nullptr);
+
+    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+    AbilityInfo abilityInfo;
+
+    int32_t userId = -9;
+    int32_t appIndex = 0;
+    PreloadRequest request;
+
+    auto ret = manager->GeneratePreloadExtensionRequest(want, abilityInfo, userId, appIndex, request);
+    EXPECT_EQ(ret, AAFwk::GET_BUNDLE_INFO_FAILED);
+}
+
+/**
+ * @tc.number: AppPreloaderTest_GeneratePreloadExtensionRequest_0200
+ * @tc.desc: Test GeneratePreloadExtensionRequest works
+ * @tc.type: FUNC
+ * @tc.Function: GeneratePreloadExtensionRequest
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppPreloaderTest, AppPreloaderTest_GeneratePreloadExtensionRequest_0200, TestSize.Level2)
+{
+    TAG_LOGD(AAFwkTag::TEST, "AppPreloaderTest_GeneratePreloadExtensionRequest_0200 start.");
+    auto manager = std::make_shared<AppPreloader>(remoteClientManager_);
+    EXPECT_NE(manager, nullptr);
+
+    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+    AbilityInfo abilityInfo;
+
+    int32_t userId = -11;
+    int32_t appIndex = 0;
+    PreloadRequest request;
+    request.preloadMode = PreloadMode::PRELOAD_BY_PHASE;
+
+    auto ret = manager->GeneratePreloadExtensionRequest(want, abilityInfo, userId, appIndex, request);
+    EXPECT_EQ(ret, AAFwk::ERR_PRELOAD_NOT_ENTRY_MODULE);
+}
+
+/**
+ * @tc.number: AppPreloaderTest_GeneratePreloadExtensionRequest_0300
+ * @tc.desc: Test GeneratePreloadExtensionRequest works
+ * @tc.type: FUNC
+ * @tc.Function: GeneratePreloadExtensionRequest
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppPreloaderTest, AppPreloaderTest_GeneratePreloadExtensionRequest_0300, TestSize.Level2)
+{
+    TAG_LOGD(AAFwkTag::TEST, "AppPreloaderTest_GeneratePreloadExtensionRequest_0300 start.");
+    auto manager = std::make_shared<AppPreloader>(remoteClientManager_);
+    EXPECT_NE(manager, nullptr);
+
+    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+    AbilityInfo abilityInfo;
+
+    int32_t userId = 1;
+    int32_t appIndex = 0;
+    PreloadRequest request;
+
+    auto ret = manager->GeneratePreloadExtensionRequest(want, abilityInfo, userId, appIndex, request);
+    EXPECT_EQ(ret, ERR_OK);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

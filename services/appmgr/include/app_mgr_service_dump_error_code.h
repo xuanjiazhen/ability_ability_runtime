@@ -37,6 +37,9 @@ enum DumpErrorCode {
     // invalid number of arguments
     ERR_INVALID_NUM_ARGS_ERROR,
 
+    // invalid preloadMode in preloadExtension
+    ERR_INVALID_PRELOADMODE_IN__PRELOADEXTENSION,
+
     // unknown option error
     ERR_UNKNOWN_OPTION_ERROR,
 };

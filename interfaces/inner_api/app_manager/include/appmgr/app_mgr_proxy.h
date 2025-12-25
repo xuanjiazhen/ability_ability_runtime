@@ -892,7 +892,6 @@ public:
      * @return Return ERR_OK if success, others fail.
      */
     int32_t DemoteCurrentFromCandidateMasterProcess() override;
-
     void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId) override;
 
     /**
@@ -915,6 +914,17 @@ public:
     void AllowScbProcessMoveToBackground() override;
 
     int32_t KillChildProcessByPid(int32_t pid) override;
+
+    /**
+     * Preload extension process.
+     *
+     * @param want contains bundleName + abilityName + appIndex.
+     * @param preloadMode Preload application mode.
+     * @param userId Indicates the user identification.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadExtension(const AAFwk::Want &want,
+        AppExecFwk::PreloadMode preloadMode, int32_t userId) override;
 
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
