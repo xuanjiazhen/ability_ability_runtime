@@ -1176,7 +1176,7 @@ int UIExtensionAbilityManager::DispatchForeground(const std::shared_ptr<BaseExte
 
 int UIExtensionAbilityManager::DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
     const sptr<IRemoteObject> &token)
-    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+{    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (IsUIExtensionAbility(abilityRecord)) {
         DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
             token, AppExecFwk::ExtensionState::EXTENSION_STATE_BACKGROUND);

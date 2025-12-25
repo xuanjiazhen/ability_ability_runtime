@@ -543,7 +543,7 @@ protected:
     virtual void CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     virtual int32_t ConnectAbilityLockedInner(bool isLoadedAbility,
         std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
-        sptr<ConnectionRecord>& connectRecord);
+        std::shared_ptr<ConnectionRecord>& connectRecord);
 protected:
 
     /**
