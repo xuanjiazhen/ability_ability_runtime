@@ -1292,5 +1292,19 @@ HWTEST_F(AppMgrProxyTest, KillProcessByPidForExit_001, TestSize.Level2)
     int32_t result = appMgrProxy_->KillProcessByPidForExit(pid, reason);
     EXPECT_EQ(result, ERR_OK);
 }
+
+/**
+ * @tc.name: SetProcessTerminating_001
+ * @tc.desc: SetProcessTerminating.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, SetProcessTerminating_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetProcessTerminating_001 start.");
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _)).Times(1);
+    auto pid = 100;
+    appMgrProxy_->SetProcessTerminating(pid);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
