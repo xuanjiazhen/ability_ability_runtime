@@ -20,7 +20,6 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "multi_instance_utils.h"
-#include "ui_extension_utils.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -105,7 +104,8 @@ void CommonExtensionManager::SetServiceAfterNewCreate(const AbilityRequest &abil
     }
 }
 
-void CommonExtensionManager::SetTimeoutInfo(AppExecFwk::RunningProcessInfo processInfo)
+void CommonExtensionManager::SetTimeoutInfo(const std::shared_ptr<BaseExtensionRecord> &ability,
+        AppExecFwk::AppfreezeManager::ParamInfo &processInfo, bool isHalf)
 {
     if (!ability->IsSceneBoard()) {
         info.needKillProcess = false;

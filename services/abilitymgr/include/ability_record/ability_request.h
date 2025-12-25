@@ -28,9 +28,11 @@
 #include "start_options.h"
 #include "start_specified_ability_params.h"
 #include "want.h"
+#include "ui_extension/ui_extension_ability_connect_info.h"
 
 namespace OHOS {
 namespace AAFwk {
+using UIExtensionAbilityConnectInfo = AbilityRuntime::UIExtensionAbilityConnectInfo;
 /**
  * @class AbilityRequest
  * Wrap parameters of starting ability.

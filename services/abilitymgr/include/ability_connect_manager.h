@@ -38,6 +38,7 @@
 #include "want.h"
 #include "iremote_object.h"
 #include "nocopyable.h"
+#include "appfreeze_manager.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -407,6 +408,9 @@ protected:
      */
     void RemoveServiceAbility(const std::shared_ptr<BaseExtensionRecord> &service);
 
+    int UpdateStateAndCompleteDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        const std::shared_ptr<ConnectionRecord> &connect, const sptr<IRemoteObject> &token);
+
     void HandleConnectRecordOnAbilityDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
     void HandleAfterServiceRemoved(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, bool isRemove);
@@ -425,6 +429,13 @@ protected:
      * After the service starting completes, complete the request list
      */
     void CompleteStartServiceReq(const std::string &serviceUri);
+
+    bool IsCacheExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    void HandleActiveAbility(std::shared_ptr<BaseExtensionRecord> &targetService,
+        std::shared_ptr<ConnectionRecord> &connectRecord);
+
+    void TerminateOrCacheAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
 
 protected:
     /**
@@ -453,8 +464,7 @@ protected:
     * @param abilityRecord The ability record to attach.
     * @return Returns error code.
     */
-    virtual int AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
-        const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord) 
+    virtual int AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler, const sptr<IRemoteObject> &token) 
     {
         return 0;
     }
@@ -482,20 +492,9 @@ protected:
 
     virtual void CleanActivatingTimeoutAbilityInner(std::shared_ptr<BaseExtensionRecord> abilityRecord);
 
-    /**
-    * Handle ability background timeout.
-    *
-    * @param abilityRecord The ability record that timed out.
-    */
-    virtual void BackgroundTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
-
     virtual void SetTimeoutInfo(const std::shared_ptr<BaseExtensionRecord> &ability,
-        AppExecFwk::RunningProcessInfo &processInfo) {}
+        AppExecFwk::AppfreezeManager::ParamInfo &processInfo, bool isHalf) {}
     
-    virtual bool SetTimeoutInfo()
-    {
-        return true;
-    }
 
 
     virtual void HandleAbilityDiedTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
@@ -527,10 +526,8 @@ protected:
 
     virtual void HandlePostLoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId);
 
-    virtual void HandlePostLoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId);
-
-    virtual int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
-    virtual int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    virtual int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteOject> &token);
+    virtual int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteOject> &token);
 
     /**
      * dispatch service ability life cycle .
@@ -541,12 +538,12 @@ protected:
     virtual int DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int state, 
         const sptr<IRemoteObject> &token);
 
-    virtual int AbilityConnectManager::CheckAbilityStateForDisconnect(const std::shared_ptr<AbilityRecord> &abilityRecord);
-    virtual int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    virtual int CheckAbilityStateForDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    virtual int CleanupConnectionAndTerminateIfNeeded(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     virtual void CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     virtual int32_t ConnectAbilityLockedInner(bool isLoadedAbility,
-        const std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
-        const sptr<ConnectionRecord>& connectRecord);
+        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
+        sptr<ConnectionRecord>& connectRecord);
 protected:
 
     /**
@@ -711,7 +708,7 @@ private:
         const std::shared_ptr<BaseExtensionRecord> &targetService,
         std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList);
 
-    int DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    int DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,  const sptr<IRemoteOject> &token);
 
     void HandleStartTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void HandleStopTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
@@ -722,10 +719,7 @@ private:
     void HandleForegroundTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void HandleConnectTimeoutTask(std::shared_ptr<BaseExtensionRecord> abilityRecord);
     void HandleRestartResidentTask(const AbilityRequest &abilityRequest);
-    void HandleActiveAbility(std::shared_ptr<BaseExtensionRecord> &targetService,
-        std::shared_ptr<ConnectionRecord> &connectRecord);
     void HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo);
-    void TerminateOrCacheAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
 
     /**
      * RemoveConnectionRecordFromMap.
@@ -823,7 +817,6 @@ private:
     void DisconnectRecordForce(ConnectListType &list, std::shared_ptr<ConnectionRecord> connectRecord);
     bool IsLauncher(std::shared_ptr<BaseExtensionRecord> serviceExtension) const;
     void KillProcessesByUserId() const;
-    inline bool IsCacheExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void HandleNotifyAssertFaultDialogDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     EventInfo BuildEventInfo(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     bool AddToServiceMap(const std::string &key, std::shared_ptr<BaseExtensionRecord> abilityRecord);

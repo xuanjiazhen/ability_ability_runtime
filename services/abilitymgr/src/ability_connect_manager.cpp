@@ -21,7 +21,6 @@
 #include "ability_manager_constants.h"
 #include "ability_permission_util.h"
 #include "ability_resident_process_rdb.h"
-#include "appfreeze_manager.h"
 #include "app_exit_reason_data_manager.h"
 #include "assert_fault_callback_death_mgr.h"
 #include "extension_ability_info.h"
@@ -38,6 +37,7 @@
 #include "timeout_state_utils.h"
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
+#include "ui_extension_utils.h"
 #include "cache_extension_utils.h"
 #include "datetime_ex.h"
 #include "init_reboot.h"
@@ -399,10 +399,10 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 }
 
 int AbilityConnectManager::ConnectAbilityLockedInner(bool isLoadedAbility,
-        const std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
-        const sptr<ConnectionRecord>& connectRecord)
+        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
+        std::shared_ptr<ConnectionRecord>& connectRecord)
 {
-        if (!isLoadedAbility) {
+    if (!isLoadedAbility) {
         TAG_LOGI(AAFwkTag::EXT, "load");
         LoadAbility(targetService);
     } else if (targetService->IsAbilityState(AbilityState::ACTIVE)) {
@@ -412,6 +412,7 @@ int AbilityConnectManager::ConnectAbilityLockedInner(bool isLoadedAbility,
         TAG_LOGI(AAFwkTag::EXT, "targetService activing");
         targetService->SaveConnectWant(abilityRequest.want);
     }
+    return ERR_OK;
 }
 
 void AbilityConnectManager::HandleConnectionCountIncrement(int32_t pid, const std::string &callerBundleName,
@@ -761,13 +762,13 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
             return DispatchInactive(abilityRecord, state, token);
         }
         case AbilityState::FOREGROUND: {
-            return DispatchForeground(abilityRecord);
+            return DispatchForeground(abilityRecord, token);
         }
         case AbilityState::BACKGROUND: {
-            return DispatchBackground(abilityRecord);
+            return DispatchBackground(abilityRecord, token);
         }
         case AbilityState::INITIAL: {
-            return DispatchTerminate(abilityRecord);
+            return DispatchTerminate(abilityRecord, token);
         }
         default: {
             TAG_LOGW(AAFwkTag::EXT, "not support transiting state: %{public}d", state);
@@ -905,8 +906,6 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
     auto connect = abilityRecord->GetDisconnectingRecord();
     CHECK_POINTER_AND_RETURN(connect, CONNECTION_NOT_EXIST);
 
-    CheckAbilityStateForDisconnect(abilityRecord);
-
     int ret = CheckAbilityStateForDisconnect(abilityRecord);
     if (ret != ERR_OK) {
         return ret;
@@ -923,18 +922,17 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
     return ERR_OK;
 }
 
-int AbilityConnectManager::CheckAbilityStateForDisconnect(const std::shared_ptr<AbilityRecord> &abilityRecord)
+int AbilityConnectManager::CheckAbilityStateForDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     if (!abilityRecord->IsAbilityState(AbilityState::ACTIVE)) {
-            TAG_LOGE(AAFwkTag::EXT, "ability not active, state: %{public}d",
-                abilityRecord->GetAbilityState());
-            return INVALID_CONNECTION_STATE;
-        }
+        TAG_LOGE(AAFwkTag::EXT, "ability not active, state: %{public}d",
+            abilityRecord->GetAbilityState());
+        return INVALID_CONNECTION_STATE;
     }
     return ERR_OK;
 }
 
-int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_ptr<AbilityRecord> &abilityRecord,
+int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
                                                            const std::shared_ptr<ConnectionRecord> &connect,
                                                            const sptr<IRemoteObject> &token)
 {
@@ -956,7 +954,7 @@ int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_pt
     return ERR_OK;
 }
 
-int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(const std::shared_ptr<AbilityRecord> &abilityRecord)
+int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     if (abilityRecord->IsConnectListEmpty() && abilityRecord->GetStartId() == 0) {
         if (abilityRecord->GetAbilityInfo().extensionAbilityType ==
@@ -969,7 +967,6 @@ int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(const std::shar
     }
     return ERR_OK;
 }
-
 
 int AbilityConnectManager::ScheduleCommandAbilityDoneLocked(const sptr<IRemoteObject> &token)
 {
@@ -1665,7 +1662,8 @@ int AbilityConnectManager::DispatchInactive(const std::shared_ptr<BaseExtensionR
     return ERR_OK;
 }
 
-int AbilityConnectManager::DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+int AbilityConnectManager::DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+    const sptr<IRemoteOject> &token)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     abilityRecord->RemoveSignatureInfo();
@@ -1683,7 +1681,8 @@ int AbilityConnectManager::DispatchForeground(const std::shared_ptr<BaseExtensio
     return ERR_OK;
 }
 
-int AbilityConnectManager::DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+int AbilityConnectManager::DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+    const sptr<IRemoteOject> &token)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(taskHandler_, ERR_INVALID_VALUE);
@@ -1700,7 +1699,8 @@ int AbilityConnectManager::DispatchBackground(const std::shared_ptr<BaseExtensio
     return ERR_OK;
 }
 
-int AbilityConnectManager::DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+int AbilityConnectManager::DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+    const sptr<IRemoteOject> &token)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (abilityRecord->GetAbilityInfo().type == AbilityType::SERVICE) {
@@ -2267,10 +2267,6 @@ void AbilityConnectManager::HandleAfterServiceRemoved(const std::shared_ptr<Base
 
 void AbilityConnectManager::HandleConnectRecordOnAbilityDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
-    if (!isRemove) {
-        TAG_LOGE(AAFwkTag::EXT, "%{public}s ability not in service map or cache.", serviceKey.c_str());
-        return;
-    }
     if (IsAbilityNeedKeepAlive(abilityRecord)) {
         KeepAbilityAlive(abilityRecord);
     } else {
@@ -2664,6 +2660,7 @@ void AbilityConnectManager::CompleteForeground(const std::shared_ptr<BaseExtensi
     }
     abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
     CompleteForegroundInner(abilityRecord);
+}
 
 void AbilityConnectManager::CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
@@ -2735,7 +2732,7 @@ void AbilityConnectManager::PrintTimeOutLog(const std::shared_ptr<BaseExtensionR
         .bundleName = ability->GetAbilityInfo().bundleName,
         .msg = msgContent
     };
-    SetTimeoutInfo(ability, processInfo);
+    SetTimeoutInfo(ability, info, isHalf);
     TAG_LOGW(AAFwkTag::EXT,
         "%{public}s: uid: %{public}d, pid: %{public}d, bundleName: %{public}s, abilityName: %{public}s,"
         "msg: %{public}s", info.eventName.c_str(), processInfo.uid_, processInfo.pid_,
