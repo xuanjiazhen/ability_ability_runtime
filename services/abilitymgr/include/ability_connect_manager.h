@@ -436,6 +436,19 @@ protected:
     void HandleActiveAbility(std::shared_ptr<BaseExtensionRecord> &targetService,
         std::shared_ptr<ConnectionRecord> &connectRecord);
 
+    /**
+     * CommandAbility. Schedule command ability
+     *
+     * @param abilityRecord, the ptr of the ability to command.
+     */
+    void CommandAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    /**
+     * ConnectAbility.Schedule connect ability
+     *
+     * @param abilityRecord, the ptr of the ability to connect.
+     */
+    void ConnectAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 protected:
     /**
     * Start ability with locking mechanism.
@@ -654,13 +667,6 @@ private:
      *
      * @param abilityRecord, the ptr of the ability to connect.
      */
-    void ConnectAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
-
-    /**
-     * ConnectAbility.Schedule connect ability
-     *
-     * @param abilityRecord, the ptr of the ability to connect.
-     */
     void ConnectUIServiceExtAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         int connectRecordId, const Want &want);
 
@@ -670,13 +676,6 @@ private:
      * @param abilityRecord, the ptr of the ability to connect.
      */
     void ResumeConnectAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
-
-    /**
-     * CommandAbility. Schedule command ability
-     *
-     * @param abilityRecord, the ptr of the ability to command.
-     */
-    void CommandAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
     /**
      * CompleteCommandAbility. complete command ability

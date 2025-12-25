@@ -71,7 +71,6 @@ const int COMMAND_TIMEOUT_MULTIPLE_NEW = 21;
 const int COMMAND_WINDOW_TIMEOUT_MULTIPLE = 5;
 #endif
 constexpr int32_t HALF_TIMEOUT = 2;
-const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 }
 
 UIExtensionAbilityManager::UIExtensionAbilityManager(int userId) : AbilityConnectManager(userId)
