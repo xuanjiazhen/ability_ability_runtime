@@ -38,6 +38,14 @@ protected:
 private:
     void SetServiceAfterNewCreate(const AbilityRequest &abilityRequest, BaseExtensionRecord &targetService);
 
+    void SetTimeoutInfo(const std::shared_ptr<BaseExtensionRecord> &ability,
+        AppExecFwk::AppfreezeManager::ParamInfo &processInfo, bool isHalf) override;
+
+    int AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler, const sptr<IRemoteObject> &token) override;
+
+    int32_t GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest,
+        std::shared_ptr<BaseExtensionRecord> &targetService, bool &isLoadedAbility) override;
+
     std::atomic_uint32_t sceneBoardTokenId_ = 0;
 
     DISALLOW_COPY_AND_MOVE(CommonExtensionManager);
