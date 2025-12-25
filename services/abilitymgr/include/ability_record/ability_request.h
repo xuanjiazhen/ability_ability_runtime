@@ -100,6 +100,7 @@ struct AbilityRequest {
     uint64_t specifiedFullTokenId = 0;
     std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
     bool isFromOpenLink = false;
+    sptr<UIExtensionAbilityConnectInfo> uiExtensionAbilityConnectInfo = nullptr;
     std::pair<bool, LaunchReason> IsContinuation() const;
 
     bool IsAcquireShareData() const

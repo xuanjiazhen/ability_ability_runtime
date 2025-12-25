@@ -245,13 +245,6 @@ public:
 
     void OnTimeOut(uint32_t msgId, int64_t abilityRecordId, bool isHalf = false);
 
-    /**
-     * @brief schedule to background
-     *
-     * @param abilityRecord the ability to move
-     */
-    void MoveToBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
-
     void CommandAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd);
 
@@ -301,23 +294,6 @@ public:
     ServiceMapType GetServiceMap();
 
 protected:
-    /**
-    * Connect ability with locking mechanism using template.
-    *
-    * @param abilityRequest The ability request.
-    * @param connect The ability connection interface.
-    * @param callerToken The caller token.
-    * @param sessionInfo The session information.
-    * @param getRecordFunc Function to get or create record.
-    * @param updateCallback Callback to update record.
-    * @return Returns error code.
-    */
-    int32_t ConnectAbilityLockedImpl(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
-        const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
-        std::function<int(const AbilityRequest&,
-                        std::shared_ptr<BaseExtensionRecord>&,
-                        bool&)> getRecordFunc,
-        std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateCallback = nullptr);
 
     /**
     * Move ability record to terminating map.
@@ -325,16 +301,6 @@ protected:
     * @param abilityRecord The ability record to move.
     */
     void MoveToTerminatingMap(const std::shared_ptr<BaseExtensionRecord>& abilityRecord);
-
-    /**
-     * TerminateAbilityLocked with token and result want.
-     *
-     * @param token, the token of service type's ability to terminate.
-     * @param resultCode, the result code of service type's ability to terminate.
-     * @param resultWant, the result want for service type's ability to terminate.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    int TerminateAbilityLocked(const sptr<IRemoteObject> &token);
 
     /**
     * Check if ability needs to be kept alive.
@@ -433,6 +399,33 @@ protected:
     void LoadAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         std::function<void(const std::shared_ptr<BaseExtensionRecord> &)> updateRecordCallback = nullptr,
         bool isPreloadUIExtension = false);
+
+    /**
+     * RemoveServiceAbility.
+     *
+     * @param service, the ptr of the ability record.
+     */
+    void RemoveServiceAbility(const std::shared_ptr<BaseExtensionRecord> &service);
+
+    void HandleConnectRecordOnAbilityDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    void HandleAfterServiceRemoved(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, bool isRemove);
+
+    void HandlePostConnectTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int connectRecordId, int64_t recordId);
+
+    void PrintTimeOutLog(const std::shared_ptr<BaseExtensionRecord> &ability, uint32_t msgId, bool isHalf = false);
+
+    void CompleteBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    
+    /**
+     * When a service is under starting, enque the request and handle it after the service starting completes
+     */
+    void EnqueueStartServiceReq(const AbilityRequest &abilityRequest, const std::string &serviceUri = "");
+    /**
+     * After the service starting completes, complete the request list
+     */
+    void CompleteStartServiceReq(const std::string &serviceUri);
+
 protected:
     /**
     * Start ability with locking mechanism.
@@ -443,6 +436,16 @@ protected:
     virtual int32_t StartAbilityLocked(const AbilityRequest &abilityRequest);
 
     /**
+     * TerminateAbilityLocked with token and result want.
+     *
+     * @param token, the token of service type's ability to terminate.
+     * @param resultCode, the result code of service type's ability to terminate.
+     * @param resultWant, the result want for service type's ability to terminate.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int TerminateAbilityLocked(const sptr<IRemoteObject> &token);
+
+    /**
     * Attach ability thread internally.
     *
     * @param scheduler The ability scheduler interface.
@@ -451,7 +454,10 @@ protected:
     * @return Returns error code.
     */
     virtual int AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
-        const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+        const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord) 
+    {
+        return 0;
+    }
 
     /**
     * Get or create service record for ability request.
@@ -464,19 +470,17 @@ protected:
     virtual void GetOrCreateServiceRecord(const AbilityRequest &abilityRequest, const bool isCreatedByConnect,
         std::shared_ptr<BaseExtensionRecord> &targetAbilityRecord, bool &isLoadedAbility) {}
 
-    /**
-    * Handle ability loading timeout.
-    *
-    * @param abilityRecord The ability record that timed out.
-    */
-    virtual void LoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
+    virtual int32_t GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest,
+        std::shared_ptr<BaseExtensionRecord> &targetService, bool &isLoadedAbility)
+    {
+        return 0;
+    }
 
-    /**
-    * Handle ability foreground timeout.
-    *
-    * @param abilityRecord The ability record that timed out.
-    */
-    virtual void ForegroundTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
+    virtual void HandleStartTimeoutTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    virtual void HandleForegroundTimeoutTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    virtual void HandleStopTimeoutTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    virtual void CleanActivatingTimeoutAbilityInner(std::shared_ptr<BaseExtensionRecord> abilityRecord);
 
     /**
     * Handle ability background timeout.
@@ -485,13 +489,16 @@ protected:
     */
     virtual void BackgroundTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
 
-    /**
-    * Handle ability termination timeout.
-    *
-    * @param abilityRecord The ability record that timed out.
-    */
-    virtual void TerminateTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
+    virtual void SetTimeoutInfo(const std::shared_ptr<BaseExtensionRecord> &ability,
+        AppExecFwk::RunningProcessInfo &processInfo) {}
+    
+    virtual bool SetTimeoutInfo()
+    {
+        return true;
+    }
 
+
+    virtual void HandleAbilityDiedTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     /**
     * Handle loading ability or starting specified process.
     *
@@ -509,14 +516,38 @@ protected:
     */
     virtual int TerminateAbilityInner(const sptr<IRemoteObject> &token);
 
-protected:
     /**
-    * Handle successful preload of UI Extension.
-    *
-    * @param extensionRecordId The ID of the extension record.
-    * @param isPreloadedSuccess Whether preloading was successful.
-    */
-    virtual void HandlePreloadUIExtensionSuccess(int32_t extensionRecordId, bool isPreloadedSuccess) {}
+     * TerminateDone.
+     *
+     * @param abilityRecord, the ptr of the ability to terminate.
+     */
+    virtual void TerminateDone(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    virtual bool HandleExtensionAbilityRemove(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    virtual void HandlePostLoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId);
+
+    virtual void HandlePostLoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId);
+
+    virtual int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    virtual int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    /**
+     * dispatch service ability life cycle .
+     *
+     * @param abilityRecord.
+     * @param state.
+     */
+    virtual int DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int state, 
+        const sptr<IRemoteObject> &token);
+
+    virtual int AbilityConnectManager::CheckAbilityStateForDisconnect(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    virtual int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    virtual void CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    virtual int32_t ConnectAbilityLockedInner(bool isLoadedAbility,
+        const std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
+        const sptr<ConnectionRecord>& connectRecord);
+protected:
 
     /**
     * Handle termination of UI Extension ability record.
@@ -662,13 +693,6 @@ private:
     void CompleteCommandAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
 
     /**
-     * TerminateDone.
-     *
-     * @param abilityRecord, the ptr of the ability to terminate.
-     */
-    void TerminateDone(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
-
-    /**
      * GetServiceRecordByElementName.
      *
      * @param element, service ability's element.
@@ -687,15 +711,6 @@ private:
         const std::shared_ptr<BaseExtensionRecord> &targetService,
         std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList);
 
-    /**
-     * dispatch service ability life cycle .
-     *
-     * @param abilityRecord.
-     * @param state.
-     */
-    int DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int state);
-    int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
-    int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     int DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
     void HandleStartTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
@@ -718,13 +733,6 @@ private:
      * @param connect, the ptr of the connect record.
      */
     void RemoveConnectionRecordFromMap(std::shared_ptr<ConnectionRecord> connect);
-
-    /**
-     * RemoveServiceAbility.
-     *
-     * @param service, the ptr of the ability record.
-     */
-    void RemoveServiceAbility(const std::shared_ptr<BaseExtensionRecord> &service);
 
     void SetServiceAfterNewCreate(const AbilityRequest &abilityRequest, BaseExtensionRecord &targetService);
 
@@ -788,8 +796,6 @@ private:
         uint32_t messageId);
 
     void CompleteForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
-    void CompleteBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
-    void PrintTimeOutLog(const std::shared_ptr<BaseExtensionRecord> &ability, uint32_t msgId, bool isHalf = false);
 
     void PostRestartResidentTask(const AbilityRequest &abilityRequest);
 
@@ -797,15 +803,6 @@ private:
 
     void HandleInactiveTimeout(const std::shared_ptr<BaseExtensionRecord> &ability);
     void CleanActivatingTimeoutAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
-
-    /**
-     * When a service is under starting, enque the request and handle it after the service starting completes
-     */
-    void EnqueueStartServiceReq(const AbilityRequest &abilityRequest, const std::string &serviceUri = "");
-    /**
-     * After the service starting completes, complete the request list
-     */
-    void CompleteStartServiceReq(const std::string &serviceUri);
 
     /**
      * Post an extension's disconnect task, auto disconnect when extension connected timeout.
@@ -826,7 +823,6 @@ private:
     void DisconnectRecordForce(ConnectListType &list, std::shared_ptr<ConnectionRecord> connectRecord);
     bool IsLauncher(std::shared_ptr<BaseExtensionRecord> serviceExtension) const;
     void KillProcessesByUserId() const;
-    inline bool IsUIExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     inline bool IsCacheExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void HandleNotifyAssertFaultDialogDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     EventInfo BuildEventInfo(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
