@@ -614,16 +614,6 @@ std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetUIExtensionBySess
     return nullptr;
 }
 
-int32_t AbilityConnectManager::ConnectAbilityLockedImpl(const AbilityRequest &abilityRequest,
-    const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo,
-    std::function<int(const AbilityRequest&,
-                      std::shared_ptr<BaseExtensionRecord>&,
-                      bool&)> getRecordFunc,
-    std::function<void(const std::shared_ptr<BaseExtensionRecord>&)> updateCallback)
-{
-    return 0;
-}
-
 int AbilityConnectManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
     const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
