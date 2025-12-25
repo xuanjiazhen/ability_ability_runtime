@@ -71,6 +71,7 @@ const int COMMAND_TIMEOUT_MULTIPLE_NEW = 21;
 const int COMMAND_WINDOW_TIMEOUT_MULTIPLE = 5;
 #endif
 constexpr int32_t HALF_TIMEOUT = 2;
+const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 }
 
 UIExtensionAbilityManager::UIExtensionAbilityManager(int userId) : AbilityConnectManager(userId)
@@ -996,16 +997,6 @@ void UIExtensionAbilityManager::BackgroundAbilityWindowLocked(const std::shared_
     DoBackgroundAbilityWindow(abilityRecord, sessionInfo);
 }
 
-void UIExtensionAbilityManager::HandleUIExtensionAbilityRecordTermination(
-    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-    if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
-        AddUIExtensionAbilityRecordToTerminatedList(abilityRecord);
-    } else {
-        RemoveUIExtensionAbilityRecord(abilityRecord);
-    }
-}
-
 int UIExtensionAbilityManager::RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token)
 {
     std::lock_guard guard(uiExtensionMapMutex_);
@@ -1191,7 +1182,54 @@ int UIExtensionAbilityManager::DispatchInactive(const std::shared_ptr<BaseExtens
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     HandlePreloadUIExtensionSuccess(abilityRecord->GetUIExtensionAbilityId(), true);
-    return AbilityConnectManager::DispatchInactive(abilityRecord, state, token);
+    TAG_LOGD(AAFwkTag::EXT, "DispatchInactive call");
+
+    DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
+        token, AppExecFwk::ExtensionState::EXTENSION_STATE_CREATE);
+    auto preloadTask = [owner = weak_from_this(), abilityRecord] {
+        auto acm = owner.lock();
+        if (acm == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "null AbilityConnectManager");
+            return;
+        }
+        acm->ProcessPreload(abilityRecord);
+    };
+    if (taskHandler_ != nullptr) {
+        taskHandler_->SubmitTask(preloadTask);
+    }
+    
+
+    CHECK_POINTER_AND_RETURN(eventHandler_, ERR_INVALID_VALUE);
+    if (!abilityRecord->IsAbilityState(AbilityState::INACTIVATING)) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "error. expect %{public}d, actual %{public}d callback %{public}d",
+            AbilityState::INACTIVATING, abilityRecord->GetAbilityState(), state);
+        return ERR_INVALID_VALUE;
+    }
+    eventHandler_->RemoveEvent(AbilityManagerService::INACTIVE_TIMEOUT_MSG, abilityRecord->GetAbilityRecordId());
+
+    // complete inactive
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    if (abilityRecord->IsCreateByConnect()) {
+        ConnectAbility(abilityRecord);
+    } else if (abilityRecord->GetWant().GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "IS_PRELOAD_UIEXTENSION_ABILITY");
+        auto ret = AddPreloadUIExtensionRecord(abilityRecord);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "AddPreloadUIExtensionRecord error");
+            return ret;
+        }
+        return ERR_OK;
+    } else {
+        CommandAbility(abilityRecord);
+        if (abilityRecord->GetConnectRecordList().size() > 0) {
+            // It means someone called connectAbility when service was loading
+            abilityRecord->UpdateConnectWant();
+            ConnectAbility(abilityRecord);
+        }
+    }
+
+    return ERR_OK;
 }
 
 int UIExtensionAbilityManager::CheckAbilityStateForDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
@@ -1307,6 +1345,30 @@ int UIExtensionAbilityManager::ConnectAbilityLockedInner(bool isLoadedAbility,
         targetService->SaveConnectWant(abilityRequest.want);
     }
     return ERR_OK;
+}
+
+void UIExtensionAbilityManager::TerminateOrCacheAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord)
+{
+    RemoveUIExtensionAbilityRecord(abilityRecord);
+    AbilityConnectManager::TerminateOrCacheAbility(abilityRecord);
+}
+
+void UIExtensionAbilityManager::HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo)
+{
+    if (sessionInfo == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        return;
+    }
+    if (sessionInfo->sessionToken) {
+        RemoveUIExtWindowDeathRecipient(sessionInfo->sessionToken);
+        size_t ret = 0;
+        {
+            ret = RemoveUIExtensionBySessionInfoToken(sessionInfo->sessionToken);
+        }
+        if (ret > 0) {
+            return;
+        }
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS

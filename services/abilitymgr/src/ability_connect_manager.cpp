@@ -56,7 +56,6 @@ const std::string DEBUG_APP = "debugApp";
 const std::string FRS_APP_INDEX = "ohos.extra.param.key.frs_index";
 const std::string FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 const std::string MAX_UINT64_VALUE = "18446744073709551615";
-const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 #ifdef SUPPORT_ASAN
 const int LOAD_TIMEOUT_MULTIPLE = 150;
 const int CONNECT_TIMEOUT_MULTIPLE = 45;
@@ -244,8 +243,6 @@ int AbilityConnectManager::TerminateAbilityLocked(const sptr<IRemoteObject> &tok
         connectManager->HandleStopTimeoutTask(abilityRecord);
     };
     abilityRecord->Terminate(timeoutTask);
-    HandleUIExtensionAbilityRecordTermination(abilityRecord);
-
     return ERR_OK;
 }
 
@@ -867,7 +864,6 @@ void AbilityConnectManager::ProcessEliminateAbilityRecord(std::shared_ptr<BaseEx
 
 void AbilityConnectManager::TerminateOrCacheAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord)
 {
-    RemoveUIExtensionAbilityRecord(abilityRecord);
     if (abilityRecord->IsSceneBoard()) {
         return;
     }
@@ -1036,15 +1032,6 @@ void AbilityConnectManager::HandleCommandDestroy(const sptr<SessionInfo> &sessio
         return;
     }
     if (sessionInfo->sessionToken) {
-        RemoveUIExtWindowDeathRecipient(sessionInfo->sessionToken);
-        size_t ret = 0;
-        {
-            ret = RemoveUIExtensionBySessionInfoToken(sessionInfo->sessionToken);
-        }
-        if (ret > 0) {
-            return;
-        }
-
         std::lock_guard guard(windowExtensionMapMutex_);
         for (auto& item : windowExtensionMap_) {
             auto sessionInfoVal = item.second.second;
@@ -1641,14 +1628,6 @@ int AbilityConnectManager::DispatchInactive(const std::shared_ptr<BaseExtensionR
     abilityRecord->SetAbilityState(AbilityState::INACTIVE);
     if (abilityRecord->IsCreateByConnect()) {
         ConnectAbility(abilityRecord);
-    } else if (abilityRecord->GetWant().GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "IS_PRELOAD_UIEXTENSION_ABILITY");
-        auto ret = AddPreloadUIExtensionRecord(abilityRecord);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "AddPreloadUIExtensionRecord error");
-            return ret;
-        }
-        return ERR_OK;
     } else {
         CommandAbility(abilityRecord);
         if (abilityRecord->GetConnectRecordList().size() > 0) {

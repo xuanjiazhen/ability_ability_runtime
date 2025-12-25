@@ -436,8 +436,6 @@ protected:
     void HandleActiveAbility(std::shared_ptr<BaseExtensionRecord> &targetService,
         std::shared_ptr<ConnectionRecord> &connectRecord);
 
-    void TerminateOrCacheAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
-
 protected:
     /**
     * Start ability with locking mechanism.
@@ -547,14 +545,9 @@ protected:
     virtual int32_t ConnectAbilityLockedInner(bool isLoadedAbility,
         std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
         std::shared_ptr<ConnectionRecord>& connectRecord);
+    virtual void TerminateOrCacheAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
+    virtual void HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo);
 protected:
-
-    /**
-    * Handle termination of UI Extension ability record.
-    *
-    * @param abilityRecord The ability record to handle termination for.
-    */
-    virtual void HandleUIExtensionAbilityRecordTermination(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) {}
 
     /**
     * Remove UI Extension by session info token.
@@ -722,7 +715,6 @@ private:
     void HandleForegroundTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void HandleConnectTimeoutTask(std::shared_ptr<BaseExtensionRecord> abilityRecord);
     void HandleRestartResidentTask(const AbilityRequest &abilityRequest);
-    void HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo);
 
     /**
      * RemoveConnectionRecordFromMap.

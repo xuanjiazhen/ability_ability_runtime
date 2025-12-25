@@ -139,7 +139,6 @@ public:
 
 protected:
     int32_t StartAbilityLocked(const AbilityRequest &abilityRequest) override;
-    void HandleUIExtensionAbilityRecordTermination(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
     void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
     int RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token) override;
@@ -255,7 +254,10 @@ private:
     int32_t ConnectAbilityLockedInner(bool isLoadedAbility,
         std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
         std::shared_ptr<ConnectionRecord>& connectRecord) override;
-    
+
+    void TerminateOrCacheAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord) override;
+    void HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo) override;
+
     class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         using PreloadUIExtensionHostClientDiedHandler = std::function<void(const wptr<IRemoteObject> &)>;
