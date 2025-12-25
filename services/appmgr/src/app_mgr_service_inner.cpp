@@ -824,6 +824,7 @@ void AppMgrServiceInner::HandlePreloadExtension(const PreloadRequest &request)
     auto appRecord = CreateAppRunningRecord(loadParam, appInfo, abilityInfo,
         processName, bundleInfo, hapModuleInfo, want);
     if (appRecord != nullptr) {
+        appRecord->AllowPreload();
         appRecord->SetPreloadState(PreloadState::PRELOADING);
         appRecord->SetPreloadMode(request.preloadMode);
         appRecord->SetNeedPreloadModule(request.preloadMode == AppExecFwk::PreloadMode::PRELOAD_MODULE ||

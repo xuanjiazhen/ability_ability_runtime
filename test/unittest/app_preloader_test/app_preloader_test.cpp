@@ -16,7 +16,9 @@
 #include <gtest/gtest.h>
 
 #define private public
+#define protected public
 #include "app_preloader.h"
+#undef protected
 #undef private
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"

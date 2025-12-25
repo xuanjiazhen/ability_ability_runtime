@@ -20,6 +20,9 @@ namespace AAFwk {
 class MyFlag {
 public:
     static int flag_;
+    static int userId_;
+    static int appPreloadRet_;
+    static int bundleMgrHelperRet;
 };
 } // namespace AAFwk
 } // namespace OHOS

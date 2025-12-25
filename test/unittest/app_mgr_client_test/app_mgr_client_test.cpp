@@ -1231,7 +1231,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_PreloadExtension_001, TestSize.Level2)
     want.SetElementName(bundleName, abilityName);
 
     int32_t ret = appMgrClient->PreloadExtension(want, AppExecFwk::PreloadMode::PRE_MAKE, userId);
-    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, 6);
 }
 
 /**

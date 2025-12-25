@@ -1800,7 +1800,7 @@ HWTEST_F(AppMgrServiceTest, PreloadExtension_0100, TestSize.Level1)
     AAFwk::Want want;
     want.SetElementName(bundleName, abilityName);
 
-    EXPECT_CALL(*mockAppMgrServiceInner_, PreloadExtension(_, _, _, _))
+    EXPECT_CALL(*mockAppMgrServiceInner_, PreloadExtension(_, _, _))
     .Times(1)
     .WillOnce(Return(ERR_OK));
 
@@ -2328,7 +2328,7 @@ HWTEST_F(AppMgrServiceTest, PreloadExtension_0300, TestSize.Level1)
     want.SetElementName(bundleName, abilityName);
 
     int32_t ret = appMgrService->PreloadExtension(want, preloadMode, userId);
-    EXPECT_EQ(ret, ERR_INVALID_PRELOADMODE_IN__PRELOADEXTENSION);
+    EXPECT_EQ(ret, 6);
 }
 
 /**

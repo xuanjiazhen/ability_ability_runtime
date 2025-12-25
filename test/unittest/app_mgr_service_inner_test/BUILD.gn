@@ -48,6 +48,7 @@ ohos_unittest("AppMgrServiceInnerTest") {
     "mock/src/mock_my_flag.cpp",
     "mock/src/mock_permission_verification.cpp",
     "mock/src/mock_res_sched_util.cpp",
+    "mock/src/mock_user_record_manager.cpp",
   ]
 
   configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]

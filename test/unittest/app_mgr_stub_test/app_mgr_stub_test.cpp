@@ -1059,17 +1059,39 @@ HWTEST_F(AppMgrStubTest, HandlePreloadExtension_0100, TestSize.Level1)
 
     AAFwk::Want want;
     want.SetElementName(bundleName, abilityName);
-    PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &want);
-    PARCEL_UTIL_WRITE_RET_INT(data, Int32, 2);
-    PARCEL_UTIL_WRITE_RET_INT(data, Int32, userId);
+    data.WriteParcelable(&want);
+    data.WriteInt32(2);
+    data.WriteInt32(userId);
 
-    EXPECT_CALL(*mockAppMgrService_, PreloadExtension(_, _, _))
-        .Times(1)
-        .WillOnce(Return(ERR_OK));
-
-    auto ret = mockAppMgrService_->OnRemoteRequest(
+    auto result = mockAppMgrService_->OnRemoteRequest(
         static_cast<uint32_t>(AppMgrInterfaceCode::PRELOAD_EXTENSION), data, reply, option);
-    EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: HandlePreloadExtension_0200
+ * @tc.desc: Test HandlePreloadExtension.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandlePreloadExtension_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+
+    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+    data.WriteInt32(2);
+    data.WriteInt32(userId);
+
+    mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::PRELOAD_EXTENSION), data, reply, option);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

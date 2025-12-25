@@ -1304,14 +1304,13 @@ HWTEST_F(AppMgrProxyTest, KillProcessByPidForExit_001, TestSize.Level2)
 HWTEST_F(AppMgrProxyTest, PreloadExtension_0100, TestSize.Level1)
 {
     EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
-        .Times(1)
+        .Times(16)
         .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
 
     std::array<std::string, 2> bundleNames{"com.huawei.hmos.inputmethod", ""};
     std::array<std::string, 2> abilityNames{"InputService", ""};
     std::array<int32_t, 2> userIds{100, -1};
     std::array<PreloadMode, 2> preloadModes{PreloadMode::PRE_MAKE, PreloadMode::PRELOAD_MODULE};
-    int32_t userId = 100;
 
     for (uint32_t i = 0; i < 16; ++i) {
         // get each bit
