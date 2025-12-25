@@ -1070,7 +1070,8 @@ void UIExtensionAbilityManager::HandleStartTimeoutTaskInner(const std::shared_pt
     AbilityConnectManager::HandleStartTimeoutTaskInner(abilityRecord);
 }
 
-void UIExtensionAbilityManager::HandleForegroundTimeoutTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+void UIExtensionAbilityManager::HandleForegroundTimeoutTaskInner(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         ForegroundTimeout(abilityRecord);
@@ -1170,25 +1171,26 @@ int UIExtensionAbilityManager::DispatchForeground(const std::shared_ptr<BaseExte
     if (IsUIExtensionAbility(abilityRecord)) {
         DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
             token, AppExecFwk::ExtensionState::EXTENSION_STATE_FOREGROUND);
-    }    
+    }
     return AbilityConnectManager::DispatchForeground(abilityRecord, token);
 }
 
 int UIExtensionAbilityManager::DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
     const sptr<IRemoteObject> &token)
-{    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+{
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (IsUIExtensionAbility(abilityRecord)) {
         DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
             token, AppExecFwk::ExtensionState::EXTENSION_STATE_BACKGROUND);
-    }   
+    }
     return AbilityConnectManager::DispatchBackground(abilityRecord, token);
 }
 
 int UIExtensionAbilityManager::DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    int state, const sptr<IRemoteObject> &token) 
+    int state, const sptr<IRemoteObject> &token)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
-    HandlePreloadUIExtensionSuccess(abilityRecord->GetUIExtensionAbilityId(), true);  
+    HandlePreloadUIExtensionSuccess(abilityRecord->GetUIExtensionAbilityId(), true);
     return AbilityConnectManager::DispatchInactive(abilityRecord, state, token);
 }
 
@@ -1266,26 +1268,27 @@ void UIExtensionAbilityManager::CompleteForegroundInner(const std::shared_ptr<Ba
 int UIExtensionAbilityManager::GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest,
     std::shared_ptr<BaseExtensionRecord> &targetService, bool &isLoadedAbility)
 {
-    if (!UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType) || abilityRequest.uiExtensionAbilityConnectInfo == nullptr) {
+    if (!UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType) ||
+        abilityRequest.uiExtensionAbilityConnectInfo == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Not UI extension or connectInfo null");
         return ERR_INVALID_VALUE;
     }
-
-    int32_t ret = GetOrCreateExtensionRecord(
-        abilityRequest, true, abilityRequest.uiExtensionAbilityConnectInfo->hostBundleName, targetService, isLoadedAbility);
+    auto bundleName = abilityRequest.uiExtensionAbilityConnectInfo->hostBundleName;
+    int32_t ret = GetOrCreateExtensionRecord(abilityRequest, true, bundleName, targetService, isLoadedAbility);
     if (ret != ERR_OK || targetService == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetOrCreateExtensionRecord fail");
         return ERR_NULL_OBJECT;
     }
 
     abilityRequest.uiExtensionAbilityConnectInfo->uiExtensionAbilityId = targetService->GetUIExtensionAbilityId();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "UIExtensionAbility id %{public}d.", abilityRequest.uiExtensionAbilityConnectInfo->uiExtensionAbilityId);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "UIExtensionAbility id %{public}d.",
+        abilityRequest.uiExtensionAbilityConnectInfo->uiExtensionAbilityId);
     return ERR_OK;
 }
 
 int UIExtensionAbilityManager::ConnectAbilityLockedInner(bool isLoadedAbility,
-        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
-        std::shared_ptr<ConnectionRecord>& connectRecord)
+    std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
+    std::shared_ptr<ConnectionRecord>& connectRecord)
 {
     if (!isLoadedAbility) {
         TAG_LOGI(AAFwkTag::EXT, "load");

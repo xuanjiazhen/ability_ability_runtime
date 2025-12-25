@@ -106,7 +106,7 @@ void CommonExtensionManager::SetServiceAfterNewCreate(const AbilityRequest &abil
 }
 
 void CommonExtensionManager::SetTimeoutInfo(const std::shared_ptr<BaseExtensionRecord> &ability,
-        AppExecFwk::AppfreezeManager::ParamInfo &info, bool isHalf)
+    AppExecFwk::AppfreezeManager::ParamInfo &info, bool isHalf)
 {
     if (!ability->IsSceneBoard()) {
         info.needKillProcess = false;
@@ -118,7 +118,7 @@ void CommonExtensionManager::SetTimeoutInfo(const std::shared_ptr<BaseExtensionR
 int CommonExtensionManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
     const sptr<IRemoteObject> &token)
 {
-      auto abilityRecord = GetExtensionByTokenFromServiceMap(token);
+    auto abilityRecord = GetExtensionByTokenFromServiceMap(token);
     if (abilityRecord == nullptr) {
         auto terminatingRecord = GetExtensionByTokenFromTerminatingMap(token);
         if (terminatingRecord != nullptr) {

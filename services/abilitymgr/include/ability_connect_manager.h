@@ -415,7 +415,8 @@ protected:
 
     void HandleAfterServiceRemoved(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, bool isRemove);
 
-    void HandlePostConnectTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int connectRecordId, int64_t recordId);
+    void HandlePostConnectTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        int connectRecordId, int64_t recordId);
 
     void PrintTimeOutLog(const std::shared_ptr<BaseExtensionRecord> &ability, uint32_t msgId, bool isHalf = false);
 
@@ -464,7 +465,7 @@ protected:
     * @param abilityRecord The ability record to attach.
     * @return Returns error code.
     */
-    virtual int AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler, const sptr<IRemoteObject> &token) 
+    virtual int AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler, const sptr<IRemoteObject> &token)
     {
         return 0;
     }
@@ -526,8 +527,10 @@ protected:
 
     virtual void HandlePostLoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId);
 
-    virtual int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token);
-    virtual int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token);
+    virtual int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        const sptr<IRemoteObject> &token);
+    virtual int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        const sptr<IRemoteObject> &token);
 
     /**
      * dispatch service ability life cycle .
@@ -535,14 +538,14 @@ protected:
      * @param abilityRecord.
      * @param state.
      */
-    virtual int DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int state, 
+    virtual int DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int state,
         const sptr<IRemoteObject> &token);
 
     virtual int CheckAbilityStateForDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     virtual int CleanupConnectionAndTerminateIfNeeded(std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     virtual void CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     virtual int32_t ConnectAbilityLockedInner(bool isLoadedAbility,
-        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
+        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
         std::shared_ptr<ConnectionRecord>& connectRecord);
 protected:
 
@@ -729,7 +732,6 @@ private:
     void RemoveConnectionRecordFromMap(std::shared_ptr<ConnectionRecord> connect);
 
     void SetServiceAfterNewCreate(const AbilityRequest &abilityRequest, BaseExtensionRecord &targetService);
-
 
     /**
      * GetConnectRecordListFromMap.

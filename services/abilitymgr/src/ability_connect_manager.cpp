@@ -399,8 +399,8 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 }
 
 int AbilityConnectManager::ConnectAbilityLockedInner(bool isLoadedAbility,
-        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
-        std::shared_ptr<ConnectionRecord>& connectRecord)
+    std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
+    std::shared_ptr<ConnectionRecord>& connectRecord)
 {
     if (!isLoadedAbility) {
         TAG_LOGI(AAFwkTag::EXT, "load");
@@ -932,9 +932,8 @@ int AbilityConnectManager::CheckAbilityStateForDisconnect(const std::shared_ptr<
     return ERR_OK;
 }
 
-int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-                                                           const std::shared_ptr<ConnectionRecord> &connect,
-                                                           const sptr<IRemoteObject> &token)
+int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, 
+    const std::shared_ptr<ConnectionRecord> &connect, const sptr<IRemoteObject> &token)
 {
     if (abilityRecord->GetAbilityInfo().type == AbilityType::SERVICE) {
         DelayedSingleton<AppScheduler>::GetInstance()->UpdateAbilityState(

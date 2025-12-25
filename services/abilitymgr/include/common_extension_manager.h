@@ -39,7 +39,7 @@ private:
     void SetServiceAfterNewCreate(const AbilityRequest &abilityRequest, BaseExtensionRecord &targetService);
 
     void SetTimeoutInfo(const std::shared_ptr<BaseExtensionRecord> &ability,
-        AppExecFwk::AppfreezeManager::ParamInfo &processInfo, bool isHalf) override;
+        AppExecFwk::AppfreezeManager::ParamInfo &info, bool isHalf) override;
 
     int AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler, const sptr<IRemoteObject> &token) override;
 

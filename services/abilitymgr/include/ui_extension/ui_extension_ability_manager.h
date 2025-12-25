@@ -145,7 +145,7 @@ protected:
     int RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token) override;
 private:
 
-    int TerminateAbilityLocked(const sptr<IRemoteObject> &token) override;  
+    int TerminateAbilityLocked(const sptr<IRemoteObject> &token) override;
 
     void SetLastExitReason(const AbilityRequest &abilityRequest, std::shared_ptr<BaseExtensionRecord> &targetService);
 
@@ -223,9 +223,11 @@ private:
 
     void HandlePostLoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId) override;
 
-    int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token) override;
-    int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token) override;
-    int DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int state, 
+    int DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        const sptr<IRemoteObject> &token) override;
+    int DispatchBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        const sptr<IRemoteObject> &token) override;
+    int DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int state,
         const sptr<IRemoteObject> &token) override;
 
     int CheckAbilityStateForDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
@@ -240,7 +242,6 @@ private:
     
     void BackgroundTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
-
     /**
     * Handle successful preload of UI Extension.
     *
@@ -252,7 +253,7 @@ private:
     void CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
 
     int32_t ConnectAbilityLockedInner(bool isLoadedAbility,
-        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest, 
+        std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
         std::shared_ptr<ConnectionRecord>& connectRecord) override;
     
     class PreloadUIExtensionHostClientDeathRecipient : public IRemoteObject::DeathRecipient {
