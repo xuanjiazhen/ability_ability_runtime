@@ -3324,9 +3324,9 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_002, TestSize.Level1)
         "0", "abilityName", "appName", "com.example.vpn", "moduleName");
     callerRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::VPN;
     auto abilityInfo = callerRequest.abilityInfo;
-    std::list<std::string> vpnWhiteList = {"com.example.vpn"};
+    std::list<std::string> vpnAllowList = {"com.example.vpn"};
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    bool result = abilityMs_->CheckSupportVpn(abilityInfo, vpnWhiteList);
+    bool result = abilityMs_->CheckSupportVpn(abilityInfo, vpnAllowList);
     EXPECT_NE(result, false);
 }
 }  // namespace AAFwk
