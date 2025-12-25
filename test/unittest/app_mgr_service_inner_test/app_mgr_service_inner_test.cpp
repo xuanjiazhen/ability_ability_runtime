@@ -5711,6 +5711,62 @@ HWTEST_F(AppMgrServiceInnerTest, PreloadApplication_1200, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PreloadExtension_0100
+ * @tc.desc: Preload Application.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadExtension
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, PreloadExtension_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    PreloadMode preloadMode = PreloadMode::PRELOAD_MODULE;
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    int32_t ret = appMgrServiceInner->PreloadExtension(want, preloadMode, userId);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0100 end");
+}
+
+/**
+ * @tc.name: PreloadExtension_0200
+ * @tc.desc: Preload Application.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadExtension
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, PreloadExtension_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    PreloadMode preloadMode = PreloadMode::PRELOAD_MODULE;
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    MyFlag::flag_ = 1;
+
+    int32_t ret = appMgrServiceInner->PreloadExtension(want, preloadMode, userId);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0100 end");
+}
+
+/**
  * @tc.name: LPreloadModuleFinished_0001
  * @tc.desc: PreloadModuleFinished
  * @tc.type: FUNC

@@ -1779,6 +1779,35 @@ HWTEST_F(AppMgrServiceTest, PreloadApplication_0100, TestSize.Level1)
     EXPECT_EQ(ret, ERR_OK);
 }
 
+/**
+ * @tc.name: PreloadExtension_0100
+ * @tc.desc: Preload application.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceTest, PreloadExtension_0100, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    appMgrService->SetInnerService(mockAppMgrServiceInner_);
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = eventHandler_;
+
+    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    PreloadMode preloadMode = PreloadMode::PRELOAD_MODULE;
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    EXPECT_CALL(*mockAppMgrServiceInner_, PreloadExtension(_, _, _, _))
+    .Times(1)
+    .WillOnce(Return(ERR_OK));
+
+    int32_t ret = appMgrService->PreloadExtension(want, preloadMode, userId);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
 /*
  * Feature: AppMgrService
  * Function: SetSupportedProcessCacheSelf
@@ -2255,6 +2284,51 @@ HWTEST_F(AppMgrServiceTest, PreloadApplication_0200, TestSize.Level1)
     auto ret = appMgrService->PreloadApplication(bundleName,
         userId, preloadMode, appIndex);
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+}
+
+/**
+ * @tc.name: PreloadExtension_0200
+ * @tc.desc: Preload application.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceTest, PreloadExtension_0200, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    appMgrService->appMgrServiceInner_ = nullptr;
+
+    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    PreloadMode preloadMode = PreloadMode::PRELOAD_MODULE;
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    int32_t ret = appMgrService->PreloadExtension(want, preloadMode, userId);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+}
+
+/**
+ * @tc.name: PreloadExtension_0300
+ * @tc.desc: Preload application.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceTest, PreloadExtension_0300, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+
+    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    int32_t ret = appMgrService->PreloadExtension(want, preloadMode, userId);
+    EXPECT_EQ(ret, ERR_INVALID_PRELOADMODE_IN__PRELOADEXTENSION);
 }
 
 /**

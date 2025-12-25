@@ -1066,6 +1066,16 @@ public:
 
     int32_t KillChildProcessByPid(int32_t pid);
 
+    /**
+     * Preload extension process.
+     *
+     * @param want contains bundleName + abilityName + appIndex.
+     * @param preloadMode Preload application mode.
+     * @param userId Indicates the user identification.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t PreloadExtension(const AAFwk::Want &want, AppExecFwk::PreloadMode preloadMode, int32_t userId);
+
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
     /**

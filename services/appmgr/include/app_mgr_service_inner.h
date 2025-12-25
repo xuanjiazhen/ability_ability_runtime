@@ -1624,6 +1624,16 @@ public:
 
     int32_t KillChildProcessByPid(int32_t pid);
 
+    /**
+     * Preload extension process.
+     *
+     * @param want contains bundleName + abilityName + appIndex.
+     * @param preloadMode Preload application mode.
+     * @param userId Indicates the user identification.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadExtension(const AAFwk::Want &want, AppExecFwk::PreloadMode preloadMode, int32_t userId);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -2087,6 +2097,9 @@ private:
     void NotifyStartProcessFailed(sptr<IRemoteObject> token);
 
     std::vector<BackgroundAppInfo> GetBackgroundAppInfo(const std::vector<BackgroundAppInfo>& allowAppList);
+
+    void HandlePreloadExtension(const PreloadRequest &request);
+
 private:
     /**
      * Notify application status.
@@ -2181,6 +2194,7 @@ private:
     void InsertUninstallOrUpgradeUidSet(int32_t uid);
     void RemoveUninstallOrUpgradeUidSet(int32_t uid);
     bool IsUninstallingOrUpgrading(int32_t uid);
+
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;
     std::atomic<int32_t> willKillPidsNum_ = 0;

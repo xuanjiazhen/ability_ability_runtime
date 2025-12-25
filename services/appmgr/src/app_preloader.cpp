@@ -115,6 +115,36 @@ bool AppPreloader::GetLaunchWant(const std::string &bundleName, int32_t userId, 
     return true;
 }
 
+int32_t AppPreloader::GeneratePreloadExtensionRequest(const AAFwk::Want &want, const AbilityInfo &abilityInfo,
+    int32_t userId, int32_t appIndex, PreloadRequest &request)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "PreloadApplication GeneratePreloadRequest");
+    std::string bundleName = want.GetElement().GetBundleName();
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    if (!GetBundleAndHapInfo(bundleName, userId, abilityInfo, bundleInfo, hapModuleInfo)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetBundleAndHapInfo failed");
+        return AAFwk::GET_BUNDLE_INFO_FAILED;
+    }
+
+    if (request.preloadMode == PreloadMode::PRELOAD_BY_PHASE &&
+        hapModuleInfo.moduleType != AppExecFwk::ModuleType::ENTRY) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not entry module.");
+        return AAFwk::ERR_PRELOAD_NOT_ENTRY_MODULE;
+    }
+
+    request.abilityInfo = std::make_shared<AbilityInfo>(abilityInfo);
+    request.appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
+    request.want = std::make_shared<AAFwk::Want>(want);
+    request.bundleInfo = bundleInfo;
+    request.hapModuleInfo = hapModuleInfo;
+    request.appIndex = appIndex;
+
+    return ERR_OK;
+}
+
 bool AppPreloader::GetLaunchAbilityInfo(const AAFwk::Want &want, int32_t userId, AbilityInfo &abilityInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
