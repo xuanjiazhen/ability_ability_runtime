@@ -469,7 +469,7 @@ bool AbilityManagerService::Init()
     ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent();
     
     DelayedSingleton<ExtensionConfig>::GetInstance()->LoadExtensionConfiguration();
-    if (!ParseVpnWhiteListJson(VPN_ALLOWLIST_CONFIG_FILE, VPN_ALLOW_BUNDLENAMES)) 
+    if (!ParseVpnAllowListJson(VPN_ALLOWLIST_CONFIG_FILE, VPN_ALLOW_BUNDLENAMES)) 
     {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "parse vpn allow list json fail");
     }
