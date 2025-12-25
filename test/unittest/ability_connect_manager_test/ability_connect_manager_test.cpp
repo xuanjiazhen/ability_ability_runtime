@@ -2504,10 +2504,10 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_StartAbilityLocked_With_Sess
  * FunctionPoints: MissionListManager MoveToBackground
  * EnvConditions: NA
  * CaseDescription: Verify MoveToBackground
+ HWTEST_F(AbilityConnectManagerTest, MoveToBackground_001, TestSize.Level1)
  */
-HWTEST_F(AbilityConnectManagerTest, MoveToBackground_001, TestSize.Level1)
 {
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(3);
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(3);
     ASSERT_NE(connectManager, nullptr);
     std::shared_ptr<BaseExtensionRecord> abilityRecord;
     connectManager->MoveToBackground(abilityRecord);
@@ -2524,7 +2524,7 @@ HWTEST_F(AbilityConnectManagerTest, MoveToBackground_001, TestSize.Level1)
  */
 HWTEST_F(AbilityConnectManagerTest, MoveToBackground_002, TestSize.Level1)
 {
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(3);
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(3);
     ASSERT_NE(connectManager, nullptr);
     std::shared_ptr<BaseExtensionRecord> abilityRecord = InitAbilityRecord();
     abilityRecord->lifeCycleStateInfo_.sceneFlag = 1;
@@ -2542,7 +2542,7 @@ HWTEST_F(AbilityConnectManagerTest, MoveToBackground_002, TestSize.Level1)
  */
 HWTEST_F(AbilityConnectManagerTest, MoveToBackground_003, TestSize.Level1)
 {
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(3);
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(3);
     ASSERT_NE(connectManager, nullptr);
     std::shared_ptr<BaseExtensionRecord> abilityRecord = InitAbilityRecord();
     abilityRecord->lifeCycleStateInfo_.sceneFlag = 2;
