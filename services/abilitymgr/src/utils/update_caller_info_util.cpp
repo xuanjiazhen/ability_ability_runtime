@@ -20,6 +20,7 @@
 #include "ability_record.h"
 #include "accesstoken_kit.h"
 #include "app_scheduler.h"
+#include "app_utils.h"
 #include "ams_configuration_parameter.h"
 #include "dialog_session_manager.h"
 #include "hilog_tag_wrapper.h"
@@ -123,7 +124,7 @@ void UpdateCallerInfoUtil::UpdateSignatureInfo(std::string bundleName, Want& wan
 void UpdateCallerInfoUtil::UpdateAsCallerSourceInfo(Want& want, sptr<IRemoteObject> asCallerSourceToken,
     sptr<IRemoteObject> callerToken)
 {
-    if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
+    if (callerToken != nullptr && !StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "not call from anco or broker.");
         want.RemoveParam(PARAM_RESV_ANCO_CALLER_UID);
         want.RemoveParam(PARAM_RESV_ANCO_CALLER_BUNDLENAME);
@@ -216,6 +217,12 @@ bool UpdateCallerInfoUtil::UpdateAsCallerInfoFromDialog(Want& want)
     want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
     want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, callerAbilityName);
     want.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, callerAppCloneIndex);
+
+    if (uid != AppUtils::GetInstance().GetCollaboratorBrokerUID()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "not call from broker.");
+        want.RemoveParam(PARAM_RESV_ANCO_CALLER_UID);
+        want.RemoveParam(PARAM_RESV_ANCO_CALLER_BUNDLENAME);
+    }
     if (callerBundleName == "") {
         want.SetParam(Want::PARAM_RESV_CALLER_NATIVE_NAME,
             dialogCallerWant.GetStringParam(Want::PARAM_RESV_CALLER_NATIVE_NAME));
