@@ -476,10 +476,6 @@ void AbilityConnectManager::KillProcessesByUserId() const
 {
 }
 
-void AbilityConnectManager::MoveToBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-}
-
 void AbilityConnectManager::CompleteForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
 }
