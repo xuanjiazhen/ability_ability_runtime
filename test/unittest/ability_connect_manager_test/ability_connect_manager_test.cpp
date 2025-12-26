@@ -1397,7 +1397,8 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_025, TestSize.Level1)
 HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_026, TestSize.Level1)
 {
     std::shared_ptr<BaseExtensionRecord> ability = nullptr;
-    auto result = GetCommonExtensionManager()->DispatchInactive(ability, OHOS::AAFwk::AbilityState::INACTIVATING, nullptr);
+    auto result = GetCommonExtensionManager()->DispatchInactive(
+        ability, OHOS::AAFwk::AbilityState::INACTIVATING, nullptr);
     EXPECT_EQ(result, OHOS::ERR_INVALID_VALUE);
 
     GetCommonExtensionManager()->SetTaskHandler(TaskHandler());

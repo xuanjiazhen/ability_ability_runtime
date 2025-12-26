@@ -625,7 +625,7 @@ bool AbilityConnectManager::IsSpecialAbility(const AppExecFwk::AbilityInfo &abil
 }
 
 int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-	const std::shared_ptr<ConnectionRecord> &connect, const sptr<IRemoteObject> &token)
+    const std::shared_ptr<ConnectionRecord> &connect, const sptr<IRemoteObject> &token)
 {
     return 0;
 }
@@ -690,8 +690,8 @@ void AbilityConnectManager::CompleteForegroundInner(const std::shared_ptr<BaseEx
 }
 
 int32_t AbilityConnectManager::ConnectAbilityLockedInner(bool isLoadedAbility,
-	std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
-	std::shared_ptr<ConnectionRecord>& connectRecord)
+    std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
+    std::shared_ptr<ConnectionRecord>& connectRecord)
 {
     return 0;
 }

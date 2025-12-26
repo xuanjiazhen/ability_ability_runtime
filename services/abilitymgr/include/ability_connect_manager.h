@@ -261,7 +261,6 @@ public:
 
     void RemoveLauncherDeathRecipient();
 
-
     void CloseAssertDialog(const std::string &assertSessionId);
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey);
