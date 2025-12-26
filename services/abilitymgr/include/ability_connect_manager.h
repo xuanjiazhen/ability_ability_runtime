@@ -254,13 +254,10 @@ public:
 
     void HandleProcessFrozen(const std::vector<int32_t> &pidList, int32_t uid);
 
-
-
     void TerminateAbilityWindowLocked(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         const sptr<SessionInfo> &sessionInfo);
 
     void RemoveLauncherDeathRecipient();
-
 
     void CloseAssertDialog(const std::string &assertSessionId);
 

@@ -1130,7 +1130,6 @@ bool UIExtensionAbilityManager::HandleExtensionAbilityRemove(const std::shared_p
 void UIExtensionAbilityManager::HandleAbilityDiedTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::EXT, "called");
-    std::lock_guard guard(serialMutex_);
     CHECK_POINTER(abilityRecord);
     TAG_LOGD(AAFwkTag::EXT, "ability died: %{public}s", abilityRecord->GetURI().c_str());
     HandleConnectRecordOnAbilityDied(abilityRecord);

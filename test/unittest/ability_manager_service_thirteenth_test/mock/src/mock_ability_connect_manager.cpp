@@ -623,5 +623,77 @@ bool AbilityConnectManager::IsSpecialAbility(const AppExecFwk::AbilityInfo &abil
 {
     return false;
 }
+
+int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+    const std::shared_ptr<ConnectionRecord> &connect, const sptr<IRemoteObject> &token)
+{
+    return 0;
+}
+
+void AbilityConnectManager::HandleConnectRecordOnAbilityDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+}
+
+void AbilityConnectManager::HandleAfterServiceRemoved(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord, bool isRemove)
+{
+}
+
+void AbilityConnectManager::HandlePostConnectTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+    int connectRecordId, int64_t recordId)
+{
+}
+
+void AbilityConnectManager::HandleStartTimeoutTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+}
+
+void AbilityConnectManager::HandleForegroundTimeoutTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+}
+
+void AbilityConnectManager::HandleStopTimeoutTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+}
+
+void AbilityConnectManager::CleanActivatingTimeoutAbilityInner(std::shared_ptr<BaseExtensionRecord> abilityRecord)
+{
+}
+
+void AbilityConnectManager::HandleAbilityDiedTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+}
+
+bool AbilityConnectManager::HandleExtensionAbilityRemove(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+    return false;
+}
+
+void AbilityConnectManager::HandlePostLoadTimeout(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId)
+{
+}
+
+
+int AbilityConnectManager::CheckAbilityStateForDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+    return 0;
+}
+
+int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+    return 0;
+}
+
+void AbilityConnectManager::CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+}
+
+int32_t AbilityConnectManager::ConnectAbilityLockedInner(bool isLoadedAbility,
+    std::shared_ptr<BaseExtensionRecord>& targetService, const AbilityRequest& abilityRequest,
+    std::shared_ptr<ConnectionRecord>& connectRecord)
+{
+    return 0;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
