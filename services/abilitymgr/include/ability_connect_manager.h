@@ -189,7 +189,6 @@ public:
         WindowCommand winCmd,
         AbilityCommand abilityCmd);
 
-
     std::shared_ptr<BaseExtensionRecord> GetExtensionByTokenFromServiceMap(const sptr<IRemoteObject> &token);
     std::shared_ptr<BaseExtensionRecord> GetExtensionByTokenFromTerminatingMap(const sptr<IRemoteObject> &token);
     std::shared_ptr<BaseExtensionRecord> GetExtensionByIdFromServiceMap(const int64_t &abilityRecordId);
