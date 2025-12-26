@@ -2631,10 +2631,6 @@ void AbilityConnectManager::CompleteForeground(const std::shared_ptr<BaseExtensi
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
         return;
     }
-    if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
-        return;
-    }
     if (abilityRecord->GetAbilityState() != AbilityState::FOREGROUNDING) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability state: %{public}d, not complete foreground",
             abilityRecord->GetAbilityState());
