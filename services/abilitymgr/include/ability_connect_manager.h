@@ -248,8 +248,6 @@ public:
     void CommandAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd);
 
-
-
     bool IsWindowExtensionFocused(uint32_t extensionTokenId, const sptr<IRemoteObject>& focusToken);
 
     void HandleProcessFrozen(const std::vector<int32_t> &pidList, int32_t uid);
