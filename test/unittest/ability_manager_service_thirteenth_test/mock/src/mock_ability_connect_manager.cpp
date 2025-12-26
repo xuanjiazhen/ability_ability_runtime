@@ -318,13 +318,13 @@ void AbilityConnectManager::HandleTerminateDisconnectTask(const ConnectListType&
 }
 
 int AbilityConnectManager::DispatchInactive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int state,
-    const sptr<IRemoteObject> &token);
+    const sptr<IRemoteObject> &token)
 {
     return ERR_OK;
 }
 
 int AbilityConnectManager::DispatchForeground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    const sptr<IRemoteObject> &token);
+    const sptr<IRemoteObject> &token)
 {
     return ERR_OK;
 }
@@ -615,7 +615,7 @@ std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetUIExtensionBySess
 }
 
 int AbilityConnectManager::AttachAbilityThreadInner(const sptr<IAbilityScheduler> &scheduler,
-    const sptr<IRemoteObject> &token, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+    const sptr<IRemoteObject> &token)
 {
     return 0;
 }
