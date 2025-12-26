@@ -232,6 +232,46 @@ HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerInfoFromDialog_0002, TestSize.L
 }
 
 /**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerInfoFromDialog_0003
+ * @tc.desc: Test UpdateAsCallerInfoFromDialog with valid dialog caller info
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerInfoFromDialog_0003, TestSize.Level1)
+{
+    std::shared_ptr<UpdateCallerInfoUtil> updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    ASSERT_NE(updateCallerUtil, nullptr);
+    const std::string TEST_DIALOG_SESSION_ID = "test_dialog_session";
+    const int32_t TEST_TOKEN_ID = 12345;
+    const int32_t TEST_UID = 5523;
+    const int32_t TEST_PID = 11111;
+    const std::string TEST_BUNDLE_NAME = "com.test.bundle";
+    const std::string TEST_ABILITY_NAME = "TestAbility";
+    const int32_t TEST_CLONE_INDEX = 1;
+    Want dialogCallerWant;
+    dialogCallerWant.SetParam(Want::PARAM_RESV_CALLER_TOKEN, TEST_TOKEN_ID);
+    dialogCallerWant.SetParam(Want::PARAM_RESV_CALLER_UID, TEST_UID);
+    dialogCallerWant.SetParam(Want::PARAM_RESV_CALLER_PID, TEST_PID);
+    dialogCallerWant.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, TEST_BUNDLE_NAME);
+    dialogCallerWant.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, TEST_ABILITY_NAME);
+    dialogCallerWant.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, TEST_CLONE_INDEX);
+
+    std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
+    dialogCallerInfo->targetWant = dialogCallerWant;
+    DialogSessionManager::GetInstance().SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, nullptr, dialogCallerInfo);
+    Want want;
+    want.SetParam("dialogSessionId", TEST_DIALOG_SESSION_ID);
+    bool result = updateCallerUtil->UpdateAsCallerInfoFromDialog(want);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), TEST_TOKEN_ID);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_RESV_CALLER_UID, 0), TEST_UID);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_RESV_CALLER_PID, 0), TEST_PID);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME), TEST_BUNDLE_NAME);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_ABILITY_NAME), TEST_ABILITY_NAME);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, 0), TEST_CLONE_INDEX);
+}
+
+/**
  * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerInfoFromToken_0001
  * @tc.desc: Test the state of UpdateAsCallerInfoFromToken
  * @tc.type: FUNC
