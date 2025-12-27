@@ -3683,7 +3683,7 @@ int AbilityManagerService::PreloadUIExtensionAbility(const Want &want, std::stri
         TAG_LOGE(AAFwkTag::UI_EXT, "permission %{public}s verification failed",
             PermissionConstants::PERMISSION_PRELOAD_UI_EXTENSION_ABILITY);
         return ERR_PERMISSION_DENIED;
-    }
+    } 
     return PreloadUIExtensionAbilityInner(want, bundleName, userId, hostPid, requestCode);
 }
 
@@ -3697,13 +3697,22 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(
     CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     int32_t callerAppIndex = 0;
+    int32_t appIndex = 0;
+    if (want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        appIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    }
+
     if (IN_PROCESS_CALL(bms->GetNameAndIndexForUid(callerUid, hostBundleName, callerAppIndex)) == ERR_OK) {
-        if (!want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY) || want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0)
-            != callerAppIndex) {
-            AppExecFwk::ExtensionAbilityInfo extensionInfo;
-            IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneExtensionAbilityInfoWithAppIndex(want.GetElement(),
-                AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_DEFAULT, callerAppIndex, extensionInfo, validUserId));
-            if (extensionInfo.type == AppExecFwk::ExtensionAbilityType::EMBEDDED_UI) {
+        AppExecFwk::ExtensionAbilityInfo extensionInfo;
+        IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneExtensionAbilityInfoWithAppIndex(want.GetElement(),
+            AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_DEFAULT, callerAppIndex, extensionInfo, validUserId));
+        if (extensionInfo.type == AppExecFwk::ExtensionAbilityType::EMBEDDED_UI) {
+            if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+                IN_PROCESS_CALL_WITHOUT_RET(bms->GetPluginExtensionInfo(hostBundleName, want, validUserId, extensionInfo));
+            }
+            if (hostBundleName == AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
+                (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
+            } else {
                 (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, callerAppIndex);
             }
         }
@@ -4300,6 +4309,9 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     abilityRequest.Voluation(extensionSessionInfo->want, DEFAULT_INVAL_VALUE, callerToken);
     abilityRequest.callType = AbilityCallType::START_EXTENSION_TYPE;
     abilityRequest.sessionInfo = extensionSessionInfo;
+    if (AbilityRuntime::StartupUtil::IsStartPlugin(extensionSessionInfo->want)) {
+        abilityRequest.isTargetPlugin = true;
+    }
     result = GenerateEmbeddableUIAbilityRequest(extensionSessionInfo->want, abilityRequest, callerToken, validUserId);
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
     abilityRequest.sessionInfo->uiExtensionComponentId = (
@@ -7934,9 +7946,17 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
     if (abilityRecord != nullptr) {
         request.callerTokenRecordId = abilityRecord->GetRecordId();
         std::string extensionTypeStr = want.GetStringParam(UIEXTENSION_TYPE_KEY);
+        int32_t appIndex = 0;
+        if (want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
+            appIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+        }
+
         if (AppExecFwk::ConvertToExtensionAbilityType(extensionTypeStr) ==
             AppExecFwk::ExtensionAbilityType::EMBEDDED_UI) {
             (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, abilityRecord->GetAppIndex());
+            if (abilityRecord->GetApplicationInfo().bundleName == AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
+                (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
+            }
         }
     }
     if (abilityRecord && abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX &&
@@ -7954,7 +7974,14 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
         if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
             return ERR_APP_CLONE_INDEX_INVALID;
         }
-        abilityInfo = StartAbilityInfo::CreateStartExtensionInfo(want, userId, appIndex);
+        auto caller = Token::GetAbilityRecordByToken(callerToken);
+        if (caller == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is nullptr");
+            return ERR_INVALID_CALLER;
+        }
+        std::string hostBundleName = caller->GetAbilityInfo().bundleName;
+        request.hostBundleName = hostBundleName;
+        abilityInfo = StartAbilityInfo::CreateStartExtensionInfo(want, userId, appIndex, hostBundleName);
     }
     CHECK_POINTER_AND_RETURN(abilityInfo, GET_ABILITY_SERVICE_FAILED);
     if (abilityInfo->status != ERR_OK) {
@@ -7964,8 +7991,7 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer mode");
         return ERR_NOT_DEVELOPER_MODE;
     }
-    auto result = InitialAbilityRequest(request, *abilityInfo);
-    return result;
+    return InitialAbilityRequest(request, *abilityInfo);
 }
 
 int32_t AbilityManagerService::InitialAbilityRequest(AbilityRequest &request,
@@ -10304,6 +10330,11 @@ int AbilityManagerService::FinishUserTest(
 
 int AbilityManagerService::GetTopAbility(sptr<IRemoteObject> &token)
 {
+    return GetTopAbilityInner(token);
+}
+
+int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId)
+{
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall) {
@@ -10313,7 +10344,7 @@ int AbilityManagerService::GetTopAbility(sptr<IRemoteObject> &token)
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         Rosen::FocusChangeInfo focusChangeInfo;
-        Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusChangeInfo);
+        Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusChangeInfo, displayId);
         token = focusChangeInfo.abilityToken_;
     } else {
         if (!GetWMSHandler()) {
@@ -11590,7 +11621,7 @@ int AbilityManagerService::CheckUIExtensionPermission(const AbilityRequest &abil
     if (abilityRequest.want.HasParameter(AAFwk::SCREEN_MODE_KEY)) {
         // If started by embedded atomic service, allow it.
         return ERR_OK;
-    }
+    } 
 
     auto extensionType = abilityRequest.abilityInfo.extensionAbilityType;
     if (AAFwk::UIExtensionUtils::IsSystemUIExtension(extensionType)) {
@@ -12191,10 +12222,10 @@ std::shared_ptr<AbilityRecord> AbilityManagerService::GetFocusAbility()
     return nullptr;
 }
 
-int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused)
+int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId)
 {
     sptr<IRemoteObject> token;
-    auto ret = GetTopAbility(token);
+    auto ret = GetTopAbilityInner(token, displayId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "getTopAbility failed");
         return ret;
@@ -13245,7 +13276,7 @@ int32_t AbilityManagerService::GetForegroundUIAbilities(std::vector<AppExecFwk::
         abilityData.bundleName = info.ability.GetBundleName();
         abilityData.moduleName = info.ability.GetModuleName();
         abilityData.abilityName = info.ability.GetAbilityName();
-        abilityData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND);
+        abilityData.abilityState = info.abilityState;
         abilityData.pid = info.pid;
         abilityData.uid = info.uid;
         abilityData.abilityType = static_cast<int32_t>(AppExecFwk::AbilityType::PAGE);

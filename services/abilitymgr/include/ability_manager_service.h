@@ -112,6 +112,7 @@ class AbilityManagerService : public SystemAbility,
 public:
     friend class PreloadManagerService;
     friend class StartOptionsUtils;
+    friend class UIAbilityLifecycleManager;
     static std::shared_ptr<AbilityManagerService> GetPubInstance();
 
     void OnStart() override;
@@ -1424,7 +1425,8 @@ public:
      */
     virtual int GetTopAbility(sptr<IRemoteObject> &token) override;
 
-    virtual int CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused) override;
+    virtual int CheckUIExtensionIsFocused(
+        uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId = 0) override;
 
     /**
      * The delegator calls this interface to move the ability to the foreground.
@@ -2414,6 +2416,7 @@ protected:
     virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE) override;
 
 private:
+    int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);
     /**

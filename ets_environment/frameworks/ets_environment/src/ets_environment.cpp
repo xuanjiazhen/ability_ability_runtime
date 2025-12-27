@@ -29,8 +29,8 @@
 #include "constants.h"
 #include "file_path_utils.h"
 #include "runtime.h"
-#include "static_core/plugins/ets/runtime/ets_namespace_manager.h"
-#include "static_core/runtime/tooling/inspector/debugger_arkapi.h"
+#include "ets/runtime/ets_namespace_manager.h"
+#include "tooling/inspector/debugger_arkapi.h"
 #include "ark_vm_api.h"
 #include "ets_ani_expo.h"
 #include "tooling/inspector/debugger_arkapi.h"
@@ -499,7 +499,7 @@ bool ETSEnvironment::AddAbcFiles(ani_env *env, const std::string &modulePath)
         return false;
     }
     if ((status = env->Object_CallMethodByName_Void(static_cast<ani_object>(vmEntry_.abcLinkerRef_),
-        "addAbcFiles", "[Lstd/core/String;:V", refArray)) != ANI_OK) {
+        "addAbcFiles", "C{std.core.Array}:", refArray)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethodByName_Void failed, status: %{public}d", status);
         return false;
     }
@@ -606,13 +606,13 @@ bool ETSEnvironment::LoadModule(const std::string &modulePath, const std::string
     return true;
 }
 
-bool ETSEnvironment::FinishPreload() {
+bool ETSEnvironment::FinishPreload(napi_env jsEnv) {
     ani_env *env = GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed: ANI env nullptr");
         return false;
     }
-    ark::ets::ETSAni::Prefork(env);
+    ark::ets::ETSAni::Prefork(env, reinterpret_cast<void *>(jsEnv));
     return true;
 }
 
@@ -698,8 +698,8 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             std::function<bool(const std::string &bundleModuleName, std::string &namespaceName)> &cb) {
             ark::ets::EtsNamespaceManager::SetAppLibPaths(abcPathsToBundleModuleNameMap, cb);
         },
-        .FinishPreload = []() {
-            ETSEnvironment::GetInstance()->FinishPreload();
+        .FinishPreload = [](napi_env jsEnv) {
+            ETSEnvironment::GetInstance()->FinishPreload(jsEnv);
         },
         .PostFork = [](void *napiEnv, const std::string &aotPath, const std::vector<std::string> &appInnerHspPathList,
             const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
@@ -929,7 +929,7 @@ bool ETSEnvironment::SetHspAbcFiles(ani_env *env, ani_object abcObj)
     }
 
     if ((status = env->Object_CallMethodByName_Void(abcObj,
-        "addAbcFiles", "[Lstd/core/String;:V", strRefArray)) != ANI_OK) {
+        "addAbcFiles", "C{std.core.Array}:", strRefArray)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethodByName_Void failed, status: %{public}d", status);
         return false;
     }

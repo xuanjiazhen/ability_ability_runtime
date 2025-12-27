@@ -911,7 +911,7 @@ private:
 
     void SetLastExitReasonAsync(UIAbilityRecordPtr abilityRecord);
 
-    void SyncLoadAbilityTask(int32_t abilityRecordId);
+    void SyncLoadExitReasonTask(int32_t abilityRecordId);
 
     /**
      * @brief Set receiver info for ability
@@ -1243,6 +1243,8 @@ private:
     void RemoveInstanceKey(const AbilityRequest &abilityRequest) const;
     bool HandleRestartUIAbility(sptr<SessionInfo> sessionInfo);
     void CheckPrelaunchTag(const AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo);
+    void GetActiveAbilityListLocked(int32_t uid, int32_t pid, std::vector<std::string> &abilityList);
+    UIAbilityRecordPtr FindUIAbilityRecordByIdLocked(int64_t abilityRecordId);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
@@ -1251,6 +1253,7 @@ private:
     std::unordered_map<int32_t, UIAbilityRecordPtr> tmpAbilityMap_;
     std::unordered_map<UIAbilityRecordPtr, std::list<AbilityRequest>> callRequestCache_;
     std::list<UIAbilityRecordPtr> terminateAbilityList_;
+    // if window reused, persistentId will be reused, keep previous record here until the ability is dead
     std::unordered_set<UIAbilityRecordPtr> reuseWindowRecords_;
     sptr<IRemoteObject> rootSceneSession_;
     sptr<ISessionHandler> handler_;
@@ -1286,7 +1289,7 @@ private:
     std::vector<pid_t> startingPids_;
 
     std::mutex exitReasonTaskMutex_;
-    std::unordered_map<int32_t, ffrt::task_handle> exitReasonTasks_;
+    std::unordered_map<int32_t, ffrt::task_handle> exitReasonTasks_; // for sync querying exit-reason task
 };
 }  // namespace AAFwk
 }  // namespace OHOS
