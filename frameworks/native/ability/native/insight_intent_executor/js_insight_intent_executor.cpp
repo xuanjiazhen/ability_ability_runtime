@@ -58,7 +58,7 @@ JsInsightIntentExecutor::~JsInsightIntentExecutor()
 
 bool JsInsightIntentExecutor::Init(const InsightIntentExecutorInfo& insightIntentInfo)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "called");
+    TAG_LOGD(AAFwkTag::INTENT, "intent executor init called");
     STATE_PATTERN_NAIVE_ACCEPT(State::CREATED, false);
     state_ = State::INITIALIZED;
     InsightIntentExecutor::Init(insightIntentInfo);
@@ -260,7 +260,7 @@ std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> JsInsightIntentExecutor:
 
 napi_value JsInsightIntentExecutor::ResolveCbCpp(napi_env env, napi_callback_info info)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "called");
+    TAG_LOGI(AAFwkTag::INTENT, "ResolveCbCpp called");
     constexpr size_t argc = 1;
     napi_value argv[argc] = {nullptr};
     size_t actualArgc = argc;
@@ -280,6 +280,7 @@ napi_value JsInsightIntentExecutor::ResolveCbCpp(napi_env env, napi_callback_inf
         return nullptr;
     }
     JsInsightIntentExecutor::ReplySucceeded(callback, resultCpp);
+    TAG_LOGI(AAFwkTag::INTENT, "ResolveCbCpp success");
     return nullptr;
 }
 
@@ -371,7 +372,7 @@ void JsInsightIntentExecutor::ReplySucceededInner(std::shared_ptr<AppExecFwk::In
 
 bool JsInsightIntentExecutor::HandleResultReturnedFromJsFunc(napi_value resultJs)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "called");
+    TAG_LOGD(AAFwkTag::INTENT, "handle result returned from js called");
     auto* env = runtime_.GetNapiEnv();
     if (resultJs == nullptr) {
         ReplyFailedInner();
@@ -453,7 +454,7 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
     const AAFwk::WantParams& param,
     const std::shared_ptr<NativeReference>& windowStageJs)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "called");
+    TAG_LOGD(AAFwkTag::INTENT, "execute intent uiability foreground called");
     HandleScope handleScope(runtime_);
 
     constexpr auto intentMode = static_cast<size_t>(InsightIntentExecuteMode::UIABILITY_FOREGROUND);
@@ -483,7 +484,7 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIAbilityBackground(
     const std::string& name,
     const AAFwk::WantParams& param)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "called");
+    TAG_LOGD(AAFwkTag::INTENT, "execute intent uiability background called");
     HandleScope handleScope(runtime_);
 
     constexpr auto intentMode = static_cast<size_t>(InsightIntentExecuteMode::UIABILITY_BACKGROUND);
@@ -515,7 +516,7 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
     const AAFwk::WantParams& param,
     const std::shared_ptr<NativeReference>& UIExtensionContentSession)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "called");
+    TAG_LOGD(AAFwkTag::INTENT, "execute intent uiexetension called");
     HandleScope handleScope(runtime_);
 
     constexpr auto intentMode = static_cast<size_t>(InsightIntentExecuteMode::UIEXTENSION_ABILITY);
@@ -545,7 +546,7 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentServiceExtension(
     const std::string& name,
     const AAFwk::WantParams& param)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "called");
+    TAG_LOGD(AAFwkTag::INTENT, "execute intent serviceextension called");
     HandleScope handleScope(runtime_);
 
     constexpr auto intentMode = static_cast<size_t>(InsightIntentExecuteMode::SERVICE_EXTENSION_ABILITY);
