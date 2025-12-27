@@ -2250,6 +2250,38 @@ HWTEST_F(AbilityManagerServiceFirstTest, ExecuteInsightIntentDone_0200, TestSize
     EXPECT_EQ(res, ERR_INVALID_VALUE);
 }
 
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_ExecuteInsightIntentDone_0400
+ * @tc.desc: Test ExecuteInsightIntentDone when abilityRecord is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, ExecuteInsightIntentDone_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    Want want;
+    WantParams wantParams;
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NANE));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, AAFwk::String::Box("1"));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_TOKEN, Integer::Box(1000));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_UID, Integer::Box(1001));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_PID, Integer::Box(1002));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, AAFwk::String::Box(TEST_CALLER_BUNDLE_NANE));
+    WantParams insightIntentParam;
+    insightIntentParam.SetParam("dummy", Integer::Box(-1));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM, WantParamWrapper::Box(insightIntentParam));
+    want.SetElementName("", TEST_BUNDLE_NANE, TEST_ABILITY_NANE, TEST_MODULE_NANE);
+    want.SetParams(wantParams);
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    uint64_t intentId = 0;
+    InsightIntentExecuteResult result;
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    abilityRecord.SetWant(want);
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    auto res = abilityMs->ExecuteInsightIntentDone(token, intentId, result);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
 /**
  * @tc.name: AbilityManagerServiceFirstTest_SetApplicationAutoStartupByEDM_0100
  * @tc.desc: Test SetApplicationAutoStartupByEDM.

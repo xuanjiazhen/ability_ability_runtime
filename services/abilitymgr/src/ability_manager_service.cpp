@@ -12943,7 +12943,7 @@ int32_t AbilityManagerService::StartAbilityWithServiceMatch(const InsightIntentE
 int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const InsightIntentExecuteParam &param)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::INTENT, "execute intent called");
     if (param.isServiceMatch_) {
         return StartAbilityWithServiceMatch(param);
     }
@@ -12972,6 +12972,7 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(key, callerToken,
         paramPtr, callerBundlename, ignoreAbilityName);
     if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "checkAndUpdateParam failed");
         return ret;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
@@ -12981,12 +12982,14 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
         openLinkExecuteFlag, param.executeMode_, param.userId_);
 
     if (openLinkExecuteFlag) {
+        TAG_LOGI(AAFwkTag::INTENT, "checkAndUpdateParam failed");
         return IntentOpenLinkInner(paramPtr, infos, param.userId_);
     }
 
     Want want;
     ret = InsightIntentExecuteManager::GenerateWant(paramPtr, infos, want);
     if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "generate want failed");
         return ret;
     }
     int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();

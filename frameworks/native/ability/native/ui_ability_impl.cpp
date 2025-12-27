@@ -711,16 +711,16 @@ void UIAbilityImpl::HandleForegroundNewState(const AAFwk::Want &want, bool &bfla
 
 void UIAbilityImpl::HandleExecuteInsightIntentForeground(const AAFwk::Want &want, bool &bflag)
 {
-    TAG_LOGI(AAFwkTag::UIABILITY, "handle execute insight intent foreground");
+    TAG_LOGI(AAFwkTag::INTENT, "handle execute insight intent foreground");
     auto executeParam = std::make_shared<InsightIntentExecuteParam>();
     auto ret = InsightIntentExecuteParam::GenerateFromWant(want, *executeParam);
     if (!ret) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "invalid params");
+        TAG_LOGE(AAFwkTag::INTENT, "invalid params");
         HandleForegroundNewState(want, bflag);
         return;
     }
 
-    TAG_LOGD(AAFwkTag::UIABILITY,
+    TAG_LOGD(AAFwkTag::INTENT,
         "insightIntent bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s"
         "insightIntentName: %{public}s, executeMode: %{public}d, intentId: %{public}" PRIu64"",
         executeParam->bundleName_.c_str(), executeParam->moduleName_.c_str(), executeParam->abilityName_.c_str(),
@@ -728,7 +728,7 @@ void UIAbilityImpl::HandleExecuteInsightIntentForeground(const AAFwk::Want &want
     auto intentCb = std::make_unique<InsightIntentExecutorAsyncCallback>();
     intentCb.reset(InsightIntentExecutorAsyncCallback::Create());
     if (intentCb == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null intentCb");
+        TAG_LOGE(AAFwkTag::INTENT, "null intentCb");
         HandleForegroundNewState(want, bflag);
         return;
     }
