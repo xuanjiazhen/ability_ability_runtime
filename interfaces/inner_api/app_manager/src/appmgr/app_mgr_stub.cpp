@@ -2239,9 +2239,9 @@ int32_t AppMgrStub::HandlePreloadExtension(MessageParcel &data, MessageParcel &r
         TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
     }
-    int32_t preloadMode = data.ReadInt32();
+    int32_t appIndex = data.ReadInt32();
     int32_t userId = data.ReadInt32();
-    auto result = PreloadExtension(*want, static_cast<AppExecFwk::PreloadMode>(preloadMode), userId);
+    auto result = PreloadExtension(*want, appIndex, userId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Stub HandlePreloadExtension Write result failed.");
         return ERR_APPEXECFWK_PARCEL_ERROR;

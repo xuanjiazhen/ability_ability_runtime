@@ -1177,16 +1177,6 @@ public:
         return isAllowScbProcessMoveToBackground_.load();
     }
 
-    inline bool IsPreload() const
-    {
-        return isPreload_.load();
-    }
-
-    inline void AllowPreload()
-    {
-        isPreload_.store(true);
-    }
-
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1378,7 +1368,6 @@ private:
     std::atomic<int32_t> specifiedProcessRequestId_ = -1;
     std::atomic<bool> hasBeenExistedMasterProcessRole_ = false;
     std::atomic<bool> isAllowScbProcessMoveToBackground_ = false;
-    std::atomic<bool> isPreload_ = false;
 };
 
 }  // namespace AppExecFwk

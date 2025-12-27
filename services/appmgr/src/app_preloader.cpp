@@ -119,7 +119,7 @@ int32_t AppPreloader::GeneratePreloadExtensionRequest(const AAFwk::Want &want, c
     int32_t userId, int32_t appIndex, PreloadRequest &request)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "PreloadApplication GeneratePreloadRequest");
+    TAG_LOGD(AAFwkTag::APPMGR, "PreloadExtension GeneratePreloadRequest");
     std::string bundleName = want.GetElement().GetBundleName();
 
     BundleInfo bundleInfo;

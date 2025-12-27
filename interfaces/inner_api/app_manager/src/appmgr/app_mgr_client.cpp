@@ -1840,13 +1840,13 @@ int32_t AppMgrClient::KillChildProcessByPid(int32_t pid)
     return service->KillChildProcessByPid(pid);
 }
 
-int32_t AppMgrClient::PreloadExtension(const AAFwk::Want &want, AppExecFwk::PreloadMode preloadMode, int32_t userId)
+int32_t AppMgrClient::PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return service->PreloadExtension(want, preloadMode, userId);
+    return service->PreloadExtension(want, appIndex, userId);
 }
 
 }  // namespace AppExecFwk
