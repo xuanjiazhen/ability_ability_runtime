@@ -1053,14 +1053,15 @@ HWTEST_F(AppMgrStubTest, HandlePreloadExtension_0100, TestSize.Level1)
 
     WriteInterfaceToken(data);
 
-    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string bundleName = "com.example.hmos.inputmethod";
     std::string abilityName = "InputService";
     int32_t userId = 100;
+    int32_t appIndex = 0;
 
     AAFwk::Want want;
     want.SetElementName(bundleName, abilityName);
     data.WriteParcelable(&want);
-    data.WriteInt32(2);
+    data.WriteInt32(appIndex);
     data.WriteInt32(userId);
 
     auto result = mockAppMgrService_->OnRemoteRequest(
@@ -1084,10 +1085,11 @@ HWTEST_F(AppMgrStubTest, HandlePreloadExtension_0200, TestSize.Level1)
     std::string bundleName = "com.huawei.hmos.inputmethod";
     std::string abilityName = "InputService";
     int32_t userId = 100;
+    int32_t appIndex = 0;
 
     AAFwk::Want want;
     want.SetElementName(bundleName, abilityName);
-    data.WriteInt32(2);
+    data.WriteInt32(appIndex);
     data.WriteInt32(userId);
 
     mockAppMgrService_->OnRemoteRequest(

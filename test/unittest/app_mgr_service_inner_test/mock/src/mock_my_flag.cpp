@@ -18,8 +18,5 @@
 namespace OHOS {
 namespace AAFwk {
 int MyFlag::flag_ = 0;
-int MyFlag::userId_ = 0;
-int MyFlag::appPreloadRet_ = 0;
-int MyFlag::bundleMgrHelperRet = 0;
 } // namespace AAFwk
 } // namespace OHOS

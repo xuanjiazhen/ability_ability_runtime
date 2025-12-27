@@ -1792,9 +1792,9 @@ HWTEST_F(AppMgrServiceTest, PreloadExtension_0100, TestSize.Level1)
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = eventHandler_;
 
-    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string bundleName = "com.example.hmos.inputmethod";
     std::string abilityName = "InputService";
-    PreloadMode preloadMode = PreloadMode::PRELOAD_MODULE;
+    int32_t appIndex = 0;
     int32_t userId = 100;
 
     AAFwk::Want want;
@@ -1804,7 +1804,7 @@ HWTEST_F(AppMgrServiceTest, PreloadExtension_0100, TestSize.Level1)
     .Times(1)
     .WillOnce(Return(ERR_OK));
 
-    int32_t ret = appMgrService->PreloadExtension(want, preloadMode, userId);
+    int32_t ret = appMgrService->PreloadExtension(want, appIndex, userId);
     EXPECT_EQ(ret, ERR_OK);
 }
 
@@ -2297,38 +2297,16 @@ HWTEST_F(AppMgrServiceTest, PreloadExtension_0200, TestSize.Level1)
     ASSERT_NE(appMgrService, nullptr);
     appMgrService->appMgrServiceInner_ = nullptr;
 
-    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string bundleName = "com.example.hmos.inputmethod";
     std::string abilityName = "InputService";
-    PreloadMode preloadMode = PreloadMode::PRELOAD_MODULE;
+    int32_t appIndex = 0;
     int32_t userId = 100;
 
     AAFwk::Want want;
     want.SetElementName(bundleName, abilityName);
 
-    int32_t ret = appMgrService->PreloadExtension(want, preloadMode, userId);
+    int32_t ret = appMgrService->PreloadExtension(want, appIndex, userId);
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
-}
-
-/**
- * @tc.name: PreloadExtension_0300
- * @tc.desc: Preload application.
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceTest, PreloadExtension_0300, TestSize.Level1)
-{
-    auto appMgrService = std::make_shared<AppMgrService>();
-    ASSERT_NE(appMgrService, nullptr);
-
-    std::string bundleName = "com.huawei.hmos.inputmethod";
-    std::string abilityName = "InputService";
-    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
-    int32_t userId = 100;
-
-    AAFwk::Want want;
-    want.SetElementName(bundleName, abilityName);
-
-    int32_t ret = appMgrService->PreloadExtension(want, preloadMode, userId);
-    EXPECT_EQ(ret, 6);
 }
 
 /**

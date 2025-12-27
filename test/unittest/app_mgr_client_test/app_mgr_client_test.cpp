@@ -1223,15 +1223,16 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_PreloadExtension_001, TestSize.Level2)
     auto result = appMgrClient->ConnectAppMgrService();
     EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
     
-    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string bundleName = "com.example.inputmethod";
     std::string abilityName = "InputService";
     int32_t userId = 100;
+    int32_t appIndex = 0;
 
     AAFwk::Want want;
     want.SetElementName(bundleName, abilityName);
 
-    int32_t ret = appMgrClient->PreloadExtension(want, AppExecFwk::PreloadMode::PRE_MAKE, userId);
-    EXPECT_EQ(ret, 6);
+    int32_t ret = appMgrClient->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 }
 
 /**
