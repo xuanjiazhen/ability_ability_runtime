@@ -129,12 +129,6 @@ int32_t AppPreloader::GeneratePreloadExtensionRequest(const AAFwk::Want &want, c
         return AAFwk::GET_BUNDLE_INFO_FAILED;
     }
 
-    if (request.preloadMode == PreloadMode::PRELOAD_BY_PHASE &&
-        hapModuleInfo.moduleType != AppExecFwk::ModuleType::ENTRY) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Not entry module.");
-        return AAFwk::ERR_PRELOAD_NOT_ENTRY_MODULE;
-    }
-
     request.abilityInfo = std::make_shared<AbilityInfo>(abilityInfo);
     request.appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
     request.want = std::make_shared<AAFwk::Want>(want);

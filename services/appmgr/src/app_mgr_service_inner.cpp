@@ -667,11 +667,9 @@ int32_t AppMgrServiceInner::PreloadExtension(const AAFwk::Want &want, int32_t ap
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     std::string bundleName = want.GetElement().GetBundleName();
     std::string abilityName = want.GetElement().GetAbilityName();
-    PreloadMode preloadMode = PreloadMode::PRELOAD_MODULE;
 
-    TAG_LOGI(AAFwkTag::APPMGR, "PreloadExtension %{public}s#%{public}s#%{public}d userId:%{public}d \
-        preloadMode:%{public}d ", bundleName.c_str(), abilityName.c_str(), appIndex, userId,
-        static_cast<int32_t>(preloadMode));
+    TAG_LOGI(AAFwkTag::APPMGR, "PreloadExtension %{public}s#%{public}s#%{public}d userId:%{public}d",
+        bundleName.c_str(), abilityName.c_str(), appIndex, userId);
 
     if (userId == DEFAULT_INVAL_VALUE) {
         userId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
@@ -693,7 +691,7 @@ int32_t AppMgrServiceInner::PreloadExtension(const AAFwk::Want &want, int32_t ap
         return ERR_INVALID_OPERATION;
     }
     PreloadRequest request;
-    request.preloadMode = preloadMode;
+    request.preloadMode = PreloadMode::PRELOAD_MODULE;
     auto ret = appPreloader_->GeneratePreloadExtensionRequest(want, abilityInfo, userId, appIndex, request);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "generatePreloadRequest fail, ret:%{public}d", ret);

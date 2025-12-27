@@ -2097,7 +2097,6 @@ private:
     void NotifyStartProcessFailed(sptr<IRemoteObject> token);
 
     std::vector<BackgroundAppInfo> GetBackgroundAppInfo(const std::vector<BackgroundAppInfo>& allowAppList);
-
 private:
     /**
      * Notify application status.
