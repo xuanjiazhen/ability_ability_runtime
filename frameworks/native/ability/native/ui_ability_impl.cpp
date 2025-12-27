@@ -711,7 +711,6 @@ void UIAbilityImpl::HandleForegroundNewState(const AAFwk::Want &want, bool &bfla
 
 void UIAbilityImpl::HandleExecuteInsightIntentForeground(const AAFwk::Want &want, bool &bflag)
 {
-
     TAG_LOGI(AAFwkTag::INTENT, "handle execute insight intent foreground");
     std::string entry = "UIAbilityImpl::HandleExecuteInsightIntentForeground";
     FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
