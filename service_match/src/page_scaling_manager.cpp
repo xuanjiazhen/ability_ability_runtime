@@ -24,39 +24,36 @@
 #include "ui_content.h"
 #include "window.h"
 
-namespace OHOS {
-namespace AppExecFwk {
-namespace {
-const uint8_t CONDITION_LIST_SIZE = 2;
-}
 
-PageScalingManager::PageScalingManager() {}
-
-int32_t PageScalingManager::Initialize(std::string configJson, const wptr<Rosen::Window>& window)
+extern "C"int32_t Initialize(std::string configJson, const OHOS::wptr<OHOS::Rosen::Window>& window)
 {
     TAG_LOGW(AAFwkTag::ABILITY, "czx intialize mgr");
+    if (configJson.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITY, "configJson empty");
+        return OHOS::ERR_NO_INIT;
+    }
     if (window == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "window null");
-        return ERR_NO_INIT;
+        return OHOS::ERR_NO_INIT;
     }
-
-    auto ret = ParseWhitelistConfig(configJson, configs_);
-    if (ret != ERR_OK) {
+    auto pageScalingManager = std::make_shared<PageScalingManager>();
+    auto ret = pageScalingManager->ParseWhitelistConfig(configJson, pageScalingManager->GetConfig());
+    if (ret != OHOS::ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "ParseWhitelistConfig failed, ret: %{public}d", ret);
         return ret;
     }
-    sptr<Rosen::Window> windowPtr = window.promote();
+    OHOS::sptr<OHOS::Rosen::Window> windowPtr = window.promote();
     if (windowPtr == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "windowPtr null");
-        return ERR_NO_INIT;
+        return OHOS::ERR_NO_INIT;
     }
-    uiContentListener_ = sptr<Rosen::IWindowUIContentListener>(new WindowUIContentImpl(shared_from_this(), configs_, windowPtr));
+    auto uiContentListener_ = sptr<OHOS::Rosen::IWindowUIContentListener>(new WindowUIContentImpl(pageScalingManager, pageScalingManager->GetConfig(), windowPtr));
     // RegisterUIContentListener(const sptr<IWindowUIContentListener>& listener)
     windowPtr->RegisterUIContentListener(uiContentListener_);
-    return ERR_OK;
+    return OHOS::ERR_OK;
 }
 
-int32_t PageScalingManager::NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId)
+extern "C" int32_t NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId)
 {
     if (targetPageName == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "targetPage null");
@@ -71,38 +68,48 @@ int32_t PageScalingManager::NotifyPageChanged(char* targetPageName, int32_t targ
 
     std::string targetPageNameStr(targetPageName);
     TAG_LOGI(AAFwkTag::ABILITY, "targetPageName: %{public}s", targetPageNameStr.c_str());
-    HandleNavigateChangeInternal(window, targetPageNameStr, targetPageNameLen, configs_);
+    auto pageScalingManager = std::make_shared<PageScalingManager>();
+    pageScalingManager->HandleNavigateChangeInternal(window, targetPageNameStr, targetPageNameLen, pageScalingManager->GetConfig());
     return ERR_OK;
 }
 
+namespace OHOS {
+namespace AppExecFwk {
+namespace {
+const uint8_t CONDITION_LIST_SIZE = 2;
+constexpr const char* DPI = "dpi";
+constexpr const char* HideStatusBar = "hsb";
+constexpr const char* VideoShrink = "vsk";
+constexpr const char* VerticalDisplay = "vd";
+constexpr const char* PAGE_NAME = "pn";
+constexpr const char* PATTERN_TYPE = "pt";
+}
+
+PageScalingManager::PageScalingManager() {}
+
 void PageScalingManager::WindowUIContentImpl::OnUIContentCreate(std::weak_ptr<Ace::UIContent> uiContent)
 {
-    if (uiContent == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "uiContent null");
-        return;
-    }
     auto uiContentPtr = uiContent.lock();
     if (uiContentPtr == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "uiContentPtr null");
         return;
     }
-    
-    auto owner = owner_.lock();
-    if (!owner) {
-        TAG_LOGE(AAFwkTag::ABILITY, "owner null");
+    if (!mgr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "mgr null");
         return;
     }
 
     TAG_LOGI(AAFwkTag::ABILITY, "uiContent created, registering navigate change callback");
     auto window = window_;
     auto configs = configs_;
+    auto mgr = mgr_;
     uiContentPtr->RegisterNavigateChangeCallback(
-        [owner, window, configs, this](const OHOS::Ace::NavigateChangeInfo& from, const OHOS::Ace::NavigateChangeInfo& to) {
+        [mgr, window, configs, this](const OHOS::Ace::NavigateChangeInfo& from, const OHOS::Ace::NavigateChangeInfo& to) {
             if (!window) {
-                TAG_LOGE(AAFwkTag::ABILITY, "window not found");
+                TAG_LOGE(AAFwkTag::ABILITY, "window null");
                 return;
             }
-            owner->HandleNavigateChangeInternal(window, to.name, to.name.length(), configs);
+            mgr->HandleNavigateChangeInternal(window, to.name, to.name.length(), configs);
         });
 }
 
@@ -172,7 +179,7 @@ int32_t PageScalingManager::ParseWhitelistConfig(const std::string &configJson, 
 }
 
 void PageScalingManager::HandleNavigateChangeInternal(const sptr<Rosen::Window>& window,
-    const std::string& targetPageName, i n, const std::vector<PageScalingConfig>& configs)
+    const std::string& targetPageName, int32_t targetPageNameLen, const std::vector<PageScalingConfig>& configs)
 {
     for (const auto& config : configs) {
         if (ComparePage(config.page.pageName, targetPageName, config.page.patternType, targetPageNameLen)) {
@@ -211,12 +218,13 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
         }
     }
     for (const auto& verticalConfig : config.verticalDisplay) {
-        const std::string& condition = verticalConfig.condition.orientation;
-        const std::string& value = verticalConfig.value;
+        const std::string& condition = verticalConfig.condition;
+        int32_t value = std::stoi(verticalConfig.value);
         if (ConditionCheck(condition, orientation, foldDisplayMode)) {
-            // TODO: Implement verticalDisplay logic based on value
-            TAG_LOGI(AAFwkTag::ABILITY, "verticalDisplay condition matched %{public}s, value: %{public}s", 
-                condition.c_str(), value.c_str());
+            // TODO: UpdateCompatibleMode(enum Rosen::CompatibleMode);
+            window->SetCompatibleMode(static_cast<Rosen::CompatibleMode>(value));
+            TAG_LOGI(AAFwkTag::ABILITY, "verticalDisplay condition matched %{public}s, value: %{public}d", 
+                condition.c_str(), value);
             break;
         }
     }
@@ -247,6 +255,11 @@ void PageScalingManager::RestoreConfig(const sptr<Rosen::Window>& window)
     window->SetSystemBarPropertyForPage(Rosen::WindowType::WINDOW_STATUS_BAR, defaultProp);
 }
 
+std::vector<PageScalingConfig>& PageScalingManager::GetConfig()
+{
+    return configs_;
+}
+
 void PageScalingManager::StoreConfig(const nlohmann::json& jsonItem, Config& config)
 {
     if (jsonItem.contains("condition")) {
@@ -254,7 +267,15 @@ void PageScalingManager::StoreConfig(const nlohmann::json& jsonItem, Config& con
     } else {
         config.condition = "";
     }
-    config.value = jsonItem.value("val", "");
+    if (jsonItem.contains("val")) {
+        if (jsonItem["val"].is_number()) {
+            config.value = std::to_string(jsonItem.value("val", 0));
+        } else {
+            config.value = jsonItem.value("val", "");
+        }
+    } else {
+        config.value = "";
+    }
 }
 
 bool PageScalingManager::ComparePage(const std::string &whitelistPageName, 

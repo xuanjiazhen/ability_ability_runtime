@@ -66,47 +66,41 @@ typedef struct {
 class PageScalingManager : public std::enable_shared_from_this<PageScalingManager> {
 public:
 
-    int32_t Initialize(std::string configJson, const sptr<Rosen::Window>& window);
-
-    int32_t NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId);
-
-private:
     PageScalingManager();
     ~PageScalingManager() = default;
 
     int32_t ParseWhitelistConfig(const std::string &configJson, std::vector<PageScalingConfig> &configs);
-
     void HandleNavigateChangeInternal(const sptr<Rosen::Window>& window,
         const std::string& targetPageName, int32_t targetPageNameLen, const std::vector<PageScalingConfig>& configs);
-
-    void ApplyConfig(const sptr<Rosen::Window>& window, const std::vector<PageScalingConfig>& configs);
-    
+    void ApplyConfig(const sptr<Rosen::Window>& window, const PageScalingConfig& config);
     void RestoreConfig(const sptr<Rosen::Window>& window);
-    
     void StoreConfig(const nlohmann::json& jsonItem, Config& config);
-    
     bool ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode);
-
     bool ComparePage(const std::string &pageName, const std::string &targetPageName, std::string &patternType);
-
+    std::vector<PageScalingConfig>& GetConfig();
+    sptr<Rosen::IWindowUIContentListener> GetUIContentListener();
     class WindowUIContentImpl : public Rosen::IWindowUIContentListener {
     public:
         WindowUIContentImpl(const std::shared_ptr<PageScalingManager>& owner, const std::vector<PageScalingConfig>& configs, const sptr<Rosen::Window>& window)
-            : owner_(owner), configs_(configs), window_(window) {}
+            : mgr_(mgr), configs_(configs), window_(window) {}
         virtual ~WindowUIContentImpl() override = default;
         
         void OnUIContentCreate(std::weak_ptr<Ace::UIContent> uiContent) override;
         
     private:
-        std::weak_ptr<PageScalingManager> owner_;
+        std::shared_ptr<PageScalingManager> mgr_;
         std::vector<PageScalingConfig> configs_;
         sptr<Rosen::Window> window_;
     };
 
+private:
     std::vector<PageScalingConfig> configs_;
-    // RegisterUIContentListener(const sptr<IWindowUIContentListener>& listener)
     sptr<Rosen::IWindowUIContentListener> uiContentListener_ = nullptr;
 };
+
+int32_t Initialize(std::string configJson, const sptr<Rosen::Window>& window);
+
+int32_t NotifyPageChanged(char* targetPageName, int32_t targetPageNameLen, int32_t windowId);
 
 } // namespace AppExecFwk
 } // namespace OHOS
