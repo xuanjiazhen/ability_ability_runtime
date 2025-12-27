@@ -1082,7 +1082,7 @@ HWTEST_F(AppMgrStubTest, HandlePreloadExtension_0200, TestSize.Level1)
 
     WriteInterfaceToken(data);
 
-    std::string bundleName = "com.huawei.hmos.inputmethod";
+    std::string bundleName = "com.example.hmos.inputmethod";
     std::string abilityName = "InputService";
     int32_t userId = 100;
     int32_t appIndex = 0;
