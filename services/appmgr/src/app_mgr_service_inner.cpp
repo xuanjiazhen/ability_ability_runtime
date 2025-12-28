@@ -24,6 +24,7 @@
 #include <queue>
 #include <securec.h>
 #include <sstream>
+#include <sys/epoll.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -43,6 +44,7 @@
 #include "appspawn_util.h"
 #include "bundle_constants.h"
 #include "bundle_mgr_helper.h"
+#include "c/executor_task.h"
 #include "common_event.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
@@ -317,6 +319,8 @@ constexpr const char* APP_INSTANCE_KEY_0 = "app_instance_0";
 //listen fd use
 constexpr int32_t PIPE_MSG_READ_BUFFER = 1024;
 constexpr const char* NATIVESPAWN_STARTED = "startup.service.ctl.nativespawn.pid";
+constexpr const char* HYBRIDSPAWN_EXIT = "startup.service.ctl.hybridspawn";
+constexpr const char* HYBRIDSPAWN_EXIT_SIGNAL = "5";
 
 // Max child process number limitation for pc device.
 constexpr int32_t PC_MAX_CHILD_PROCESS_NUM = 50;
@@ -459,6 +463,7 @@ void AppMgrServiceInner::Init()
         }, ffrt::task_attr().delay(NWEB_PRELOAD_DELAY)
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
+    InitHybridSpawnMsgPipe();
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
@@ -8524,6 +8529,127 @@ void AppMgrServiceInner::InitAppWaitingDebugList()
             waitingDebugBundleList_.try_emplace(item, true);
         }
     }
+}
+
+void AppMgrServiceInner::OnAppHybridSpawn(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName)
+{
+    std::lock_guard lock(appStateCallbacksLock_);
+    for (const auto &item : appStateCallbacks_) {
+        if (item.callback != nullptr) {
+            item.callback->OnAppHybridSpawn(pid, uid, signal, bundleName);
+        }
+    }
+}
+
+static void ProcessSignalData(void *context, uint32_t event)
+{
+    auto weak = static_cast<std::weak_ptr<AppMgrServiceInner>*>(context);
+    if (weak == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "context null");
+        return;
+    }
+    auto AppMgrService = weak->lock();
+    if (AppMgrService == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AbilityManagerService null");
+        return;
+    }
+    int rFd = AppMgrService->GetHRfd();
+    // read data from appspawn
+    char buffer[PIPE_MSG_READ_BUFFER] = {0};
+    std::string readResult = "";
+    int count = read(rFd, buffer, PIPE_MSG_READ_BUFFER - 1);
+    if (count == -1) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read pipe failed");
+    } else if (count == 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write end closed");
+        close(rFd);
+    } else {
+        int32_t pid = -1;
+        int32_t signal = -1;
+        int32_t uid = 0;
+        std::string bundleName = "";
+        std::string bufferStr = buffer;
+        TAG_LOGD(AAFwkTag::APPMGR, "buffer read: %{public}s", bufferStr.c_str());
+        nlohmann::json jsonObject = nlohmann::json::parse(bufferStr, nullptr, false);
+        if (jsonObject.is_discarded()) {
+            TAG_LOGE(AAFwkTag::APPMGR, "parse json string failed");
+            return;
+        }
+        if (!jsonObject.contains("pid") || !jsonObject.contains("signal") || !jsonObject.contains("uid")
+            || !jsonObject.contains("bundleName")) {
+            TAG_LOGE(AAFwkTag::APPMGR, "info lost!");
+            return;
+        }
+        pid = jsonObject["pid"];
+        signal = jsonObject["signal"];
+        uid = jsonObject["uid"];
+        bundleName = jsonObject["bundleName"];
+        if (signal == 0) {
+            TAG_LOGD(AAFwkTag::APPMGR, "ignore signal 0, pid: %{public}d", pid);
+            return;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "To update reason detail info because of SIGNAL");
+        AppMgrService->OnAppHybridSpawn(pid, uid, signal, bundleName);
+    }
+}
+
+static void HybridSpawnExitCallback(const char *key, const char *value, void *context)
+{
+    if (value == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "value nullptr");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "value is: %{public}s", value);
+    // set flag
+    if (strcmp(value, HYBRIDSPAWN_EXIT_SIGNAL) == 0) {
+        int ret = HybridSpawnListenCloseSet();
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "HybridSpawnListenCloseSet failed");
+        }
+    }
+}
+
+void AppMgrServiceInner::InitHybridSpawnMsgPipe()
+{
+    int pipeFd[2];
+    if (pipe(pipeFd) != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "create pipe failed");
+        return;
+    }
+    hrFd_ = pipeFd[0];
+    hwFd_ = pipeFd[1];
+    TAG_LOGI(AAFwkTag::APPMGR, "hrFd is: %{public}d, hwFd is: %{public}d", hrFd_, hwFd_);
+
+    auto context = new (std::nothrow) std::weak_ptr<AppMgrServiceInner>(shared_from_this());
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "context null");
+        return;
+    }
+
+    // send fd
+    int ret = HybridSpawnListenFdSet(hwFd_);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "send fd to hybridspawn failed, ret: %{public}d", ret);
+        close(hrFd_);
+        close(hwFd_);
+        return;
+    }
+    ret = WatchParameter(HYBRIDSPAWN_EXIT, HybridSpawnExitCallback, nullptr);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "watch parameter ret: %{public}d", ret);
+		close(hrFd_);
+        close(hwFd_);
+        return;
+    }
+    ffrt_qos_t taskQos = 0;
+    ret = ffrt_epoll_ctl(taskQos, EPOLL_CTL_ADD, hrFd_, EPOLLIN, context, ProcessSignalData);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ffrt_epoll_ctl failed, ret: %{public}d", ret);
+        close(hrFd_);
+		close(hwFd_);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "Listen signal msg ...");
 }
 
 bool AppMgrServiceInner::CheckIsDebugApp(const std::string &bundleName)

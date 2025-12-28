@@ -278,6 +278,13 @@ void AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
     callback->NotifyAppPreCache(pid, userId);
 }
 
+void AppScheduler::OnAppHybridSpawn(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName)
+{
+    auto callback = callback_.lock();
+    CHECK_POINTER(callback);
+    callback->OnAppHybridSpawn(pid, uid, signal, bundleName);
+}
+
 int AppScheduler::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
     const std::string &reason)
 {
