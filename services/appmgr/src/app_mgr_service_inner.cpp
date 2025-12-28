@@ -65,6 +65,7 @@
 #include "last_exit_detail_info.h"
 #include "os_account_manager.h"
 #include "app_native_spawn_manager.h"
+#include "app_hybrid_spawn_manager.h"
 #ifdef SUPPORT_SCREEN
 #include "locale_config.h"
 #endif
@@ -459,6 +460,7 @@ void AppMgrServiceInner::Init()
         }, ffrt::task_attr().delay(NWEB_PRELOAD_DELAY)
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
+    AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe();
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
