@@ -1634,6 +1634,16 @@ public:
      */
     virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
 
+    int GetHRfd() const
+    {
+        return hrFd_;
+    }
+    int GetHWfd() const
+    {
+        return hwFd_;
+    }
+    void OnAppHybridSpawn(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -2116,6 +2126,7 @@ private:
     void SendReStartProcessEvent(AAFwk::EventInfo &eventInfo, int32_t appUid);
     void SendAppLaunchEvent(const std::shared_ptr<AppRunningRecord> &appRecord);
     void InitAppWaitingDebugList();
+    void InitHybridSpawnMsgPipe();
     bool IsWaitingDebugAppInner(const std::string &bundleName);
     void HandleConfigurationChange(const Configuration &config, const int32_t userId = -1);
     void HandleConfigurationChange(const Configuration &config, const std::set<int32_t> &userIds);
@@ -2259,6 +2270,9 @@ private:
     ffrt::mutex uninstallOrUpgradeUidSetLock_;
     std::unordered_set<int32_t> uninstallOrUpgradeUidSet_ {};
     ffrt::mutex exitMasterProcessRoleLock_;
+
+    int hrFd_ = -1;
+    int hwFd_ = -1;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
