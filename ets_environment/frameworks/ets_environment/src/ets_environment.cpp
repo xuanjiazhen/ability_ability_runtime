@@ -645,7 +645,7 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     commonHspBundleInfos_ = commonHspBundleInfos;
 
     ARKVM_RegisterExternalScheduler(PostTaskWrapper);
-    PostCoroutineScheduleTask();
+    // PostCoroutineScheduleTask();
 
     return true;
 }
@@ -969,15 +969,15 @@ static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskNam
     ETSEnvironment::GetInstance()->PostTask([task, data]() { task(data); }, taskName, delayMs);
 }
 
-void ETSEnvironment::PostCoroutineScheduleTask()
-{
-    static constexpr uint64_t COROUTINE_SCHEDULE_PERIODIC_TIME = 100;
-    auto scheduleTask = []() {
-        ARKVM_RunScheduler(ARKVM_SCHEDULER_RUN_ONCE);
-        GetInstance()->PostCoroutineScheduleTask();
-    };
-    PostTask(scheduleTask, "ScheduleCoroutinePeriodically", COROUTINE_SCHEDULE_PERIODIC_TIME);
-}
+// void ETSEnvironment::PostCoroutineScheduleTask()
+// {
+//     static constexpr uint64_t COROUTINE_SCHEDULE_PERIODIC_TIME = 100;
+//     auto scheduleTask = []() {
+//         ARKVM_RunScheduler(ARKVM_SCHEDULER_RUN_ONCE);
+//         GetInstance()->PostCoroutineScheduleTask();
+//     };
+//     PostTask(scheduleTask, "ScheduleCoroutinePeriodically", COROUTINE_SCHEDULE_PERIODIC_TIME);
+// }
 
 } // namespace EtsEnv
 } // namespace OHOS
