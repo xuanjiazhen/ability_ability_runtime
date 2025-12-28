@@ -75,7 +75,7 @@ constexpr const int32_t ARG_ZERO = 0;
 constexpr const int32_t ARG_ONE = 1;
 } // namespace
 
-static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs);
+static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs, int32_t priority);
 ETSRuntimeAPI ETSEnvironment::lazyApis_ {};
 std::unique_ptr<ETSEnvironment> instance_ = nullptr;
 
@@ -645,7 +645,6 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     commonHspBundleInfos_ = commonHspBundleInfos;
 
     ARKVM_RegisterExternalScheduler(PostTaskWrapper);
-    PostCoroutineScheduleTask();
 
     return true;
 }
@@ -812,11 +811,13 @@ void ETSEnvironment::InitEventHandler(const std::shared_ptr<AppExecFwk::EventRun
     }
 }
 
-void ETSEnvironment::PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime)
+void ETSEnvironment::PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime, int32_t priority)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "PostTask called");
     if (eventHandler_ != nullptr) {
-        eventHandler_->PostTask(task, name, delayTime);
+        using Priority = OHOS::AppExecFwk::EventQueue::Priority;
+        auto queuePriority = (priority == ARKVM_TASK_PRIORITY_IDLE) ? Priority::IDLE : Priority::LOW;
+        eventHandler_->PostTask(task, name, delayTime, queuePriority);
     }
 }
 
@@ -964,19 +965,9 @@ ani_object ETSEnvironment::CreateRuntimeLinker(
     return object;
 }
 
-static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs)
+static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs, int32_t priority)
 {
-    ETSEnvironment::GetInstance()->PostTask([task, data]() { task(data); }, taskName, delayMs);
-}
-
-void ETSEnvironment::PostCoroutineScheduleTask()
-{
-    static constexpr uint64_t COROUTINE_SCHEDULE_PERIODIC_TIME = 100;
-    auto scheduleTask = []() {
-        ARKVM_RunScheduler(ARKVM_SCHEDULER_RUN_ONCE);
-        GetInstance()->PostCoroutineScheduleTask();
-    };
-    PostTask(scheduleTask, "ScheduleCoroutinePeriodically", COROUTINE_SCHEDULE_PERIODIC_TIME);
+    ETSEnvironment::GetInstance()->PostTask([task, data]() { task(data); }, taskName, delayMs, priority);
 }
 
 } // namespace EtsEnv
