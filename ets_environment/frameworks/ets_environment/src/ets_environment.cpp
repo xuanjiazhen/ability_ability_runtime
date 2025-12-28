@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -75,7 +75,8 @@ constexpr const int32_t ARG_ZERO = 0;
 constexpr const int32_t ARG_ONE = 1;
 } // namespace
 
-static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs);
+static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs,
+                            arkvm_task_priority priority);
 ETSRuntimeAPI ETSEnvironment::lazyApis_ {};
 std::unique_ptr<ETSEnvironment> instance_ = nullptr;
 
@@ -645,7 +646,6 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     commonHspBundleInfos_ = commonHspBundleInfos;
 
     ARKVM_RegisterExternalScheduler(PostTaskWrapper);
-    PostCoroutineScheduleTask();
 
     return true;
 }
@@ -812,11 +812,18 @@ void ETSEnvironment::InitEventHandler(const std::shared_ptr<AppExecFwk::EventRun
     }
 }
 
-void ETSEnvironment::PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime)
+void ETSEnvironment::PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime) {
+    PostTask(task, name, delayTime, 0);
+}
+
+void ETSEnvironment::PostTask(const std::function<void()> &task,
+    const std::string &name, int64_t delayTime, int32_t priority)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "PostTask called");
     if (eventHandler_ != nullptr) {
-        eventHandler_->PostTask(task, name, delayTime);
+        using Priority = OHOS::AppExecFwk::EventQueue::Priority;
+        auto queuePriority = (priority == ARKVM_TASK_PRIORITY_IDLE) ? Priority::IDLE : Priority::LOW;
+        eventHandler_->PostTask(task, name, delayTime, queuePriority);
     }
 }
 
@@ -964,19 +971,10 @@ ani_object ETSEnvironment::CreateRuntimeLinker(
     return object;
 }
 
-static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs)
+static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs,
+                            arkvm_task_priority priority)
 {
-    ETSEnvironment::GetInstance()->PostTask([task, data]() { task(data); }, taskName, delayMs);
-}
-
-void ETSEnvironment::PostCoroutineScheduleTask()
-{
-    static constexpr uint64_t COROUTINE_SCHEDULE_PERIODIC_TIME = 100;
-    auto scheduleTask = []() {
-        ARKVM_RunScheduler(ARKVM_SCHEDULER_RUN_ONCE);
-        GetInstance()->PostCoroutineScheduleTask();
-    };
-    PostTask(scheduleTask, "ScheduleCoroutinePeriodically", COROUTINE_SCHEDULE_PERIODIC_TIME);
+    ETSEnvironment::GetInstance()->PostTask([task, data]() { task(data); }, taskName, delayMs, priority);
 }
 
 } // namespace EtsEnv
