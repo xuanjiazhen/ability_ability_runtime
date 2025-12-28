@@ -145,6 +145,15 @@ public:
     virtual void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) {}
+
+    /**
+     * @brief Notify when an app is hybrid spawned (e.g., forked or started in a hybrid way)
+     * @param pid The process ID of the spawned app.
+     * @param uid The user ID of the spawned app.
+     * @param signal The signal used for spawning (e.g., fork or spawn signal).
+     * @param bundleName The bundle name of the spawned app.
+     */
+    virtual void OnAppHybridSpawn(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) {}
 };
 
 class StartSpecifiedAbilityResponse : public AppExecFwk::StartSpecifiedAbilityResponseStub {
@@ -743,6 +752,15 @@ protected:
     virtual void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
+
+    /**
+     * @brief Notify when an app is hybrid spawned (e.g., forked or started in a hybrid way)
+     * @param pid The process ID of the spawned app.
+     * @param uid The user ID of the spawned app.
+     * @param signal The signal used for spawning (e.g., fork or spawn signal).
+     * @param bundleName The bundle name of the spawned app.
+     */
+    virtual void OnAppHybridSpawn(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) override;
 
 private:
     bool isInit_  {false};

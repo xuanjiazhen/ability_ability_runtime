@@ -101,6 +101,15 @@ public:
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) {}
 
+    /**
+     * @brief Notify when an app is hybrid spawned (e.g., forked or started in a hybrid way)
+     * @param pid The process ID of the spawned app.
+     * @param uid The user ID of the spawned app.
+     * @param signal The signal used for spawning (e.g., fork or spawn signal).
+     * @param bundleName The bundle name of the spawned app.
+     */
+    virtual void OnAppHybridSpawn(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) {}
+
     enum class Message {
         TRANSACT_ON_APP_STATE_CHANGED = 0,
         TRANSACT_ON_ABILITY_REQUEST_DONE,
@@ -111,6 +120,7 @@ public:
         TRANSACT_ON_NOTIFY_START_KEEP_ALIVE_PROCESS,
         TRANSACT_ON_START_PROCESS_FAILED,
         TRANSACT_ON_CACHE_EXIT_INFO,
+        TRANSACT_ON_APP_HYBRID_SPAWN,
     };
 };
 }  // namespace AppExecFwk

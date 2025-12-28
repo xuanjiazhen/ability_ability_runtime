@@ -100,6 +100,15 @@ public:
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 
+    /**
+     * @brief Notify when an app is hybrid spawned (e.g., forked or started in a hybrid way)
+     * @param pid The process ID of the spawned app.
+     * @param uid The user ID of the spawned app.
+     * @param signal The signal used for spawning (e.g., fork or spawn signal).
+     * @param bundleName The bundle name of the spawned app.
+     */
+    virtual void OnAppHybridSpawn(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) override;
+
 private:
     int32_t HandleOnAppStateChanged(MessageParcel &data, MessageParcel &reply);
     int32_t HandleOnAbilityRequestDone(MessageParcel &data, MessageParcel &reply);
@@ -110,6 +119,7 @@ private:
     int32_t HandleOnStartProcessFailed(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyAppPreCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleOnCacheExitInfo(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleOnAppHybridSpawn(MessageParcel &data, MessageParcel &reply);
 
     DISALLOW_COPY_AND_MOVE(AppStateCallbackHost);
 };
