@@ -142,7 +142,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     std::string errMsg;
     uIAbilityLifecycleManager->ResolveLocked(abilityRequest3, errMsg);
     sptr<SessionInfo> sessionInfo3;
-    uIAbilityLifecycleManager->CallUIAbilityBySCB(sessionInfo3, boolParam);
+    uIAbilityLifecycleManager->CallUIAbilityBySCB(sessionInfo3, sceneFlag, boolParam);
     DoSomethingInterestingWithMyAPI1(data, size);
 
     return true;

@@ -1784,17 +1784,19 @@ void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSess
     abms->SetRootSceneSession(rootSceneSession);
 }
 
-void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart)
+void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool &isColdStart)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN(abms);
     if (sessionInfo) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CallUIAbilityBySCB t:%{public}s/%{public}s",
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call,CallUIAbilityBySCB:%{public}s/%{public}s/%{public}d,flag:%{public}u",
             sessionInfo->want.GetElement().GetBundleName().c_str(),
-            sessionInfo->want.GetElement().GetAbilityName().c_str());
+            sessionInfo->want.GetElement().GetAbilityName().c_str(),
+            sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
+            sceneFlag);
     }
 
-    abms->CallUIAbilityBySCB(sessionInfo, isColdStart);
+    abms->CallUIAbilityBySCB(sessionInfo, sceneFlag, isColdStart);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "scb call, CallUIAbilityBySCB, isColdStart: %{public}d", isColdStart);
 }
 

@@ -1481,9 +1481,10 @@ public:
      * Call UIAbility by SCB.
      *
      * @param sessionInfo the session info of the ability to be called.
+     * @param sceneFlag the scene flag from scb.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    void CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart);
+    void CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool &isColdStart);
 
     /**
      * Start specified ability by SCB.
