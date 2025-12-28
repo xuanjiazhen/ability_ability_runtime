@@ -71,6 +71,7 @@ public:
     void StartDebuggerForSocketPair(std::string &option, int32_t socketFd);
     void NotifyDebugMode(uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm);
     void PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime);
+    void PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime, int32_t priority);
     void BroadcastAndConnect(const std::string& bundleName, int socketFd);
 
     DebuggerPostTask GetDebuggerPostTask();
@@ -111,7 +112,6 @@ private:
     bool LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj);
     void InitEventHandler(const std::shared_ptr<AppExecFwk::EventRunner> &eventRunner);
     int32_t ParseHdcRegisterOption(std::string& option);
-    void PostCoroutineScheduleTask();
     static ETSRuntimeAPI lazyApis_;
     VMEntry vmEntry_;
     ETSUncaughtExceptionInfo uncaughtExceptionInfo_;
