@@ -4816,7 +4816,8 @@ void AbilityManagerProxy::SetRootSceneSession(const sptr<IRemoteObject> &rootSce
     }
 }
 
-void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart)
+void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, uint32_t sceneFlag,
+    bool &isColdStart)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -4834,6 +4835,10 @@ void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag write fail");
             return;
         }
+    }
+    if (!data.WriteUint32(sceneFlag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneFlag write failed");
+        return;
     }
 
     MessageParcel reply;
