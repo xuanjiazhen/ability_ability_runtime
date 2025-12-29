@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-ohos_unittest("page_config_manager") {
+ohos_unittest("page_config_manager_test") {
   module_out_path = "ability_runtime/ability_runtime/abilitymgr"
 
   include_dirs =
