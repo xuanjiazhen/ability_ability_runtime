@@ -16,6 +16,7 @@
 
 #define private public
 #include "ability_permission_util.h"
+#inlcude "Start"
 #undef private
 
 #include <fuzzer/FuzzedDataProvider.h>
@@ -48,6 +49,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 
     std::shared_ptr<AAFwk::AbilityRecord> abilityRecord = nullptr;
     pid_t pid = 0;
+    int32_t tokenId = -1;
+    StartSelfUIAbilityRecordGuard::StartSelfUIAbilityRecordGuard(pid, tokenId);
     util.CheckMultiInstance(want, callerToken, maxCount, isCreating);
     util.UpdateInstanceKey(want, instanceKey, info, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
@@ -80,6 +83,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
     util.RemoveStartSelfUIAbilityRecord(pid);
     util.GetTokenIdByPid(pid);
     util.CheckPrepareTerminateEnable(abilityRecord);
+    utils.NeedCheckStatusBar(abilityRecord, abilityRequest);
     return true;
 }
 }
