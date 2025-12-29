@@ -459,6 +459,7 @@ void AppMgrServiceInner::Init()
         }, ffrt::task_attr().delay(NWEB_PRELOAD_DELAY)
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
+
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
