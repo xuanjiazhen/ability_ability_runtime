@@ -301,7 +301,7 @@ static std::string GetContent(napi_env env, napi_value exception, const std::str
     return content;
 }
 
-static napi_value CreateGlobalObject(napi_env env, WorkItem *item)
+static napi_value CreateGlobalObject(napi_env env, std::shared_ptr<WorkItem> item)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
@@ -336,22 +336,18 @@ static void CallJsFunction(napi_env env, napi_value obj, const char *methodName,
     napi_call_function(env, obj, method, argc, argv, &callResult);
 }
 
-static bool NapiDoFunctionCallBack(WorkItem *newItem)
+static bool NapiDoFunctionCallBack(std::shared_ptr<WorkItem> item)
 {
     napi_handle_scope scope_ = nullptr;
     napi_status scopeStatus = napi_open_handle_scope(newItem->env, &scope_);
     if (scopeStatus != napi_ok || scope_ == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "napi_open_handle_scope failed");
-        delete newItem;
-        newItem = nullptr;
         return false;
     }
     napi_value global = nullptr;
     if (napi_get_global(newItem->env, &global) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
         napi_close_handle_scope(newItem->env, scope_);
-        delete newItem;
-        newItem = nullptr;
         return false;
     }
     size_t argc = ARGC_ONE;
@@ -360,23 +356,19 @@ static bool NapiDoFunctionCallBack(WorkItem *newItem)
     if (napi_get_reference_value(newItem->env, newItem->ref, &function) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
         napi_close_handle_scope(newItem->env, scope_);
-        delete newItem;
-        newItem = nullptr;
         return false;
     }
     napi_value result = nullptr;
     if (napi_call_function(newItem->env, global, function, argc, args, &result) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
         napi_close_handle_scope(newItem->env, scope_);
-        delete newItem;
-        newItem = nullptr;
         return false;
     }
     napi_close_handle_scope(newItem->env, scope_);
     return true;
 }
 
-static void DoFunctionCallback(WorkItem *newItem)
+static void DoFunctionCallback(std::shared_ptr<WorkItem> item)
 {
     if (newItem == nullptr) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get WorkItem Failed");
@@ -393,8 +385,6 @@ static void DoFunctionCallback(WorkItem *newItem)
             TAG_LOGI(AAFwkTag::JSNAPI, "onError cv notify");
         }
     }
-    delete newItem;
-    newItem = nullptr;
 }
 
 static void OnErrorWorkerWait(std::shared_ptr<std::atomic<int>>& remainingCount)
@@ -419,7 +409,7 @@ static void DoCallbackInRegesterThread(napi_env env, WorkItem &info)
         }
 
         for (auto iter : globalObserverList) {
-            WorkItem *item = new (std::nothrow) WorkItem();
+            std::shared_ptr<WorkItem> item = std::make_shared<WorkItem>();
             if (item == nullptr) {
                 TAG_LOGI(AAFwkTag::JSNAPI, "new WorkItem Failed");
                 continue;
@@ -437,23 +427,18 @@ static void DoCallbackInRegesterThread(napi_env env, WorkItem &info)
             if (remainingCount && env == item->env) {
                 remainingCount->fetch_sub(1, std::memory_order_acq_rel);
                 if (NapiDoFunctionCallBack(item)) {
-                    delete item;
-                    item = nullptr;
                     TAG_LOGI(AAFwkTag::JSNAPI, "Do uncatchable callback successfully with the same env");
                 }
                 continue;
             }
             uv_loop_t *loop = nullptr;
             if (napi_get_uv_event_loop(iter.env, &loop) != napi_ok) {
-                delete item;
-                item = nullptr;
                 TAG_LOGI(AAFwkTag::JSNAPI, "Get Loop Failed");
                 continue;
             }
             auto res = napi_send_event(env, [&]() {DoFunctionCallback(item);}, napi_eprio_immediate);
-            if (res != napi_status::napi_ok && item != nullptr) {
-                delete item;
-                item = nullptr;
+            if (res != napi_status::napi_ok) {
+                TAG_LOGW(AAFwkTag::JSNAPI, "Do callback failed.");
             }
         }
     }
@@ -715,7 +700,7 @@ static bool GlobalPromiseManagerCallback(
             TAG_LOGI(AAFwkTag::JSNAPI, "Get Loop Failed");
             continue;
         }
-        WorkItem *item = new (std::nothrow) WorkItem();
+        std::shared_ptr<WorkItem> item = std::make_shared<WorkItem>();
         if (item == nullptr) {
             TAG_LOGI(AAFwkTag::JSNAPI, "new WorkItem Failed");
             continue;
@@ -729,9 +714,8 @@ static bool GlobalPromiseManagerCallback(
         item->stack = stack;
         item->message = message;
         auto res = napi_send_event(env, [&]() {DoFunctionCallback(item);}, napi_eprio_immediate);
-        if (res != napi_status::napi_ok && item != nullptr) {
-            delete item;
-            item = nullptr;
+        if (res != napi_status::napi_ok) {
+            TAG_LOGW(AAFwkTag::JSNAPI, "Do callback failed.");
         }
     }
     return true;
