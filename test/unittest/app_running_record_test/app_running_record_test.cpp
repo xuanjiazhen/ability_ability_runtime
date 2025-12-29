@@ -498,6 +498,30 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastPageAbilityRecord_0100, Te
 }
 
 /**
+ * @tc.name: AppRunningRecord_IsLastAbilityByFlag_0100
+ * @tc.desc: Test IsLastPageAbilityRecord works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastAbilityByFlag_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastAbilityByFlag_0100 start.");
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->isPrepareExit_ = false;
+    bool ret = appRecord->IsLastPageAbilityRecord(nullptr, true);
+    EXPECT_FALSE(ret);
+    ret = appRecord->IsLastPageAbilityRecord(nullptr, false);
+    EXPECT_FALSE(ret);
+
+    appRecord->isPrepareExit_ = true;
+    ret = appRecord->IsLastPageAbilityRecord(nullptr, true);
+    EXPECT_FALSE(ret);
+    ret = appRecord->IsLastPageAbilityRecord(nullptr, false);
+    EXPECT_FALSE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastAbilityByFlag_0100 end.");
+}
+
+/**
  * @tc.name: AppRunningRecord_GetBundleNames_0100
  * @tc.desc: Test GetBundleNames works.
  * @tc.type: FUNC
