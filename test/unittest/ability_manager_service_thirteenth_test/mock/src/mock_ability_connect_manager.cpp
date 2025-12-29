@@ -669,8 +669,8 @@ bool AbilityConnectManager::HandleExtensionAbilityRemove(const std::shared_ptr<B
     return false;
 }
 
-void AbilityConnectManager::HandlePostLoadTimeout(
-    const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int64_t recordId)
+void AbilityConnectManager::PostLoadTimeoutTask(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord, int32_t loadTimeout)
 {
 }
 

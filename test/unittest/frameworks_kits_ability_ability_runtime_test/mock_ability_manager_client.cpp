@@ -273,7 +273,8 @@ ErrCode AbilityManagerClient::MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionIn
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId)
+ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId,
+    int32_t loadTimeout)
 {
     return ERR_OK;
 }
@@ -297,7 +298,7 @@ ErrCode AbilityManagerClient::ConnectDataShareExtensionAbility(const Want &want,
 }
 
 ErrCode AbilityManagerClient::ConnectExtensionAbility(const Want &want, sptr<IAbilityConnection> connect,
-    int32_t userId)
+    int32_t userId, int32_t loadTimeout)
 {
     return ERR_OK;
 }
