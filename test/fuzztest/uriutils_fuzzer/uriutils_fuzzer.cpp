@@ -53,7 +53,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t userId;
     std::vector<Uri> permissionedUris;
     std::vector<std::string> uriVec;
-    // std::vector<bool> checkResults;
+    std::vector<bool> checkResults;
     AbilityRequest abilityRequest;
     FuzzedDataProvider fdp(data, size);
     bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
@@ -105,12 +105,18 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     UriUtils::GetInstance().GrantUriPermission(uriVec, flag, targetBundleName, appIndex, initiatorTokenId);
     UriUtils::GetInstance().IsSandboxApp(tokenId);
     UriUtils::GetInstance().GrantUriPermission(want, grantInfo);
+    UriUtils::GetInstance().GrantUriPermissionInner(uriVec, grantInfo, want);
     UriUtils::GetInstance().ProcessUDMFKey(want);
     UriUtils::GetInstance().PublishFileOpenEvent(want, grantInfo);
     UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
     UriUtils::GetInstance().GrantUriPermissionForUIOrServiceExtension(abilityRequest);
+    abilityRequest.abilityInfo.extensionAbilityType = extensionAbilityType;
+    UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
+    UriUtils::GetInstance().GrantUriPermissionForUIOrServiceExtension(abilityRequest);
     UriUtils::GetInstance().SendGrantUriPermissionEvent(callerBundleName, targetBundleName, oriUri,
         apiVersion, eventType);
+    UriUtils::GetInstance().NotifyGrantUriPermissionStart(isNotiftCollaborator, uriVec, flag, userId);
+    UriUtils::GetInstance().NotifyGrantUriPermissionEnd(isNotiftCollaborator, uriVec, flag, userId, checkResults);
     return true;
 }
 }
