@@ -27,7 +27,6 @@
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
-
 namespace OHOS {
 bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fdp)
 {
