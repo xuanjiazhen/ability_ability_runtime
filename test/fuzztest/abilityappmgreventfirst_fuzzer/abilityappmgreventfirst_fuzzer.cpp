@@ -58,6 +58,10 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 
     ProcessStartFailedReason reason = ProcessStartFailedReason::APPSPAWN_FAILED;
     AppMgrEventUtil::SendRenderProcessStartFailedEvent(renderRecord, reason, subReason);
+
+    std::shared_ptr<ApplicationInfo> callerAppInfo = std::make_shared<ApplicationInfo>();
+    AppMgrEventUtil::SendRenderProcessStartFailedEvent(renderRecord, reason, subReason);
+
     return true;
 }
 }

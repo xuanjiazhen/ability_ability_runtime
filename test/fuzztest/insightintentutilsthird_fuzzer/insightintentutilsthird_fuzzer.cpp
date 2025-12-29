@@ -37,6 +37,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     AbilityFuzzUtil::GetRandomInsightIntentInfoForQuery(fdp, queryInfo);
     getEntity = fdp.ConsumeBool();
     utils.ConvertExtractInsightIntentInfo(intentInfo, queryInfo, getEntity);
+    utils.ConvertExtractInsightIntentInfo(intentInfo, queryInfo, getEntity);
 
     return true;
 }
