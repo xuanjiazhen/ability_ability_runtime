@@ -36,6 +36,7 @@
 #include "session_info.h"
 #include "session_manager_lite.h"
 #include "startup_util.h"
+#include "start_params_by_SCB.h"
 #include "status_bar_delegate_interface.h"
 #include "scene_board/status_bar_delegate_manager.h"
 #include "server_constant.h"
@@ -1509,8 +1510,10 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartUIAbility_1200, TestSize.Level
 {
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
+    AbilityRuntime::StartParamsBySCB params;
+    params.isRestart = true;
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, nullptr, 0, true, isColdStart), ERR_INVALID_VALUE);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, nullptr, params, isColdStart), ERR_INVALID_VALUE);
 }
 
 /**
@@ -1715,19 +1718,19 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, SetLastExitReasonAsync_001, TestSiz
 }
 
 /**
- * @tc.name: SyncLoadAbilityTask_001
- * @tc.desc: SyncLoadAbilityTask
+ * @tc.name: SyncLoadExitReasonTask_001
+ * @tc.desc: SyncLoadExitReasonTask
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(UIAbilityLifecycleManagerThirdTest, SyncLoadAbilityTask_001, TestSize.Level2)
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SyncLoadExitReasonTask_001, TestSize.Level2)
 {
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
     mgr->exitReasonTasks_.clear();
-    mgr->SyncLoadAbilityTask(0);
+    mgr->SyncLoadExitReasonTask(0);
 
     mgr->exitReasonTasks_.emplace(0, ffrt::task_handle());
-    mgr->SyncLoadAbilityTask(0);
+    mgr->SyncLoadExitReasonTask(0);
 
     EXPECT_TRUE(mgr->exitReasonTasks_.empty());
 }

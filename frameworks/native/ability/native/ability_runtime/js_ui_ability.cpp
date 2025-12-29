@@ -204,6 +204,7 @@ void BindContext(napi_env env, std::unique_ptr<NativeReference> contextRef, JsRu
     const std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)
 {
     CHECK_POINTER(contextRef);
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value contextObj = contextRef->GetNapiValue();
     if (!CheckTypeForNapiValue(env, contextObj, napi_object)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "get ability native object failed");
@@ -468,6 +469,7 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
 
 void JsUIAbility::CreateJSContext(napi_env env, napi_value &contextObj, int32_t screenMode)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     if (screenMode == AAFwk::IDLE_SCREEN_MODE) {
         contextObj = CreateJsAbilityContext(env, abilityContext_);
         CHECK_POINTER(contextObj);
@@ -1332,6 +1334,8 @@ void JsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
             TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
             return;
         }
+        std::static_pointer_cast<JsUIAbility>(ability)->AddLifecycleEventAfterJSCall(
+            FreezeUtil::TimeoutState::FOREGROUND, "IntentRepeat");
         ability->RequestFocus(want);
     };
     callback->Push(asyncCallback);
@@ -1344,7 +1348,7 @@ void JsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
         return;
     }
-
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentRepeat");
     ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executeInfo, std::move(callback));
     if (!ret) {
@@ -1377,6 +1381,8 @@ void JsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
             TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
             return;
         }
+        std::static_pointer_cast<JsUIAbility>(ability)->AddLifecycleEventAfterJSCall(
+            FreezeUtil::TimeoutState::FOREGROUND, "IntentForeground");
         ability->CallOnForegroundFunc(want);
     };
     callback->Push(asyncCallback);
@@ -1390,6 +1396,7 @@ void JsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
         return;
     }
     RegisterDelayResultCallback(executeParam);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentForeground");
     ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executeInfo, std::move(callback));
     if (!ret) {
