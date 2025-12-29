@@ -35,7 +35,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     FuzzedDataProvider fdp(data, size);
     AbilityFuzzUtil::GetRandomInsightIntentExecuteParam(fdp, param);
     executeParam.GenerateFromWant(want, param);
-
+    want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME, true);
+    executeParam.GenerateFromWant(want, param);
+    
     return true;
 }
 }

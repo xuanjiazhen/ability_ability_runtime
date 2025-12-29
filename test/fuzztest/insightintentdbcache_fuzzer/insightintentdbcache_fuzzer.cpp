@@ -33,6 +33,7 @@ constexpr size_t STRING_MAX_LENGTH = 128;
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     int32_t userId;
+    int32_t userId2;
     std::string bundleName;
     std::string moduleName;
     std::string intentName;
@@ -65,6 +66,15 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         intentName, userId, genericInfo);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentInfo(userId, intentInfos, configInfos);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(bundleName, userId, intentInfos);
+    auto insightIntentDbCache = DelayedSingleton<InsightIntentDbCache>::GetInstance();
+    userId2 = fdp.ConsumeIntegral<int32_t>();
+    insightIntentDbCache->InitInsightIntentCache(userId2);
+    insightIntentDbCache->GetInsightIntentInfoByName(bundleName, userId, intentInfos);
+    insightIntentDbCache->GetAllInsightIntentInfo(userId, intentInfos, configInfos);
+    insightIntentDbCache->GetAllInsightIntentGenericInfo(userId, genericInfos);
+    insightIntentDbCache->GetAllConfigInsightIntentInfo(userId, configInfos);
+    insightIntentDbCache->GetConfigInsightIntentInfo(bundleName, moduleName, intentName, userId, configInfos);
+    insightIntentDbCache->GetConfigInsightIntentInfoByName(bundleName, userId, configInfos);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(bundleName, moduleName,
         intentName, userId, intentInfo);
     return true;
