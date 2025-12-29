@@ -80,9 +80,9 @@ HWTEST_F(PageConfigManagerTest, Initialize_0100, TestSize.Level1)
  * @tc.desc: Initialize
  * @tc.type: FUNC
  */
-HWTEST_F(PageConfigManagerTest, Initialize_0100, TestSize.Level1)
+HWTEST_F(PageConfigManagerTest, Initialize_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "PageConfigManagerTest, Initialize_0100, TestSize.Level1";
+    GTEST_LOG_(INFO) << "PageConfigManagerTest, Initialize_0200, TestSize.Level1";
     
     std::string configJson = "";
     int32_t result = PageConfigManager::GetInstance().Initialize(configJson, nullptr);
