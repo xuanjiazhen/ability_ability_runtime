@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 #include "abilityappmgrevent_fuzzer.h"
-
+#include "common_event_subscribe_info.h"
+#include <fuzzer/FuzzedDataProvider.h>
 #define private public
 #include "app_mgr_event.h"
 #undef private
@@ -40,11 +41,20 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     std::shared_ptr<AppRunningRecord> callerAppRecord;
     std::shared_ptr<AppRunningRecord> appRecord;
+    std::shared_ptr<AppRunningRecord> childRecord;
+    std::function<void(int32_t)> callback;
     std::string stringParam(data, size);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    ProcessStartFailedReason reason = ProcessStartFailedReason::APPSPAWN_FAILED;
+    int32_t subReason;
+    FuzzedDataProvider fdp(data, size);
+    subReason = fdp.ConsumeIntegral<int32_t>();
+    AppMgrEventUtil::AppMgrEventSubscriber(subscribeInfo, callback);
     AppMgrEventUtil::SendCreateAtomicServiceProcessEvent(callerAppRecord, appRecord,
         stringParam, stringParam);
     AAFwk::EventInfo eventInfo;
     AppMgrEventUtil::SendProcessStartEvent(callerAppRecord, appRecord, eventInfo);
+    AppMgrEventUtil::SendChildProcessStartFailedEvent(childRecord, reason, subReason);
     int32_t appUid = static_cast<int32_t>(GetU32Data(data));
     int64_t restartTime = static_cast<int64_t>(GetU32Data(data));
     AppMgrEventUtil::SendReStartProcessEvent(eventInfo, appUid, restartTime);
@@ -53,6 +63,22 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     int32_t abilityType = static_cast<int32_t>(GetU32Data(data));
     int32_t extensionType = static_cast<int32_t>(GetU32Data(data));
     AppMgrEventUtil::UpdateStartupType(abilityInfo, abilityType, extensionType);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::shared_ptr<ApplicationInfo> callerAppInfo = std::make_shared<ApplicationInfo>();
+    int32_t recordId = static_cast<int32_t>(GetU32Data(data));
+    int32_t recordId2 = static_cast<int32_t>(GetU32Data(data));
+    std::string stringParam(data, size);
+    std::string moduleName(data, size);
+    std::string abilityName(data, size);
+    auto appRecord2 = std::make_shared<AppRunningRecord>(appInfo, recordId, stringParam);
+    auto childRecord2 = std::make_shared<AppRunningRecord>(appInfo, recordId, stringParam);
+    auto callerAppRecord2 = std::make_shared<AppRunningRecord>(callerAppInfo, recordId2, stringParam);
+    AppMgrEventUtil::SendCreateAtomicServiceProcessEvent(callerAppRecord2, appRecord2,
+    moduleName, abilityName);
+    AppMgrEventUtil::SendProcessStartEvent(callerAppRecord2, appRecord2, eventInfo);
+    AppMgrEventUtil::SendChildProcessStartFailedEvent(childRecord2, reason, subReason);
+
     return true;
 }
 }

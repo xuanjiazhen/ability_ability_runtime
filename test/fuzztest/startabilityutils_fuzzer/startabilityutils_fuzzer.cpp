@@ -25,6 +25,7 @@
 #undef private
 
 #include "ability_record.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -80,6 +81,9 @@ void StartAbilityUtilsFuzztest1(bool boolParam, std::string &stringParam, int32_
     StartAbilityInfo::CreateCallerAbilityInfo(nullptr);
     StartAbilityInfo::CreateCallerAbilityInfo(callerToken);
     StartAbilityUtils::GetCloneAppIndexes(stringParam, int32Param);
+    FuzzedDataProvider fdp(data, size);
+    int32_t userId = fdp.ConsumeIntegral<int32_t>();
+    StartAbilityUtils::CheckAppProvisionMode(want, userId, callerToken);
 }
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
