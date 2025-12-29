@@ -133,7 +133,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     pendingWantManager->GetPendingRequestWant(wantSenderPtr, wantPtr);
     std::shared_ptr<WantSenderInfo> wantSenderInfoPtr;
     pendingWantManager->GetWantSenderInfo(wantSenderPtr, wantSenderInfoPtr);
-    pendingWantManager->ClearPendingWantRecord(stringParam, int32Param);
     pendingWantManager->ClearPendingWantRecordTask(stringParam, int32Param);
 
     // fuzz for ResidentProcessManager

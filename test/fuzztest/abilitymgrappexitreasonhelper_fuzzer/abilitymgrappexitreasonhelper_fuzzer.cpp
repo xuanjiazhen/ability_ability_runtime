@@ -78,7 +78,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     infos->GetActiveAbilityListFromUIAbilityManager(uid, abilityLists, pid);
     infos->IsExitReasonValid(exitReason);
     infos->GetActiveAbilityListWithPid(uid, abilityList, pid);
-    infos->RecordUIAbilityExitReason(pid, abilityName, exitReason);
     infos->GetRunningProcessInfo(pid, userId, bundleName, processInfo);
     return true;
 }
