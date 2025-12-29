@@ -1140,9 +1140,13 @@ void UIExtensionAbilityManager::HandleAbilityDiedTaskInner(const std::shared_ptr
     HandleAfterServiceRemoved(abilityRecord, isRemove);
 }
 
-void UIExtensionAbilityManager::HandlePostLoadTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
-    int64_t recordId)
+void UIExtensionAbilityManager::PostLoadTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+    int32_t loadTimeout)
 {
+    CHECK_POINTER(abilityRecord);
+    auto recordId = abilityRecord->GetAbilityRecordId();
+    TAG_LOGD(AAFwkTag::EXT, "task: %{public}s, %{public}d, %{public}" PRId64,
+        abilityRecord->GetURI().c_str(), recordId);
     if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         return abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::LOAD_TIMEOUT_MSG);
     }

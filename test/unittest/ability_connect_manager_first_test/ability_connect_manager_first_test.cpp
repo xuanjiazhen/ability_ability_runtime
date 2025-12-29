@@ -49,6 +49,7 @@ using ::testing::DoAll;
 namespace {
 const std::string PARAM_RESV_CALLER_APP_ID("ohos.aafwk.param.callerAppId");
 constexpr uint32_t FAKE_TOKENID = 111;
+constexpr const int32_t LOAD_TIMEOUT_MULTIPLE = 10;
 }
 
 namespace OHOS {
@@ -704,6 +705,54 @@ HWTEST_F(AbilityConnectManagerTest, ResumeExtensionAbilityLocked_001, TestSize.L
     result = connectManager->ResumeExtensionAbilityLocked(callbackA_);
     EXPECT_EQ(result, OHOS::ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "ResumeExtensionAbilityLocked end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: GetLoadTimeout
+ */
+HWTEST_F(AbilityConnectManagerTest,GetLoadTimeout_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_001 start");
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    auto timeout = connectManager->GetLoadTimeout(abilityRecord, 0);
+    EXPECT_NE(timeout, 0);
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_001 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: GetLoadTimeout
+ */
+HWTEST_F(AbilityConnectManagerTest,GetLoadTimeout_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_001 start");
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    auto timeout = connectManager->GetLoadTimeout(abilityRecord, 100);
+    EXPECT_NE(timeout, 100);
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_001 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: GetLoadTimeout
+ */
+HWTEST_F(AbilityConnectManagerTest,GetLoadTimeout_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_003 start");
+    std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    auto timeout = connectManager->GetLoadTimeout(abilityRecord, 10);
+    EXPECT_EQ(timeout, LOAD_TIMEOUT_MULTIPLE);
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_003 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
