@@ -14,7 +14,6 @@
  */
 
 #include <gtest/gtest.h>
-#include "parcel.h"
 #include "ability_manager_errors.h"
 
 #define private public

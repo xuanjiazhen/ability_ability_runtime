@@ -39,6 +39,7 @@ PageConfigManager &PageConfigManager::GetInstance()
 
 int32_t PageConfigManager::Initialize(const std::string& configJson, const wptr<Rosen::Window>& window)
 {
+    TAG_LOGD(AAFwkTag::ABILITY, "called");
     std::lock_guard guard(g_pageConfigMutex);
     if (isInitialized_) {
         TAG_LOGI(AAFwkTag::ABILITY, "has initialized");
@@ -70,6 +71,7 @@ int32_t PageConfigManager::Initialize(const std::string& configJson, const wptr<
 
 void PageConfigManager::LoadPageConfigSo()
 {
+    TAG_LOGD(AAFwkTag::ABILITY, "called");
     if (pageConfigSo_ == nullptr) {
         pageConfigSo_ = dlopen(PAGE_CONFIG_LIBNAME, RTLD_LAZY);
         if (pageConfigSo_ == nullptr) {
