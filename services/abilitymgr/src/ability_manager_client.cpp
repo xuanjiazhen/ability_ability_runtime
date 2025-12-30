@@ -379,7 +379,7 @@ ErrCode AbilityManagerClient::ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> s
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "null sessionInfo");
         return ERR_INVALID_VALUE;
     }
     auto abms = GetAbilityManager();
@@ -406,7 +406,7 @@ ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "null sessionInfo");
         return ERR_INVALID_VALUE;
     }
     auto abms = GetAbilityManager();
@@ -524,7 +524,7 @@ ErrCode AbilityManagerClient::CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "null sessionInfo");
         return ERR_INVALID_VALUE;
     }
     auto abms = GetAbilityManager();
@@ -558,7 +558,7 @@ ErrCode AbilityManagerClient::MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionIn
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "null sessionInfo");
         return ERR_INVALID_VALUE;
     }
     auto abms = GetAbilityManager();
@@ -2146,7 +2146,7 @@ ErrCode AbilityManagerClient::CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "null sessionInfo");
         return ERR_INVALID_VALUE;
     }
     auto abms = GetAbilityManager();

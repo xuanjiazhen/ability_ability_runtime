@@ -696,7 +696,7 @@ int32_t ExtensionRecordManager::GetUIExtensionSessionInfo(
 
     auto sessionInfo = abilityRecord->GetSessionInfo();
     if (sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "null sessionInfo");
         return ERR_NULL_OBJECT;
     }
 

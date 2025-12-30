@@ -148,7 +148,7 @@ bool AbilityJumpInterceptor::CheckIfExemptByBundleName(const std::string &bundle
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AppExecFwk::ApplicationInfo appInfo;
     if (!StartAbilityUtils::GetApplicationInfo(bundleName, userId, appInfo)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "getAppInfo failed");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "getAppInfo failed");
         return false;
     }
 
