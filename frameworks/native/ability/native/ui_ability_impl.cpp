@@ -172,6 +172,8 @@ void UIAbilityImpl::HandleAbilityTransaction(
     TAG_LOGD(AAFwkTag::UIABILITY,
         "srcState:%{public}d; targetState: %{public}d; isNewWant: %{public}d, sceneFlag: %{public}d",
         lifecycleState_, targetState.state, targetState.isNewWant, targetState.sceneFlag);
+    targetState.pageConfig = want.GetStringParam("ohos.abilityRuntime.pageConfig");
+    want.RemoveParam("ohos.abilityRuntime.pageConfig");
     UpdateSilentForeground(targetState, sessionInfo);
 #ifdef SUPPORT_SCREEN
     if (ability_ != nullptr) {
@@ -645,6 +647,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
                 HandleExecuteInsightIntentForeground(want, ret);
             }
             if (ability_ != nullptr) {
+                TAG_LOGD(AAFwkTag::UIABILITY, "pageConfig:%{public}s", targetState.pageConfig.c_str());
                 PageConfigManager::GetInstance().Initialize(targetState.pageConfig, ability_->GetWindow());
             }
 #endif
