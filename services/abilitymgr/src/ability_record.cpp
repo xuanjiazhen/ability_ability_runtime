@@ -3310,20 +3310,19 @@ void AbilityRecord::NotifyMissionBindPid()
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         return;
     }
-    auto sessionInfo = GetSessionInfo();
-    if (sessionInfo == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "null sessionInfo");
-        return;
-    }
-    int32_t persistentId = sessionInfo->persistentId;
     if (abilityInfo_.bundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
+        auto sessionInfo = GetSessionInfo();
+        if (sessionInfo == nullptr) {
+            TAG_LOGW(AAFwkTag::MISSION, "null sessionInfo");
+            return;
+        }
         auto collaborator = DelayedSingleton<AbilityManagerService>::GetInstance()->GetCollaborator(
             CollaboratorType::RESERVE_TYPE);
         if (collaborator == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null collaborator");
             return;
         }
-        collaborator->NotifyMissionBindPid(persistentId, pid_, GetOwnerMissionUserId());
+        collaborator->NotifyMissionBindPid(sessionInfo->persistentId, pid_, GetOwnerMissionUserId());
     }
 }
 

@@ -1322,6 +1322,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     StartAbilityUtils::SetTargetCloneIndexInSameBundle(param.want, param.callerToken);
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(param.want, param.callerToken, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get appIndex error");
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
         return ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -1759,6 +1760,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     int32_t validUserId = oriValidUserId;
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get appIndex error");
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
         return ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -2117,6 +2119,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     StartAbilityUtils::SetTargetCloneIndexInSameBundle(want, callerToken);
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get appIndex error");
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
         return ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -7896,6 +7899,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetElement().GetBundleName()) {
         int32_t appIndex = 0;
         if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "get appIndex error");
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         Want localWant = want;
@@ -8012,6 +8016,7 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetElement().GetBundleName()) {
         int32_t appIndex = 0;
         if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "get appIndex error");
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         std::string hostBundleName = "";
@@ -9021,13 +9026,8 @@ void AbilityManagerService::RemoveUnauthorizedLaunchReasonMessage(const Want &wa
 {
     std::string value = want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "launchReasonMessage:%{public}s", value.c_str());
-    if (!AppUtils::GetInstance().IsSystemReasonMessage(value)) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "not allow, remove");
-        (const_cast<Want &>(want)).RemoveParam(Want::PARM_LAUNCH_REASON_MESSAGE);
-        abilityRequest.want.RemoveParam(Want::PARM_LAUNCH_REASON_MESSAGE);
-        return;
-    }
-    if (!PermissionVerification::GetInstance()->VerifyPermissionByTokenId(callerTokenId,
+    if (!AppUtils::GetInstance().IsSystemReasonMessage(value) || 
+        !PermissionVerification::GetInstance()->VerifyPermissionByTokenId(callerTokenId,
         PermissionConstants::PERMISSION_SET_LAUNCH_REASON_MESSAGE) ||
         (!PermissionVerification::GetInstance()->IsSystemAppCall() &&
         !PermissionVerification::GetInstance()->IsSACall())) {
@@ -9233,6 +9233,7 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
     AbilityUtil::RemoveWantKey(const_cast<Want &>(want));
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get appIndex error");
         errMsg = "app index is error";
         return ERR_APP_CLONE_INDEX_INVALID;
     }

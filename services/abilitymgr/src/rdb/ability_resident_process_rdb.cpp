@@ -196,7 +196,7 @@ int32_t AmsResidentProcessRdb::GetResidentProcessEnable(const std::string &bundl
     ScopeGuard stateGuard([absSharedResultSet] { absSharedResultSet->Close(); });
     auto ret = absSharedResultSet->GoToFirstRow();
     if (ret != NativeRdb::E_OK) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "fail, ret: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "fail, ret: %{public}d", ret);
         return Rdb_Search_Record_Err;
     }
 

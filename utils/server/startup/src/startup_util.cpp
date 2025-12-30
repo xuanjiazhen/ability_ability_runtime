@@ -35,6 +35,7 @@ bool StartupUtil::GetAppIndex(const AAFwk::Want &want, int32_t &appIndex)
         return appIndex > GlobalConstant::MAX_APP_CLONE_INDEX;
     }
     if (want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "appIndex:%{public}d", want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
         appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
         return (appIndex >= 0 && appIndex <= GlobalConstant::MAX_APP_CLONE_INDEX);
     }
