@@ -19,7 +19,7 @@ ohos_unittest("page_config_manager_test") {
   module_out_path = "ability_runtime/ability_runtime/abilitymgr"
 
   include_dirs =
-      [ "${ability_runtime_innerkits_path}/page_config_manager/" ]
+      [ "${ability_runtime_innerkits_path}/page_config_manager/include" ]
   sources = [
     "${ability_runtime_innerkits_path}/page_config_manager/src/page_config_manager.cpp",
     "page_config_manager_test.cpp",
