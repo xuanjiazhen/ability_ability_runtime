@@ -6830,7 +6830,7 @@ int AbilityManagerService::AttachAbilityThread(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "AttachAbilityThread");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AttachAT");
     CHECK_POINTER_AND_RETURN(scheduler, ERR_INVALID_VALUE);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && !VerificationAllToken(token)) {
         return ERR_INVALID_VALUE;
@@ -15475,7 +15475,7 @@ int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callingTokenId);
     if (tokenType != Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "Not TOKEN_HAP");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not TOKEN_HAP");
         return ERR_NO_PERMISSION_CALLER;
     }
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
