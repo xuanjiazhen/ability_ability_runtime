@@ -1287,6 +1287,9 @@ void AppRunningRecord::SetEventHandler(const std::shared_ptr<AMSEventHandler> &h
 
 bool AppRunningRecord::IsLastAbilityRecord(const sptr<IRemoteObject> &token)
 {
+    if (specifiedAbilityRequest_ != nullptr) {
+        return false;
+    }
     auto moduleRecord = GetModuleRunningRecordByToken(token);
     if (!moduleRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "null moduleRecord");
@@ -1297,7 +1300,6 @@ bool AppRunningRecord::IsLastAbilityRecord(const sptr<IRemoteObject> &token)
     if (moduleRecordList.size() == 1) {
         return moduleRecord->IsLastAbilityRecord(token);
     }
-
     return false;
 }
 
@@ -1315,6 +1317,9 @@ bool AppRunningRecord::ExtensionAbilityRecordExists()
 
 bool AppRunningRecord::IsLastPageAbilityRecord(const sptr<IRemoteObject> &token)
 {
+    if (specifiedAbilityRequest_ != nullptr) {
+        return false;
+    }
     auto moduleRecord = GetModuleRunningRecordByToken(token);
     if (!moduleRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "null moduleRecord");
@@ -1330,6 +1335,10 @@ bool AppRunningRecord::IsLastPageAbilityRecord(const sptr<IRemoteObject> &token)
         if (pageAbilitySize > 1) {
             return false;
         }
+    }
+    auto appRecord = shared_from_this();
+    if (appRecord->specifiedAbilityRequest_ != nullptr) {
+        return false;
     }
 
     return pageAbilitySize == 1;
