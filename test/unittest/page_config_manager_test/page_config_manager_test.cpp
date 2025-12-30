@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "parcel.h"
+#include "ability_manager_errors.h"
 
 #define private public
 #include "page_config_manager.h"
@@ -71,7 +72,7 @@ HWTEST_F(PageConfigManagerTest, Initialize_0100, TestSize.Level1)
                 "val": ""
             }]
     })";
-    int32_t result = PageConfigManager::GetInstance().Initialize(configJson, nullptr);
+    int32_t result = AbilityRuntime::PageConfigManager::GetInstance().Initialize(configJson, nullptr);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
 
@@ -85,7 +86,7 @@ HWTEST_F(PageConfigManagerTest, Initialize_0200, TestSize.Level1)
     GTEST_LOG_(INFO) << "PageConfigManagerTest, Initialize_0200, TestSize.Level1";
     
     std::string configJson = "";
-    int32_t result = PageConfigManager::GetInstance().Initialize(configJson, nullptr);
+    int32_t result = AbilityRuntime::PageConfigManager::GetInstance().Initialize(configJson, nullptr);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
 
@@ -97,7 +98,7 @@ HWTEST_F(PageConfigManagerTest, Initialize_0200, TestSize.Level1)
 HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0100, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "PageConfigManagerTest, NotifyPageChanged_0100, TestSize.Level1";
-    int32_t result = PageConfigManager::GetInstance().NotifyPageChanged("", 0, -1);
+    int32_t result = AbilityRuntime::PageConfigManager::GetInstance().NotifyPageChanged("", 0, -1);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
 
@@ -109,7 +110,7 @@ HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0100, TestSize.Level1)
 HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0200, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "PageConfigManagerTest, NotifyPageChanged_0200, TestSize.Level1";
-    int32_t result = PageConfigManager::GetInstance().NotifyPageChanged("", 0, -1);
+    int32_t result = AbilityRuntime::PageConfigManager::GetInstance().NotifyPageChanged("", 0, -1);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
 
@@ -121,7 +122,7 @@ HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0200, TestSize.Level1)
 HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0300, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "PageConfigManagerTest, NotifyPageChanged_0300, TestSize.Level1";
-    int32_t result = PageConfigManager::GetInstance().NotifyPageChanged("com.exmaple.testapplication ", 0, -12);
+    int32_t result = AbilityRuntime::PageConfigManager::GetInstance().NotifyPageChanged("com.exmaple.testapplication ", 0, -12);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
 } // namespace AppExecFwk
