@@ -111,6 +111,7 @@ struct ForegroundOptions {
     uint64_t loadAbilityCallbackId = 0;
     pid_t selfPid = -1;
     std::string pageConfig = "";
+    int32_t requestCode = -1;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
