@@ -21,6 +21,7 @@ config("ani_common_public_config") {
 
 ohos_shared_library("ani_common") {
   branch_protector_ret = "pac_ret"
+  shlib_type = "ani"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -73,7 +74,19 @@ ohos_shared_library("ani_common") {
     "src/js_interop_object.cpp",
   ]
 
-  cflags = []
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [ "-flto=full" ]
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
