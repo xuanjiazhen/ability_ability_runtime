@@ -27,6 +27,7 @@ ohos_unittest("agent_card_test") {
 
   sources = [
     "agent_card_test.cpp",
+    "mock/src/parcel_mock.cpp",
   ]
 
   include_dirs = [
