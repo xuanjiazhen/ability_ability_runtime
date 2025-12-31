@@ -16,6 +16,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("share_extension_ani") {
+  shlib_type = "ani"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -31,6 +32,23 @@ ohos_shared_library("share_extension_ani") {
   ]
 
   sources = [ "${ability_runtime_path}/frameworks/ets/ani/share_extension_ability/src/ets_share_extension.cpp" ]
+
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
 
   deps = [
     "${ability_runtime_native_path}/ability:ability_context_native",
