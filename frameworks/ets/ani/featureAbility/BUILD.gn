@@ -35,6 +35,25 @@ ohos_shared_library("featureability_ani") {
 
   sources = [ "./src/ani_data_ability_helper.cpp" ]
 
+cflags = [
+    "-flto=full",
+    "-fvisibility=hidden",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fvisibility-inlines-hidden",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
+
   deps = [
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",

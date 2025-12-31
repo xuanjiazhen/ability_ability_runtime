@@ -16,6 +16,7 @@ import("//foundation/ability/ability_runtime/service_router_framework/srms.gni")
 
 ohos_shared_library("businessabilityrouter_ani") {
   branch_protector_ret = "pac_ret"
+  shlib_type="ani"
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -61,7 +62,24 @@ ohos_shared_library("businessabilityrouter_ani") {
     "samgr:samgr_proxy",
   ]
 
-  cflags_cc = []
+   cflags = [
+    "-flto=full",
+    "-fvisibility=hidden",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fvisibility-inlines-hidden",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
   if (os_dlp_part_enabled) {
     cflags_cc += [ "-DWITH_DLP" ]
   }

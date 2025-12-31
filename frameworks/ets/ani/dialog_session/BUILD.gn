@@ -16,6 +16,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("dialog_session_ani_kit") {
   branch_protector_ret = "pac_ret"
+  shlib_type = "ani"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -61,7 +62,24 @@ ohos_shared_library("dialog_session_ani_kit") {
     "window_manager:libwm",
   ]
 
-  cflags_cc = []
+  cflags = [
+    "-flto=full",
+    "-fvisibility=hidden",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fvisibility-inlines-hidden",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
   if (os_dlp_part_enabled) {
     cflags_cc += [ "-DWITH_DLP" ]
   }
