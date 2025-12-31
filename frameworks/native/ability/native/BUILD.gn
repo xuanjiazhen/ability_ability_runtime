@@ -172,7 +172,10 @@ ohos_shared_library("abilitykit_utils") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
   ]
 
-  configs = [ ":abilitykit_utils_exceptions" ]
+  configs = [
+    ":abilitykit_utils_exceptions",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   public_configs = [ ":abilitykit_utils_public_config" ]
 
@@ -229,6 +232,7 @@ ohos_shared_library("configuration_helper") {
 
   branch_protector_ret = "pac_ret"
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
@@ -399,7 +403,22 @@ ohos_shared_library("abilitykit_native") {
     external_deps += [ "relational_store:native_rdb" ]
   }
 
-  cflags_cc = []
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
   if (os_dlp_part_enabled) {
     cflags_cc += [ "-DWITH_DLP" ]
   }
@@ -581,6 +600,7 @@ ohos_shared_library("extensionkit_native") {
   ]
 
   public_configs = [ ":extensionkit_public_config" ]
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   deps = [
     ":abilitykit_utils",
@@ -712,6 +732,8 @@ ohos_shared_library("insight_intent_executor") {
 
   public_configs = [ ":insight_intent_executor_public_config" ]
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
@@ -776,6 +798,23 @@ ohos_shared_library("insight_intent_executor_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/ani_observer:ani_observer",
     "${ability_runtime_services_path}/common:app_util",
+  ]
+
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
   ]
 
   external_deps = []
@@ -984,7 +1023,22 @@ ohos_shared_library("ui_ability_ani") {
     "window_manager:libwsutils",
   ]
 
-  cflags_cc = []
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
 
   defines = []
 
@@ -1030,6 +1084,8 @@ ohos_shared_library("uiabilitykit_native") {
   ]
 
   public_configs = [ ":uiability_config" ]
+
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   deps = [
     ":abilitykit_native",
@@ -1135,6 +1191,8 @@ ohos_shared_library("uiabilitykit_native") {
 }
 
 ohos_shared_library("ability_thread") {
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
@@ -1208,6 +1266,8 @@ ohos_shared_library("ets_form_extension") {
     cfi_vcall_icall_only = true
     debug = false
   }
+
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
@@ -1438,6 +1498,8 @@ ohos_shared_library("form_extension_module") {
 }
 
 ohos_shared_library("service_extension") {
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   include_dirs = [
@@ -1530,6 +1592,23 @@ ohos_shared_library("app_service_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/app_service_extension_ability/src/ets_app_service_extension_context.cpp",
   ]
 
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
+
   deps = [
     ":abilitykit_native",
     ":app_service_extension",
@@ -1600,6 +1679,23 @@ ohos_shared_library("service_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/service_extension_ability/src/ets_service_extension_context.cpp",
   ]
 
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
+
   deps = [
     ":abilitykit_native",
     ":abilitykit_utils",
@@ -1666,6 +1762,7 @@ ohos_shared_library("ui_service_extension_connection") {
   }
   branch_protector_ret = "pac_ret"
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection" ]
@@ -1726,6 +1823,23 @@ ohos_shared_library("ui_service_extension_connection_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ui_service_extension_ability/connection/ets_ui_service_proxy.cpp",
   ]
 
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
+
   deps = [
     ":ui_service_extension_connection",
     "${ability_runtime_innerkits_path}/runtime:runtime",
@@ -1767,6 +1881,7 @@ ohos_shared_library("ui_service_extension") {
   }
   branch_protector_ret = "pac_ret"
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   include_dirs = [
@@ -1886,6 +2001,23 @@ ohos_shared_library("ui_service_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ui_service_extension_ability/src/ets_ui_service_extension_context.cpp",
   ]
 
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
+
   deps = [
     ":abilitykit_native",
     ":abilitykit_utils",
@@ -1992,7 +2124,10 @@ ohos_shared_library("ui_service_extension_module") {
 
   sources = [ "${ability_runtime_native_path}/ability/native/ui_service_extension_ability/ui_service_extension_module_loader.cpp" ]
 
-  configs = [ ":ability_config" ]
+  configs = [
+    ":ability_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
   deps = [
     ":ui_service_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
@@ -2061,7 +2196,10 @@ ohos_shared_library("continuation_ipc") {
     "${ability_runtime_native_path}/ability/native/continuation/remote_register_service/remote_register_service_stub.cpp",
   ]
 
-  configs = [ ":ability_config" ]
+  configs = [
+    ":ability_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   public_configs = [ ":ability_public_config" ]
 
@@ -2108,7 +2246,10 @@ ohos_shared_library("data_ability_helper") {
     "${ability_runtime_native_path}/ability/native/data_ability_helper.cpp",
   ]
 
-  configs = [ ":ability_config" ]
+  configs = [
+    ":ability_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
   public_configs = [ ":ability_public_config" ]
 
   deps = [
@@ -2245,6 +2386,7 @@ ohos_shared_library("dialog_request_callback") {
   configs = [
     ":dialog_request_callback_config",
     "${ability_runtime_services_path}/common:common_config",
+    "${ability_runtime_services_path}/common:optimize_config",
   ]
 
   public_configs = [ ":dialog_request_callback_public_config" ]
@@ -2336,6 +2478,8 @@ ohos_shared_library("ui_extension") {
 
   public_configs = [ ":ui_extension_public_config" ]
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   deps = [
     ":abilitykit_native",
     ":abilitykit_utils",
@@ -2418,6 +2562,23 @@ ohos_shared_library("photo_editor_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/photo_editor_extension_ability/src/ets_photo_editor_extension.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/photo_editor_extension_ability/src/ets_photo_editor_extension_context.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/photo_editor_extension_ability/src/ets_photo_editor_extension_impl.cpp",
+  ]
+
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
   ]
 
   deps = [
@@ -2538,6 +2699,23 @@ ohos_shared_library("ui_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/ani_observer:ani_observer",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
+  ]
+
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
   ]
 
   external_deps = [
@@ -2706,7 +2884,10 @@ config("share_extension_config") {
 }
 
 ohos_shared_library("share_extension") {
-  configs = [ ":share_extension_config" ]
+  configs = [
+    ":share_extension_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   include_dirs = [ "${ability_runtime_path}/frameworks/ets/ani/share_extension_ability/include" ]
 
@@ -2814,7 +2995,10 @@ config("action_extension_config") {
 }
 
 ohos_shared_library("action_extension") {
-  configs = [ ":action_extension_config" ]
+  configs = [
+    ":action_extension_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   include_dirs = [ "${ability_runtime_path}/frameworks/ets/ani/action_extension_ability/include" ]
 
@@ -3089,7 +3273,10 @@ ohos_shared_library("embedded_ui_extension") {
   }
   branch_protector_ret = "pac_ret"
 
-  configs = [ ":embedded_ui_extension_config" ]
+  configs = [
+    ":embedded_ui_extension_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   sources = [
     "${ability_runtime_native_path}/ability/native/embedded_ui_extension_ability/embedded_ui_extension.cpp",
@@ -3205,6 +3392,7 @@ ohos_shared_library("embedded_ui_extension_module") {
   configs = [
     ":embedded_ui_extension_module_config",
     ":embedded_ui_extension_config",
+    "${ability_runtime_services_path}/common:optimize_config",
   ]
 
   deps = [
@@ -3249,6 +3437,8 @@ config("auto_fill_extension_config") {
 
 ohos_shared_library("auto_fill_extension") {
   public_configs = [ ":auto_fill_extension_config" ]
+
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   sources = []
 
@@ -3323,6 +3513,23 @@ ohos_shared_library("auto_fill_extension_ani") {
   public_configs = [ ":auto_fill_extension_config" ]
 
   sources = []
+
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
 
   deps = [
     ":abilitykit_native",
@@ -3637,6 +3844,8 @@ ohos_shared_library("app_service_extension") {
   }
   branch_protector_ret = "pac_ret"
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   include_dirs = [
@@ -3719,7 +3928,10 @@ ohos_shared_library("app_service_extension_module") {
 
   sources = [ "${ability_runtime_native_path}/ability/native/app_service_extension_module_loader.cpp" ]
 
-  configs = [ ":ability_config" ]
+  configs = [
+    ":ability_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
   public_configs = [ ":app_service_extension_public_config" ]
 
   deps = [

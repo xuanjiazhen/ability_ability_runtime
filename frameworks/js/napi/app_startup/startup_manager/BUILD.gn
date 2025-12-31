@@ -31,7 +31,10 @@ ohos_shared_library("startupmanager_napi") {
     "startup_manager_module.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/common:common_config" ]
+  configs = [
+    "${ability_runtime_services_path}/common:common_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/inner_api/error_utils/include",

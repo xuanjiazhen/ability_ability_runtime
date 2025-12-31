@@ -102,6 +102,7 @@ ohos_shared_library("appkit_native") {
   configs = [
     ":appkit_config",
     ":appkit_exception_config",
+    "${ability_runtime_services_path}/common:optimize_config",
   ]
 
   public_configs = [ ":appkit_public_config" ]
@@ -387,7 +388,22 @@ ohos_shared_library("ability_stage_ani") {
     "${ability_runtime_native_path}/appkit/app_startup/ets_startup_task_executor.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/ets_startup_task_result.cpp",
   ]
-  cflags = []
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
 
   deps = [
     ":appkit_delegator",
@@ -477,7 +493,22 @@ ohos_shared_library("app_context") {
     "${ability_runtime_native_path}/appkit/app/overlay_event_subscriber.cpp",
     "${ability_runtime_native_path}/appkit/app/sys_mgr_client.cpp",
   ]
-  cflags = []
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
@@ -533,7 +564,10 @@ ohos_shared_library("app_context_utils") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
   ]
 
-  configs = [ ":appkit_config" ]
+  configs = [
+    ":appkit_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   public_configs = [ ":appkit_public_config" ]
 
@@ -603,7 +637,10 @@ ohos_shared_library("appkit_delegator") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
   ]
 
-  configs = [ ":appkit_config" ]
+  configs = [
+    ":appkit_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   public_configs = [ ":appkit_public_config" ]
 
@@ -702,7 +739,22 @@ ohos_shared_library("test_runner_ani") {
 
   sources = [ "${ability_runtime_native_path}/appkit/ability_delegator/runner_runtime/ets_test_runner.cpp" ]
 
-  cflags = []
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
@@ -759,7 +811,10 @@ ohos_shared_library("appkit_manager_helper") {
     "${ability_runtime_utils_path}/global/constant",
   ]
 
-  configs = [ ":appkit_config" ]
+  configs = [
+    ":appkit_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   sources = [ "${ability_runtime_native_path}/appkit/ability_bundle_manager_helper/bundle_mgr_helper.cpp" ]
 
