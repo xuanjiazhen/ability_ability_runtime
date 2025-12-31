@@ -9522,8 +9522,11 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
         }
     }
 
-    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(userId, displayId);
-    return SwitchToUser(oldUserId, userId, displayId, callback, isAppRecovery);
+    auto ret = SwitchToUser(oldUserId, userId, displayId, callback, isAppRecovery);
+    if (ret == ERR_OK) {
+        AbilityRuntime::UserController::GetInstance().SetForegroundUserId(userId, displayId);
+    }
+    return ret;
 }
 
 int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callback)
