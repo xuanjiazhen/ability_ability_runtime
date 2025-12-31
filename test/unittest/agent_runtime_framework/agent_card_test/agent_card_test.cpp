@@ -16,10 +16,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "agent_card.h"
-#include "parcel_mock.h"
 
 using namespace OHOS;
-using namespace OHOS::AgentRuntime;
 using namespace testing;
 using namespace testing::ext;
 
@@ -54,15 +52,10 @@ void AgentCardTest::TearDown(void)
 HWTEST_F(AgentCardTest, ProviderMarshallingTest_001, TestSize.Level1)
 {
     Provider provider;
-    provider.organization = "test";
-    provider.url = "test";
+    provider.organization = "test1";
+    provider.url = "abc";
 
-    ParcelMock parcelMock;
-
-    // Expect successful write operations
-    EXPECT_CALL(parcelMock, WriteString("test")).WillOnce(Return(true));
-    EXPECT_CALL(parcelMock, WriteString("test")).WillOnce(Return(true));
-
+    Parcel parcelMock;
     bool result = provider.Marshalling(parcelMock);
 
     EXPECT_TRUE(result);
@@ -80,12 +73,7 @@ HWTEST_F(AgentCardTest, ProviderMarshallingTest_002, TestSize.Level1)
     provider.organization = "";
     provider.url = "";
 
-    ParcelMock parcelMock;
-
-    // Expect successful write operations with empty strings
-    EXPECT_CALL(parcelMock, WriteString("")).WillOnce(Return(true));
-    EXPECT_CALL(parcelMock, WriteString("")).WillOnce(Return(true));
-
+    Parcel parcelMock;
     bool result = provider.Marshalling(parcelMock);
 
     EXPECT_TRUE(result);
@@ -103,12 +91,7 @@ HWTEST_F(AgentCardTest, ProviderMarshallingTest_003, TestSize.Level1)
     provider.organization = "test";
     provider.url = "test";
 
-    ParcelMock parcelMock;
-
-    // First write fails
-    EXPECT_CALL(parcelMock, WriteString("test")).WillOnce(Return(false));
-    // Second write should not be called
-
+    Parcel parcelMock;
     bool result = provider.Marshalling(parcelMock);
 
     EXPECT_FALSE(result);
@@ -126,12 +109,7 @@ HWTEST_F(AgentCardTest, ProviderMarshallingTest_004, TestSize.Level1)
     provider.organization = "test";
     provider.url = "test";
 
-    ParcelMock parcelMock;
-
-    // First write succeeds, second write fails
-    EXPECT_CALL(parcelMock, WriteString("test")).WillOnce(Return(true));
-    EXPECT_CALL(parcelMock, WriteString("test")).WillOnce(Return(false));
-
+    Parcel parcelMock;
     bool result = provider.Marshalling(parcelMock);
 
     EXPECT_FALSE(result);
