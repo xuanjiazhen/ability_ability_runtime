@@ -186,11 +186,10 @@ std::unique_ptr<NativeReference> JsInsightIntentEntry::LoadJsCode(
     return std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
 }
 
-bool JsInsightIntentEntry::CallJsFunctionWithResultInner(
+napi_value JsInsightIntentEntry::CallJsFunctionWithResultInner(
     const char* funcName,
     size_t argc,
-    const napi_value* argv,
-    napi_value& result)
+    const napi_value* argv)
 {
     TAG_LOGD(AAFwkTag::INTENT, "call js function");
     auto* env = runtime_.GetNapiEnv();
@@ -199,7 +198,7 @@ bool JsInsightIntentEntry::CallJsFunctionWithResultInner(
         TAG_LOGE(AAFwkTag::INTENT, "call js function type error");
         return false;
     }
-    return JsInsightIntentUtils::CallJsFunctionWithResult(env, obj, funcName, argc, argv, result);
+    return JsInsightIntentUtils::CallJsFunctionWithResult(env, obj, funcName, argc, argv);
 }
 
 void JsInsightIntentEntry::ReplyFailedInner(InsightIntentInnerErr innerErr)
@@ -298,7 +297,8 @@ bool JsInsightIntentEntry::ExecuteInsightIntent(
     }
 
     napi_value result = nullptr;
-    if (!CallJsFunctionWithResultInner("onExecute", 0, nullptr, result)) {
+    result = CallJsFunctionWithResultInner("onExecute", 0, nullptr);
+    if (result == nullptr) {
         // error log has printed
         return ExecuteIntentCheckError();
     }

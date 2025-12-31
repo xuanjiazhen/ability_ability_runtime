@@ -21,6 +21,7 @@
 #include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "js_environment_impl.h"
+#include "js_runtime_utils.h"
 #include "uncaught_exception_callback.h"
 #include "worker_info.h"
 
@@ -189,6 +190,7 @@ void JsEnvironment::RegisterUncatchableExceptionHandler(const JsEnv::Uncatchable
 
 bool JsEnvironment::LoadScript(const std::string& path, std::vector<uint8_t>* buffer, bool isBundle)
 {
+    AbilityRuntime::HandleScope handleScope(reinterpret_cast<napi_env>(engine_));
     if (engine_ == nullptr) {
         TAG_LOGE(AAFwkTag::JSENV, "Invalid Native Engine");
         return false;
