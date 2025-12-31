@@ -20,6 +20,12 @@
 
 namespace OHOS {
 namespace AgentRuntime {
+/**
+ * 从Parcel对象中读取Provider数据
+ *
+ * @param parcel 包含Provider数据的Parcel对象
+ * @return 读取成功返回true，失败返回false
+ */
 bool Provider::ReadFromParcel(Parcel &parcel)
 {
     organization = parcel.ReadString();
