@@ -35,6 +35,8 @@ ohos_shared_library("napi_wantagent_common") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
   ]
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   public_configs = [ ":napi_wantagent_common_public_config" ]
 
   sources = [ "napi_common_want_agent.cpp" ]

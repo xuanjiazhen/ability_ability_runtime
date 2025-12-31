@@ -43,6 +43,27 @@ ohos_shared_library("callee_napi") {
 
   external_deps = [ "napi:ace_napi" ]
 
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
+
   relative_install_dir = "module/application"
   subsystem_name = "ability"
   part_name = "ability_runtime"

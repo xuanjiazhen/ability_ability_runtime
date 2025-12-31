@@ -32,7 +32,10 @@ ohos_shared_library("ability_runtime_error_util") {
 
   public_configs = [ ":error_utils_config" ]
 
-  configs = [ ":error_utils_private_config" ]
+  configs = [
+    ":error_utils_private_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
 

@@ -41,6 +41,8 @@ ohos_shared_library("wantconstant") {
 ohos_shared_library("wantconstant_napi") {
   include_dirs = [ "${ability_runtime_services_path}/common/include" ]
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   sources = [
     "native_module.cpp",
     "want_constant.cpp",
