@@ -461,7 +461,7 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         return;
     }
 
-    if (GetRequestCode() != DEFAULT_REQUEST_CODE &&
+    if (options.requestCode != DEFAULT_REQUEST_CODE &&
         ForegroundAppConnectionManager::IsForegroundAppConnection(GetAbilityInfo(), GetCallerRecord())) {
         ReportAbilityConnectionRelations();
     }
