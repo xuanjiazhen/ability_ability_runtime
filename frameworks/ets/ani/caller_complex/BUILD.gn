@@ -21,6 +21,7 @@ config("caller_complex_ani_public_config") {
 
 ohos_shared_library("caller_complex_ani") {
   branch_protector_ret = "pac_ret"
+  shlib_type = "ani"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -39,10 +40,27 @@ ohos_shared_library("caller_complex_ani") {
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+  ]
+
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
   ]
 
   external_deps = [

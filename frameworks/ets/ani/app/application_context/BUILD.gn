@@ -37,7 +37,22 @@ ohos_shared_library("application_context_ani_kit") {
 
   sources = [ "./src/ets_application_context_module.cpp" ]
 
-  cflags = []
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+  ]
+  cflags_cc = [
+    "-Os",
+    "-fstack-protector-strong",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
