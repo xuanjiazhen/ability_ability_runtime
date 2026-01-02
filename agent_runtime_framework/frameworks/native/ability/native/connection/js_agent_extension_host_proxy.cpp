@@ -1,0 +1,127 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "js_agent_extension_host_proxy.h"
+
+#include "ability_business_error.h"
+#include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
+#include "ipc_types.h"
+#include "js_error_utils.h"
+#include "napi_common_want.h"
+#include "permission_constants.h"
+#include "tokenid_kit.h"
+#include "agent_extension_host_proxy.h"
+
+namespace OHOS {
+namespace AgentRuntime {
+using namespace AbilityRuntime;
+
+static constexpr int32_t INDEX_ZERO = 0;
+static constexpr int32_t ARGC_ONE = 1;
+
+napi_ref JsAgentExtensionHostProxy::CreateJsAgentExtensionHostProxy(napi_env env, const sptr<IRemoteObject>& impl)
+{
+    TAG_LOGI(AAFwkTag::AGENT_EXT, "called");
+    napi_value object = nullptr;
+    napi_create_object(env, &object);
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::AGENT_EXT, "null object");
+        return nullptr;
+    }
+
+    std::unique_ptr<JsAgentExtensionHostProxy> proxy = std::make_unique<JsAgentExtensionHostProxy>(impl);
+    napi_ref nref = nullptr;
+    napi_status status = napi_wrap(env, object, proxy.release(), JsAgentExtensionHostProxy::Finalizer, nullptr, &nref);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::AGENT_EXT, "napi_wrap failed %{public}d", status);
+    }
+    const char *moduleName = "JsAgentExtensionHostProxy";
+    BindNativeFunction(env, object, "sendData", moduleName, JsAgentExtensionHostProxy::SendData);
+    return nref;
+}
+
+void JsAgentExtensionHostProxy::Finalizer(napi_env env, void* data, void* hint)
+{
+    TAG_LOGI(AAFwkTag::AGENT_EXT, "called");
+    std::unique_ptr<JsAgentExtensionHostProxy>(static_cast<JsAgentExtensionHostProxy*>(data));
+}
+
+JsAgentExtensionHostProxy::JsAgentExtensionHostProxy(const sptr<IRemoteObject>& impl)
+{
+    TAG_LOGI(AAFwkTag::AGENT_EXT, "called");
+    if (impl != nullptr) {
+        proxy_ = iface_cast<OHOS::AAFwk::IAgentExtensionHost>(impl);
+    }
+    if (proxy_ == nullptr) {
+        TAG_LOGE(AAFwkTag::AGENT_EXT, "null proxy");
+    }
+}
+
+JsAgentExtensionHostProxy::~JsAgentExtensionHostProxy()
+{
+    TAG_LOGI(AAFwkTag::AGENT_EXT, "called");
+    proxy_ = nullptr;
+}
+
+bool JsAgentExtensionHostProxy::CheckCallerIsSystemApp()
+{
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        TAG_LOGE(AAFwkTag::AGENT_EXT, "not allow");
+        return false;
+    }
+    return true;
+}
+
+napi_value JsAgentExtensionHostProxy::SendData(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAgentExtensionHostProxy, OnSendData);
+}
+
+napi_value JsAgentExtensionHostProxy::OnSendData(napi_env env, NapiCallbackInfo& info)
+{
+    if (!CheckCallerIsSystemApp()) {//待确认是否是只允许系统调用
+        TAG_LOGE(AAFwkTag::AGENT_EXT, "CheckCallerIsSystemApp failed");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return CreateJsUndefined(env);
+    }
+    if (proxy_ == nullptr) {
+        TAG_LOGE(AAFwkTag::AGENT_EXT, "null proxy_");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return CreateJsUndefined(env);
+    }
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::AGENT_EXT, "invalid argc");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+    AAFwk::WantParams params;
+    bool result = AppExecFwk::UnwrapWantParams(env, info.argv[INDEX_ZERO], params);
+    if (!result) {
+        TAG_LOGE(AAFwkTag::AGENT_EXT, "UnwrapWantParams failed");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM), "Data verification failed");
+        return CreateJsUndefined(env);
+    }
+
+    int32_t ret = proxy_->SendData(params);
+    if (ret != static_cast<int32_t>(AbilityErrorCode::ERROR_OK)) {
+        TAG_LOGE(AAFwkTag::AGENT_EXT, "SendData failed");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    return CreateJsUndefined(env);
+}
+}
+}
