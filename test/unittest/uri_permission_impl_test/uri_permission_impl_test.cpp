@@ -1869,10 +1869,7 @@ HWTEST_F(UriPermissionImplTest, Upmsi_CheckGrantUriPermissionByKeyAsCaller_004, 
     ASSERT_NE(upms, nullptr);
     MyFlag::isSystemAppCall_ = true;
     MyFlag::permissionGrantUriPermissionAsCaller_ = true;
-    auto mockAppMgr = new AppExecFwk::MockAppMgrService();
-    mockAppMgr->judgeSandboxByPidRet_ = 0;
-    mockAppMgr->isSandbox_ = true;
-    upms->appMgr_ = mockAppMgr;
+    MyFlag::isSandboxAppRet_ = true;
     auto result = upms->CheckGrantUriPermissionByKeyAsCaller();
     EXPECT_EQ(result, ERR_CODE_GRANT_URI_PERMISSION);
 }
@@ -1889,10 +1886,7 @@ HWTEST_F(UriPermissionImplTest, Upmsi_CheckGrantUriPermissionByKeyAsCaller_005, 
     ASSERT_NE(upms, nullptr);
     MyFlag::isSystemAppCall_ = true;
     MyFlag::permissionGrantUriPermissionAsCaller_ = true;
-    auto mockAppMgr = new AppExecFwk::MockAppMgrService();
-    mockAppMgr->judgeSandboxByPidRet_ = 0;
-    mockAppMgr->isSandbox_ = false;
-    upms->appMgr_ = mockAppMgr;
+    MyFlag::isSandboxAppRet_ = false;
     auto result = upms->CheckGrantUriPermissionByKeyAsCaller();
     EXPECT_EQ(result, ERR_OK);
 }
@@ -2065,11 +2059,7 @@ HWTEST_F(UriPermissionImplTest, GrantUriPermissionByKey_003, TestSize.Level1)
     auto upms = std::make_unique<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
     MyFlag::isSystemAppCall_ = true;
-    sptr<AppExecFwk::MockAppMgrService> mockAppMgr(new AppExecFwk::MockAppMgrService());
-    ASSERT_NE(mockAppMgr, nullptr);
-    mockAppMgr->judgeSandboxByPidRet_ = 0;
-    mockAppMgr->isSandbox_ = true;
-    upms->appMgr_ = iface_cast<AppExecFwk::IAppMgr>(mockAppMgr);
+    MyFlag::isSandboxAppRet_ = true;
     std::string key = "testKey";
     uint32_t flag = 1;
     uint32_t targetTokenId = 100002;
@@ -2091,11 +2081,7 @@ HWTEST_F(UriPermissionImplTest, GrantUriPermissionByKey_004, TestSize.Level1)
     auto upms = std::make_unique<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
     MyFlag::isSystemAppCall_ = true;
-    sptr<AppExecFwk::MockAppMgrService> mockAppMgr(new AppExecFwk::MockAppMgrService());
-    ASSERT_NE(mockAppMgr, nullptr);
-    mockAppMgr->judgeSandboxByPidRet_ = 0;
-    mockAppMgr->isSandbox_ = false;
-    upms->appMgr_ = iface_cast<AppExecFwk::IAppMgr>(mockAppMgr);
+    MyFlag::isSandboxAppRet_ = false;
     std::string key = "testKey";
     uint32_t flag = 1;
     uint32_t targetTokenId = 100002;
