@@ -124,5 +124,10 @@ bool FUDUtils::IsDFSCall()
 {
     return MyFlag::isDFSCallRet_;
 }
+
+bool FUDUtils::IsSandboxApp(uint32_t tokenId)
+{
+    return MyFlag::isSandboxAppRet_;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

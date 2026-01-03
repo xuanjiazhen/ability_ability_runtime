@@ -58,5 +58,6 @@ std::string MyFlag::bundleName_ = "";
 TokenInfoMap MyFlag::tokenInfos = {};
 bool MyFlag::isUdmfOrPasteboardCallRet_ = false;
 bool MyFlag::isDFSCallRet_ = false;
+bool MyFlag::isSandboxAppRet_ = false;
 } // namespace AAFwk
 } // namespace OHOS

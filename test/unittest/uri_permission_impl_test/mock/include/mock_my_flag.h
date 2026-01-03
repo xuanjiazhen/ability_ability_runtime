@@ -94,6 +94,7 @@ public:
         tokenInfos = {};
         isUdmfOrPasteboardCallRet_ = false;
         isDFSCallRet_ = false;
+        isSandboxAppRet_ = false;
     }
 
     static int flag_;
@@ -137,6 +138,7 @@ public:
     static TokenInfoMap tokenInfos;
     static bool isUdmfOrPasteboardCallRet_;
     static bool isDFSCallRet_;
+    static bool isSandboxAppRet_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
