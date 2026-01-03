@@ -175,12 +175,13 @@ HWTEST_F(FilePermissionManagerTest, GetPathPolicyInfoFromUri_001, TestSize.Level
  */
 HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_001, TestSize.Level1)
 {
-    uint32_t callerTokenId = 0;
-    bool hasFileManagerPerm = false;
-    bool hasSandboxManagerPerm = false;
+    TokenIdPermission caller(0);
+    caller.haveFileAccessManagerPermission_ = false;
+    caller.initFileAccessManagerPermission_ = true;
+    caller.haveSandboxAccessPermission_ = false;
+    caller.initSandboxAccessPermission_ = true;
     std::string appDataPath = "/storage/Users/currentUser/appdata/test_A.txt";
-    bool ret = FilePermissionManager::CheckDocsUriPermission(callerTokenId, hasFileManagerPerm, hasSandboxManagerPerm,
-        appDataPath);
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, appDataPath);
     ASSERT_FALSE(ret);
 }
 
@@ -192,12 +193,13 @@ HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_001, TestSize.Level1)
  */
 HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_002, TestSize.Level1)
 {
-    uint32_t callerTokenId = 0;
-    bool hasFileManagerPerm = false;
-    bool hasSandboxManagerPerm = false;
+    TokenIdPermission caller(0);
+    caller.haveFileAccessManagerPermission_ = false;
+    caller.initFileAccessManagerPermission_ = true;
+    caller.haveSandboxAccessPermission_ = false;
+    caller.initSandboxAccessPermission_ = true;
     std::string appDataPath = "/storage/Users/currentUser/test/test_A.txt";
-    bool ret = FilePermissionManager::CheckDocsUriPermission(callerTokenId, hasFileManagerPerm, hasSandboxManagerPerm,
-        appDataPath);
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, appDataPath);
     ASSERT_FALSE(ret);
 }
 
@@ -209,12 +211,13 @@ HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_002, TestSize.Level1)
  */
 HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_003, TestSize.Level1)
 {
-    uint32_t callerTokenId = 0;
-    bool hasFileManagerPerm = false;
-    bool hasSandboxManagerPerm = false;
+    TokenIdPermission caller(0);
+    caller.haveFileAccessManagerPermission_ = false;
+    caller.initFileAccessManagerPermission_ = true;
+    caller.haveSandboxAccessPermission_ = false;
+    caller.initSandboxAccessPermission_ = true;
     std::string appDataPath = "/test/Users/currentUser/test/test_A.txt";
-    bool ret = FilePermissionManager::CheckDocsUriPermission(callerTokenId, hasFileManagerPerm, hasSandboxManagerPerm,
-        appDataPath);
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, appDataPath);
     ASSERT_FALSE(ret);
 }
 

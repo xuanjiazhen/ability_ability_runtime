@@ -30,7 +30,7 @@ bool MyFlag::permissionPrivileged_ = false;
 bool MyFlag::permissionReadWriteDownload_ = false;
 bool MyFlag::permissionReadWriteDesktop_ = false;
 bool MyFlag::permissionReadWriteDocuments_ = false;
-bool MyFlag::IsSystempAppCall_ = false;
+bool MyFlag::IsSystemAppCall_ = false;
 bool MyFlag::permissionFileAccessPersist_ = false;
 bool MyFlag::permissionGrantUriPermissionAsCaller_ = false;
 bool MyFlag::permissionSandboxAccessManager_ = false;
@@ -58,5 +58,6 @@ std::string MyFlag::bundleName_ = "";
 TokenInfoMap MyFlag::tokenInfos = {};
 bool MyFlag::isUdmfOrPasteboardCallRet_ = false;
 bool MyFlag::isDFSCallRet_ = false;
+bool MyFlag::isSandboxAppRet_ = false;
 } // namespace AAFwk
 } // namespace OHOS
