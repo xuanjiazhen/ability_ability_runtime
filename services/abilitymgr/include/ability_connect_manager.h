@@ -480,17 +480,6 @@ protected:
         return 0;
     }
 
-    /**
-    * Get or create service record for ability request.
-    *
-    * @param abilityRequest The ability request.
-    * @param isCreatedByConnect Whether created by connection.
-    * @param targetAbilityRecord The target ability record.
-    * @param isLoadedAbility Whether ability is loaded.
-    */
-    virtual void GetOrCreateServiceRecord(const AbilityRequest &abilityRequest, const bool isCreatedByConnect,
-        std::shared_ptr<BaseExtensionRecord> &targetAbilityRecord, bool &isLoadedAbility) {}
-
     virtual int32_t GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest,
         std::shared_ptr<BaseExtensionRecord> &targetService, bool &isLoadedAbility)
     {
