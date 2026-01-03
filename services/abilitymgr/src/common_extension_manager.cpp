@@ -16,6 +16,7 @@
 #include "common_extension_manager.h"
 
 #include "ability_cache_manager.h"
+#include "ability_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "multi_instance_utils.h"
