@@ -21,6 +21,7 @@
 #include "ability_manager_constants.h"
 #include "ability_permission_util.h"
 #include "ability_resident_process_rdb.h"
+#include "ability_util.h"
 #include "appfreeze_manager.h"
 #include "app_exit_reason_data_manager.h"
 #include "assert_fault_callback_death_mgr.h"
@@ -346,7 +347,8 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     }
     std::shared_ptr<BaseExtensionRecord> targetService;
     bool isLoadedAbility = false;
-    if (UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType) && connectInfo != nullptr) {
+    if (UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType) &&
+        abilityRequest.uiExtensionAbilityConnectInfo != nullptr) {
         ret = GetOrCreateExtensionRecord(abilityRequest, targetService, isLoadedAbility);
     } else {
         GetOrCreateServiceRecord(abilityRequest, true, targetService, isLoadedAbility);

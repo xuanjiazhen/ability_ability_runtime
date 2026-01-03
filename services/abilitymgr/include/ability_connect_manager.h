@@ -715,17 +715,17 @@ private:
      */
     void RemoveConnectionRecordFromMap(std::shared_ptr<ConnectionRecord> connect);
 
-     /**
-      * GetOrCreateServiceRecord.
-      *
-      * @param abilityRequest, Special want for service type's ability.
-      * @param isCreatedByConnect, whether is created by connect ability mode.
-      * @param targetAbilityRecord, the target service ability record.
-      * @param isLoadedAbility, whether the target ability has been loaded.
-      */
-     void GetOrCreateServiceRecord(const AbilityRequest &abilityRequest, const bool isCreatedByConnect,
-         std::shared_ptr<BaseExtensionRecord> &targetAbilityRecord, bool &isLoadedAbility);
-     void SetServiceAfterNewCreate(const AbilityRequest &abilityRequest, BaseExtensionRecord &targetService);
+    /**
+    * GetOrCreateServiceRecord.
+    *
+    * @param abilityRequest, Special want for service type's ability.
+    * @param isCreatedByConnect, whether is created by connect ability mode.
+    * @param targetAbilityRecord, the target service ability record.
+    * @param isLoadedAbility, whether the target ability has been loaded.
+    */
+    void GetOrCreateServiceRecord(const AbilityRequest &abilityRequest, const bool isCreatedByConnect,
+        std::shared_ptr<BaseExtensionRecord> &targetAbilityRecord, bool &isLoadedAbility);
+    void SetServiceAfterNewCreate(const AbilityRequest &abilityRequest, BaseExtensionRecord &targetService);
 
     /**
      * GetConnectRecordListFromMap.
