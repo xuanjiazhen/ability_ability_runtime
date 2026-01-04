@@ -9487,7 +9487,6 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
         callback->OnStartUserDone(userId, checkRet);
         return checkRet;
     }
-
     if (userId == U1_USER_ID) {
         UserStarted(userId);
         callback->OnStartUserDone(userId, ERR_OK);
@@ -9498,13 +9497,11 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
         callback->OnStartUserDone(userId, ERR_OK);
         return ERR_OK;
     }
-
     if (ShouldBlockAllAppStart() && callback != nullptr) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "low-mem mode, disallow");
         callback->OnStartUserDone(userId, ERR_ALL_APP_START_BLOCKED);
         return ERR_ALL_APP_START_BLOCKED;
     }
-
     DelayedSingleton<AppScheduler>::GetInstance()->SetEnableStartProcessFlagByUserId(userId, true);
     auto oldUserId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(displayId);
     if (oldUserId != U0_USER_ID && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
@@ -9525,7 +9522,11 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
     }
 
     AbilityRuntime::UserController::GetInstance().SetForegroundUserId(userId, displayId);
-    return SwitchToUser(oldUserId, userId, displayId, callback, isAppRecovery);
+    auto ret =  SwitchToUser(oldUserId, userId, displayId, callback, isAppRecovery);
+    if (ret != ERR_OK) {
+        AbilityRuntime::UserController::GetInstance().SetForegroundUserId(userId, oldUserId);
+    }
+    return ret;
 }
 
 int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callback)
