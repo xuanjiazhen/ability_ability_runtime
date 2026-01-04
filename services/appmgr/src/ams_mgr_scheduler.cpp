@@ -229,8 +229,8 @@ void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token
         return;
     }
 
-    std::function<void()> killProcessByAbilityTokenFunc = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
-        amsMgrServiceInner->KillProcessByAbilityToken(token);
+    std::function<void()> killProcessByAbilityTokenFunc = [token]() {
+        KillingProcessManager::GetInstance().KillProcessByAbilityToken(token);
     };
     amsHandler_->SubmitTask(killProcessByAbilityTokenFunc, TASK_KILL_PROCESS_BY_ABILITY_TOKEN);
 }
@@ -256,9 +256,8 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSp
         return;
     }
 
-    std::function<void()> killProcessesByUserIdFunc = [amsMgrServiceInner = amsMgrServiceInner_, userId,
-                                                          isNeedSendAppSpawnMsg, callback]() {
-        amsMgrServiceInner->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
+    std::function<void()> killProcessesByUserIdFunc = [userId, isNeedSendAppSpawnMsg, callback]() {
+        KillingProcessManager::GetInstance().KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
     };
     amsHandler_->SubmitTask(killProcessesByUserIdFunc, TASK_KILL_PROCESSES_BY_USERID);
 }
@@ -277,7 +276,7 @@ int32_t AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, c
         return ERR_PERMISSION_DENIED;
     }
 
-    return amsMgrServiceInner_->KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart);
+    return KillingProcessManager::GetInstance().KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart);
 }
 
 void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
@@ -317,7 +316,8 @@ int32_t AmsMgrScheduler::KillProcessesInBatch(const std::vector<int32_t> &pids)
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-    return amsMgrServiceInner_->KillProcessesInBatch(pids);
+    CHECK_CALLER_IS_SYSTEM_APP;
+    return KillingProcessManager::GetInstance().KillProcessesInBatch(pids);
 }
 
 void AmsMgrScheduler::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
@@ -372,8 +372,8 @@ int32_t AmsMgrScheduler::KillApplication(const std::string &bundleName, bool cle
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-
-    return amsMgrServiceInner_->KillApplication(bundleName, clearPageStack, appIndex);
+    return KillingProcessManager::GetInstance().KillApplicationByBundleName(bundleName,
+        appIndex, clearPageStack, "KillApplication");
 }
 
 int32_t AmsMgrScheduler::ForceKillApplication(const std::string &bundleName,
@@ -394,8 +394,9 @@ int32_t AmsMgrScheduler::KillProcessesByAccessTokenId(const uint32_t accessToken
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
+    CHECK_CALLER_IS_SYSTEM_APP;
 
-    return amsMgrServiceInner_->KillProcessesByAccessTokenId(accessTokenId);
+    return KillingProcessManager::GetInstance().KillProcessesByAccessTokenId(accessTokenId);
 }
 
 int32_t AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, const int uid,
@@ -405,7 +406,7 @@ int32_t AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, con
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-    return amsMgrServiceInner_->KillApplicationByUid(bundleName, uid, reason);
+    return KillingProcessManager::GetInstance().KillApplicationByUid(bundleName, uid, reason);
 }
 
 int32_t AmsMgrScheduler::NotifyUninstallOrUpgradeApp(const std::string &bundleName, int32_t uid, bool isUpgrade)
@@ -447,7 +448,7 @@ int32_t AmsMgrScheduler::KillApplicationSelf(const bool clearPageStack, const st
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-    return amsMgrServiceInner_->KillApplicationSelf(clearPageStack, reason);
+    return KillingProcessManager::GetInstance().KillApplicationSelf(clearPageStack, reason);
 }
 
 bool AmsMgrScheduler::IsReady() const

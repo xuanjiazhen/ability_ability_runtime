@@ -495,7 +495,7 @@ bool CacheProcessManager::KillProcessByRecord(const std::shared_ptr<AppRunningRe
     // notify before kill
     appMgrSptr->OnAppCacheStateChanged(appRecord, ApplicationState::APP_STATE_READY);
     // this uses ScheduleProcessSecurityExit
-    appMgrSptr->KillApplicationByRecord(appRecord);
+    KillingProcessManager::GetInstance().KillApplicationByRecord(appRecord);
     return true;
 }
 
