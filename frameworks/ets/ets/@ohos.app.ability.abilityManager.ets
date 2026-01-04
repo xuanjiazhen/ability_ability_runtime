@@ -307,8 +307,8 @@ export default namespace abilityManager {
       taskpool.execute((): void => {
         try {
           abilityManager.nativePreloadUIExtensionAbility(want, call);
-        } catch (err: BusinessError) {
-          reject(err);
+        } catch (err) {
+          reject(err as BusinessError);
         }
       });
     });
@@ -326,8 +326,8 @@ export default namespace abilityManager {
       taskpool.execute((): void => {
         try {
           abilityManager.nativeClearPreloadedUIExtensionAbility(preloadId, call);
-        } catch (err: BusinessError) {
-          reject(err);
+        } catch (err) {
+          reject(err as BusinessError);
         }
       });
     });
@@ -345,8 +345,8 @@ export default namespace abilityManager {
       taskpool.execute((): void => {
         try {
           abilityManager.nativeClearPreloadedUIExtensionAbilities(call);
-        } catch (err: BusinessError) {
-          reject(err);
+        } catch (err) {
+          reject(err as BusinessError);
         }
       });
     });
