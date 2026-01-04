@@ -1925,7 +1925,7 @@ int32_t AppMgrService::KillAppSelfWithInstanceKey(const std::string &instanceKey
         TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
         return ERR_INVALID_VALUE;
     }
-    return appMgrServiceInner_->KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
+    return KillingProcessManager::GetInstance().KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
 }
 
 int32_t AppMgrService::KillProcessByPidForExit(int32_t pid, const std::string &reason)
