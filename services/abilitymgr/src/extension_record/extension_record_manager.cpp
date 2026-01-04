@@ -342,6 +342,10 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
                 }
                 abilityRecord->SetProcessName(process);
             }
+            if (abilityRecord->GetAppIndex() > 0) {
+                process += SEPARATOR + std::to_string(abilityRecord->GetAppIndex());
+            }
+            abilityRecord->SetProcessName(process);
             break;
     }
     return ERR_OK;
