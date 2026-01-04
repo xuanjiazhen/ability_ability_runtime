@@ -23,6 +23,7 @@
 #include "app_utils.h"
 #include "cache_process_manager.h"
 #include "hisysevent.h"
+#include "killing_process_manager.h"
 #include "record_cost_time_util.h"
 #include "res_sched_util.h"
 #include "ui_extension_utils.h"
@@ -495,7 +496,7 @@ bool CacheProcessManager::KillProcessByRecord(const std::shared_ptr<AppRunningRe
     // notify before kill
     appMgrSptr->OnAppCacheStateChanged(appRecord, ApplicationState::APP_STATE_READY);
     // this uses ScheduleProcessSecurityExit
-    appMgrSptr->KillApplicationByRecord(appRecord);
+    KillingProcessManager::GetInstance().KillApplicationByRecord(appRecord);
     return true;
 }
 
