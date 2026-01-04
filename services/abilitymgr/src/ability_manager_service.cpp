@@ -8019,11 +8019,7 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(const Want &want, Abi
         if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
             return ERR_APP_CLONE_INDEX_INVALID;
         }
-        std::string nHostBundleName = hostBundleName;
-        auto caller = Token::GetAbilityRecordByToken(callerToken);
-        if (nHostBundleName.empty() && caller) {
-            nHostBundleName = caller->GetAbilityInfo().bundleName;
-        }
+        std::string nHostBundleName = GetHostBundleName(hostBundleName, callerToken);
         request.hostBundleName = nHostBundleName;
         abilityInfo = StartAbilityInfo::CreateStartExtensionInfo(want, userId, appIndex, nHostBundleName);
     }
@@ -8036,6 +8032,18 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(const Want &want, Abi
         return ERR_NOT_DEVELOPER_MODE;
     }
     return InitialAbilityRequest(request, *abilityInfo);
+}
+
+std::string AbilityManagerService::GetHostBundleName(const std::string hostBundleName,
+    const sptr<IRemoteObject> &callerToken)
+{
+    std::string result = hostBundleName;
+    auto caller = Token::GetAbilityRecordByToken(callerToken);
+    if (result.empty() && caller) {
+        result = caller->GetAbilityInfo().bundleName;
+    }
+
+    return result;
 }
 
 int32_t AbilityManagerService::InitialAbilityRequest(AbilityRequest &request,
