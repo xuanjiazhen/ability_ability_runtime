@@ -760,9 +760,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::OnRemoteDied(const wptr<IRe
         if (priorityObject != nullptr) {
             TAG_LOGI(AAFwkTag::APPMGR, "pname: %{public}s, pid: %{public}d", appRecord->GetProcessName().c_str(),
                 priorityObject->GetPid());
-            if (appMgrServiceInner != nullptr) {
-                appMgrServiceInner->KillProcessByPid(priorityObject->GetPid(), "OnRemoteDied");
-            }
+            KillingProcessManager::GetInstance().KillProcessByPid(priorityObject->GetPid(), "OnRemoteDied");
             if (appMgrServiceInner != nullptr && !appRecord->GetKillReason().empty()) {
                 appMgrServiceInner->SendProcessKillEvent(appRecord, "OnRemoteDied");
             }
@@ -972,7 +970,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             TAG_LOGE(AAFwkTag::APPMGR, "pid error");
             return;
         }
-        auto result = inner->KillProcessByPid(pid, "TerminateAbility");
+        auto result = KillingProcessManager::GetInstance().KillProcessByPid(pid, "TerminateAbility");
         if (result < 0) {
             TAG_LOGW(AAFwkTag::APPMGR, "failed, pid: %{public}d", pid);
         }
