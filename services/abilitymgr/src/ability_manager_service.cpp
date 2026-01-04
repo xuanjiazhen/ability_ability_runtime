@@ -7981,8 +7981,8 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     return ERR_OK;
 }
 
-int AbilityManagerService::GenerateExtensionAbilityRequest(
-    const Want &want, AbilityRequest &request, const sptr<IRemoteObject> &callerToken, int32_t userId)
+int AbilityManagerService::GenerateExtensionAbilityRequest(const Want &want, AbilityRequest &request,
+    const sptr<IRemoteObject> &callerToken, int32_t userId, const std::string hostBundleName)
 {
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord != nullptr) {
