@@ -1190,6 +1190,16 @@ bool AppRunningRecord::GetProcessCacheBlocked()
     return processCacheBlocked;
 }
 
+void AppRunningRecord::SetProcessCacheLocked(bool isLock)
+{
+    processCacheLocked_.store(isLock);
+}
+
+bool AppRunningRecord::GetProcessCacheLocked()
+{
+    return processCacheLocked_.load();
+}
+
 bool AppRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()
 {
     return false;
@@ -1203,6 +1213,11 @@ void AppRunningRecord::SetUserRequestCleaning()
 bool AppRunningRecord::IsUserRequestCleaning() const
 {
     return isUserRequestCleaning_;
+}
+
+bool AppRunningRecord::IsLastAbilityByFlag(sptr<IRemoteObject> token, bool clearMissionFlag)
+{
+    return false;
 }
 
 bool AppRunningRecord::IsProcessAttached() const

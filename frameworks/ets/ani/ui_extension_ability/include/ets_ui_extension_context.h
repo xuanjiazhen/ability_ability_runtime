@@ -148,6 +148,10 @@ private:
         ani_object wantObj, ani_object callback);
     void OpenLinkInner(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
         ani_object optionsObj, ani_object callbackobj, bool haveOptionsParm, bool haveCallBackParm);
+    bool HandleAniLink(ani_env *env, ani_object myCallbackobj, ani_string aniLink,
+        std::string &link, AAFwk::Want &want);
+    void HandleOpenLinkOptions(ani_env *env, ani_object optionsObj,
+        AAFwk::OpenLinkOptions &openLinkOptions, AAFwk::Want &want);
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext> context, AAFwk::Want &want, int &requestCode);
     void OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want, AAFwk::StartOptions &options,
@@ -158,6 +162,8 @@ private:
         OnAtomicRequestSuccess &onRequestCallback, const char *callbackName);
     void UnWrapCompletionHandlerForAtomicService(ani_env *env, ani_object param, AAFwk::StartOptions &options,
         const std::string &appId);
+    void AddCompletionHandlerForOpenLink(ani_env *env, ani_ref refCompletionHandler, AAFwk::Want &want,
+        OnRequestResult &onRequestSucc, OnRequestResult &onRequestFail);
 
 #ifdef SUPPORT_SCREEN
     void InitDisplayId(AAFwk::Want &want);

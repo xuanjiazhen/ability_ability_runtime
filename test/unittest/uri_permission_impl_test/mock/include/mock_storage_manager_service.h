@@ -72,6 +72,11 @@ public:
         return E_OK;
     }
 
+    virtual int32_t IsUsbFuseByType(const std::string &fsType, bool &enabled) override
+    {
+        return E_OK;
+    }
+
     virtual int32_t GetFreeSizeOfVolume(const std::string &volumeUuid, int64_t &freeSize) override
     {
         return E_OK;
@@ -451,6 +456,11 @@ public:
     }
 
     virtual int32_t ListUserdataDirInfo(std::vector<UserdataDirInfo> &scanDirs) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t NotifyCreateBundleDataDirWithEl(uint32_t userId, uint8_t elx) override
     {
         return E_OK;
     }

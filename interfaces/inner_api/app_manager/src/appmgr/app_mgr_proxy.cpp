@@ -2204,6 +2204,24 @@ int32_t AppMgrProxy::SetProcessCacheEnable(int32_t pid, bool enable)
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::LockProcessCache(int32_t pid, bool isLock)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "LockProcessCache called");
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, pid);
+    PARCEL_UTIL_WRITE_RET_INT(data, Bool, isLock);
+
+    MessageParcel reply;
+    MessageOption option;
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::LOCK_PROCESS_CACHE, data, reply, option);
+    return reply.ReadInt32();
+}
+
 void AppMgrProxy::SetAppAssertionPauseState(bool flag)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -2704,6 +2722,41 @@ int32_t AppMgrProxy::KillChildProcessByPid(int32_t pid)
     PARCEL_UTIL_WRITE_RET_INT(data, Int32, pid);
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::KILL_CHILD_PROCESS_BY_PID, data, reply, option);
     return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "PreloadExtension called.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "PreloadExtension Write interface token failed.");
+        return IPC_PROXY_ERR;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &want);
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, appIndex);
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, userId);
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::PRELOAD_EXTENSION, data, reply, option);
+    
+    return reply.ReadInt32();
+}
+
+
+void AppMgrProxy::SetProcessPrepareExit(int32_t pid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+
+    PARCEL_UTIL_WRITE_NORET(data, Int32, pid);
+    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::SET_PROCESS_PREPARE_EXIT, data, reply, option);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -917,6 +917,8 @@ public:
 
     virtual int32_t SetProcessCacheEnable(int32_t pid, bool enable) = 0;
 
+    virtual int32_t LockProcessCache(int32_t pid, bool isLock) = 0;
+
     /**
      * Set application assertion pause state.
      *
@@ -1087,6 +1089,20 @@ public:
     {
         return 0;
     }
+    /**
+     * Preload extension process.
+     *
+     * @param want contains bundleName + abilityName.
+     * @param appIndex The index of application clone.
+     * @param userId Indicates the user identification.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId)
+    {
+        return 0;
+    }
+
+    virtual void SetProcessPrepareExit(int32_t pid) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

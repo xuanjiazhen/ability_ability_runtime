@@ -809,6 +809,8 @@ public:
 
     int32_t SetProcessCacheEnable(int32_t pid, bool enable) override;
 
+    int32_t LockProcessCache(int32_t pid, bool isLock) override;
+
     /**
      * Elevate the current process to be a candidate master process.
      *
@@ -933,6 +935,16 @@ public:
     void AllowScbProcessMoveToBackground() override;
 
     int32_t KillChildProcessByPid(int32_t pid) override;
+
+    /**
+     * Preload extension process.
+     *
+     * @param want contains bundleName + abilityName.
+     * @param appIndex The index of application clone.
+     * @param userId Indicates the user identification.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId) override;
 
 private:
     /**
@@ -1091,6 +1103,8 @@ private:
      * @param recordId id of the app record
      */
     virtual void PreloadModuleFinished(const int32_t recordId) override;
+
+    void SetProcessPrepareExit(int32_t pid) override;
 
     enum DumpIpcKey {
         KEY_DUMP_IPC_START = 0,

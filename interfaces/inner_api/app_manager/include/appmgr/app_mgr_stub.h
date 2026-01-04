@@ -170,6 +170,7 @@ private:
     int32_t HandleSetSupportedProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsProcessCacheSupported(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetProcessCacheEnable(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleLockProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSaveBrowserChannel(MessageParcel &data, MessageParcel &reply);
     int32_t HandleCheckCallingIsUserTestMode(MessageParcel &data, MessageParcel &reply);
 #ifdef SUPPORT_CHILD_PROCESS
@@ -209,6 +210,8 @@ private:
     int32_t HandleAllowScbProcessMoveToBackground(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessByPidForExit(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillChildProcessByPid(MessageParcel &data, MessageParcel &reply);
+    int32_t HandlePreloadExtension(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetProcessPrepareExit(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

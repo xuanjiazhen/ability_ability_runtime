@@ -114,7 +114,8 @@ bool AppRunningManager::CheckAppProcessNameIsSame(const std::shared_ptr<AppRunni
     if (appRecord == nullptr) {
         return false;
     }
-    return (appRecord->GetProcessName() == processName) && !(appRecord->GetExtensionSandBoxFlag());
+    return (appRecord->GetProcessName() == processName) &&
+        (appRecord->GetPreloadMode() == PreloadMode::PRELOAD_MODULE || !(appRecord->GetExtensionSandBoxFlag()));
 }
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExist(const std::string &appName,
@@ -979,8 +980,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
         };
 
-    auto isLastAbility =
-        clearMissionFlag ? appRecord->IsLastPageAbilityRecord(token) : appRecord->IsLastAbilityRecord(token);
+    auto isLastAbility = appRecord->IsLastAbilityByFlag(token, clearMissionFlag);
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         appRecord->TerminateAbility(token, true);
@@ -990,7 +990,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
 #endif //SUPPORT_SCREEN
     auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
-    TAG_LOGI(AAFwkTag::APPMGR, "terminate isLast:%{public}d,keepAlive:%{public}d", isLastAbility, isKeepAliveApp);
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "terminate isLast:%{public}d,keepAlive:%{public}d", isLastAbility, isKeepAliveApp);
     if (isLastAbility && !isKeepAliveApp && !isLauncherApp) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr) {
@@ -1005,9 +1005,9 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             }
             return;
         }
-        TAG_LOGI(AAFwkTag::APPMGR, "Terminate last:%{public}s.", appRecord->GetName().c_str());
+        TAG_LOGI(AAFwkTag::PROCESSMGR, "Terminate last:%{public}s.", appRecord->GetName().c_str());
         appRecord->SetTerminating();
-        if (clearMissionFlag && appMgrServiceInner != nullptr) {
+        if ((clearMissionFlag || appRecord->IsPrepareExit()) && appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
                 AMSEventHandler::DELAY_KILL_EXTENSION_PROCESS_TIMEOUT : AMSEventHandler::DELAY_KILL_PROCESS_TIMEOUT;
             std::string taskName = std::string("DELAY_KILL_PROCESS_") + std::to_string(appRecord->GetRecordId());

@@ -369,11 +369,12 @@ public:
      * Start ui ability with want, send want to ability manager service.
      *
      * @param sessionInfo the session info of the ability to start.
+     * @param params start parameters.
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
-        bool isRestart) override;
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart) override;
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -537,7 +538,8 @@ public:
         AppExecFwk::ExtensionAbilityType extensionType,
         int32_t userId = DEFAULT_INVAL_VALUE,
         bool isQueryExtensionOnly = false,
-        uint64_t specifiedFullTokenId = 0) override;
+        uint64_t specifiedFullTokenId = 0,
+        int32_t loadTimeout = 0) override;
 
     virtual int ConnectUIExtensionAbility(
         const Want &want,
@@ -1080,7 +1082,8 @@ public:
      */
     virtual int GetTopAbility(sptr<IRemoteObject> &token) override;
 
-    virtual int CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused) override;
+    virtual int CheckUIExtensionIsFocused(
+        uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId = 0) override;
 
     /**
      * The delegator calls this interface to move the ability to the foreground.
@@ -1259,9 +1262,11 @@ public:
      * Call UIAbility by SCB.
      *
      * @param sessionInfo the session info of the ability to be called.
+     * @param params start parameters.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart) override;
+    virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart) override;
 
     /**
      * Start specified ability by SCB.
@@ -1313,7 +1318,7 @@ public:
      */
     virtual sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator() override;
 
-    virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids) override;
+    virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear) override;
 
     /**
      * @brief  the process with reason
