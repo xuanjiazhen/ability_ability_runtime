@@ -195,8 +195,7 @@ public:
      * @param appMgrServiceInner, Application manager service inner instance.
      * @return
      */
-    std::shared_ptr<AppRunningRecord> OnRemoteDied(const wptr<IRemoteObject> &remote,
-        std::shared_ptr<AppMgrServiceInner> appMgrServiceInner);
+    std::shared_ptr<AppRunningRecord> OnRemoteDied(const wptr<IRemoteObject> &remote);
 
     /**
      * GetAppRunningRecordMap, Get application record list.
