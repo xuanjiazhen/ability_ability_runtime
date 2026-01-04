@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "ability_manager_errors.h"
+#include "window.h"
 
 #define private public
 #include "page_config_manager.h"
