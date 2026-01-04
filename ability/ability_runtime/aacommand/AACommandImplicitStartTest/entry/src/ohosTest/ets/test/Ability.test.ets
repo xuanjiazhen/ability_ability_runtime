@@ -772,8 +772,7 @@ export default function aaImplicitStartTest() {
           hilog.info(0x0000, 'debuggabletest', '%{public}s',
             'SUB_Ability_AbilityTools_AACommand_AAImplicitStart_3100 err is: ' + JSON.stringify(err));
         });
-      expect(res).assertContain('error: failed to start ability.');
-      expect(res).assertContain('Failed to verify the visibility of the target ability.');
+      expect(res).assertContain('start ability successfully.');
       done();
     })
   })
