@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "extensionrecordmanager_fuzzer.h"
+#include "extensionrecordmanagerfirst_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
