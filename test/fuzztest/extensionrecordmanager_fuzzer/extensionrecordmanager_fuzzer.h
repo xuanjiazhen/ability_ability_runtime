@@ -16,6 +16,6 @@
 #ifndef FUZZTEST_OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_MANAGER_FUZZER_H
 #define FUZZTEST_OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_MANAGER_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "extensionrecordmanager_fuzzer"
+#define FUZZ_PROJECT_NAME "extensionrecordmanagerfirst_fuzzer"
 
 #endif
