@@ -117,7 +117,6 @@ void DoSomethingTestWithMyAPI0(std::shared_ptr<MissionListManager> missionListMg
     AbilityRequest abilityRequest;
     missionListMgr->EnqueueWaitingAbility(abilityRequest);
     missionListMgr->EnqueueWaitingAbilityToFront(abilityRequest);
-    missionListMgr->StartWaitingAbility();
     missionListMgr->UnRegisterMissionListener(nullptr);
     std::shared_ptr<AbilityRecord> targetAbilityRecord = GetFuzzAbilityRecord();
     missionListMgr->AddRecord(abilityRequest, targetAbilityRecord);
