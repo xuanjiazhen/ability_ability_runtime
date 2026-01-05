@@ -209,6 +209,45 @@ constexpr int32_t PRELOAD_TASK_DELAY_TIME = 2000;  //millisecond
 
 extern "C" int DFX_SetAppRunningUniqueId(const char* appRunningId, size_t len) __attribute__((weak));
 
+static bool initStatus;
+static std::string cacheDir;
+static std::string ddkcacheDir;
+
+void SetCacheDir(const std::string dir)
+{
+    struct stat dirStat;
+    if (stat(dir.c_str(), &dirStat) != 0) {
+        TAG_LOGI(AAFwkTag::APPKIT, "inputdir not Create");
+        initStatus = false;
+        return;
+    }
+
+    struct stat cachedirstat;
+    struct stat ddkdirstat;
+    cacheDir = dir + std::string("/blobShader");
+    ddkcacheDir = dir + std::string("/ddkShader");
+
+    if (stat(cacheDir.c_str(), &cachedirstat) != 0) {
+        initStatus = false;
+        int ret = mkdir(cacheDir.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH);
+        if (ret == -1) {
+            initStatus = false;
+            TAG_LOGI(AAFwkTag::APPKIT, "cacheDir not Create");
+        } else {
+            initStatus = true;
+        }
+    } else {
+        initStatus = true;
+    }
+
+    if (stat(ddkcacheDir.c_str(), &ddkdirstat) != 0) {
+        int ret = mkdir(ddkcacheDir.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH);
+        if (ret == -1 && errno != EEXIST) {
+           TAG_LOGI(AAFwkTag::APPKIT, "ddkcacheDir not Create");
+        }
+    }
+}
+
 class LoadExtStartupTask : public AbilityRuntime::ExtNativeStartupTask {
 public:
     LoadExtStartupTask() : ExtNativeStartupTask("LoadExtStartupTask")
@@ -1614,7 +1653,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     application_->SetApplicationContext(applicationContext);
 
 #ifdef SUPPORT_SCREEN
-    OHOS::EglSetCacheDir(applicationContext->GetCacheDir());
+    SetCacheDir(applicationContext->GetCacheDir());
 #endif
 
     HspList hspList;
