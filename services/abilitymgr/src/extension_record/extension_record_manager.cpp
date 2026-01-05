@@ -252,10 +252,16 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
     CHECK_POINTER_AND_RETURN(record, ERR_INVALID_VALUE);
     std::shared_ptr<AAFwk::AbilityRecord> abilityRecord = record->abilityRecord_;
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    int32_t processAppIndex = 0;
 
-    auto appendAppIndex = [&abilityRecord](std::string &processName) {
-        if (abilityRecord->GetAppIndex() > 0) {
-            processName += SEPARATOR + std::to_string(abilityRecord->GetAppIndex());
+    if (abilityRequest.abilityInfo.bundleName == AAFwk::AbilityConfig::SCENEBOARD_ABILITY_NAME) {
+        processAppIndex = abilityRecord->GetWant().GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    } else {
+        processAppIndex = abilityRecord->GetAppIndex();
+    }
+    auto appendAppIndex = [processAppIndex](std::string &processName) {
+        if (processAppIndex > 0) {
+            processName += SEPARATOR + std::to_string(processAppIndex);
         }
     };
     switch (record->processMode_) {
@@ -281,22 +287,15 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
         }
         case PROCESS_MODE_HOST_SPECIFIED: {
             std::string processName = abilityRequest.want.GetStringParam(PROCESS_MODE_HOST_SPECIFIED_KEY);
-            int32_t processAppIndex = 0;
-            
-            if (abilityRequest.abilityInfo.bundleName == AAFwk::AbilityConfig::SCENEBOARD_ABILITY_NAME) {
-                processAppIndex = abilityRecord->GetWant().GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-            } else {
-                processAppIndex = abilityRecord->GetAppIndex();
-            }
 
-            if (processAppIndex > 0) {
+            if (abilityRecord->GetAppIndex() > 0) {
                 auto isStrEndWith = [](const std::string &targetStr, const std::string &suffix) {
                     if (targetStr.length() >= suffix.length()) {
                         return targetStr.substr(targetStr.length() - suffix.length()) == suffix;
                     }
                     return false;
                 };
-                std::string suffix = ":" + std::to_string(processAppIndex);
+                std::string suffix = ":" + std::to_string(abilityRecord->GetAppIndex());
                 if (!isStrEndWith(processName, suffix)) {
                     TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid name, %{public}s", processName.c_str());
                     return ERR_INVALID_VALUE;
@@ -307,8 +306,8 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid name, %{public}s", processName.c_str());
                 return ERR_INVALID_VALUE;
             }
-            if (processAppIndex > 0) {
-                processName += SEPARATOR + std::to_string(processAppIndex);
+            if (abilityRecord->GetAppIndex() > 0) {
+                processName += SEPARATOR + std::to_string(abilityRecord->GetAppIndex());
             }
             abilityRecord->SetProcessName(processName);
             abilityRecord->SetCustomProcessFlag(abilityRequest.customProcess);
