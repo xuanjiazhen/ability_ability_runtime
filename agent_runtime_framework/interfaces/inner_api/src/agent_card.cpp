@@ -184,5 +184,87 @@ Skill *Skill::Unmarshalling(Parcel &parcel)
     }
     return skill;
 }
+
+bool AgentCard::ReadFromParcel(Parcel &parcel)
+{
+    name = parcel.ReadString();
+    description = parcel.ReadString();
+    url = parcel.ReadString();
+    provider = Provider::Unmarshalling(parcel);
+    version = parcel.ReadString();
+    documentationUrl = parcel.ReadString();
+    capabilities = Capabilities::Unmarshalling(parcel);
+    authentication = Authentication::Unmarshalling(parcel);
+    if (!parcel.ReadStringVector(&defaultInputModes)) {
+        return false;
+    }
+    if (!parcel.ReadStringVector(&defaultOutputModes)) {
+        return false;
+    }
+    if (!parcel.ReadStringVector(&skills)) {
+        return false;
+    }
+    return true;
+}
+
+bool AgentCard::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString(name)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write id failed");
+        return false;
+    }
+    if (!parcel.WriteString(description)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write name failed");
+        return false;
+    }
+    if (!parcel.WriteString(url)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write description failed");
+        return false;
+    }
+    if (!provider.Marshalling(parcel)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write description failed");
+        return false;
+    }
+    if (!parcel.WriteString(version)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write description failed");
+        return false;
+    }
+    if (!parcel.WriteString(documentationUrl)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write description failed");
+        return false;
+    }
+    if (!capabilities.Marshalling(parcel)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write description failed");
+        return false;
+    }
+    if (!authentication.Marshalling(parcel)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write description failed");
+        return false;
+    }
+    if (!parcel.WriteStringVector(defaultInputModes)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write tags failed");
+        return false;
+    }
+    if (!parcel.WriteStringVector(defaultOutputModes)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write examples failed");
+        return false;
+    }
+    if (!skills.Marshalling(parcel)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write description failed");
+        return false;
+    }
+    return true;
+}
+
+AgentCard *AgentCard::Unmarshalling(Parcel &parcel)
+{
+    AgentCard *agentCard = new (std::nothrow) AgentCard();
+    if (agentCard && !agentCard->ReadFromParcel(parcel)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "agentCard unmarshalling failed");
+        delete agentCard;
+        agentCard = nullptr;
+    }
+    return agentCard;
+}
 } // namespace AgentRuntime
 } // namespace OHOS
