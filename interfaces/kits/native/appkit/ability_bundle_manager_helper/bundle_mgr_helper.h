@@ -21,6 +21,7 @@
 #include "bundle_mgr_interface.h"
 
 namespace OHOS {
+constexpr static int SHORT_REPOLL_TIME_MICRO_SECONDS = 200000;
 constexpr static int REPOLL_TIME_MICRO_SECONDS = 1000000;
 
 namespace AppExecFwk {
