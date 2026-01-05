@@ -71,6 +71,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     infos->OnAbilityConnectDone(element, remoteObject, resultCod);
     infos->OnAbilityDisconnectDone(element, resultCod);
     uint64_t intentId = static_cast<uint64_t>(GetU32Data(data));
+    uint64_t intentId2 = intentId + 1;
+    int displayId = static_cast<int>(GetU32Data(data));
 
     InsightIntentExecuteRecipient Rinfos(intentId);
     wptr<IRemoteObject> remote;
@@ -100,11 +102,32 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::string jsonStr(data, size);
     Minfos->GetBundleName(intentId, jsonStr);
     std::string callerBundleName = "com.example.fuzzTest";
+    std::string bundleName = "com.example.fuzzTest";
     Minfos->AddRecord(key, callerToken, jsonStr, intentId, callerBundleName);
     AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
     Minfos->GenerateWant(paramPtr, decoratorInfo, want);
     Minfos->IsValidCall(want);
     Minfos->CheckCallerPermission();
+    Minfos->GetBundleName(intentId, bundleName);
+    Minfos->GetCallerBundleName(intentId, bundleName);
+    Minfos->ExecuteIntentDone(intentId, resultCode, result);
+    Minfos->ExecuteIntentDone(intentId, resultCode, result);
+    Minfos->OnInsightAppDied(callerBundleName);
+    Minfos->RemoteDied(intentId);
+
+    Minfos->AddRecord(key, nullptr, jsonStr, intentId2, callerBundleName);
+    Minfos->GetBundleName(intentId, bundleName);
+    Minfos->GetCallerBundleName(intentId, bundleName);
+    Minfos->ExecuteIntentDone(intentId, resultCode, result);
+    Minfos->OnInsightAppDied(callerBundleName);
+    Minfos->RemoteDied(intentId);
+
+    paramPtr->insightIntentParam_ = std::make_shared<WantParams>();
+    paramPtr->displayId_ = displayId;
+    Minfos->GenerateWant(paramPtr, decoratorInfo, want);
+
+    want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME, "testName");
+    Minfos->IsValidCall(want);
     return true;
 }
 }
