@@ -18,14 +18,20 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <nlohmann/json.hpp>
 
 #include "parcel.h"
+
+using json = nlohmann::json;
+using namespace nlohmann::literals;
 
 namespace OHOS {
 namespace AgentRuntime {
 struct Provider : public Parcelable {
     std::string organization;
     std::string url;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(organization, url);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
@@ -39,6 +45,7 @@ struct Capabilities : public Parcelable {
     bool pushNotifications;
     // optional param
     bool stateTransitionHistory;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(streaming, pushNotifications, stateTransitionHistory);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
@@ -49,8 +56,9 @@ struct Authentication : public Parcelable {
     std::vector<std::string> schemes;
     // optional param
     std::string credentials;
-    bool ReadFromParcel(Parcel &parcel);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(schemes, credentials);
 
+    bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static Authentication *Unmarshalling(Parcel &parcel);
 };
@@ -66,6 +74,7 @@ struct Skill : public Parcelable {
     std::vector<std::string> inputModes;
     // optional param
     std::vector<std::string> outputModes;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(id, name, description, tags, examples, inputModes, outputModes);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
@@ -86,6 +95,8 @@ struct AgentCard : public Parcelable {
     std::vector<std::string> defaultInputModes;
     std::vector<std::string> defaultOutputModes;
     std::vector<Skill> skills;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(name, description, url, provider, version, documentationUrl, capabilities,
+        authentication, defaultInputModes, defaultOutputModes, skills);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
