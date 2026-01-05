@@ -70,6 +70,9 @@ bool Parcel::ReadBool()
 
 bool Parcel::ReadStringVector(std::vector<std::string>* value)
 {
+    if (value == nullptr || value->size() == 0) {
+        return false;
+    }
     return true;
 }
 } // namespace OHOS
