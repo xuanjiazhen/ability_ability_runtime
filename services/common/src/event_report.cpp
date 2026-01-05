@@ -91,17 +91,15 @@ void EventReport::SendAppEvent(const EventName &eventName, HiSysEventType type, 
     }
     switch (eventName) {
         case EventName::APP_STARTUP_TYPE:
-            HiSysEventWrite(
-                HiSysEvent::Domain::AAFWK,
-                name,
-                type,
-                EVENT_KEY_APP_PID, eventInfo.pid,
-                EVENT_KEY_VERSION_CODE, eventInfo.versionCode,
-                EVENT_KEY_VERSION_NAME, eventInfo.versionName,
-                EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
-                EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
-                EVENT_KEY_START_TYPE, eventInfo.startType,
-                EVENT_KEY_START_REASON, eventInfo.startReason);
+            HisyseventReport hisyseventReport = std::make_shared<HisyseventReport>(10);
+            hisyseventReport.InsertParam(EVENT_KEY_APP_PID, eventInfo.pid);
+            hisyseventReport.InsertParam(EVENT_KEY_VERSION_CODE, eventInfo.versionCode);
+            hisyseventReport.InsertParam(EVENT_KEY_VERSION_NAME, eventInfo.versionName);
+            hisyseventReport.InsertParam(EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
+            hisyseventReport.InsertParam(EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
+            hisyseventReport.InsertParam(EVENT_KEY_START_TYPE, eventInfo.startType);
+            hisyseventReport.InsertParam(EVENT_KEY_START_REASON, eventInfo.startReason);
+            hisyseventReport.Report(HiSysEvent::Domain::AAFWK, name, type);
             break;
         case EventName::DRAWN_COMPLETED:
             TAG_LOGI(AAFwkTag::DEFAULT,

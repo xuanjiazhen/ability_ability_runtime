@@ -16,12 +16,10 @@
 #include "napi_base_context.h"
 
 #define OHOS_CALL_NAPI_RETURN(call) \
-    do {                            \
         napi_status ret = (call);   \
         if (ret != napi_ok) {       \
             return ret;             \
-        }                           \
-    } while (0)
+        }
 
 namespace OHOS {
 namespace AbilityRuntime {

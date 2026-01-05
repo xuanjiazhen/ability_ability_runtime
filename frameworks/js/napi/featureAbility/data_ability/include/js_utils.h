@@ -39,12 +39,10 @@ namespace JSUtils {
     napi_property_descriptor(DECLARE_NAPI_DEFAULT_PROPERTY((key), Convert2JSValue((env), (value))))
 
 #define ASSERT(condition, message, retVal)                       \
-    do {                                                         \
         if (!(condition)) {                                      \
             LOG_ERROR("test (" #condition ") failed: " message); \
             return retVal;                                       \
-        }                                                        \
-    } while (0)
+        }
 static constexpr int OK = 0;
 static constexpr int ERR = -1;
 static constexpr uint32_t ASYNC_RST_SIZE = 2;

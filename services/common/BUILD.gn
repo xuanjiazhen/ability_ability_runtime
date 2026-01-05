@@ -108,6 +108,24 @@ ohos_shared_library("task_handler_wrap") {
   part_name = "ability_runtime"
 }
 
+ohos_shared_library("hisysevent_report") {
+  branch_protector_ret = "pac_ret"
+  include_dirs = [ "include" ]
+
+  sources = [
+    "src/hisysevent_report.cpp",
+  ]
+
+  external_deps = [
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
 ohos_shared_library("app_util") {
   branch_protector_ret = "pac_ret"
 
@@ -124,6 +142,11 @@ ohos_shared_library("app_util") {
     "src/res_sched_util.cpp",
     "src/rate_limiter.cpp",
     "src/hitrace_chain_utils.cpp",
+    "src/hisysevent_report.cpp",
+  ]
+
+  deps = [
+    ":hisysevent_report",
   ]
 
   external_deps = [

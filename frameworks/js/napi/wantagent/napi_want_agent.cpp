@@ -34,13 +34,6 @@
 
 using namespace OHOS::AbilityRuntime;
 namespace OHOS {
-#define NAPI_ASSERT_RETURN_NULL(env, assertion, message)    \
-do {                                                        \
-    if (!(assertion)) {                                     \
-        TAG_LOGI(AAFwkTag::WANTAGENT, message);             \
-        return nullptr;                                     \
-    }                                                       \
-} while (0)
 namespace {
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;

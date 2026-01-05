@@ -24,12 +24,10 @@
 using namespace OHOS::Rdb;
 
 #define CHECK_RETURN_RET(assertion, message, revt)                   \
-    do {                                                             \
-        if (!(assertion)) {                                          \
-            LOG_WARN("assertion (" #assertion ") failed: " message); \
-            return revt;                                             \
-        }                                                            \
-    } while (0)
+    if (!(assertion)) {                                          \
+        LOG_WARN("assertion (" #assertion ") failed: " message); \
+        return revt;                                             \
+    }
 
 namespace OHOS {
 namespace AppDataMgrJsKit {

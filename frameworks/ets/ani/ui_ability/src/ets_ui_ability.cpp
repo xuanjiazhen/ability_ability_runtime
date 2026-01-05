@@ -78,24 +78,20 @@ constexpr const char *ON_COLLABORATE =
     "C{std.core.Record}:C{@ohos.app.ability.AbilityConstant.AbilityConstant.CollaborateResult}";
 
 #define DISPATCH_ABILITY_INTEROP(type, applicationContext, etsRuntime, ability)                      \
-    do {                                                                                            \
-        if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {  \
-            std::shared_ptr<InteropObject> interopObject =                                          \
-                InteropObjectInstance::CreateInteropObject(etsRuntime, ability);                    \
-            applicationContext->Dispatch##type(interopObject);                                      \
-        }                                                                                           \
-    } while(0)
+    if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {       \
+        std::shared_ptr<InteropObject> interopObject =                                               \
+            InteropObjectInstance::CreateInteropObject(etsRuntime, ability);                         \
+        applicationContext->Dispatch##type(interopObject);                                           \
+    }
 
 #define DISPATCH_WINDOW_INTEROP(type, applicationContext, etsRuntime, ability, stage)                \
-    do {                                                                                            \
-        if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {  \
-            std::shared_ptr<InteropObject> interopAbility =                                         \
-                InteropObjectInstance::CreateInteropObject(etsRuntime, ability);                    \
-            std::shared_ptr<InteropObject> interopWindowStage =                                     \
-                InteropObjectInstance::CreateInteropObject(etsRuntime, stage);                      \
-            applicationContext->Dispatch##type(interopAbility, interopWindowStage);                 \
-        }                                                                                           \
-    } while(0)
+    if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {       \
+        std::shared_ptr<InteropObject> interopAbility =                                              \
+            InteropObjectInstance::CreateInteropObject(etsRuntime, ability);                         \
+        std::shared_ptr<InteropObject> interopWindowStage =                                          \
+            InteropObjectInstance::CreateInteropObject(etsRuntime, stage);                           \
+        applicationContext->Dispatch##type(interopAbility, interopWindowStage);                      \
+    }                                                                                                \
 
 void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
 {

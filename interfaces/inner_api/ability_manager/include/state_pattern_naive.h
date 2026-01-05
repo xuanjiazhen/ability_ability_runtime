@@ -25,41 +25,31 @@
 #ifdef STATE_PATTERN_NAIVE_STATE
 
 #define STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(state, returnVal)     \
-do {                                                                   \
     STATE_PATTERN_NAIVE_STATE = state;                                 \
-    return returnVal;                                                  \
-} while (0)                                                            \
+    return returnVal;
 
 #define STATE_PATTERN_NAIVE_ACCEPT(state, returnVal)     \
-do {                                                     \
     if (STATE_PATTERN_NAIVE_STATE != state) {            \
         return returnVal;                                \
     }                                                    \
-} while (0)                                              \
 
 #define STATE_PATTERN_NAIVE_REJECT(state, returnVal)     \
-do {                                                     \
     if (STATE_PATTERN_NAIVE_STATE == state) {            \
         return returnVal;                                \
-    }                                                    \
-} while (0)                                              \
+    }
 
 #ifdef STATE_PATTERN_NAIVE_LOGGER
 #define STATE_PATTERN_NAIVE_ACCEPT_LOG(state, returnVal, ...)        \
-do {                                                                 \
     if (STATE_PATTERN_NAIVE_STATE != state) {                        \
         STATE_PATTERN_NAIVE_LOGGER(__VA_ARGS__);                     \
         return returnVal;                                            \
-    }                                                                \
-} while (0)                                                          \
+    }
 
 #define STATE_PATTERN_NAIVE_REJECT_LOG(state, returnVal, ...)        \
-do {                                                                 \
     if (STATE_PATTERN_NAIVE_STATE == state) {                        \
         STATE_PATTERN_NAIVE_LOGGER(__VA_ARGS__);                     \
         return returnVal;                                            \
-    }                                                                \
-} while (0)                                                          \
+    }
 
 #endif // STATE_PATTERN_NAIVE_LOGGER
 #endif // STATE_PATTERN_NAIVE_STATE

@@ -267,24 +267,20 @@ void UpdateAniContextConfig(napi_env env, const std::weak_ptr<AbilityRuntime::Ab
 } // namespace
 
 #define DISPATCH_ABILITY_INTEROP(type, applicationContext, jsRuntime, ability)                      \
-    do {                                                                                            \
-        if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {  \
-            std::shared_ptr<InteropObject> interopObject =                                          \
-                InteropObjectInstance::CreateInteropObject(jsRuntime, ability);                     \
-            applicationContext->Dispatch##type(interopObject);                                      \
-        }                                                                                           \
-    } while(0)
+    if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {  \
+        std::shared_ptr<InteropObject> interopObject =                                          \
+            InteropObjectInstance::CreateInteropObject(jsRuntime, ability);                     \
+        applicationContext->Dispatch##type(interopObject);                                      \
+    }
 
 #define DISPATCH_WINDOW_INTEROP(type, applicationContext, jsRuntime, ability, stage)                \
-    do {                                                                                            \
-        if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {  \
-            std::shared_ptr<InteropObject> interopAbility =                                         \
-                InteropObjectInstance::CreateInteropObject(jsRuntime, ability);                     \
-            std::shared_ptr<InteropObject> interopWindowStage =                                     \
-                InteropObjectInstance::CreateInteropObject(jsRuntime, stage);                       \
-            applicationContext->Dispatch##type(interopAbility, interopWindowStage);                 \
-        }                                                                                           \
-    } while(0)
+    if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {  \
+        std::shared_ptr<InteropObject> interopAbility =                                         \
+            InteropObjectInstance::CreateInteropObject(jsRuntime, ability);                     \
+        std::shared_ptr<InteropObject> interopWindowStage =                                     \
+            InteropObjectInstance::CreateInteropObject(jsRuntime, stage);                       \
+        applicationContext->Dispatch##type(interopAbility, interopWindowStage);                 \
+    }
 
 UIAbility *JsUIAbility::Create(const std::unique_ptr<Runtime> &runtime)
 {
