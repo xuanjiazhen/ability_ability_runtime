@@ -148,6 +148,10 @@ void DoSomethingTestWithMyAPI0(std::shared_ptr<MissionListManager> missionListMg
     targetAbilityRecord->SetPreAbilityRecord(prevAbilityRecord);
     missionListMgr->TerminatePreviousAbility(targetAbilityRecord);
     missionListMgr->CompleteBackground(targetAbilityRecord);
+    abilityRequest.abilityInfo.launchMode = static_cast<LaunchMode>(uint32Param % 3);  // 3 means luanch mode max enum
+    abilityRequest.startRecent = boolParam;
+    missionListMgr->GetReusedMission(abilityRequest);
+    missionListMgr->StartAbility(abilityRequest);
 }
 
 void DoSomethingTestWithMyAPI1(std::shared_ptr<MissionListManager> missionListMgr, const char* data, size_t size)
