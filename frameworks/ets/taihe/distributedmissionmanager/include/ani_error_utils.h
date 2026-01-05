@@ -28,12 +28,10 @@ std::string ErrorMessageReturn(int32_t code);
 bool AniPromiseCallback(ani_env* env, ani_resolver deferred, int32_t result, ani_ref resolveResult = nullptr);
 
 #define CHECK_AND_RETURN_RET_LOG(cond, ret, fmt, ...)           \
-    do {                                                        \
-        if (!(cond)) {                                          \
-            TAG_LOGE(AAFwkTag::MISSION, fmt, ##__VA_ARGS__);    \
-            return ret;                                         \
-        }                                                       \
-    } while (0)
+    if (!(cond)) {                                              \
+        TAG_LOGE(AAFwkTag::MISSION, fmt, ##__VA_ARGS__);        \
+        return ret;                                             \
+    }
 
 }  // namespace ani_errorutils
 

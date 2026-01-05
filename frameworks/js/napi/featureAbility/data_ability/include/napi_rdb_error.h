@@ -34,7 +34,6 @@ constexpr int E_RESULT_GET_ERROR = 14800013;
 constexpr int E_RESULT_GOTO_ERROR = 14800012;
 
 #define RDB_NAPI_ASSERT_BASE_FROMV9(env, assertion, error, retVal, version)                                         \
-    do {                                                                                                            \
         if (!(assertion)) {                                                                                         \
             if ((error) == nullptr) {                                                                               \
                 LOG_ERROR("throw error: error message is empty,version= %{public}d", version);                      \
@@ -49,8 +48,7 @@ constexpr int E_RESULT_GOTO_ERROR = 14800012;
             }                                                                                                       \
             LOG_ERROR("nothrow error: code = %{public}d , message = %{public}s, version= %{public}d",               \
                 (error)->GetCode(), (error)->GetMessage().c_str(), version);                                        \
-        }                                                                                                           \
-    } while (0)
+        }
 
 #define RDB_REVT_NOTHING
 
@@ -61,47 +59,37 @@ constexpr int E_RESULT_GOTO_ERROR = 14800012;
     RDB_NAPI_ASSERT_BASE_FROMV9(env, assertion, error, NAPI_RETVAL_NOTHING, version)
 
 #define RDB_ASYNC_PARAM_CHECK_FUNCTION(theCall) \
-    do {                                        \
         int err = (theCall);                    \
         if (err != OK) {                        \
             return err;                         \
-        }                                       \
-    } while (0)
+        }
 
 #define RDB_CHECK_RETURN_NULLPTR(assertion, message)    \
-    do {                                                \
         if (!(assertion)) {                             \
             LOG_ERROR("%{public}s", message);           \
             return nullptr;                             \
-        }                                               \
-    } while (0)
+        }
 
 #define RDB_CHECK_RETURN_VOID(assertion, message)   \
-    do {                                            \
         if (!(assertion)) {                         \
             LOG_ERROR("%{public}s", message);       \
             return;                                 \
-        }                                           \
-    } while (0)
+        }
 
 #define CHECK_RETURN_CORE(assertion, theCall, revt)      \
-    do {                                                 \
         if (!(assertion)) {                              \
             theCall;                                     \
             return revt;                                 \
-        }                                                \
-    } while (0)
+        }
 
 #define CHECK_RETURN_ERR(assertion) \
     CHECK_RETURN_CORE(assertion, RDB_REVT_NOTHING, ERR)
 
 #define RDB_CHECK_RETURN_CALL_RESULT(assertion, theCall) \
-    do {                                                 \
         if (!(assertion)) {                              \
             (theCall);                                   \
             return ERR;                                  \
-        }                                                \
-    } while (0)
+        }
 
 class Error {
 public:

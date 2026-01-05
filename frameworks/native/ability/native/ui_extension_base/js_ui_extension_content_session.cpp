@@ -56,15 +56,13 @@ const std::string FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermis
 } // namespace
 
 #define CHECK_IS_SYSTEM_APP                                                             \
-do {                                                                                    \
     auto selfToken = IPCSkeleton::GetSelfTokenID();                                     \
     if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {      \
         TAG_LOGE(AAFwkTag::UI_EXT, "This application is not system-app,"                \
                 "can not use system-api");                                              \
         ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);                   \
         return CreateJsUndefined(env);                                                  \
-    }                                                                                   \
-} while (0)
+    }
 
 void AbilityResultListeners::AddListener(const uint64_t &uiExtensionComponentId,
     std::shared_ptr<AbilityResultListener> listener)
