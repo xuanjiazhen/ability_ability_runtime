@@ -184,5 +184,197 @@ Skill *Skill::Unmarshalling(Parcel &parcel)
     }
     return skill;
 }
+
+bool AgentCard::ReadFromParcel(Parcel &parcel)
+{
+    name = parcel.ReadString();
+    description = parcel.ReadString();
+    url = parcel.ReadString();
+    provider.reset(parcel.ReadParcelable<Provider>());
+    version = parcel.ReadString();
+    documentationUrl = parcel.ReadString();
+    capabilities.reset(parcel.ReadParcelable<Capabilities>());
+    authentication.reset(parcel.ReadParcelable<Authentication>());
+    if (!parcel.ReadStringVector(&defaultInputModes)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "read defaultInputModes failed");
+        return false;
+    }
+    if (!parcel.ReadStringVector(&defaultOutputModes)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "read defaultOutputModes failed");
+        return false;
+    }
+    uint32_t skillSize = parcel.ReadUint32();
+    for (uint32_t i = 0; i < skillSize; i++) {
+        std::shared_ptr<Skill> skill(parcel.ReadParcelable<Skill>());
+        skills.push_back(skill);
+    }
+    return true;
+}
+
+bool AgentCard::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString(name)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write name failed");
+        return false;
+    }
+    if (!parcel.WriteString(description)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write description failed");
+        return false;
+    }
+    if (!parcel.WriteString(url)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write url failed");
+        return false;
+    }
+    if (!parcel.WriteParcelable(provider.get())) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Write provider failed.");
+        return false;
+    }
+    if (!parcel.WriteString(version)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write version failed");
+        return false;
+    }
+    if (!parcel.WriteString(documentationUrl)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write documentationUrl failed");
+        return false;
+    }
+    if (!parcel.WriteParcelable(capabilities.get())) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Write capabilities failed.");
+        return false;
+    }
+    if (!parcel.WriteParcelable(authentication.get())) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Write authentication failed.");
+        return false;
+    }
+    if (!parcel.WriteStringVector(defaultInputModes)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write defaultInputModes failed");
+        return false;
+    }
+    if (!parcel.WriteStringVector(defaultOutputModes)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write defaultOutputModes failed");
+        return false;
+    }
+    if (!parcel.WriteUint32(skills.size())) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Write skill size failed.");
+        return false;
+    }
+    for (auto skill : skills) {
+        if (!parcel.WriteParcelable(skill.get())) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "Write skill failed.");
+            return false;
+        }
+    }
+    return true;
+}
+
+AgentCard *AgentCard::Unmarshalling(Parcel &parcel)
+{
+    AgentCard *agentCard = new (std::nothrow) AgentCard();
+    if (agentCard && !agentCard->ReadFromParcel(parcel)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "agentCard unmarshalling failed");
+        delete agentCard;
+        agentCard = nullptr;
+    }
+    return agentCard;
+}
+
+nlohmann::json AgentCard::ToJson() const
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "name", name },
+        { "description", description },
+        { "url", url },
+        { "version", version},
+        { "documentationUrl", documentationUrl},
+        { "defaultInputModes", defaultInputModes},
+        { "defaultOutputModes", defaultOutputModes},
+    };
+
+    // Add optional fields if they are not empty/null
+    if (provider != nullptr) {
+        jsonObject["provider"] = *provider;
+    }
+
+    if (capabilities != nullptr) {
+        jsonObject["capabilities"] = *capabilities;
+    }
+
+    if (authentication != nullptr) {
+        jsonObject["authentication"] = *authentication;
+    }
+
+    if (!skills.empty()) {
+        nlohmann::json skillsArray = nlohmann::json::array();
+        for (const auto& skill : skills) {
+            if (skill != nullptr) {
+                nlohmann::json skillJson = *skill;
+                skillsArray.push_back(skillJson);
+            }
+        }
+        jsonObject["skills"] = skillsArray;
+    }
+
+    return jsonObject;
+}
+
+AgentCard AgentCard::FromJson(nlohmann::json jsonObject)
+{
+    AgentCard agentCard;
+
+    // Required fields
+    if (jsonObject.contains("name")) {
+        agentCard.name = jsonObject["name"];
+    }
+    if (jsonObject.contains("description")) {
+        agentCard.description = jsonObject["description"];
+    }
+    if (jsonObject.contains("url")) {
+        agentCard.url = jsonObject["url"];
+    }
+
+    // Optional fields
+    if (jsonObject.contains("version")) {
+        agentCard.version = jsonObject["version"];
+    }
+    if (jsonObject.contains("documentationUrl")) {
+        agentCard.documentationUrl = jsonObject["documentationUrl"];
+    }
+
+    if (jsonObject.contains("defaultInputModes")) {
+        agentCard.defaultInputModes = jsonObject["defaultInputModes"].get<std::vector<std::string>>();
+    }
+    if (jsonObject.contains("defaultOutputModes")) {
+        agentCard.defaultOutputModes = jsonObject["defaultOutputModes"].get<std::vector<std::string>>();
+    }
+
+    // Optional objects
+    if (jsonObject.contains("provider")) {
+        auto provider = std::make_shared<Provider>();
+        *provider = jsonObject["provider"].get<Provider>();
+        agentCard.provider = provider;
+    }
+
+    if (jsonObject.contains("capabilities")) {
+        auto capabilities = std::make_shared<Capabilities>();
+        *capabilities = jsonObject["capabilities"].get<Capabilities>();
+        agentCard.capabilities = capabilities;
+    }
+
+    if (jsonObject.contains("authentication")) {
+        auto authentication = std::make_shared<Authentication>();
+        *authentication = jsonObject["authentication"].get<Authentication>();
+        agentCard.authentication = authentication;
+    }
+
+    // Skills array
+    if (jsonObject.contains("skills")) {
+        for (const auto& skillJson : jsonObject["skills"]) {
+            auto skill = std::make_shared<Skill>();
+            *skill = skillJson.get<Skill>();
+            agentCard.skills.push_back(skill);
+        }
+    }
+
+    return agentCard;
+}
 } // namespace AgentRuntime
 } // namespace OHOS
