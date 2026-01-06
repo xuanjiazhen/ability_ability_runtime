@@ -104,7 +104,7 @@ public:
      * foreground the ability.
      *
      */
-    void ForegroundAbility(uint32_t sceneFlag = 0, bool hasLastWant = false);
+    void ForegroundAbility(uint32_t sceneFlag = 0);
     void ForegroundUIExtensionAbility(uint32_t sceneFlag = 0);
 
     /**
@@ -133,17 +133,9 @@ public:
     /**
      * prepare terminate ability.
      *
-     * @param isSCBCall, if the call is from SCB.
      * @return Returns true on stop terminating; returns false on terminate.
      */
-    bool PrepareTerminateAbility(bool isSCBCall);
-
-    /**
-     * prepare terminate ability done.
-     *
-     * @param isTerminate, the result of the onPrepareToTerminate/onPrepareToTerminateAsync.
-     */
-    void PrepareTerminateAbilityDone(bool isTerminate);
+    bool PrepareTerminateAbility();
 
     /**
      * terminate ability.
@@ -579,9 +571,8 @@ public:
     void SetCallerSetProcess(const bool flag);
     void SetSessionInfo(sptr<SessionInfo> sessionInfo);
     void UpdateSessionInfo(sptr<IRemoteObject> sessionToken);
-    void SetMinimizeReason(bool fromUser);
+
     void SetSceneFlag(uint32_t sceneFlag);
-    bool IsMinimizeFromUser() const;
     void SetClearMissionFlag(bool clearMissionFlag);
     bool IsClearMissionFlag();
 
@@ -636,7 +627,7 @@ public:
     void SetUIExtensionAbilityId(const int32_t uiExtensionAbilityId);
     int32_t GetUIExtensionAbilityId() const;
 
-    void OnProcessDied();
+    virtual void OnProcessDied();
 
     void SetProcessName(const std::string &process);
 
@@ -724,21 +715,6 @@ public:
     inline std::shared_ptr<Want> GetLaunchWant() const
     {
         return launchWant_;
-    }
-
-    inline void SetLastWant(std::shared_ptr<Want> lastWant)
-    {
-        lastWant_ = lastWant;
-    }
-
-    inline bool HasLastWant() const
-    {
-        return lastWant_ != nullptr;
-    }
-
-    inline void SetBackgroundDrivenFlag(bool isLastWantBackgroundDriven)
-    {
-        isLastWantBackgroundDriven_.store(isLastWantBackgroundDriven);
     }
 
     inline void SetOnNewWantSkipScenarios(int32_t scenarios)
@@ -862,8 +838,6 @@ protected:
     void SetDebugAppByWaitingDebugFlag();
     void AfterLoaded();
 
-    void CancelPrepareTerminate();
-
     void BuildTerminateAbilityEventInfo(EventInfo &eventInfo, int32_t errCode);
 
 #ifdef SUPPORT_SCREEN
@@ -889,7 +863,6 @@ protected:
 
     static std::atomic<int64_t> abilityRecordId;
     bool isReady_ = false;                            // is ability thread attached?
-    bool isWindowStarted_ = false;                     // is window hotstart or coldstart?
     bool isWindowAttached_ = false;                   // Is window of this ability attached?
     bool isLauncherAbility_ = false;                  // is launcher?
     bool isLoading_ = false;        // is loading?
@@ -908,7 +881,6 @@ protected:
     bool isStartedByCall_ = false;       // new version
     bool isStartToBackground_ = false;         // new version
     bool isStartToForeground_ = false;        // new version
-    bool minimizeReason_ = false;           // new version
     bool clearMissionFlag_ = false;
     bool keepAliveBundle_ = false;
     bool lockedState_ = false;
@@ -996,20 +968,11 @@ protected:
 
     ffrt::mutex lock_;
     ffrt::mutex connectWantLock_;
-    std::mutex collaborateWantLock_;
 
     bool isKillForPermissionUpdate_ = false;
 
-    std::mutex isPrepareTerminateAbilityMutex_;
-    std::condition_variable isPrepareTerminateAbilityCv_;
-    std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
-    std::atomic_bool isPrepareTerminateAbilityDone_ = false;
-    bool isPrepareTerminate_ = false;
-
     std::string killReason_ = "";
     std::shared_ptr<Want> launchWant_ = nullptr;
-    std::shared_ptr<Want> lastWant_ = nullptr;
-    std::atomic_bool isLastWantBackgroundDriven_ = false;
     std::atomic<int32_t> scenarios_ = 0;
     std::atomic<bool> isPreloaded_ = false;
     std::atomic<bool> isFrozenByPreload_ = false;

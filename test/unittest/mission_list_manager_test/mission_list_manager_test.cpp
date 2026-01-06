@@ -1579,7 +1579,7 @@ HWTEST_F(MissionListManagerTest, MinimizeAbilityLocked_001, TestSize.Level1)
 {
     int userId = 0;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
-    std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
+    MissionAbilityRecordPtr abilityRecord = nullptr;
     bool fromUser = true;
     int res = missionListManager->MinimizeAbilityLocked(abilityRecord, fromUser);
     EXPECT_EQ(res, ERR_INVALID_VALUE);

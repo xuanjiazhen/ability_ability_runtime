@@ -17,6 +17,12 @@
 
 namespace OHOS {
 namespace AAFwk {
+std::shared_ptr<AbilityRecord> Token::getAbilityRecordByTokenResult;
+std::shared_ptr<AbilityRecord> Token::GetAbilityRecordByToken()
+{
+    return getAbilityRecordByTokenResult;
+}
+
 void AbilityRecord::Init(const AbilityRequest &abilityRequest)
 {}
 
