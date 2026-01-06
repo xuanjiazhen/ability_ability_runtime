@@ -50,6 +50,17 @@ void UserController::ClearUserId(int32_t userId)
     }
 }
 
+void UserController::ClearDisplayId(uint64_t displayId)
+{
+    std::lock_guard<ffrt::mutex> guard(userLock_);
+    for (auto iter = displayIdMap_.begin(); iter != displayIdMap_.end(); iter++) {
+        if (iter->first == displayId) { // std::unordered_map<uint64_t, int32_t> displayIdMap_;
+            displayIdMap_.erase(iter);
+            break;
+        }
+    }
+}
+
 int32_t UserController::GetForegroundUserId(uint64_t displayId)
 {
     std::lock_guard<ffrt::mutex> guard(userLock_);
@@ -58,6 +69,13 @@ int32_t UserController::GetForegroundUserId(uint64_t displayId)
         return iter->second;
     }
     return 0;
+}
+
+bool UserController::isExistDisplayId(uint64_t displayId)
+{
+    std::lock_guard<ffrt::mutex> guard(userLock_);
+    auto iter = displayIdMap_.find(displayId);
+    return iter != displayIdMap_.end();
 }
 
 bool UserController::GetDisplayIdByForegroundUserId(int32_t userId, uint64_t &displayId)
