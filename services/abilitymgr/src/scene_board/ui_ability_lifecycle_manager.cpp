@@ -4470,5 +4470,20 @@ void UIAbilityLifecycleManager::SendAbilityEvent(const AppExecFwk::AbilityInfo &
         EventReport::SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
         }, ffrt::task_attr().timeout(AbilityRuntime::GlobalConstant::FFRT_TASK_TIMEOUT));
 }
+
+void UIAbilityLifecycleManager::HandleUIAbilityDiedByPid(int32_t pid)
+{
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    for (const auto &[key, abilityRecord] : sessionAbilityMap_) {
+        if (abilityRecord && pid == abilityRecord->GetPid()) {
+            auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+            CHECK_POINTER_LOG(handler, "Fail to get AbilityTaskHandler.");
+            auto task = [abilityRecord]() {
+                CHECK_POINTER_LOG(abilityRecord, "abilityRecord is nullptr");
+                DelayedSingleton<AbilityManagerService>::GetInstance()->OnAbilityDied(abilityRecord);
+            }
+        }
+    }
+}
 }  // namespace AAFwk
 }  // namespace OHOS
