@@ -22,14 +22,20 @@
 #include <string>
 #include <gmock/gmock.h>
 
+#include "iremote_object.h"
+
 namespace OHOS {
 namespace AppExecFwk {
 struct ApplicationInfo {};
 struct AbilityInfo {
     ApplicationInfo applicationInfo;
+    std::string bundleName;
+    std::string moduleName;
+    std::string name;
 };
 }
 namespace AAFwk {
+class AbilityRecord;
 enum class AbilityRecordType {
     BASE_ABILITY,
     UI_ABILITY,
@@ -45,24 +51,41 @@ struct AbilityRequest {
     AppExecFwk::ApplicationInfo appInfo;
 };
 
+struct LifeCycleStateInfo {
+    bool isNewWant = false;
+};
+
+class Token {
+public:
+    static std::shared_ptr<AbilityRecord> GetAbilityRecordByToken(sptr<IRemoteObject>);
+    static std::shared_ptr<AbilityRecord> getAbilityRecordByTokenResult;
+};
+
 class LifecycleDeal {
 public:
     MOCK_METHOD(void, ScheduleCollaborate, (Want), ());
+    MOCK_METHOD(bool, PrepareTerminateAbility, (), ());
 };
 
 class AbilityRecord : public std::enable_shared_from_this<AbilityRecord> {
 public:
+    AbilityRecord() = default;
     AbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         const AppExecFwk::ApplicationInfo &applicationInfo, int32_t requestCode) {}
     virtual ~AbilityRecord() = default;
 
     virtual void Init(const AbilityRequest &abilityRequest);
     virtual AbilityRecordType GetAbilityRecordType();
+    virtual void OnProcessDied() {}
+    MOCK_METHOD(void, ForegroundAbility, (uint32_t), ());
+    MOCK_METHOD(void, SetWant, (const Want &), ());
+    MOCK_METHOD(bool, PrepareTerminateAbility, (), ());
 protected:
     bool isPrelaunch_ = false;
     bool isHook_ = false;
-    std::atomic_bool isLastWantBackgroundDriven_ = false;
-    std::mutex collaborateWantLock_;
+
+    AppExecFwk::AbilityInfo abilityInfo_;
+    LifeCycleStateInfo lifeCycleStateInfo_;
     std::shared_ptr<LifecycleDeal> lifecycleDeal_;
 };
 } // namespace OHOS

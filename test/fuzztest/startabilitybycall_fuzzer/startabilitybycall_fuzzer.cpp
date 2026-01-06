@@ -38,21 +38,7 @@ public:
         const AppExecFwk::ElementName& element, const sptr<IRemoteObject>& remoteObject, int resultCode) override {};
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName& element, int resultCode) override {};
 };
-sptr<Token> GetFuzzAbilityToken()
-{
-    sptr<Token> token = nullptr;
 
-    AbilityRequest abilityRequest;
-    abilityRequest.appInfo.bundleName = "com.example.fuzzTest";
-    abilityRequest.abilityInfo.name = "MainAbility";
-    abilityRequest.abilityInfo.type = AbilityType::SERVICE;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    if (abilityRecord) {
-        token = abilityRecord->GetToken();
-    }
-
-    return token;
-}
 uint32_t GetU32Data(const char* ptr)
 {
     // convert fuzz input data to an integer

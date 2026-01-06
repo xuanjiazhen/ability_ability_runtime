@@ -171,6 +171,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/restart_app_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/sa_interceptor_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/scene_board/status_bar_delegate_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/scene_board/ui_ability_record.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/screen_lock/unlock_screen_callback.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/screen_lock/unlock_screen_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/sender_info.cpp",
