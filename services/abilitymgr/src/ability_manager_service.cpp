@@ -4757,7 +4757,7 @@ int AbilityManagerService::TerminateAbilityWithFlag(const sptr<IRemoteObject> &t
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetUIAbilityManagerByUserId(ownerUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        return uiAbilityManager->CloseUIAbility(std::static_pointer_cast<UIAbilityRecord>(abilityRecord),
+        return uiAbilityManager->CloseUIAbility(UIAbilityRecord::FromBaseRecord(abilityRecord),
             resultCode, resultWant, false, false);
     }
     return ERR_INVALID_VALUE;
@@ -8182,7 +8182,7 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
         if (abilityRecord->GetAbilityInfo().type == AbilityType::PAGE) {
             auto uiAbilityManager = GetUIAbilityManagerByUserId(abilityRecord->GetOwnerMissionUserId());
             CHECK_POINTER(uiAbilityManager);
-            uiAbilityManager->OnAbilityDied(std::static_pointer_cast<UIAbilityRecord>(abilityRecord));
+            uiAbilityManager->OnAbilityDied(UIAbilityRecord::FromBaseRecord(abilityRecord));
             return;
         }
     } else {
@@ -11472,8 +11472,7 @@ void AbilityManagerService::PrepareTerminateAbilityDone(const sptr<IRemoteObject
     auto iter = prepareTermiationCallbacks_.find(abilityRecordId);
     if (iter == prepareTermiationCallbacks_.end()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, abilityRecordId=%{public}s not found", abilityRecordId.c_str());
-        uiAbilityManager->PrepareTerminateAbilityDone(
-            std::static_pointer_cast<UIAbilityRecord>(abilityRecord), isTerminate);
+        uiAbilityManager->PrepareTerminateAbilityDone(UIAbilityRecord::FromBaseRecord(abilityRecord), isTerminate);
         return;
     }
     if (iter->second != nullptr && !isTerminate) {
@@ -12303,7 +12302,7 @@ void AbilityManagerService::CallRequestDone(const sptr<IRemoteObject> &token, co
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetUIAbilityManagerByUserId(abilityRecord->GetOwnerMissionUserId());
         CHECK_POINTER(uiAbilityManager);
-        uiAbilityManager->CallRequestDone(std::static_pointer_cast<UIAbilityRecord>(abilityRecord), callStub);
+        uiAbilityManager->CallRequestDone(UIAbilityRecord::FromBaseRecord(abilityRecord), callStub);
         return;
     }
 
