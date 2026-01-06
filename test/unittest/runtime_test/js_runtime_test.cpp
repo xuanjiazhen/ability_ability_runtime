@@ -1267,13 +1267,12 @@ HWTEST_F(JsRuntimeTest, GetPkgContextInfoListMap_0100, TestSize.Level2)
     AbilityRuntime::Runtime::Options options;
     options.preload = true;
     auto jsRuntime = AbilityRuntime::JsRuntime::Create(options);
-    std::map<std::string, std::vector<std::vector<std::string>>> ret;
-    std::map<std::string, std::string> pkgAliasMap;
-    JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(modulePkgContentMap, ret, pkgAliasMap);
+    std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
+    JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(modulePkgContentMap, pkgInfoMap);
     std::string expectString = "library:packageName:library:bundleName:";
     expectString += "com.xxx.xxxx:moduleName:library:version:1.0.0:entryPath::isSO:false:";
-    auto it = ret.find("entry");
-    ASSERT_EQ(it, ret.end());
+    auto it = pkgInfoMap.find("entry");
+    ASSERT_EQ(it, pkgInfoMap.end());
     jsRuntime.reset();
     TAG_LOGI(AAFwkTag::TEST, "GetPkgContextInfoListMap_0100 end");
 }
@@ -1299,15 +1298,14 @@ HWTEST_F(JsRuntimeTest, GetPkgContextInfoListMap_0200, TestSize.Level2)
     AbilityRuntime::Runtime::Options options;
     options.preload = true;
     auto jsRuntime = AbilityRuntime::JsRuntime::Create(options);
-    std::map<std::string, std::vector<std::vector<std::string>>> ret;
-    std::map<std::string, std::string> pkgAliasMap;
-    JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(modulePkgContentMap, ret, pkgAliasMap);
+    std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
+    JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(modulePkgContentMap, pkgInfoMap);
     std::string expectString = "library:packageName:library:bundleName:";
     expectString += "com.xxx.xxxx:moduleName:library:version:1.0.0:entryPath::isSO:false:";
-    auto it = ret.find("entry");
-    ASSERT_EQ(it, ret.end());
-    auto libraryIt = ret.find("library");
-    ASSERT_EQ(libraryIt, ret.end());
+    auto it = pkgInfoMap.find("entry");
+    ASSERT_EQ(it, pkgInfoMap.end());
+    auto libraryIt = pkgInfoMap.find("library");
+    ASSERT_EQ(libraryIt, pkgInfoMap.end());
     jsRuntime.reset();
     TAG_LOGI(AAFwkTag::TEST, "GetPkgContextInfoListMap_0200 end");
 }
