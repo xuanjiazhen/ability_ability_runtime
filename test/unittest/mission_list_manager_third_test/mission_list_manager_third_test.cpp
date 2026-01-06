@@ -37,7 +37,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-    std::shared_ptr<AbilityRecord> InitAbilityRecord();
+    MissionAbilityRecordPtr InitAbilityRecord();
     int32_t ERR_INVALID_VALUE = 22;
 };
 
@@ -50,14 +50,13 @@ void MissionListManagerThirdTest::SetUp(void)
 void MissionListManagerThirdTest::TearDown(void)
 {}
 
-std::shared_ptr<AbilityRecord> MissionListManagerThirdTest::InitAbilityRecord()
+MissionAbilityRecordPtr MissionListManagerThirdTest::InitAbilityRecord()
 {
     AbilityRequest abilityRequest;
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AbilityType::PAGE;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    return abilityRecord;
+    return MissionAbilityRecord::CreateAbilityRecord(abilityRequest);
 }
 
 /*
@@ -198,7 +197,7 @@ HWTEST_F(MissionListManagerThirdTest, MinimizeAbilityLocked_001, TestSize.Level1
 {
     int userId = 0;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
-    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    auto abilityRecord = InitAbilityRecord();
     int ret = missionListManager->MinimizeAbilityLocked(abilityRecord, true);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -255,7 +254,7 @@ HWTEST_F(MissionListManagerThirdTest, DoAbilityForeground_001, TestSize.Level1)
 {
     int userId = 0;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
-    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    auto abilityRecord = InitAbilityRecord();
     int ret = missionListManager->DoAbilityForeground(abilityRecord, 0);
     EXPECT_EQ(ret, ERR_OK);
 }
