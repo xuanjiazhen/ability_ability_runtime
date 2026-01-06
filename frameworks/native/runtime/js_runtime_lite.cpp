@@ -222,11 +222,9 @@ napi_status JsRuntimeLite::Init(const Options& options, napi_env env)
                 hapPath = options.hapModulePath.find(moduleName)->second;
                 return true;
             });
-        std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
-        std::map<std::string, std::string> pkgAliasMap;
-        GetPkgContextInfoListMap(options.pkgContextInfoJsonStringMap, pkgContextInfoMap, pkgAliasMap);
-        panda::JSNApi::SetpkgContextInfoList(vm, pkgContextInfoMap);
-        panda::JSNApi::SetPkgAliasList(vm, pkgAliasMap);
+        std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
+        GetPkgContextInfoListMap(options.pkgContextInfoJsonStringMap, pkgInfoMap);
+        panda::JSNApi::SetpkgContextInfoList(vm, pkgInfoMap);
         panda::JSNApi::SetPkgNameList(vm, options.packageNameList);
     }
 
@@ -454,11 +452,9 @@ std::shared_ptr<Options> JsRuntimeLite::GetChildOptions()
 }
 
 void JsRuntimeLite::GetPkgContextInfoListMap(const std::map<std::string, std::string> &contextInfoMap,
-    std::map<std::string, std::vector<std::vector<std::string>>> &pkgContextInfoMap,
-    std::map<std::string, std::string> &pkgAliasMap)
+    std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> &pkgInfoMap)
 {
     for (auto it = contextInfoMap.begin(); it != contextInfoMap.end(); it++) {
-        std::vector<std::vector<std::string>> pkgContextInfoList;
         std::string filePath = it->second;
         bool newCreate = false;
         std::shared_ptr<Extractor> extractor = ExtractorUtil::GetExtractor(
@@ -473,15 +469,11 @@ void JsRuntimeLite::GetPkgContextInfoListMap(const std::map<std::string, std::st
             TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName: %{public}s get pkgContextInfo failed", it->first.c_str());
             continue;
         }
-        auto jsonObject = nlohmann::json::parse(data.get(), data.get() + dataLen, nullptr, false);
-        if (jsonObject.is_discarded()) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "moduleName: %{public}s parse json error", it->first.c_str());
-            continue;
-        }
-        ParsePkgContextInfoJson(jsonObject, pkgContextInfoList, pkgAliasMap);
-        TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName: %{public}s parse json success", it->first.c_str());
-        pkgContextInfoMap[it->first] = pkgContextInfoList;
+        pkgInfoMap[it->first] = std::make_pair(std::move(data), dataLen);
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName: %{public}s get pkgContextInfo success, dataLen: %{public}zu",
+            it->first.c_str(), dataLen);
     }
+    return pkgInfoMap;
 }
 
 void JsRuntimeLite::ParsePkgContextInfoJson(nlohmann::json &jsonObject,
