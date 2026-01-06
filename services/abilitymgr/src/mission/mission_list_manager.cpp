@@ -234,7 +234,7 @@ int MissionListManager::MinimizeAbility(const sptr<IRemoteObject> &token, bool f
     // check if ability is in list to avoid user create fake token.
     CHECK_POINTER_AND_RETURN_LOG(GetAbilityRecordByTokenInner(token), INNER_ERR,
         "Minimize ability fail, ability is not in mission list.");
-    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    auto abilityRecord = MissionAbilityRecord::FromBaseRecord(Token::GetAbilityRecordByToken(token));
     return MinimizeAbilityLocked(abilityRecord, fromUser);
 }
 
@@ -982,7 +982,7 @@ void MissionListManager::MoveMissionListToTop(const std::shared_ptr<MissionList>
     currentMissionLists_.push_front(missionList);
 }
 
-int MissionListManager::MinimizeAbilityLocked(const std::shared_ptr<AbilityRecord> &abilityRecord, bool fromUser)
+int MissionListManager::MinimizeAbilityLocked(MissionAbilityRecordPtr abilityRecord, bool fromUser)
 {
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
@@ -4271,7 +4271,7 @@ int MissionListManager::PrepareClearMissionLocked(int missionId, const std::shar
             prepareTerminateTimeout);
     }
 
-    bool res = abilityRecord->PrepareTerminateAbility(false);
+    bool res = abilityRecord->PrepareTerminateAbility();
     if (handler) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "stop terminating");
         handler->CancelTask("PrepareTerminate_" + std::to_string(abilityRecord->GetAbilityRecordId()));

@@ -239,22 +239,6 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_BackgroundAbility_001, TestSize.
 
 /*
  * Feature: AbilityRecord
- * Function: PrepareTerminateAbilityDone
- * SubFunction: PrepareTerminateAbilityDone
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord PrepareTerminateAbilityDone
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_PrepareTerminateAbilityDone_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->isPrepareTerminateAbilityCalled_.store(true);
-    abilityRecord->PrepareTerminateAbilityDone(true);
-    EXPECT_EQ(abilityRecord->isPrepareTerminate_, true);
-}
-
-/*
- * Feature: AbilityRecord
  * Function: TerminateAbility
  * SubFunction: TerminateAbility
  * FunctionPoints: NA
