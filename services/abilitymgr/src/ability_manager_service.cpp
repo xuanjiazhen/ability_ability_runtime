@@ -13562,7 +13562,8 @@ void AbilityManagerService::NotifyStartResidentProcess(std::vector<AppExecFwk::B
     }
 }
 
-void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+    int32_t diedPid)
 {
     if (!system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
         return;
@@ -13589,6 +13590,12 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
             TAG_LOGI(AAFwkTag::ABILITYMGR, "keepAlive not U1 or current user.");
             KeepAliveProcessManager::GetInstance().AddNeedRestartKeepAliveUid(item.uid);
         }
+    }
+    if (diedPid != AppExecFwk::INVALID_DIED_PID) {
+        int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+        auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
+        CHECK_POINTER(uiAbilityManager);
+        uiAbilityManager->HandleUIAbilityDiedByPid(diedPid);
     }
 
     for (auto search = bundleInfosMap.rbegin(); search != bundleInfosMap.rend(); ++search) {
