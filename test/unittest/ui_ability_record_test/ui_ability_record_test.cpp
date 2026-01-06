@@ -56,5 +56,22 @@ HWTEST_F(UIAbilityRecordTest, ScheduleCollaborate_0010, TestSize.Level2)
     EXPECT_CALL(*lifecycleDeal, ScheduleCollaborate).Times(1);
     abilityRecord->ScheduleCollaborate(abilityRequest.want);
 }
+
+/*
+ * Feature: AbilityRecord
+ * Function: PrepareTerminateAbilityDone
+ * SubFunction: PrepareTerminateAbilityDone
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord PrepareTerminateAbilityDone
+ */
+HWTEST_F(UIAbilityRecordTest, AbilityRecord_PrepareTerminateAbilityDone_001, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    abilityRecord->isPrepareTerminateAbilityCalled_.store(true);
+    abilityRecord->PrepareTerminateAbilityDone(true);
+    EXPECT_EQ(abilityRecord->isPrepareTerminate_, true);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

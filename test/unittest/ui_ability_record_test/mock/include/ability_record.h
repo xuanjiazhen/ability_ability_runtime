@@ -45,6 +45,10 @@ struct AbilityRequest {
     AppExecFwk::ApplicationInfo appInfo;
 };
 
+struct LifeCycleStateInfo {
+    bool isNewWant = false;
+};
+
 class LifecycleDeal {
 public:
     MOCK_METHOD(void, ScheduleCollaborate, (Want), ());
@@ -58,11 +62,14 @@ public:
 
     virtual void Init(const AbilityRequest &abilityRequest);
     virtual AbilityRecordType GetAbilityRecordType();
+    MOCK_METHOD(void, ForegroundAbility, (uint32_t), ());
+    MOCK_METHOD(void, SetWant, (const Want &), ());
+    MOCK_METHOD(bool, PrepareTerminateAbility, (), ());
 protected:
     bool isPrelaunch_ = false;
     bool isHook_ = false;
-    std::atomic_bool isLastWantBackgroundDriven_ = false;
-    std::mutex collaborateWantLock_;
+
+    LifeCycleStateInfo lifeCycleStateInfo_;
     std::shared_ptr<LifecycleDeal> lifecycleDeal_;
 };
 } // namespace OHOS

@@ -33,34 +33,10 @@ namespace OHOS {
 namespace {
 constexpr size_t STRING_MAX_LENGTH = 128;
 }
-std::shared_ptr<AbilityRecord> GetFuzzAbilityRecord()
-{
-    sptr<Token> token = nullptr;
-    AbilityRequest abilityRequest;
-    abilityRequest.appInfo.bundleName = "com.example.fuzzTest";
-    abilityRequest.abilityInfo.name = "MainAbility";
-    abilityRequest.abilityInfo.type = AbilityType::DATA;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    if (!abilityRecord) {
-        return nullptr;
-    }
-    return abilityRecord;
-}
-
-sptr<Token> GetFuzzAbilityToken()
-{
-    sptr<Token> token = nullptr;
-    std::shared_ptr<AbilityRecord> abilityRecord = GetFuzzAbilityRecord();
-    if (abilityRecord) {
-        token = abilityRecord->GetToken();
-    }
-    return token;
-}
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     bool boolParam;
-    sptr<IRemoteObject> token = GetFuzzAbilityToken();
     std::vector<sptr<IRemoteObject>> tokens;
     std::weak_ptr<AbilityDebugDeal> deal;
     FuzzedDataProvider fdp(data, size);
@@ -70,7 +46,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     abilityDebugDeal->OnAbilitysDebugStarted(tokens);
     abilityDebugDeal->OnAbilitysDebugStoped(tokens);
     abilityDebugDeal->OnAbilitysAssertDebugChange(tokens, boolParam);
-    Token::GetAbilityRecordByToken(token) = nullptr;
     abilityDebugDeal->OnAbilitysDebugStarted(tokens);
     abilityDebugDeal->OnAbilitysDebugStoped(tokens);
     abilityDebugDeal->OnAbilitysAssertDebugChange(tokens, boolParam);
