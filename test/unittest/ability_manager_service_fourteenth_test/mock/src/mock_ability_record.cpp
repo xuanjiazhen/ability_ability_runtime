@@ -362,7 +362,7 @@ bool AbilityRecord::CanRestartResident()
 }
 
 // only for UIAbility
-void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
+void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
 {
 }
 
@@ -472,17 +472,9 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
 {
 }
 
-bool AbilityRecord::PrepareTerminateAbility(bool isSCBCall)
+bool AbilityRecord::PrepareTerminateAbility()
 {
     return false;
-}
-
-void AbilityRecord::PrepareTerminateAbilityDone(bool isTerminate)
-{
-}
-
-void AbilityRecord::CancelPrepareTerminate()
-{
 }
 
 int AbilityRecord::TerminateAbility()
@@ -1303,11 +1295,6 @@ void AbilityRecord::UpdateSessionInfo(sptr<IRemoteObject> sessionToken)
     lifecycleDeal_->UpdateSessionToken(sessionToken);
 }
 
-void AbilityRecord::SetMinimizeReason(bool fromUser)
-{
-    minimizeReason_ = fromUser;
-}
-
 void AbilityRecord::SetSceneFlag(uint32_t sceneFlag)
 {
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
@@ -1333,11 +1320,6 @@ int32_t AbilityRecord::GetWantAppIndex() const
 {
     std::lock_guard guard(wantLock_);
     return want_.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-}
-
-bool AbilityRecord::IsMinimizeFromUser() const
-{
-    return minimizeReason_;
 }
 
 void AbilityRecord::SetClearMissionFlag(bool clearMissionFlag)

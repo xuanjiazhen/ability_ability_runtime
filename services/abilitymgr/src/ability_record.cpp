@@ -364,10 +364,9 @@ bool AbilityRecord::CanRestartResident()
 }
 
 // only for UIAbility
-void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
+void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    isWindowStarted_ = true;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundLifecycle %{public}s", abilityInfo_.name.c_str());
     CHECK_POINTER(lifecycleDeal_);
 
@@ -377,16 +376,7 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
     SetAbilityStateInner(AbilityState::FOREGROUNDING);
 #endif // SUPPORT_SCREEN
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
-    Want want;
-    if (hasLastWant) {
-        if (HasLastWant()) {
-            SetWant(*lastWant_);
-            lifeCycleStateInfo_.isNewWant = true;
-            lastWant_ = nullptr;
-        }
-        SetBackgroundDrivenFlag(false);
-    }
-    want = GetWant();
+    Want want = GetWant();
     UpdateDmsCallerInfo(want);
     AbilityRuntime::ErrorMsgGuard errorMsgGuard(token_ ? token_->AsObject() : nullptr,
         reinterpret_cast<uintptr_t>(GetScheduler().GetRefPtr()), "ScheduleAbilityTransaction");
@@ -752,80 +742,16 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
     isLaunching_ = false;
 }
 
-bool AbilityRecord::PrepareTerminateAbility(bool isSCBCall)
+bool AbilityRecord::PrepareTerminateAbility()
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "PrepareTerminateAbility");
     if (lifecycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null lifecycleDeal_");
         return false;
     }
-    if (!isSCBCall) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "triggered by user clicking window x");
-        return lifecycleDeal_->PrepareTerminateAbility();
-    }
-    // execute onPrepareToTerminate until timeout
-    std::unique_lock<std::mutex> lock(isPrepareTerminateAbilityMutex_);
-    isPrepareTerminateAbilityCalled_.store(true);
-    isPrepareTerminate_ = false;
-    isPrepareTerminateAbilityDone_.store(false);
-    auto condition = [weak = weak_from_this()] {
-        auto self = weak.lock();
-        if (self == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "null self");
-            return false;
-        }
-        return self->isPrepareTerminateAbilityDone_.load();
-    };
-    auto task = [weak = weak_from_this()]() {
-        auto self = weak.lock();
-        if (self == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord, prepareTerminateAbility error");
-            return;
-        }
-        if (!self->lifecycleDeal_ || !self->lifecycleDeal_->PrepareTerminateAbility()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "PrepareTerminateAbility error");
-            self->isPrepareTerminateAbilityDone_.store(true);
-            self->isPrepareTerminateAbilityCalled_.store(false);
-            self->isPrepareTerminateAbilityCv_.notify_all();
-        }
-    };
-    ffrt::submit(task);
-    if (!isPrepareTerminateAbilityCv_.wait_for(lock,
-        std::chrono::milliseconds(GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME), condition)) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "wait timeout");
-        return false;
-    }
-    return isPrepareTerminate_;
-}
 
-void AbilityRecord::PrepareTerminateAbilityDone(bool isTerminate)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call PrepareTerminateAbilityDone");
-    std::unique_lock<std::mutex> lock(isPrepareTerminateAbilityMutex_);
-    if (!isPrepareTerminateAbilityCalled_.load()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "prepare terminate not called");
-        return;
-    }
-    isPrepareTerminate_ = isTerminate;
-    isPrepareTerminateAbilityDone_.store(true);
-    isPrepareTerminateAbilityCalled_.store(false);
-    isPrepareTerminateAbilityCv_.notify_one();
-}
-
-void AbilityRecord::CancelPrepareTerminate()
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "canceling prepare terminate,bundle=%{public}s,module=%{public}s,ability=%{public}s",
-        abilityInfo_.bundleName.c_str(), abilityInfo_.moduleName.c_str(), abilityInfo_.name.c_str());
-    std::unique_lock<std::mutex> lock(isPrepareTerminateAbilityMutex_);
-    if (!isPrepareTerminateAbilityCalled_.load()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "prepare terminate not called");
-        return;
-    }
-    isPrepareTerminate_ = true; // no need to terminate again
-    isPrepareTerminateAbilityDone_.store(true);
-    isPrepareTerminateAbilityCalled_.store(false);
-    isPrepareTerminateAbilityCv_.notify_one();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "triggered by user clicking window x");
+    return lifecycleDeal_->PrepareTerminateAbility();
 }
 
 int AbilityRecord::TerminateAbility()
@@ -1882,7 +1808,6 @@ void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
 
 void AbilityRecord::OnProcessDied()
 {
-    CancelPrepareTerminate();
     std::lock_guard<ffrt::mutex> guard(lock_);
     if (!IsSceneBoard() && scheduler_ != nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnProcessDied: '%{public}s', attached.", abilityInfo_.name.c_str());
@@ -2300,11 +2225,6 @@ void AbilityRecord::UpdateSessionInfo(sptr<IRemoteObject> sessionToken)
     lifecycleDeal_->UpdateSessionToken(sessionToken);
 }
 
-void AbilityRecord::SetMinimizeReason(bool fromUser)
-{
-    minimizeReason_ = fromUser;
-}
-
 void AbilityRecord::SetSceneFlag(uint32_t sceneFlag)
 {
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
@@ -2330,11 +2250,6 @@ int32_t AbilityRecord::GetWantAppIndex() const
 {
     std::lock_guard guard(wantLock_);
     return want_.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-}
-
-bool AbilityRecord::IsMinimizeFromUser() const
-{
-    return minimizeReason_;
 }
 
 void AbilityRecord::SetClearMissionFlag(bool clearMissionFlag)
