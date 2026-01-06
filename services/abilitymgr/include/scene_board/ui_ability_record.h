@@ -28,9 +28,12 @@ public:
     UIAbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode);
     
-    static std::shared_ptr<UIAbilityRecord> CreateAbilityRecord(const AbilityRequest &abilityRequest);
+    static UIAbilityRecordPtr CreateAbilityRecord(const AbilityRequest &abilityRequest);
+    static UIAbilityRecordPtr FromBaseRecord(std::shared_ptr<AbilityRecord> abilityRecord);
+    static UIAbilityRecordPtr FromAbilityToken(sptr<IRemoteObject> token);
 
     AbilityRecordType GetAbilityRecordType() override;
+    void OnProcessDied() override;
 
     void SetExitReasonLoaded()
     {
@@ -79,14 +82,55 @@ public:
         hookOff_ = hookOff;
     }
 
+    inline void SetBackgroundDrivenFlag(bool isLastWantBackgroundDriven)
+    {
+        isLastWantBackgroundDriven_.store(isLastWantBackgroundDriven);
+    }
     inline bool IsLastWantBackgroundDriven() const
     {
         return isLastWantBackgroundDriven_.load();
     }
+
+    inline void SetLastWant(std::shared_ptr<Want> lastWant)
+    {
+        lastWant_ = lastWant;
+    }
+    inline bool HasLastWant() const
+    {
+        return lastWant_ != nullptr;
+    }
+
+    void ForegroundAbility(uint32_t sceneFlag, bool hasLastWant);
+    /**
+     * prepare terminate ability.
+     *
+     * @param isSCBCall, if the call is from SCB.
+     * @return Returns true on stop terminating; returns false on terminate.
+     */
+    bool PrepareTerminateAbility(bool isSCBCall);
+
+    /**
+     * prepare terminate ability done.
+     *
+     * @param isTerminate, the result of the onPrepareToTerminate/onPrepareToTerminateAsync.
+     */
+    void PrepareTerminateAbilityDone(bool isTerminate);
+    void CancelPrepareTerminate();
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;
     std::atomic_bool isKillPrecedeStart_ = false;
+    std::atomic_bool isLastWantBackgroundDriven_ = false;
+
+    std::mutex isPrepareTerminateAbilityMutex_;
+    std::condition_variable isPrepareTerminateAbilityCv_;
+    std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
+    std::atomic_bool isPrepareTerminateAbilityDone_ = false;
+    bool isPrepareTerminate_ = false;
+
+    std::shared_ptr<Want> lastWant_;
+
+    std::mutex collaborateWantLock_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

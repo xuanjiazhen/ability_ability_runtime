@@ -614,7 +614,7 @@ private:
      * @param fromUser A boolean indicating whether the minimization was initiated by the user.
      * @return An integer indicating the result of the operation (e.g., success or error code).
      */
-    int MinimizeAbilityLocked(const std::shared_ptr<AbilityRecord> &abilityRecord, bool fromUser);
+    int MinimizeAbilityLocked(MissionAbilityRecordPtr abilityRecord, bool fromUser);
 
     /**
      * @brief Retrieves the currently top-most ability record in a locked context.
