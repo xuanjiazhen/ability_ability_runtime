@@ -252,7 +252,11 @@ void UpdateCallerInfoUtil::UpdateCallerInfoFromToken(Want& want, const sptr<IRem
     std::string callerAbilityName = abilityRecord->GetAbilityInfo().name;
     want.RemoveParam(Want::PARAM_RESV_CALLER_ABILITY_NAME);
     want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, callerAbilityName);
-    UpdateCallerAppCloneIndex(want, abilityRecord->GetAppIndex());
+    if (abilityRecord->GetApplicationInfo().bundleName != AbilityConfig::SCENEBOARD_BUNDLE_NAME &&
+        AppExecFwk::ConvertToExtensionAbilityType(want.GetStringParam(UIEXTENSION_TYPE_KEY)) ==
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_UI) {
+        UpdateCallerAppCloneIndex(want, abilityRecord->GetAppIndex());
+    }
     UpdateSignatureInfo(callerBundleName, want);
 }
 
