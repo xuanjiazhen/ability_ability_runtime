@@ -252,11 +252,22 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
 {
     CHECK_POINTER_AND_RETURN(record, ERR_INVALID_VALUE);
     std::shared_ptr<AAFwk::AbilityRecord> abilityRecord = record->abilityRecord_;
-    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    std::shared_ptr<AAFwk::AbilityRecord> callerRecord = AAFwk::Token::
+        GetAbilityRecordByToken(abilityRequest.callerToken);
 
-    auto appendAppIndex = [&abilityRecord](std::string &processName) {
-        if (abilityRecord->GetAppIndex() > 0) {
-            processName += SEPARATOR + std::to_string(abilityRecord->GetAppIndex());
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    CHECK_POINTER_AND_RETURN(callerRecord, ERR_INVALID_VALUE);
+
+    int32_t processAppIndex = 0;
+    if (callerRecord->GetApplicationInfo().bundleName == AAFwk::AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
+        processAppIndex = abilityRecord->GetWant().GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    } else {
+        processAppIndex = abilityRecord->GetAppIndex();
+    }
+
+    auto appendAppIndex = [processAppIndex](std::string &processName) {
+        if (processAppIndex > 0) {
+            processName += SEPARATOR + std::to_string(processAppIndex);
         }
     };
     switch (record->processMode_) {
@@ -288,14 +299,7 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
         }
         case PROCESS_MODE_HOST_SPECIFIED: {
             std::string processName = abilityRequest.want.GetStringParam(PROCESS_MODE_HOST_SPECIFIED_KEY);
-            int32_t processAppIndex = 0;
             
-            if (abilityRequest.abilityInfo.bundleName == AAFwk::AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
-                processAppIndex = abilityRecord->GetWant().GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-            } else {
-                processAppIndex = abilityRecord->GetAppIndex();
-            }
-
             if (processAppIndex > 0) {
                 auto isStrEndWith = [](const std::string &targetStr, const std::string &suffix) {
                     if (targetStr.length() >= suffix.length()) {
