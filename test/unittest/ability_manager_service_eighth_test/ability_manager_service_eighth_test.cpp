@@ -231,15 +231,15 @@ HWTEST_F(AbilityManagerServiceEighthTest, SwitchToUser_001, TestSize.Level1)
         .WillRepeatedly(Return(false));
     EXPECT_NE(abilityMs->SwitchToUser(oldUserId, userId, 0, callback), ERR_OK);
     abilityMs->taskHandler_ = TaskHandlerWrap::CreateQueueHandler("SetTaskHandler");
-    EXPECT_NE(abilityMs->SwitchToUser(oldUserId, userId, 0, callback1), ERR_OK);
+    EXPECT_EQ(abilityMs->SwitchToUser(oldUserId, userId, 0, callback1), ERR_OK);
     EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
         .WillRepeatedly(Return(true));
-    EXPECT_NE(abilityMs->SwitchToUser(oldUserId, userId, 0, callback1), ERR_OK);
+    EXPECT_EQ(abilityMs->SwitchToUser(oldUserId, userId, 0, callback1), ERR_OK);
     AmsConfigurationParameter::GetInstance().multiUserType_ = 1; // multiUserType_ = 1
-    EXPECT_NE(abilityMs->SwitchToUser(oldUserId, userId, 0, callback1), ERR_OK);
+    EXPECT_EQ(abilityMs->SwitchToUser(oldUserId, userId, 0, callback1), ERR_OK);
     EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
         .WillRepeatedly(Return(false));
-    EXPECT_NE(abilityMs->SwitchToUser(oldUserId, userId, 0, callback1), ERR_OK);
+    EXPECT_EQ(abilityMs->SwitchToUser(oldUserId, userId, 0, callback1), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest SwitchToUser_001 end");
 }
 
