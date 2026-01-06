@@ -50,20 +50,6 @@ uint32_t GetU32Data(const char* ptr)
         ptr[INPUT_THREE];
 }
 
-sptr<Token> GetFuzzAbilityToken()
-{
-    sptr<Token> token = nullptr;
-    AbilityRequest abilityRequest;
-    abilityRequest.appInfo.bundleName = "com.example.fuzzTest";
-    abilityRequest.abilityInfo.name = "MainAbility";
-    abilityRequest.abilityInfo.type = AbilityType::DATA;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    if (abilityRecord) {
-        token = abilityRecord->GetToken();
-    }
-    return token;
-}
-
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     sptr<IRemoteObject> impl;

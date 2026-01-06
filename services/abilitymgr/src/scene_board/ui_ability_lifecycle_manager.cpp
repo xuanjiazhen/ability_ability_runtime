@@ -539,7 +539,7 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
         TAG_LOGW(AAFwkTag::ABILITYMGR, "Not in running list");
         return ERR_INVALID_VALUE;
     }
-    auto abilityRecord = std::static_pointer_cast<UIAbilityRecord>(Token::GetAbilityRecordByToken(token));
+    auto abilityRecord = UIAbilityRecord::FromAbilityToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     abilityRecord->SetPid(IPCSkeleton::GetCallingPid());
     int32_t processAttachResult = DoProcessAttachment(abilityRecord);
@@ -1110,7 +1110,6 @@ void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordP
         if (abilityRecord->GetPrelaunchFlag()) {
             HandlePrelaunchBackground(abilityRecord);
         } else {
-            abilityRecord->SetMinimizeReason(true);
             MoveToBackground(abilityRecord);
         }
     } else if (abilityRecord->GetPendingState() == AbilityState::FOREGROUND) {
@@ -1135,7 +1134,6 @@ void UIAbilityLifecycleManager::HandlePrelaunchBackground(const UIAbilityRecordP
             TAG_LOGW(AAFwkTag::ABILITYMGR, "UIAbilityLifecycleManager or abilityRecordObj invalid");
             return;
         }
-        abilityRecordObj->SetMinimizeReason(true);
         selfObj->MoveToBackground(abilityRecordObj);
     };
     TAG_LOGI(AAFwkTag::ABILITYMGR, "delay to MoveToBackground");
@@ -1381,7 +1379,6 @@ int UIAbilityLifecycleManager::MinimizeUIAbility(const UIAbilityRecordPtr &abili
         return ERR_INVALID_VALUE;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "infoName:%{public}s", abilityRecord->GetAbilityInfo().name.c_str());
-    abilityRecord->SetMinimizeReason(fromUser);
     abilityRecord->SetSceneFlag(sceneFlag);
     if (abilityRecord->GetPendingState() != AbilityState::INITIAL) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state dropped MINIMIZE: %{public}d",
@@ -4336,7 +4333,7 @@ int32_t UIAbilityLifecycleManager::RevokeDelegator(sptr<IRemoteObject> token)
         return ERR_INVALID_CONTEXT;
     }
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    auto abilityRecord = std::static_pointer_cast<UIAbilityRecord>(Token::GetAbilityRecordByToken(token));
+    auto abilityRecord = UIAbilityRecord::FromAbilityToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_CONTEXT);
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
     if (callingTokenId != abilityRecord->GetApplicationInfo().accessTokenId) {
