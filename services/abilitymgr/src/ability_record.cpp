@@ -1884,7 +1884,7 @@ void AbilityRecord::OnProcessDied()
 {
     CancelPrepareTerminate();
     std::lock_guard<ffrt::mutex> guard(lock_);
-    if (!IsSceneBoard() && scheduler_ != nullptr) {
+    if (!IsSceneBoard() && scheduler_ != nullptr && !isKeepAliveDied_) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnProcessDied: '%{public}s', attached.", abilityInfo_.name.c_str());
         return;
     }

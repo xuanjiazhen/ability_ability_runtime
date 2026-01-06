@@ -13562,7 +13562,8 @@ void AbilityManagerService::NotifyStartResidentProcess(std::vector<AppExecFwk::B
     }
 }
 
-void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+    int32_t diedPid)
 {
     if (!system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
         return;
@@ -13590,6 +13591,13 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
             KeepAliveProcessManager::GetInstance().AddNeedRestartKeepAliveUid(item.uid);
         }
     }
+    if (diedPid != AppExecFwk::INVALID_DIED_PID) {
+        auto bundleInfosMapPtr =
+            std::make_shared<std::map<int32_t, std::vector<AppExecFwk::BundleInfo>>>(bundleInfosMap);
+        auto bundleInfosForU1Ptr = std::make_shared<std::vector<AppExecFwk::BundleInfo>>(bundleInfosForU1);
+        TimeSequenceKeepAliveRestart(userId, diedPid, bundleInfosMapPtr, bundleInfosForU1Ptr);
+        return;
+    }
 
     for (auto search = bundleInfosMap.rbegin(); search != bundleInfosMap.rend(); ++search) {
         KeepAliveProcessManager::GetInstance().StartKeepAliveProcessWithMainElement(search->second, search->first);
@@ -13598,6 +13606,28 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
     if (bundleInfosForU1.size() != 0) {
         KeepAliveProcessManager::GetInstance().StartKeepAliveAppServiceExtension(bundleInfosForU1);
     }
+}
+
+void AbilityManagerService::TimeSequenceKeepAliveRestart(int32_t userId, int32_t pid,
+    std::shared_ptr<std::map<int32_t, std::vector<AppExecFwk::BundleInfo>>> bundleInfosMapPtr,
+    std::shared_ptr<std::vector<AppExecFwk::BundleInfo>> bundleInfosForU1Ptr)
+{
+    CHECK_POINTER_LOG(taskHandler_, "taskHandler nullptr");
+    auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
+    CHECK_POINTER_LOG(uiAbilityManager, "uiAbilityManager nullptr");
+    uiAbilityManager->HandleUIAbilityDiedByPid(pid);
+    auto keepAliveRestartTask = [bundleInfosMapPtr, bundleInfosForU1Ptr]() {
+        auto bundleInfosMap = *bundleInfosMapPtr;
+        auto bundleInfosForU1 = *bundleInfosForU1Ptr;
+        for (auto search = bundleInfosMap.rbegin(); search != bundleInfosMap.rend(); ++search) {
+            KeepAliveProcessManager::GetInstance().StartKeepAliveProcessWithMainElement(search->second, search->first);
+        }
+
+        if (bundleInfosForU1.size() != 0) {
+            KeepAliveProcessManager::GetInstance().StartKeepAliveAppServiceExtension(bundleInfosForU1);
+        }
+    };
+    taskHandler_->SubmitTask(keepAliveRestartTask, "TimeSequenceKeepAliveRestartTask");
 }
 
 void AbilityManagerService::NotifyAppPreCache(int32_t pid, int32_t userId)
