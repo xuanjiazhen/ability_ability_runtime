@@ -252,7 +252,9 @@ void UpdateCallerInfoUtil::UpdateCallerInfoFromToken(Want& want, const sptr<IRem
     std::string callerAbilityName = abilityRecord->GetAbilityInfo().name;
     want.RemoveParam(Want::PARAM_RESV_CALLER_ABILITY_NAME);
     want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, callerAbilityName);
-    UpdateCallerAppCloneIndex(want, abilityRecord->GetAppIndex());
+    if (abilityRecord->GetApplicationInfo().bundleName != AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
+        UpdateCallerAppCloneIndex(want, abilityRecord->GetAppIndex());
+    }
     UpdateSignatureInfo(callerBundleName, want);
 }
 
