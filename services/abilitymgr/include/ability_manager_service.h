@@ -2332,7 +2332,8 @@ protected:
 
     void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
 
-    void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
+    void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+        int32_t diedPid = INVALID_PID) override;
 
     /**
      * @brief Notify abilityms app process pre cache
