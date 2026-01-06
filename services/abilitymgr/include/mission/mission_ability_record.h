@@ -69,7 +69,18 @@ public:
         return nextAbilityRecord_.lock();
     }
 
+    inline void SetMinimizeReason(bool fromUser)
+    {
+        minimizeReason_ = fromUser;
+    }
+    bool IsMinimizeFromUser() const
+    {
+        return minimizeReason_;
+    }
+
     std::string GetLabel();
+
+    void ForegroundAbility(uint32_t sceneFlag);
 #ifdef SUPPORT_SCREEN
     void NotifyAnimationFromMinimizeAbility(bool& animaEnabled);
     /**
@@ -112,6 +123,8 @@ private:
     std::string DumpPreAbility() const;
     std::string DumpNextAbility() const;
 private:
+    bool isWindowStarted_ = false;          // is window hotstart or coldstart?
+    bool minimizeReason_ = false;           // new version
     bool isNeedBackToOtherMissionStack_ = false;
     std::weak_ptr<MissionAbilityRecord> otherMissionStackAbilityRecord_;
     std::weak_ptr<MissionAbilityRecord> preAbilityRecord_ = {};

@@ -163,6 +163,12 @@ std::string MissionAbilityRecord::GetLabel()
     return strLabel;
 }
 
+void MissionAbilityRecord::ForegroundAbility(uint32_t sceneFlag)
+{
+    isWindowStarted_ = true;
+    AbilityRecord::ForegroundAbility(sceneFlag);
+}
+
 #ifdef SUPPORT_SCREEN
 void MissionAbilityRecord::NotifyAnimationFromMinimizeAbility(bool& animaEnabled)
 {
