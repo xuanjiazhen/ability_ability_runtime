@@ -473,7 +473,6 @@ void JsRuntimeLite::GetPkgContextInfoListMap(const std::map<std::string, std::st
         TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName: %{public}s get pkgContextInfo success, dataLen: %{public}zu",
             it->first.c_str(), dataLen);
     }
-    return pkgInfoMap;
 }
 
 void JsRuntimeLite::ParsePkgContextInfoJson(nlohmann::json &jsonObject,
