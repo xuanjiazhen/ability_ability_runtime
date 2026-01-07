@@ -212,7 +212,11 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
     }
 
     if (instance != nullptr && !options.preload) {
-        instance->PostFork(options, jsRuntime, isMove);
+        if (jsRuntime == nullptr) {
+            instance->PostFork(options, instance->jsRuntime, isMove);
+        } else {
+            instance->PostFork(options, jsRuntime, isMove);
+        }
     }
     return instance;
 }
