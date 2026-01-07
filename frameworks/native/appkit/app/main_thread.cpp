@@ -4040,6 +4040,13 @@ int32_t MainThread::ScheduleDumpFfrt(std::string& result)
     return DumpFfrtHelper::DumpFfrt(result);
 }
 
+int32_t MainThread::ScheduleDumpArkWeb(const std::string &customArgs, std::string &result)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleDumpArkWeb");
+    // return DumpArkwebHelper::DumpArkweb(result);
+    return ERR_OK;
+}
+
 /**
  *
  * @brief Set watchdog background status of applicaton.
