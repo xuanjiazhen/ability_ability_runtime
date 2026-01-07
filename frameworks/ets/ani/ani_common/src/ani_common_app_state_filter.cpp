@@ -187,8 +187,8 @@ bool UnwrapFilterCallbackFromEts(ani_env *env,
         TAG_LOGE(AAFwkTag::APPMGR, "Invalid allCallback value: %{public}u", mid);
         return false;
     }
-    if (mid & static_cast<uint32_t>(FilterCallback::ON_ABILITY_STATE_CHANGED)) {
-        mid |= static_cast<uint32_t>(FilterCallback::ON_EXTENSION_STATE_CHANGED);
+    if (static_cast<uint32_t>(mid) & static_cast<uint32_t>(FilterCallback::ON_ABILITY_STATE_CHANGED)) {
+        static_cast<uint32_t>(mid) |= static_cast<uint32_t>(FilterCallback::ON_EXTENSION_STATE_CHANGED);
     }
     callback = static_cast<AppExecFwk::FilterCallback>(mid);
     return true;
