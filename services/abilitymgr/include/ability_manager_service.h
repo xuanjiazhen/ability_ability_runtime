@@ -29,6 +29,8 @@
 #include "ability_bundle_event_callback.h"
 #include "ability_config.h"
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "ability_debug_deal.h"
 #include "ability_event_handler.h"
 #include "ability_info.h"
@@ -541,11 +543,12 @@ public:
      * Start ui ability with want, send want to ability manager service.
      *
      * @param sessionInfo the session info of the ability to start.
+     * @param params start parameters.
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
-        bool isRestart) override;
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart) override;
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -710,7 +713,8 @@ public:
         AppExecFwk::ExtensionAbilityType extensionType,
         int32_t userId = DEFAULT_INVAL_VALUE,
         bool isQueryExtensionOnly = false,
-        uint64_t specifiedFullTokenId = 0) override;
+        uint64_t specifiedFullTokenId = 0,
+        int32_t loadTimeout = 0) override;
 
     virtual int ConnectUIExtensionAbility(
         const Want &want,
@@ -1642,9 +1646,11 @@ public:
      * Call UIAbility by SCB.
      *
      * @param sessionInfo the session info of the ability to be called.
+     * @param params start parameters.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart) override;
+    virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
+        AbilityRuntime::StartParamsBySCB &params, bool &isColdStart) override;
 
     /**
      * Start specified ability by SCB.
@@ -1703,7 +1709,7 @@ public:
 
     virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
 
-    virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids) override;
+    virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear) override;
 
     /**
      * kill the process with reason
@@ -2004,7 +2010,7 @@ public:
     int SetWantForSessionInfo(sptr<SessionInfo> sessionInfo);
 
     int32_t StartUIAbilityBySCBDefaultCommon(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
-        uint32_t sceneFlag, bool isRestart, bool &isColdStart);
+        AbilityRuntime::StartParamsBySCB &params, bool &isColdStart);
 
     int32_t NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest);
 
@@ -2359,6 +2365,16 @@ protected:
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 
+    /**
+     * @brief Record the signal reason when an application process exits.
+     *
+     * @param pid Process ID of the exited application process.
+     * @param uid User ID of the exited application process.
+     * @param signal Signal number that caused the process to exit.
+     * @param bundleName Bundle name of the exited application.
+     */
+    void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) override;
+
     int32_t GetCollaboratorType(const std::string &codePath) const;
 
     /**
@@ -2455,10 +2471,10 @@ private:
 
     int StartRemoteAbility(const Want &want, int requestCode, int32_t validUserId,
         const sptr<IRemoteObject> &callerToken, uint32_t specifyTokenId = 0);
-    int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool isRestart,
+    int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
         bool &isColdStart);
     int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo, uint32_t specifyTokenId,
-        uint32_t sceneFlag, bool isRestart, bool &isColdStart);
+        AbilityRuntime::StartParamsBySCB &params, bool &isColdStart);
     int32_t PreStartInner(const FreeInstallInfo& taskInfo);
     void RemovePreStartSession(const std::string& sessionId);
 
@@ -2471,8 +2487,12 @@ private:
         const sptr<SessionInfo> &sessionInfo = nullptr,
         bool isQueryExtensionOnly = false,
         sptr<UIExtensionAbilityConnectInfo> connectInfo = nullptr,
-        uint64_t specifiedFullTokenId = 0);
+        uint64_t specifiedFullTokenId = 0,
+        int32_t loadTimeout = 0);
+
     int DisconnectLocalAbility(const sptr<IAbilityConnection> &connect);
+    int32_t HandleExtensionConnectionByUserId(sptr<IAbilityConnection> connect, int32_t userId,
+        std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)> func);
     int ConnectRemoteAbility(Want &want, const sptr<IRemoteObject> &callerToken, const sptr<IRemoteObject> &connect);
     int DisconnectRemoteAbility(const sptr<IRemoteObject> &connect);
     int PreLoadAppDataAbilities(const std::string &bundleName, const int32_t userId);
@@ -2564,11 +2584,27 @@ private:
     std::shared_ptr<DataAbilityManager> GetDataAbilityManagerByToken(const sptr<IRemoteObject> &token);
     int32_t HandleExtensionAbility(sptr<IAbilityConnection> connect,
         std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)>);
-    std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
-    std::shared_ptr<AbilityConnectManager> GetCurrentConnectManager();
-    std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId);
-    std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(const sptr<IRemoteObject> &token);
-    std::shared_ptr<AbilityConnectManager> GetConnectManagerByAbilityRecordId(const int64_t &abilityRecordId);
+    std::vector<std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
+
+    int32_t GetServiceMapByUserId(AbilityConnectManager::ServiceMapType &serviceMap, int32_t userId);
+    std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(
+        int32_t userId, const AppExecFwk::ExtensionAbilityType type);
+    std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(
+        const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionAbilityType type);
+
+    std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> GetUIExtensionAbilityManagers();
+    std::shared_ptr<UIExtensionAbilityManager> GetCurrentUIExtensionAbilityManager();
+    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByUserId(int32_t userId);
+    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByToken(const sptr<IRemoteObject> &token);
+    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByAbilityRecordId(
+        const int64_t &abilityRecordId);
+
+    std::unordered_map<int, std::shared_ptr<CommonExtensionManager>> GetCommonExtensionManagers();
+    std::shared_ptr<CommonExtensionManager> GetCurrentCommonExtensionManager();
+    std::shared_ptr<CommonExtensionManager> GetCommonExtensionManagerByUserId(int32_t userId);
+    std::shared_ptr<CommonExtensionManager> GetCommonExtensionManagerByToken(const sptr<IRemoteObject> &token);
+    std::shared_ptr<CommonExtensionManager> GetCommonExtensionManagerByAbilityRecordId(const int64_t &abilityRecordId);
+
     std::shared_ptr<PendingWantManager> GetCurrentPendingWantManager();
     std::shared_ptr<PendingWantManager> GetPendingWantManagerByUserId(int32_t userId);
     std::unordered_map<int, std::shared_ptr<MissionListManagerInterface>> GetMissionListManagers();
@@ -2590,13 +2626,14 @@ private:
 
     void StartKeepAliveApps(int32_t userId);
 
-    void StartAutoStartupApps(int32_t userId);
+    void StartAutoStartupApps(int32_t userId, bool isManualStart = false);
     void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList, int32_t userId);
+    void SubscribeUserUnlockedEvent();
     void SubscribeScreenUnlockedEvent();
     std::function<void(int32_t)> GetScreenUnlockCallback();
     std::function<void()> GetUserScreenUnlockCallback();
     void UnSubscribeScreenUnlockedEvent();
-    void RetrySubscribeScreenUnlockedEvent(int32_t retryCount);
+    void RetrySubscribeUnlockedEvent(int32_t retryCount, std::shared_ptr<EventFwk::CommonEventSubscriber> subscriber);
     void RemoveScreenUnlockInterceptor();
     void AddWatchParameters();
 
@@ -2622,7 +2659,9 @@ private:
     bool GetValidDataAbilityUri(const std::string &abilityInfoUri, std::string &adjustUri);
 
     int GenerateExtensionAbilityRequest(const Want &want, AbilityRequest &request,
-        const sptr<IRemoteObject> &callerToken, int32_t userId);
+        const sptr<IRemoteObject> &callerToken, int32_t userId, const std::string hostBundleName = "");
+    std::string GetHostBundleName(const std::string hostBundleName,
+        const sptr<IRemoteObject> &callerToken);
     int32_t InitialAbilityRequest(AbilityRequest &request, const StartAbilityInfo &abilityInfo) const;
     int CheckOptExtensionAbility(const Want &want, AbilityRequest &abilityRequest,
         int32_t validUserId, AppExecFwk::ExtensionAbilityType extensionType, bool isImplicit = false,
@@ -2791,7 +2830,7 @@ private:
     bool CheckUserIdActive(int32_t userId);
 
     void GetConnectManagerAndUIExtensionBySessionInfo(const sptr<SessionInfo> &sessionInfo,
-        std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<BaseExtensionRecord> &targetAbility,
+        std::shared_ptr<UIExtensionAbilityManager> &connectManager, std::shared_ptr<BaseExtensionRecord> &targetAbility,
         bool needCheck = false);
 
     virtual int RegisterSessionHandler(const sptr<IRemoteObject> &object) override;
@@ -3001,7 +3040,8 @@ private:
     sptr<WindowFocusChangedListener> focusListener_;
 #endif // SUPPORT_GRAPHICS
 
-    std::shared_ptr<AbilityRuntime::AbilityManagerEventSubscriber> screenSubscriber_;
+    std::shared_ptr<AbilityRuntime::AbilityUserUnlockEventSubscriber> userUnlockSubscriber_;
+    std::shared_ptr<AbilityRuntime::AbilityScreenUnlockEventSubscriber> screenSubscriber_;
     bool isSubscribed_ = false;
     std::mutex subscribedMutex_;
 
@@ -3012,6 +3052,8 @@ private:
     std::list<std::string> exportWhiteList_;
 
     std::shared_ptr<AbilityRuntime::InsightIntentEventMgr> insightIntentEventMgr_;
+
+    std::list<std::string> vpnAllowList_;
 
     bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
 
@@ -3027,6 +3069,10 @@ private:
     bool ConvertFullPath(const std::string& partialPath, std::string& fullPath);
 
     bool ParseJsonFromBoot(const std::string &relativePath);
+
+    bool CheckSupportVpn(AppExecFwk::AbilityInfo abilityInfo);
+
+    bool ParseVpnAllowListJson(const std::string &relativePath, const std::string &jsonItemStr);
 
     void SetReserveInfo(const std::string &linkString, AbilityRequest& abilityRequest);
     void CloseAssertDialog(const std::string &assertSessionId, int32_t userId);
@@ -3096,6 +3142,7 @@ private:
     ffrt::mutex shouldBlockAllAppStartMutex_;
     mutable ffrt::mutex timeoutMapLock_;
     std::mutex whiteListMutex_;
+    std::mutex allowListMutex_;
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;

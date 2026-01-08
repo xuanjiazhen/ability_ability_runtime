@@ -118,6 +118,7 @@ public:
     MOCK_METHOD2(IsProcessCacheSupported, int32_t(int32_t pid, bool &isSupported));
     MOCK_METHOD2(SetProcessCacheEnable, int32_t(int32_t pid, bool enable));
     MOCK_METHOD2(SetSupportedProcessCache, int32_t(int32_t pid, bool isSupport));
+    MOCK_METHOD2(LockProcessCache, int32_t(int32_t pid, bool isLock));
 #ifdef SUPPORT_CHILD_PROCESS
     MOCK_METHOD3(CreateNativeChildProcess, int32_t(const std::string &libName,
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request));
@@ -127,7 +128,6 @@ public:
 
     MOCK_METHOD1(RegisterKiaInterceptor, int32_t(const sptr<IKiaInterceptor> &interceptor));
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
-    MOCK_METHOD2(JudgeSandboxByPid, int32_t(pid_t, bool &));
     MOCK_METHOD1(SetAppFreezeFilter, bool(int32_t));
     virtual int StartUserTestProcess(
         const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)

@@ -178,10 +178,10 @@ void UIAbilityLifecycleManager::MarkStartingFlag(const AbilityRequest &abilityRe
 }
 
 int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
-    uint32_t sceneFlag, bool isRestart, bool &isColdStart)
+    AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    if (isRestart && !HandleRestartUIAbility(sessionInfo)) {
+    if (params.isRestart && !HandleRestartUIAbility(sessionInfo)) {
         return ERR_INVALID_VALUE;
     }
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
@@ -222,7 +222,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     SetLastExitReasonAsync(uiAbilityRecord);
     MarkStartingFlag(abilityRequest);
     if (sessionInfo->reuseDelegatorWindow) {
-        uiAbilityRecord->lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
+        uiAbilityRecord->lifeCycleStateInfo_.sceneFlagBak = params.sceneFlag;
         return ERR_OK;
     }
     auto want = uiAbilityRecord->GetWant();
@@ -234,7 +234,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     uiAbilityRecord->SetSpecifyTokenId(abilityRequest.specifyTokenId);
     UpdateAbilityRecordLaunchReason(abilityRequest, uiAbilityRecord);
     NotifyAbilityToken(uiAbilityRecord->GetToken(), abilityRequest);
-    if (HandleStartSpecifiedCold(abilityRequest, sessionInfo, sceneFlag, isRestart) &&
+    if (HandleStartSpecifiedCold(abilityRequest, sessionInfo, params) &&
         ProcessColdStartBranch(abilityRequest, sessionInfo, uiAbilityRecord, isColdStart)) {
         return ERR_OK;
     }
@@ -244,6 +244,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state dropped START: %{public}d",
             static_cast<int32_t>(uiAbilityRecord->GetPendingState()));
         uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
+        uiAbilityRecord->lifeCycleStateInfo_.sceneFlagBak = params.sceneFlag;
         if (scenarios == 0 && sessionInfo->isNewWant) {
             uiAbilityRecord->SetLastWant(std::make_shared<Want>(abilityRequest.want));
         }
@@ -272,7 +273,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     if (abilityRequest.processOptions) {
         isStartupHide = abilityRequest.processOptions->startupVisibility == StartupVisibility::STARTUP_HIDE;
     }
-    ForegroundOptions options = { sceneFlag, isShellCall, isStartupHide, sessionInfo->targetGrantBundleName };
+    ForegroundOptions options = { params.sceneFlag, isShellCall, isStartupHide, sessionInfo->targetGrantBundleName };
     if (shouldReturnPid) {
         options.callingPid = abilityRequest.processOptions->callingPid;
         options.loadAbilityCallbackId = abilityRequest.processOptions->loadAbilityCallbackId;
@@ -407,6 +408,8 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityReque
         } else {
             uiAbilityRecord->SetInstanceKey(sessionInfo->instanceKey);
             uiAbilityRecord->SetSessionInfo(sessionInfo);
+            uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
+            return uiAbilityRecord;
         }
         isColdStart = true;
         AbilityStartWithWaitObserverManager::GetInstance().SetColdStartForShellCall(uiAbilityRecord);
@@ -564,12 +567,12 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
     }
     if (abilityRecord->IsStartedByCall()) {
         (void)abilityRecord->PromotePriority();
-        if (abilityRecord->GetPendingState() == AbilityState::FOREGROUND) {
+        if (abilityRecord->GetWant().GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false)) {
             abilityRecord->SetStartToForeground(true);
             abilityRecord->PostForegroundTimeoutTask();
             abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token);
-        } else if (abilityRecord->GetPendingState() == AbilityState::BACKGROUND) {
+        } else {
             abilityRecord->SetStartToBackground(true);
             MoveToBackground(abilityRecord);
         }
@@ -1617,7 +1620,8 @@ void UIAbilityLifecycleManager::PostCallTimeoutTask(int32_t requestId)
         .timeout(GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
 }
 
-void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart)
+void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
+    AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
@@ -1633,6 +1637,7 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, CallUIAbilityBySCB abilityId:%{public}" PRIu64 ".",
         sessionInfo->uiAbilityId);
+    sessionInfo->want.SetParam(AbilityRuntime::GlobalConstant::PAGE_CONFIG, params.pageConfig);
     auto search = tmpAbilityMap_.find(sessionInfo->requestId);
     if (search == tmpAbilityMap_.end()) {
         if (sessionInfo->uiAbilityId == 0 && tmpAbilityMap_.size() == 1) {
@@ -1652,6 +1657,7 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
         return;
     }
     isColdStart = true;
+    uiAbilityRecord->lifeCycleStateInfo_.sceneFlagBak = params.sceneFlag;
     uiAbilityRecord->SetInstanceKey(sessionInfo->instanceKey);
 
     MoreAbilityNumbersSendEventInfo(sessionInfo->userId, sessionInfo->want.GetElement().GetBundleName(),
@@ -1956,6 +1962,7 @@ void UIAbilityLifecycleManager::CompleteBackground(const UIAbilityRecordPtr &abi
     } else if (abilityRecord->GetPendingState() == AbilityState::BACKGROUND) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "not continuous startup.");
         abilityRecord->SetPendingState(AbilityState::INITIAL);
+        abilityRecord->SetLastWant(nullptr);
     }
 
     // new version. started by caller, scheduler call request
@@ -3645,17 +3652,18 @@ std::vector<sptr<IRemoteObject>> UIAbilityLifecycleManager::PrepareTerminateAppA
     return remainingTokens;
 }
 
-int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<int32_t>& pids)
+int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<int32_t>& pids, bool clear)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "prepare terminate app");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "prepareTerminateApp: %{public}zu, clear: %{public}d", pids.size(), clear);
     IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->BlockProcessCacheByPids(pids));
     for (const auto &pid : pids) {
         std::unordered_set<std::shared_ptr<AbilityRecord>> abilitysToTerminate;
         std::vector<sptr<IRemoteObject>> tokens;
         IN_PROCESS_CALL_WITHOUT_RET(
             DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(pid, tokens));
-        for (const auto &token : PrepareTerminateAppAndGetRemaining(pid, tokens)) {
+        auto remainingTokens = PrepareTerminateAppAndGetRemaining(pid, tokens);
+        for (const auto &token : remainingTokens) {
             auto abilityRecord = Token::GetAbilityRecordByToken(token);
             if (PrepareTerminateAbility(abilityRecord, true)) {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "terminate blocked");
@@ -3663,12 +3671,25 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
             }
             abilitysToTerminate.emplace(abilityRecord);
         }
+        SetProcessPrepareExit(pid, remainingTokens.size(), abilitysToTerminate.size(), clear);
         for (const auto &abilityRecord : abilitysToTerminate) {
             TerminateSession(abilityRecord);
         }
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "end.");
     return ERR_OK;
+}
+
+void UIAbilityLifecycleManager::SetProcessPrepareExit(int32_t pid, size_t remainingTokensSize,
+    size_t abilitysToTerminateSize, bool clear) const
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "remianningTokens %{public}zu, abilitysToTerminate %{public}zu",
+        remainingTokensSize, abilitysToTerminateSize);
+    if (remainingTokensSize == abilitysToTerminateSize && clear) {
+        auto appMgr = AppMgrUtil::GetAppMgr();
+        CHECK_POINTER(appMgr);
+        IN_PROCESS_CALL_WITHOUT_RET(appMgr->SetProcessPrepareExit(pid));
+    }
 }
 
 void UIAbilityLifecycleManager::TryPrepareTerminateByPidsDone(const std::string &moduleName,
@@ -4183,7 +4204,7 @@ bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &ab
 }
 
 bool UIAbilityLifecycleManager::HandleStartSpecifiedCold(const AbilityRequest &abilityRequest,
-    sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool isRestart)
+    sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params)
 {
     if (!sessionInfo) {
         return false;
@@ -4193,7 +4214,7 @@ bool UIAbilityLifecycleManager::HandleStartSpecifiedCold(const AbilityRequest &a
         return false;
     }
 
-    if (isRestart) {
+    if (params.isRestart) {
         auto request = std::make_shared<SpecifiedRequest>(RequestIdUtil::GetRequestId(), abilityRequest);
         request->isCold = true;
         auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
@@ -4201,7 +4222,7 @@ bool UIAbilityLifecycleManager::HandleStartSpecifiedCold(const AbilityRequest &a
         auto &list = specifiedRequestList_[accessTokenIdStr + instanceKey];
         sessionInfo->requestId = request->requestId;
         request->persistentId = sessionInfo->persistentId;
-        request->sceneFlag = sceneFlag;
+        request->sceneFlag = params.sceneFlag;
         list.push_back(request);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "restart StartSpecified: %{public}d, persitentId: %{public}d, "
             "list size: %{public}zu", request->requestId, sessionInfo->persistentId, list.size());
@@ -4216,7 +4237,7 @@ bool UIAbilityLifecycleManager::HandleStartSpecifiedCold(const AbilityRequest &a
     TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleStartSpecifiedCold: %{public}d, persitentId: %{public}d",
         request->requestId, sessionInfo->persistentId);
     request->persistentId = sessionInfo->persistentId;
-    request->sceneFlag = sceneFlag;
+    request->sceneFlag = params.sceneFlag;
     request->callingTokenId = sessionInfo->callingTokenId;
     return true;
 }

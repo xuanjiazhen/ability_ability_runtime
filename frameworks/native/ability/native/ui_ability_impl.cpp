@@ -19,10 +19,12 @@
 #include "ability_manager_client.h"
 #include "context/application_context.h"
 #include "freeze_util.h"
+#include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "json_utils.h"
 #include "ohos_application.h"
+#include "page_config_manager.h"
 #include "process_options.h"
 #ifdef SUPPORT_SCREEN
 #include "scene_board_judgement.h"
@@ -171,6 +173,9 @@ void UIAbilityImpl::HandleAbilityTransaction(
     TAG_LOGD(AAFwkTag::UIABILITY,
         "srcState:%{public}d; targetState: %{public}d; isNewWant: %{public}d, sceneFlag: %{public}d",
         lifecycleState_, targetState.state, targetState.isNewWant, targetState.sceneFlag);
+    const_cast<AAFwk::LifeCycleStateInfo&>(targetState).pageConfig =
+        want.GetStringParam(GlobalConstant::PAGE_CONFIG);
+    const_cast<AAFwk::Want&>(want).RemoveParam(GlobalConstant::PAGE_CONFIG);
     UpdateSilentForeground(targetState, sessionInfo);
 #ifdef SUPPORT_SCREEN
     if (ability_ != nullptr) {
@@ -642,6 +647,10 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
                 HandleForegroundNewState(want, ret);
             } else {
                 HandleExecuteInsightIntentForeground(want, ret);
+            }
+            if (ability_ != nullptr) {
+                TAG_LOGD(AAFwkTag::UIABILITY, "pageConfig size:%{public}zu", targetState.pageConfig.size());
+                PageConfigManager::GetInstance().Initialize(targetState.pageConfig, ability_->GetWindow());
             }
 #endif
             break;
