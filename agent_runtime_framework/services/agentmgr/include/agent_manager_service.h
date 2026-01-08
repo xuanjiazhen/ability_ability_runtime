@@ -49,12 +49,14 @@ public:
 private:
     AgentManagerService();
     void Init();
+    RegisterBundleEventCallback();
     DISALLOW_COPY_AND_MOVE(AgentManagerService);
 
 private:
     static sptr<AgentManagerService> instance_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AgentEventHandler> eventHandler_;
+    sptr<AgentBundleEventCallback> bundleEventCallback_;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
