@@ -1502,6 +1502,8 @@ public:
 
     int32_t SetProcessCacheEnable(int32_t pid, bool enable);
 
+    int32_t LockProcessCache(int32_t pid, bool isLock);
+
     void OnAppCacheStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, ApplicationState state);
 
     /**
@@ -1620,9 +1622,23 @@ public:
 
     void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId);
 
+    void SetProcessPrepareExit(int32_t pid);
+
     void AllowScbProcessMoveToBackground();
 
     int32_t KillChildProcessByPid(int32_t pid);
+
+    /**
+     * Preload extension process.
+     *
+     * @param want contains bundleName + abilityName.
+     * @param appIndex The index of application clone.
+     * @param userId Indicates the user identification.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
+
+    void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName);
 
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
@@ -1897,6 +1913,8 @@ private:
 
     void AfterLoadAbility(std::shared_ptr<AppRunningRecord> appRecord, std::shared_ptr<AbilityInfo> abilityInfo,
         std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
+
+    static int32_t GetLoadTimeout(int32_t loadTimeout);
 
     void RemoveRenderRecordNoAttach(const std::shared_ptr<AppRunningRecord> &hostRecord, int32_t renderPid);
 

@@ -401,8 +401,8 @@ ErrCode AbilityManagerClient::StartUIExtensionAbility(sptr<SessionInfo> extensio
     return abms->StartUIExtensionAbility(extensionSessionInfo, userId);
 }
 
-ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
-    bool isRestart)
+ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
+    AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
@@ -412,10 +412,11 @@ ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, StartUIAbilityBySCB target: %{public}s/%{public}s, "
-        "persistentId: %{public}d, appIndex: %{public}d", sessionInfo->want.GetElement().GetBundleName().c_str(),
+        "persistentId: %{public}d, appIndex: %{public}d, pageConfigSize:%{public}zu",
+        sessionInfo->want.GetElement().GetBundleName().c_str(),
         sessionInfo->want.GetElement().GetAbilityName().c_str(), sessionInfo->persistentId,
-        sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
-    return abms->StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, isRestart);
+        sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), params.pageConfig.size());
+    return abms->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
 }
 
 ErrCode AbilityManagerClient::StopExtensionAbility(const Want &want, sptr<IRemoteObject> callerToken,
@@ -571,12 +572,19 @@ ErrCode AbilityManagerClient::MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionIn
 
 ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId)
 {
+    return ConnectAbility(want, connect, userId, 0);
+}
+
+ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId,
+    int32_t loadTimeout)
+{
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
-    return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::SERVICE, userId);
+    return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::SERVICE, userId,
+        false, 0, loadTimeout);
 }
 
 ErrCode AbilityManagerClient::ConnectAbility(
@@ -636,7 +644,7 @@ ErrCode AbilityManagerClient::ConnectDataShareExtensionAbility(const Want &want,
 }
 
 ErrCode AbilityManagerClient::ConnectExtensionAbility(const Want &want, sptr<IAbilityConnection> connect,
-    int32_t userId)
+    int32_t userId, int32_t loadTimeout)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
@@ -648,7 +656,8 @@ ErrCode AbilityManagerClient::ConnectExtensionAbility(const Want &want, sptr<IAb
 
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d.",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
-    return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::UNSPECIFIED, userId);
+    return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::UNSPECIFIED, userId,
+        false, 0, loadTimeout);
 }
 
 ErrCode AbilityManagerClient::ConnectUIExtensionAbility(const Want &want, sptr<IAbilityConnection> connect,
@@ -1784,17 +1793,21 @@ void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSess
     abms->SetRootSceneSession(rootSceneSession);
 }
 
-void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart)
+void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+    bool &isColdStart)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN(abms);
     if (sessionInfo) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CallUIAbilityBySCB t:%{public}s/%{public}s",
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call,CallUIAbilityBySCB:%{public}s/%{public}s/%{public}d,flag:%{public}u, "
+            "pageConfigSize:%{public}zu",
             sessionInfo->want.GetElement().GetBundleName().c_str(),
-            sessionInfo->want.GetElement().GetAbilityName().c_str());
+            sessionInfo->want.GetElement().GetAbilityName().c_str(),
+            sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
+            params.sceneFlag, params.pageConfig.size());
     }
 
-    abms->CallUIAbilityBySCB(sessionInfo, isColdStart);
+    abms->CallUIAbilityBySCB(sessionInfo, params, isColdStart);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "scb call, CallUIAbilityBySCB, isColdStart: %{public}d", isColdStart);
 }
 
@@ -1859,12 +1872,12 @@ ErrCode AbilityManagerClient::RegisterStatusBarDelegate(sptr<AbilityRuntime::ISt
     return abms->RegisterStatusBarDelegate(delegate);
 }
 
-ErrCode AbilityManagerClient::KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids)
+ErrCode AbilityManagerClient::KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, KillProcessWithPrepareTerminate");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->KillProcessWithPrepareTerminate(pids);
+    return abms->KillProcessWithPrepareTerminate(pids, clear);
 }
 
 ErrCode AbilityManagerClient::KillProcessWithReason(int32_t pid, const ExitReason &reason)

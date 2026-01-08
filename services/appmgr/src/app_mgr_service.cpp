@@ -232,6 +232,16 @@ int32_t AppMgrService::PreloadApplication(const std::string &bundleName, int32_t
     return appMgrServiceInner_->PreloadApplication(bundleName, userId, preloadMode, appIndex);
 }
 
+int32_t AppMgrService::PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "PreloadExtension called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "PreloadExtension failed, appMgr not ready.");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->PreloadExtension(want, appIndex, userId);
+}
+
 void AppMgrService::PreloadModuleFinished(const int32_t recordId)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "PreloadModuleFinished called");
@@ -476,28 +486,6 @@ int AppMgrService::GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info)
     return appMgrServiceInner_->GetAllChildrenProcesses(info);
 #endif // SUPPORT_CHILD_PROCESS
     return ERR_INVALID_OPERATION;
-}
-
-int32_t AppMgrService::JudgeSandboxByPid(pid_t pid, bool &isSandbox)
-{
-    if (!IsReady()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return ERR_INVALID_OPERATION;
-    }
-    bool isCallingPermission =
-        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
-    if (!isCallingPermission) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return ERR_PERMISSION_DENIED;
-    }
-    auto appRunningRecord = appMgrServiceInner_->GetAppRunningRecordByPid(pid);
-    if (appRunningRecord && appRunningRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-        isSandbox = true;
-        TAG_LOGD(AAFwkTag::APPMGR, "current app is a sandbox.");
-        return ERR_OK;
-    }
-    TAG_LOGD(AAFwkTag::APPMGR, "current app is not a sandbox.");
-    return ERR_OK;
 }
 
 int32_t AppMgrService::IsTerminatingByPid(pid_t pid, bool &isTerminating)
@@ -1781,6 +1769,21 @@ int32_t AppMgrService::SetProcessCacheEnable(int32_t pid, bool enable)
     return appMgrServiceInner_->SetProcessCacheEnable(pid, enable);
 }
 
+int32_t AppMgrService::LockProcessCache(int32_t pid, bool isLock)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "lock process cache");
+    if (appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        FOUNDATION_PROCESS)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "caller not foundation");
+        return AAFwk::ERR_NO_PERMISSION_CALLER;
+    }
+    return appMgrServiceInner_->LockProcessCache(pid, isLock);
+}
+
 void AppMgrService::SetAppAssertionPauseState(bool flag)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
@@ -2080,6 +2083,20 @@ int32_t AppMgrService::KillChildProcessByPid(int32_t pid)
         return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
     return appMgrServiceInner_->KillChildProcessByPid(pid);
+}
+
+void AppMgrService::SetProcessPrepareExit(int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return;
+    }
+    if (!appMgrServiceInner_->IsFoundationCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
+        return;
+    }
+    appMgrServiceInner_->SetProcessPrepareExit(pid);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
