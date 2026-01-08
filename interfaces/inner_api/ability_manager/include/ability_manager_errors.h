@@ -1096,6 +1096,11 @@ enum {
     ERR_SELF_REDIRECTION_DISALLOWED = 2099202,
 
     /**
+     * Result (2099203) for agent manager proxy is nullptr.
+     */
+    ERR_NULL_AGENT_MGR_PROXY = 2099203,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,
