@@ -60,6 +60,7 @@ namespace wantConstant {
   export enum ShowMode {
     WINDOW = 0,
     EMBEDDED_FULL = 1
+    EMBEDDED_HALF = 2
   }
 }
 
