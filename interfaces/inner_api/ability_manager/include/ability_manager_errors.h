@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1094,6 +1094,11 @@ enum {
      * Result (2099202) for self redirection is not allowed.
      */
     ERR_SELF_REDIRECTION_DISALLOWED = 2099202,
+
+    /**
+     * Result (2099203) for agent manager proxy is nullptr.
+     */
+    ERR_NULL_AGENT_MGR_PROXY = 2099203,
 
     /**
      * Native error(3000000) for target bundle not exist.
