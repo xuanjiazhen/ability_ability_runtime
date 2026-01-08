@@ -77,5 +77,20 @@ void AgentManagerService::OnRemoveSystemAbility(int32_t systemAbilityId, const s
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "remove sysAbilityId %{public}d", systemAbilityId);
 }
+
+int32_t AgentManagerService::GetAllAgentCards(std::vector<AgentCard> &cards)
+{
+    return ERR_OK;
+}
+
+int32_t AgentManagerService::GetAgentCardsByBundleName(const std::string &bundleName, std::vector<AgentCard> &cards)
+{
+    return ERR_OK;
+}
+
+int32_t AgentManagerService::GetAgentCardByUrl(const std::string &bundleName, const std::string &url, AgentCard& card)
+{
+    return ERR_OK;
+}
 }  // namespace AgentRuntime
 }  // namespace OHOS

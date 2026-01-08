@@ -13,5 +13,9 @@
  * limitations under the License.
  */
 
+sequenceable AgentCard..OHOS.AgentRuntime.AgentCard;
 interface OHOS.AgentRuntime.IAgentManager {
+    void GetAllAgentCards([out] AgentCard[] cards);
+    void GetAgentCardsByBundleName([in] String bundleName, [out] AgentCard[] cards);
+    void GetAgentCardByUrl([in] String bundleName, [in] String url, [out] AgentCard card);
 }
