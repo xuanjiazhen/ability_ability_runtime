@@ -30,10 +30,9 @@
 #include "file_path_utils.h"
 #include "runtime.h"
 #include "ets/runtime/ets_namespace_manager.h"
-#include "tooling/inspector/debugger_arkapi.h"
+#include "debugger_arkapi.h"
 #include "ark_vm_api.h"
 #include "ets_ani_expo.h"
-#include "tooling/inspector/debugger_arkapi.h"
 #ifdef LIKELY
 #undef LIKELY
 #endif
