@@ -437,13 +437,12 @@ public:
      * Start ui ability with want, send want to ability manager service.
      *
      * @param sessionInfo the session info of the ability to start.
+     * @param params start parameters.
      * @param isColdStart the session info of the ability is or not cold start.
-     * @param sceneFlag scene flag.
-     * @param isRestart whether kill old process and start the ability in new process.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0,
-        bool isRestart = false);
+    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart);
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -598,6 +597,17 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param loadTimeout, timeout multiply for ability loading stage, range 1-30, not work on asan
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId,
+        int32_t loadTimeout);
+
+    /**
+     * ConnectAbility, connect session with service ability.
+     *
+     * @param want, Special want for service type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
      * @param callerToken, caller ability token.
      * @param specifiedFullTokenId, The specified full token ID.
      * @return Returns ERR_OK on success, others on failure.
@@ -655,10 +665,11 @@ public:
      * @param want, special want for the extension ability.
      * @param connect, callback used to notify caller the result of connecting or disconnecting.
      * @param userId, the extension runs in.
+     * @param loadTimeout, timeout multiply for ability loading stage, range 1-30, not work on asan
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ConnectExtensionAbility(const Want &want, sptr<IAbilityConnection> connect,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t loadTimeout = 0);
 
     /**
      * Connect ui extension ability.
@@ -1125,7 +1136,7 @@ public:
 
     ErrCode RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate);
 
-    ErrCode KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids);
+    ErrCode KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear = false);
 
     /**
      * kill the process with reason
@@ -1481,9 +1492,10 @@ public:
      * Call UIAbility by SCB.
      *
      * @param sessionInfo the session info of the ability to be called.
+     * @param params start parameters.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    void CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart);
+    void CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params, bool &isColdStart);
 
     /**
      * Start specified ability by SCB.

@@ -254,7 +254,7 @@ void AppRunningRecord::ScheduleTrimMemory()
 {
 }
 
-void AppRunningRecord::ScheduleMemoryLevel(int32_t level, bool isShellCall)
+void AppRunningRecord::ScheduleMemoryLevel(int32_t level)
 {
 }
 
@@ -1171,6 +1171,16 @@ void AppRunningRecord::SetProcessCacheBlocked(bool isBlocked)
 bool AppRunningRecord::GetProcessCacheBlocked()
 {
     return processCacheBlocked;
+}
+
+void AppRunningRecord::SetProcessCacheLocked(bool isLock)
+{
+    processCacheLocked_.store(isLock);
+}
+
+bool AppRunningRecord::GetProcessCacheLocked()
+{
+    return processCacheLocked_.load();
 }
 
 bool AppRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()
