@@ -15,7 +15,9 @@
 
 #include "agent_manager_service.h"
 
+#include "agent_bundle_event_callback.h"
 #include "agent_config.h"
+#include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -71,11 +73,27 @@ void AgentManagerService::OnStop() noexcept
 void AgentManagerService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) noexcept
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "add sysAbilityId %{public}d", systemAbilityId);
+    if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID) {
+        RegisterBundleEventCallback();
+    }
 }
 
 void AgentManagerService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) noexcept
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "remove sysAbilityId %{public}d", systemAbilityId);
+}
+
+void AgentManagerService::RegisterBundleEventCallback()
+{
+    if (bundleEventCallback_ != nullptr) {
+        return;
+    }
+    bundleEventCallback_ = sptr<AgentBundleEventCallback>::MakeSptr();
+    bool ret = DelayedSingleton<BundleMgrHelper>::GetInstance()->RegisterBundleEventCallback(bundleEventCallback_);
+    if (!ret) {
+        bundleEventCallback_ = nullptr;
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "register bundle event error");
+    }
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS
