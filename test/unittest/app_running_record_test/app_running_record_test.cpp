@@ -1359,5 +1359,47 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetProcessType_0001, TestSize.Le
     EXPECT_EQ(normalType, ProcessType::NORMAL);
 }
 
+/**
+ * @tc.name: AppRunningRecord_DumpArkWeb_0100
+ * @tc.desc: Test DumpArkWeb works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_DumpArkWeb_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_DumpArkWeb_0100 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    appRecord->appLifeCycleDeal_ == nullptr;
+    std::string customArgs;
+    std::string result;
+    auto ret = appRunningRecord->DumpArkWeb(customArgs, result);
+    EXPECT_EQ(ret, DumpErrorCode::ERR_INTERNAL_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_DumpArkWeb_0100 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_DumpArkWeb_0200
+ * @tc.desc: Test DumpArkWeb works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_DumpArkWeb_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_DumpArkWeb_0200 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    appRecord->appLifeCycleDeal_ == std::make_shared<AppLifeCycleDeal>();
+    std::string customArgs;
+    std::string result;
+    auto ret = appRunningRecord->DumpArkWeb(customArgs, result);
+    auto lifeCycleRet = appRecord->appLifeCycleDeal_->DumpArkWeb(customArgs, result);
+    EXPECT_EQ(ret, lifeCycleRet);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_DumpArkWeb_0200 end.");
+}
 } // namespace AppExecFwk
 } // namespace OHOS
