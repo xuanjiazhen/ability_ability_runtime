@@ -19,6 +19,8 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "ability_connection.h"
 #include "ability_start_setting.h"
 #include "recovery_param.h"
@@ -1712,6 +1714,53 @@ HWTEST_F(AbilityManagerServiceSecondTest, GenerateExtensionAbilityRequest_001, T
     AbilityRequest request;
     EXPECT_EQ(abilityMs_->GenerateExtensionAbilityRequest(want, request, nullptr, 100), RESOLVE_ABILITY_ERR);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GenerateExtensionAbilityRequest_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GenerateExtensionAbilityRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GenerateExtensionAbilityRequest
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, GenerateExtensionAbilityRequest_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GenerateExtensionAbilityRequest_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetParam("ohos.params.pluginAbility", true);
+    AbilityRequest request;
+    EXPECT_EQ(abilityMs_->GenerateExtensionAbilityRequest(want, request, nullptr, 100), RESOLVE_ABILITY_ERR);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GenerateExtensionAbilityRequest_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetHostBundleName
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetHostBundleName
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, GetHostBundleName_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetHostBundleName_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    std::string hostBundleName = "";
+    EXPECT_EQ(abilityMs_->GetHostBundleName(hostBundleName, nullptr), hostBundleName);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetHostBundleName_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetHostBundleName
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetHostBundleName
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, GetHostBundleName_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetHostBundleName_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    std::string hostBundleName = "com.exapmple.test";
+    EXPECT_EQ(abilityMs_->GetHostBundleName(hostBundleName, nullptr), hostBundleName);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetHostBundleName_002 end");
 }
 
 /*

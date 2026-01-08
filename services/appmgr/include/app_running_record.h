@@ -429,7 +429,7 @@ public:
      *
      * @return
      */
-    void ScheduleMemoryLevel(int32_t level, bool isShellCall = false);
+    void ScheduleMemoryLevel(int32_t level);
 
     /**
      * ScheduleHeapMemory, Get the application's memory allocation info.
@@ -545,6 +545,7 @@ public:
     void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler);
     void SetEventHandler(const std::shared_ptr<AMSEventHandler> &handler);
 
+    bool IsLastAbilityByFlag(sptr<IRemoteObject> token, bool clearMissionFlag);
     /**
      * When the one process has no ability, it will go dying.
      */
@@ -999,6 +1000,8 @@ public:
 
     void SetProcessCaching(bool isCaching);
     bool IsCaching();
+    void SetProcessCacheLocked(bool isLock);
+    bool GetProcessCacheLocked();
     void SetNeedPreloadModule(bool isNeedPreloadModule);
     bool GetNeedPreloadModule();
     void SetNeedLimitPrio(bool isNeedLimitPrio);
@@ -1137,6 +1140,15 @@ public:
         return isMasterProcess_;
     }
 
+    inline void SetPrepareExit()
+    {
+        isPrepareExit_ = true;
+    }
+    inline bool IsPrepareExit() const
+    {
+        return isPrepareExit_;
+    }
+
     inline void SetTimeStamp(int64_t timeStamp)
     {
         timeStamp_ = timeStamp;
@@ -1259,6 +1271,7 @@ private:
     bool isNativeStart_ = false;
     bool isMultiThread_ = false;
     bool enableProcessCache_ = true;
+    std::atomic<bool> processCacheLocked_ = false;
     bool processCacheBlocked = false; // temporarily block process cache feature
     bool hasGPU_ = false;
     bool isStrictMode_ = false;
@@ -1274,6 +1287,7 @@ private:
     bool isAllowedNWebPreload_ = false;
     bool isUnSetPermission_ = false;
     bool isExtensionSandBox_ = false;
+    bool isPrepareExit_ = false;
     std::atomic<bool> isKilling_ = false;
     std::atomic_bool isSpawned_ = false;
     std::atomic<bool> isPreForeground_ = false;

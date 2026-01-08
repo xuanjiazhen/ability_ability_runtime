@@ -1000,8 +1000,8 @@ int AbilityManagerProxy::StartUIExtensionAbility(const sptr<SessionInfo> &extens
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
-    bool isRestart)
+int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+    bool &isColdStart)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start by scb");
@@ -1025,8 +1025,8 @@ int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool
             return INNER_ERR;
         }
     }
-    if (!data.WriteUint32(sceneFlag) || !data.WriteBool(isRestart)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneFlag or isRestart write fail");
+    if (!data.WriteParcelable(&params)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "params write fail");
         return INNER_ERR;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::START_UI_ABILITY_BY_SCB, data, reply, option);
@@ -1394,7 +1394,7 @@ int AbilityManagerProxy::ConnectAbility(
 int AbilityManagerProxy::ConnectAbilityCommon(
     const Want &want, const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken,
     AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly,
-    uint64_t specifiedFullTokenId)
+    uint64_t specifiedFullTokenId, int32_t loadTimeout)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -1425,6 +1425,7 @@ int AbilityManagerProxy::ConnectAbilityCommon(
     PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, static_cast<int32_t>(extensionType));
     PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, isQueryExtensionOnly);
     PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Uint64, specifiedFullTokenId);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, loadTimeout);
     int error = SendRequest(AbilityManagerInterfaceCode::CONNECT_ABILITY_WITH_TYPE, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, request error:%{public}d", __func__, error);
@@ -4825,7 +4826,8 @@ void AbilityManagerProxy::SetRootSceneSession(const sptr<IRemoteObject> &rootSce
     }
 }
 
-void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart)
+void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
+    AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -4843,6 +4845,10 @@ void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag write fail");
             return;
         }
+    }
+    if (!data.WriteParcelable(&params)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "params write fail");
+        return;
     }
 
     MessageParcel reply;
@@ -5053,7 +5059,7 @@ int32_t AbilityManagerProxy::RegisterStatusBarDelegate(sptr<AbilityRuntime::ISta
     return reply.ReadInt32();
 }
 
-int32_t AbilityManagerProxy::KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids)
+int32_t AbilityManagerProxy::KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -5073,7 +5079,10 @@ int32_t AbilityManagerProxy::KillProcessWithPrepareTerminate(const std::vector<i
             return ERR_NATIVE_IPC_PARCEL_FAILED;
         }
     }
-
+    if (!data.WriteBool(clear)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write clear fail");
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
     auto ret = SendRequest(AbilityManagerInterfaceCode::KILL_PROCESS_WITH_PREPARE_TERMINATE, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);

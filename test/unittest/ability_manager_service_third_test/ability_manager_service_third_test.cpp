@@ -19,6 +19,8 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "ability_connection.h"
 #include "ability_start_setting.h"
 #include "recovery_param.h"
@@ -36,6 +38,7 @@
 #include "mock_sa_call.h"
 #include "session/host/include/session.h"
 #include "scene_board_judgement.h"
+#include "start_params_by_SCB.h"
 #include "system_ability_definition.h"
 #include "uri.h"
 #include "mock_ability_connect_callback.h"
@@ -248,19 +251,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, GetDataAbilityManagerByUserId_001, Test
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetDataAbilityManagerByUserId_001 end");
 }
 
-/*
- * Feature: AbilityManagerService
- * Function: GetConnectManagerByToken
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService GetConnectManagerByToken
- */
-HWTEST_F(AbilityManagerServiceThirdTest, GetConnectManagerByToken_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetConnectManagerByToken_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_EQ(abilityMs_->GetConnectManagerByToken(nullptr), nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetConnectManagerByToken_001 end");
-}
 
 /*
  * Feature: AbilityManagerService
@@ -507,11 +497,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, GetAbilityRunningInfos_001, TestSize.Le
         EXPECT_EQ(abilityMs_->GetAbilityRunningInfos(info), ERR_INVALID_VALUE);
         abilityMs_->subManagersHelper_->currentMissionListManager_ = temp1;
 
-        auto temp2 = abilityMs_->subManagersHelper_->currentConnectManager_;
-        abilityMs_->subManagersHelper_->currentConnectManager_.reset();
-        EXPECT_NE(abilityMs_->GetAbilityRunningInfos(info), ERR_OK);
-        abilityMs_->subManagersHelper_->currentConnectManager_ = temp2;
-
         auto temp3 = abilityMs_->subManagersHelper_->currentDataAbilityManager_;
         abilityMs_->subManagersHelper_->currentDataAbilityManager_.reset();
         EXPECT_NE(abilityMs_->GetAbilityRunningInfos(info), ERR_OK);
@@ -592,7 +577,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, DisconnectBeforeCleanupByUserId_001, Te
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest DisconnectBeforeCleanupByUserId_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    abilityMs_->subManagersHelper_->InitConnectManager(100, false);
+    abilityMs_->subManagersHelper_->InitCommonExtensionManager(100, false);
 
     auto abilityRecord = MockExtensionRecordBase(AbilityType::SERVICE);
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
@@ -601,14 +586,15 @@ HWTEST_F(AbilityManagerServiceThirdTest, DisconnectBeforeCleanupByUserId_001, Te
         std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1, nullptr);
     abilityRecord->currentState_ = AbilityState::ACTIVE;
     abilityRecord->AddConnectRecordToList(connection1);
-    abilityMs_->GetConnectManagerByUserId(100)->AddConnectObjectToMap(callback1->AsObject(),
+    abilityMs_->GetCommonExtensionManagerByUserId(100)->AddConnectObjectToMap(callback1->AsObject(),
         abilityRecord->GetConnectRecordList(), false);
-    abilityMs_->GetConnectManagerByUserId(100)->serviceMap_.emplace(abilityRecord->GetElementName().GetURI(),
+    abilityMs_->GetCommonExtensionManagerByUserId(100)->serviceMap_.emplace(abilityRecord->GetElementName().GetURI(),
         abilityRecord);
 
     abilityMs_->DisconnectBeforeCleanupByUserId(100);
     ASSERT_EQ(abilityRecord->GetConnectRecordList().empty(), true);
-    ASSERT_EQ(abilityMs_->GetConnectManagerByUserId(100)->GetConnectRecordListByCallback(callback1).empty(), true);
+    ASSERT_EQ(
+        abilityMs_->GetCommonExtensionManagerByUserId(100)->GetConnectRecordListByCallback(callback1).empty(), true);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest DisconnectBeforeCleanupByUserId_001 end");
 }
 
@@ -1823,7 +1809,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartUIAbilityBySCB_001, TestSize.Level
     auto abilityMs = std::make_shared<AbilityManagerService>();
     sptr<SessionInfo> sessionInfo = nullptr;
     bool isColdStart = true;
-    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart, 0, false);
+    AbilityRuntime::StartParamsBySCB params;
+    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 
@@ -1837,7 +1824,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartUIAbilityBySCB_002, TestSize.Level
     auto abilityMs = std::make_shared<AbilityManagerService>();
     sptr<SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
     bool isColdStart = true;
-    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart, 0, false);
+    AbilityRuntime::StartParamsBySCB params;
+    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 
@@ -3302,6 +3290,65 @@ HWTEST_F(AbilityManagerServiceThirdTest, UnRegisterPreloadUIExtensionHostClient_
     int32_t callerPid = -1;
     auto result = abilityMs_->UnRegisterPreloadUIExtensionHostClient(callerPid);
     EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: ParseVpnAllowListJson_001
+ * @tc.desc: Test ParseVpnAllowListJson if vpn_startability_allowlist.json is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, ParseVpnAllowListJson_001, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    bool result = abilityMs_->ParseVpnAllowListJson(
+        "/etc/ability_runtime/vpn_startability_allowlist.json", "bundleNames");
+    EXPECT_NE(result, true);
+}
+
+/**
+ * @tc.name: ParseVpnAllowListJson_002
+ * @tc.desc: Test ParseVpnAllowListJson if vpn_startability_allowlist.json is not empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, ParseVpnAllowListJson_002, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    bool result = abilityMs_->ParseVpnAllowListJson(
+        "/etc/efficiency_manager/prevent_startability_whitelist.json", "white_list");
+    EXPECT_NE(result, false);
+}
+
+/**
+ * @tc.name: CheckSupportVpn_001
+ * @tc.desc: Test CheckSupportVpn when bundleName in allowlist
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_001, TestSize.Level1)
+{
+    AbilityRequest callerRequest = GenerateAbilityRequest(
+        "0", "abilityName", "appName", "com.example.vpn", "moduleName");
+    auto abilityInfo = callerRequest.abilityInfo;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->vpnAllowList_ = {"com.example.vpn"};
+    bool result = abilityMs_->CheckSupportVpn(abilityInfo);
+    EXPECT_NE(result, false);
+}
+
+/**
+ * @tc.name: CheckSupportVpn_002
+ * @tc.desc: Test CheckSupportVpn when extensionAbilityType is VPN
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_002, TestSize.Level1)
+{
+    AbilityRequest callerRequest = GenerateAbilityRequest(
+        "0", "abilityName", "appName", "com.example.vpn", "moduleName");
+    callerRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::VPN;
+    auto abilityInfo = callerRequest.abilityInfo;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->vpnAllowList_ = {"com.example.vpn"};
+    bool result = abilityMs_->CheckSupportVpn(abilityInfo);
+    EXPECT_NE(result, false);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -119,6 +119,7 @@ public:
     MOCK_METHOD2(IsProcessCacheSupported, int32_t(int32_t pid, bool &isSupported));
     MOCK_METHOD2(SetProcessCacheEnable, int32_t(int32_t pid, bool enable));
     MOCK_METHOD2(SetSupportedProcessCache, int32_t(int32_t pid, bool isSupport));
+    MOCK_METHOD2(LockProcessCache, int32_t(int32_t pid, bool isLock));
 #ifdef SUPPORT_CHILD_PROCESS
     MOCK_METHOD3(CreateNativeChildProcess, int32_t(const std::string &libName,
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request));
@@ -130,6 +131,7 @@ public:
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
     MOCK_METHOD4(IsSpecifiedModuleLoaded, int32_t(const AAFwk::Want &, const AbilityInfo &, bool &, bool &));
     MOCK_METHOD1(LaunchAbility, int32_t(sptr<IRemoteObject>));
+    MOCK_METHOD1(SetProcessPrepareExit, void(int32_t));
     virtual int StartUserTestProcess(
         const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)
     {
@@ -177,11 +179,6 @@ public:
     }
 
     virtual int GetProcessRunningInformation(RunningProcessInfo &info)
-    {
-        return 0;
-    }
-
-    virtual int32_t JudgeSandboxByPid(pid_t pid, bool &isSandbox)
     {
         return 0;
     }
