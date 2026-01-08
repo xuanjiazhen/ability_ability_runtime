@@ -1142,10 +1142,10 @@ void AbilitySchedulerProxy::OnExecuteIntent(const Want &want)
     data.WriteParcelable(&want);
     int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ONEXECUTE_INTENT, data, reply, option);
     if (err != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
+        TAG_LOGE(AAFwkTag::INTENT, "fail, err: %{public}d", err);
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "end");
+    TAG_LOGI(AAFwkTag::INTENT, "end");
 }
 
 int32_t AbilitySchedulerProxy::CreateModalUIExtension(const Want &want)

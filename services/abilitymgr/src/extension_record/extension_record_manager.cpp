@@ -31,6 +31,17 @@ constexpr const char *EMBEDDEDUI = "embeddedUI";
 const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 constexpr const char* UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionType";
 constexpr size_t HOST_PID_INDEX = 3;
+int32_t GetAppIndexByRecord(std::shared_ptr<AAFwk::AbilityRecord> abilityRecord, std::shared_ptr<AAFwk::AbilityRecord> callerRecord,
+    const AAFwk::AbilityRequest &abilityRequest) {
+    int32_t processAppIndex = abilityRecord->GetAppIndex();
+    if (callerRecord != nullptr && callerRecord->GetApplicationInfo().bundleName ==
+        AAFwk::AbilityConfig::SCENEBOARD_BUNDLE_NAME && (AppExecFwk::ConvertToExtensionAbilityType(
+        abilityRequest.want.GetStringParam(UIEXTENSION_TYPE_KEY)) ==
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_UI)) {
+        processAppIndex = abilityRequest.want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, processAppIndex);
+    }
+    return processAppIndex;
+}
 }
 std::atomic_int32_t ExtensionRecordManager::extensionRecordId_ = INVALID_EXTENSION_RECORD_ID;
 
@@ -258,14 +269,7 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
 
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
 
-    int32_t processAppIndex = abilityRecord->GetAppIndex();
-    if (callerRecord != nullptr && callerRecord->GetApplicationInfo().bundleName ==
-        AAFwk::AbilityConfig::SCENEBOARD_BUNDLE_NAME && (AppExecFwk::ConvertToExtensionAbilityType(
-        abilityRequest.want.GetStringParam(UIEXTENSION_TYPE_KEY)) ==
-        AppExecFwk::ExtensionAbilityType::EMBEDDED_UI)) {
-        processAppIndex = abilityRequest.want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, processAppIndex);
-    }
-
+    int32_t processAppIndex = GetAppIndexByRecord(abilityRecord, callerRecord, abilityRequest);
     auto appendAppIndex = [processAppIndex](std::string &processName) {
         if (processAppIndex > 0) {
             processName += SEPARATOR + std::to_string(processAppIndex);

@@ -133,6 +133,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
 
 int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, ExecuteMode executeMode, int32_t userId)
 {
+    TAG_LOGD(AAFwkTag::INTENT, "update entry decorator params");
     std::string intentName = want.GetStringParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME);
     ExtractInsightIntentInfo info;
     if (userId == DEFAULT_INVAL_VALUE) {
