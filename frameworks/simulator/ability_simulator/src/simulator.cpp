@@ -158,8 +158,7 @@ private:
     std::shared_ptr<JsEnv::SourceMap> sourceMapPtr_;
     CallbackTypePostTask postTask_ = nullptr;
     void GetPkgContextInfoListMap(const std::map<std::string, std::string> &contextInfoMap,
-        std::map<std::string, std::vector<std::vector<std::string>>> &pkgContextInfoMap,
-        std::map<std::string, std::string> &pkgAliasMap);
+        std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> &pkgInfoMap);
     void GetPkgContextInfoListInner(nlohmann::json &itemObject, std::vector<std::string> &items,
         std::map<std::string, std::string> &pkgAliasMap, std::string &pkgName);
 };
@@ -961,52 +960,16 @@ void SimulatorImpl::SetHostResolveBufferTracker(ResolveBufferTrackerCallback cb)
 }
 
 void SimulatorImpl::GetPkgContextInfoListMap(const std::map<std::string, std::string> &contextInfoMap,
-    std::map<std::string, std::vector<std::vector<std::string>>> &pkgContextInfoMap,
-    std::map<std::string, std::string> &pkgAliasMap)
+    std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> &pkgInfoMap)
 {
     for (auto it = contextInfoMap.begin(); it != contextInfoMap.end(); it++) {
-        std::vector<std::vector<std::string>> pkgContextInfoList;
-        auto jsonObject = nlohmann::json::parse(it->second);
-        if (jsonObject.is_discarded()) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "moduleName: %{public}s parse json error", it->first.c_str());
-            continue;
-        }
-        for (nlohmann::json::iterator jsonIt = jsonObject.begin(); jsonIt != jsonObject.end(); jsonIt++) {
-            std::vector<std::string> items;
-            items.emplace_back(jsonIt.key());
-            nlohmann::json itemObject = jsonIt.value();
-            if (!itemObject.is_object()) {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "itemObject is not object");
-                return;
-            }
-            std::string pkgName = "";
-            items.emplace_back(PACKAGE_NAME);
-            if (itemObject[PACKAGE_NAME].is_null() || !itemObject[PACKAGE_NAME].is_string()) {
-                items.emplace_back(pkgName);
-            } else {
-                pkgName = itemObject[PACKAGE_NAME].get<std::string>();
-                items.emplace_back(pkgName);
-            }
-
-            items.emplace_back(BUNDLE_NAME);
-            if (itemObject[BUNDLE_NAME].is_null() || !itemObject[BUNDLE_NAME].is_string()) {
-                items.emplace_back("");
-            } else {
-                items.emplace_back(itemObject[BUNDLE_NAME].get<std::string>());
-            }
-
-            items.emplace_back(MODULE_NAME);
-            if (itemObject[MODULE_NAME].is_null() || !itemObject[MODULE_NAME].is_string()) {
-                items.emplace_back("");
-            } else {
-                items.emplace_back(itemObject[MODULE_NAME].get<std::string>());
-            }
-
-            GetPkgContextInfoListInner(itemObject, items, pkgAliasMap, pkgName);
-            pkgContextInfoList.emplace_back(items);
-        }
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "moduleName: %{public}s parse json success", it->first.c_str());
-        pkgContextInfoMap[it->first] = pkgContextInfoList;
+        std::unique_ptr<uint8_t[]> data;
+        size_t dataLen = it->second.size();
+        data = std::make_unique<uint8_t[]>(dataLen);
+        std::memcpy(data.get(), it->second.data(), dataLen);
+        pkgInfoMap[it->first] = std::make_pair(std::move(data), dataLen);
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName: %{public}s get pkgContextInfo success, dataLen: %{public}zu",
+            it->first.c_str(), dataLen);
     }
 }
 
