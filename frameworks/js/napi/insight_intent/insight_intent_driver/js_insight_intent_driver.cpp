@@ -62,6 +62,7 @@ public:
         TAG_LOGI(AAFwkTag::INTENT, "complete");
         NapiAsyncTask::CompleteCallback complete = [resultCode = resultCode, executeResult = executeResult]
             (napi_env env, NapiAsyncTask &task, int32_t status) {
+            HandleEscape handleEscape(env);
             if (resultCode != 0) {
                 task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(resultCode)));
             } else {
@@ -143,18 +144,19 @@ private:
     }
     napi_value OnExecute(napi_env env, NapiCallbackInfo& info)
     {
+        HandleEscape handleEscape(env);
         TAG_LOGI(AAFwkTag::INTENT, "on execute");
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
             ThrowTooFewParametersError(env);
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
 
         InsightIntentExecuteParam param;
         if (!UnwrapExecuteParam(env, info.argv[INDEX_ZERO], param)) {
             TAG_LOGE(AAFwkTag::INTENT, "parse on off type failed");
             ThrowInvalidParamError(env, "Parameter error: Parse param failed, param must be a ExecuteParam.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
 
         napi_value lastParam = (info.argc == 1) ? nullptr : info.argv[INDEX_ONE];
@@ -176,7 +178,7 @@ private:
 
         if (asyncTask == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "null asyncTask");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         auto client = std::make_shared<JsInsightIntentExecuteCallbackClient>(env, nativeDeferred, callbackRef);
         uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(client);
@@ -186,7 +188,7 @@ private:
             ParseParam(param);
             if (!param.isServiceMatch_) {
                 ThrowInvalidParamError(env, "Invalid service_match param");
-                return CreateJsUndefined(env);
+                return handleEscape.Escape(CreateJsUndefined(env));
             }
         }
         auto err = AbilityManagerClient::GetInstance()->ExecuteIntent(key,
@@ -195,16 +197,17 @@ private:
             asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
         }
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetAllInsightIntentInfo(napi_env env, NapiCallbackInfo& info)
     {
+        HandleEscape handleEscape(env);
         TAG_LOGI(AAFwkTag::INTENT, "OnGetAllInsightIntentInfo");
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
             ThrowTooFewParametersError(env);
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         GetInsightIntentFlag flag;
         if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], flag) ||
@@ -214,7 +217,7 @@ private:
             flag != (GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO))) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse flag failed");
             ThrowInvalidParamError(env, "Parse param flag failed, flag must be GetInsightIntentFlag.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
         auto infos = std::make_shared<std::vector<InsightIntentInfoForQuery>>();
@@ -223,6 +226,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrorCode, infos](napi_env env, NapiAsyncTask &task, int32_t status) {
+                HandleEscape handleEscape(env);
                 if (*innerErrorCode == 0) {
                     task.ResolveWithNoError(env, CreateInsightIntentInfoForQueryArray(env, *infos));
                 } else {
@@ -232,22 +236,23 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsInsightIntentDriver::OnGetAllInsightIntentInfo",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetInsightIntentInfoByBundleName(napi_env env, NapiCallbackInfo& info)
     {
+        HandleEscape handleEscape(env);
         TAG_LOGI(AAFwkTag::INTENT, "OnGetInsightIntentInfoByBundleName");
         if (info.argc < ARGC_TWO) {
             TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
             ThrowTooFewParametersError(env);
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         std::string bundleName;
         if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], bundleName)) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse bundleName failed");
             ThrowInvalidParamError(env, "Parse param bundleName failed, bundleName must be string.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         GetInsightIntentFlag flag;
         if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], flag) ||
@@ -257,7 +262,7 @@ private:
             flag != (GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO))) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse flag failed");
             ThrowInvalidParamError(env, "Parse param flag failed, flag must be GetInsightIntentFlag.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
         auto infos = std::make_shared<std::vector<InsightIntentInfoForQuery>>();
@@ -267,6 +272,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrorCode, infos](napi_env env, NapiAsyncTask &task, int32_t status) {
+                HandleEscape handleEscape(env);
                 if (*innerErrorCode == 0) {
                     task.ResolveWithNoError(env, CreateInsightIntentInfoForQueryArray(env, *infos));
                 } else {
@@ -276,34 +282,35 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsInsightIntentDriver::OnGetInsightIntentInfoByBundleName",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetInsightIntentInfoByIntentName(napi_env env, NapiCallbackInfo& info)
     {
+        HandleEscape handleEscape(env);
         TAG_LOGI(AAFwkTag::INTENT, "OnGetInsightIntentInfoByIntentName");
         if (info.argc < ARGC_FOUR) {
             TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
             ThrowTooFewParametersError(env);
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         std::string bundleName;
         if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], bundleName)) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse bundleName failed");
             ThrowInvalidParamError(env, "Parse param bundleName failed, bundleName must be string.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         std::string moduleName;
         if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], moduleName)) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse intentName failed");
             ThrowInvalidParamError(env, "Parse param moduleName failed, moduleName must be string.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         std::string intentName;
         if (!ConvertFromJsValue(env, info.argv[INDEX_TWO], intentName)) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse intentName failed");
             ThrowInvalidParamError(env, "Parse param intentName failed, intentName must be string.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         GetInsightIntentFlag flag;
         if (!ConvertFromJsValue(env, info.argv[INDEX_THREE], flag) ||
@@ -313,7 +320,7 @@ private:
             flag != (GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT | GetInsightIntentFlag::GET_ENTITY_INFO))) {
             TAG_LOGE(AAFwkTag::INTENT, "Parse flag failed");
             ThrowInvalidParamError(env, "Parse param flag failed, flag must be GetInsightIntentFlag.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
         auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
         auto intentInfo = std::make_shared<InsightIntentInfoForQuery>();
@@ -324,6 +331,7 @@ private:
             };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrorCode, intentInfo](napi_env env, NapiAsyncTask &task, int32_t status) {
+                HandleEscape handleEscape(env);
                 if (*innerErrorCode == 0) {
                     task.ResolveWithNoError(env, CreateInsightIntentInfoForQuery(env, *intentInfo));
                 } else {
@@ -333,28 +341,29 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsInsightIntentDriver::OnGetInsightIntentInfoByIntentName",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetInsightIntentInfoByFilter(napi_env env, NapiCallbackInfo& info)
     {
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
             ThrowTooFewParametersError(env);
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
 
         if (!CheckValidIntentInfoFilter(env, info.argv[INDEX_ZERO])) {
             TAG_LOGE(AAFwkTag::INTENT, "check filter failed");
             ThrowInvalidParamError(env, "Param error: filter must be a valid InsightIntentInfoFilter.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
 
         InsightIntentInfoFilter filter;
         if (!UnwrapIntentInfoFilter(env, info.argv[INDEX_ZERO], filter)) {
             TAG_LOGE(AAFwkTag::INTENT, "parse filter failed");
             ThrowInvalidParamError(env, "Param error: filter must be a InsightIntentInfoFilter.");
-            return CreateJsUndefined(env);
+            return handleEscape.Escape(CreateJsUndefined(env));
         }
 
         auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
@@ -378,6 +387,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrorCode, infos](napi_env env, NapiAsyncTask &task, int32_t status) {
+                HandleEscape handleEscape(env);
                 if (*innerErrorCode == 0) {
                     task.ResolveWithNoError(env, CreateInsightIntentInfoForQueryArray(env, *infos));
                 } else {
@@ -387,12 +397,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsInsightIntentDriver::OnGetInsightIntentInfoByFilter",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 };
 
 static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* name, int32_t value)
 {
+    HandleEscape handleEscape(env);
     napi_status status;
     napi_value itemName;
     napi_value itemValue;
@@ -408,6 +419,7 @@ static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* 
 
 static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* name, const char* value)
 {
+    HandleEscape handleEscape(env);
     napi_status status;
     napi_value itemName;
     napi_value itemValue;
@@ -423,6 +435,7 @@ static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* 
 
 static napi_value InitGetInsightIntentFlagObject(napi_env env)
 {
+    HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -433,11 +446,12 @@ static napi_value InitGetInsightIntentFlagObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(
         env, napiObject, "GET_ENTITY_INFO", GetInsightIntentFlag::GET_ENTITY_INFO));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 static napi_value InitInsightIntentTypeObject(napi_env env)
 {
+    HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -447,18 +461,19 @@ static napi_value InitInsightIntentTypeObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "FUNCTION", "@InsightIntentFunctionMethod"));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "FORM", "@InsightIntentForm"));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 static napi_value InitIntentDevelopTypeObject(napi_env env)
 {
+    HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
     NAPI_CALL(env, SetEnumItem(env, napiObject, "CONFIGURATION", "configuration"));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "DECORATOR", "decorator"));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 napi_value JsInsightIntentDriverInit(napi_env env, napi_value exportObj)
