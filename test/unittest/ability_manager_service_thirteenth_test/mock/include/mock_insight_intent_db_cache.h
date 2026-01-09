@@ -26,10 +26,11 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+constexpr int32_t ERR_NULL_INTENT = -2;
 class InsightIntentDbCache : public std::enable_shared_from_this<InsightIntentDbCache> {
     DECLARE_DELAYED_SINGLETON(InsightIntentDbCache)
 public:
-    void InitInsightIntentCache(const int32_t userId);
+    int32_t InitInsightIntentCache(const int32_t userId);
     void GetAllInsightIntentGenericInfo(const int32_t userId,
         std::vector<ExtractInsightIntentGenericInfo> &genericInfos);
     void GetInsightIntentGenericInfoByName(const std::string &bundleName, const int32_t userId,
