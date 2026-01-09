@@ -327,6 +327,9 @@ void JsUIExtension::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbac
         context->SetTerminating(true);
     }
     UIExtension::OnStop();
+    AbilityRuntime::ApplicationConfigurationManager::GetInstance().DeleteIgnoreContext(GetContext());
+    TAG_LOGI(AAFwkTag::UIABILITY, "GetIgnoreContext size %{public}zu",
+        AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetIgnoreContext().size());
     HandleScope handleScope(jsRuntime_);
     napi_value result = CallObjectMethod("onDestroy", nullptr, 0, true);
 #ifdef SUPPORT_GRAPHICS
