@@ -34,6 +34,7 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 const int BUNDLE_NAME_LIST_MAX_SIZE = 128;
+constexpr int32_t RESOURCE_MANAGER_UID = 1096;
 }
 class MockApplicationStateObserver : public IApplicationStateObserver {
 public:
@@ -218,7 +219,7 @@ HWTEST_F(AppSpawnSocketTest, OnAppStateChanged_001, TestSize.Level1)
     std::shared_ptr<AppRunningRecord> appRecord;
     ApplicationState state = ApplicationState::APP_STATE_CREATE;
     bool needNotifyApp = false;
-    manager->OnAppStateChanged(appRecord, state, needNotifyApp, false);
+    manager->OnAppStateChanged(appRecord, state, needNotifyApp, false, false);
 }
 
 /*
@@ -237,7 +238,7 @@ HWTEST_F(AppSpawnSocketTest, OnAppStateChanged_002, TestSize.Level1)
     ApplicationState state = ApplicationState::APP_STATE_CREATE;
     bool needNotifyApp = false;
     manager->Init();
-    manager->OnAppStateChanged(appRecord, state, needNotifyApp, false);
+    manager->OnAppStateChanged(appRecord, state, needNotifyApp, false, false);
 }
 
 /*
@@ -1763,6 +1764,31 @@ HWTEST_F(AppSpawnSocketTest, HandleOnProcessResued_004, TestSize.Level2)
     manager->appStateObserverMap_.emplace(observer, AppStateObserverInfo{0, bundleNames});
     EXPECT_CALL(*mockObserver, OnProcessReused(_)).Times(0);
     manager->HandleOnProcessResued(appRecord);
+}
+
+/*
+ * Feature: AppStateObserverManager
+ * Function: PreventNotify
+ * SubFunction: NA
+ * FunctionPoints: AppStateObserverManager PreventNotify
+ * EnvConditions: NA
+ * CaseDescription: Verify PreventNotify
+ */
+HWTEST_F(AppSpawnSocketTest, PreventNotify_001, TestSize.Level1)
+{
+    auto manager = std::make_shared<AppStateObserverManager>();
+    ApplicationState state = ApplicationState::APP_STATE_CREATE;
+
+    EXPECT_FALSE(manager->PreventNotify(state, 0, false));
+    EXPECT_FALSE(manager->PreventNotify(state, 0, true));
+    EXPECT_FALSE(manager->PreventNotify(state, RESOURCE_MANAGER_UID, false));
+    EXPECT_FALSE(manager->PreventNotify(state, RESOURCE_MANAGER_UID, true));
+
+    state = ApplicationState::APP_STATE_BACKGROUND;
+    EXPECT_FALSE(manager->PreventNotify(state, 0, false));
+    EXPECT_FALSE(manager->PreventNotify(state, 0, true));
+    EXPECT_FALSE(manager->PreventNotify(state, RESOURCE_MANAGER_UID, false));
+    EXPECT_TRUE(manager->PreventNotify(state, RESOURCE_MANAGER_UID, true));
 }
 } // namespace AppExecFwk
 } // namespace OHOS
