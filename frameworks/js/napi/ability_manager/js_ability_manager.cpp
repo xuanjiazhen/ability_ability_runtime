@@ -291,6 +291,7 @@ private:
     napi_value OnNotifyDebugAssertResult(napi_env env, size_t argc, napi_value *argv)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
         if (argc < ARGC_TWO) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -336,7 +337,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JsAbilityManager::OnNotifyDebugAssertResult", env,
             CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnOffAbilityForeground(napi_env env, size_t argc, napi_value *argv)
@@ -366,6 +367,7 @@ private:
     napi_value OnGetAbilityRunningInfos(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
         NapiAsyncTask::CompleteCallback complete =
             [](napi_env env, NapiAsyncTask &task, int32_t status) {
                 HandleScope handleScope(env);
@@ -388,12 +390,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsAbilityManager::OnGetAbilityRunningInfos",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetExtensionRunningInfos(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
         if (info.argc == 0) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
 #ifdef ENABLE_ERRCODE
@@ -432,12 +435,13 @@ private:
         NapiAsyncTask::ScheduleHighQos("JsAbilityManager::OnGetExtensionRunningInfos",
             env, CreateAsyncTaskWithLastParam(env,
             lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnUpdateConfiguration(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
         NapiAsyncTask::CompleteCallback complete;
 
         do {
@@ -486,12 +490,13 @@ private:
         NapiAsyncTask::ScheduleHighQos("JsAbilityManager::OnGetExtensionRunningInfos",
             env, CreateAsyncTaskWithLastParam(env,
             lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetTopAbility(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
 #ifdef ENABLE_ERRCODE
         auto selfToken = IPCSkeleton::GetSelfTokenID();
         if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
@@ -515,12 +520,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsAbilityManager::OnGetTopAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnAcquireShareData(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_ONE) {
             ThrowTooFewParametersError(env);
             return CreateJsUndefined(env);
@@ -557,12 +563,13 @@ private:
         if (err != 0) {
             asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
         }
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnNotifySaveAsResult(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
         NapiAsyncTask::CompleteCallback complete;
         NapiAsyncTask::ExecuteCallback execute;
 
@@ -606,12 +613,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsAbilityManager::OnNotifySaveAsResult", env,
             CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetForegroundUIAbilities(napi_env env, size_t argc, napi_value *argv)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
         NapiAsyncTask::CompleteCallback complete = [](napi_env env, NapiAsyncTask &task, int32_t status) {
             std::vector<AppExecFwk::AbilityStateData> list;
             int32_t ret = AbilityManagerClient::GetInstance()->GetForegroundUIAbilities(list);
@@ -627,12 +635,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JsAbilityManager::OnGetForegroundUIAbilities", env,
             CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnSetResidentProcessEnabled(napi_env env, size_t argc, napi_value *argv)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
         if (argc < ARGC_TWO) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -677,12 +686,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JsAbilityManager::OnSetResidentProcessEnabled", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnIsEmbeddedOpenAllowed(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_TWO) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -730,7 +740,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JsAbilityManager::OnIsEmbeddedOpenAllowed", env,
             CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     int AddQueryERMSObserver(napi_env env, sptr<IRemoteObject> token, const std::string &appId,
@@ -756,6 +766,7 @@ private:
     napi_value OnQueryAtomicServiceStartupRuleInner(napi_env env, sptr<IRemoteObject> token,
         const std::string &appId)
     {
+        HandleEscape handleEscape(env);
         auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
         auto rule = std::make_shared<AtomicServiceStartupRule>();
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
@@ -793,7 +804,7 @@ private:
 
         NapiAsyncTask::Schedule("JsAbilityManager::OnQueryAtomicServiceStartupRule", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnQueryAtomicServiceStartupRule(napi_env env, NapiCallbackInfo& info)
@@ -900,6 +911,7 @@ private:
     napi_value OnOnPreloadedUIExtensionAbilityLoaded(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnOnPreloadedUIExtensionAbilityLoaded called");
+        HandleScope handleScope(env);
         if (!CheckPreloadUIExtensionAbilityPermission(env)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
             return CreateJsUndefined(env);
@@ -958,6 +970,7 @@ private:
             return CreateJsUndefined(env);
         }
         auto it = std::find_if(loadedCallback_.begin(), loadedCallback_.end(), [&](const auto &cb) {
+            HandleScope handleScope(env);
             napi_value jsFunc = nullptr;
             bool isEquals = false;
             napi_get_reference_value(env, cb.first, &jsFunc);
@@ -976,6 +989,7 @@ private:
     napi_value OnOnPreloadedUIExtensionAbilityDestroyed(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnOnPreloadedUIExtensionAbilityDestroyed called");
+        HandleScope handleScope(env);
         if (!CheckPreloadUIExtensionAbilityPermission(env)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
             return CreateJsUndefined(env);
@@ -1036,6 +1050,7 @@ private:
             return CreateJsUndefined(env);
         }
         auto it = std::find_if(destroyCallback_.begin(), destroyCallback_.end(), [&](const auto &cb) {
+            HandleScope handleScope(env);
             napi_value jsFunc = nullptr;
             bool isEquals = false;
             napi_get_reference_value(env, cb.first, &jsFunc);
@@ -1054,6 +1069,7 @@ private:
     napi_value OnPreloadUIExtensionAbility(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnPreloadUIExtensionAbility called");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -1086,12 +1102,13 @@ private:
         }
         std::string bundleName = context->GetBundleName();
         PreloadUIExtensionHostClient::GetInstance()->PreloadUIExtensionAbility(want, bundleName, std::move(task));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnClearPreloadedUIExtensionAbility(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnClearPreloadedUIExtensionAbility called");
+        HandleEscape handleEscape(env);
         if (info.argc < 1) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "params error: preloadId required");
             ThrowTooFewParametersError(env);
@@ -1120,12 +1137,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsApplicationContextUtils::OnClearPreloadedUIExtensionAbility", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnClearPreloadedUIExtensionAbilities(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnClearPreloadedUIExtensionAbilities called");
+        HandleEscape handleEscape(env);
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [innerErrCode]() {
             *innerErrCode = AbilityManagerClient::GetInstance()->ClearPreloadedUIExtensionAbilities();
@@ -1141,7 +1159,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsApplicationContextUtils::OnClearPreloadedUIExtensionAbilities", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 };
 } // namespace

@@ -144,6 +144,7 @@ private:
     napi_value OnUnregisterMissionListener(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGI(AAFwkTag::MISSION, "called");
+        HandleEscape handleEscape(env);
         if (argc < 1) {
             TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -183,12 +184,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("MissionManager::OnUnregisterMissionListener",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetMissionInfos(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGI(AAFwkTag::MISSION, "called");
+        HandleEscape handleEscape(env);
         if (argc < ARG_COUNT_TWO) { // at least 2 parameters.
             TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -223,12 +225,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("MissionManager::OnGetMissionInfos",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetMissionInfo(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGI(AAFwkTag::MISSION, "called");
+        HandleEscape handleEscape(env);
         if (argc < ARG_COUNT_TWO) {
             TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -263,7 +266,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("MissionManager::OnGetMissionInfo",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGetMissionSnapShot(napi_env env, size_t argc, napi_value* argv)
@@ -280,6 +283,7 @@ private:
 
     napi_value GetMissionSnapShot(napi_env env, size_t argc, napi_value* argv, bool isLowResolution)
     {
+        HandleEscape handleEscape(env);
         std::string deviceId;
         int32_t missionId = -1;
         if (!CheckMissionSnapShotParams(env, argc, argv, deviceId, missionId)) {
@@ -324,7 +328,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("MissionManager::GetMissionSnapShot",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(excute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool CheckMissionSnapShotParams(napi_env env, size_t argc, napi_value* argv,
@@ -353,6 +357,7 @@ private:
     napi_value OnLockMission(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGI(AAFwkTag::MISSION, "called");
+        HandleEscape handleEscape(env);
         if (argc == 0) {
             TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -380,12 +385,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("MissionManager::OnLockMission",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnUnlockMission(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGI(AAFwkTag::MISSION, "called");
+        HandleEscape handleEscape(env);
         if (argc == 0) {
             TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -413,12 +419,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("MissionManager::OnUnlockMission",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnClearMission(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGI(AAFwkTag::MISSION, "called");
+        HandleEscape handleEscape(env);
         if (argc == 0) {
             TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -446,12 +453,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("MissionManager::OnClearMission",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnClearAllMissions(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGI(AAFwkTag::MISSION, "called");
+        HandleEscape handleEscape(env);
         NapiAsyncTask::CompleteCallback complete =
             [](napi_env env, NapiAsyncTask &task, int32_t status) {
                 auto ret = AbilityManagerClient::GetInstance()->CleanAllMissions();
@@ -467,12 +475,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("MissionManager::OnMoveMissionToFront",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnMoveMissionToFront(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGI(AAFwkTag::MISSION, "called");
+        HandleEscape handleEscape(env);
         if (argc == 0) {
             TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -508,7 +517,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("MissionManager::OnMoveMissionToFront",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     sptr<JsMissionListener> missionListener_ = nullptr;

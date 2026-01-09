@@ -84,6 +84,7 @@ private:
     napi_value OnSendDialogResult(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::DIALOG, "argc:%{public}d", static_cast<int32_t>(info.argc));
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_THREE) {
             TAG_LOGE(AAFwkTag::DIALOG, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -122,7 +123,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JsDialogSession::OnSendDialogResult",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 };
 
