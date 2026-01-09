@@ -620,10 +620,10 @@ void AppRunningRecord::ScheduleTrimMemory()
     }
 }
 
-void AppRunningRecord::ScheduleMemoryLevel(int32_t level, bool isShellCall)
+void AppRunningRecord::ScheduleMemoryLevel(int32_t level)
 {
     if (appLifeCycleDeal_) {
-        appLifeCycleDeal_->ScheduleMemoryLevel(level, isShellCall);
+        appLifeCycleDeal_->ScheduleMemoryLevel(level);
     }
 }
 
@@ -1054,7 +1054,7 @@ bool AppRunningRecord::AbilityUnfocused(const std::shared_ptr<AbilityRunningReco
 
 void AppRunningRecord::PopForegroundingAbilityTokens()
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "ability size: %{public}d",
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "ability size: %{public}d",
         static_cast<int32_t>(foregroundingAbilityTokens_.size()));
     for (auto iter = foregroundingAbilityTokens_.begin(); iter != foregroundingAbilityTokens_.end();) {
         auto ability = GetAbilityRunningRecordByToken(*iter);
@@ -1083,7 +1083,7 @@ void AppRunningRecord::TerminateAbility(const sptr<IRemoteObject> &token, const 
 
     auto abilityRecord = GetAbilityRunningRecordByToken(token);
     if (abilityRecord) {
-        TAG_LOGI(AAFwkTag::APPMGR, "terminate %{public}s", abilityRecord->GetName().c_str());
+        TAG_LOGI(AAFwkTag::PROCESSMGR, "terminate %{public}s", abilityRecord->GetName().c_str());
     }
     if (!isTimeout) {
         StateChangedNotifyObserver(
@@ -1285,8 +1285,22 @@ void AppRunningRecord::SetEventHandler(const std::shared_ptr<AMSEventHandler> &h
     eventHandler_ = handler;
 }
 
+bool AppRunningRecord::IsLastAbilityByFlag(sptr<IRemoteObject> token, bool clearMissionFlag)
+{
+    if (clearMissionFlag || isPrepareExit_) {
+        return IsLastPageAbilityRecord(token);
+    }
+    return IsLastAbilityRecord(token);
+}
+
 bool AppRunningRecord::IsLastAbilityRecord(const sptr<IRemoteObject> &token)
 {
+    {
+        std::lock_guard lock(specifiedMutex_);
+        if (!IsTerminating() && specifiedAbilityRequest_ != nullptr) {
+            return false;
+        }
+    }
     auto moduleRecord = GetModuleRunningRecordByToken(token);
     if (!moduleRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "null moduleRecord");
@@ -1315,6 +1329,12 @@ bool AppRunningRecord::ExtensionAbilityRecordExists()
 
 bool AppRunningRecord::IsLastPageAbilityRecord(const sptr<IRemoteObject> &token)
 {
+    {
+        std::lock_guard lock(specifiedMutex_);
+        if (!IsTerminating() && specifiedAbilityRequest_ != nullptr) {
+            return false;
+        }
+    }
     auto moduleRecord = GetModuleRunningRecordByToken(token);
     if (!moduleRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "null moduleRecord");
@@ -2596,6 +2616,16 @@ void AppRunningRecord::SetProcessCacheBlocked(bool isBlocked)
 bool AppRunningRecord::GetProcessCacheBlocked()
 {
     return processCacheBlocked;
+}
+
+void AppRunningRecord::SetProcessCacheLocked(bool isLock)
+{
+    processCacheLocked_.store(isLock);
+}
+
+bool AppRunningRecord::GetProcessCacheLocked()
+{
+    return processCacheLocked_.load();
 }
 
 bool AppRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()

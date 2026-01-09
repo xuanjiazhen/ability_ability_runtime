@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -99,6 +99,7 @@ group("fuzztest") {
     "abilityinterfacesappmgrnativechildnotifystub_fuzzer:fuzztest",
     "abilityinterfacesappmgrrenderstateobserverstub_fuzzer:fuzztest",
     "abilitykeepalivedatamanager_fuzzer:fuzztest",
+    "abilitykeepaliveinfo_fuzzer:fuzztest",
     "abilitykeepaliveservice_fuzzer:fuzztest",
     "abilitymanagerradar_fuzzer:fuzztest",
     "abilitymanagerserviceb_fuzzer:fuzztest",
@@ -306,6 +307,7 @@ group("fuzztest") {
     "addabilitystagedone_fuzzer:fuzztest",
     "amsmanager_fuzzer:fuzztest",
     "amsmgrscheduler_fuzzer:fuzztest",
+    "appfreezeutil_fuzzer:fuzztest",
     "applifecycledeal_fuzzer:fuzztest",
     "appmanager_fuzzer:fuzztest",
     "appmgrstubfirst_fuzzer:fuzztest",
@@ -407,6 +409,7 @@ group("fuzztest") {
     "insightintentrdbdatamanagerfirst_fuzzer:fuzztest",
     "insightintentrdbdatamanagersecond_fuzzer:fuzztest",
     "insightintentrdbdatamanagerthird_fuzzer:fuzztest",
+    "insightintentrdbstoragemgr_fuzzer:fuzztest",
     "isramconstraineddevice_fuzzer:fuzztest",
     "jsabilityautostartupmanager_fuzzer:fuzztest",
     "keepaliveprocessmanagereighteenth_fuzzer:fuzztest",
@@ -430,11 +433,13 @@ group("fuzztest") {
     "keepaliveprocessmanagertwelfth_fuzzer:fuzztest",
     "keepaliveprocessmanagertwentyth_fuzzer:fuzztest",
     "keepaliveprocessmanagertwentyoneth_fuzzer:fuzztest",
+    "keepaliveutils_fuzzer:fuzztest",
     "killapplication_fuzzer:fuzztest",
     "killapplicationself_fuzzer:fuzztest",
     "killprocessbyabilitytoken_fuzzer:fuzztest",
     "killprocessesbybundlename_fuzzer:fuzztest",
     "killprocessesbyuserid_fuzzer:fuzztest",
+    "kioskmanager_fuzzer:fuzztest",
     "loadability_fuzzer:fuzztest",
     "localpendingwant_fuzzer:fuzztest",
     "lockmissionforcleanup_fuzzer:fuzztest",
@@ -455,6 +460,7 @@ group("fuzztest") {
     "missionlistmanagersecond_fuzzer:fuzztest",
     "missionlistmanagerthird_fuzzer:fuzztest",
     "missionsnapshot_fuzzer:fuzztest",
+    "modalsystemdialogutil_fuzzer:fuzztest",
     "modulerunningrecord_fuzzer:fuzztest",
     "multiinstanceutils_fuzzer:fuzztest",
     "multiuserconfigmgr_fuzzer:fuzztest",

@@ -234,8 +234,6 @@ int32_t AppMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
     #endif
         case static_cast<uint32_t>(AppMgrInterfaceCode::NOTIFY_APP_FAULT_BY_SA):
             return HandleNotifyFaultBySA(data, reply);
-        case static_cast<uint32_t>(AppMgrInterfaceCode::JUDGE_SANDBOX_BY_PID):
-            return HandleJudgeSandboxByPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_APPFREEZE_FILTER):
             return HandleSetAppFreezeFilter(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_BUNDLE_NAME_BY_PID):
@@ -424,6 +422,12 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleKillProcessByPidForExit(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::KILL_CHILD_PROCESS_BY_PID):
             return HandleKillChildProcessByPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::PRELOAD_EXTENSION):
+            return HandlePreloadExtension(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::LOCK_PROCESS_CACHE):
+            return HandleLockProcessCache(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::SET_PROCESS_PREPARE_EXIT):
+            return HandleSetProcessPrepareExit(data, reply);
     }
     return INVALID_FD;
 }
@@ -670,21 +674,6 @@ int32_t AppMgrStub::HandleGetAllChildrenProcesses(MessageParcel &data, MessagePa
     return NO_ERROR;
 }
 #endif // SUPPORT_CHILD_PROCESS
-
-int32_t AppMgrStub::HandleJudgeSandboxByPid(MessageParcel &data, MessageParcel &reply)
-{
-    HITRACE_METER(HITRACE_TAG_APP);
-    int32_t pid = data.ReadInt32();
-    bool isSandbox = false;
-    auto result = JudgeSandboxByPid(pid, isSandbox);
-    if (!reply.WriteBool(isSandbox)) {
-        return ERR_INVALID_VALUE;
-    }
-    if (!reply.WriteInt32(result)) {
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
 
 int32_t AppMgrStub::HandleIsTerminatingByPid(MessageParcel &data, MessageParcel &reply)
 {
@@ -1892,6 +1881,19 @@ int32_t AppMgrStub::HandleSetProcessCacheEnable(MessageParcel &data, MessageParc
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleLockProcessCache(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleLockProcessCache called");
+    int32_t pid = data.ReadInt32();
+    bool isLock = data.ReadBool();
+    auto ret = SetProcessCacheEnable(pid, isLock);
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
+        return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleSetAppAssertionPauseState(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -2225,6 +2227,34 @@ int32_t AppMgrStub::HandleKillChildProcessByPid(MessageParcel &data, MessageParc
         TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
         return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandlePreloadExtension(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    TAG_LOGD(AAFwkTag::APPMGR, "Stub HandlePreloadExtension called.");
+    std::unique_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t appIndex = data.ReadInt32();
+    int32_t userId = data.ReadInt32();
+    auto result = PreloadExtension(*want, appIndex, userId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Stub HandlePreloadExtension Write result failed.");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    return NO_ERROR;
+}
+
+
+int32_t AppMgrStub::HandleSetProcessPrepareExit(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleSetProcessPrepareExit call");
+    pid_t pid = data.ReadInt32();
+    SetProcessPrepareExit(pid);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

@@ -79,11 +79,12 @@ public:
      *
      * @param abilityRequest the request of the service ability to start.
      * @param sessionInfo the info of scene session
+     * @param params start parameters.
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, uint32_t sceneFlag,
-        bool isRestart, bool &isColdStart);
+    int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
+        AbilityRuntime::StartParamsBySCB &params, bool &isColdStart);
 
     /**
      * @brief execute after the ability schedule the lifecycle
@@ -205,15 +206,17 @@ public:
      * @param abilityRequest target ability request.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest);
+    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest, const int32_t frameNum);
 
     /**
      * Call UIAbility by SCB.
      *
      * @param sessionInfo the session info of the ability to be called.
+     * @param params start parameters.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart);
+    void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart);
 
     /**
      * OnAcceptWantResponse.
@@ -411,7 +414,7 @@ public:
      * @param pids List of process IDs to terminate
      * @return ERR_OK if successful, error code otherwise
      */
-    int32_t TryPrepareTerminateByPids(const std::vector<int32_t>& pids);
+    int32_t TryPrepareTerminateByPids(const std::vector<int32_t>& pids, bool clear);
 
     /**
      * @brief Change ability visibility
@@ -911,7 +914,7 @@ private:
 
     void SetLastExitReasonAsync(UIAbilityRecordPtr abilityRecord);
 
-    void SyncLoadAbilityTask(int32_t abilityRecordId);
+    void SyncLoadExitReasonTask(int32_t abilityRecordId);
 
     /**
      * @brief Set receiver info for ability
@@ -1110,11 +1113,11 @@ private:
      * @brief Handle cold start for specified ability
      * @param abilityRequest The ability request
      * @param sessionInfo The session info
-     * @param sceneFlag The scene flag
+     * @param params start parameters.
      * @return true if handled, false otherwise
      */
     bool HandleStartSpecifiedCold(const AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
-        uint32_t sceneFlag, bool isRestart);
+        AbilityRuntime::StartParamsBySCB &params);
 
     /**
      * @brief Handle cold accept want completion
@@ -1184,6 +1187,8 @@ private:
      * @return true if updated, false otherwise
      */
     bool UpdateSpecifiedFlag(UIAbilityRecordPtr abilityRequest, const std::string &flag);
+    void SetProcessPrepareExit(int32_t pid, size_t remainingTokensSize, size_t abilityToTerminateSize,
+        bool clear) const;
 
     /**
      * @brief Process cold start branch
@@ -1253,6 +1258,7 @@ private:
     std::unordered_map<int32_t, UIAbilityRecordPtr> tmpAbilityMap_;
     std::unordered_map<UIAbilityRecordPtr, std::list<AbilityRequest>> callRequestCache_;
     std::list<UIAbilityRecordPtr> terminateAbilityList_;
+    // if window reused, persistentId will be reused, keep previous record here until the ability is dead
     std::unordered_set<UIAbilityRecordPtr> reuseWindowRecords_;
     sptr<IRemoteObject> rootSceneSession_;
     sptr<ISessionHandler> handler_;
@@ -1288,7 +1294,7 @@ private:
     std::vector<pid_t> startingPids_;
 
     std::mutex exitReasonTaskMutex_;
-    std::unordered_map<int32_t, ffrt::task_handle> exitReasonTasks_;
+    std::unordered_map<int32_t, ffrt::task_handle> exitReasonTasks_; // for sync querying exit-reason task
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -1834,8 +1834,9 @@ int AbilityManagerStub::ConnectAbilityWithTypeInner(MessageParcel &data, Message
     AppExecFwk::ExtensionAbilityType extensionType = static_cast<AppExecFwk::ExtensionAbilityType>(data.ReadInt32());
     bool isQueryExtensionOnly = data.ReadBool();
     uint64_t specifiedFullTokenId = data.ReadUint64();
+    int32_t loadTimeout = data.ReadInt32();
     int32_t result = ConnectAbilityCommon(*want, callback, token, extensionType, userId, isQueryExtensionOnly,
-        specifiedFullTokenId);
+        specifiedFullTokenId, loadTimeout);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -2564,7 +2565,8 @@ int AbilityManagerStub::StartAbilityForPrelaunchInner(MessageParcel &data, Messa
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
         return ERR_INVALID_VALUE;
     }
-    int32_t result = StartAbilityForPrelaunch(*want);
+    int32_t frameNum = data.ReadInt32();
+    int32_t result = StartAbilityForPrelaunch(*want, frameNum);
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "resolve call ability ret = %{public}d", result);
     reply.WriteInt32(result);
@@ -2580,9 +2582,13 @@ int AbilityManagerStub::StartUIAbilityBySCBInner(MessageParcel &data, MessagePar
     if (data.ReadBool()) {
         sessionInfo = data.ReadParcelable<SessionInfo>();
     }
-    uint32_t sceneFlag = data.ReadUint32();
+    std::unique_ptr<AbilityRuntime::StartParamsBySCB> params(data.ReadParcelable<AbilityRuntime::StartParamsBySCB>());
+    if (params == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "receive null");
+        return ERR_INVALID_VALUE;
+    }
     bool isColdStart = false;
-    int32_t result = StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, data.ReadBool());
+    int32_t result = StartUIAbilityBySCB(sessionInfo, *params, isColdStart);
     reply.WriteBool(isColdStart);
     reply.WriteInt32(result);
     return NO_ERROR;
@@ -3665,8 +3671,13 @@ int AbilityManagerStub::CallUIAbilityBySCBInner(MessageParcel &data, MessageParc
     if (data.ReadBool()) {
         sessionInfo = data.ReadParcelable<SessionInfo>();
     }
+    std::unique_ptr<AbilityRuntime::StartParamsBySCB> params(data.ReadParcelable<AbilityRuntime::StartParamsBySCB>());
+    if (params == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "receive null");
+        return ERR_INVALID_VALUE;
+    }
     bool isColdStart = false;
-    CallUIAbilityBySCB(sessionInfo, isColdStart);
+    CallUIAbilityBySCB(sessionInfo, *params, isColdStart);
     reply.WriteBool(isColdStart);
     return NO_ERROR;
 }
@@ -3790,7 +3801,7 @@ int32_t AbilityManagerStub::KillProcessWithPrepareTerminateInner(MessageParcel &
     for (uint32_t i = 0; i < size; i++) {
         pids.emplace_back(data.ReadInt32());
     }
-    int32_t result = KillProcessWithPrepareTerminate(pids);
+    int32_t result = KillProcessWithPrepareTerminate(pids, data.ReadBool());
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "kill process fail");
     }
