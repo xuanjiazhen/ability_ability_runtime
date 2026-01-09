@@ -176,11 +176,13 @@ void JsUIExtensionBase::RegisterAbilityConfigUpdateCallback()
 {
     auto uiExtensionAbility = std::static_pointer_cast<JsUIExtensionBase>(shared_from_this());
     std::weak_ptr<JsUIExtensionBase> abilityWptr = uiExtensionAbility;
+    std::weak_ptr<UIExtensionContext> abilityContextWptr = context_;
     context_->RegisterAbilityConfigUpdateCallback(
-        [abilityWptr, abilityContext = context_](AppExecFwk::Configuration &config) {
+        [abilityWptr, abilityContextWptr](AppExecFwk::Configuration &config) {
         std::shared_ptr<JsUIExtensionBase> abilitySptr = abilityWptr.lock();
-        if (abilitySptr == nullptr) {
-            TAG_LOGE(AAFwkTag::UIABILITY, "null abilitySptr");
+        std::shared_ptr<UIExtensionContext> abilityContext = abilityContextWptr.lock();
+        if (abilitySptr == nullptr || abilityContext == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilitySptr or abilityContext");
             return;
         }
         if (abilityContext == nullptr || abilityContext->GetAbilityInfo() == nullptr) {
@@ -341,6 +343,9 @@ void JsUIExtensionBase::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *cal
         TAG_LOGD(AAFwkTag::UI_EXT, "set terminating true");
         context_->SetTerminating(true);
     }
+    ApplicationConfigurationManager::GetInstance().DeleteIgnoreContext(context_);
+    TAG_LOGI(AAFwkTag::UIABILITY, "GetIgnoreContext size %{public}zu",
+        AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetIgnoreContext().size());
     HandleScope handleScope(jsRuntime_);
     napi_value result = CallObjectMethod("onDestroy", nullptr, 0, true);
     if (!CheckPromise(result)) {
