@@ -104,6 +104,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
 
             TAG_LOGI(AAFwkTag::INTENT, "update intent info success, bundleName: %{public}s", bundleName.c_str());
         }
+        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
     });
 }
 
