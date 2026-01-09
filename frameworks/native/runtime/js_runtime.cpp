@@ -774,7 +774,7 @@ bool JsRuntime::Initialize(const Options& options)
             packageNameList_ = options.packageNameList;
             JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(
                 options.pkgContextInfoJsonStringMap, pkgInfoMap);
-            panda::JSNApi::SetpkgContextInfoList(vm, pkgInfoMap);
+            panda::JSNApi::SetPkgContextInfoList(vm, pkgInfoMap);
             panda::JSNApi::SetPkgNameList(vm, options.packageNameList);
             panda::JSNApi::ModuleDeserialize(vm, options.versionCode);
         }
@@ -1828,7 +1828,7 @@ void JsRuntime::SetPkgContextInfoJson(std::string moduleName, std::string hapPat
         std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
         JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(
             pkgContextInfoJsonStringMap_, pkgInfoMap);
-        panda::JSNApi::SetpkgContextInfoList(vm, pkgInfoMap);
+        panda::JSNApi::SetPkgContextInfoList(vm, pkgInfoMap);
         panda::JSNApi::SetPkgNameList(vm, packageNameList_);
     }
 }

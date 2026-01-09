@@ -224,7 +224,7 @@ napi_status JsRuntimeLite::Init(const Options& options, napi_env env)
             });
         std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
         GetPkgContextInfoListMap(options.pkgContextInfoJsonStringMap, pkgInfoMap);
-        panda::JSNApi::SetpkgContextInfoList(vm, pkgInfoMap);
+        panda::JSNApi::SetPkgContextInfoList(vm, pkgInfoMap);
         panda::JSNApi::SetPkgNameList(vm, options.packageNameList);
     }
 
