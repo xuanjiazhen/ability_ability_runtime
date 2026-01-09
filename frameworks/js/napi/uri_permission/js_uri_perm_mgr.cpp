@@ -311,6 +311,7 @@ private:
     napi_value OnGrantUriPermission(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::URIPERMMGR, "start");
+        HandleEscape handleEscape(env);
         UriPermissionParam param;
         if (!ParseGrantUriPermissionParams(env, info, param)) {
             return CreateJsUndefined(env);
@@ -343,12 +344,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsUriPermMgr::OnGrantUriPermission",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGrantUriPermissionByKey(napi_env env, const NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::URIPERMMGR, "OnGrantUriPermissionByKey start");
+        HandleEscape handleEscape(env);
         UriPermissionParam param;
         if (!ParseGrantUriPermissionByKeyParams(env, info, param)) {
             return CreateJsUndefined(env);
@@ -375,12 +377,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsUriPermMgr::OnGrantUriPermissionByKey",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnGrantUriPermissionByKeyAsCaller(napi_env env, const NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::URIPERMMGR, "OnGrantUriPermissionByKeyAsCaller start");
+        HandleEscape handleEscape(env);
         UriPermissionParam param;
         if (!ParseGrantUriPermissionByKeyAsCallerParams(env, info, param)) {
             return CreateJsUndefined(env);
@@ -407,12 +410,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsUriPermMgr::OnGrantUriPermissionByKeyAsCaller",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnRevokeUriPermission(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::URIPERMMGR, "start");
+        HandleEscape handleEscape(env);
         UriPermissionParam param;
         if (!ParseRevokeUriPermissionParams(env, info, param)) {
             return CreateJsUndefined(env);
@@ -444,7 +448,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsUriPermMgr::OnRevokeUriPermission",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 };
 
