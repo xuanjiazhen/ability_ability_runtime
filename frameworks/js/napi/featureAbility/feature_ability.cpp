@@ -435,11 +435,12 @@ napi_value JsFeatureAbility::OnGetWindow(napi_env env, napi_callback_info info)
 
 napi_value NAPI_SetResult(napi_env env, napi_callback_info info)
 {
+    HandleEscape handleEscape(env);
     TAG_LOGI(AAFwkTag::FA, "called");
     AsyncCallbackInfo *asyncCallbackInfo = CreateAsyncCallbackInfo(env);
     if (asyncCallbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null asyncCallbackInfo");
-        return WrapVoidToJS(env);
+        return handleEscape.Escape(WrapVoidToJS(env));
     }
 
     napi_value ret = SetResultWrap(env, info, asyncCallbackInfo);
@@ -449,14 +450,15 @@ napi_value NAPI_SetResult(napi_env env, napi_callback_info info)
             delete asyncCallbackInfo;
             asyncCallbackInfo = nullptr;
         }
-        ret = WrapVoidToJS(env);
+        ret = handleEscape.Escape(WrapVoidToJS(env));
     }
     TAG_LOGI(AAFwkTag::FA, "end");
-    return ret;
+    return handleEscape.Escape(ret);
 }
 
 napi_value SetResultWrap(napi_env env, napi_callback_info info, AsyncCallbackInfo *asyncCallbackInfo)
 {
+    HandleEscape handleEscape(env);
     TAG_LOGI(AAFwkTag::FA, "called");
     size_t argcAsync = 2;
     const size_t argcPromise = 1;
@@ -483,11 +485,12 @@ napi_value SetResultWrap(napi_env env, napi_callback_info info, AsyncCallbackInf
         ret = SetResultPromise(env, asyncCallbackInfo);
     }
     TAG_LOGI(AAFwkTag::FA, "end");
-    return ret;
+    return handleEscape.Escape(ret);
 }
 
 napi_value CreateAsyncWork(napi_env env, napi_value &resourceName, AsyncCallbackInfo *asyncCallbackInfo)
 {
+    HandleEscape handleEscape(env);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
     [](napi_env env, void *data) {
         TAG_LOGI(AAFwkTag::FA, "worker pool thread");
@@ -537,12 +540,13 @@ napi_value CreateAsyncWork(napi_env env, napi_value &resourceName, AsyncCallback
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value SetResultAsync(
     napi_env env, napi_value *args, const size_t argCallback, AsyncCallbackInfo *asyncCallbackInfo)
 {
+    HandleEscape handleEscape(env);
     TAG_LOGI(AAFwkTag::FA, "called");
     if (args == nullptr || asyncCallbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
@@ -557,7 +561,7 @@ napi_value SetResultAsync(
         napi_create_reference(env, args[argCallback], 1, &asyncCallbackInfo->cbInfo.callback);
     }
 
-    return CreateAsyncWork(env, resourceName, asyncCallbackInfo);
+    return handleEscape.Escape(CreateAsyncWork(env, resourceName, asyncCallbackInfo));
 }
 
 napi_value SetResultPromise(napi_env env, AsyncCallbackInfo *asyncCallbackInfo)
