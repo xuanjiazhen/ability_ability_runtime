@@ -21,6 +21,8 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "ability_connection.h"
 #include "ability_scheduler.h"
 #include "ability_start_setting.h"
@@ -2303,6 +2305,22 @@ HWTEST_F(AbilityManagerServiceFirstTest, NotifyStartResidentProcess_0100, TestSi
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
     abilityMs->NotifyStartResidentProcess(bundleInfos);
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_RecordAppExitSignalReason_0100
+ * @tc.desc: Test RecordAppExitSignalReason.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, RecordAppExitSignalReason_0100, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    int32_t pid = 12345;
+    int32_t uid = 1000;
+    int32_t signal = 9;
+    std::string bundleName = "com.example.test";
+    abilityMs->RecordAppExitSignalReason(pid, uid, signal, bundleName);
 }
 
 /**
