@@ -177,8 +177,9 @@ void JsEnvironment::RegisterUncatchableExceptionHandler(const JsEnv::Uncatchable
         [weakThis, uncatchableTask] (auto& trycatch) {
             auto sharedThis = weakThis.lock();
             if (sharedThis) {
+                void* env = trycatch.GetEnv();
                 NapiUncaughtExceptionCallback napiUncaughtExceptionCallback(uncatchableTask,
-                    sharedThis->sourceMapOperator_, reinterpret_cast<napi_env>(sharedThis->engine_));
+                    sharedThis->sourceMapOperator_, reinterpret_cast<napi_env>(env));
                 napiUncaughtExceptionCallback(trycatch);
             } else {
                 TAG_LOGE(AAFwkTag::JSENV, "JsEnvironment has been destructed.");
@@ -192,8 +193,15 @@ bool JsEnvironment::LoadScript(const std::string& path, std::vector<uint8_t>* bu
         TAG_LOGE(AAFwkTag::JSENV, "Invalid Native Engine");
         return false;
     }
+    napi_handle_scope scope = nullptr;
+    napi_open_handle_scope(reinterpret_cast<napi_env>(engine_), &scope);
+    if (scope == nullptr) {
+        TAG_LOGE(AAFwkTag::JSENV, "scope is nullptr!");
+        return false;
+    }
 
     if (buffer == nullptr) {
+        napi_close_handle_scope(reinterpret_cast<napi_env>(engine_), scope);
         return engine_->RunScriptPath(path.c_str());
     }
     auto start = std::chrono::high_resolution_clock::now();
@@ -201,6 +209,7 @@ bool JsEnvironment::LoadScript(const std::string& path, std::vector<uint8_t>* bu
     auto end = std::chrono::high_resolution_clock::now();
     auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     TAG_LOGI(AAFwkTag::JSENV, "timing: %{public}lld", duration_ms);
+    napi_close_handle_scope(reinterpret_cast<napi_env>(engine_), scope);
     return ret;
 }
 

@@ -226,16 +226,6 @@ public:
     virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) = 0;
 
     /**
-     * JudgeSandboxByPid, call JudgeSandboxByPid() through proxy project.
-     * Obtains information about application processes that are running on the device.
-     *
-     * @param pid, the pid of current app running record.
-     * @param isSandbox, current app is or not a sandbox.
-     * @return ERR_OK ,return back success，others fail.
-     */
-    virtual int32_t JudgeSandboxByPid(pid_t pid, bool &isSandbox) = 0;
-
-    /**
      * IsTerminatingByPid, call IsTerminatingByPid() through proxy project.
      * Obtains information about application processes that are running on the device.
      *
@@ -917,6 +907,8 @@ public:
 
     virtual int32_t SetProcessCacheEnable(int32_t pid, bool enable) = 0;
 
+    virtual int32_t LockProcessCache(int32_t pid, bool isLock) = 0;
+
     /**
      * Set application assertion pause state.
      *
@@ -1087,6 +1079,20 @@ public:
     {
         return 0;
     }
+    /**
+     * Preload extension process.
+     *
+     * @param want contains bundleName + abilityName.
+     * @param appIndex The index of application clone.
+     * @param userId Indicates the user identification.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId)
+    {
+        return 0;
+    }
+
+    virtual void SetProcessPrepareExit(int32_t pid) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

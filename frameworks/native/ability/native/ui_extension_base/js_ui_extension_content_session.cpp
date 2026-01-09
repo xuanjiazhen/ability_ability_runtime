@@ -491,6 +491,7 @@ void JsUIExtensionContentSession::StartAbilityForResultRuntimeTask(napi_env env,
         &observer = freeInstallObserver_](int resultCode, const AAFwk::Want& want, bool isInner) {
         std::string bundleName = element.GetBundleName();
         std::string abilityName = element.GetAbilityName();
+        HandleScope handleScope(env);
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
@@ -1104,12 +1105,12 @@ void JsUIExtensionContentSession::CallReceiveDataCallbackForResult(napi_env env,
         TAG_LOGE(AAFwkTag::UI_EXT, "null callback");
         return;
     }
+    HandleScope handleScope(env);
     napi_value method = reinterpret_cast<napi_value>(callback->Get());
     if (method == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null method");
         return;
     }
-    HandleScope handleScope(env);
     napi_value napiWantParams = AppExecFwk::WrapWantParams(env, wantParams);
     if (napiWantParams == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null napiWantParams");

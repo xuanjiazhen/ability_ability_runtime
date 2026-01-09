@@ -26,6 +26,10 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+constexpr int32_t ABILITY_STATE_FOREGROUND = 2;
+constexpr int32_t ABILITY_STATE_NATIVE_FOREGROUND = 9;
+}
 napi_value CreateJSToken(napi_env env, const sptr<IRemoteObject> target)
 {
     napi_value tokenClass = nullptr;
@@ -45,6 +49,7 @@ napi_value CreateJSToken(napi_env env, const sptr<IRemoteObject> target)
 
 napi_value CreateJsAbilityRunningInfoArray(napi_env env, const std::vector<AAFwk::AbilityRunningInfo> &infos)
 {
+    HandleEscape handleEscape(env);
     napi_value arrayValue = nullptr;
     napi_status createStatus = napi_create_array_with_length(env, infos.size(), &arrayValue);
     if (createStatus != napi_ok || arrayValue == nullptr) {
@@ -55,7 +60,7 @@ napi_value CreateJsAbilityRunningInfoArray(napi_env env, const std::vector<AAFwk
     for (const auto &runningInfo : infos) {
         napi_set_element(env, arrayValue, index++, CreateJsAbilityRunningInfo(env, runningInfo));
     }
-    return arrayValue;
+    return handleEscape.Escape(arrayValue);
 }
 
 napi_value CreateJsElementName(napi_env env, const AppExecFwk::ElementName &elementName)
@@ -65,6 +70,7 @@ napi_value CreateJsElementName(napi_env env, const AppExecFwk::ElementName &elem
 
 napi_value CreateJsExtensionRunningInfoArray(napi_env env, const std::vector<AAFwk::ExtensionRunningInfo> &infos)
 {
+    HandleEscape handleEscape(env);
     napi_value arrayValue = nullptr;
     napi_status createStatus = napi_create_array_with_length(env, infos.size(), &arrayValue);
     if (createStatus != napi_ok || arrayValue == nullptr) {
@@ -75,11 +81,12 @@ napi_value CreateJsExtensionRunningInfoArray(napi_env env, const std::vector<AAF
     for (const auto &runningInfo : infos) {
         napi_set_element(env, arrayValue, index++, CreateJsExtensionRunningInfo(env, runningInfo));
     }
-    return arrayValue;
+    return handleEscape.Escape(arrayValue);
 }
 
 napi_value CreateJsAbilityRunningInfo(napi_env env, const AAFwk::AbilityRunningInfo &info)
 {
+    HandleEscape handleEscape(env);
     napi_value objValue = nullptr;
     napi_status createStatus = napi_create_object(env, &objValue);
     if (createStatus != napi_ok || objValue == nullptr) {
@@ -94,11 +101,12 @@ napi_value CreateJsAbilityRunningInfo(napi_env env, const AAFwk::AbilityRunningI
     napi_set_named_property(env, objValue, "processName", CreateJsValue(env, info.processName));
     napi_set_named_property(env, objValue, "startTime", CreateJsValue(env, info.startTime));
     napi_set_named_property(env, objValue, "abilityState", CreateJsValue(env, info.abilityState));
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 
 napi_value CreateJsExtensionRunningInfo(napi_env env, const AAFwk::ExtensionRunningInfo &info)
 {
+    HandleEscape handleEscape(env);
     napi_value objValue = nullptr;
     napi_status createStatus = napi_create_object(env, &objValue);
     if (createStatus != napi_ok || objValue == nullptr) {
@@ -114,7 +122,7 @@ napi_value CreateJsExtensionRunningInfo(napi_env env, const AAFwk::ExtensionRunn
     napi_set_named_property(env, objValue, "processName", CreateJsValue(env, info.processName));
     napi_set_named_property(env, objValue, "startTime", CreateJsValue(env, info.startTime));
     napi_set_named_property(env, objValue, "clientPackage", CreateNativeArray(env, info.clientPackage));
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 
 napi_value AbilityStateInit(napi_env env)
@@ -153,6 +161,20 @@ napi_value UserStatusInit(napi_env env)
     return objValue;
 }
 
+int32_t ConvertAbilityState(int32_t abilityState)
+{
+    int32_t state = 0;
+    switch (abilityState) {
+        case ABILITY_STATE_NATIVE_FOREGROUND:
+            state = ABILITY_STATE_FOREGROUND;
+            break;
+        default:
+            state = abilityState;
+            break;
+    }
+    return state;
+}
+
 napi_value CreateJsAbilityStateData(napi_env env, const AbilityStateData &abilityStateData)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
@@ -167,7 +189,8 @@ napi_value CreateJsAbilityStateData(napi_env env, const AbilityStateData &abilit
     napi_set_named_property(env, object, "abilityName", CreateJsValue(env, abilityStateData.abilityName));
     napi_set_named_property(env, object, "pid", CreateJsValue(env, abilityStateData.pid));
     napi_set_named_property(env, object, "uid", CreateJsValue(env, abilityStateData.uid));
-    napi_set_named_property(env, object, "state", CreateJsValue(env, abilityStateData.abilityState));
+    napi_set_named_property(env, object, "state",
+        CreateJsValue(env, ConvertAbilityState(abilityStateData.abilityState)));
     napi_set_named_property(env, object, "abilityType", CreateJsValue(env, abilityStateData.abilityType));
     napi_set_named_property(env, object, "isAtomicService", CreateJsValue(env, abilityStateData.isAtomicService));
     if (abilityStateData.appCloneIndex != -1) {

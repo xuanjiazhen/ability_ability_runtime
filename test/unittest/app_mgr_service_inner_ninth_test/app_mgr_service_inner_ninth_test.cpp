@@ -122,6 +122,10 @@ public:
     {
         AAFwk::MyStatus::GetInstance().notifyStartKeepAliveProcessCalled_ = true;
     }
+    void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) override
+    {
+        AAFwk::MyStatus::GetInstance().recordAppExitSignalReasonCall_ = true;
+    }
     sptr<IRemoteObject> AsObject() override
     {
         return nullptr;
@@ -2282,6 +2286,27 @@ HWTEST_F(AppMgrServiceInnerNinthTest, SignRestartProcess_001, TestSize.Level1)
     ret = appMgrServiceInner->SignRestartProcess(pid);
     EXPECT_EQ(ret, ERR_NO_INIT);
     TAG_LOGI(AAFwkTag::TEST, "SignRestartProcess_001 end");
+}
+
+/**
+ * @tc.name: SetProcessPrepareExit_0100
+ * @tc.desc: Test SetProcessPrepareExit
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerNinthTest, SetProcessPrepareExit_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetProcessPrepareExit_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+    appMgrServiceInner->SetProcessPrepareExit(0);
+
+    auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
+    appMgrServiceInner->SetProcessPrepareExit(0);
+    EXPECT_TRUE(appRecord->isPrepareExit_);
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "SetProcessPrepareExit_0100 end");
 }
 
 /**
