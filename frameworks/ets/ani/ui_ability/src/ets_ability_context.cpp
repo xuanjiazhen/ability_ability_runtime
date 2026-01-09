@@ -105,7 +105,7 @@ constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
 constexpr int32_t ARGC_THREE = 3;
 constexpr const char* SIGNATURE_RESTORE_WINDOW_STAGE = "C{arkui.stateManagement.storage.localStorage.LocalStorage}:";
-
+constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 int64_t RequestCodeFromStringToInt64(const std::string &requestCode)
 {
     if (requestCode.size() > MAX_REQUEST_CODE_LENGTH) {
@@ -169,7 +169,7 @@ bool CheckUrl(std::string &urlValue)
         return false;
     }
     Uri uri = Uri(urlValue);
-    if (uri.GetScheme().empty() || uri.GetHost().empty()) {
+    if (uri.GetScheme().empty()) {
         return false;
     }
     return true;
@@ -779,6 +779,17 @@ void EtsAbilityContext::SetMissionIconCheck(
         return;
     }
 }
+
+void EtsAbilityContext::SetMissionContinueState(ani_env *env, ani_object aniObj, ani_object stateObj,
+    ani_object callbackObj)
+{
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetMissionContinueState(env, aniObj, stateObj, callbackObj);
+}
 #endif
 
 void EtsAbilityContext::RestoreWindowStage(
@@ -1199,6 +1210,35 @@ void EtsAbilityContext::OnStopServiceExtensionAbility(ani_env *env, ani_object a
     AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
 }
 
+bool EtsAbilityContext::HandleAniLink(ani_env *env, ani_object myCallbackobj, ani_string aniLink,
+    std::string &link, AAFwk::Want &want)
+{
+    ani_object aniObject = nullptr;
+    if (!AppExecFwk::GetStdString(env, aniLink, link) || !CheckUrl(link)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse link failed");
+        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "Parse param link failed, link must be string.");
+        AppExecFwk::AsyncCallback(env, myCallbackobj, aniObject, nullptr);
+        return false;
+    }
+    want.SetUri(link);
+    return true;
+}
+
+void EtsAbilityContext::HandleOpenLinkOptions(ani_env *env, ani_object optionsObj,
+    AAFwk::OpenLinkOptions &openLinkOptions, AAFwk::Want &want)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OpenLink Have option");
+    want.SetParam(APP_LINKING_ONLY, false);
+    AppExecFwk::UnWrapOpenLinkOptions(env, optionsObj, openLinkOptions, want);
+    OnRequestResult onRequestSucc;
+    OnRequestResult onRequestFail;
+    ani_ref refCompletionHandler = nullptr;
+    if (AppExecFwk::UnwrapOpenLinkCompletionHandler(env, optionsObj, refCompletionHandler,
+        onRequestSucc, onRequestFail)) {
+        AddCompletionHandlerForOpenLink(env, refCompletionHandler, want, onRequestSucc, onRequestFail);
+    }
+}
+
 void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
     ani_object optionsObj, ani_object callbackobj, bool haveOptionsParm, bool haveCallBackParm)
 {
@@ -1206,27 +1246,20 @@ void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string a
     std::string link("");
     AAFwk::OpenLinkOptions openLinkOptions;
     AAFwk::Want want;
-    want.SetParam(APP_LINKING_ONLY, false);
-    if (!AppExecFwk::GetStdString(env, aniLink, link) || !CheckUrl(link)) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "parse link failed");
-        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "Parse param link failed, link must be string.");
-        AppExecFwk::AsyncCallback(env, myCallbackobj, aniObject, nullptr);
+    if (!HandleAniLink(env, myCallbackobj, aniLink, link, want)) {
         return;
     }
     if (haveOptionsParm) {
-        TAG_LOGD(AAFwkTag::CONTEXT, "OpenLink Have option");
-        AppExecFwk::UnWrapOpenLinkOptions(env, optionsObj, openLinkOptions, want);
+        HandleOpenLinkOptions(env, optionsObj, openLinkOptions, want);
     }
-    want.SetUri(link);
     std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
         system_clock::now().time_since_epoch()).count());
     want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
     int requestCode = -1;
-    ErrCode ret = ERR_OK;
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "GetAbilityContext is nullptr");
-        ret = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        ErrCode ret = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
         AppExecFwk::AsyncCallback(env, myCallbackobj, aniObject, nullptr);
         return;
@@ -1236,8 +1269,8 @@ void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string a
         TAG_LOGD(AAFwkTag::CONTEXT, "OpenLink Have Callback");
         CreateOpenLinkTask(env, callbackobj, context, want, requestCode);
     }
-    ret = context->OpenLink(want, requestCode);
-    if (ret == 0) {
+    ErrCode ret = context->OpenLink(want, requestCode, openLinkOptions.GetHideFailureTipDialog());
+    if (ret == ERR_OK) {
         TAG_LOGI(AAFwkTag::CONTEXT, "openLink succeeded");
         return;
     }
@@ -1248,6 +1281,11 @@ void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string a
             return;
         }
         freeInstallObserver_->OnInstallFinishedByUrl(startTime, link, ret);
+        std::string requestId = want.GetStringParam(KEY_REQUEST_ID);
+        nlohmann::json jsonObject = nlohmann::json {
+            { JSON_KEY_ERR_MSG, "Failed to call openLink." }
+        };
+        context->OnOpenLinkRequestFailure(requestId, want.GetElement(), jsonObject.dump());
     }
 }
 
@@ -1538,6 +1576,12 @@ ani_object EtsAbilityContext::OnStartAbilityByType(
     ErrCode innerErrCode = ERR_OK;
     std::shared_ptr<EtsUIExtensionCallback> callback = std::make_shared<EtsUIExtensionCallback>(vm);
     callback->SetEtsCallbackObject(startCallback);
+    ani_ref completionHandler;
+    ani_boolean isUndefined = false;
+    AppExecFwk::GetPropertyRef(env, startCallback, "completionHandler", completionHandler, isUndefined);
+    if (!isUndefined && completionHandler != nullptr) {
+        callback->SetCompletionHandler(env, static_cast<ani_object>(completionHandler));
+    }
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
@@ -2652,6 +2696,35 @@ void EtsAbilityContext::OnSetMissionIcon(ani_env *env, ani_object aniObj, ani_ob
     AppExecFwk::AsyncCallback(env, callbackObj,
         EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
 }
+
+void EtsAbilityContext::OnSetMissionContinueState(ani_env *env, ani_object aniObj, ani_object stateObj,
+    ani_object callbackObj)
+{
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context is nullptr");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    int state = 0;
+    bool result = AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, stateObj, state);
+    if (result == false) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Unwrap state failed");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM), nullptr);
+        return;
+    }
+    AAFwk::ContinueState fwkState = AAFwk::ContinueState::CONTINUESTATE_UNKNOWN;
+    if (state == AAFwk::ContinueState::CONTINUESTATE_ACTIVE) {
+        fwkState = AAFwk::ContinueState::CONTINUESTATE_ACTIVE;
+    } else {
+        fwkState = AAFwk::ContinueState::CONTINUESTATE_INACTIVE;
+    }
+    auto innerErrCode = context->SetMissionContinueState(fwkState);
+    AppExecFwk::AsyncCallback(env, callbackObj,
+        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
+}
 #endif
 
 void EtsAbilityContext::OnStartAbilityAsCaller(ani_env *env, ani_object aniObj, ani_object wantObj,
@@ -2970,6 +3043,10 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeSetMissionWindowIcon",
                 "C{@ohos.multimedia.image.image.PixelMap}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetMissionWindowIcon) },
+            ani_native_function { "nativeSetMissionContinueState",
+                "C{@ohos.app.ability.AbilityConstant.AbilityConstant.ContinueState}"
+                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::SetMissionContinueState) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
@@ -3268,8 +3345,8 @@ void EtsAbilityContext::UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_
     }
     OnRequestResult onRequestSucc;
     OnRequestResult onRequestFail;
-    CreateOnRequestResultCallback(env, refCompletionHandler, onRequestSucc, "onRequestSuccess");
-    CreateOnRequestResultCallback(env, refCompletionHandler, onRequestFail, "onRequestFailure");
+    AppExecFwk::CreateOnRequestResultCallback(env, refCompletionHandler, "onRequestSuccess", onRequestSucc);
+    AppExecFwk::CreateOnRequestResultCallback(env, refCompletionHandler, "onRequestFailure", onRequestFail);
     uint64_t time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count());
     std::string requestId = std::to_string(time);
@@ -3281,59 +3358,25 @@ void EtsAbilityContext::UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_
     options.requestId_ = requestId;
 }
 
-void EtsAbilityContext::CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
-    OnRequestResult &onRequestCallback, const char *callbackName)
+void EtsAbilityContext::AddCompletionHandlerForOpenLink(ani_env *env, ani_ref refCompletionHandler,
+    AAFwk::Want &want, OnRequestResult &onRequestSucc, OnRequestResult &onRequestFail)
 {
-    TAG_LOGD(AAFwkTag::CONTEXT, "CreateOnRequestResultCallback called");
-    ani_vm *etsVm = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "GetVM failed, status: %{public}d", status);
+    TAG_LOGD(AAFwkTag::CONTEXT, "AddCompletionHandlerForOpenLink called");
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         env->GlobalReference_Delete(refCompletionHandler);
         return;
     }
-    onRequestCallback = [etsVm, refCompletionHandler, callbackName](const AppExecFwk::ElementName &element,
-        const std::string &message) {
-        ani_status status = ANI_ERROR;
-        ani_env *env = nullptr;
-        if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "GetEnv failed or env is null");
-            return;
-        }
-        ani_object elementObj = WrapElementName(env, element);
-        if (!elementObj) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "WrapElementName failed");
-            env->GlobalReference_Delete(refCompletionHandler);
-            return;
-        }
-        ani_string messageStr = nullptr;
-        if (env->String_NewUTF8(message.c_str(), message.size(), &messageStr) != ANI_OK || !messageStr) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "String_NewUTF8 for message failed");
-            env->GlobalReference_Delete(refCompletionHandler);
-            return;
-        }
-        ani_ref funRef;
-        if ((status = env->Object_GetFieldByName_Ref(reinterpret_cast<ani_object>(refCompletionHandler),
-            callbackName, &funRef)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "Object_GetFieldByName_Ref failed");
-            env->GlobalReference_Delete(refCompletionHandler);
-            return;
-        }
-        if (!AppExecFwk::IsValidProperty(env, funRef)) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "IsValidProperty failed");
-            env->GlobalReference_Delete(refCompletionHandler);
-            return;
-        }
-        ani_ref result = nullptr;
-        std::vector<ani_ref> argv = { elementObj, messageStr};
-        if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_TWO, argv.data(),
-            &result)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "FunctionalObject_Call failed");
-            env->GlobalReference_Delete(refCompletionHandler);
-            return;
-        }
+    uint64_t time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+    std::string requestId = std::to_string(time);
+    if (context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "add completionHandler failed");
         env->GlobalReference_Delete(refCompletionHandler);
-    };
+        return;
+    }
+    want.SetParam(KEY_REQUEST_ID, requestId);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

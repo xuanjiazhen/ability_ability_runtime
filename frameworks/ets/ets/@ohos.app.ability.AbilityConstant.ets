@@ -25,6 +25,8 @@ namespace AbilityConstant {
     lastExitReason: LastExitReason;
     lastExitMessage: string;
     lastExitDetailInfo?: LastExitDetailInfo;
+    launchUptime?: long;
+    launchUTCTime?: long;
   }
 
   export interface LastExitDetailInfo {
@@ -75,11 +77,7 @@ namespace AbilityConstant {
   export enum MemoryLevel {
     MEMORY_LEVEL_MODERATE = 0,
     MEMORY_LEVEL_LOW = 1,
-    MEMORY_LEVEL_CRITICAL = 2,
-    MEMORY_LEVEL_UI_HIDDEN = 3,
-    MEMORY_LEVEL_BACKGROUND_MODERATE = 4,
-    MEMORY_LEVEL_BACKGROUND_LOW = 5,
-    MEMORY_LEVEL_BACKGROUND_CRITICAL = 6
+    MEMORY_LEVEL_CRITICAL = 2
   }
 
   export enum WindowMode {
@@ -126,6 +124,8 @@ class LaunchParamImpl implements AbilityConstant.LaunchParam {
   lastExitReason: AbilityConstant.LastExitReason = AbilityConstant.LastExitReason.UNKNOWN;
   lastExitMessage: string = '';
   lastExitDetailInfo?: AbilityConstant.LastExitDetailInfo = undefined;
+  launchUptime?: long = 0;
+  launchUTCTime?: long = 0;
 }
 
 class LastExitDetailInfoImpl implements AbilityConstant.LastExitDetailInfo {

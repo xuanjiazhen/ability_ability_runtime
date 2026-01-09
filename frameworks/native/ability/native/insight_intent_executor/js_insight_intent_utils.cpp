@@ -14,7 +14,7 @@
  */
 
 #include "js_insight_intent_utils.h"
-
+#include "js_runtime_utils.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_result.h"
@@ -23,27 +23,28 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-bool JsInsightIntentUtils::CallJsFunctionWithResult(
+napi_value JsInsightIntentUtils::CallJsFunctionWithResult(
     napi_env env,
     napi_value obj,
     const char* funcName,
     size_t argc,
-    const napi_value* argv,
-    napi_value& result)
+    const napi_value* argv)
 {
+    HandleEscape handleEscape(env);
     TAG_LOGD(AAFwkTag::INTENT, "call js function");
+    napi_value result = nullptr;
     napi_value method = AppExecFwk::GetPropertyValueByPropertyName(env, obj, funcName, napi_valuetype::napi_function);
     if (method == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null method");
-        return false;
+        return nullptr;
     }
 
     auto status = napi_call_function(env, obj, method, argc, argv, &result);
     if (status != napi_ok) {
         TAG_LOGE(AAFwkTag::INTENT, "napi call function failed %{public}d", status);
-        return false;
+        return nullptr;
     }
-    return true;
+    return handleEscape.Escape(result);
 }
 
 std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> JsInsightIntentUtils::GetResultFromJs(
@@ -166,6 +167,7 @@ void JsInsightIntentUtils::ReplySucceeded(InsightIntentExecutorAsyncCallback* ca
 std::string JsInsightIntentUtils::StringifyObject(napi_env env, napi_value result)
 {
     TAG_LOGD(AAFwkTag::INTENT, "stringify object");
+    HandleScope handleScope(env);
     napi_value global;
     auto status = napi_get_global(env, &global);
     if (status != napi_ok) {

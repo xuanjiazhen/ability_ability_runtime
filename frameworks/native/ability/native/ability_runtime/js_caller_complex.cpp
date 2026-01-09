@@ -302,6 +302,7 @@ private:
 
     void OnReleaseNotifyTask(const std::string &str)
     {
+        HandleScope handle(releaseCallBackEngine_);
         TAG_LOGD(AAFwkTag::DEFAULT, "begin");
         if (jsReleaseCallBackObj_ == nullptr) {
             TAG_LOGE(AAFwkTag::DEFAULT, "null jsReleaseObj");
@@ -337,6 +338,7 @@ private:
 
     void OnRemoteStateChangedNotifyTask(const std::string &str)
     {
+        HandleScope handle(releaseCallBackEngine_);
         TAG_LOGD(AAFwkTag::DEFAULT, "begin");
         if (jsRemoteStateChangedObj_ == nullptr) {
             TAG_LOGE(AAFwkTag::DEFAULT, "null jsRemoteStateChangedObj");

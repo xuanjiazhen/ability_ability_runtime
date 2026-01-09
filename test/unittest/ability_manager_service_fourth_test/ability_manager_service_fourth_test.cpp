@@ -33,6 +33,7 @@
 #include "ability_bundle_event_callback.h"
 #include "session/host/include/session.h"
 #include "start_ability_utils.h"
+#include "start_params_by_SCB.h"
 #include "system_ability_definition.h"
 #include "ability_util.h"
 
@@ -394,10 +395,11 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_003, TestSize.Leve
     sptr<SessionInfo> sessionInfo(new SessionInfo());
     sessionInfo->sessionToken = new Rosen::Session(info);
     bool isColdStart = true;
-    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart, 0, false);
+    AbilityRuntime::StartParamsBySCB params;
+    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
     EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart, 0, false);
+    result = abilityMs->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
     EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
 }
 
@@ -1257,7 +1259,8 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_001, TestSize.Leve
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_001 start");
     bool isColdStart;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    auto ret = abilityMs_->StartUIAbilityBySCB(nullptr, isColdStart, 0, false);
+    AbilityRuntime::StartParamsBySCB params;
+    auto ret = abilityMs_->StartUIAbilityBySCB(nullptr, params, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_001 end");
 }
@@ -1343,6 +1346,9 @@ HWTEST_F(AbilityManagerServiceFourthTest, OnRemoveSystemAbility_001, TestSize.Le
     abilityMs_->OnRemoveSystemAbility(systemAbilityId, deviceId);
 
     systemAbilityId = WINDOW_MANAGER_SERVICE_ID;
+    abilityMs_->OnRemoveSystemAbility(systemAbilityId, deviceId);
+
+    systemAbilityId = RENDER_SERVICE;
     abilityMs_->OnRemoveSystemAbility(systemAbilityId, deviceId);
     EXPECT_TRUE(abilityMs_ != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest OnRemoveSystemAbility_001 end");

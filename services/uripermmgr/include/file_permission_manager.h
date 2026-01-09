@@ -20,6 +20,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include "tokenid_permission.h"
 #include "uri.h"
 
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
@@ -55,13 +56,12 @@ private:
 class FilePermissionManager {
 public:
     static std::vector<bool> CheckUriPersistentPermission(std::vector<Uri> &uriVec, uint32_t callerTokenId,
-        uint32_t flag, std::vector<PolicyInfo> &pathPolicies, const std::string &bundleName);
+        uint32_t flag, const std::string &bundleName, std::vector<PolicyInfo> &pathPolicies);
 
     static PolicyInfo GetPathPolicyInfoFromUri(Uri &uri, uint32_t flag, const std::string &bundleName = "");
 
 private:
-    static bool CheckDocsUriPermission(uint32_t callerTokenId, bool hasFileManagerPerm, bool hasSandboxManagerPerm,
-        const std::string &path);
+    static bool CheckDocsUriPermission(TokenIdPermission &tokenPermission, const std::string &path);
 
     static DllWrapper& GetDllWrapper();
 };
