@@ -395,6 +395,7 @@ group("fuzztest") {
     "handledlpapp_fuzzer:fuzztest",
     "hiddenstartutils_fuzzer:fuzztest",
     "insightintentdbcache_fuzzer:fuzztest",
+    "insightintentdbcachefirst_fuzzer:fuzztest",
     "insightintentexecutecallbackstub_fuzzer:fuzztest",
     "insightintentexecutemanagerfirst_fuzzer:fuzztest",
     "insightintentexecutemanagersecond_fuzzer:fuzztest",
@@ -442,6 +443,7 @@ group("fuzztest") {
     "kioskmanager_fuzzer:fuzztest",
     "loadability_fuzzer:fuzztest",
     "localpendingwant_fuzzer:fuzztest",
+    "localpendingwantfirst_fuzzer:fuzztest"
     "lockmissionforcleanup_fuzzer:fuzztest",
     "mainelementutils_fuzzer:fuzztest",
     "mainelementutilsfirst_fuzzer:fuzztest",
