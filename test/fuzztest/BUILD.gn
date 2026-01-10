@@ -442,6 +442,7 @@ group("fuzztest") {
     "kioskmanager_fuzzer:fuzztest",
     "loadability_fuzzer:fuzztest",
     "localpendingwant_fuzzer:fuzztest",
+    "localpendingwantfirst_fuzzer:fuzztest"
     "lockmissionforcleanup_fuzzer:fuzztest",
     "mainelementutils_fuzzer:fuzztest",
     "mainelementutilsfirst_fuzzer:fuzztest",
