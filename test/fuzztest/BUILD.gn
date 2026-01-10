@@ -544,6 +544,7 @@ group("fuzztest") {
     "usercontrollerthird_fuzzer:fuzztest",
     "usercontrollerfourth_fuzzer:fuzztest",
     "wantagenthelperstring_fuzzer:fuzztest",
+    "wantagenthelperstringfirst_fuzzer:fuzztest",
     "wantagenthelpertrigger_fuzzer:fuzztest",
     "wantsenderstub_fuzzer:fuzztest",
     "wantutils_fuzzer:fuzztest",
