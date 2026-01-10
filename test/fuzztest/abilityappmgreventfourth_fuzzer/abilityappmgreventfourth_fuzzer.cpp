@@ -1,0 +1,119 @@
+/*
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "abilityappmgreventfourth_fuzzer.h"
+
+#define private public
+#include "app_mgr_event.h"
+#undef private
+
+#include <cstddef>
+#include <cstdint>
+#include <iostream>
+#include <memory>
+#include <string>
+#include "securec.h"
+#include "configuration.h"
+#include "event_info.h"
+#include "ipc_skeleton.h"
+#include "application_info.h"
+using namespace OHOS::AppExecFwk;
+using namespace OHOS::AAFwk;
+
+namespace OHOS {
+namespace {
+constexpr size_t U32_AT_SIZE = 4;
+}
+
+uint32_t GetU32Data(const char* ptr)
+{
+    return (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
+}
+
+bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+{
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    int32_t recordId = static_cast<int32_t>(GetU32Data(data));
+    std::string processName(data, size);
+    
+    std::shared_ptr<AppRunningRecord> callerAppRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId + 1, processName + "_test");
+    int32_t intParam = static_cast<int32_t>(GetU32Data(data));
+    int64_t longParam = static_cast<int64_t>(GetU32Data(data));
+    EventInfo eventInfo;
+    eventInfo.isPreload = (intParam % 2) == 0;
+    eventInfo.preloadMode = intParam % 10;
+    int32_t appUid = intParam;
+    int64_t restartTime = longParam;
+    AppMgrEventUtil::SendReStartProcessEvent(eventInfo, appUid, restartTime);
+
+    AppMgrEventUtil::GetCallerPid(nullptr);
+    callerAppRecord->SetPid(intParam);
+    AppMgrEventUtil::GetCallerPid(callerAppRecord);
+    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+    int32_t abilityType = 0;
+    int32_t extensionType = 0;
+    AppMgrEventUtil::UpdateStartupType(nullptr, abilityType, extensionType);
+    abilityInfo->type = static_cast<AbilityType>(intParam % 10);
+    abilityInfo->extensionAbilityType = static_cast<ExtensionAbilityType>(intParam % 20);
+    AppMgrEventUtil::UpdateStartupType(abilityInfo, abilityType, extensionType);
+
+    AppMgrEventUtil::UpdateCallerInfo(eventInfo, nullptr, appRecord);
+    AppMgrEventUtil::UpdateCallerInfo(eventInfo, callerAppRecord, appRecord);
+
+    std::shared_ptr<RenderRecord> renderRecord = std::make_shared<RenderRecord>();
+    ProcessStartFailedReason reason = static_cast<ProcessStartFailedReason>(intParam % 10);
+    int32_t subReason = intParam % 100;
+    AppMgrEventUtil::SendRenderProcessStartFailedEvent(nullptr, reason, subReason);
+    AppMgrEventUtil::SendRenderProcessStartFailedEvent(renderRecord, reason, subReason);
+
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto subscriber = std::make_shared<AppMgrEventSubscriber>(subscribeInfo, nullptr);
+    EventFwk::CommonEventData eventData;
+    subscriber->OnReceiveEvent(eventData);
+
+    return true;
+}
+}
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        std::cout << "invalid data" << std::endl;
+        return 0;
+    }
+
+    if (size < OHOS::U32_AT_SIZE) {
+        return 0;
+    }
+
+    char* ch = (char*)malloc(size + 1);
+    if (ch == nullptr) {
+        std::cout << "malloc failed." << std::endl;
+        return 0;
+    }
+
+    (void)memset_s(ch, size + 1, 0x00, size + 1);
+    if (memcpy_s(ch, size, data, size) != EOK) {
+        std::cout << "copy failed." << std::endl;
+        free(ch);
+        ch = nullptr;
+        return 0;
+    }
+
+    OHOS::DoSomethingInterestingWithMyAPI(ch, size);
+    free(ch);
+    ch = nullptr;
+    return 0;
+}
