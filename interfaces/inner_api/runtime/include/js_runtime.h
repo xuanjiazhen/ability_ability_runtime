@@ -188,6 +188,7 @@ private:
     bool preloaded_ = false;
     bool isBundle_ = true;
     bool isOhmUrl_ = false;
+    bool hasLoadAotFile_ = false;
     std::string codePath_;
     std::string moduleName_;
     std::unique_ptr<NativeReference> methodRequireNapiRef_;

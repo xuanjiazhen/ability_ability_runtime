@@ -682,11 +682,9 @@ void JsRuntime::LoadAotFile(const Options& options)
         return;
     }
 
-    bool newCreate = false;
-    std::string loadPath = ExtractorUtil::GetLoadFilePath(options.hapPath);
-    std::shared_ptr<Extractor> extractor = ExtractorUtil::GetExtractor(loadPath, newCreate, true);
-    if (extractor != nullptr && newCreate) {
+    if (!hasLoadAotFile_) {
         panda::JSNApi::LoadAotFile(vm, options.moduleName);
+        hasLoadAotFile_ = true;
     }
 }
 
@@ -1255,13 +1253,14 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
         TAG_LOGE(AAFwkTag::JSRUNTIME, "hapPath[%{private}s]", hapPath.c_str());
         return false;
     }
-    if (newCreate) {
+    if (!hasLoadAotFile_) {
         TAG_LOGD(AAFwkTag::JSRUNTIME, "newCreate");
         panda::JSNApi::LoadAotFile(vm, moduleName_);
         auto resourceManager = AbilityBase::ExtractResourceManager::GetExtractResourceManager().GetGlobalObject();
         if (resourceManager) {
             resourceManager->AddResource(loadPath.c_str());
         }
+        hasLoadAotFile_ = true;
     }
 
     auto func = [&](std::string modulePath, const std::string abcPath) {
