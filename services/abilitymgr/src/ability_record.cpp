@@ -44,7 +44,7 @@
 #include "scene_board_judgement.h"
 #include "startup_util.h"
 #include "system_ability_token_callback.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
 #endif // SUPPORT_UPMS
@@ -1191,7 +1191,7 @@ void AbilityRecord::Terminate(const Closure &task)
 #endif // SUPPORT_SCREEN
     lifecycleDeal_->Terminate(GetWant(), lifeCycleStateInfo_, GetSessionInfo());
     if (GetCallerInfo() != nullptr && (GetRequestCode() != DEFAULT_REQUEST_CODE ||
-        UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType))) {
+        UIExtensionWrapper::IsUIExtension(GetAbilityInfo().extensionAbilityType))) {
         DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(
             GetCallerInfo()->callerPid, GetPid(), GetAbilityRecordId());
     }
@@ -1676,7 +1676,7 @@ void AbilityRecord::GetAbilityTypeString(std::string &typeStr)
         }
 #endif
         case AppExecFwk::AbilityType::SERVICE: {
-            typeStr = UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType) ?
+            typeStr = UIExtensionWrapper::IsUIExtension(GetAbilityInfo().extensionAbilityType) ?
                 "UIEXTENSION" : "SERVICE";
             break;
         }
@@ -1936,7 +1936,7 @@ void AbilityRecord::NotifyAnimationAbilityDied()
 
 bool AbilityRecord::IsNeverStarted() const
 {
-    if (UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
+    if (UIExtensionWrapper::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
         return startId_ == 0;
     }
     return startId_ == 0 && IsCreateByConnect();
@@ -2965,7 +2965,7 @@ bool AbilityRecord::GetKillForPermissionUpdateFlag() const
 
 void AbilityRecord::UpdateUIExtensionInfo(const WantParams &wantParams)
 {
-    if (!UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
+    if (!UIExtensionWrapper::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
         return;
     }
 
@@ -3053,7 +3053,7 @@ void AbilityRecord::UpdateDmsCallerInfo(Want &want)
 
 void AbilityRecord::SetDebugUIExtension()
 {
-    if (!UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
+    if (!UIExtensionWrapper::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Not UIExtension");
         return;
     }
@@ -3087,7 +3087,7 @@ void AbilityRecord::NotifyAbilitiesRequestDone(const std::string &requestKey, in
 
 void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams)
 {
-    if (!UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
+    if (!UIExtensionWrapper::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "abilityType not match");
         return;
     }
