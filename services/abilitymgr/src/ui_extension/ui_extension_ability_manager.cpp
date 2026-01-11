@@ -364,6 +364,7 @@ void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<
         abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str(),
         sessionInfo->persistentId, abilitystateStr.c_str());
+    abilityRecord->SetPendingState(AbilityState::BACKGROUND);
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
     } else if (abilityRecord->IsAbilityState(AbilityState::INITIAL) ||
@@ -575,7 +576,7 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
         TAG_LOGD(AAFwkTag::EXT, "targetService has not been loaded");
         SetLastExitReason(abilityRequest, targetService);
         targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_ABILITY);
-
+        targetService->SetPendingState(AbilityState::FOREGROUND);
         auto updateRecordCallback = [mgr = std::static_pointer_cast<UIExtensionAbilityManager>(shared_from_this())](
             const std::shared_ptr<BaseExtensionRecord>& targetService) {
             if (mgr != nullptr) {
@@ -664,6 +665,7 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
             CommandAbilityWindow(abilityRecord, abilityRequest.sessionInfo, WIN_CMD_FOREGROUND);
             return;
         } else {
+            abilityRecord->SetPendingState(AbilityState::FOREGROUND);
             abilityRecord->SetWant(abilityRequest.want);
             abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken());
@@ -1020,6 +1022,12 @@ int UIExtensionAbilityManager::TerminateAbilityInner(const sptr<IRemoteObject> &
     std::string element = abilityRecord->GetURI();
     TAG_LOGD(AAFwkTag::EXT, "terminate ability, ability is %{public}s", element.c_str());
     if (IsUIExtensionAbility(abilityRecord)) {
+        if (abilityRecord->GetPendingState() != AbilityState::INITIAL) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state: %{public}d",
+                static_cast<int32_t>(abilityRecord->GetPendingState()));
+            abilityRecord->SetPendingState(AbilityState::BACKGROUND);
+            // abilityRecord->RemoveForegroundTimeoutTask();
+        }
         if (!abilityRecord->IsConnectListEmpty()) {
             TAG_LOGD(AAFwkTag::EXT, "exist connection, don't terminate");
             return ERR_OK;
@@ -1296,6 +1304,13 @@ void UIExtensionAbilityManager::MoveToBackground(const std::shared_ptr<BaseExten
 
 void UIExtensionAbilityManager::CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
+    if (abilityRecord->GetPendingState() == AbilityState::BACKGROUND &&
+        !abilityRecord->BackgroundAbilityWindowDelayed()) {
+        MoveToBackground(abilityRecord);
+    } else if (abilityRecord->GetPendingState() == AbilityState::FOREGROUND) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "not continuous startup.");
+        abilityRecord->SetPendingState(AbilityState::INITIAL);
+    }
     if (abilityRecord->BackgroundAbilityWindowDelayed()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "response background request");
         abilityRecord->DoBackgroundAbilityWindowDelayed(false);
@@ -1365,6 +1380,35 @@ void UIExtensionAbilityManager::HandleCommandDestroy(const sptr<SessionInfo> &se
             return;
         }
     }
+}
+
+void UIExtensionAbilityManager::CompleteBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+    std::lock_guard lock(serialMutex_);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
+        return;
+    }
+    if (abilityRecord->GetAbilityState() != AbilityState::BACKGROUNDING) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability state: %{public}d, not complete background.",
+            abilityRecord->GetAbilityState());
+        return;
+    }
+    abilityRecord->SetAbilityState(AbilityState::BACKGROUND);
+    // send application state to AppMS.
+    // notify AppMS to update application state.
+    DelayedSingleton<AppScheduler>::GetInstance()->MoveToBackground(abilityRecord->GetToken());
+    if (abilityRecord->GetPendingState() == AbilityState::FOREGROUND) {
+        abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
+        abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+        DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken());
+    } else if (abilityRecord->GetPendingState() == AbilityState::BACKGROUND) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "not continuous startup.");
+        abilityRecord->SetPendingState(AbilityState::INITIAL);
+    }
+    CompleteStartServiceReq(abilityRecord->GetURI());
+    // Abilities ahead of the one started were put in terminate list, we need to terminate them.
+    TerminateAbilityLocked(abilityRecord->GetToken());
 }
 }  // namespace AAFwk
 }  // namespace OHOS
