@@ -17,7 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_UI_EXTENSION_WRAPPER_H
 
 #include "extension_ability_info.h"
-#include "ui_extension_utils.h"ui_extension_utils.h
+#include "ui_extension_utils.h"
 
 namespace OHOS {
 namespace AAFwk {
