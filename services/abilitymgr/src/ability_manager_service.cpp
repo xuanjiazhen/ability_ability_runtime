@@ -50,6 +50,7 @@
 #include "global_constant.h"
 #include "hidden_start_observer_manager.h"
 #include "hitrace_meter.h"
+#include "hisysevent_report.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_db_cache.h"
 #include "insight_intent_utils.h"
@@ -10049,13 +10050,14 @@ void AbilityManagerService::ScheduleClearRecoveryPageStack()
 void AbilityManagerService::ReportAppRecoverResult(const int32_t appId, const AppExecFwk::ApplicationInfo &appInfo,
     const std::string& abilityName, const std::string& result)
 {
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "APP_RECOVERY", HiSysEvent::EventType::BEHAVIOR,
-        "APP_UID", appId,
-        "VERSION_CODE", std::to_string(appInfo.versionCode),
-        "VERSION_NAME", appInfo.versionName,
-        "BUNDLE_NAME", appInfo.bundleName,
-        "ABILITY_NAME", abilityName,
-        "RECOVERY_RESULT", result);
+    auto hisyseventReport = std::make_shared<HisyseventReport>(2);
+    hisyseventReport->InsertParam("APP_UID", appId);
+    hisyseventReport->InsertParam("VERSION_CODE", std::to_string(appInfo.versionCode));
+    hisyseventReport->InsertParam("VERSION_NAME", appInfo.versionName);
+    hisyseventReport->InsertParam("BUNDLE_NAME", appInfo.bundleName);
+    hisyseventReport->InsertParam("ABILITY_NAME", abilityName);
+    hisyseventReport->InsertParam("RECOVERY_RESULT", result);
+    int32_t ret = hisyseventReport->Report("AAFWK", "APP_RECOVERY", HISYSEVENT_BEHAVIOR);
 }
 
 void AbilityManagerService::SubmitSaveRecoveryInfo(const sptr<IRemoteObject>& token)
@@ -14610,15 +14612,16 @@ void AbilityManagerService::ReportPreventStartAbilityResult(const AppExecFwk::Ab
         "Prevent start ability debug log CALLER_BUNDLE_NAME %{public}s CALLEE_BUNDLE_NAME"
         "%{public}s ABILITY_NAME %{public}s",
         callerAbilityInfo.bundleName.c_str(), abilityInfo.name.c_str(), abilityInfo.name.c_str());
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "PREVENT_START_ABILITY", HiSysEvent::EventType::BEHAVIOR,
-        "CALLER_UID", callerUid,
-        "CALLER_PID", callerPid,
-        "CALLER_PROCESS_NAME", callerAbilityInfo.process,
-        "CALLER_BUNDLE_NAME", callerAbilityInfo.bundleName,
-        "CALLEE_BUNDLE_NAME", abilityInfo.bundleName,
-        "CALLEE_PROCESS_NAME", abilityInfo.process,
-        "EXTENSION_ABILITY_TYPE", extensionAbilityType,
-        "ABILITY_NAME", abilityInfo.name);
+    auto hisyseventReport = std::make_shared<HisyseventReport>(8);
+    hisyseventReport->InsertParam("CALLER_UID", callerUid);
+    hisyseventReport->InsertParam("CALLER_PID", callerPid);
+    hisyseventReport->InsertParam("CALLER_PROCESS_NAME", callerAbilityInfo.process);
+    hisyseventReport->InsertParam("CALLER_BUNDLE_NAME", callerAbilityInfo.bundleName);
+    hisyseventReport->InsertParam("CALLEE_BUNDLE_NAME", abilityInfo.bundleName);
+    hisyseventReport->InsertParam("CALLEE_PROCESS_NAME", abilityInfo.process);
+    hisyseventReport->InsertParam("EXTENSION_ABILITY_TYPE", extensionAbilityType);
+    hisyseventReport->InsertParam("ABILITY_NAME", abilityInfo.name);
+    hisyseventReport->Report("AAFWK", "PREVENT_START_ABILITY", HISYSEVENT_BEHAVIOR);
 }
 
 bool AbilityManagerService::IsInWhiteList(const std::string &callerBundleName, const std::string &calleeBundleName,
