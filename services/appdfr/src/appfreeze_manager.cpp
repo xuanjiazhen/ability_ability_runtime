@@ -27,7 +27,7 @@
 #include "ffrt.h"
 #include "dfx_dump_catcher.h"
 #include "directory_ex.h"
-#include "hisysevent.h"
+#include "hisysevent_report.h"
 #include "hitrace_meter.h"
 #include "parameter.h"
 #include "parameters.h"
@@ -321,17 +321,21 @@ int AppfreezeManager::LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::
 
     std::string faultTimeStr = "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
     if (!g_betaVersion && info.eventName == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
-        int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
-            HiviewDFX::HiSysEvent::EventType::FAULT, "PID", info.pid, "PACKAGE_NAME", info.bundleName);
+        auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(2);
+        hisyseventReport->InsertParam("PID", info.pid);
+        hisyseventReport->InsertParam("PACKAGE_NAME", info.bundleName);
+        int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
         TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:%{public}s,"
             " ret:%{public}d", info.pid, info.bundleName.c_str(), ret);
     }
 
     std::string message;
     if (g_betaVersion && info.eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
-        int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
-            HiviewDFX::HiSysEvent::EventType::FAULT, "PID", info.pid, "PACKAGE_NAME", info.bundleName,
-            "FAULT_TIME", faultTimeStr);
+        auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(3);
+        hisyseventReport->InsertParam("PID", info.pid);
+        hisyseventReport->InsertParam("PACKAGE_NAME", info.bundleName);
+        hisyseventReport->InsertParam("FAULT_TIME", faultTimeStr);
+        int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
         message = (ret == 0) ? "FREEZE_HALF_HIVIEW_LOG write success" : "";
     }
 
@@ -540,8 +544,7 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     eventInfo.processedId = faultData.processedId;
     eventInfo.dispatchedEventId = faultData.dispatchedEventId;
 
-    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, eventInfo);
+    int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName, HISYSEVENT_FAULT, eventInfo);
     TAG_LOGW(AAFwkTag::APPDFR, "reportEvent:%{public}s, pid:%{public}d, tid:%{public}d, bundleName:%{public}s, "
         "appRunningUniqueId:%{public}s, endTime:%{public}s, interval:%{public}" PRId64 " ms, "
         "eventId:%{public}d freezeInfoFile:%{public}s foreground:%{public}d enableFreeze:%{public}d,"
@@ -966,46 +969,46 @@ void AppfreezeManager::ReportAppFreezeSysEvents(int32_t pid, const std::string& 
 
     uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
-    int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY, "APP_FREEZE_BEHAVIOR",
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
-        "THREAD_HALF_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].schedTime,
-        "THREAD_HALF_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].detectTime,
-        "THREAD_HALF_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].dumpStartTime,
-        "THREAD_HALF_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].dumpFinishTime,
-        "THREAD_HALF_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].dumpResult,
-        "THREAD_HALF_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].appStatus,
-        "THREAD_TIMEOUT_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].schedTime,
-        "THREAD_TIMEOUT_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].detectTime,
-        "THREAD_TIMEOUT_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].dumpStartTime,
-        "THREAD_TIMEOUT_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].dumpFinishTime,
-        "THREAD_TIMEOUT_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].dumpResult,
-        "THREAD_TIMEOUT_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].appStatus,
-        "INPUT_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].schedTime,
-        "INPUT_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].detectTime,
-        "INPUT_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].dumpStartTime,
-        "INPUT_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].dumpFinishTime,
-        "INPUT_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].dumpResult,
-        "INPUT_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].appStatus,
-        "LIFECYCLE_HALF_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].schedTime,
-        "LIFECYCLE_HALF_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].detectTime,
-        "LIFECYCLE_HALF_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].dumpStartTime,
-        "LIFECYCLE_HALF_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].dumpFinishTime,
-        "LIFECYCLE_HALF_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].dumpResult,
-        "LIFECYCLE_HALF_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].appStatus,
-        "LIFECYCLE_TIMEOUT_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].schedTime,
-        "LIFECYCLE_TIMEOUT_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].detectTime,
-        "LIFECYCLE_TIMEOUT_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].dumpStartTime,
-        "LIFECYCLE_TIMEOUT_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].dumpFinishTime,
-        "LIFECYCLE_TIMEOUT_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].dumpResult,
-        "LIFECYCLE_TIMEOUT_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].appStatus,
-        "APP_KILL_TIME", freezeEventMap_[pid][KILL_EVENT_NAME].schedTime,
-        "APP_TERMINATED_TIME", now,
-        "SAMPLER_START", freezeEventMap_[pid][KILL_EVENT_NAME].dumpStartTime,
-        "SAMPLER_FINISH", freezeEventMap_[pid][KILL_EVENT_NAME].dumpFinishTime,
-        "SAMPLER_COUNT", freezeEventMap_[pid][KILL_EVENT_NAME].dumpResult,
-        "BUNDLE_NAME", bundleName,
-        "APP_PID", pid,
-        "REPEAT_KILLED_THREAD", freezeEventMap_[pid][KILL_EVENT_NAME].isRepeatKilledThread);
+    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(40);
+    hisyseventReport->InsertParam("THREAD_HALF_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].schedTime);
+    hisyseventReport->InsertParam("THREAD_HALF_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].detectTime);
+    hisyseventReport->InsertParam("THREAD_HALF_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].dumpStartTime);
+    hisyseventReport->InsertParam("THREAD_HALF_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].dumpFinishTime);
+    hisyseventReport->InsertParam("THREAD_HALF_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].dumpResult);
+    hisyseventReport->InsertParam("THREAD_HALF_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[0]].appStatus);
+    hisyseventReport->InsertParam("THREAD_TIMEOUT_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].schedTime);
+    hisyseventReport->InsertParam("THREAD_TIMEOUT_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].detectTime);
+    hisyseventReport->InsertParam("THREAD_TIMEOUT_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].dumpStartTime);
+    hisyseventReport->InsertParam("THREAD_TIMEOUT_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].dumpFinishTime);
+    hisyseventReport->InsertParam("THREAD_TIMEOUT_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].dumpResult);
+    hisyseventReport->InsertParam("THREAD_TIMEOUT_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[1]].appStatus);
+    hisyseventReport->InsertParam("INPUT_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].schedTime);
+    hisyseventReport->InsertParam("INPUT_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].detectTime);
+    hisyseventReport->InsertParam("INPUT_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].dumpStartTime);
+    hisyseventReport->InsertParam("INPUT_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].dumpFinishTime);
+    hisyseventReport->InsertParam("INPUT_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].dumpResult);
+    hisyseventReport->InsertParam("INPUT_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[2]].appStatus);
+    hisyseventReport->InsertParam("LIFECYCLE_HALF_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].schedTime);
+    hisyseventReport->InsertParam("LIFECYCLE_HALF_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].detectTime);
+    hisyseventReport->InsertParam("LIFECYCLE_HALF_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].dumpStartTime);
+    hisyseventReport->InsertParam("LIFECYCLE_HALF_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].dumpFinishTime);
+    hisyseventReport->InsertParam("LIFECYCLE_HALF_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].dumpResult);
+    hisyseventReport->InsertParam("LIFECYCLE_HALF_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[3]].appStatus);
+    hisyseventReport->InsertParam("LIFECYCLE_TIMEOUT_SCHED", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].schedTime);
+    hisyseventReport->InsertParam("LIFECYCLE_TIMEOUT_DETECT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].detectTime);
+    hisyseventReport->InsertParam("LIFECYCLE_TIMEOUT_DUMP_START", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].dumpStartTime);
+    hisyseventReport->InsertParam("LIFECYCLE_TIMEOUT_DUMP_FINISH", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].dumpFinishTime);
+    hisyseventReport->InsertParam("LIFECYCLE_TIMEOUT_DUMP_RESULT", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].dumpResult);
+    hisyseventReport->InsertParam("LIFECYCLE_TIMEOUT_APP_STATUS", freezeEventMap_[pid][APP_FREEZE_EVENT_NAME[4]].appStatus);
+    hisyseventReport->InsertParam("APP_KILL_TIME", freezeEventMap_[pid][KILL_EVENT_NAME].schedTime);
+    hisyseventReport->InsertParam("APP_TERMINATED_TIME", now);
+    hisyseventReport->InsertParam("SAMPLER_START", freezeEventMap_[pid][KILL_EVENT_NAME].dumpStartTime);
+    hisyseventReport->InsertParam("SAMPLER_FINISH", freezeEventMap_[pid][KILL_EVENT_NAME].dumpFinishTime);
+    hisyseventReport->InsertParam("SAMPLER_COUNT", freezeEventMap_[pid][KILL_EVENT_NAME].dumpResult);
+    hisyseventReport->InsertParam("BUNDLE_NAME", bundleName);
+    hisyseventReport->InsertParam("APP_PID", pid);
+    hisyseventReport->InsertParam("REPEAT_KILLED_THREAD", freezeEventMap_[pid][KILL_EVENT_NAME].isRepeatKilledThread);
+    int ret = hisyseventReport->Report("RELIABILITY", "APP_FREEZE_BEHAVIOR", HISYSEVENT_BEHAVIOR);
     freezeEventMap_.erase(pid);
 }
 

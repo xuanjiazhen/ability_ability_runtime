@@ -680,7 +680,7 @@ bool AbilityRecord::ReportAtomicServiceDrawnCompleteEvent()
     eventInfo.moduleName = abilityInfo_.moduleName;
     eventInfo.bundleName = abilityInfo_.bundleName;
     auto eventName = AAFwk::EventName::ATOMIC_SERVICE_DRAWN_COMPLETE;
-    AAFwk::EventReport::SendAtomicServiceEvent(eventName, HiSysEventType::BEHAVIOR, eventInfo);
+    AAFwk::EventReport::SendAtomicServiceEvent(eventName, HISYSEVENT_BEHAVIOR, eventInfo);
     return true;
 }
 
@@ -843,7 +843,7 @@ int AbilityRecord::TerminateAbility()
     }
     ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::DESTROY_END, GetPid(), GetUid(),
         0, GetRecordId());
-    AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::TERMINATE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
+    AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::TERMINATE_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
     auto ret = DelayedSingleton<AppScheduler>::GetInstance()->TerminateAbility(token_, clearMissionFlag_);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "terminate ability failed: %{public}d", ret);
@@ -863,7 +863,7 @@ void AbilityRecord::SendTerminateAbilityErrorEvent(int32_t errCode)
 {
     EventInfo eventInfo;
     BuildTerminateAbilityEventInfo(eventInfo, errCode);
-    EventReport::SendAbilityEvent(EventName::TERMINATE_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
+    EventReport::SendAbilityEvent(EventName::TERMINATE_ABILITY_ERROR, HISYSEVENT_FAULT, eventInfo);
 }
 
 const AppExecFwk::AbilityInfo &AbilityRecord::GetAbilityInfo() const
@@ -3130,7 +3130,7 @@ void AbilityRecord::SendAppStartupTypeEvent(const AppExecFwk::AppStartType start
     eventInfo.versionCode = applicationInfo.versionCode;
     eventInfo.pid = static_cast<int32_t>(GetPid());
     eventInfo.startType = static_cast<int32_t>(startType);
-    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_STARTUP_TYPE, HiSysEventType::BEHAVIOR, eventInfo);
+    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_STARTUP_TYPE, HISYSEVENT_BEHAVIOR, eventInfo);
 }
 
 void AbilityRecord::AddUIExtensionLaunchTimestamp()

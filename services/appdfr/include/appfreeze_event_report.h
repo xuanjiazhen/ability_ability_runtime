@@ -18,9 +18,8 @@
 
 #include <string>
 
-#include "hisysevent.h"
+#include "hisysevent_report.h"
 
-using HiSysEventType = OHOS::HiviewDFX::HiSysEvent::EventType;
 using HiSysEvent = OHOS::HiviewDFX::HiSysEvent;
 
 namespace OHOS {
@@ -52,17 +51,17 @@ struct AppfreezeEventInfo {
 
 class AppfreezeEventReport {
 public:
-    static int SendAppfreezeEvent(const std::string &eventName, HiSysEventType type,
+    static int SendAppfreezeEvent(const std::string &eventName, HiSysEventEventType type,
         const AppfreezeEventInfo &eventInfo);
 
 private:
-    static int LogAppInputBlockEvent(const std::string &name, HiSysEventType type,
+    static int LogAppInputBlockEvent(const std::string &name, HiSysEventEventType type,
         const AppfreezeEventInfo &eventInfo);
-    static int LogThreadBlockEvent(const std::string &name, HiSysEventType type,
+    static int LogThreadBlockEvent(const std::string &name, HiSysEventEventType type,
         const AppfreezeEventInfo &eventInfo);
-    static int LogLifeCycleTimeoutEvent(const std::string &name, HiSysEventType type,
+    static int LogLifeCycleTimeoutEvent(const std::string &name, HiSysEventEventType type,
         const AppfreezeEventInfo &eventInfo);
-    static int LogGeneralEvent(const std::string &name, HiSysEventType type,
+    static int LogGeneralEvent(const std::string &name, HiSysEventEventType type,
         const AppfreezeEventInfo &eventInfo);
 };
 }  // namespace AppExecFwk
