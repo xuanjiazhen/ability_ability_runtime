@@ -29,6 +29,7 @@ class MockAppScheduler : public AppSchedulerHost {
 public:
     MockAppScheduler() = default;
     virtual ~MockAppScheduler() = default;
+    MOCK_METHOD4(SendRequest, int(uint32_t, MessageParcel&, MessageParcel&, MessageOption&));
     MOCK_METHOD0(ScheduleForegroundApplication, bool());
     MOCK_METHOD0(ScheduleBackgroundApplication, void());
     MOCK_METHOD1(ScheduleTerminateApplication, void(bool));
@@ -68,6 +69,7 @@ public:
     MOCK_METHOD1(ScheduleDumpIpcStop, int32_t(std::string &result));
     MOCK_METHOD1(ScheduleDumpIpcStat, int32_t(std::string &result));
     MOCK_METHOD1(ScheduleDumpFfrt, int32_t(std::string& result));
+    MOCK_METHOD2(ScheduleDumpArkWeb, int32_t(const std::string &customArgs, std::string &result));
     MOCK_METHOD1(SetWatchdogBackgroundStatus, void(bool status));
     MOCK_METHOD0(ScheduleClearPageStack, void());
     MOCK_METHOD0(IsMemorySizeSufficient, bool());
