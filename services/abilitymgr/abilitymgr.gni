@@ -60,6 +60,7 @@ abilityms_files = [
   "src/restart_app_manager.cpp",
   "src/ams_configuration_parameter.cpp",
   "src/recovery_info_timer.cpp",
+  "src/modal_system_dialog/beta_app_expired_dialog_ui_extension.cpp",
   "src/modal_system_dialog/modal_system_dialog_ui_extension.cpp",
   "src/hidden_start_observer_manager.cpp",
   "src/interceptor/ability_interceptor_executer.cpp",

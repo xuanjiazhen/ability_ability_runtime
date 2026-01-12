@@ -270,6 +270,9 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
         return request;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityInfo customProcess: %{public}s", request->customProcess.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "hanksh request.appInfo.name: %{public}s,request->abilityInfo.bundleName: %{public}s",
+        request->abilityInfo.name.c_str(), request->abilityInfo.bundleName.c_str());
     if (request->abilityInfo.name.empty() || request->abilityInfo.bundleName.empty()) {
         // try to find extension
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
