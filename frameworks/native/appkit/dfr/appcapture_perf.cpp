@@ -17,8 +17,9 @@
 #include <mutex>
 #include <algorithm>
 #include <string>
+#include <sstream>
  
-#include "hisysevent.h"
+#include "hisysevent_report.h"
 #include "lperf.h"
 #include "hilog_tag_wrapper.h"
  
@@ -92,9 +93,12 @@ int32_t AppCapturePerf::CapturePerf(const FaultData &faultData)
         perf.push_back(info);
     }
     instance.FinishProcessStackSampling();
-    HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "CPU_LOAD_CAPTURE_STACK",
-        HiviewDFX::HiSysEvent::EventType::STATISTIC, "APP_NAME", faultData.errorObject.name,
-        "TIDS", tids, "PERF", perf, "PERFID", perfId);
+    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(12);
+    hisyseventReport->InsertParam("APP_NAME", faultData.errorObject.name);
+    hisyseventReport->InsertParam("TIDS", tids);
+    hisyseventReport->InsertParam("PERF", perf);
+    hisyseventReport->InsertParam("PERFID", perfId);
+    hisyseventReport->Report("AAFWK", "CPU_LOAD_CAPTURE_STACK", HISYSEVENT_STATISTIC);
     return NO_ERROR;
 }
 
