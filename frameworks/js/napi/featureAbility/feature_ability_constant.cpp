@@ -19,11 +19,17 @@
 
 #include "hilog_tag_wrapper.h"
 #include "securec.h"
+#include "js_runtime_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 napi_value FAConstantInit(napi_env env, napi_value exports)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FA, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
     const int Window_Configuration_Zero = 100;
     const int Window_Configuration_One = 101;
     const int Window_Configuration_Two = 102;
@@ -61,12 +67,17 @@ napi_value FAConstantInit(napi_env env, napi_value exports)
     };
     napi_define_properties(env, exports, sizeof(exportFuncs) / sizeof(*exportFuncs), exportFuncs);
 
-    return exports;
+    return handleEscape.Escape(exports);
 }
 
 void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, const char *propName)
 {
     TAG_LOGD(AAFwkTag::FA, "called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FA, "null env");
+        return;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value prop = nullptr;
     napi_create_string_utf8(env, objName, NAPI_AUTO_LENGTH, &prop);
     napi_set_named_property(env, dstObj, propName, prop);
@@ -75,6 +86,11 @@ void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, cons
 void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, const char *propName)
 {
     TAG_LOGD(AAFwkTag::FA, "end");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FA, "null env");
+        return;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value prop = nullptr;
     napi_create_int32(env, objValue, &prop);
     napi_set_named_property(env, dstObj, propName, prop);

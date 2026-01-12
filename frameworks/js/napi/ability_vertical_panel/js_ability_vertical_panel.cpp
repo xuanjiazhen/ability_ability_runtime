@@ -88,6 +88,11 @@ private:
 
     static bool UnwrapScreenConfig(napi_env env, napi_value param, AAFwk::ScreenConfig &screenConfig)
     {
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::VERTICAL_PANEL, "null env");
+            return false;
+        }
+        HandleEscape handleEscape(env);
         if (!AppExecFwk::IsTypeForNapiValue(env, param, napi_object)) {
             TAG_LOGE(AAFwkTag::VERTICAL_PANEL, "UnwrapScreenConfig param IsTypeForNapiValue failed");
             return false;
@@ -136,6 +141,11 @@ private:
         const AAFwk::ScreenConfig &screenConfig,
         std::shared_ptr<JsPanelStartCallback> callback)
     {
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::VERTICAL_PANEL, "null env");
+            return nullptr;
+        }
+        HandleEscape handleEscape(env);
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute =
             [abilityContext, wantParamCopy = wantParam, screenConfig, callback, innerErrCode]() mutable {
@@ -146,6 +156,7 @@ private:
             };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleEscape handleEscape(env);
                 if (*innerErrCode == ERR_OK) {
                     task.ResolveWithNoError(env, CreateJsUndefined(env));
                 } else {
@@ -155,13 +166,18 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsAbilityVerticalPanel::OnStartVerticalPanel",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnStartVerticalPanel(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::VERTICAL_PANEL, "OnStartVerticalPanel call");
 
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::VERTICAL_PANEL, "null env");
+            return nullptr;
+        }
+        HandleEscape handleEscape(env);
         auto selfToken = IPCSkeleton::GetSelfTokenID();
         if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
             TAG_LOGE(AAFwkTag::VERTICAL_PANEL, "This application is not system-app,"
@@ -199,7 +215,7 @@ private:
 
         std::shared_ptr<JsPanelStartCallback> callback = std::make_shared<JsPanelStartCallback>(env);
         callback->SetJsCallbackObject(info.argv[INDEX_THREE]);
-        return ExecuteStartVerticalPanel(env, abilityContext, wantParam, screenConfig, callback);
+        return handleEscape.Escape(ExecuteStartVerticalPanel(env, abilityContext, wantParam, screenConfig, callback));
     }
 };
 
@@ -210,6 +226,7 @@ napi_value JsAbilityVerticalPanelInit(napi_env env, napi_value exportObj)
         return nullptr;
     }
 
+    HandleEscape handleEscape(env);
     napi_value verticalType = nullptr;
     napi_create_object(env, &verticalType);
     SetNamedProperty(env, verticalType, "navigation", "NAVIGATION");
