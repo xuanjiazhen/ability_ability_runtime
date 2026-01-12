@@ -198,6 +198,7 @@ void UnwrapStartOptionsWindowOptions(napi_env env, napi_value param, AAFwk::Star
 bool UnwrapStartOptions(napi_env env, napi_value param, AAFwk::StartOptions &startOptions)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
+    HandleScope handleScope(env);
 
     if (!IsTypeForNapiValue(env, param, napi_object)) {
         TAG_LOGI(AAFwkTag::JSNAPI, "not napi_object");
