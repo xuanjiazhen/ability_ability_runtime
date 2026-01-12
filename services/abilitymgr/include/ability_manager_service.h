@@ -1122,9 +1122,10 @@ public:
      * Start Ability for prelauch.
      *
      * @param want, Special want for service type's ability.
+     * @param frameNum, Special frameNum for remove start window num.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartAbilityForPrelaunch(const Want &want) override;
+    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
 
     /**
      * As abilityRequest is prepared, just execute starting ability procedure.
@@ -2567,7 +2568,7 @@ private:
     int SwitchToUser(int32_t oldUserId, int32_t userId, uint64_t displayId, sptr<IUserCallback> callback,
         bool isAppRecovery = false);
     void SwitchManagers(int32_t userId, bool switchUser = true);
-    void StartUserApps();
+    bool StartUserApps(int32_t oldUserId);
     void PauseOldUser(int32_t userId);
     void PauseOldMissionListManager(int32_t userId);
     void PauseOldConnectManager(int32_t userId);
@@ -2626,13 +2627,15 @@ private:
 
     void StartKeepAliveApps(int32_t userId);
 
-    void StartAutoStartupApps(int32_t userId);
+    void StartAutoStartupApps(int32_t userId, bool isManualStart = false);
     void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList, int32_t userId);
+    void SubscribeUserUnlockedEvent();
     void SubscribeScreenUnlockedEvent();
     std::function<void(int32_t)> GetScreenUnlockCallback();
     std::function<void()> GetUserScreenUnlockCallback();
     void UnSubscribeScreenUnlockedEvent();
-    void RetrySubscribeScreenUnlockedEvent(int32_t retryCount);
+    void RetrySubscribeUnlockedEvent(int32_t retryCount, std::shared_ptr<EventFwk::CommonEventSubscriber> subscriber,
+        bool isUserUnlockSubscriber = false);
     void RemoveScreenUnlockInterceptor();
     void AddWatchParameters();
 
@@ -3039,7 +3042,8 @@ private:
     sptr<WindowFocusChangedListener> focusListener_;
 #endif // SUPPORT_GRAPHICS
 
-    std::shared_ptr<AbilityRuntime::AbilityManagerEventSubscriber> screenSubscriber_;
+    std::shared_ptr<AbilityRuntime::AbilityUserUnlockEventSubscriber> userUnlockSubscriber_;
+    std::shared_ptr<AbilityRuntime::AbilityScreenUnlockEventSubscriber> screenSubscriber_;
     bool isSubscribed_ = false;
     std::mutex subscribedMutex_;
 
