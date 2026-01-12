@@ -219,11 +219,6 @@ public:
         return E_OK;
     }
 
-    virtual int32_t DeleteUserKeys(uint32_t userId) override
-    {
-        return E_OK;
-    }
-
     virtual int32_t UpdateUserAuth(uint32_t userId, uint64_t secureUid,
                                    const std::vector<uint8_t> &token,
                                    const std::vector<uint8_t> &oldSecret,
@@ -349,11 +344,6 @@ public:
 
     virtual int32_t GetUserStorageStatsByType(int32_t userId, StorageStats &storageStats,
         const std::string &type) override
-    {
-        return E_OK;
-    }
-
-    virtual int32_t UpdateMemoryPara(int32_t size, int32_t &oldSize) override
     {
         return E_OK;
     }
