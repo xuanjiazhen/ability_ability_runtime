@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "hisysevent.h"
+#include "hisysevent_report.h"
 
 using HiSysEventType = OHOS::HiviewDFX::HiSysEvent::EventType;
 using HiSysEvent = OHOS::HiviewDFX::HiSysEvent;
