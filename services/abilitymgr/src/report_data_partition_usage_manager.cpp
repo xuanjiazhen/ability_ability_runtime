@@ -51,7 +51,7 @@ void ReportDataPartitionUsageManager::HandleSendReportDataPartitionUsageEvent()
     EventInfo eventInfo;
     GenerateEventInfo(eventInfo);
     EventReport::SendReportDataPartitionUsageEvent(EventName::USER_DATA_SIZE,
-        HiSysEventType::STATISTIC, eventInfo);
+        HISYSEVENT_STATISTIC, eventInfo);
 
     ffrt::submit(HandleSendReportDataPartitionUsageEvent,
         ffrt::task_attr().delay(ONE_DAY_US).name("SendReportDataPartitionUsageTask")
