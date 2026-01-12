@@ -263,6 +263,7 @@ napi_value JsUIExtensionContentSession::OnStartAbility(napi_env env, NapiCallbac
         }
     };
 
+    HandleEscape handleEscape(env);
     napi_value lastParam = (info.argc > unwrapArgc) ? info.argv[unwrapArgc] : nullptr;
     napi_value result = nullptr;
     if ((want.GetFlags() & Want::FLAG_INSTALL_ON_DEMAND) == Want::FLAG_INSTALL_ON_DEMAND) {
@@ -274,7 +275,7 @@ napi_value JsUIExtensionContentSession::OnStartAbility(napi_env env, NapiCallbac
             CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsUIExtensionContentSession::OnGetUIExtensionHostWindowProxy(napi_env env, NapiCallbackInfo& info)
@@ -287,6 +288,7 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionHostWindowProxy(napi_env
         return CreateJsUndefined(env);
     }
 
+    HandleEscape handleEscape(env);
     napi_value jsExtensionWindow =
         Rosen::JsExtensionWindow::CreateJsExtensionWindow(env, uiWindow_, sessionInfo_->hostWindowId);
     if (jsExtensionWindow == nullptr) {
@@ -299,7 +301,7 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionHostWindowProxy(napi_env
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
-    return value->GetNapiValue();
+    return handleEscape.Escape(value->GetNapiValue());
 }
 
 napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env, NapiCallbackInfo& info)
@@ -311,6 +313,7 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env
         return CreateJsUndefined(env);
     }
 
+    HandleEscape handleEscape(env);
     napi_value jsExtensionWindow =
         Rosen::JsExtensionWindow::CreateJsExtensionWindow(env, uiWindow_, sessionInfo_->hostWindowId);
     if (jsExtensionWindow == nullptr) {
@@ -323,7 +326,7 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
-    return value->GetNapiValue();
+    return handleEscape.Escape(value->GetNapiValue());
 }
 
 napi_value JsUIExtensionContentSession::OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info)
@@ -373,11 +376,12 @@ napi_value JsUIExtensionContentSession::OnStartAbilityAsCaller(napi_env env, Nap
                 task.Reject(env, CreateJsErrorByNativeErr(env, innerErrorCode));
             }
         };
+    HandleEscape handleEscape(env);
     napi_value lastParam = (info.argc > unwrapArgc) ? info.argv[unwrapArgc] : nullptr;
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnStartAbilityAsCaller",
         env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 NapiAsyncTask::ExecuteCallback JsUIExtensionContentSession::StartAbilityExecuteCallback(AAFwk::Want& want,
@@ -453,6 +457,7 @@ napi_value JsUIExtensionContentSession::OnStartAbilityForResult(napi_env env, Na
     (unwrapArgc == INDEX_ONE) ? InitDisplayId(want) : InitDisplayId(want, startOptions, env, info);
 #endif
 
+    HandleEscape handleEscape(env);
     napi_value lastParam = info.argc > unwrapArgc ? info.argv[unwrapArgc] : nullptr;
     napi_value result = nullptr;
     std::unique_ptr<NapiAsyncTask> uasyncTask;
@@ -475,7 +480,7 @@ napi_value JsUIExtensionContentSession::OnStartAbilityForResult(napi_env env, Na
         return CreateJsUndefined(env);
     }
     StartAbilityForResultRuntimeTask(env, want, asyncTask, unwrapArgc, startOptions);
-    return result;
+    return handleEscape.Escape(result);
 }
 
 void JsUIExtensionContentSession::StartAbilityForResultRuntimeTask(napi_env env,
@@ -548,12 +553,12 @@ napi_value JsUIExtensionContentSession::OnTerminateSelf(napi_env env, NapiCallba
                 task.Reject(env, CreateJsErrorByNativeErr(env, errorCode));
             }
         };
-
+    HandleEscape handleEscape(env);
     napi_value lastParam = (info.argc > ARGC_ZERO) ? info.argv[INDEX_ZERO] : nullptr;
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnTerminateSelf",
         env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsUIExtensionContentSession::OnTerminateSelfWithResult(napi_env env, NapiCallbackInfo& info)
@@ -868,10 +873,12 @@ napi_value JsUIExtensionContentSession::OnSetWindowPrivacyMode(napi_env env, Nap
         return CreateJsUndefined(env);
     }
 
+    HandleEscape handleEscape(env);
     napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[INDEX_ONE] : nullptr;
     napi_value result = nullptr;
     std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
     auto asyncTask = [uiWindow = uiWindow_, isPrivacyMode, env, task = napiAsyncTask.get()]() {
+        HandleScope handleScope(env);
         if (uiWindow == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
             task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
@@ -890,7 +897,7 @@ napi_value JsUIExtensionContentSession::OnSetWindowPrivacyMode(napi_env env, Nap
     } else {
         napiAsyncTask.release();
     }
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiCallbackInfo& info)
@@ -911,6 +918,7 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
 #ifdef SUPPORT_SCREEN
     InitDisplayId(want);
 #endif
+    HandleEscape handleEscape(env);
     std::shared_ptr<JsUIExtensionCallback> uiExtensionCallback = std::make_shared<JsUIExtensionCallback>(env);
     uiExtensionCallback->SetJsCallbackObject(info.argv[INDEX_TWO]);
     napi_value completionHandler = AppExecFwk::GetPropertyValueByPropertyName(
@@ -964,7 +972,7 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnStartAbilityByType",
         env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 bool JsUIExtensionContentSession::CheckStartAbilityByTypeParam(napi_env env,
@@ -999,6 +1007,7 @@ napi_value JsUIExtensionContentSession::CreateJsUIExtensionContentSession(napi_e
     std::shared_ptr<AbilityResultListeners>& abilityResultListeners)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "start");
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -1026,13 +1035,14 @@ napi_value JsUIExtensionContentSession::CreateJsUIExtensionContentSession(napi_e
     BindNativeFunction(env, object, "startAbilityAsCaller", moduleName, StartAbilityAsCaller);
     BindNativeFunction(env, object, "getUIExtensionHostWindowProxy", moduleName, GetUIExtensionHostWindowProxy);
     BindNativeFunction(env, object, "getUIExtensionWindowProxy", moduleName, GetUIExtensionWindowProxy);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value JsUIExtensionContentSession::CreateJsUIExtensionContentSession(napi_env env,
     sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -1059,7 +1069,7 @@ napi_value JsUIExtensionContentSession::CreateJsUIExtensionContentSession(napi_e
     BindNativeFunction(env, object, "startAbilityAsCaller", moduleName, StartAbilityAsCaller);
     BindNativeFunction(env, object, "getUIExtensionHostWindowProxy", moduleName, GetUIExtensionHostWindowProxy);
     BindNativeFunction(env, object, "getUIExtensionWindowProxy", moduleName, GetUIExtensionWindowProxy);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 void JsUIExtensionContentSession::CallReceiveDataCallback(napi_env env,
