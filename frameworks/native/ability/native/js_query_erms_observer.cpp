@@ -79,6 +79,7 @@ void JsQueryERMSObserver::HandleOnQueryFinished(const std::string &appId, const 
 void JsQueryERMSObserver::CallPromise(napi_deferred deferred, const AtomicServiceStartupRule &rule,
     int32_t resultCode)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     if (deferred == nullptr) {
         TAG_LOGE(AAFwkTag::QUERY_ERMS, "deferred is nullptr");
         return;
@@ -121,12 +122,13 @@ void JsQueryERMSObserver::AddJsObserverObject(const std::string &appId, const st
 napi_value JsQueryERMSObserver::CreateJsAtomicServiceStartupRule(napi_env env,
     const AbilityRuntime::AtomicServiceStartupRule &rule)
 {
+    AbilityRuntime::HandleEscape handleEscape(env)
     napi_value object = nullptr;
     napi_create_object(env, &object);
 
     napi_set_named_property(env, object, "isOpenAllowed", CreateJsValue(env, rule.isOpenAllowed));
     napi_set_named_property(env, object, "isEmbeddedAllowed", CreateJsValue(env, rule.isEmbeddedAllowed));
-    return object;
+    return handleEscape.Escape(object);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

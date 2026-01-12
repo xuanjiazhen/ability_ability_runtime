@@ -193,6 +193,7 @@ void JsFreeInstallObserver::HandleOnInstallFinishedByUrl(const std::string &star
 void JsFreeInstallObserver::CallCallback(std::shared_ptr<NativeReference> callback, int32_t resultCode)
 {
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
+    AbilityRuntime::HandleScope handleScope(env);
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "null callback");
         return;
@@ -211,6 +212,7 @@ void JsFreeInstallObserver::CallCallback(std::shared_ptr<NativeReference> callba
 void JsFreeInstallObserver::CallCallback(std::shared_ptr<NativeReference> callback, napi_value abilityResult)
 {
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
+    AbilityRuntime::HandleScope handleScope(env);
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "null callback");
         return;
@@ -225,6 +227,7 @@ void JsFreeInstallObserver::CallCallback(std::shared_ptr<NativeReference> callba
 
 void JsFreeInstallObserver::CallPromise(napi_deferred deferred, int32_t resultCode)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     if (deferred == nullptr) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "null deferred");
         return;
@@ -296,7 +299,7 @@ void JsFreeInstallObserver::AddJsObserverCommon(JsFreeInstallObserverObject &obj
 {
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
     object.isAbilityResult = isAbilityResult;
-    napi_valuetype type = napi_undefined;
+    napi_valuetype type = napi_undefined; //是否需要加 AbilityRuntime::HandleScope handleScope(env);
     napi_typeof(env_, jsObserverObject, &type);
     if (jsObserverObject == nullptr || type != napi_function) {
         napi_deferred deferred;

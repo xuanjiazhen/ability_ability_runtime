@@ -22,6 +22,7 @@ namespace AbilityRuntime {
 
 static napi_status SetEnumItem(napi_env env, napi_value object, const char* name, int32_t value)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     napi_status status;
     napi_value itemName;
     napi_value itemValue;
@@ -37,6 +38,7 @@ static napi_status SetEnumItem(napi_env env, napi_value object, const char* name
 
 static napi_value InitFailureCodeObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
     NAPI_CALL(env, SetEnumItem(env, object, "FAILURE_CODE_SYSTEM_MALFUNCTION",
@@ -45,11 +47,12 @@ static napi_value InitFailureCodeObject(napi_env env)
         static_cast<int32_t>(FailureCode::FAILURE_CODE_USER_CANCEL)));
     NAPI_CALL(env, SetEnumItem(env, object, "FAILURE_CODE_USER_REFUSE",
         static_cast<int32_t>(FailureCode::FAILURE_CODE_USER_REFUSE)));
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value AbilityCompletionHandlerForAtomicServiceInit(napi_env env, napi_value exports)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value failureCode = InitFailureCodeObject(env);
     if (failureCode == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null failureCode");
@@ -66,7 +69,7 @@ static napi_value AbilityCompletionHandlerForAtomicServiceInit(napi_env env, nap
         return nullptr;
     }
 
-    return exports;
+    return handleEscape.Escape(exports);//待审视
 }
 
 /*

@@ -109,6 +109,7 @@ void JsAbilityAutoStartupCallBack::JSCallFunction(const AutoStartupInfo &info, c
 void JsAbilityAutoStartupCallBack::JSCallFunctionWorker(const AutoStartupInfo &info, const std::string &methodName)
 {
     std::lock_guard<std::mutex> lock(mutexlock_);
+    HandleScope handleScope(env_);
     for (auto callback : callbacks_) {
         if (callback == nullptr) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null callback");
