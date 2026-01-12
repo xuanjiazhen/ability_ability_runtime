@@ -180,6 +180,11 @@ napi_value JsAbilityAutoStartupManager::OnUnregisterAutoStartupCallback(napi_env
 napi_value JsAbilityAutoStartupManager::OnSetApplicationAutoStartup(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "invalid argc");
         ThrowTooFewParametersError(env);
@@ -200,6 +205,7 @@ napi_value JsAbilityAutoStartupManager::OnSetApplicationAutoStartup(napi_env env
 
     auto retVal = std::make_shared<int32_t>(0);
     NapiAsyncTask::ExecuteCallback execute = [autoStartupInfo, ret = retVal] () {
+        AbilityRuntime::HandleScope handleScope(env);
         if (ret == nullptr) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret");
             return;
@@ -207,6 +213,7 @@ napi_value JsAbilityAutoStartupManager::OnSetApplicationAutoStartup(napi_env env
         *ret = AbilityManagerClient::GetInstance()->SetApplicationAutoStartup(autoStartupInfo);
     };
     NapiAsyncTask::CompleteCallback complete = [ret = retVal](napi_env env, NapiAsyncTask &task, int32_t status) {
+        AbilityRuntime::HandleScope handleScope(env);
         if (ret == nullptr) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret");
             task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(INNER_ERR)));
@@ -224,12 +231,17 @@ napi_value JsAbilityAutoStartupManager::OnSetApplicationAutoStartup(napi_env env
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsAbilityAutoStartupManager::OnSetApplicationAutoStartup", env,
         CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsAbilityAutoStartupManager::OnCancelApplicationAutoStartup(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "invalid argc");
         ThrowTooFewParametersError(env);
@@ -250,6 +262,7 @@ napi_value JsAbilityAutoStartupManager::OnCancelApplicationAutoStartup(napi_env 
 
     auto retVal = std::make_shared<int32_t>(0);
     NapiAsyncTask::ExecuteCallback execute = [autoStartupInfo, ret = retVal] () {
+        AbilityRuntime::HandleScope handleScope(env);
         if (ret == nullptr) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret");
             return;
@@ -258,6 +271,7 @@ napi_value JsAbilityAutoStartupManager::OnCancelApplicationAutoStartup(napi_env 
     };
 
     NapiAsyncTask::CompleteCallback complete = [ret = retVal](napi_env env, NapiAsyncTask &task, int32_t status) {
+        AbilityRuntime::HandleScope handleScope(env);
         if (ret == nullptr) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret");
             task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(INNER_ERR)));
@@ -275,12 +289,17 @@ napi_value JsAbilityAutoStartupManager::OnCancelApplicationAutoStartup(napi_env 
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsAbilityAutoStartupManager::OnCancelApplicationAutoStartup", env,
         CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsAbilityAutoStartupManager::OnQueryAllAutoStartupApplications(napi_env env, const NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (!CheckCallerIsSystemApp()) {
         ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
         return CreateJsUndefined(env);
@@ -289,6 +308,7 @@ napi_value JsAbilityAutoStartupManager::OnQueryAllAutoStartupApplications(napi_e
     auto retVal = std::make_shared<int32_t>(0);
     auto infoList = std::make_shared<std::vector<AutoStartupInfo>>();
     NapiAsyncTask::ExecuteCallback execute = [infos = infoList, ret = retVal] () {
+        AbilityRuntime::HandleScope handleScope(env);
         if (ret == nullptr || infos == nullptr) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret or infos");
             return;
@@ -298,6 +318,7 @@ napi_value JsAbilityAutoStartupManager::OnQueryAllAutoStartupApplications(napi_e
 
     NapiAsyncTask::CompleteCallback complete = [infos = infoList, ret = retVal](
                                                    napi_env env, NapiAsyncTask &task, int32_t status) {
+        AbilityRuntime::HandleScope handleScope(env);
         if (ret == nullptr || infos == nullptr) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret or infos");
             task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(INNER_ERR)));
@@ -315,14 +336,20 @@ napi_value JsAbilityAutoStartupManager::OnQueryAllAutoStartupApplications(napi_e
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsAbilityAutoStartupManager::OnQueryAllAutoStartupApplications", env,
         CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsAbilityAutoStartupManager::OnGetAutoStartupStatusForSelf(napi_env env, const NapiCallbackInfo &info)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
     auto retVal = std::make_shared<ErrCode>(ERR_OK);
     auto isAutoStartEnabled = std::make_shared<bool>(false);
     NapiAsyncTask::ExecuteCallback execute = [ret = retVal, isAutoStartEnabled]() {
+        AbilityRuntime::HandleScope handleScope(env);
         if (ret == nullptr || isAutoStartEnabled == nullptr) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret or isAutoStartEnabled");
             return;
@@ -332,6 +359,7 @@ napi_value JsAbilityAutoStartupManager::OnGetAutoStartupStatusForSelf(napi_env e
 
     NapiAsyncTask::CompleteCallback complete = [ret = retVal, isAutoStartEnabled](
         napi_env env, NapiAsyncTask &task, int32_t status) {
+        AbilityRuntime::HandleScope handleScope(env);
         if (ret == nullptr || isAutoStartEnabled == nullptr) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret or isAutoStartEnabled");
             task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(INNER_ERR)));
@@ -353,7 +381,7 @@ napi_value JsAbilityAutoStartupManager::OnGetAutoStartupStatusForSelf(napi_env e
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsAbilityAutoStartupManager::OnGetAutoStartupStatusForSelf", env,
         CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsAbilityAutoStartupManagerInit(napi_env env, napi_value exportObj)
