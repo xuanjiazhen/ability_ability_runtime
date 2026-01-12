@@ -38,6 +38,7 @@ public:
 
 static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* name, const char* value)
 {
+    HandleEscape handleEscape(env);
     napi_status status;
     napi_value itemName;
     napi_value itemValue;
@@ -48,18 +49,20 @@ static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* 
     NAPI_CALL_BASE(env, status = napi_set_property(env, napiObject, itemName, itemValue), status);
     NAPI_CALL_BASE(env, status = napi_set_property(env, napiObject, itemValue, itemName), status);
 
+    handleEscape.Escape(napiObject);
     return napi_ok;
 }
 
 static napi_value InitLinkParamCategory(napi_env env)
 {
+    HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
     NAPI_CALL(env, SetEnumItem(env, napiObject, "LINK", "link"));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "WANT", "want"));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 napi_value JsInsightIntentDecoratorInit(napi_env env, napi_value exportObj)
@@ -70,6 +73,7 @@ napi_value JsInsightIntentDecoratorInit(napi_env env, napi_value exportObj)
         return nullptr;
     }
 
+    HandleEscape handleEscape(env);
     std::unique_ptr<JsInsightIntentDecorator> jsIntentDecorator = std::make_unique<JsInsightIntentDecorator>();
     auto res = napi_wrap(
         env, exportObj, jsIntentDecorator.release(), JsInsightIntentDecorator::Finalizer, nullptr, nullptr);
@@ -86,6 +90,7 @@ napi_value JsInsightIntentDecoratorInit(napi_env env, napi_value exportObj)
     };
     napi_status status = napi_define_properties(env, exportObj, sizeof(exportObjs) / sizeof(exportObjs[0]), exportObjs);
     NAPI_ASSERT(env, status == napi_ok, "failed to define properties");
+    handleEscape.Escape(exportObj);
     return CreateJsUndefined(env);
 }
 } // namespace AbilityRuntime
