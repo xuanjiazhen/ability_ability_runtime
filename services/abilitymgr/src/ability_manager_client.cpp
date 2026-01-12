@@ -146,7 +146,7 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, in
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility %{public}s/%{public}s, userId:%{public}d, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAbilityone %{public}s/%{public}s, userId:%{public}d, "
         "appCloneIndex:%{public}d, specifiedFullTokenId:%{public}" PRIu64 "", want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
         specifiedFullTokenId);
@@ -173,7 +173,7 @@ ErrCode AbilityManagerClient::StartAbility(
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAbilitytwo ability:%{public}s/%{public}s, userId:%{public}d, "
         "appCloneIndex:%{public}d, specifiedFullTokenId:%{public}" PRIu64 "", want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
         specifiedFullTokenId);
@@ -199,7 +199,7 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, const AbilityStartS
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAbilitythree ability:%{public}s/%{public}s, userId:%{public}d, "
         "appCloneIndex:%{public}d", want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
     HandleDlpApp(const_cast<Want &>(want));
@@ -212,7 +212,7 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, const StartOptions 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAbilityFour ability:%{public}s/%{public}s, userId:%{public}d, "
         "appCloneIndex:%{public}d", want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
     HandleDlpApp(const_cast<Want &>(want));

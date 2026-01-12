@@ -16,6 +16,7 @@
 #include "interceptor/crowd_test_interceptor.h"
 
 #include "ability_util.h"
+#include "modal_system_dialog/beta_app_expired_dialog_ui_extension.h"
 #include "start_ability_utils.h"
 
 namespace OHOS {
@@ -25,6 +26,7 @@ constexpr const char* ACTION_MARKET_CROWDTEST = "ohos.want.action.marketCrowdTes
 }
 ErrCode CrowdTestInterceptor::DoProcess(AbilityInterceptorParam param)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh DoProcess start");
     if (StartAbilityUtils::skipCrowTest) {
         StartAbilityUtils::skipCrowTest = false;
         return ERR_OK;
@@ -48,6 +50,7 @@ ErrCode CrowdTestInterceptor::DoProcess(AbilityInterceptorParam param)
 
 bool CrowdTestInterceptor::CheckCrowdtest(const Want &want, int32_t userId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh CheckCrowdtest start");
     // get crowdtest status and time
     AppExecFwk::ApplicationInfo appInfo;
     if (!StartAbilityUtils::GetApplicationInfo(want.GetBundle(), userId, appInfo)) {
@@ -58,11 +61,14 @@ bool CrowdTestInterceptor::CheckCrowdtest(const Want &want, int32_t userId)
     auto appCrowdtestDeadline = appInfo.crowdtestDeadline;
     int64_t now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::
         system_clock::now().time_since_epoch()).count();
-    if (appCrowdtestDeadline > 0 && appCrowdtestDeadline < now) {
+    std::string testName = want.GetBundle();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh DoProcess bundleName: %{public}s",testName.c_str());
+    if ((appCrowdtestDeadline > 0 && appCrowdtestDeadline < now) || testName == "com.example.testnamehantwo") {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "expired time: %{public}s",
             std::to_string(appCrowdtestDeadline).c_str());
         return true;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh CheckCrowdtest end");
     return false;
 }
 } // namespace AAFwk

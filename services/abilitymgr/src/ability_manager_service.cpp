@@ -621,6 +621,7 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
     uint64_t specifiedFullTokenId)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbility with requestCode");
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
@@ -684,6 +685,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         .userId = userId,
         .specifiedFullTokenId = specifiedFullTokenId,
     };
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbility with requestCode StartAbilityWrap");
     int32_t ret = StartAbilityWrap(startAbilityWrapParam);
     AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityWrap", want.GetFlags(), ret);
     if (ret != ERR_OK) {
@@ -695,6 +697,8 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
 int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
     int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbility with specifiedFullTokenId");
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbility start");
     StartAbilityWrapParam param = {
         .want = want,
         .callerToken = callerToken,
@@ -708,6 +712,7 @@ int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObje
 
 int AbilityManagerService::StartAbilityWithRemoveIntentFlag(const StartAbilityWrapParam &param)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityWithRemoveIntentFlag start");
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", param.want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
@@ -723,11 +728,13 @@ int AbilityManagerService::StartAbilityWithRemoveIntentFlag(const StartAbilityWr
 #ifdef SUPPORT_SCREEN
     DmsUtil::GetInstance().UpdateFlagForCollaboration(param.want);
 #endif
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityWithRemoveIntentFlag end");
     return StartAbilityByFreeInstall(param);
 }
 
 int32_t AbilityManagerService::StartAbilityByFreeInstall(const StartAbilityWrapParam &param)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityByFreeInstall");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     bool startWithAccount = param.want.GetBoolParam(START_ABILITY_TYPE, false);
     if (startWithAccount || IsCrossUserCall(param.userId)) {
@@ -1063,6 +1070,7 @@ int AbilityManagerService::StartAbilityPrechainInterceptor(StartAbilityParams &p
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(params.want, params.requestCode,
         params.GetValidUserId(), true, nullptr, shouldBlockFunc);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAbilityPrechainInterceptor");
     auto interceptorResult = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :
         interceptorExecuter_->DoProcess(interceptorParam);
     if (interceptorResult != ERR_OK) {
@@ -1075,17 +1083,21 @@ int AbilityManagerService::StartAbilityPrechainInterceptor(StartAbilityParams &p
 
 bool AbilityManagerService::StartAbilityInChain(StartAbilityParams &params, int &result)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityInChain");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!StartAbilitySandboxSavefile::GetInstance().MatchStartRequest(params)) {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityInChain MatchStartRequest");
         return false;
     }
 
     result = StartAbilityPublicPrechainCheck(params);
     if (result != ERR_OK) {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityInChain StartAbilityPublicPrechainCheck");
         return true;
     }
     result = StartAbilityPrechainInterceptor(params);
     if (result != ERR_OK) {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityInChain StartAbilityPrechainInterceptor");
         return true;
     }
     result = StartAbilitySandboxSavefile::GetInstance().HandleStartRequest(params);
@@ -1094,6 +1106,7 @@ bool AbilityManagerService::StartAbilityInChain(StartAbilityParams &params, int 
 
 int AbilityManagerService::StartAbilityWrap(const StartAbilityWrapParam &startAbilityWrapParam)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityWrap start");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     StartAbilityParams startParams(const_cast<Want &>(startAbilityWrapParam.want));
     startParams.callerToken = startAbilityWrapParam.callerToken;
@@ -1106,7 +1119,7 @@ int AbilityManagerService::StartAbilityWrap(const StartAbilityWrapParam &startAb
     if (StartAbilityInChain(startParams, result)) {
         return result;
     }
-
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityWrap end");
     return StartAbilityInner(const_cast<StartAbilityWrapParam &>(startAbilityWrapParam));
 }
 
@@ -1262,6 +1275,7 @@ void AbilityManagerService::CheckExtensionRateLimit(const Want &want)
 
 int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityInner");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!param.isStartAsCaller || param.isImplicit) {
         param.want.RemoveParam("ability.params.picker.erms.policy");
@@ -1285,6 +1299,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         AbilityPermissionUtil::GetInstance().IsDominateScreen(param.want, param.isPendingWantCaller)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller invalid");
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER, "caller invalid");
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityInner callerToken == nullptr");
         return ERR_INVALID_CALLER;
     }
 
@@ -1328,6 +1343,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     int32_t validUserId = oriValidUserId;
     StartAbilityUtils::SetTargetCloneIndexInSameBundle(param.want, param.callerToken);
     int32_t appIndex = 0;
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbilityInner GetAppIndex");
     if (!StartAbilityUtils::GetAppIndex(param.want, param.callerToken, appIndex)) {
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
         return ERR_APP_CLONE_INDEX_INVALID;
@@ -1348,7 +1364,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
         interceptorExecuter_->DoProcess(interceptorParam);
     if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptorExecuter_ null or DoProcess error");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "hanksh interceptorExecuter_ null or DoProcess error");
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "DoProcess error");
         return result;
     }
@@ -1415,9 +1431,12 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
     CollaboratorUtil::UpdateTargetIfNeed(collaborator, param.want, callerBundleName);
     result = GenerateAbilityRequest(param.want, param.requestCode, abilityRequest, param.callerToken, validUserId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh GenerateAbilityRequest()");
     bool selfFreeInstallEnable = (result == RESOLVE_ABILITY_ERR && param.want.GetElement().GetModuleName() != "" &&
                                   param.want.GetElement().GetBundleName() == callerBundleName);
     bool isStartFreeInstallByWant = AbilityUtil::IsStartFreeInstall(param.want);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh selfFreeInstallEnable: %{public}d, isStartFreeInstallByWant: %{public}d",
+            selfFreeInstallEnable, isStartFreeInstallByWant);
     if (isStartFreeInstallByWant || selfFreeInstallEnable) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "selfFreeInstallEnable: %{public}d, isStartFreeInstallByWant: %{public}d",
             selfFreeInstallEnable, isStartFreeInstallByWant);
@@ -1432,6 +1451,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         CHECK_POINTER_AND_RETURN(freeInstallManager_, ERR_INVALID_VALUE);
 
         if (isStartFreeInstallByWant) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh isStartFreeInstallByWant ture");
             auto freeInstallParam = std::make_shared<FreeInstallParams>();
             freeInstallParam->isAsync = true;
             freeInstallParam->specifyTokenId = param.specifyTokenId;
@@ -1440,16 +1460,18 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "StartFreeInstall failed");
             return AbilityErrorUtil::ConvertToOriginErrorCode(result);
         }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh freeInstallManager_->StartFreeInstall");
         int32_t ret = freeInstallManager_->StartFreeInstall(localWant, validUserId, param.requestCode,
             param.callerToken);
         if (ret == ERR_OK) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh freeInstallManager_->StartFreeInstall ret == ERR_OK");
             result = GenerateAbilityRequest(param.want, param.requestCode, abilityRequest, param.callerToken,
                 validUserId);
         }
     }
 
     if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error:%{public}d", result);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh generate ability request local error:%{public}d", result);
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
         return result;
     }
@@ -1481,6 +1503,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     if (param.isUIAbilityOnly && abilityInfo.type != AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability type no UIAbility");
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, RESOLVE_CALL_ABILITY_TYPE_ERR, "not UIAbility");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh return ERR_INVALID_VALUE");
         return ERR_INVALID_VALUE;
     }
     if (abilityInfo.type != AbilityType::PAGE) {
@@ -1501,6 +1524,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "checkStaticCfgPermission error, result:%{public}d", result);
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_STATIC_CFG_PERMISSION,
             "checkStaticCfgPermission error");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh return ERR_STATIC_CFG_PERMISSION");
         return ERR_STATIC_CFG_PERMISSION;
     }
 
@@ -1511,6 +1535,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         if (result != ERR_OK && !param.isServiceMatch) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkCallPermission error, result:%{public}d", result);
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "checkCallPermission error");
+             TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh return result");
             return result;
         }
         abilityRequest.userId = validUserId;
@@ -1520,6 +1545,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             !HandleExecuteSAInterceptor(param.want, param.callerToken, abilityRequest, result)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkCallPermission error, result:%{public}d", result);
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "HandleExecuteSAInterceptor failed");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh return result two");
             return result;
         }
         Want newWant = abilityRequest.want;
@@ -1551,7 +1577,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         }
 #endif // SUPPORT_SCREEN
     }
-
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh IsSystemDialogAbility");
     if (!AbilityUtil::IsSystemDialogAbility(abilityInfo.bundleName, abilityInfo.name)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "PreLoadAppDataAbilities:%{public}s.", abilityInfo.bundleName.c_str());
         result = PreLoadAppDataAbilities(abilityInfo.bundleName, validUserId);
@@ -1561,6 +1587,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
                 abilityInfo.bundleName.c_str(), result);
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_PRELOAD_APP_DATA_ABILITIES_FAILED,
                 "app data ability preloading failed");
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh return result three");
             return result;
         }
     }
@@ -1617,7 +1644,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "NotifySCBToStartUIAbility failed");
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
     }
-
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh GetMissionListManagerByUserId");
     auto missionListManager = GetMissionListManagerByUserId(oriValidUserId);
     if (missionListManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionListManager null userId=%{public}d", validUserId);
@@ -1628,6 +1655,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     ReportAbilityStartInfoToRSS(abilityInfo);
     ReportEventToRSS(abilityInfo, param.callerToken);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start ability, name is %{public}s", abilityInfo.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh missionListManager->StartAbility");
     result = missionListManager->StartAbility(abilityRequest);
     AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "missionListManager StartAbility failed");
     return result;
@@ -1671,6 +1699,7 @@ int AbilityManagerService::StartAbilityByConnectManager(const Want& want, const 
 int AbilityManagerService::StartAbility(const Want &want, const AbilityStartSetting &abilityStartSetting,
     const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbility with abilityStartSetting");
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
@@ -1931,6 +1960,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
 int AbilityManagerService::StartAbility(const Want &want, const StartOptions &startOptions,
     const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh StartAbility with startOptions: %{public}s", want.GetElement().GetBundleName().c_str());
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
@@ -5213,6 +5243,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
     AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly,
     uint64_t specifiedFullTokenId, int32_t loadTimeout)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh ConnectAbilityCommon start");
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
@@ -5257,12 +5288,14 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
             eventInfo.errCode = result;
             EventReport::SendExtensionEvent(EventName::CONNECT_SERVICE_ERROR, HiSysEventType::FAULT, eventInfo);
         }
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh EventReport::SendExtensionEvent");
         return result;
     }
 
     int32_t validUserId = GetValidUserId(userId);
 
     if (AbilityUtil::IsStartFreeInstall(want)) {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh IsStartFreeInstall");
         CHECK_POINTER_AND_RETURN(freeInstallManager_, ERR_INVALID_VALUE);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "is start free install");
         std::string localDeviceId;
@@ -5275,6 +5308,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
                 eventInfo.errCode = ERR_INVALID_VALUE;
                 EventReport::SendExtensionEvent(EventName::CONNECT_SERVICE_ERROR, HiSysEventType::FAULT, eventInfo);
             }
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh EventReport::SendExtensionEventtwo");
             return ERR_INVALID_VALUE;
         }
         result = freeInstallManager_->ConnectFreeInstall(want, validUserId, callerToken, localDeviceId);
@@ -5286,10 +5320,11 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
                 eventInfo.errCode = result;
                 EventReport::SendExtensionEvent(EventName::CONNECT_SERVICE_ERROR, HiSysEventType::FAULT, eventInfo);
             }
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh EventReport::SendExtensionEventtwo result != ERR_OK");
             return result;
         }
     }
-
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh abilityWant = want");
     Want abilityWant = want;
     AbilityRequest abilityRequest;
     std::string uri = abilityWant.GetUri().ToString();
@@ -5311,6 +5346,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
                 eventInfo.errCode = ERR_INVALID_VALUE;
                 EventReport::SendExtensionEvent(EventName::CONNECT_SERVICE_ERROR, HiSysEventType::FAULT, eventInfo);
             }
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh !queryResult");
             return ERR_INVALID_VALUE;
         }
         abilityWant.SetElementName(extensionInfo.bundleName, extensionInfo.name);
@@ -5327,6 +5363,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
                 EventReport::SendExtensionEvent(EventName::CONNECT_SERVICE_ERROR, HiSysEventType::FAULT, eventInfo);
             }
         }
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh CheckIfOperateRemote");
         return eventInfo.errCode;
     }
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityWant, callerToken);
@@ -5343,6 +5380,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
                 EventReport::SendExtensionEvent(EventName::CONNECT_SERVICE_ERROR, HiSysEventType::FAULT, eventInfo);
             }
         }
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh callerToken");
         return eventInfo.errCode;
     }
     eventInfo.errCode = ConnectLocalAbility(abilityWant, validUserId, connect, callerToken, extensionType, nullptr,
@@ -5355,6 +5393,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
             EventReport::SendExtensionEvent(EventName::CONNECT_SERVICE_ERROR, HiSysEventType::FAULT, eventInfo);
         }
     }
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh eventInfo");
     return eventInfo.errCode;
 }
 
@@ -5571,6 +5610,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     bool isQueryExtensionOnly, sptr<UIExtensionAbilityConnectInfo> connectInfo, uint64_t specifiedFullTokenId,
     int32_t loadTimeout)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh ConnectLocalAbility");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
     StartAbilityInfoWrap threadLocalInfo;
@@ -5586,8 +5626,10 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
         isQueryExtensionOnly, static_cast<int32_t>(extensionType));
     if (isQueryExtensionOnly ||
         AAFwk::UIExtensionUtils::IsUIExtension(extensionType)) {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh if");
         result = GenerateExtensionAbilityRequest(want, abilityRequest, callerToken, userId);
     } else {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh else");
         result = GenerateAbilityRequest(want, DEFAULT_INVAL_VALUE, abilityRequest, callerToken, userId);
     }
     abilityRequest.sessionInfo = sessionInfo;
@@ -5599,6 +5641,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
 
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "generate request error");
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh return generate request error");
         return result;
     }
     result = CheckPermissionForUIService(extensionType, want, abilityRequest);
@@ -7919,6 +7962,7 @@ int AbilityManagerService::StartHighestPriorityAbility(int32_t userId, uint64_t 
 int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestCode, AbilityRequest &request,
     const sptr<IRemoteObject> &callerToken, int32_t userId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh GenerateAbilityRequest start");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord != nullptr) {
@@ -7950,6 +7994,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetElement().GetBundleName()) {
         int32_t appIndex = 0;
         if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh GenerateAbilityRequest return ERR_APP_CLONE_INDEX_INVALID");
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         Want localWant = want;
@@ -7964,6 +8009,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     }
     CHECK_POINTER_AND_RETURN(abilityInfo, GET_ABILITY_SERVICE_FAILED);
     if (abilityInfo->status != ERR_OK) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh GenerateAbilityRequest return abilityInfo->status");
         return abilityInfo->status;
     }
     request.abilityInfo = abilityInfo->abilityInfo;
@@ -7973,24 +8019,24 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     request.isTargetPlugin = abilityInfo->isTargetPlugin;
 
     if (request.abilityInfo.type == AppExecFwk::AbilityType::SERVICE && request.abilityInfo.isStageBasedModel) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "stage mode, abilityInfo SERVICE type reset EXTENSION");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh stage mode, abilityInfo SERVICE type reset EXTENSION");
         request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     }
 
     if (request.abilityInfo.applicationInfo.name.empty() || request.abilityInfo.applicationInfo.bundleName.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get app info failed");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "hanksh get app info failed");
         return RESOLVE_APP_ERR;
     }
     if (want.GetIntParam(AAFwk::SCREEN_MODE_KEY, ScreenMode::IDLE_SCREEN_MODE) == ScreenMode::JUMP_SCREEN_MODE &&
         (request.abilityInfo.applicationInfo.bundleType != AppExecFwk::BundleType::ATOMIC_SERVICE ||
         request.abilityInfo.launchMode != AppExecFwk::LaunchMode::SINGLETON)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "interface of starting atomicService start only atomicService");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "hanksh interface of starting atomicService start only atomicService");
         return TARGET_ABILITY_NOT_SERVICE;
     }
     request.appInfo = request.abilityInfo.applicationInfo;
     request.uid = request.appInfo.uid;
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
-        "GenerateAbilityRequest end, app name: %{public}s, moduleName name: %{public}s, uid: %{public}d.",
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "hanksh GenerateAbilityRequest end, app name: %{public}s, moduleName name: %{public}s, uid: %{public}d.",
         request.appInfo.name.c_str(), request.abilityInfo.moduleName.c_str(), request.uid);
 
     request.want.SetModuleName(request.abilityInfo.moduleName);
@@ -7998,6 +8044,18 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     int32_t startRecent = AbilityPermissionUtil::GetInstance().CheckStartRecentAbility(want, request);
     if (startRecent != ERR_OK) {
         return startRecent;
+    }
+    std::string testName = request.want.GetElement().GetBundleName();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh testNameOne: %{public}s",testName.c_str());
+    if (!ModalSystemDialogUtil::CheckDebugAppNotInDeveloperMode(request.abilityInfo.applicationInfo) && testName == "com.example.testnamehan") {
+        // service and extension do not show dialog.
+        if (!(request.abilityInfo.type == AppExecFwk::AbilityType::SERVICE ||
+                request.abilityInfo.type == AppExecFwk::AbilityType::EXTENSION)) {
+            ModalSystemDialogUtil::ShowDeveloperModeDialog(
+                request.abilityInfo.bundleName, request.abilityInfo.moduleName, request.abilityInfo.labelId, userId);
+        }
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "hanksh testNameOne not developer mode");
+        return ERR_NOT_DEVELOPER_MODE;
     }
 
     if (ModalSystemDialogUtil::CheckDebugAppNotInDeveloperMode(request.abilityInfo.applicationInfo)) {
@@ -8083,6 +8141,7 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(const Want &want, Abi
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer mode");
         return ERR_NOT_DEVELOPER_MODE;
     }
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh GenerateExtensionAbilityRequest start end");
     return InitialAbilityRequest(request, *abilityInfo);
 }
 
