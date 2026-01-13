@@ -14,6 +14,7 @@
  */
 
 #include "ability_auto_startup_data_manager.h"
+#include "datebase_write_counter.h"
 
 #include <unistd.h>
 
@@ -44,7 +45,8 @@ const std::string JSON_KEY_SETTER_TYPE = "setterType";
 } // namespace
 const DistributedKv::AppId AbilityAutoStartupDataManager::APP_ID = { "auto_startup_storage" };
 const DistributedKv::StoreId AbilityAutoStartupDataManager::STORE_ID = { "auto_startup_infos" };
-AbilityAutoStartupDataManager::AbilityAutoStartupDataManager() {}
+AbilityAutoStartupDataManager::AbilityAutoStartupDataManager()
+    : dbWriteCounter_(std::make_unique<DatebaseWriteCounter>()) {}
 
 AbilityAutoStartupDataManager::~AbilityAutoStartupDataManager()
 {
@@ -152,6 +154,8 @@ int32_t AbilityAutoStartupDataManager::InsertAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    dbWriteCounter_->UpdateWriteCount(AUTO_STARTUP_STORAGE_DIR);
+
     return ERR_OK;
 }
 
@@ -205,6 +209,7 @@ int32_t AbilityAutoStartupDataManager::UpdateAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    dbWriteCounter_->UpdateWriteCount(AUTO_STARTUP_STORAGE_DIR);
 
     return ERR_OK;
 }
