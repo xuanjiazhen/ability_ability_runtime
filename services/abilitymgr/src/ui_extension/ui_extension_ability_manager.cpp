@@ -360,10 +360,12 @@ void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<
     CHECK_POINTER(abilityRecord);
     CHECK_POINTER(sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s, persistentId:%{public}d, abilityState:%{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s, persistentId:%{public}d,
+        abilityState:%{public}s, pendingState:%{public}d",
         abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str(),
-        sessionInfo->persistentId, abilitystateStr.c_str());
+        sessionInfo->persistentId, abilitystateStr.c_str(),
+        static_cast<int32_t>(abilityRecord->GetPendingState()));
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
@@ -1022,12 +1024,6 @@ int UIExtensionAbilityManager::TerminateAbilityInner(const sptr<IRemoteObject> &
     std::string element = abilityRecord->GetURI();
     TAG_LOGD(AAFwkTag::EXT, "terminate ability, ability is %{public}s", element.c_str());
     if (IsUIExtensionAbility(abilityRecord)) {
-        if (abilityRecord->GetPendingState() != AbilityState::INITIAL) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state: %{public}d",
-                static_cast<int32_t>(abilityRecord->GetPendingState()));
-            abilityRecord->SetPendingState(AbilityState::BACKGROUND);
-            // abilityRecord->RemoveForegroundTimeoutTask();
-        }
         if (!abilityRecord->IsConnectListEmpty()) {
             TAG_LOGD(AAFwkTag::EXT, "exist connection, don't terminate");
             return ERR_OK;
