@@ -21,6 +21,7 @@
 
 #define private public
 #include "page_state_data.h"
+#include "app_cjheap_mem_info.h"
 #undef private
 
 #include "securec.h"
@@ -37,6 +38,14 @@ bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fdp)
     parcel.WriteString(fdp->ConsumeRandomLengthString());
     info.ReadFromParcel(parcel);
     info.Marshalling(parcel);
+
+    CjHeapDumpInfo cj;
+    cj.needGc = fdp->ConsumeBool();
+    cj.needSnapshot = fdp->ConsumeBool();
+    cj.pid = fdp->ConsumeIntegral<int32_t>();
+    Parcel parcel1;
+    cj.Marshalling(parcel1);
+    cj.Unmarshalling(parcel1);
     return true;
 }
 }
