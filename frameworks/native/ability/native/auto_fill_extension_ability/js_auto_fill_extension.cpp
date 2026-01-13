@@ -68,6 +68,7 @@ napi_value AttachAutoFillExtensionContext(napi_env env, void *value, void *)
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null ptr");
         return nullptr;
     }
+    HandleEscape handleEscape(env);
     napi_value object = JsAutoFillExtensionContext::CreateJsAutoFillExtensionContext(env, ptr);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.AutoFillExtensionContext", &object, 1);
     if (systemModule == nullptr) {
@@ -101,7 +102,7 @@ napi_value AttachAutoFillExtensionContext(napi_env env, void *value, void *)
         }
     }
 
-    return contextObj;
+    return handleEscape.Escape(contextObj);
 }
 
 JsAutoFillExtension *JsAutoFillExtension::Create(const std::unique_ptr<Runtime> &runtime)
@@ -185,6 +186,7 @@ void JsAutoFillExtension::BindContext(napi_env env, napi_value obj)
     }
     TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Create js auto fill extension context");
     context->SetAutoFillExtensionCallback(std::static_pointer_cast<JsAutoFillExtension>(shared_from_this()));
+    HandleScope handleScope(env);
     napi_value contextObj = JsAutoFillExtensionContext::CreateJsAutoFillExtensionContext(env, context);
     if (contextObj == nullptr) {
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null contextObj");
