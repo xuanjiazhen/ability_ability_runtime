@@ -20,6 +20,7 @@
 #include <mutex>
 #include <utility>
 
+#include "datebase_write_counter.h"
 #include "rdb_helper.h"
 #include "rdb_open_callback.h"
 
@@ -42,7 +43,9 @@ struct AmsRdbConfig {
 
 class RdbDataManager final {
 public:
-    RdbDataManager(const AmsRdbConfig &rdbConfig) : amsRdbConfig_(rdbConfig) {}
+    RdbDataManager(const AmsRdbConfig &rdbConfig) 
+        : amsRdbConfig_(rdbConfig),
+          dbWriteCounter_(std::make_unique<DatebaseWriteCounter>()){}
     ~RdbDataManager() {}
 
     int32_t Init(NativeRdb::RdbOpenCallback &rdbCallback);
@@ -59,6 +62,7 @@ private:
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
     AmsRdbConfig amsRdbConfig_;
     std::mutex rdbMutex_;
+    std::unique_ptr<DatebaseWriteCounter> dbWriteCounter_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
