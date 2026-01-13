@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "ability_util.h"
+#include "database_write_counter.h"
 #include "distributed_kv_data_manager.h"
 #include "exit_reason.h"
 #include "singleton.h"
@@ -111,6 +112,7 @@ private:
     DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<DistributedKv::SingleKvStore> kvStorePtr_;
     mutable std::mutex kvStorePtrMutex_;
+    DatabaseWriteCounter dbWriteCounter_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

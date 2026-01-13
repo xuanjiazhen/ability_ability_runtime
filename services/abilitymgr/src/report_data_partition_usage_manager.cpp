@@ -58,6 +58,25 @@ void ReportDataPartitionUsageManager::HandleSendReportDataPartitionUsageEvent()
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
 }
 
+void ReportDataPartitionUsageManager::SendReportDatabaseReadEvent(const std::string &dbPath)
+{
+    ffrt::submit([dbPath]() {
+        HandleSendReportDatabaseWriteEvent(dbPath);
+        }, ffrt::task_attr().name("SendReportDatabaseReadEventTask")
+        .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
+}
+
+void ReportDataPartitionUsageManager::HandleSendReportDatabaseWriteEvent(const std::string &dbPath)
+{
+    EventInfo eventInfo;
+    eventInfo.componentName = COMPONENT_NAME;
+    eventInfo.partitionName = USER_DATA_DIR;
+    eventInfo.remainPartitionSize = GetPartitionRemainSize(USER_DATA_DIR);
+    eventInfo.fileOfFolderPath.push_back(dbPath);
+    EventReport::SendReportDataPartitionUsageEvent(EventName::USER_DATA_SIZE,
+        HiSysEventType::STATISTIC, eventInfo);
+}
+
 void ReportDataPartitionUsageManager::GenerateEventInfo(EventInfo &eventInfo)
 {
     std::vector<std::uint64_t> fileOrFolderSize;
