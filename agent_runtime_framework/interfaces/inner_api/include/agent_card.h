@@ -28,11 +28,12 @@ namespace AgentRuntime {
 struct Provider : public Parcelable {
     std::string organization;
     std::string url;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Provider, organization, url);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static Provider *Unmarshalling(Parcel &parcel);
+    void to_json(nlohmann::json &jsonObject, const Provider &provider);
+    void from_json(const nlohmann::json &jsonObject, Provider &provider);
 };
 
 struct Capabilities : public Parcelable {
@@ -42,22 +43,24 @@ struct Capabilities : public Parcelable {
     bool pushNotifications;
     // optional param
     bool stateTransitionHistory;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Capabilities, streaming, pushNotifications, stateTransitionHistory);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static Capabilities *Unmarshalling(Parcel &parcel);
+    void to_json(nlohmann::json &jsonObject, const Capabilities &capabilities);
+    void from_json(const nlohmann::json &jsonObject, Capabilities &capabilities);
 };
 
 struct Authentication : public Parcelable {
     std::vector<std::string> schemes;
     // optional param
     std::string credentials;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Authentication, schemes, credentials);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static Authentication *Unmarshalling(Parcel &parcel);
+    void to_json(nlohmann::json &jsonObject, const Authentication &authentication);
+    void from_json(const nlohmann::json &jsonObject, Authentication &authentication);
 };
 
 struct Skill : public Parcelable {
@@ -71,11 +74,12 @@ struct Skill : public Parcelable {
     std::vector<std::string> inputModes;
     // optional param
     std::vector<std::string> outputModes;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Skill, id, name, description, tags, examples, inputModes, outputModes);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static Skill *Unmarshalling(Parcel &parcel);
+    void to_json(nlohmann::json &jsonObject, const Skill &skill);
+    void from_json(const nlohmann::json &jsonObject, Skill &skill);
 };
 
 struct AgentCard : public Parcelable {

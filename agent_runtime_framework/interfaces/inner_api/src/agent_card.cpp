@@ -52,6 +52,22 @@ Provider *Provider::Unmarshalling(Parcel &parcel)
     return provider;
 }
 
+void Provider::to_json(nlohmann::json &jsonObject, const Provider &provider)
+{
+    jsonObject["organization"] = provider.organization;
+    jsonObject["url"] = provider.url;
+}
+
+void Provider::from_json(const nlohmann::json &jsonObject, Provider &provider)
+{
+    if (jsonObject.contains("organization") && jsonObject["organization"].is_string()) {
+        provider.organization = jsonObject.at("organization");
+    }
+    if (jsonObject.contains("url") && jsonObject["url"].is_string()) {
+        provider.url = jsonObject.at("url");
+    }
+}
+
 bool Capabilities::ReadFromParcel(Parcel &parcel)
 {
     streaming = parcel.ReadBool();
@@ -88,6 +104,26 @@ Capabilities *Capabilities::Unmarshalling(Parcel &parcel)
     return capabilities;
 }
 
+void Capabilities::to_json(nlohmann::json &jsonObject, const Capabilities &capabilities)
+{
+    jsonObject["streaming"] = capabilities.streaming;
+    jsonObject["pushNotifications"] = capabilities.pushNotifications;
+    jsonObject["stateTransitionHistory"] = capabilities.stateTransitionHistory;
+}
+
+void Capabilities::from_json(const nlohmann::json &jsonObject, Capabilities &capabilities)
+{
+    if (jsonObject.contains("streaming") && jsonObject["streaming"].is_boolean()) {
+        capabilities.streaming = jsonObject.at("streaming");
+    }
+    if (jsonObject.contains("pushNotifications") && jsonObject["pushNotifications"].is_boolean()) {
+        capabilities.pushNotifications = jsonObject.at("pushNotifications");
+    }
+    if (jsonObject.contains("stateTransitionHistory") && jsonObject["stateTransitionHistory"].is_boolean()) {
+        capabilities.stateTransitionHistory = jsonObject.at("stateTransitionHistory");
+    }
+}
+
 bool Authentication::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadStringVector(&schemes)) {
@@ -120,6 +156,22 @@ Authentication *Authentication::Unmarshalling(Parcel &parcel)
         authentication = nullptr;
     }
     return authentication;
+}
+
+void Authentication::to_json(nlohmann::json &jsonObject, const Authentication &authentication)
+{
+    jsonObject["schemes"] = authentication.schemes;
+    jsonObject["credentials"] = authentication.credentials;
+}
+
+void Authentication::from_json(const nlohmann::json &jsonObject, Authentication &Authentication)
+{
+    if (jsonObject.contains("schemes") && jsonObject["schemes"].is_array()) {
+        capabilities.schemes = jsonObject.at("schemes");
+    }
+    if (jsonObject.contains("credentials") && jsonObject["credentials"].is_string()) {
+        capabilities.credentials = jsonObject.at("credentials");
+    }
 }
 
 bool Skill::ReadFromParcel(Parcel &parcel)
@@ -184,6 +236,42 @@ Skill *Skill::Unmarshalling(Parcel &parcel)
         skill = nullptr;
     }
     return skill;
+}
+
+void Skill::to_json(nlohmann::json &jsonObject, const Skill &skill)
+{
+    jsonObject["id"] = skill.id;
+    jsonObject["name"] = skill.name;
+    jsonObject["description"] = skill.description;
+    jsonObject["tags"] = skill.tags;
+    jsonObject["examples"] = skill.examples;
+    jsonObject["inputModes"] = skill.inputModes;
+    jsonObject["outputModes"] = skill.outputModes;
+}
+
+void Skill::from_json(const nlohmann::json &jsonObject, Skill &skill)
+{
+    if (jsonObject.contains("id") && jsonObject["id"].is_string()) {
+        skill.id = jsonObject.at("id");
+    }
+    if (jsonObject.contains("name") && jsonObject["name"].is_string()) {
+        skill.name = jsonObject.at("name");
+    }
+    if (jsonObject.contains("description") && jsonObject["description"].is_string()) {
+        skill.description = jsonObject.at("description");
+    }
+    if (jsonObject.contains("tags") && jsonObject["tags"].is_array()) {
+        skill.tags = jsonObject.at("tags");
+    }
+    if (jsonObject.contains("examples") && jsonObject["examples"].is_array()) {
+        skill.examples = jsonObject.at("examples");
+    }
+    if (jsonObject.contains("inputModes") && jsonObject["inputModes"].is_array()) {
+        skill.inputModes = jsonObject.at("inputModes");
+    }
+    if (jsonObject.contains("outputModes") && jsonObject["outputModes"].is_array()) {
+        skill.outputModes = jsonObject.at("outputModes");
+    }
 }
 
 bool AgentCard::ReadFromParcel(Parcel &parcel)
