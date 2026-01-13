@@ -24,13 +24,17 @@ using namespace OHOS::AAFwk;
 class ReportDataPartitionUsageManager {
 public:
     static void SendReportDataPartitionUsageEvent();
+    static void SendReportDatabaseReadEvent();
+    static void IncrementAndReportWriteCount(const std::string &dbPath);
 
 private:
     static void HandleSendReportDataPartitionUsageEvent();
+    static void HandleSendReportDatabaseWriteEvent(const std::string &dbPath);
     static void GenerateEventInfo(EventInfo &eventInfo);
     static uint64_t GetFilePathSize(const std::string &filePath);
     static uint64_t GetPartitionRemainSize(const std::string &filePath);
     static bool IsExistPath(const std::string &filePath);
+    static std::atomic_int32_t writeCount_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
