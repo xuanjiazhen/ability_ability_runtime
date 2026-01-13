@@ -77,14 +77,15 @@ void printAbilityLifecycleChanges(const std::shared_ptr<BaseExtensionRecord> &ab
     CHECK_POINTER_AND_RETURN_LOG(abilityRecord, false, "abilityRecord is null");
     auto sessionInfo = abilityRecord->GetSessionInfo();
     CHECK_POINTER_AND_RETURN_LOG(sessionInfo, false, "sessionInfo is null");
-    TAG_LOGI(AAFwkTag::UI_EXT, 
-        "%{public}s/%{public}s, persistentId:%{public}d, Id:%{public}d, abilityState:%{public}d, pendingState:%{public}d",
+    TAG_LOGI(AAFwkTag::UI_EXT,
+        "%{public}s/%{public}s, persistentId:%{public}d, Id:%{public}d, abilityState:%{public}d,
+        pendingState:%{public}d",
         abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str(),
         abilityRecord->GetUIExtensionAbilityId(),
         sessionInfo->persistentId, abilityRecord->GetAbilityState(),
-        static_cast<int32_t>(abilityRecord->GetPendingState())); 
-} 
+        static_cast<int32_t>(abilityRecord->GetPendingState()));
+}
 }
 
 UIExtensionAbilityManager::UIExtensionAbilityManager(int userId) : AbilityConnectManager(userId)
