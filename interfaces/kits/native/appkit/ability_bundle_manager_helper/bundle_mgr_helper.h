@@ -132,6 +132,8 @@ public:
         ModuleTestRunner &testRunner);
     ErrCode GetPluginExtensionInfo(const std::string &hostBundleName, const Want &want,
         int32_t userId, ExtensionAbilityInfo &pluginExtensionInfo);
+    bool GetResConfigFile(const ExtensionAbilityInfo &extension, const std::string &metadataName,
+        std::vector<std::string> &profileInfos);
 
 private:
     sptr<IBundleMgr> Connect();

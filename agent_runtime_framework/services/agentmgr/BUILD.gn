@@ -28,6 +28,7 @@ ohos_shared_library("agentmgr") {
   ]
   sources = [
     "src/agent_bundle_event_callback.cpp",
+    "src/agent_card_mgr.cpp",
     "src/agent_event_handler.cpp",
     "src/agent_manager_service.cpp",
   ]
