@@ -19,6 +19,7 @@ group("fuzztest") {
   external_deps = [ "json:nlohmann_json_static" ]
  
   deps = [
+    "abilityappcjheapmeminfo_fuzzer:fuzztest",
     "abilityappdebuginfo_fuzzer:fuzztest",
     "abilityappdebugmanager_fuzzer:fuzztest",
     "abilityappdebugmanagerfirst_fuzzer:fuzztest",
@@ -98,6 +99,7 @@ group("fuzztest") {
     "abilityinterfacesappmgrappdebuglistenerproxy_fuzzer:fuzztest",
     "abilityinterfacesappmgrappdebuglistenerstub_fuzzer:fuzztest",
     "abilityinterfacesappmgrappforegroundstateobserverstub_fuzzer:fuzztest",
+    "abilityinterfacesappmgrapplicationstatefilter_fuzzer:fuzztest",
     "abilityinterfacesappmgrchildschedulerproxy_fuzzer:fuzztest",
     "abilityinterfacesappmgrchildschedulerstub_fuzzer:fuzztest",
     "abilityinterfacesappmgrnativechildnotifyproxy_fuzzer:fuzztest",

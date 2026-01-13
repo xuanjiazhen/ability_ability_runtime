@@ -22,6 +22,9 @@
 #define private public
 #define protected public
 #include "child_process_info.h"
+#include "child_process_args.h"
+#include "child_process_options.h"
+#include "configuration_policy.h"
 #undef protected
 #undef private
 #include "parcel.h"
@@ -41,6 +44,34 @@ bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fdp)
     childProcessInfo->ReadFromParcel(parcel);
     childProcessInfo->Marshalling(parcel);
     ChildProcessInfo::Unmarshalling(parcel);
+
+    std::shared_ptr<ChildProcessArgs>childProcessArgs = std::make_shared<ChildProcessArgs>();
+    if (childProcessArgs == nullptr) {
+        return false;
+    }
+    Parcel parcel1;
+    parcel1.WriteString(fdp->ConsumeRandomLengthString());
+    childProcessArgs->Marshalling(parcel1);
+    childProcessArgs->CheckFdsSize();
+    childProcessArgs->CheckFdsKeyLength();
+    std::string key = fdp->ConsumeRandomLengthString();
+    childProcessArgs->CheckFdKeyLength(key);
+
+    std::shared_ptr<ChildProcessOptions>childProcessOptions = std::make_shared<ChildProcessOptions>();
+    if (childProcessOptions == nullptr) {
+        return false;
+    }
+    Parcel parcel2;
+    parcel2.WriteString(fdp->ConsumeRandomLengthString());
+    childProcessOptions->Marshalling(parcel2);
+
+    std::shared_ptr<ConfigurationPolicy>configurationPolicy = std::make_shared<ConfigurationPolicy>();
+    if (configurationPolicy == nullptr) {
+        return false;
+    }
+    Parcel parcel3;
+    parcel2.WriteString(fdp->ConsumeRandomLengthString());
+    configurationPolicy->Marshalling(parcel3);
     return true;
 }
 }
