@@ -14,6 +14,7 @@
  */
 
 #include "ability_auto_startup_data_manager.h"
+#include "report_data_partition_usage_manager.h"
 
 #include <unistd.h>
 
@@ -45,6 +46,9 @@ const std::string JSON_KEY_SETTER_TYPE = "setterType";
 const DistributedKv::AppId AbilityAutoStartupDataManager::APP_ID = { "auto_startup_storage" };
 const DistributedKv::StoreId AbilityAutoStartupDataManager::STORE_ID = { "auto_startup_infos" };
 AbilityAutoStartupDataManager::AbilityAutoStartupDataManager() {}
+
+AbilityAutoStartupDataManager::AbilityAutoStartupDataManager()
+    : reportManager_(std::make_unique<ReportDataPartitionUsageManager>()) {}
 
 AbilityAutoStartupDataManager::~AbilityAutoStartupDataManager()
 {
@@ -152,6 +156,8 @@ int32_t AbilityAutoStartupDataManager::InsertAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    reportManager_->IncrementAndReportWriteCount(AUTO_STARTUP_STORAGE_DIR);
+
     return ERR_OK;
 }
 
@@ -205,6 +211,7 @@ int32_t AbilityAutoStartupDataManager::UpdateAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    reportManager_->IncrementAndReportWriteCount(AUTO_STARTUP_STORAGE_DIR);
 
     return ERR_OK;
 }
