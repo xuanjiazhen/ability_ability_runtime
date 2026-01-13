@@ -29,6 +29,7 @@ using namespace OHOS::AAFwk;
 namespace {
 constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
+constexpr int32_t AUTO_STARTUP_DATABASE_WRITES = 0;
 constexpr const char *AUTO_STARTUP_STORAGE_DIR = "/data/service/el1/public/database/auto_startup_service";
 const std::string JSON_KEY_BUNDLE_NAME = "bundleName";
 const std::string JSON_KEY_ABILITY_NAME = "abilityName";
@@ -152,6 +153,8 @@ int32_t AbilityAutoStartupDataManager::InsertAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    IncrementAndReportWriteCount();
+
     return ERR_OK;
 }
 
@@ -205,6 +208,7 @@ int32_t AbilityAutoStartupDataManager::UpdateAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    IncrementAndReportWriteCount();
 
     return ERR_OK;
 }
