@@ -78,7 +78,7 @@ void printAbilityLifecycleChanges(const std::shared_ptr<BaseExtensionRecord> &ab
     auto sessionInfo = abilityRecord->GetSessionInfo();
     CHECK_POINTER(sessionInfo);
     TAG_LOGI(AAFwkTag::UI_EXT,
-        "%{public}s/%{public}s, persistentId:%{public}d, Id:%{public}d, abilityState:%{public}d,"
+        "%{public}s/%{public}s, persistentId:%{public}d, Id:%{public}d, abilityState:%{public}d, "
         "pendingState:%{public}d",
         abilityRecord->GetElementName().GetBundleName().c_str(),
         abilityRecord->GetElementName().GetAbilityName().c_str(),
