@@ -31,6 +31,8 @@ static const uint64_t UNITS = 1024;
 static const uint64_t INVALID_SIZE = 0;
 static const uint64_t SECONDS_PER_DAY = 24 * 60 * 60;
 static const uint64_t ONE_DAY_US = SECONDS_PER_DAY * 1000 * 1000;
+constexpr int32_t DEFAULT_WRITE_COUNT = 0;
+constexpr int32_t DATABASE_WRITE_COUNT = 20;
 static std::vector<std::string> pathList_ = {
     "/data/service/el1/public/database/auto_startup_service",
     "/data/service/el1/public/database/app_exit_reason",
@@ -38,6 +40,16 @@ static std::vector<std::string> pathList_ = {
     "/data/service/el1/public/database/ability_manager_service",
     "/data/service/el1/public/database/app_config_data"
 };
+std::atomic_int32_t ReportDataPartitionUsageManager::writeCount_ = DEFAULT_WRITE_COUNT;
+
+void ReportDataPartitionUsageManager::IncrementAndReportWriteCount()
+{
+    writeCount_++;
+    if (writeCount_ >= DATABASE_WRITE_COUNT) {
+        SendReportDatabaseReadEvent();
+        writeCount_ = 0;
+    }
+}
 
 void ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent()
 {
@@ -56,6 +68,22 @@ void ReportDataPartitionUsageManager::HandleSendReportDataPartitionUsageEvent()
     ffrt::submit(HandleSendReportDataPartitionUsageEvent,
         ffrt::task_attr().delay(ONE_DAY_US).name("SendReportDataPartitionUsageTask")
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
+}
+
+void ReportDataPartitionUsageManager::SendReportDatabaseReadEvent()
+{
+    ffrt::submit(HandleSendReportDatabaseWriteEvent,
+        ffrt::task_attr().name("SendReportDatabaseReadEventTask")
+        .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
+}
+
+void ReportDataPartitionUsageManager::HandleSendReportDatabaseWriteEvent()
+{
+    EventInfo eventInfo;
+    GenerateEventInfo(eventInfo);
+    eventInfo.uri = "DATABASE_WRITES";
+    EventReport::SendReportDataPartitionUsageEvent(EventName::USER_DATA_SIZE,
+        HiSysEventType::STATISTIC, eventInfo);
 }
 
 void ReportDataPartitionUsageManager::GenerateEventInfo(EventInfo &eventInfo)
