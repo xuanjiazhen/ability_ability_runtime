@@ -152,6 +152,8 @@ int32_t AbilityAutoStartupDataManager::InsertAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    IncrementAndReportWriteCount();
+
     return ERR_OK;
 }
 
@@ -205,6 +207,7 @@ int32_t AbilityAutoStartupDataManager::UpdateAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    IncrementAndReportWriteCount();
 
     return ERR_OK;
 }

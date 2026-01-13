@@ -58,6 +58,22 @@ void ReportDataPartitionUsageManager::HandleSendReportDataPartitionUsageEvent()
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
 }
 
+void ReportDataPartitionUsageManager::SendReportDatabaseReadEvent()
+{
+    ffrt::submit(HandleSendReportDatabaseWriteEvent,
+        ffrt::task_attr().name("SendReportDatabaseReadEventTask")
+        .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
+}
+
+void ReportDataPartitionUsageManager::HandleSendReportDatabaseWriteEvent()
+{
+    EventInfo eventInfo;
+    GenerateEventInfo(eventInfo);
+    eventInfo.uri = "DATABASE_WRITES";
+    EventReport::SendReportDataPartitionUsageEvent(EventName::USER_DATA_SIZE,
+        HiSysEventType::STATISTIC, eventInfo);
+}
+
 void ReportDataPartitionUsageManager::GenerateEventInfo(EventInfo &eventInfo)
 {
     std::vector<std::uint64_t> fileOrFolderSize;
