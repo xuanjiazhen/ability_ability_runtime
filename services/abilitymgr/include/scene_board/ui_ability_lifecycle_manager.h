@@ -325,6 +325,14 @@ public:
         int32_t userId, const std::string &bundleName, const std::string &abilityName, const std::string &moduleName);
 
     /**
+     * Report grant uri permission event.
+     *
+     * @param abilityRequest ability request info.
+     * @param uriMethod uri grant method.
+     */
+    void ReportGrantUriPermissionEvent(const AbilityRequest& abilityRequest, const std::string& uriMethod);
+
+    /**
      * Triggered when app state changed.
      *
      * @param info appInfo on changed.
