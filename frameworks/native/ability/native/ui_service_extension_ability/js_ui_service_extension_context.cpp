@@ -125,6 +125,7 @@ private:
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+        HandleEscape handleEscape(env);
         TAG_LOGI(AAFwkTag::UISERVC_EXT, "Call");
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::UISERVC_EXT, "invalid argc");
@@ -168,7 +169,7 @@ private:
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnStartAbility",
         env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
     bool CheckStartAbilityInputParam(napi_env env, NapiCallbackInfo& info,
@@ -194,6 +195,7 @@ private:
     napi_value OnTerminateSelf(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::UISERVC_EXT, "Call");
+        HandleEscape handleEscape(env);
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, innerErrCode]() {
             auto context = weak.lock();
@@ -218,12 +220,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnTerminateSelf",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::UISERVC_EXT, "Call");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_THREE) {
             TAG_LOGE(AAFwkTag::UISERVC_EXT, "not enough params");
             ThrowTooFewParametersError(env);
@@ -276,7 +279,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnStartAbilityByType",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool CheckConnectionParam(napi_env env, napi_value value,
@@ -372,6 +375,7 @@ private:
     napi_value OnConnectServiceExtensionAbility(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::UISERVC_EXT, "Connect ServiceExtensionAbility called.");
+        HandleEscape handleEscape(env);
         // Check params count
         if (info.argc < ARGC_TWO) {
             TAG_LOGE(AAFwkTag::UISERVC_EXT, "not enough params");
@@ -410,12 +414,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnConnectServiceExtensionAbility",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return CreateJsValue(env, connectId);
+        return handleEscape.Escape(CreateJsValue(env, connectId));
     }
 
     napi_value OnDisConnectServiceExtensionAbility(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::UISERVC_EXT, "DisConnect ServiceExtensionAbility start");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::UISERVC_EXT, "not enough params");
             ThrowTooFewParametersError(env);
@@ -467,7 +472,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JSUIServiceExtensionContext::OnDisConnectServiceExtensionAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 };
 } // namespace
@@ -475,6 +480,7 @@ private:
 napi_value CreateJsUIServiceExtensionContext(napi_env env, std::shared_ptr<UIServiceExtensionContext> context)
 {
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "Call");
+    HandleEscape handleEscape(env);
     std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo = nullptr;
     if (context) {
         abilityInfo = context->GetAbilityInfo();
@@ -497,7 +503,7 @@ napi_value CreateJsUIServiceExtensionContext(napi_env env, std::shared_ptr<UISer
         JSUIServiceExtensionContext::ConnectServiceExtensionAbility);
     BindNativeFunction(env, object, "disconnectServiceExtensionAbility", moduleName,
         JSUIServiceExtensionContext::DisConnectServiceExtensionAbility);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 JSUIServiceExtensionConnection::JSUIServiceExtensionConnection(napi_env env) : env_(env) {}
@@ -684,6 +690,7 @@ void JSUIServiceExtensionConnection::RemoveConnectionObject()
 void JSUIServiceExtensionConnection::CallJsFailed(int32_t errorCode)
 {
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "CallJsFailed begin");
+    HandleScope handleScope(env_);
     if (jsConnectionObject_ == nullptr) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "null jsConnectionObject_");
         return;
