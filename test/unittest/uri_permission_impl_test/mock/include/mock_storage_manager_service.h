@@ -464,6 +464,21 @@ public:
     {
         return E_OK;
     }
+
+    virtual int32_t QueryActiveOsAccountIds(std::vector<int32_t> &ids) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t IsOsAccountExists(unsigned int userId, bool &isOsAccountExists) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t EraseAllUserEncryptedKeysEl(std::vector<UserKeyDeleteContext> &userKeyContexts) override
+    {
+        return E_OK;
+    }
 };
 
 bool StorageManagerServiceMock::isZero = true;
