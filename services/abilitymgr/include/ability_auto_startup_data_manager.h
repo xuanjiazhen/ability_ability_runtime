@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "auto_startup_info.h"
+#include "datebase_write_counter.h"
 #include "distributed_kv_data_manager.h"
 #include "nlohmann/json.hpp"
 #include "singleton.h"
@@ -207,6 +208,7 @@ private:
     DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<DistributedKv::SingleKvStore> kvStorePtr_;
     mutable std::mutex kvStorePtrMutex_;
+    DatebaseWriteCounter dbWriteCounter_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
