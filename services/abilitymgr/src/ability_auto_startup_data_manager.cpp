@@ -14,6 +14,7 @@
  */
 
 #include "ability_auto_startup_data_manager.h"
+#include "report_data_partition_usage_manager.h"
 
 #include <unistd.h>
 
@@ -152,6 +153,8 @@ int32_t AbilityAutoStartupDataManager::InsertAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    ReportDataPartitionUsageManager::IncrementAndReportWriteCount(AUTO_STARTUP_STORAGE_DIR);
+
     return ERR_OK;
 }
 
@@ -205,6 +208,7 @@ int32_t AbilityAutoStartupDataManager::UpdateAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
+    ReportDataPartitionUsageManager::IncrementAndReportWriteCount(AUTO_STARTUP_STORAGE_DIR);
 
     return ERR_OK;
 }
