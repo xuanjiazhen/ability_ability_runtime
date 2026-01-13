@@ -20,6 +20,7 @@
 #include <mutex>
 #include <utility>
 
+#include "datebase_write_counter.h"
 #include "rdb_helper.h"
 #include "rdb_open_callback.h"
 
@@ -59,6 +60,7 @@ private:
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
     AmsRdbConfig amsRdbConfig_;
     std::mutex rdbMutex_;
+    DatebaseWriteCounter dbWriteCounter_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
