@@ -36,6 +36,8 @@ ohos_fuzztest("AbilityAutoStartupDataManageraFuzzTest") {
 
   sources = [
     "${ability_runtime_services_path}/abilitymgr/src/ability_auto_startup_data_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/datebase_write_counter.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/report_data_partition_usage_manager.cpp",
     "abilityautostartupdatamanagera_fuzzer.cpp",
   ]
 
@@ -64,6 +66,7 @@ ohos_fuzztest("AbilityAutoStartupDataManageraFuzzTest") {
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "input:libmmi-client",
     "ipc:ipc_core",
     "kv_store:distributeddata_inner",
