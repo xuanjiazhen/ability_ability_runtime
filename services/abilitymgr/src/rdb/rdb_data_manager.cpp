@@ -14,6 +14,7 @@
  */
 
 #include "rdb_data_manager.h"
+#include "report_data_partition_usage_manager.h"
 
 #include "hilog_tag_wrapper.h"
 
@@ -49,8 +50,12 @@ int32_t RdbDataManager::InsertData(const NativeRdb::ValuesBucket &valuesBucket)
     }
 
     int64_t rowId = -1;
-    return rdbStore_->InsertWithConflictResolution(
+    int32_t errCode = rdbStore_->InsertWithConflictResolution(
         rowId, amsRdbConfig_.tableName, valuesBucket, NativeRdb::ConflictResolution::ON_CONFLICT_REPLACE);
+    if (errCode == NativeRdb::E_OK) {
+        ReportDataPartitionUsageManager::IncrementAndReportWriteCount();
+    }
+    return errCode;
 }
 
 int32_t RdbDataManager::BatchInsert(int64_t &outInsertNum, const std::vector<NativeRdb::ValuesBucket> &valuesBuckets)
@@ -61,6 +66,9 @@ int32_t RdbDataManager::BatchInsert(int64_t &outInsertNum, const std::vector<Nat
         return NativeRdb::E_ERROR;
     }
     auto ret = rdbStore_->BatchInsert(outInsertNum, amsRdbConfig_.tableName, valuesBuckets);
+    if (ret == NativeRdb::E_OK) {
+        ReportDataPartitionUsageManager::IncrementAndReportWriteCount();
+    }
     return ret == NativeRdb::E_OK;
 }
 
@@ -77,7 +85,11 @@ int32_t RdbDataManager::UpdateData(
         return NativeRdb::E_ERROR;
     }
     int32_t rowId = -1;
-    return rdbStore_->Update(rowId, valuesBucket, absRdbPredicates);
+    int32_t errCode = rdbStore_->Update(rowId, valuesBucket, absRdbPredicates);
+    if (errCode == NativeRdb::E_OK) {
+        ReportDataPartitionUsageManager::IncrementAndReportWriteCount();
+    }
+    return errCode;
 }
 
 int32_t RdbDataManager::DeleteData(const NativeRdb::AbsRdbPredicates &absRdbPredicates)
