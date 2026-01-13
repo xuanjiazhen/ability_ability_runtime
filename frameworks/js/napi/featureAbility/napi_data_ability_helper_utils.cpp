@@ -31,6 +31,11 @@ namespace AppExecFwk {
 napi_value InsertAsync(napi_env env, napi_value *args, const size_t argCallback, DAHelperInsertCB *insertCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FA, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || insertCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -56,12 +61,17 @@ napi_value InsertAsync(napi_env env, napi_value *args, const size_t argCallback,
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value InsertPromise(napi_env env, DAHelperInsertCB *insertCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FA, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleScope handleScope(env);
     if (insertCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null insertCB");
         return nullptr;
@@ -111,6 +121,7 @@ void InsertExecuteCB(napi_env env, void *data)
 void InsertAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperInsertCB *insertCB = static_cast<DAHelperInsertCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -135,6 +146,7 @@ void InsertAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void InsertPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperInsertCB *insertCB = static_cast<DAHelperInsertCB *>(data);
     napi_value result = nullptr;
     napi_create_int32(env, insertCB->result, &result);
@@ -149,6 +161,7 @@ napi_value NotifyChangeAsync(
     napi_env env, napi_value *args, size_t argcAsync, const size_t argcPromise, DAHelperNotifyChangeCB *notifyChangeCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || notifyChangeCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -173,12 +186,13 @@ napi_value NotifyChangeAsync(
     NAPI_CALL(env, napi_queue_async_work(env, notifyChangeCB->cbBase.asyncWork));
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value NotifyChangePromise(napi_env env, DAHelperNotifyChangeCB *notifyChangeCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (notifyChangeCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null notifyChangeCB");
         return nullptr;
@@ -199,7 +213,7 @@ napi_value NotifyChangePromise(napi_env env, DAHelperNotifyChangeCB *notifyChang
             static_cast<void *>(notifyChangeCB),
             &notifyChangeCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work(env, notifyChangeCB->cbBase.asyncWork));
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void NotifyChangeExecuteCB(napi_env env, void *data)
@@ -222,6 +236,7 @@ void NotifyChangeExecuteCB(napi_env env, void *data)
 void NotifyChangeAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperNotifyChangeCB *notifyChangeCB = static_cast<DAHelperNotifyChangeCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -252,6 +267,7 @@ void NotifyChangeAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void NotifyChangePromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperNotifyChangeCB *notifyChangeCB = static_cast<DAHelperNotifyChangeCB *>(data);
     napi_value result = nullptr;
     napi_create_int32(env, 0, &result);
@@ -264,6 +280,7 @@ void NotifyChangePromiseCompleteCB(napi_env env, napi_status status, void *data)
 napi_value GetTypeAsync(napi_env env, napi_value *args, const size_t argCallback, DAHelperGetTypeCB *gettypeCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || gettypeCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -289,12 +306,13 @@ napi_value GetTypeAsync(napi_env env, napi_value *args, const size_t argCallback
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value GetTypePromise(napi_env env, DAHelperGetTypeCB *gettypeCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (gettypeCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null gettypeCB");
         return nullptr;
@@ -316,7 +334,7 @@ napi_value GetTypePromise(napi_env env, DAHelperGetTypeCB *gettypeCB)
             &gettypeCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, gettypeCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void GetTypeExecuteCB(napi_env env, void *data)
@@ -342,6 +360,7 @@ void GetTypeExecuteCB(napi_env env, void *data)
 void GetTypeAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperGetTypeCB *gettypeCB = static_cast<DAHelperGetTypeCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -367,6 +386,7 @@ void GetTypeAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void GetTypePromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperGetTypeCB *gettypeCB = static_cast<DAHelperGetTypeCB *>(data);
     napi_value result = nullptr;
     NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, gettypeCB->result.c_str(), NAPI_AUTO_LENGTH, &result));
@@ -381,6 +401,7 @@ napi_value GetFileTypesAsync(
     napi_env env, napi_value *args, const size_t argCallback, DAHelperGetFileTypesCB *getfiletypesCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || getfiletypesCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -406,12 +427,13 @@ napi_value GetFileTypesAsync(
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value GetFileTypesPromise(napi_env env, DAHelperGetFileTypesCB *getfiletypesCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (getfiletypesCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null getfiletypesCB");
         return nullptr;
@@ -433,7 +455,7 @@ napi_value GetFileTypesPromise(napi_env env, DAHelperGetFileTypesCB *getfiletype
             &getfiletypesCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, getfiletypesCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void GetFileTypesExecuteCB(napi_env env, void *data)
@@ -462,6 +484,7 @@ void GetFileTypesExecuteCB(napi_env env, void *data)
 void GetFileTypesAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperGetFileTypesCB *getfiletypesCB = static_cast<DAHelperGetFileTypesCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -488,6 +511,7 @@ void GetFileTypesAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void GetFileTypesPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperGetFileTypesCB *getfiletypesCB = static_cast<DAHelperGetFileTypesCB *>(data);
     napi_value result = nullptr;
 
@@ -502,6 +526,7 @@ void GetFileTypesPromiseCompleteCB(napi_env env, napi_status status, void *data)
 napi_value WrapGetFileTypesCB(napi_env env, const DAHelperGetFileTypesCB &getfiletypesCB)
 {
     TAG_LOGI(AAFwkTag::FA, "size:%{public}zu", getfiletypesCB.result.size());
+    AbilityRuntime::HandleEscape handleEscape(env);
     for (size_t i = 0; i < getfiletypesCB.result.size(); i++) {
         TAG_LOGI(
             AAFwkTag::FA, "result[%{public}zu]:%{public}s", i, getfiletypesCB.result.at(i).c_str());
@@ -516,13 +541,14 @@ napi_value WrapGetFileTypesCB(napi_env env, const DAHelperGetFileTypesCB &getfil
         NAPI_CALL(env, napi_set_element(env, jsArrayresult, i, proValue));
     }
     TAG_LOGI(AAFwkTag::FA, "end");
-    return jsArrayresult;
+    return handleEscape.Escape(jsArrayresult);
 }
 
 napi_value NormalizeUriAsync(
     napi_env env, napi_value *args, const size_t argCallback, DAHelperNormalizeUriCB *normalizeuriCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || normalizeuriCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -548,12 +574,13 @@ napi_value NormalizeUriAsync(
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value NormalizeUriPromise(napi_env env, DAHelperNormalizeUriCB *normalizeuriCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (normalizeuriCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null normalizeuriCB");
         return nullptr;
@@ -575,7 +602,7 @@ napi_value NormalizeUriPromise(napi_env env, DAHelperNormalizeUriCB *normalizeur
             &normalizeuriCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, normalizeuriCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void NormalizeUriExecuteCB(napi_env env, void *data)
@@ -601,6 +628,7 @@ void NormalizeUriExecuteCB(napi_env env, void *data)
 void NormalizeUriAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperNormalizeUriCB *normalizeuriCB = static_cast<DAHelperNormalizeUriCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -627,6 +655,7 @@ void NormalizeUriAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void NormalizeUriPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperNormalizeUriCB *normalizeuriCB = static_cast<DAHelperNormalizeUriCB *>(data);
     napi_value result = nullptr;
     NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, normalizeuriCB->result.c_str(), NAPI_AUTO_LENGTH, &result));
@@ -641,6 +670,7 @@ napi_value DenormalizeUriAsync(
     napi_env env, napi_value *args, const size_t argCallback, DAHelperDenormalizeUriCB *denormalizeuriCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || denormalizeuriCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -666,12 +696,13 @@ napi_value DenormalizeUriAsync(
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value DenormalizeUriPromise(napi_env env, DAHelperDenormalizeUriCB *denormalizeuriCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (denormalizeuriCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null denormalizeuriCB");
         return nullptr;
@@ -693,7 +724,7 @@ napi_value DenormalizeUriPromise(napi_env env, DAHelperDenormalizeUriCB *denorma
             &denormalizeuriCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, denormalizeuriCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void DenormalizeUriExecuteCB(napi_env env, void *data)
@@ -721,6 +752,7 @@ void DenormalizeUriExecuteCB(napi_env env, void *data)
 void DenormalizeUriAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperDenormalizeUriCB *denormalizeuriCB = static_cast<DAHelperDenormalizeUriCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -747,6 +779,7 @@ void DenormalizeUriAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void DenormalizeUriPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperDenormalizeUriCB *denormalizeuriCB = static_cast<DAHelperDenormalizeUriCB *>(data);
     napi_value result = nullptr;
     NAPI_CALL_RETURN_VOID(
@@ -761,6 +794,7 @@ void DenormalizeUriPromiseCompleteCB(napi_env env, napi_status status, void *dat
 napi_value DeleteAsync(napi_env env, napi_value *args, const size_t argCallback, DAHelperDeleteCB *deleteCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || deleteCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -786,12 +820,13 @@ napi_value DeleteAsync(napi_env env, napi_value *args, const size_t argCallback,
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value DeletePromise(napi_env env, DAHelperDeleteCB *deleteCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (deleteCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null deleteCB");
         return nullptr;
@@ -813,7 +848,7 @@ napi_value DeletePromise(napi_env env, DAHelperDeleteCB *deleteCB)
             &deleteCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, deleteCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void DeleteExecuteCB(napi_env env, void *data)
@@ -839,6 +874,7 @@ void DeleteExecuteCB(napi_env env, void *data)
 void DeleteAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "complete");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperDeleteCB *DeleteCB = static_cast<DAHelperDeleteCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -863,6 +899,7 @@ void DeleteAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void DeletePromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperDeleteCB *DeleteCB = static_cast<DAHelperDeleteCB *>(data);
     napi_value result = nullptr;
     napi_create_int32(env, DeleteCB->result, &result);
@@ -876,6 +913,7 @@ void DeletePromiseCompleteCB(napi_env env, napi_status status, void *data)
 napi_value UpdateAsync(napi_env env, napi_value *args, const size_t argCallback, DAHelperUpdateCB *updateCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || updateCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -901,7 +939,7 @@ napi_value UpdateAsync(napi_env env, napi_value *args, const size_t argCallback,
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value UpdatePromise(napi_env env, DAHelperUpdateCB *updateCB)
@@ -911,6 +949,7 @@ napi_value UpdatePromise(napi_env env, DAHelperUpdateCB *updateCB)
         TAG_LOGE(AAFwkTag::FA, "null updateCB");
         return nullptr;
     }
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value resourceName;
     NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     napi_deferred deferred;
@@ -928,7 +967,7 @@ napi_value UpdatePromise(napi_env env, DAHelperUpdateCB *updateCB)
             &updateCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, updateCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void UpdateExecuteCB(napi_env env, void *data)
@@ -954,6 +993,7 @@ void UpdateExecuteCB(napi_env env, void *data)
 void UpdateAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperUpdateCB *updateCB = static_cast<DAHelperUpdateCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -978,6 +1018,7 @@ void UpdateAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void UpdatePromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperUpdateCB *updateCB = static_cast<DAHelperUpdateCB *>(data);
     napi_value result = nullptr;
     napi_create_int32(env, updateCB->result, &result);
@@ -991,6 +1032,7 @@ void UpdatePromiseCompleteCB(napi_env env, napi_status status, void *data)
 void CallErrorAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperErrorCB *errorCB = static_cast<DAHelperErrorCB *>(data);
     if (errorCB != nullptr) {
         napi_value callback = nullptr;
@@ -1016,6 +1058,7 @@ void CallErrorAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void CallErrorPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperErrorCB *errorCB = static_cast<DAHelperErrorCB *>(data);
     if (errorCB != nullptr) {
         napi_value result = nullptr;
@@ -1043,6 +1086,7 @@ void CallErrorExecuteCB(napi_env env, void *data)
 napi_value CallErrorAsync(napi_env env, napi_value *args, const size_t argCallback, DAHelperErrorCB *errorCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || errorCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -1062,12 +1106,13 @@ napi_value CallErrorAsync(napi_env env, napi_value *args, const size_t argCallba
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value CallErrorPromise(napi_env env, DAHelperErrorCB *errorCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (errorCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null errorCB");
         return nullptr;
@@ -1083,12 +1128,13 @@ napi_value CallErrorPromise(napi_env env, DAHelperErrorCB *errorCB)
                        static_cast<void *>(errorCB), &errorCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, errorCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 napi_value CallErrorWrap(napi_env env, napi_value thisVar, napi_callback_info info, napi_value *args, bool isPromise)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     DAHelperErrorCB *errorCB = new DAHelperErrorCB;
     errorCB->cbBase.cbInfo.env = env;
     errorCB->cbBase.asyncWork = nullptr;
@@ -1107,7 +1153,7 @@ napi_value CallErrorWrap(napi_env env, napi_value thisVar, napi_callback_info in
         ret = WrapVoidToJS(env);
     }
     TAG_LOGI(AAFwkTag::FA, "end");
-    return ret;
+    return handleEscape.Escape(ret);
 }
 
 void CallExecuteCB(napi_env env, void *data)
@@ -1157,6 +1203,7 @@ static std::string ExcludeTag(const std::string& jsonString, const std::string& 
 
 napi_value CallPacMapValue(napi_env env, std::shared_ptr<AppExecFwk::PacMap> result)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value value = nullptr;
 
     NAPI_CALL(env, napi_create_object(env, &value));
@@ -1168,12 +1215,13 @@ napi_value CallPacMapValue(napi_env env, std::shared_ptr<AppExecFwk::PacMap> res
     } else {
         TAG_LOGE(AAFwkTag::FA, "null ret");
     }
-    return value;
+    return handleEscape.Escape(value);
 }
 
 void CallAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperCallCB *callCB = static_cast<DAHelperCallCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -1198,6 +1246,7 @@ void CallAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void CallPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperCallCB *callCB = static_cast<DAHelperCallCB *>(data);
     napi_value result = nullptr;
     result = CallPacMapValue(env, callCB->result);
@@ -1211,6 +1260,7 @@ void CallPromiseCompleteCB(napi_env env, napi_status status, void *data)
 napi_value CallAsync(napi_env env, napi_value *args, const size_t argCallback, DAHelperCallCB *callCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || callCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -1236,12 +1286,13 @@ napi_value CallAsync(napi_env env, napi_value *args, const size_t argCallback, D
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value CallPromise(napi_env env, DAHelperCallCB *callCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (callCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null callCB");
         return nullptr;
@@ -1263,12 +1314,13 @@ napi_value CallPromise(napi_env env, DAHelperCallCB *callCB)
             &callCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work(env, callCB->cbBase.asyncWork));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 napi_value OpenFileAsync(napi_env env, napi_value *args, const size_t argCallback, DAHelperOpenFileCB *openFileCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || openFileCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -1294,12 +1346,13 @@ napi_value OpenFileAsync(napi_env env, napi_value *args, const size_t argCallbac
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value OpenFilePromise(napi_env env, DAHelperOpenFileCB *openFileCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (openFileCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null openFileCB");
         return nullptr;
@@ -1321,7 +1374,7 @@ napi_value OpenFilePromise(napi_env env, DAHelperOpenFileCB *openFileCB)
             &openFileCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, openFileCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void OpenFileExecuteCB(napi_env env, void *data)
@@ -1347,6 +1400,7 @@ void OpenFileExecuteCB(napi_env env, void *data)
 void OpenFileAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperOpenFileCB *OpenFileCB = static_cast<DAHelperOpenFileCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -1371,6 +1425,7 @@ void OpenFileAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void OpenFilePromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperOpenFileCB *OpenFileCB = static_cast<DAHelperOpenFileCB *>(data);
     napi_value result = nullptr;
     napi_create_int32(env, OpenFileCB->result, &result);
@@ -1385,6 +1440,7 @@ napi_value BatchInsertAsync(
     napi_env env, napi_value *args, const size_t argCallback, DAHelperBatchInsertCB *batchInsertCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || batchInsertCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -1410,12 +1466,13 @@ napi_value BatchInsertAsync(
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value BatchInsertPromise(napi_env env, DAHelperBatchInsertCB *batchInsertCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (batchInsertCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null batchInsertCB");
         return nullptr;
@@ -1437,7 +1494,7 @@ napi_value BatchInsertPromise(napi_env env, DAHelperBatchInsertCB *batchInsertCB
             &batchInsertCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work(env, batchInsertCB->cbBase.asyncWork));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void BatchInsertExecuteCB(napi_env env, void *data)
@@ -1463,6 +1520,7 @@ void BatchInsertExecuteCB(napi_env env, void *data)
 void BatchInsertAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperBatchInsertCB *BatchInsertCB = static_cast<DAHelperBatchInsertCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -1487,6 +1545,7 @@ void BatchInsertAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void BatchInsertPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperBatchInsertCB *BatchInsertCB = static_cast<DAHelperBatchInsertCB *>(data);
     napi_value result = nullptr;
     napi_create_int32(env, BatchInsertCB->result, &result);
@@ -1500,6 +1559,7 @@ void BatchInsertPromiseCompleteCB(napi_env env, napi_status status, void *data)
 napi_value QuerySync(napi_env env, napi_value *args, const size_t argCallback, DAHelperQueryCB *queryCB)
 {
     TAG_LOGD(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || queryCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -1542,12 +1602,13 @@ napi_value QuerySync(napi_env env, napi_value *args, const size_t argCallback, D
 
     napi_value ret = nullptr;
     NAPI_CALL(env, napi_get_null(env, &ret));
-    return ret;
+    return handleEscape.Escape(ret);
 }
 
 napi_value QueryPromise(napi_env env, DAHelperQueryCB *queryCB)
 {
     TAG_LOGD(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (queryCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null queryCB");
         return nullptr;
@@ -1572,24 +1633,26 @@ napi_value QueryPromise(napi_env env, DAHelperQueryCB *queryCB)
     delete queryCB;
     queryCB = nullptr;
 
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 napi_value WrapResultSet(napi_env env, const std::shared_ptr<NativeRdb::AbsSharedResultSet> &resultSet)
 {
     TAG_LOGD(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (resultSet == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null resultSet");
         return WrapVoidToJS(env);
     }
 
-    return RdbJsKit::ResultSetProxy::NewInstance(env, resultSet);
+    return handleEscape.Escape(RdbJsKit::ResultSetProxy::NewInstance(env, resultSet));
 }
 
 napi_value ExecuteBatchAsync(
     napi_env env, napi_value *args, size_t argcAsync, const size_t argcPromise, DAHelperExecuteBatchCB *executeBatchCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (args == nullptr || executeBatchCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
@@ -1615,12 +1678,13 @@ napi_value ExecuteBatchAsync(
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value ExecuteBatchPromise(napi_env env, DAHelperExecuteBatchCB *executeBatchCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     if (executeBatchCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null executeBatchCB");
         return nullptr;
@@ -1642,7 +1706,7 @@ napi_value ExecuteBatchPromise(napi_env env, DAHelperExecuteBatchCB *executeBatc
             &executeBatchCB->cbBase.asyncWork));
     NAPI_CALL(env, napi_queue_async_work(env, executeBatchCB->cbBase.asyncWork));
     TAG_LOGI(AAFwkTag::FA, "end");
-    return promise;
+    return handleEscape.Escape(promise);
 }
 
 void ExecuteBatchExecuteCB(napi_env env, void *data)
@@ -1662,6 +1726,7 @@ void ExecuteBatchExecuteCB(napi_env env, void *data)
 void ExecuteBatchAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperExecuteBatchCB *executeBatchCB = static_cast<DAHelperExecuteBatchCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
@@ -1687,6 +1752,7 @@ void ExecuteBatchAsyncCompleteCB(napi_env env, napi_status status, void *data)
 void ExecuteBatchPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     DAHelperExecuteBatchCB *executeBatchCB = static_cast<DAHelperExecuteBatchCB *>(data);
     napi_value result = nullptr;
     napi_create_array(env, &result);
@@ -1702,6 +1768,7 @@ void GetDataAbilityResultForResult(
     napi_env env, const std::vector<std::shared_ptr<DataAbilityResult>> &dataAbilityResult, napi_value result)
 {
     TAG_LOGI(AAFwkTag::FA, "size:%{public}zu", dataAbilityResult.size());
+    AbilityRuntime::HandleScope handleScope(env);
     int32_t index = 0;
     std::vector<std::shared_ptr<DataAbilityResult>> entities = dataAbilityResult;
     for (const auto &item : entities) {
