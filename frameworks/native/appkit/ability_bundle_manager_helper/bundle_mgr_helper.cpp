@@ -1160,5 +1160,16 @@ ErrCode BundleMgrHelper::GetPluginExtensionInfo(const std::string &hostBundleNam
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     return bundleMgr->GetPluginExtensionInfo(hostBundleName, newWant, userId, pluginExtensionInfo);
 }
+
+bool BundleMgrHelper::GetResConfigFile(const ExtensionAbilityInfo &extension, const std::string &metadataName,
+    std::vector<std::string> &profileInfos)
+{
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "bundleMgr is nullptr");
+        return ERR_APPEXECFWK_SERVICE_INTERNAL_ERROR;
+    }
+    return bundleMgr->GetResConfigFile(extension, metadataName, profileInfos);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
