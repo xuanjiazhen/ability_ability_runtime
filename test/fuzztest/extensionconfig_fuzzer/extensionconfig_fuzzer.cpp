@@ -83,6 +83,15 @@ bool DoSomethingInterestingWithMyAPI(const char *ch, size_t size, const uint8_t 
     extensionConfig->LoadExtensionSAEnable(object, strParam);
     extensionConfig->IsExtensionNetworkEnable(strParam);
     extensionConfig->IsExtensionSAEnable(strParam);
+    ElementName targetElementName;
+    std::unordered_set<std::string> list;
+    std::string extensionTypeName(data, size);
+    bool isSystemApp = *data % ENABLE;
+    std::string bundleName(data, size);
+    std::string abilityName(data, size);
+    extensionConfig->FindTargetUriInList(targetElementName, list);
+    extensionConfig->IsScreenUnlockIntercept(extensionTypeName, isSystemApp, bundleName);
+    extensionConfig->IsScreenUnlockAllowAbility(extensionTypeName, bundleName, abilityName);
     return true;
 }
 } // namespace OHOS
