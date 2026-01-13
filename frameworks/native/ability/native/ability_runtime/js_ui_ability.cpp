@@ -712,6 +712,9 @@ void JsUIAbility::OnSceneCreated()
         CallObjectMethod("onWindowStageCreate", argv, ArraySize(argv));
         AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     }
+    if (scene_ != nullptr) {
+        scene_->NotifyWindowStageCreateFinished();
+    }
 
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
     auto property = std::make_shared<AppExecFwk::ADelegatorAbilityProperty>();
