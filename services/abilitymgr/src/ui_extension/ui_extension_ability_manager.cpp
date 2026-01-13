@@ -74,9 +74,9 @@ constexpr int32_t HALF_TIMEOUT = 2;
 
 void printAbilityLifecycleChanges(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
-    CHECK_POINTER_AND_RETURN_LOG(abilityRecord, false, "abilityRecord is null");
+    CHECK_POINTER(abilityRecord);
     auto sessionInfo = abilityRecord->GetSessionInfo();
-    CHECK_POINTER_AND_RETURN_LOG(sessionInfo, false, "sessionInfo is null");
+    CHECK_POINTER(sessionInfo);
     TAG_LOGI(AAFwkTag::UI_EXT,
         "%{public}s/%{public}s, persistentId:%{public}d, Id:%{public}d, abilityState:%{public}d,
         pendingState:%{public}d",
