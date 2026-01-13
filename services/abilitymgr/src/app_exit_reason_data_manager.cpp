@@ -52,7 +52,8 @@ const std::string JSON_KEY_RSS_VALUE = "rss_value";
 const std::string JSON_KEY_PROSESS_STATE = "process_state";
 constexpr const char* PUT_TASK_NAME = "kvStorePtr_->Put";
 } // namespace
-AppExitReasonDataManager::AppExitReasonDataManager() {}
+AppExitReasonDataManager::AppExitReasonDataManager()
+    : dbWriteCounter_(std::make_unique<DatebaseWriteCounter>()) {}
 
 AppExitReasonDataManager::~AppExitReasonDataManager()
 {
@@ -254,6 +255,7 @@ void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", status);
     }
+    dbWriteCounter_->UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
 }
 
 int32_t AppExitReasonDataManager::RecordSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName)
@@ -467,6 +469,7 @@ int32_t AppExitReasonDataManager::AddAbilityRecoverInfo(uint32_t accessTokenId,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error : %{public}d", status);
         return ERR_INVALID_OPERATION;
     }
+    dbWriteCounter_->UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
     InnerAddSessionId(sessionId, accessTokenId);
     return ERR_OK;
 }
@@ -765,6 +768,7 @@ void AppExitReasonDataManager::UpdateAbilityRecoverInfo(uint32_t accessTokenId,
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed: %{public}d", status);
     }
+    dbWriteCounter_->UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
 }
 
 DistributedKv::Value AppExitReasonDataManager::ConvertAbilityRecoverInfoToValue(
@@ -862,6 +866,7 @@ void AppExitReasonDataManager::InnerAddSessionId(const int sessionId, uint32_t a
         TAG_LOGE(AAFwkTag::ABILITYMGR, "AddSessionId error : %{public}d", status);
         return;
     }
+    dbWriteCounter_->UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
 }
  
 void AppExitReasonDataManager::InnerDeleteSessionId(const int sessionId)
@@ -998,7 +1003,8 @@ int32_t AppExitReasonDataManager::GetRecordAppAbilityNames(const uint32_t access
 
 void AppExitReasonDataManager::PutAsync(const DistributedKv::Key &key, const DistributedKv::Value &value)
 {
-    ffrt::submit([key, value]() {
+    auto std::shared_ptr<DatebaseWriteCounter> dbWriteCounterInstance_ = dbWriteCounter_;
+    ffrt::submit([key, value, dbWriteCounterInstance_]() {
         auto pThis = DelayedSingleton<AppExitReasonDataManager>::GetInstance();
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, PUT_TASK_NAME);
         AAFwk::RecordCostTimeUtil timeRecord(PUT_TASK_NAME);
@@ -1014,6 +1020,9 @@ void AppExitReasonDataManager::PutAsync(const DistributedKv::Key &key, const Dis
         auto status = pThis->kvStorePtr_->Put(key, value);
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "insert error: %{public}d", status);
+        }
+        if (dbWriteCounterInstance_){
+            dbWriteCounterInstance_->UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
         }
         }, ffrt::task_attr().name(PUT_TASK_NAME));
 }

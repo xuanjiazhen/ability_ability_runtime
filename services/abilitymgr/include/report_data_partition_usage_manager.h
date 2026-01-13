@@ -24,9 +24,12 @@ using namespace OHOS::AAFwk;
 class ReportDataPartitionUsageManager {
 public:
     static void SendReportDataPartitionUsageEvent();
+    static void SendReportDatabaseReadEvent(const std::string &dbPath);
+    static void IncrementAndReportWriteCount(const std::string &dbPath);
 
 private:
     static void HandleSendReportDataPartitionUsageEvent();
+    void HandleSendReportDatabaseWriteEvent(const std::string &dbPath);
     static void GenerateEventInfo(EventInfo &eventInfo);
     static uint64_t GetFilePathSize(const std::string &filePath);
     static uint64_t GetPartitionRemainSize(const std::string &filePath);
