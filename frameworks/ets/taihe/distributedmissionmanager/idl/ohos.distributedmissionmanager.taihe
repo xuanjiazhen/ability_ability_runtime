@@ -39,7 +39,7 @@ struct ContinueCallbackInfo {
 }
 
 @!sts_inject("""
-  static { loadLibrary("distributedmissionmanager_ani.z"); }
+  loadLibrary("distributedmissionmanager_ani.z");
 
     function on(event: string, cb: (arg0 : Object) => void) : void {
       switch (event) {
