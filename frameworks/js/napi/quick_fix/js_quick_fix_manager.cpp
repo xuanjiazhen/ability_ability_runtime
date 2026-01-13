@@ -39,7 +39,7 @@ public:
 
     static void Finalizer(napi_env env, void *data, void *hint)
     {
-        TAG_LOGD(AAFwkTag::QUICKFIX, "called");
+        TAG_LOGI(AAFwkTag::QUICKFIX, "called");
         std::unique_ptr<JsQuickFixManager>(static_cast<JsQuickFixManager*>(data));
     }
 
