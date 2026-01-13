@@ -14,6 +14,7 @@
  */
 
 #include "app_exit_reason_data_manager.h"
+#include "report_data_partition_usage_manager.h"
 
 #include <cstdint>
 
@@ -52,7 +53,8 @@ const std::string JSON_KEY_RSS_VALUE = "rss_value";
 const std::string JSON_KEY_PROSESS_STATE = "process_state";
 constexpr const char* PUT_TASK_NAME = "kvStorePtr_->Put";
 } // namespace
-AppExitReasonDataManager::AppExitReasonDataManager() {}
+AppExitReasonDataManager::AppExitReasonDataManager()
+    : reportManager_(std::make_unique<ReportDataPartitionUsageManager>()) {}
 
 AppExitReasonDataManager::~AppExitReasonDataManager()
 {
@@ -254,6 +256,7 @@ void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", status);
     }
+    reportManager_->IncrementAndReportWriteCount(APP_EXIT_REASON_STORAGE_DIR);
 }
 
 int32_t AppExitReasonDataManager::RecordSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName)
@@ -467,6 +470,7 @@ int32_t AppExitReasonDataManager::AddAbilityRecoverInfo(uint32_t accessTokenId,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error : %{public}d", status);
         return ERR_INVALID_OPERATION;
     }
+    reportManager_->IncrementAndReportWriteCount(APP_EXIT_REASON_STORAGE_DIR);
     InnerAddSessionId(sessionId, accessTokenId);
     return ERR_OK;
 }
@@ -765,6 +769,7 @@ void AppExitReasonDataManager::UpdateAbilityRecoverInfo(uint32_t accessTokenId,
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed: %{public}d", status);
     }
+    reportManager_->IncrementAndReportWriteCount(APP_EXIT_REASON_STORAGE_DIR);
 }
 
 DistributedKv::Value AppExitReasonDataManager::ConvertAbilityRecoverInfoToValue(
@@ -862,6 +867,7 @@ void AppExitReasonDataManager::InnerAddSessionId(const int sessionId, uint32_t a
         TAG_LOGE(AAFwkTag::ABILITYMGR, "AddSessionId error : %{public}d", status);
         return;
     }
+    reportManager_->IncrementAndReportWriteCount(APP_EXIT_REASON_STORAGE_DIR);
 }
  
 void AppExitReasonDataManager::InnerDeleteSessionId(const int sessionId)
@@ -1015,6 +1021,7 @@ void AppExitReasonDataManager::PutAsync(const DistributedKv::Key &key, const Dis
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "insert error: %{public}d", status);
         }
+        reportManager_->IncrementAndReportWriteCount(APP_EXIT_REASON_STORAGE_DIR);
         }, ffrt::task_attr().name(PUT_TASK_NAME));
 }
 } // namespace AbilityRuntime

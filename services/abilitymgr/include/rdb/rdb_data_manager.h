@@ -42,7 +42,9 @@ struct AmsRdbConfig {
 
 class RdbDataManager final {
 public:
-    RdbDataManager(const AmsRdbConfig &rdbConfig) : amsRdbConfig_(rdbConfig) {}
+    RdbDataManager(const AmsRdbConfig &rdbConfig) 
+        : amsRdbConfig_(rdbConfig),
+          reportManager_(std::make_unique<ReportDataPartitionUsageManager>()){}
     ~RdbDataManager() {}
 
     int32_t Init(NativeRdb::RdbOpenCallback &rdbCallback);
