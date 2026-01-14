@@ -154,18 +154,21 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or PostFork");
         return false;
     }
-    napi_env napiEnv = nullptr;
-    if (jsRuntime != nullptr) {
-        napiEnv = static_cast<AbilityRuntime::JsRuntime *>(jsRuntime.get())->GetNapiEnv();
-        auto vm = static_cast<JsRuntime *>(jsRuntime.get())->GetEcmaVm();
-        panda::JSNApi::SetHostResolveBufferTrackerForHybridApp(
-            vm, HybridJsModuleReader(options.bundleName, options.hapPath, options.isUnique));
-    }
 
+    AbilityRuntime::JsRuntime *jsRuntimeValid = static_cast<AbilityRuntime::JsRuntime *>(jsRuntime.get());
     if (isMove) {
         if (jsRuntime != nullptr) {
             jsRuntime_ = std::move(jsRuntime);
         }
+        jsRuntimeValid = static_cast<AbilityRuntime::JsRuntime *>(jsRuntime_.get());
+    }
+
+    napi_env napiEnv = nullptr;
+    if (jsRuntimeValid != nullptr) {
+        napiEnv = jsRuntimeValid->GetNapiEnv();
+        auto vm = jsRuntimeValid->GetEcmaVm();
+        panda::JSNApi::SetHostResolveBufferTrackerForHybridApp(
+            vm, HybridJsModuleReader(options.bundleName, options.hapPath, options.isUnique));
     }
 
     std::string aotFilePath = "";
