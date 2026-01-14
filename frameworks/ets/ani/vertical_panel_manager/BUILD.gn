@@ -16,6 +16,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("vertical_panel_manager_ani_kit") {
+  version_script = "libvertical_panel_manager_ani_kit.map"
   shlib_type = "ani"
   branch_protector_ret = "pac_ret"
   sanitize = {

@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("auto_startup_manager") {
+  version_script = "libauto_startup_manager.map"
   branch_protector_ret = "pac_ret"
   shlib_type = "ani"
   sanitize = {
