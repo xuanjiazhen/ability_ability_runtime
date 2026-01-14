@@ -16,11 +16,13 @@
 #include "res_common.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
+#include "js_runtime_utils.h"
 
 namespace OHOS {
 namespace AAFwk {
 static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* name, int32_t value)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     napi_status status;
     napi_value itemName;
     napi_value itemValue;
@@ -36,6 +38,7 @@ static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* 
 
 static napi_value InitColorModeObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -43,11 +46,12 @@ static napi_value InitColorModeObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "COLOR_MODE_DARK", Global::Resource::DARK));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "COLOR_MODE_LIGHT", Global::Resource::LIGHT));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 static napi_value InitDirectionObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -55,11 +59,12 @@ static napi_value InitDirectionObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "DIRECTION_VERTICAL", Global::Resource::DIRECTION_VERTICAL));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "DIRECTION_HORIZONTAL", Global::Resource::DIRECTION_HORIZONTAL));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 static napi_value InitScreenDensityObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -71,11 +76,12 @@ static napi_value InitScreenDensityObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "SCREEN_DENSITY_XXLDPI", Global::Resource::SCREEN_DENSITY_XXLDPI));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "SCREEN_DENSITY_XXXLDPI", Global::Resource::SCREEN_DENSITY_XXXLDPI));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 static napi_value InitTimeFormatObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -83,7 +89,7 @@ static napi_value InitTimeFormatObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "HOUR_12", Global::Resource::HOUR_12));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "HOUR_24", Global::Resource::HOUR_24));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 /*
@@ -91,6 +97,7 @@ static napi_value InitTimeFormatObject(napi_env env)
  */
 static napi_value ConfigurationConstantInit(napi_env env, napi_value exports)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value colorMode = InitColorModeObject(env);
     NAPI_ASSERT(env, colorMode != nullptr, "failed to create color mode object");
 
