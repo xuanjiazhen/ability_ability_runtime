@@ -83,6 +83,7 @@ int32_t UIServiceStubImpl::SendData(sptr<IRemoteObject> hostProxy, OHOS::AAFwk::
 
 napi_value AttachUIServiceExtensionContext(napi_env env, void *value, void *)
 {
+    HandleEscape handleEscape(env);
     if (value == nullptr) {
         TAG_LOGW(AAFwkTag::UISERVC_EXT, "null value");
         return nullptr;
@@ -109,7 +110,7 @@ napi_value AttachUIServiceExtensionContext(napi_env env, void *value, void *)
             delete static_cast<std::weak_ptr<AbilityRuntime::UIServiceExtensionContext> *>(data);
         },
         nullptr, nullptr);
-    return contextObj;
+    return handleEscape.Escape(contextObj);
 }
 
 JsUIServiceExtension* JsUIServiceExtension::Create(const std::unique_ptr<Runtime>& runtime)
@@ -201,6 +202,7 @@ void JsUIServiceExtension::SystemAbilityStatusChangeListener::OnAddSystemAbility
 
 void JsUIServiceExtension::BindContext(napi_env env, napi_value obj)
 {
+    HandleScope handleScope(env);
     auto context = GetContext();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "null context");
@@ -464,10 +466,11 @@ void JsUIServiceExtension::AbilityWindowConfigTransition(sptr<Rosen::WindowOptio
 
 napi_value JsUIServiceExtension::WrapWant(napi_env env, const AAFwk::Want &want)
 {
+    HandleEscape handleEscape(env);
     AAFwk::Want jsWant = want;
     jsWant.RemoveParam(UISERVICEHOSTPROXY_KEY);
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, jsWant);
-    return napiWant;
+    return handleEscape.Escape(napiWant);
 }
 
 int32_t JsUIServiceExtension::OnSendData(sptr<IRemoteObject> hostProxy, OHOS::AAFwk::WantParams &data)
@@ -497,6 +500,7 @@ int32_t JsUIServiceExtension::OnSendData(sptr<IRemoteObject> hostProxy, OHOS::AA
 
 void JsUIServiceExtension::HandleSendData(sptr<IRemoteObject> hostProxy, const OHOS::AAFwk::WantParams &data)
 {
+    HandleScope handleScope(jsRuntime_);
     if (hostProxy == nullptr) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "null hostProxy");
         return;
@@ -531,7 +535,7 @@ sptr<IRemoteObject> JsUIServiceExtension::GetHostProxyFromWant(const AAFwk::Want
 napi_value JsUIServiceExtension::CallObjectMethod(const char* name, napi_value const* argv, size_t argc)
 {
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "name:%{public}s", name);
-
+    HandleEscape handleEscape(jsRuntime_);
     if (!jsObj_) {
         TAG_LOGW(AAFwkTag::UISERVC_EXT, "Not found ServiceExtension.js");
         return nullptr;
@@ -561,7 +565,7 @@ napi_value JsUIServiceExtension::CallObjectMethod(const char* name, napi_value c
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "HandleUncaughtException");
         reinterpret_cast<NativeEngine*>(env)->HandleUncaughtException();
     }
-    return result;
+    return handleEscape.Escape(result);
 }
 
 void JsUIServiceExtension::GetSrcPath(std::string &srcPath)
