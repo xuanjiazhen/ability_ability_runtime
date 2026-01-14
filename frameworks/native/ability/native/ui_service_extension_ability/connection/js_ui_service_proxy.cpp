@@ -30,6 +30,7 @@ napi_value JsUIServiceProxy::CreateJsUIServiceProxy(napi_env env, const sptr<IRe
     int64_t connectionId, const sptr<IRemoteObject>& hostProxy)
 {
     TAG_LOGI(AAFwkTag::UISERVC_EXT, "called");
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -43,7 +44,7 @@ napi_value JsUIServiceProxy::CreateJsUIServiceProxy(napi_env env, const sptr<IRe
 
     const char *moduleName = "JsUIServiceProxy";
     BindNativeFunction(env, object, "sendData", moduleName, JsUIServiceProxy::SendData);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 void JsUIServiceProxy::Finalizer(napi_env env, void* data, void* hint)
@@ -76,6 +77,7 @@ napi_value JsUIServiceProxy::SendData(napi_env env, napi_callback_info info)
 
 napi_value JsUIServiceProxy::OnSendData(napi_env env, NapiCallbackInfo& info)
 {
+    HandleScope handleScope(env);
     if (proxy_ == nullptr || hostProxy_ == nullptr) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "null proxy_ or hostProxy_");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
