@@ -71,21 +71,6 @@ const int COMMAND_TIMEOUT_MULTIPLE_NEW = 21;
 const int COMMAND_WINDOW_TIMEOUT_MULTIPLE = 5;
 #endif
 constexpr int32_t HALF_TIMEOUT = 2;
-
-void printAbilityLifecycleChanges(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
-{
-    CHECK_POINTER(abilityRecord);
-    auto sessionInfo = abilityRecord->GetSessionInfo();
-    CHECK_POINTER(sessionInfo);
-    TAG_LOGI(AAFwkTag::UI_EXT,
-        "%{public}s/%{public}s, persistentId:%{public}d, Id:%{public}d, abilityState:%{public}d, "
-        "pendingState:%{public}d",
-        abilityRecord->GetElementName().GetBundleName().c_str(),
-        abilityRecord->GetElementName().GetAbilityName().c_str(),
-        abilityRecord->GetUIExtensionAbilityId(),
-        sessionInfo->persistentId, abilityRecord->GetAbilityState(),
-        static_cast<int32_t>(abilityRecord->GetPendingState()));
-}
 }
 
 UIExtensionAbilityManager::UIExtensionAbilityManager(int userId) : AbilityConnectManager(userId)
@@ -1315,7 +1300,17 @@ void UIExtensionAbilityManager::MoveToBackground(const std::shared_ptr<BaseExten
 
 void UIExtensionAbilityManager::CompleteForegroundInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
-    printAbilityLifecycleChanges(abilityRecord);
+    CHECK_POINTER(abilityRecord);
+    auto sessionInfo = abilityRecord->GetSessionInfo();
+    CHECK_POINTER(sessionInfo);
+    TAG_LOGI(AAFwkTag::UI_EXT,
+        "%{public}s/%{public}s, persistentId:%{public}d, Id:%{public}d, abilityState:%{public}d, "
+        "pendingState:%{public}d",
+        abilityRecord->GetElementName().GetBundleName().c_str(),
+        abilityRecord->GetElementName().GetAbilityName().c_str(),
+        abilityRecord->GetUIExtensionAbilityId(),
+        sessionInfo->persistentId, abilityRecord->GetAbilityState(),
+        static_cast<int32_t>(abilityRecord->GetPendingState()));
     if (abilityRecord->GetPendingState() == AbilityState::BACKGROUND &&
         !abilityRecord->BackgroundAbilityWindowDelayed()) {
         MoveToBackground(abilityRecord);
@@ -1407,7 +1402,17 @@ void UIExtensionAbilityManager::CompleteBackground(const std::shared_ptr<BaseExt
         return;
     }
     abilityRecord->SetAbilityState(AbilityState::BACKGROUND);
-    printAbilityLifecycleChanges(abilityRecord);
+    CHECK_POINTER(abilityRecord);
+    auto sessionInfo = abilityRecord->GetSessionInfo();
+    CHECK_POINTER(sessionInfo);
+    TAG_LOGI(AAFwkTag::UI_EXT,
+        "%{public}s/%{public}s, persistentId:%{public}d, Id:%{public}d, abilityState:%{public}d, "
+        "pendingState:%{public}d",
+        abilityRecord->GetElementName().GetBundleName().c_str(),
+        abilityRecord->GetElementName().GetAbilityName().c_str(),
+        abilityRecord->GetUIExtensionAbilityId(),
+        sessionInfo->persistentId, abilityRecord->GetAbilityState(),
+        static_cast<int32_t>(abilityRecord->GetPendingState()));
     // send application state to AppMS.
     // notify AppMS to update application state.
     DelayedSingleton<AppScheduler>::GetInstance()->MoveToBackground(abilityRecord->GetToken());
