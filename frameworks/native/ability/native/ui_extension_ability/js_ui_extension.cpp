@@ -68,6 +68,7 @@ bool IsEmbeddableStart(int32_t screenMode)
 napi_value AttachUIExtensionContext(napi_env env, void *value, void *extValue)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    HandleEscape handleEscape(env);
     if (value == nullptr || extValue == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "invalid parameter");
         return nullptr;
@@ -105,7 +106,7 @@ napi_value AttachUIExtensionContext(napi_env env, void *value, void *extValue)
         return nullptr;
     }
 
-    return contextObj;
+    return handleEscape.Escape(contextObj);
 }
 
 JsUIExtension* JsUIExtension::Create(const std::unique_ptr<Runtime>& runtime)
@@ -204,6 +205,7 @@ void JsUIExtension::CreateJSContext(napi_env env, napi_value &contextObj,
 
 void JsUIExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr<AAFwk::Want> want)
 {
+    HandleScope handleScope(env);
     auto context = GetContext();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null context");
@@ -407,6 +409,7 @@ bool JsUIExtension::CallPromise(napi_value result, AppExecFwk::AbilityTransactio
         TAG_LOGE(AAFwkTag::UI_EXT, "convert value failed");
         return false;
     }
+    HandleScope handleScope(jsRuntime_);
     napi_value then = nullptr;
     napi_get_named_property(env, result, "then", &then);
     if (then == nullptr) {
@@ -419,7 +422,6 @@ bool JsUIExtension::CallPromise(napi_value result, AppExecFwk::AbilityTransactio
         TAG_LOGE(AAFwkTag::UI_EXT, "not callable property then");
         return false;
     }
-    HandleScope handleScope(jsRuntime_);
     napi_value promiseCallback = nullptr;
     napi_create_function(env, "promiseCallback", strlen("promiseCallback"), PromiseCallback,
         callbackInfo, &promiseCallback);
@@ -722,6 +724,7 @@ std::unique_ptr<NativeReference> JsUIExtension::CreateAppWindowStage(sptr<Rosen:
     sptr<AAFwk::SessionInfo> sessionInfo)
 {
     auto env = jsRuntime_.GetNapiEnv();
+    HandleScope handleScope(env);
     napi_value jsWindowStage = Rosen::JsEmbeddableWindowStage::CreateJsEmbeddableWindowStage(
         env, uiWindow, sessionInfo);
     if (jsWindowStage == nullptr) {

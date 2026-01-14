@@ -12,13 +12,14 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("configurationconstant_napi") {
   include_dirs = []
 
   sources = [ "configuration_constant_napi_module.cpp" ]
 
-  deps = []
+  deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
 
   external_deps = [
     "c_utils:utils",
@@ -36,7 +37,7 @@ ohos_shared_library("configurationconstant") {
 
   sources = [ "configuration_constant_module.cpp" ]
 
-  deps = []
+  deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
 
   external_deps = [
     "c_utils:utils",

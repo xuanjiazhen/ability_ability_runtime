@@ -19,6 +19,8 @@ ohos_shared_library("configurationconstant") {
 
   sources = [ "${ability_runtime_napi_path}/configuration_constant/configuration_constant_module.cpp" ]
 
+  deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
+
   external_deps = [ "napi:ace_napi" ]
 
   part_name = "ability_runtime"
