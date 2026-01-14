@@ -35,6 +35,7 @@ static constexpr int32_t ARGC_ONE = 1;
 napi_ref JsUIServiceHostProxy::CreateJsUIServiceHostProxy(napi_env env, const sptr<IRemoteObject>& impl)
 {
     TAG_LOGI(AAFwkTag::UISERVC_EXT, "called");
+    HandleScope handleScope(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -93,6 +94,7 @@ napi_value JsUIServiceHostProxy::SendData(napi_env env, napi_callback_info info)
 
 napi_value JsUIServiceHostProxy::OnSendData(napi_env env, NapiCallbackInfo& info)
 {
+    HandleScope handleScope(env);
     if (!CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "CheckCallerIsSystemApp failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
