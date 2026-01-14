@@ -15,6 +15,7 @@
 #include "want_constant.h"
 
 #include "hilog_tag_wrapper.h"
+#include "js_runtime_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -29,6 +30,7 @@ namespace AppExecFwk {
 napi_value WantConstantInit(napi_env env, napi_value exports)
 {
     TAG_LOGD(AAFwkTag::WANT, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value action = nullptr;
     napi_value entity = nullptr;
     napi_value Flags = nullptr;
@@ -155,6 +157,7 @@ napi_value WantConstantInit(napi_env env, napi_value exports)
 void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, const char *propName)
 {
     TAG_LOGD(AAFwkTag::WANT, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value prop = nullptr;
     napi_create_string_utf8(env, objName, NAPI_AUTO_LENGTH, &prop);
     napi_set_named_property(env, dstObj, propName, prop);
@@ -163,6 +166,7 @@ void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, cons
 void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, const char *propName)
 {
     TAG_LOGD(AAFwkTag::WANT, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value prop = nullptr;
     napi_create_int32(env, objValue, &prop);
     napi_set_named_property(env, dstObj, propName, prop);
@@ -170,9 +174,10 @@ void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, c
 
 napi_value ActionConstructor(napi_env env, napi_callback_info info)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value jsthis = nullptr;
     napi_get_cb_info(env, info, nullptr, nullptr, &jsthis, nullptr);
-    return jsthis;
+    return handleEscape.Escape(jsthis);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
