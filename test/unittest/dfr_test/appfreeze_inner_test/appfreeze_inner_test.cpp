@@ -267,6 +267,9 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetProcStatm_001, TestSize.Level1)
     pid = -1;
     procStatm = appfreezeInner->GetProcStatm(pid);
     EXPECT_TRUE(procStatm.empty());
+    pid = 0;
+    procStatm = appfreezeInner->GetProcStatm(pid);
+    printf("%s\n", procStatm.c_str());
 }
 
 /**
@@ -600,6 +603,24 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInnerTest_GetApplicationInfo_002, TestSize
     faultData.pid = getpid();
     appfreezeInner->GetApplicationInfo(faultData);
     EXPECT_TRUE(!faultData.timeoutMarkers.empty());
+}
+
+/**
+ * @tc.number: AppfreezeInnerTest
+ * @tc.name: add test
+ * @tc.desc: Verify that function OnAnr.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInnerTest_ApplicationAnrListener_OnAnr_001, TestSize.Level1)
+{
+    int32_t pid = getpid();
+    int32_t eventId = -1;
+    ApplicationAnrListener applicationAnrListener;
+    pid = -1;
+    applicationAnrListener.OnAnr(pid, eventId);
+    pid = 0;
+    eventId = 10;
+    applicationAnrListener.OnAnr(pid, eventId);
+    EXPECT_TRUE(appfreezeInner);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
