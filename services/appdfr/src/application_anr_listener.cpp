@@ -20,6 +20,7 @@
 #include "singleton.h"
 
 #include "app_mgr_client.h"
+#include "appfreeze_manager.h"
 #include "fault_data.h"
 #include "hilog_tag_wrapper.h"
 #include "hisysevent.h"
@@ -43,13 +44,8 @@ void ApplicationAnrListener::OnAnr(int32_t pid, int32_t eventId) const
     TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:, ret:%{public}d",
         pid, ret);
     AppExecFwk::AppFaultDataBySA faultData;
-    std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
-    if (statmStream) {
-        std::string procStatm;
-        std::getline(statmStream, procStatm);
-        statmStream.close();
-        faultData.procStatm = procStatm;
-    }
+    std::string statmPath = "/proc/" + std::to_string(pid) + "/statm";
+    faultData.procStatm = AppExecFwk::AppfreezeManager::GetInstance()->GetLineByPath(statmPath);
     faultData.faultType = AppExecFwk::FaultDataType::APP_FREEZE;
     faultData.pid = pid;
     faultData.errorObject.message = faultTimeStr + "User input does not respond!";
