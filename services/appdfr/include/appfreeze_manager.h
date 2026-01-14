@@ -108,6 +108,7 @@ public:
     void InsertKillThread(int32_t state, int32_t pid, int32_t uid, const std::string& bundleName);
     bool IsSkipDetect(int32_t pid, int32_t uid, const std::string& bundleName,
         const std::string& eventName);
+    std::string GetLineByPath(const std::string& path);
 
 private:
     struct PeerBinderInfo {

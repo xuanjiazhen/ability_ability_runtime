@@ -62,6 +62,7 @@ static constexpr int DUMP_STACK_FAILED = -1;
 static constexpr int DUMP_KERNEL_STACK_SUCCESS = 1;
 static constexpr int MIN_APP_UID = 20000;
 static constexpr int MAX_REPORT_STACK_SIZE = 300 * 1024; // 300KB
+static constexpr uint32_t BUF_SIZE_64 = 64;
 const std::string LOG_FILE_PATH = "data/log/eventlog";
 static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
 static bool g_overseaVersion = OHOS::system::GetParameter("const.global.region", "CN") != "CN";
@@ -349,13 +350,8 @@ AppFaultDataBySA AppfreezeManager::GenerateFaultDataBySA(const ParamInfo& info, 
 {
     AppFaultDataBySA faultDataSA;
     if (info.eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
-        std::ifstream statmStream("/proc/" + std::to_string(info.pid) + "/statm");
-        if (statmStream) {
-            std::string procStatm;
-            std::getline(statmStream, procStatm);
-            statmStream.close();
-            faultDataSA.procStatm = procStatm;
-        }
+        std::string statmPath = "/proc/" + std::to_string(info.pid) + "/statm";
+        faultDataSA.procStatm = GetLineByPath(statmPath);
     }
     faultDataSA.errorObject.name = info.eventName;
     faultDataSA.errorObject.message = info.msg;
@@ -1158,6 +1154,31 @@ bool AppfreezeManager::IsSkipDetect(int32_t pid, int32_t uid, const std::string&
         return true;
     }
     return false;
+}
+
+std::string AppfreezeManager::GetLineByPath(const std::string& path)
+{
+    std::string realPath = AppfreezeUtil::FreezePathToRealPath(path);
+    if (realPath.empty()) {
+        TAG_LOGW(AAFwkTag::APPDFR, "real path failed, file:%{public}s, errno:%{public}d", path.c_str(), errno);
+        realPath = path;
+    }
+    FILE* fp = fopen(realPath.c_str(), "r");
+    if (fp == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "open file failed, file:%{public}s, errno:%{public}d", realPath.c_str(), errno);
+        return "";
+    }
+    char buffer[BUF_SIZE_64] = {'\0'};
+    std::string line;
+    if (fgets(buffer, sizeof(buffer) - 1, fp) == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "get line failed, file:%{public}s, errno:%{public}d", realPath.c_str(), errno);
+    } else {
+        line = buffer;
+        TAG_LOGI(AAFwkTag::APPDFR, "get line success, line:%{public}s", line.c_str());
+    }
+    fclose(fp);
+    fp = nullptr;
+    return line;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
