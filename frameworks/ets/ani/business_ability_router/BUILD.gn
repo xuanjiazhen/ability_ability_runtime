@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/service_router_framework/srms.gni")
 
 ohos_shared_library("businessabilityrouter_ani") {
+  version_script = "libbusinessabilityrouter_ani.map"
   branch_protector_ret = "pac_ret"
   shlib_type = "ani"
   sanitize = {
