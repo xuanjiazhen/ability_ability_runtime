@@ -105,13 +105,8 @@ bool AppfreezeInner::IsHandleAppfreeze()
 
 std::string AppfreezeInner::GetProcStatm(int32_t pid)
 {
-    std::string procStatm;
-    std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
-    if (statmStream) {
-        std::getline(statmStream, procStatm);
-        statmStream.close();
-    }
-    return procStatm;
+    std::string statmPath = "/proc/" + std::to_string(pid) + "/statm";
+    return AppExecFwk::AppfreezeManager::GetInstance()->GetLineByPath(statmPath);
 }
 
 void AppfreezeInner::GetMainHandlerDump(std::string& msgContent)

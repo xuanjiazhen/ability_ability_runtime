@@ -612,5 +612,24 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckThreadKilled_Test001, T
     result = appfreezeManager->CheckThreadKilled(pid, uid, bundleName);
     EXPECT_EQ(result, false);
 }
+
+/**
+ * @tc.number: AppfreezeManagerTest GetLineByPath Test
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetLineByPath_Test001, TestSize.Level1)
+{
+    int pid = getpid();
+    std::string path = "../../proc/" + std::to_string(pid) + "/statm";
+    std::string ret = appfreezeManager->GetLineByPath(path);
+    EXPECT_EQ(ret, "");
+    path = "/data/log/faultlog/freeze/AppfreezeManagerTest.txt";
+    ret = appfreezeManager->GetLineByPath(path);
+    EXPECT_EQ(ret, "");
+    path = "/proc/" + std::to_string(pid) + "/statm";
+    ret = appfreezeManager->GetLineByPath(path);
+    printf("GetLineByPath: %s\n", ret.c_str());
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
