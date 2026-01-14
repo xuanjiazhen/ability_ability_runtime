@@ -19,8 +19,55 @@
 
 namespace OHOS {
 namespace AAFwk {
+class HandleScope final {
+public:
+    explicit HandleScope(napi_env env)
+    {
+        env_ = env;
+        napi_open_handle_scope(env_, &scope_);
+    }
+    ~HandleScope()
+    {
+        napi_close_handle_scope(env_, scope_);
+    }
+    HandleScope(const HandleScope&) = delete;
+    HandleScope(HandleScope&&) = delete;
+    HandleScope& operator=(const HandleScope&) = delete;
+    HandleScope& operator=(HandleScope&&) = delete;
+private:
+    napi_handle_scope scope_ = nullptr;
+    napi_env env_ = nullptr;
+};
+
+class HandleEscape final {
+public:
+    explicit HandleEscape(napi_env env)
+    {
+        env_ = env;
+        napi_open_escapable_handle_scope(env_, &scope_);
+    }
+    ~HandleEscape()
+    {
+        napi_close_escapable_handle_scope(env_, scope_);
+    }
+    napi_value Escape(napi_value value)
+    {
+        napi_value result = nullptr;
+        napi_escape_handle(env_, scope_, value, &result);
+        return result;
+    }
+    HandleEscape(const HandleEscape&) = delete;
+    HandleEscape(HandleEscape&&) = delete;
+    HandleEscape& operator=(const HandleEscape&) = delete;
+    HandleEscape& operator=(HandleEscape&&) = delete;
+private:
+    napi_escapable_handle_scope scope_ = nullptr;
+    napi_env env_ = nullptr;
+};
+
 static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* name, int32_t value)
 {
+    HandleScope handleScope(env);
     napi_status status;
     napi_value itemName;
     napi_value itemValue;
@@ -36,6 +83,7 @@ static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* 
 
 static napi_value InitColorModeObject(napi_env env)
 {
+    HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -43,11 +91,12 @@ static napi_value InitColorModeObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "COLOR_MODE_DARK", Global::Resource::DARK));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "COLOR_MODE_LIGHT", Global::Resource::LIGHT));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 static napi_value InitDirectionObject(napi_env env)
 {
+    HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -55,11 +104,12 @@ static napi_value InitDirectionObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "DIRECTION_VERTICAL", Global::Resource::DIRECTION_VERTICAL));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "DIRECTION_HORIZONTAL", Global::Resource::DIRECTION_HORIZONTAL));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 static napi_value InitScreenDensityObject(napi_env env)
 {
+    HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -71,11 +121,12 @@ static napi_value InitScreenDensityObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "SCREEN_DENSITY_XXLDPI", Global::Resource::SCREEN_DENSITY_XXLDPI));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "SCREEN_DENSITY_XXXLDPI", Global::Resource::SCREEN_DENSITY_XXXLDPI));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 static napi_value InitTimeFormatObject(napi_env env)
 {
+    HandleEscape handleEscape(env);
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -83,7 +134,7 @@ static napi_value InitTimeFormatObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "HOUR_12", Global::Resource::HOUR_12));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "HOUR_24", Global::Resource::HOUR_24));
 
-    return napiObject;
+    return handleEscape.Escape(napiObject);
 }
 
 /*
@@ -91,6 +142,7 @@ static napi_value InitTimeFormatObject(napi_env env)
  */
 static napi_value ConfigurationConstantInit(napi_env env, napi_value exports)
 {
+    HandleScope handleScope(env);
     napi_value colorMode = InitColorModeObject(env);
     NAPI_ASSERT(env, colorMode != nullptr, "failed to create color mode object");
 
