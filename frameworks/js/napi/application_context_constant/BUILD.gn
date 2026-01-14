@@ -19,7 +19,7 @@ ohos_shared_library("contextconstant_napi") {
 
   sources = [ "application_context_constant_module.cpp" ]
 
-  deps = []
+  deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
 
   external_deps = [
     "c_utils:utils",

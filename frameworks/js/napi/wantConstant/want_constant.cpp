@@ -29,6 +29,8 @@ namespace AppExecFwk {
 napi_value WantConstantInit(napi_env env, napi_value exports)
 {
     TAG_LOGD(AAFwkTag::WANT, "called");
+    napi_handle_scope scope = nullptr;
+    napi_open_handle_scope(env, &scope);
     napi_value action = nullptr;
     napi_value entity = nullptr;
     napi_value Flags = nullptr;
@@ -148,24 +150,30 @@ napi_value WantConstantInit(napi_env env, napi_value exports)
     };
 #endif // ENABLE_ERRCODE
     napi_define_properties(env, exports, sizeof(exportFuncs) / sizeof(*exportFuncs), exportFuncs);
-
+    napi_close_handle_scope(env, scope);
     return exports;
 }
 
 void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, const char *propName)
 {
     TAG_LOGD(AAFwkTag::WANT, "called");
+    napi_handle_scope scope = nullptr;
+    napi_open_handle_scope(env, &scope);
     napi_value prop = nullptr;
     napi_create_string_utf8(env, objName, NAPI_AUTO_LENGTH, &prop);
     napi_set_named_property(env, dstObj, propName, prop);
+    napi_close_handle_scope(env, scope);
 }
 
 void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, const char *propName)
 {
     TAG_LOGD(AAFwkTag::WANT, "called");
+    napi_handle_scope scope = nullptr;
+    napi_open_handle_scope(env, &scope);
     napi_value prop = nullptr;
     napi_create_int32(env, objValue, &prop);
     napi_set_named_property(env, dstObj, propName, prop);
+    napi_close_handle_scope(env, scope);
 }
 
 napi_value ActionConstructor(napi_env env, napi_callback_info info)
