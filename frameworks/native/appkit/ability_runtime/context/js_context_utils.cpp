@@ -160,6 +160,7 @@ napi_value JsBaseContext::SwitchArea(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnSwitchArea(napi_env env, NapiCallbackInfo& info)
 {
+    HandleScope handleScope(env);
     if (info.argc == 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
         return CreateJsUndefined(env);
@@ -204,6 +205,7 @@ napi_value JsBaseContext::CreateModuleContext(napi_env env, napi_callback_info i
 
 napi_value JsBaseContext::OnCreateModuleContext(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
@@ -242,11 +244,12 @@ napi_value JsBaseContext::OnCreateModuleContext(napi_env env, NapiCallbackInfo& 
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return CreateJsUndefined(env);
     }
-    return CreateJsModuleContext(env, moduleContext);
+    return handleEscape.Escape(CreateJsModuleContext(env, moduleContext));
 }
 
 napi_value JsBaseContext::CreateJsModuleContext(napi_env env, const std::shared_ptr<Context>& moduleContext)
 {
+    HandleEscape handleEscape(env);
     napi_value value = CreateJsBaseContext(env, moduleContext, true);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.Context", &value, 1);
     if (systemModule == nullptr) {
@@ -275,7 +278,7 @@ napi_value JsBaseContext::CreateJsModuleContext(napi_env env, const std::shared_
         delete workContext;
         return CreateJsUndefined(env);
     }
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value JsBaseContext::CreateSystemHspModuleResourceManager(napi_env env, napi_callback_info info)
@@ -286,6 +289,7 @@ napi_value JsBaseContext::CreateSystemHspModuleResourceManager(napi_env env, nap
 
 napi_value JsBaseContext::OnCreateSystemHspModuleResourceManager(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
@@ -319,7 +323,7 @@ napi_value JsBaseContext::OnCreateSystemHspModuleResourceManager(napi_env env, N
         return CreateJsUndefined(env);
     }
 
-    return CreateJsResourceManager(env, resourceManager, nullptr);
+    return handleEscape.Escape(CreateJsResourceManager(env, resourceManager, nullptr));
 }
 
 napi_value JsBaseContext::CreateModuleResourceManager(napi_env env, napi_callback_info info)
@@ -329,6 +333,7 @@ napi_value JsBaseContext::CreateModuleResourceManager(napi_env env, napi_callbac
 
 napi_value JsBaseContext::OnCreateModuleResourceManager(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
@@ -360,7 +365,7 @@ napi_value JsBaseContext::OnCreateModuleResourceManager(napi_env env, NapiCallba
         return CreateJsUndefined(env);
     }
     auto jsResourceManager = CreateJsResourceManager(env, resourceManager, nullptr);
-    return jsResourceManager;
+    return handleEscape.Escape(jsResourceManager);
 }
 
 napi_value JsBaseContext::GetArea(napi_env env, napi_callback_info info)
@@ -370,13 +375,14 @@ napi_value JsBaseContext::GetArea(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetArea(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     int area = context->GetArea();
-    return CreateJsValue(env, area);
+    return handleEscape.Escape(CreateJsValue(env, area));
 }
 
 napi_value JsBaseContext::GetCacheDir(napi_env env, napi_callback_info info)
@@ -386,13 +392,14 @@ napi_value JsBaseContext::GetCacheDir(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetCacheDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetCacheDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetTempDir(napi_env env, napi_callback_info info)
@@ -402,13 +409,14 @@ napi_value JsBaseContext::GetTempDir(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetTempDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetTempDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetResourceDir(napi_env env, napi_callback_info info)
@@ -418,13 +426,14 @@ napi_value JsBaseContext::GetResourceDir(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetResourceDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetResourceDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetFilesDir(napi_env env, napi_callback_info info)
@@ -434,13 +443,14 @@ napi_value JsBaseContext::GetFilesDir(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetFilesDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetFilesDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetDistributedFilesDir(napi_env env, napi_callback_info info)
@@ -450,13 +460,14 @@ napi_value JsBaseContext::GetDistributedFilesDir(napi_env env, napi_callback_inf
 
 napi_value JsBaseContext::OnGetDistributedFilesDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetDistributedFilesDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetDatabaseDir(napi_env env, napi_callback_info info)
@@ -466,13 +477,14 @@ napi_value JsBaseContext::GetDatabaseDir(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetDatabaseDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetDatabaseDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetPreferencesDir(napi_env env, napi_callback_info info)
@@ -482,13 +494,14 @@ napi_value JsBaseContext::GetPreferencesDir(napi_env env, napi_callback_info inf
 
 napi_value JsBaseContext::OnGetPreferencesDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetPreferencesDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetGroupDir(napi_env env, napi_callback_info info)
@@ -498,6 +511,7 @@ napi_value JsBaseContext::GetGroupDir(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetGroupDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     if (info.argc != ARGC_ONE && info.argc != ARGC_TWO) {
         TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
@@ -533,7 +547,7 @@ napi_value JsBaseContext::OnGetGroupDir(napi_env env, NapiCallbackInfo& info)
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsBaseContext::OnGetGroupDir",
         env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsBaseContext::GetBundleCodeDir(napi_env env, napi_callback_info info)
@@ -543,13 +557,14 @@ napi_value JsBaseContext::GetBundleCodeDir(napi_env env, napi_callback_info info
 
 napi_value JsBaseContext::OnGetBundleCodeDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetBundleCodeDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetCloudFileDir(napi_env env, napi_callback_info info)
@@ -559,13 +574,14 @@ napi_value JsBaseContext::GetCloudFileDir(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetCloudFileDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetCloudFileDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetLogFileDir(napi_env env, napi_callback_info info)
@@ -575,13 +591,14 @@ napi_value JsBaseContext::GetLogFileDir(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetLogFileDir(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return CreateJsUndefined(env);
     }
     std::string path = context->GetLogFileDir();
-    return CreateJsValue(env, path);
+    return handleEscape.Escape(CreateJsValue(env, path));
 }
 
 napi_value JsBaseContext::GetProcessName(napi_env env, napi_callback_info info)
@@ -591,17 +608,19 @@ napi_value JsBaseContext::GetProcessName(napi_env env, napi_callback_info info)
 
 napi_value JsBaseContext::OnGetProcessName(napi_env env, NapiCallbackInfo &info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "context is already released");
         return CreateJsUndefined(env);
     }
     std::string name = context->GetProcessName();
-    return CreateJsValue(env, name);
+    return handleEscape.Escape(CreateJsValue(env, name));
 }
 
 napi_value JsBaseContext::OnCreateBundleContext(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     if (!CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::APPKIT, "not system-app");
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
@@ -634,11 +653,12 @@ napi_value JsBaseContext::OnCreateBundleContext(napi_env env, NapiCallbackInfo& 
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return CreateJsUndefined(env);
     }
-    return CreateJsBundleContext(env, bundleContext);
+    return handleEscape.Escape(CreateJsBundleContext(env, bundleContext));
 }
 
 napi_value JsBaseContext::CreateJsBundleContext(napi_env env, const std::shared_ptr<Context>& bundleContext)
 {
+    HandleEscape handleEscape(env);
     napi_value value = CreateJsBaseContext(env, bundleContext, true);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.Context", &value, 1);
     if (systemModule == nullptr) {
@@ -667,11 +687,12 @@ napi_value JsBaseContext::CreateJsBundleContext(napi_env env, const std::shared_
         delete workContext;
         return CreateJsUndefined(env);
     }
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value JsBaseContext::OnGetApplicationContext(napi_env env, NapiCallbackInfo& info)
 {
+    HandleEscape handleEscape(env);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
@@ -694,7 +715,7 @@ napi_value JsBaseContext::OnGetApplicationContext(napi_env env, NapiCallbackInfo
             return objValue;
         }
     }
-    return CreateJSApplicationContext(env, applicationContext);
+    return handleEscape.Escape(CreateJSApplicationContext(env, applicationContext));
 }
 
 napi_value JsBaseContext::CreateAreaModeContext(napi_env env, napi_callback_info info)
@@ -704,6 +725,7 @@ napi_value JsBaseContext::CreateAreaModeContext(napi_env env, napi_callback_info
 
 napi_value JsBaseContext::OnCreateAreaModeContext(napi_env env, NapiCallbackInfo &info)
 {
+    HandleEscape handleEscape(env);
     if (info.argc == 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "not enough params");
         ThrowTooFewParametersError(env);
@@ -730,7 +752,7 @@ napi_value JsBaseContext::OnCreateAreaModeContext(napi_env env, NapiCallbackInfo
         return CreateJsUndefined(env);
     }
 
-    return CreateJsContext(env, areaContext);
+    return handleEscape.Escape(CreateJsContext(env, areaContext));
 }
 
 napi_value JsBaseContext::CreateDisplayContext(napi_env env, napi_callback_info info)
@@ -741,6 +763,7 @@ napi_value JsBaseContext::CreateDisplayContext(napi_env env, napi_callback_info 
 napi_value JsBaseContext::OnCreateDisplayContext(napi_env env, NapiCallbackInfo &info)
 {
 #ifdef SUPPORT_GRAPHICS
+    HandleEscape handleEscape(env);
     if (info.argc == 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "not enough params");
         ThrowTooFewParametersError(env);
@@ -772,7 +795,7 @@ napi_value JsBaseContext::OnCreateDisplayContext(napi_env env, NapiCallbackInfo 
         TAG_LOGE(AAFwkTag::APPKIT, "failed to create displayContext");
         return CreateJsUndefined(env);
     }
-    return CreateJsContext(env, displayContext);
+    return handleEscape.Escape(CreateJsContext(env, displayContext));
 #else
     return CreateJsUndefined(env);
 #endif
@@ -780,6 +803,7 @@ napi_value JsBaseContext::OnCreateDisplayContext(napi_env env, NapiCallbackInfo 
 
 napi_value JsBaseContext::CreateJsContext(napi_env env, const std::shared_ptr<Context> &context)
 {
+    HandleEscape handleEscape(env);
     napi_value value = CreateJsBaseContext(env, context, true);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.Context", &value, 1);
     if (systemModule == nullptr) {
@@ -813,12 +837,13 @@ napi_value JsBaseContext::CreateJsContext(napi_env env, const std::shared_ptr<Co
         delete workContext;
         return CreateJsUndefined(env);
     }
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value JsBaseContext::CreateJSApplicationContext(napi_env env,
     const std::shared_ptr<ApplicationContext> applicationContext)
 {
+    HandleEscape handleEscape(env);
     napi_value value = JsApplicationContextUtils::CreateJsApplicationContext(env);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.ApplicationContext", &value, 1);
     if (systemModule == nullptr) {
@@ -853,7 +878,7 @@ napi_value JsBaseContext::CreateJSApplicationContext(napi_env env,
     ApplicationContextManager::GetApplicationContextManager()
         .AddGlobalObject(env, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
     applicationContext->SetApplicationInfoUpdateFlag(false);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 bool JsBaseContext::CheckCallerIsSystemApp()
@@ -869,6 +894,7 @@ bool JsBaseContext::CheckCallerIsSystemApp()
 napi_value AttachBaseContext(napi_env env, void* value, void* hint)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+    HandleEscape handleEscape(env);
     if (value == nullptr || env == nullptr) {
         TAG_LOGW(AAFwkTag::APPKIT, "invalid parameter");
         return nullptr;
@@ -905,12 +931,13 @@ napi_value AttachBaseContext(napi_env env, void* value, void* hint)
         delete workContext;
         return nullptr;
     }
-    return contextObj;
+    return handleEscape.Escape(contextObj);
 }
 
 napi_value AttachApplicationContext(napi_env env, void* value, void* hint)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+    HandleEscape handleEscape(env);
     if (value == nullptr || env == nullptr) {
         TAG_LOGW(AAFwkTag::APPKIT, "invalid parameter");
         return nullptr;
@@ -947,7 +974,7 @@ napi_value AttachApplicationContext(napi_env env, void* value, void* hint)
         delete workContext;
         return nullptr;
     }
-    return contextObj;
+    return handleEscape.Escape(contextObj);
 }
 
 void BindPropertyAndFunction(napi_env env, napi_value object, const char* moduleName)
@@ -980,6 +1007,7 @@ void BindPropertyAndFunction(napi_env env, napi_value object, const char* module
 }
 napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, bool keepContext)
 {
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -1025,7 +1053,7 @@ napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, b
 
     const char *moduleName = "JsBaseContext";
     BindPropertyAndFunction(env, object, moduleName);
-    return object;
+    return handleEscape.Escape(object);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
