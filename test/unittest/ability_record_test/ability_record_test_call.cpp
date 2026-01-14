@@ -445,6 +445,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_SendResult, TestSize.Level1)
     abilityRecord_->SetScheduler(scheduler);
     abilityRecord_->SetResult(abilityResult_);
     abilityRecord_->SendResult(0, 0);
+    abilityRecord_->SendResult(0, 0, true);
     EXPECT_EQ(nullptr, abilityRecord_->GetResult());
 }
 

@@ -1270,7 +1270,7 @@ std::shared_ptr<AbilityResult> AbilityRecord::GetResult() const
     return result_;
 }
 
-void AbilityRecord::SendResult(bool isSandboxApp, uint32_t tokeId)
+void AbilityRecord::SendResult(bool isSandboxApp, uint32_t tokeId, bool schedulerdied)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "SendResult:%{public}s", abilityInfo_.name.c_str());
     std::lock_guard<ffrt::mutex> guard(lock_);
@@ -1278,7 +1278,9 @@ void AbilityRecord::SendResult(bool isSandboxApp, uint32_t tokeId)
     auto result = GetResult();
     CHECK_POINTER(result);
 #ifdef SUPPORT_UPMS
-    GrantUriPermission(result->resultWant_, abilityInfo_.applicationInfo.bundleName, isSandboxApp, tokeId, false);
+    if (!schedulerdied) {
+        GrantUriPermission(result->resultWant_, abilityInfo_.applicationInfo.bundleName, isSandboxApp, tokeId, false);
+    }
 #endif // SUPPORT_UPMS
     scheduler_->SendResult(result->requestCode_, result->resultCode_, result->resultWant_);
     // reset result to avoid send result next time
@@ -1351,7 +1353,7 @@ void AbilityRecord::SendResultToCallers(bool schedulerdied)
         std::shared_ptr<AbilityRecord> callerAbilityRecord = caller->GetCaller();
         if (callerAbilityRecord != nullptr && callerAbilityRecord->GetResult() != nullptr) {
             bool isSandboxApp = appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX ? true : false;
-            callerAbilityRecord->SendResult(isSandboxApp, abilityInfo_.applicationInfo.accessTokenId);
+            callerAbilityRecord->SendResult(isSandboxApp, abilityInfo_.applicationInfo.accessTokenId, schedulerdied);
         } else {
             std::shared_ptr<SystemAbilityCallerRecord> callerSystemAbilityRecord = caller->GetSaCaller();
             if (callerSystemAbilityRecord != nullptr) {
