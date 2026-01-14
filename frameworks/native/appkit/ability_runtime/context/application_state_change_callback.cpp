@@ -29,6 +29,7 @@ JsApplicationStateChangeCallback::JsApplicationStateChangeCallback(napi_env env)
 void JsApplicationStateChangeCallback::CallJsMethodInnerCommon(
     const std::string &methodName, const std::set<std::shared_ptr<NativeReference>> &callbacks)
 {
+    HandleScope handleScope(env_);
     for (auto &callback : callbacks) {
         if (!callback) {
             TAG_LOGE(AAFwkTag::APPKIT, "Invalid jsCallback");
@@ -93,6 +94,7 @@ void JsApplicationStateChangeCallback::Register(napi_value jsCallback)
 
 bool JsApplicationStateChangeCallback::UnRegister(napi_value jsCallback)
 {
+    HandleScope handleScope(env_);
     if (jsCallback == nullptr) {
         TAG_LOGI(AAFwkTag::APPKIT, "null jsCallback");
         callbacks_.clear();
