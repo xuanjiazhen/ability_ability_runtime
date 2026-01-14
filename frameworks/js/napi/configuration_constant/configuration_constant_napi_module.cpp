@@ -21,6 +21,9 @@ namespace OHOS {
 namespace AAFwk {
 static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* name, int32_t value)
 {
+    napi_handle_scope scope = nullptr;
+    napi_open_handle_scope(env, &scope);
+
     napi_status status;
     napi_value itemName;
     napi_value itemValue;
@@ -31,11 +34,15 @@ static napi_status SetEnumItem(napi_env env, napi_value napiObject, const char* 
     NAPI_CALL_BASE(env, status = napi_set_property(env, napiObject, itemName, itemValue), status);
     NAPI_CALL_BASE(env, status = napi_set_property(env, napiObject, itemValue, itemName), status);
 
+    napi_close_handle_scope(env, scope);
     return napi_ok;
 }
 
 static napi_value InitColorModeObject(napi_env env)
 {
+    napi_escapable_handle_scope scope = nullptr;
+    napi_open_escapable_handle_scope(env, &scope);
+
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -43,11 +50,17 @@ static napi_value InitColorModeObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "COLOR_MODE_DARK", Global::Resource::DARK));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "COLOR_MODE_LIGHT", Global::Resource::LIGHT));
 
-    return napiObject;
+    napi_value result = nullptr;
+    napi_escape_handle(env, scope, napiObject, &result);
+    napi_close_escapable_handle_scope(env, scope);
+    return result;
 }
 
 static napi_value InitDirectionObject(napi_env env)
 {
+    napi_escapable_handle_scope scope = nullptr;
+    napi_open_escapable_handle_scope(env, &scope);
+
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -55,11 +68,17 @@ static napi_value InitDirectionObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "DIRECTION_VERTICAL", Global::Resource::DIRECTION_VERTICAL));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "DIRECTION_HORIZONTAL", Global::Resource::DIRECTION_HORIZONTAL));
 
-    return napiObject;
+    napi_value result = nullptr;
+    napi_escape_handle(env, scope, napiObject, &result);
+    napi_close_escapable_handle_scope(env, scope);
+    return result;
 }
 
 static napi_value InitScreenDensityObject(napi_env env)
 {
+    napi_escapable_handle_scope scope = nullptr;
+    napi_open_escapable_handle_scope(env, &scope);
+
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -71,11 +90,17 @@ static napi_value InitScreenDensityObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "SCREEN_DENSITY_XXLDPI", Global::Resource::SCREEN_DENSITY_XXLDPI));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "SCREEN_DENSITY_XXXLDPI", Global::Resource::SCREEN_DENSITY_XXXLDPI));
 
-    return napiObject;
+    napi_value result = nullptr;
+    napi_escape_handle(env, scope, napiObject, &result);
+    napi_close_escapable_handle_scope(env, scope);
+    return result;
 }
 
 static napi_value InitTimeFormatObject(napi_env env)
 {
+    napi_escapable_handle_scope scope = nullptr;
+    napi_open_escapable_handle_scope(env, &scope);
+
     napi_value napiObject;
     NAPI_CALL(env, napi_create_object(env, &napiObject));
 
@@ -83,7 +108,10 @@ static napi_value InitTimeFormatObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, napiObject, "HOUR_12", Global::Resource::HOUR_12));
     NAPI_CALL(env, SetEnumItem(env, napiObject, "HOUR_24", Global::Resource::HOUR_24));
 
-    return napiObject;
+    napi_value result = nullptr;
+    napi_escape_handle(env, scope, napiObject, &result);
+    napi_close_escapable_handle_scope(env, scope);
+    return result;
 }
 
 /*
@@ -91,6 +119,9 @@ static napi_value InitTimeFormatObject(napi_env env)
  */
 static napi_value ConfigurationConstantInit(napi_env env, napi_value exports)
 {
+    napi_handle_scope scope = nullptr;
+    napi_open_handle_scope(env, &scope);
+
     napi_value colorMode = InitColorModeObject(env);
     NAPI_ASSERT(env, colorMode != nullptr, "failed to create color mode object");
 
@@ -113,6 +144,7 @@ static napi_value ConfigurationConstantInit(napi_env env, napi_value exports)
     napi_status status = napi_define_properties(env, exports, sizeof(exportObjs) / sizeof(exportObjs[0]), exportObjs);
     NAPI_ASSERT(env, status == napi_ok, "failed to define properties for exports");
 
+    napi_close_handle_scope(env, scope);
     return exports;
 }
 

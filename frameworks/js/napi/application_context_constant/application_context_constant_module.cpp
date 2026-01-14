@@ -14,6 +14,7 @@
  */
 #include "napi/native_api.h"
 #include "napi/native_common.h"
+#include "js_runtime_utils.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -24,6 +25,7 @@ const int32_t CREATE_VALUE_THREE = 3;
 const int32_t CREATE_VALUE_FOUR = 4;
 static napi_status SetEnumItem(napi_env env, napi_value object, const char* name, int32_t value)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     napi_status status;
     napi_value itemName;
     napi_value itemValue;
@@ -39,6 +41,7 @@ static napi_status SetEnumItem(napi_env env, napi_value object, const char* name
 
 static napi_value InitAreaModeObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
 
@@ -48,11 +51,12 @@ static napi_value InitAreaModeObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, object, "EL4", CREATE_VALUE_THREE));
     NAPI_CALL(env, SetEnumItem(env, object, "EL5", CREATE_VALUE_FOUR));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value InitProcessModeObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
 
@@ -60,28 +64,30 @@ static napi_value InitProcessModeObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, object, "NEW_PROCESS_ATTACH_TO_STATUS_BAR_ITEM", CREATE_VALUE_TWO));
     NAPI_CALL(env, SetEnumItem(env, object, "ATTACH_TO_STATUS_BAR_ITEM", CREATE_VALUE_THREE));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value InitStartupVisibilityObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
 
     NAPI_CALL(env, SetEnumItem(env, object, "STARTUP_HIDE", CREATE_VALUE_ZERO));
     NAPI_CALL(env, SetEnumItem(env, object, "STARTUP_SHOW", CREATE_VALUE_ONE));
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value InitScenariosObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
 
     NAPI_CALL(env, SetEnumItem(env, object, "SCENARIO_MOVE_MISSION_TO_FRONT", CREATE_VALUE_ONE));
     NAPI_CALL(env, SetEnumItem(env, object, "SCENARIO_SHOW_ABILITY", CREATE_VALUE_TWO));
     NAPI_CALL(env, SetEnumItem(env, object, "SCENARIO_BACK_TO_CALLER_ABILITY_WITH_RESULT", CREATE_VALUE_FOUR));
-    return object;
+    return handleEscape.Escape(object);
 }
 
 /*
@@ -89,6 +95,7 @@ static napi_value InitScenariosObject(napi_env env)
  */
 static napi_value ApplicationContextConstantInit(napi_env env, napi_value exports)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value areaMode = InitAreaModeObject(env);
     NAPI_ASSERT(env, areaMode != nullptr, "failed to create AreaMode object");
     napi_value processMode = InitProcessModeObject(env);

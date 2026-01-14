@@ -18,8 +18,6 @@ ohos_shared_library("configurationconstant_napi") {
 
   sources = [ "configuration_constant_napi_module.cpp" ]
 
-  deps = []
-
   external_deps = [
     "c_utils:utils",
     "napi:ace_napi",
@@ -35,8 +33,6 @@ ohos_shared_library("configurationconstant") {
   include_dirs = []
 
   sources = [ "configuration_constant_module.cpp" ]
-
-  deps = []
 
   external_deps = [
     "c_utils:utils",
