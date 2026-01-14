@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("want_ani_kit") {
+  version_script = "libwant_ani_kit.map"
   shlib_type = "ani"
   sanitize = {
     integer_overflow = true

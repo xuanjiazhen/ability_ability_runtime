@@ -1,0 +1,1009 @@
+diff --git a/frameworks/ets/ani/ability_auto_startup_manager/BUILD.gn b/frameworks/ets/ani/ability_auto_startup_manager/BUILD.gn
+index ec867fb475fc5cb74aae5ae2c9148424df1d71d6..a82c77ac5ad5a85b7425f2fe48de8356587e1bab 100644
+--- a/frameworks/ets/ani/ability_auto_startup_manager/BUILD.gn
++++ b/frameworks/ets/ani/ability_auto_startup_manager/BUILD.gn
+@@ -15,6 +15,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("auto_startup_manager") {
++  version_script = "libauto_startup_manager.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/ability_auto_startup_manager/libauto_startup_manager.map b/frameworks/ets/ani/ability_auto_startup_manager/libauto_startup_manager.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/ability_auto_startup_manager/libauto_startup_manager.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/ability_delegator/BUILD.gn b/frameworks/ets/ani/ability_delegator/BUILD.gn
+index eda9b3eaef46b46e880410a12b0f032a6149796f..0d4740cfb5bd47ed1d5aa2a43a54dd347c55f448 100644
+--- a/frameworks/ets/ani/ability_delegator/BUILD.gn
++++ b/frameworks/ets/ani/ability_delegator/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("ability_delegator_registry_ani_kit") {
++  version_script = "libability_delegator_registry_ani_kit.map"
+   shlib_type = "ani"
+   branch_protector_ret = "pac_ret"
+   sanitize = {
+diff --git a/frameworks/ets/ani/ability_delegator/libability_delegator_registry_ani_kit.map b/frameworks/ets/ani/ability_delegator/libability_delegator_registry_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/ability_delegator/libability_delegator_registry_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/ability_manager/BUILD.gn b/frameworks/ets/ani/ability_manager/BUILD.gn
+index c2dcc6dbc43ebb33476b1045214a226cfba5419f..5c49ba909c4c10fa2c7e9b60feb9f57f3ba93e08 100644
+--- a/frameworks/ets/ani/ability_manager/BUILD.gn
++++ b/frameworks/ets/ani/ability_manager/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("ability_manager_ani_kit") {
++  version_script = "libability_manager_ani_kit.map"
+   use_exceptions = true
+   shlib_type = "ani"
+   branch_protector_ret = "pac_ret"
+diff --git a/frameworks/ets/ani/ability_manager/libability_manager_ani_kit.map b/frameworks/ets/ani/ability_manager/libability_manager_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/ability_manager/libability_manager_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/ani_mission_manager/BUILD.gn b/frameworks/ets/ani/ani_mission_manager/BUILD.gn
+index e2f7e2fbd466432b2692eb59916f7bc9137d88c8..6c1770f1de3b65d9cec8929815e5cc13db86a89d 100644
+--- a/frameworks/ets/ani/ani_mission_manager/BUILD.gn
++++ b/frameworks/ets/ani/ani_mission_manager/BUILD.gn
+@@ -15,6 +15,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("missionmanager_ani") {
++  version_script = "libmissionmanager_ani.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/ani_mission_manager/libmissionmanager_ani.map b/frameworks/ets/ani/ani_mission_manager/libmissionmanager_ani.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/ani_mission_manager/libmissionmanager_ani.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/ability_context/BUILD.gn b/frameworks/ets/ani/app/ability_context/BUILD.gn
+index 8d46505e2fab83e351d4b7f7f928f42718b25fc2..7e96d0d84940592b12014b8763e8730dc8fb8228 100644
+--- a/frameworks/ets/ani/app/ability_context/BUILD.gn
++++ b/frameworks/ets/ani/app/ability_context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("ability_context_ani_kit") {
++  version_script = "libability_context_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/ability_context/libability_context_ani_kit.map b/frameworks/ets/ani/app/ability_context/libability_context_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/ability_context/libability_context_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/ability_stage_context/BUILD.gn b/frameworks/ets/ani/app/ability_stage_context/BUILD.gn
+index d5eda3a6dc5509ed1e80309201354655bb39d8c5..b2d5fc0a480ae2db02d952d4e7a40c7a615cb543 100644
+--- a/frameworks/ets/ani/app/ability_stage_context/BUILD.gn
++++ b/frameworks/ets/ani/app/ability_stage_context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("ability_stage_context_ani_kit") {
++  version_script = "libability_stage_context_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/ability_stage_context/libability_stage_context_ani_kit.map b/frameworks/ets/ani/app/ability_stage_context/libability_stage_context_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/ability_stage_context/libability_stage_context_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/app_service_extension_context/BUILD.gn b/frameworks/ets/ani/app/app_service_extension_context/BUILD.gn
+index 2e439c85e85c2ce5181e009c708e47393a59d255..13095d9c26d63a790ebd34b5c8ee5cfb33824479 100644
+--- a/frameworks/ets/ani/app/app_service_extension_context/BUILD.gn
++++ b/frameworks/ets/ani/app/app_service_extension_context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("app_service_extension_context_ani_kit") {
++  version_script = "libapp_service_extension_context_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/app_service_extension_context/libapp_service_extension_context_ani_kit.map b/frameworks/ets/ani/app/app_service_extension_context/libapp_service_extension_context_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/app_service_extension_context/libapp_service_extension_context_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/application_context/BUILD.gn b/frameworks/ets/ani/app/application_context/BUILD.gn
+index a1238345e53513d1e0fab170a8b0116dd5e2819d..116c45f0e0ea650fc2de26eb13614f00e2075ae7 100644
+--- a/frameworks/ets/ani/app/application_context/BUILD.gn
++++ b/frameworks/ets/ani/app/application_context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("application_context_ani_kit") {
++  version_script = "libapplication_context_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/application_context/libapplication_context_ani_kit.map b/frameworks/ets/ani/app/application_context/libapplication_context_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/application_context/libapplication_context_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/auto_fill_extension_context/BUILD.gn b/frameworks/ets/ani/app/auto_fill_extension_context/BUILD.gn
+index 64e6da99ab1225d54e45d321ee2207118167cb72..b26a5f5ab98953cae4980dc56883e1f9756ad891 100644
+--- a/frameworks/ets/ani/app/auto_fill_extension_context/BUILD.gn
++++ b/frameworks/ets/ani/app/auto_fill_extension_context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("auto_fill_extension_context_ani_kit") {
++  version_script = "libauto_fill_extension_context_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/auto_fill_extension_context/libauto_fill_extension_context_ani_kit.map b/frameworks/ets/ani/app/auto_fill_extension_context/libauto_fill_extension_context_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/auto_fill_extension_context/libauto_fill_extension_context_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/context/BUILD.gn b/frameworks/ets/ani/app/context/BUILD.gn
+index 271bbe430e7ca23087e794996093c4e54977e627..5b094d54e773d2aa04929fe6d557cb625672d084 100644
+--- a/frameworks/ets/ani/app/context/BUILD.gn
++++ b/frameworks/ets/ani/app/context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("context_ani_kit") {
++  version_script = "libcontext_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/context/libcontext_ani_kit.map b/frameworks/ets/ani/app/context/libcontext_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/context/libcontext_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/extension_context/BUILD.gn b/frameworks/ets/ani/app/extension_context/BUILD.gn
+index e49d16ad79f9166fcc860b0deb06e4cb0527ce3c..7c4e0e15ab1e87ef9c8ae09a2114af79a05e4908 100644
+--- a/frameworks/ets/ani/app/extension_context/BUILD.gn
++++ b/frameworks/ets/ani/app/extension_context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("extension_context_ani_kit") {
++  version_script = "libextension_context_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/extension_context/libextension_context_ani_kit.map b/frameworks/ets/ani/app/extension_context/libextension_context_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/extension_context/libextension_context_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/service_extension_context/BUILD.gn b/frameworks/ets/ani/app/service_extension_context/BUILD.gn
+index a8429a2a42a656d5b33e85d95c46a2f7aa37bd29..900ba910c76ece7c6f3e6a34905832c3b7c1e649 100644
+--- a/frameworks/ets/ani/app/service_extension_context/BUILD.gn
++++ b/frameworks/ets/ani/app/service_extension_context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("service_extension_context_ani_kit") {
++  version_script = "libservice_extension_context_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/service_extension_context/libservice_extension_context_ani_kit.map b/frameworks/ets/ani/app/service_extension_context/libservice_extension_context_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/service_extension_context/libservice_extension_context_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/ui_extension_context/BUILD.gn b/frameworks/ets/ani/app/ui_extension_context/BUILD.gn
+index 28266cc5b397757826d900dd68051558fbed59f0..054be33253028312b6c6831e66448f74ba8fb164 100644
+--- a/frameworks/ets/ani/app/ui_extension_context/BUILD.gn
++++ b/frameworks/ets/ani/app/ui_extension_context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("ui_extension_context_ani_kit") {
++  version_script = "libui_extension_context_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/ui_extension_context/libui_extension_context_ani_kit.map b/frameworks/ets/ani/app/ui_extension_context/libui_extension_context_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/ui_extension_context/libui_extension_context_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app/ui_service_extension_context/BUILD.gn b/frameworks/ets/ani/app/ui_service_extension_context/BUILD.gn
+index d1cae85f408045679cb2e461dc99e25184f0d67e..8082ba5cd43ae43c57f9858c1e6b4e2e0ba88759 100644
+--- a/frameworks/ets/ani/app/ui_service_extension_context/BUILD.gn
++++ b/frameworks/ets/ani/app/ui_service_extension_context/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("ui_service_extension_context_ani_kit") {
++  version_script = "libui_service_extension_context_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app/ui_service_extension_context/libui_service_extension_context_ani_kit.map b/frameworks/ets/ani/app/ui_service_extension_context/libui_service_extension_context_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app/ui_service_extension_context/libui_service_extension_context_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app_manager/BUILD.gn b/frameworks/ets/ani/app_manager/BUILD.gn
+index 7fa3a328af3967ac4fbcb20d77989656ea623a65..3f7cd17887e75d9ea11f488a48b56a1a683b5375 100644
+--- a/frameworks/ets/ani/app_manager/BUILD.gn
++++ b/frameworks/ets/ani/app_manager/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("app_manager_ani") {
++  version_script = "libapp_manager_ani.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/app_manager/libapp_manager_ani.map b/frameworks/ets/ani/app_manager/libapp_manager_ani.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app_manager/libapp_manager_ani.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/app_startup/startup_manager/BUILD.gn b/frameworks/ets/ani/app_startup/startup_manager/BUILD.gn
+index 49d7ff2102939debc29775c925de338ddf9bf0ca..c6468e29fea01d7a61a30107495cce3e32acff3a 100644
+--- a/frameworks/ets/ani/app_startup/startup_manager/BUILD.gn
++++ b/frameworks/ets/ani/app_startup/startup_manager/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("startup_manager_ani_kit") {
++  version_script = "libstartup_manager_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   sanitize = {
+     cfi = true
+diff --git a/frameworks/ets/ani/app_startup/startup_manager/libstartup_manager_ani_kit.map b/frameworks/ets/ani/app_startup/startup_manager/libstartup_manager_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/app_startup/startup_manager/libstartup_manager_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/application/BUILD.gn b/frameworks/ets/ani/application/BUILD.gn
+index 70e54ac0b471b90a0dd1f82520a25060a666c8f5..41126bf9d5f62c75b913c34cc85b4733d61ffbc2 100644
+--- a/frameworks/ets/ani/application/BUILD.gn
++++ b/frameworks/ets/ani/application/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("application_ani") {
++  version_script = "libapplication_ani.map"
+   shlib_type = "ani"
+   branch_protector_ret = "pac_ret"
+   sanitize = {
+diff --git a/frameworks/ets/ani/application/libapplication_ani.map b/frameworks/ets/ani/application/libapplication_ani.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/application/libapplication_ani.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/business_ability_router/BUILD.gn b/frameworks/ets/ani/business_ability_router/BUILD.gn
+index a24d62c64d655e01bf6ca4df094d2cd2ff0cd93a..c7f897bef94fff455c91476f1cfd2f131585ef52 100644
+--- a/frameworks/ets/ani/business_ability_router/BUILD.gn
++++ b/frameworks/ets/ani/business_ability_router/BUILD.gn
+@@ -15,6 +15,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/service_router_framework/srms.gni")
+ 
+ ohos_shared_library("businessabilityrouter_ani") {
++  version_script = "libbusinessabilityrouter_ani.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/business_ability_router/libbusinessabilityrouter_ani.map b/frameworks/ets/ani/business_ability_router/libbusinessabilityrouter_ani.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/business_ability_router/libbusinessabilityrouter_ani.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/child_process_manager/BUILD.gn b/frameworks/ets/ani/child_process_manager/BUILD.gn
+index 802adec30ce183ab454e9f26d908a7f0a5580c30..fa4b0b0ab8f7b9efdd1fb60ba0fd969704bc57c8 100644
+--- a/frameworks/ets/ani/child_process_manager/BUILD.gn
++++ b/frameworks/ets/ani/child_process_manager/BUILD.gn
+@@ -15,6 +15,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("ability_child_process_manager_ani_kit") {
++  version_script = "libability_child_process_manager_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/child_process_manager/libability_child_process_manager_ani_kit.map b/frameworks/ets/ani/child_process_manager/libability_child_process_manager_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/child_process_manager/libability_child_process_manager_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/ets_dialog_request/BUILD.gn b/frameworks/ets/ani/ets_dialog_request/BUILD.gn
+index 5626def39ce9e1abf1ec3dce9ab1e59aac2394ca..84ece81b901b842f6c9bde0db7d150b63d912a3f 100644
+--- a/frameworks/ets/ani/ets_dialog_request/BUILD.gn
++++ b/frameworks/ets/ani/ets_dialog_request/BUILD.gn
+@@ -15,6 +15,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("dialogrequest_ani_kit") {
++  version_script = "libdialogrequest_ani_kit.map"
+   branch_protector_ret = "pac_ret"
+   shlib_type = "ani"
+   sanitize = {
+diff --git a/frameworks/ets/ani/ets_dialog_request/libdialogrequest_ani_kit.map b/frameworks/ets/ani/ets_dialog_request/libdialogrequest_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/ets_dialog_request/libdialogrequest_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/vertical_panel_manager/BUILD.gn b/frameworks/ets/ani/vertical_panel_manager/BUILD.gn
+index b91d3a6e658994d3835b5fe7e2ccf7ac48ada5a1..7da03abaff0dace0868586e656f857ac5b5f97b6 100644
+--- a/frameworks/ets/ani/vertical_panel_manager/BUILD.gn
++++ b/frameworks/ets/ani/vertical_panel_manager/BUILD.gn
+@@ -16,6 +16,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("vertical_panel_manager_ani_kit") {
++  version_script = "libvertical_panel_manager_ani_kit.map"
+   shlib_type = "ani"
+   branch_protector_ret = "pac_ret"
+   sanitize = {
+diff --git a/frameworks/ets/ani/vertical_panel_manager/libvertical_panel_manager_ani_kit.map b/frameworks/ets/ani/vertical_panel_manager/libvertical_panel_manager_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/vertical_panel_manager/libvertical_panel_manager_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/want/BUILD.gn b/frameworks/ets/ani/want/BUILD.gn
+index acf3b0b5c4a9094fa722b63b36381757d74f585e..8c4aeb024e2ad6bf0b652461ffc362d87db5bc05 100644
+--- a/frameworks/ets/ani/want/BUILD.gn
++++ b/frameworks/ets/ani/want/BUILD.gn
+@@ -15,6 +15,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("want_ani_kit") {
++  version_script = "libwant_ani_kit.map"
+   shlib_type = "ani"
+   sanitize = {
+     integer_overflow = true
+diff --git a/frameworks/ets/ani/want/libwant_ani_kit.map b/frameworks/ets/ani/want/libwant_ani_kit.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/want/libwant_ani_kit.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/ets/ani/wantagent/BUILD.gn b/frameworks/ets/ani/wantagent/BUILD.gn
+index d77d6920db7277d71db8fa03c0752cb3d18bdae7..48a952caf4394bd101167005e1e1b3d6f0ce09a4 100644
+--- a/frameworks/ets/ani/wantagent/BUILD.gn
++++ b/frameworks/ets/ani/wantagent/BUILD.gn
+@@ -15,6 +15,7 @@ import("//build/ohos.gni")
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ ohos_shared_library("aniwantagent") {
++  version_script = "libaniwantagent.map"
+   shlib_type = "ani"
+   branch_protector_ret = "pac_ret"
+   sanitize = {
+diff --git a/frameworks/ets/ani/wantagent/libaniwantagent.map b/frameworks/ets/ani/wantagent/libaniwantagent.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a2ef4f269e6ee1a72d76870a4513b9956c4a1d
+--- /dev/null
++++ b/frameworks/ets/ani/wantagent/libaniwantagent.map
+@@ -0,0 +1,23 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++    };
++    extern "C" {
++      *ANI_Constructor*;
++    };
++  local:
++    *;
++};
+\ No newline at end of file
+diff --git a/frameworks/native/ability/native/BUILD.gn b/frameworks/native/ability/native/BUILD.gn
+index 402f19c3d1c0924e7007787ecf0a2060338a9104..ba8cbdac3ac88b1c11686c58365207a57f3586b7 100644
+--- a/frameworks/native/ability/native/BUILD.gn
++++ b/frameworks/native/ability/native/BUILD.gn
+@@ -898,6 +898,7 @@ config("uiability_config") {
+ 
+ ohos_shared_library("ui_ability_ani") {
+   branch_protector_ret = "pac_ret"
++  version_script = "libui_ability_ani.map"
+ 
+   sanitize = {
+     cfi = true
+diff --git a/frameworks/native/ability/native/libui_ability_ani.map b/frameworks/native/ability/native/libui_ability_ani.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..7e613a21cc4d2d114fd3d1b78bb5e1b0ee5dccfa
+--- /dev/null
++++ b/frameworks/native/ability/native/libui_ability_ani.map
+@@ -0,0 +1,24 @@
++# Copyright (c) 2025 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++1.0 {
++  global:
++    extern "C++" {
++      OHOS_CreateAndBindETSUIAbilityContext;
++      OHOS_ETS_Ability_Create;
++    };
++    extern "C" {
++    };
++  local:
++    *;
++};
+\ No newline at end of file
