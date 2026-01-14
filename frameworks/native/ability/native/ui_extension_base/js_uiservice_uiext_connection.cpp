@@ -124,6 +124,7 @@ void JSUIServiceUIExtConnection::HandleOnAbilityConnectDone(
         if (hostStub != nullptr) {
             hostProxy = hostStub->AsObject();
         }
+        AbilityRuntime::HandleScope handleScope(env_);
         napi_value proxy = AAFwk::JsUIServiceProxy::CreateJsUIServiceProxy(env_, remoteObject,
             connectionId_, hostProxy);
         SetProxyObject(proxy);
@@ -140,6 +141,7 @@ void JSUIServiceUIExtConnection::HandleOnAbilityDisconnectDone(const AppExecFwk:
     int resultCode)
 {
     if (napiAsyncTask_ != nullptr) {
+        AbilityRuntime::HandleScope handleScope(env_);
         napi_value innerError = CreateJsError(env_, AbilityErrorCode::ERROR_CODE_INNER);
         napiAsyncTask_->Reject(env_, innerError);
         RejectDuplicatedPendingTask(env_, innerError);
@@ -226,6 +228,7 @@ int32_t JSUIServiceUIExtConnection::OnSendData(OHOS::AAFwk::WantParams &data)
 
 void JSUIServiceUIExtConnection::HandleOnSendData(const OHOS::AAFwk::WantParams &data)
 {
+    AbilityRuntime::HandleScope handleScope(env_);
     napi_value argv[] = { AppExecFwk::CreateJsWantParams(env_, data) };
     CallObjectMethod("onData", argv, ARGC_ONE);
 }
