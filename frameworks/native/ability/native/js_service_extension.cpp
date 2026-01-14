@@ -85,6 +85,7 @@ napi_value PromiseCallback(napi_env env, napi_callback_info info)
 napi_value OnConnectPromiseCallback(napi_env env, napi_callback_info info)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "enter");
+    HandleScope handleScope(env);
     void *data = nullptr;
     size_t argc = ARGC_MAX_COUNT;
     napi_value argv[ARGC_MAX_COUNT] = {nullptr};
@@ -106,6 +107,7 @@ using namespace OHOS::AppExecFwk;
 
 napi_value AttachServiceExtensionContext(napi_env env, void *value, void *)
 {
+    HandleEscape handleEscape(env);
     if (value == nullptr) {
         TAG_LOGW(AAFwkTag::SERVICE_EXT, "null value");
         return nullptr;
@@ -137,7 +139,7 @@ napi_value AttachServiceExtensionContext(napi_env env, void *value, void *)
         delete workContext;
         return nullptr;
     }
-    return contextObj;
+    return handleEscape.Escape(contextObj);
 }
 
 JsServiceExtension* JsServiceExtension::Create(const std::unique_ptr<Runtime>& runtime)
@@ -261,6 +263,7 @@ void JsServiceExtension::SystemAbilityStatusChangeListener::OnAddSystemAbility(i
 #endif //SUPPORT_GRAPHICS
 void JsServiceExtension::BindContext(napi_env env, napi_value obj)
 {
+    HandleScope handleScope(env);
     auto context = GetContext();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null context");
@@ -622,6 +625,7 @@ napi_value JsServiceExtension::CallOnConnect(const AAFwk::Want &want)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     Extension::OnConnect(want);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "call");
+    HandleEscape handleEscape(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
     napi_value argv[] = {napiWant};
@@ -652,7 +656,7 @@ napi_value JsServiceExtension::CallOnConnect(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null remoteNative");
     }
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "ok");
-    return remoteNative;
+    return handleEscape.Escape(remoteNative);
 }
 
 napi_value JsServiceExtension::CallOnDisconnect(const AAFwk::Want &want, bool withResult)
@@ -714,6 +718,7 @@ bool JsServiceExtension::CheckPromise(napi_value result)
 
 bool JsServiceExtension::CallPromise(napi_value result, AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo)
 {
+    HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
     if (!CheckTypeForNapiValue(env, result, napi_object)) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "convert value error");
@@ -731,7 +736,6 @@ bool JsServiceExtension::CallPromise(napi_value result, AppExecFwk::AbilityTrans
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "not callable property then");
         return false;
     }
-    HandleScope handleScope(jsRuntime_);
     napi_value promiseCallback = nullptr;
     napi_create_function(env, "promiseCallback", strlen("promiseCallback"), PromiseCallback,
         callbackInfo, &promiseCallback);
