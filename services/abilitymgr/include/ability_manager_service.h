@@ -930,6 +930,15 @@ public:
         return taskHandler_;
     }
 
+    int GetRfd() const
+    {
+        return rFd_;
+    }
+    int GetWfd() const
+    {
+        return wFd_;
+    }
+
     /**
      * GetEventHandler, get the ability manager service's handler.
      *
@@ -2899,6 +2908,7 @@ private:
     void InitInterceptor();
     void InitInterceptorForScreenUnlock();
     void InitPushTask();
+    void InitAppSpawnMsgPipe();
     void InitDeepLinkReserve();
 
     bool CheckSenderWantInfo(int32_t callerUid, const WantSenderInfo &wantSenderInfo);
@@ -3138,6 +3148,9 @@ private:
     std::shared_ptr<AbilityDebugDeal> abilityDebugDeal_;
     std::shared_ptr<AppExitReasonHelper> appExitReasonHelper_;
 
+    int rFd_ = -1;
+    int wFd_ = -1;
+    std::shared_ptr<int> ptrRFd_ = std::make_shared<int>(-1);
     ffrt::mutex globalLock_;
     ffrt::mutex bgtaskObserverMutex_;
     ffrt::mutex abilityTokenLock_;
