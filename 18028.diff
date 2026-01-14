@@ -1,0 +1,762 @@
+diff --git a/frameworks/native/appkit/BUILD.gn b/frameworks/native/appkit/BUILD.gn
+index 98be40f791443d56e450ece91133846f355160fe..3d39a3cc967114b6d1f10daa36d80cc2ce32003c 100644
+--- a/frameworks/native/appkit/BUILD.gn
++++ b/frameworks/native/appkit/BUILD.gn
+@@ -183,6 +183,7 @@ ohos_shared_library("appkit_native") {
+     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
+     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:hisysevent_report",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+   ]
+ 
+diff --git a/frameworks/native/appkit/app/main_thread.cpp b/frameworks/native/appkit/app/main_thread.cpp
+index e948edc6e7635b07dce206984d7ad5585bc59944..4be703ff91c22e9f4b931b3e90a011552f2e9d2e 100644
+--- a/frameworks/native/appkit/app/main_thread.cpp
++++ b/frameworks/native/appkit/app/main_thread.cpp
+@@ -99,7 +99,7 @@
+ #include "task_handler_client.h"
+ #include "time_util.h"
+ #include "uncaught_exception_callback.h"
+-#include "hisysevent.h"
++#include "hisysevent_report.h"
+ #include "js_runtime_utils.h"
+ #include "context/application_context.h"
+ #include "os_account_manager_wrapper.h"
+@@ -1391,13 +1391,19 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
+             std::string errMsg = errorObj.message ? errorObj.message : "[none]";
+             std::string errStack = errorObj.stack ? errorObj.stack : "[none]";
+             std::string errSummary = summary + "\nException info: " + errMsg + "\n" + "Stacktrace:\n" + errStack;
+-            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::CJ_RUNTIME, "CJ_ERROR",
+-                OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+-                EVENT_KEY_PACKAGE_NAME, bundleName, EVENT_KEY_VERSION, std::to_string(versionCode),
+-                EVENT_KEY_TYPE, CJERROR_TYPE, EVENT_KEY_HAPPEN_TIME, timet,
+-                EVENT_KEY_REASON, errName, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, errSummary,
+-                EVENT_KEY_PNAME, processName, EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName(),
+-                EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()));
++            auto hisyseventReport = std::make_shared<HisyseventReport>(10);
++            hisyseventReport->InsertParam(EVENT_KEY_PACKAGE_NAME, bundleName);
++            hisyseventReport->InsertParam(EVENT_KEY_VERSION, std::to_string(versionCode));
++            hisyseventReport->InsertParam(EVENT_KEY_TYPE, CJERROR_TYPE);
++            hisyseventReport->InsertParam(EVENT_KEY_HAPPEN_TIME, timet);
++            hisyseventReport->InsertParam(EVENT_KEY_REASON, errName);
++            hisyseventReport->InsertParam(EVENT_KEY_JSVM, JSVM_TYPE);
++            hisyseventReport->InsertParam(EVENT_KEY_SUMMARY, errSummary);
++            hisyseventReport->InsertParam(EVENT_KEY_PNAME, processName);
++            hisyseventReport->InsertParam(EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
++            hisyseventReport->InsertParam(EVENT_KEY_PROCESS_RSS_MEMINFO,
++                std::to_string(DumpProcessHelper::GetProcRssMemInfo()));
++            hisyseventReport->Report("CJ_RUNTIME", "CJ_ERROR", HISYSEVENT_FAULT);
+             ErrorObject appExecErrorObj = {
+                 .name = errName,
+                 .message = errMsg,
+@@ -1466,13 +1472,20 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
+         }
+         time_t timet;
+         time(&timet);
+-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, "JS_ERROR",
+-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_KEY_PACKAGE_NAME, bundleName,
+-            EVENT_KEY_VERSION, std::to_string(versionCode), EVENT_KEY_TYPE, JSCRASH_TYPE, EVENT_KEY_HAPPEN_TIME, timet,
+-            EVENT_KEY_REASON, errorObj.name, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, summary,
+-            EVENT_KEY_PNAME, processName, EVENT_KEY_APP_RUNNING_UNIQUE_ID, appRunningId,
+-            EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()),
+-            EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
++        auto hisyseventReport = std::make_shared<HisyseventReport>(11);
++        hisyseventReport->InsertParam(EVENT_KEY_PACKAGE_NAME, bundleName);
++        hisyseventReport->InsertParam(EVENT_KEY_VERSION, std::to_string(versionCode));
++        hisyseventReport->InsertParam(EVENT_KEY_TYPE, JSCRASH_TYPE);
++        hisyseventReport->InsertParam(EVENT_KEY_HAPPEN_TIME, timet);
++        hisyseventReport->InsertParam(EVENT_KEY_REASON, errorObj.name);
++        hisyseventReport->InsertParam(EVENT_KEY_JSVM, JSVM_TYPE);
++        hisyseventReport->InsertParam(EVENT_KEY_SUMMARY, summary);
++        hisyseventReport->InsertParam(EVENT_KEY_PNAME, processName);
++        hisyseventReport->InsertParam(EVENT_KEY_APP_RUNNING_UNIQUE_ID, appRunningId);
++        hisyseventReport->InsertParam(EVENT_KEY_PROCESS_RSS_MEMINFO,
++            std::to_string(DumpProcessHelper::GetProcRssMemInfo()));
++        hisyseventReport->InsertParam(EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
++        hisyseventReport->Report("AAFWK", "JS_ERROR", HISYSEVENT_FAULT);
+         ErrorObject appExecErrorObj = { .name = errorObj.name, .message = errorObj.message, .stack = errorObj.stack };
+         FaultData faultData;
+         faultData.faultType = FaultDataType::JS_ERROR;
+@@ -1489,10 +1502,15 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
+             appThread->applicationImpl_->GetState() == ApplicationImpl::APP_STATE_FOREGROUND) {
+             foreground = true;
+         }
+-        int result = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
+-            HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName, "MSG", KILL_REASON,
+-            EVENT_KEY_APP_RUNNING_UNIQUE_ID, appRunningId, EVENT_KEY_REASON, "JsError",
+-            "FOREGROUND", foreground);
++        std::string eventKeyReason = "JsError";
++        auto exitReport = std::make_shared<HisyseventReport>(6);
++        exitReport->InsertParam("PID", pid);
++        exitReport->InsertParam("PROCESS_NAME", processName);
++        exitReport->InsertParam("MSG", KILL_REASON);
++        exitReport->InsertParam(EVENT_KEY_APP_RUNNING_UNIQUE_ID, appRunningId);
++        exitReport->InsertParam(EVENT_KEY_REASON, eventKeyReason);
++        exitReport->InsertParam("FOREGROUND", foreground);
++        int result = exitReport->Report("FRAMEWORK", "PROCESS_KILL", HISYSEVENT_FAULT);
+         TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event "
+             "[FRAMEWORK,PROCESS_KILL],"
+             " pid=%{public}d, processName=%{public}s, msg=%{public}s, "
+@@ -2063,13 +2081,21 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
+         time(&timet);
+         std::string lifeTime = GetProcessLifeCycleByPid(pid);
+         if (!ApplicationDataManager::jsErrorHasReport_.exchange(true)) {
+-            int result = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, "JS_ERROR",
+-                OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_KEY_PACKAGE_NAME, bundleName, EVENT_KEY_VERSION,
+-                std::to_string(versionCode), EVENT_KEY_TYPE, JSCRASH_TYPE, EVENT_KEY_HAPPEN_TIME, timet,
+-                EVENT_KEY_REASON, errorObject.name, EVENT_KEY_JSVM, JSVM_TYPE, EVENT_KEY_SUMMARY, summary,
+-                EVENT_KEY_PNAME, processName, EVENT_KEY_APP_RUNNING_UNIQUE_ID, appRunningId,
+-                EVENT_KEY_PROCESS_RSS_MEMINFO, std::to_string(DumpProcessHelper::GetProcRssMemInfo()),
+-                EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName(), EVENT_KEY_PROCESS_LIFETIME, lifeTime);
++            auto hisyseventReport = std::make_shared<HisyseventReport>(12);
++            hisyseventReport->InsertParam(EVENT_KEY_PACKAGE_NAME, bundleName);
++            hisyseventReport->InsertParam(EVENT_KEY_VERSION, std::to_string(versionCode));
++            hisyseventReport->InsertParam(EVENT_KEY_TYPE, JSCRASH_TYPE);
++            hisyseventReport->InsertParam(EVENT_KEY_HAPPEN_TIME, timet);
++            hisyseventReport->InsertParam(EVENT_KEY_REASON, errorObject.name);
++            hisyseventReport->InsertParam(EVENT_KEY_JSVM, JSVM_TYPE);
++            hisyseventReport->InsertParam(EVENT_KEY_SUMMARY, summary);
++            hisyseventReport->InsertParam(EVENT_KEY_PNAME, processName);
++            hisyseventReport->InsertParam(EVENT_KEY_APP_RUNNING_UNIQUE_ID, appRunningId);
++            hisyseventReport->InsertParam(EVENT_KEY_PROCESS_RSS_MEMINFO,
++                std::to_string(DumpProcessHelper::GetProcRssMemInfo()));
++            hisyseventReport->InsertParam(EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
++            hisyseventReport->InsertParam(EVENT_KEY_PROCESS_LIFETIME, lifeTime);
++            int result = hisyseventReport->Report("AAFWK", "JS_ERROR", HISYSEVENT_FAULT);
+             TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,JS_ERROR],"
+                 " packageName=%{public}s, pid=%{public}d, appRunningId=%{public}s, threadName=%{public}s,"
+                 " isUncatchable=%{public}d", result, bundleName.c_str(), pid, appRunningId.c_str(),
+@@ -2113,10 +2139,16 @@ void MainThread::ProcessExit(const ProcessExitInfo& info)
+     // if app's callback has been registered, let app decide whether exit or not.
+     TAG_LOGE(AAFwkTag::APPKIT, "\n%{public}s is about to exit due to RuntimeError\nError type:%{public}s\n"
+         "%{public}s", info.bundleName.c_str(), info.errorObjectName.c_str(), info.summary.c_str());
+-    int result = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
+-        HiviewDFX::HiSysEvent::EventType::FAULT, "PID", info.pid, "PROCESS_NAME", info.processName,
+-        EVENT_KEY_APP_RUNNING_UNIQUE_ID, info.appRunningId, EVENT_KEY_REASON, "JsError",
+-        "MSG", KILL_REASON, "FOREGROUND", info.foreground, "IS_UNCATCHABLE", info.isUncatchable);
++    std::string eventKeyReason = "JsError";
++    auto hisyseventReport = std::make_shared<HisyseventReport>(12);
++    hisyseventReport->InsertParam("PID", info.pid);
++    hisyseventReport->InsertParam("PROCESS_NAME", info.processName);
++    hisyseventReport->InsertParam(EVENT_KEY_APP_RUNNING_UNIQUE_ID, info.appRunningId);
++    hisyseventReport->InsertParam(EVENT_KEY_REASON, eventKeyReason);
++    hisyseventReport->InsertParam("MSG", KILL_REASON);
++    hisyseventReport->InsertParam("FOREGROUND", info.foreground);
++    hisyseventReport->InsertParam("IS_UNCATCHABLE", info.isUncatchable);
++    int result = hisyseventReport->Report("FRAMEWORK", "PROCESS_KILL", HISYSEVENT_FAULT);
+     TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL],"
+         " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
+         result, info.pid, info.processName.c_str(), KILL_REASON, info.foreground, info.isUncatchable);
+diff --git a/frameworks/native/appkit/dfr/appfreeze_inner.cpp b/frameworks/native/appkit/dfr/appfreeze_inner.cpp
+index 64ec8a9a80a5199c04cce581f5896316cef309f1..3961cb09eb96140e4a685f6560a0a6161659c4cb 100644
+--- a/frameworks/native/appkit/dfr/appfreeze_inner.cpp
++++ b/frameworks/native/appkit/dfr/appfreeze_inner.cpp
+@@ -27,7 +27,7 @@
+ #include "freeze_util.h"
+ #include "hilog_tag_wrapper.h"
+ #include "hitrace_meter.h"
+-#include "hisysevent.h"
++#include "hisysevent_report.h"
+ #include "js_runtime.h"
+ #include "ohos_application.h"
+ #include "parameter.h"
+@@ -307,14 +307,21 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
+         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+         faultData.procStatm = GetProcStatm(pid);
+         if (BETA_VERSION) {
+-            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
+-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "", "FAULT_TIME", faultTimeStr);
++            std::string packageName = "";
++            auto hisyseventReport = std::make_shared<HisyseventReport>(3);
++            hisyseventReport->InsertParam("PID", pid);
++            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
++            hisyseventReport->InsertParam("FAULT_TIME", faultTimeStr);
++            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
+             faultData.errorObject.message += (ret == 0) ? "FREEZE_HALF_HIVIEW_LOG write success" : "";
+         }
+     } else {
+         if (!BETA_VERSION) {
+-            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
+-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "");
++            std::string packageName = "";
++            auto hisyseventReport = std::make_shared<HisyseventReport>(2);
++            hisyseventReport->InsertParam("PID", pid);
++            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
++            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
+             TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:,"
+                 " ret:%{public}d", pid, ret);
+         }
+@@ -473,14 +480,21 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent, uint64_t sc
+ #endif
+         faultData.procStatm = GetProcStatm(pid);
+         if (BETA_VERSION) {
+-            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
+-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "", "FAULT_TIME", faultTimeStr);
++            std::string packageName = "";
++            auto hisyseventReport = std::make_shared<HisyseventReport>(2);
++            hisyseventReport->InsertParam("PID", pid);
++            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
++            hisyseventReport->InsertParam("FAULT_TIME", faultTimeStr);
++            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
+             faultData.errorObject.message += (ret == 0) ? "FREEZE_HALF_HIVIEW_LOG write success" : "";
+         }
+     } else {
+         if (!BETA_VERSION) {
+-            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
+-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "");
++            std::string packageName = "";
++            auto hisyseventReport = std::make_shared<HisyseventReport>(2);
++            hisyseventReport->InsertParam("PID", pid);
++            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
++            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
+             TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:,"
+                 " ret:%{public}d", pid, ret);
+         }
+diff --git a/services/abilitymgr/BUILD.gn b/services/abilitymgr/BUILD.gn
+index 49b36725f797b16fcd3772d0220f7b82284cfe14..b60f90dd0d739d1eec9e85106fba5f06645117c5 100644
+--- a/services/abilitymgr/BUILD.gn
++++ b/services/abilitymgr/BUILD.gn
+@@ -156,6 +156,7 @@ ohos_shared_library("abilityms") {
+     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+     "${ability_runtime_path}/utils/server/startup:startup_util",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:hisysevent_report",
+     "${ability_runtime_services_path}/common:perm_verification",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+     "${ability_runtime_services_path}/common:user_controller",
+diff --git a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp
+index e38a568c728ccb6671f0387744250e2650132156..58d69e225fff1fe7ecd0cc563ad21a4f6c86ad65 100644
+--- a/services/abilitymgr/src/ability_manager_service.cpp
++++ b/services/abilitymgr/src/ability_manager_service.cpp
+@@ -50,6 +50,7 @@
+ #include "global_constant.h"
+ #include "hidden_start_observer_manager.h"
+ #include "hitrace_meter.h"
++#include "hisysevent_report.h"
+ #include "insight_intent_execute_manager.h"
+ #include "insight_intent_db_cache.h"
+ #include "insight_intent_utils.h"
+@@ -10049,13 +10050,14 @@ void AbilityManagerService::ScheduleClearRecoveryPageStack()
+ void AbilityManagerService::ReportAppRecoverResult(const int32_t appId, const AppExecFwk::ApplicationInfo &appInfo,
+     const std::string& abilityName, const std::string& result)
+ {
+-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "APP_RECOVERY", HiSysEvent::EventType::BEHAVIOR,
+-        "APP_UID", appId,
+-        "VERSION_CODE", std::to_string(appInfo.versionCode),
+-        "VERSION_NAME", appInfo.versionName,
+-        "BUNDLE_NAME", appInfo.bundleName,
+-        "ABILITY_NAME", abilityName,
+-        "RECOVERY_RESULT", result);
++    auto hisyseventReport = std::make_shared<HisyseventReport>(2);
++    hisyseventReport->InsertParam("APP_UID", appId);
++    hisyseventReport->InsertParam("VERSION_CODE", std::to_string(appInfo.versionCode));
++    hisyseventReport->InsertParam("VERSION_NAME", appInfo.versionName);
++    hisyseventReport->InsertParam("BUNDLE_NAME", appInfo.bundleName);
++    hisyseventReport->InsertParam("ABILITY_NAME", abilityName);
++    hisyseventReport->InsertParam("RECOVERY_RESULT", result);
++    int32_t ret = hisyseventReport->Report("AAFWK", "APP_RECOVERY", HISYSEVENT_BEHAVIOR);
+ }
+ 
+ void AbilityManagerService::SubmitSaveRecoveryInfo(const sptr<IRemoteObject>& token)
+@@ -14610,15 +14612,16 @@ void AbilityManagerService::ReportPreventStartAbilityResult(const AppExecFwk::Ab
+         "Prevent start ability debug log CALLER_BUNDLE_NAME %{public}s CALLEE_BUNDLE_NAME"
+         "%{public}s ABILITY_NAME %{public}s",
+         callerAbilityInfo.bundleName.c_str(), abilityInfo.name.c_str(), abilityInfo.name.c_str());
+-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "PREVENT_START_ABILITY", HiSysEvent::EventType::BEHAVIOR,
+-        "CALLER_UID", callerUid,
+-        "CALLER_PID", callerPid,
+-        "CALLER_PROCESS_NAME", callerAbilityInfo.process,
+-        "CALLER_BUNDLE_NAME", callerAbilityInfo.bundleName,
+-        "CALLEE_BUNDLE_NAME", abilityInfo.bundleName,
+-        "CALLEE_PROCESS_NAME", abilityInfo.process,
+-        "EXTENSION_ABILITY_TYPE", extensionAbilityType,
+-        "ABILITY_NAME", abilityInfo.name);
++    auto hisyseventReport = std::make_shared<HisyseventReport>(8);
++    hisyseventReport->InsertParam("CALLER_UID", callerUid);
++    hisyseventReport->InsertParam("CALLER_PID", callerPid);
++    hisyseventReport->InsertParam("CALLER_PROCESS_NAME", callerAbilityInfo.process);
++    hisyseventReport->InsertParam("CALLER_BUNDLE_NAME", callerAbilityInfo.bundleName);
++    hisyseventReport->InsertParam("CALLEE_BUNDLE_NAME", abilityInfo.bundleName);
++    hisyseventReport->InsertParam("CALLEE_PROCESS_NAME", abilityInfo.process);
++    hisyseventReport->InsertParam("EXTENSION_ABILITY_TYPE", extensionAbilityType);
++    hisyseventReport->InsertParam("ABILITY_NAME", abilityInfo.name);
++    hisyseventReport->Report("AAFWK", "PREVENT_START_ABILITY", HISYSEVENT_BEHAVIOR);
+ }
+ 
+ bool AbilityManagerService::IsInWhiteList(const std::string &callerBundleName, const std::string &calleeBundleName,
+diff --git a/services/appdfr/src/application_anr_listener.cpp b/services/appdfr/src/application_anr_listener.cpp
+index 2d8e06b57e82e9b66d77b3aef72d432dc08c5e8c..3d96644375dcf0a297dd8bea4263f862d4da3800 100644
+--- a/services/appdfr/src/application_anr_listener.cpp
++++ b/services/appdfr/src/application_anr_listener.cpp
+@@ -22,7 +22,7 @@
+ #include "app_mgr_client.h"
+ #include "fault_data.h"
+ #include "hilog_tag_wrapper.h"
+-#include "hisysevent.h"
++#include "hisysevent_report.h"
+ #include "parameters.h"
+ #include "time_util.h"
+ 
+@@ -38,8 +38,12 @@ ApplicationAnrListener::~ApplicationAnrListener() {}
+ void ApplicationAnrListener::OnAnr(int32_t pid, int32_t eventId) const
+ {
+     std::string faultTimeStr = "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
+-    int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
+-        HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "", "FAULT_TIME", faultTimeStr);
++    auto hisyseventReport = std::make_shared<HisyseventReport>(3);
++    std::string packageName = "";
++    hisyseventReport->InsertParam("PID", pid);
++    hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
++    hisyseventReport->InsertParam("FAULT_TIME", faultTimeStr);
++    int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
+     TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:, ret:%{public}d",
+         pid, ret);
+     AppExecFwk::AppFaultDataBySA faultData;
+diff --git a/services/common/BUILD.gn b/services/common/BUILD.gn
+index 44ebb0046af413a8e5789ad3ecc6a6179c4937fe..1bdc9cd47bfd81303c8bf8601c4c2e4572b88a77 100644
+--- a/services/common/BUILD.gn
++++ b/services/common/BUILD.gn
+@@ -132,6 +132,33 @@ ohos_shared_library("task_handler_wrap") {
+   part_name = "ability_runtime"
+ }
+ 
++ohos_shared_library("hisysevent_report") {
++  branch_protector_ret = "pac_ret"
++  sanitize = {
++    integer_overflow = true
++    ubsan = true
++    boundary_sanitize = true
++    cfi = true
++    cfi_cross_dso = true
++    debug = false
++  }
++  include_dirs = [ "include" ]
++
++  sources = [
++    "src/hisysevent_report.cpp",
++  ]
++
++  external_deps = [
++    "hilog:libhilog",
++    "c_utils:utils",
++    "hilog:libhilog",
++    "hisysevent:libhisysevent",
++  ]
++
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++}
++
+ ohos_shared_library("app_util") {
+   branch_protector_ret = "pac_ret"
+ 
+@@ -168,6 +195,10 @@ ohos_shared_library("app_util") {
+     "samgr:samgr_proxy",
+   ]
+ 
++  deps = [
++    ":hisysevent_report",
++  ]
++
+   if (ability_runtime_graphics) {
+     defines = [ "SUPPORT_GRAPHICS" ]
+     external_deps += [ "window_manager:libwsutils" ]
+diff --git a/services/common/include/hisysevent_report.h b/services/common/include/hisysevent_report.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..a0fa7bacc3d838d7cbf6105d5d66256e66799fa8
+--- /dev/null
++++ b/services/common/include/hisysevent_report.h
+@@ -0,0 +1,68 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_HISYSEVENT_REPORT_H
++#define OHOS_ABILITY_RUNTIME_HISYSEVENT_REPORT_H
++
++#include "hisysevent_c.h"
++#include <string>
++
++namespace OHOS {
++namespace AAFwk {
++constexpr uint8_t SYSTEM_PARAM_MAX_LEN = 24;
++class HisyseventReport {
++public:
++    HisyseventReport()
++    {
++    }
++    HisyseventReport(int32_t len) : length_(len)
++    {
++        if (len > SYSTEM_PARAM_MAX_LEN) {
++            return;
++        }
++        this->params_ = new (std::nothrow) HiSysEventParam[len];
++    }
++    ~HisyseventReport()
++    {
++        delete[] params_;
++    }
++
++    void InsertParam(const char* name, bool value);
++    void InsertParam(const char* name, int8_t value);
++    void InsertParam(const char* name, uint8_t value);
++    void InsertParam(const char* name, int16_t value);
++    void InsertParam(const char* name, uint16_t value);
++    void InsertParam(const char* name, int32_t value);
++    void InsertParam(const char* name, uint32_t value);
++    void InsertParam(const char* name, int64_t value);
++    void InsertParam(const char* name, uint64_t value);
++    void InsertParam(const char* name, float value);
++    void InsertParam(const char* name, double value);
++    void InsertParam(const char* name, std::string value);
++    void InsertParam(const char* name, char* value);
++    void InsertParam(const char* name, const char* value);
++    int32_t Report(const char* domain, const char* event, HiSysEventEventType type);
++
++private:
++    void SetParamName(HiSysEventParam& param, const char* name);
++
++    HiSysEventParam* params_;
++    int32_t length_ = 0;
++    int32_t pos_ = 0;
++};
++} // namespace AAFwk
++} // namespace OHOS
++
++#endif // #define OHOS_ABILITY_RUNTIME_HISYSEVENT_REPORT_H
+diff --git a/services/common/src/hisysevent_report.cpp b/services/common/src/hisysevent_report.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..a5fe8cdbff01c7a5db77058fc37cc56632be4851
+--- /dev/null
++++ b/services/common/src/hisysevent_report.cpp
+@@ -0,0 +1,233 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "hisysevent_report.h"
++
++#include <cstring>
++#include <cstdlib>
++#include "securec.h"
++#include "hilog_tag_wrapper.h"
++
++namespace OHOS {
++namespace AAFwk {
++
++void HisyseventReport::InsertParam(const char* name, bool value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_BOOL,
++        .v = { .b = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, int8_t value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_INT8,
++        .v = { .i8 = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, uint8_t value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_UINT8,
++        .v = { .ui8 = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, int16_t value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_INT16,
++        .v = { .i16 = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, uint16_t value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_UINT16,
++        .v = { .ui16 = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, int32_t value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_INT32,
++        .v = { .i32 = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, uint32_t value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_UINT32,
++        .v = { .ui32 = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, int64_t value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_INT64,
++        .v = { .i64 = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, uint64_t value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_UINT64,
++        .v = { .ui64 = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, float value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_FLOAT,
++        .v = { .f = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, double value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_DOUBLE,
++        .v = { .d = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, char* value)
++{
++    if (length_ <= pos_) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return;
++    }
++    HiSysEventParam param = {
++        .t = HISYSEVENT_STRING,
++        .v = { .s = value},
++        .arraySize = 0,
++    };
++    SetParamName(param, name);
++    params_[pos_++] = param;
++}
++
++void HisyseventReport::InsertParam(const char* name, std::string value)
++{
++    this->InsertParam(name, const_cast<char *>(value.c_str()));
++}
++
++void HisyseventReport::InsertParam(const char* name, const char* value)
++{
++    this->InsertParam(name, const_cast<char *>(value));
++}
++
++void HisyseventReport::SetParamName(HiSysEventParam& param, const char* name)
++{
++    int32_t ret = strcpy_s(param.name, sizeof(param.name), name);
++    if (ret != 0) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "SetParamName err %{public}d", ret);
++    }
++}
++
++int32_t HisyseventReport::Report(const char* domain, const char* event, HiSysEventEventType type)
++{
++    if (params_ == nullptr || length_ == 0) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
++        return -1;
++    }
++    return OH_HiSysEvent_Write(domain, event, type, params_, pos_);
++}
++}
++}
+\ No newline at end of file
+diff --git a/test/unittest/ability_manager_service_first_test/BUILD.gn b/test/unittest/ability_manager_service_first_test/BUILD.gn
+index 9c2031e3ac3da324560092e6c426684949e67fe5..4e100febdad0d5d50295cd0a9b19bc4256523d10 100644
+--- a/test/unittest/ability_manager_service_first_test/BUILD.gn
++++ b/test/unittest/ability_manager_service_first_test/BUILD.gn
+@@ -84,6 +84,7 @@ ohos_unittest("ability_manager_service_first_test") {
+     "${ability_runtime_services_path}/abilitymgr:abilityms",
+     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:hisysevent_report",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+     "${ability_runtime_services_path}/common:user_controller",
+     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit:aakit_mock",
+diff --git a/test/unittest/ability_manager_service_fourteenth_test/BUILD.gn b/test/unittest/ability_manager_service_fourteenth_test/BUILD.gn
+index 51b17b73da603806744fe9371830ab056765ed37..5dfdc030f2a80f58e39fa2cf647887c8f0df4fe4 100644
+--- a/test/unittest/ability_manager_service_fourteenth_test/BUILD.gn
++++ b/test/unittest/ability_manager_service_fourteenth_test/BUILD.gn
+@@ -264,6 +264,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
+     "${ability_runtime_path}/utils/server/startup:startup_util",
+     "${ability_runtime_services_path}/abilitymgr:mission_list",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:hisysevent_report",
+     "${ability_runtime_services_path}/common:perm_verification",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+     "${ability_runtime_services_path}/common:user_controller",
+diff --git a/test/unittest/ability_manager_service_second_test/BUILD.gn b/test/unittest/ability_manager_service_second_test/BUILD.gn
+index 44d03ee30982d9a92ace88bd91e00ff4217ce9d7..8dfc059d64a0d93a16c57b65dc36816190579837 100644
+--- a/test/unittest/ability_manager_service_second_test/BUILD.gn
++++ b/test/unittest/ability_manager_service_second_test/BUILD.gn
+@@ -266,6 +266,7 @@ ohos_unittest("ability_manager_service_second_test") {
+     "${ability_runtime_path}/utils/server/startup:startup_util",
+     "${ability_runtime_services_path}/abilitymgr:mission_list",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:hisysevent_report",
+     "${ability_runtime_services_path}/common:perm_verification",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+     "${ability_runtime_services_path}/common:user_controller",
+diff --git a/test/unittest/ability_manager_service_sixth_test/BUILD.gn b/test/unittest/ability_manager_service_sixth_test/BUILD.gn
+index 72947ee9d95b13454c5fa2c8e3251c5b375a5b1e..d6bb593ec6950103ed6fbbd912432202830a1e88 100644
+--- a/test/unittest/ability_manager_service_sixth_test/BUILD.gn
++++ b/test/unittest/ability_manager_service_sixth_test/BUILD.gn
+@@ -95,6 +95,7 @@ ohos_unittest("ability_manager_service_sixth_test") {
+     "${ability_runtime_services_path}/abilitymgr:mission_list",
+     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:hisysevent_report",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+     "${ability_runtime_services_path}/common:user_controller",
+     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit:aakit_mock",
+diff --git a/test/unittest/ability_manager_service_third_test/BUILD.gn b/test/unittest/ability_manager_service_third_test/BUILD.gn
+index 6742525b9ba76d8a09e54b8b798a0c058a8a21df..b15d00f1f9951d65ad8192d8f33666d50e0f81df 100644
+--- a/test/unittest/ability_manager_service_third_test/BUILD.gn
++++ b/test/unittest/ability_manager_service_third_test/BUILD.gn
+@@ -91,6 +91,7 @@ ohos_unittest("ability_manager_service_third_test") {
+     "${ability_runtime_services_path}/abilitymgr:abilityms",
+     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:hisysevent_report",
+     "${ability_runtime_services_path}/common:perm_verification",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+     "${ability_runtime_services_path}/common:user_controller",
+diff --git a/test/unittest/ability_manager_service_thirteenth_test/BUILD.gn b/test/unittest/ability_manager_service_thirteenth_test/BUILD.gn
+index e18289c1ada9ab5399f0c022cce0a79ccac01f0f..46b8668e48399fb3aa63dd5bb1f434c32c457f25 100644
+--- a/test/unittest/ability_manager_service_thirteenth_test/BUILD.gn
++++ b/test/unittest/ability_manager_service_thirteenth_test/BUILD.gn
+@@ -266,6 +266,7 @@ ohos_unittest("ability_manager_service_thirteenth_test") {
+     "${ability_runtime_path}/utils/server/startup:startup_util",
+     "${ability_runtime_services_path}/abilitymgr:mission_list",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:hisysevent_report",
+     "${ability_runtime_services_path}/common:perm_verification",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+     "${ability_runtime_services_path}/common:user_controller",
+diff --git a/test/unittest/dfr_test/appfreeze_inner_test/BUILD.gn b/test/unittest/dfr_test/appfreeze_inner_test/BUILD.gn
+index b4fd0f01d48e485fa5502a545ec768b15bf69344..85738d89ecb49ff436aa22a7c789bb606ae04406 100644
+--- a/test/unittest/dfr_test/appfreeze_inner_test/BUILD.gn
++++ b/test/unittest/dfr_test/appfreeze_inner_test/BUILD.gn
+@@ -75,6 +75,7 @@ ohos_unittest("appfreeze_inner_test") {
+     "${ability_runtime_native_path}/appkit:appkit_native",
+     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
+     "${ability_runtime_path}/utils/global/freeze:freeze_util",
++    "${ability_runtime_services_path}/common:hisysevent_report",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+   ]
+ 

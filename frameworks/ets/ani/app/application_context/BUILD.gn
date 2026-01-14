@@ -16,6 +16,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("application_context_ani_kit") {
+  version_script = "libapplication_context_ani_kit.map"
   branch_protector_ret = "pac_ret"
   shlib_type = "ani"
   sanitize = {
