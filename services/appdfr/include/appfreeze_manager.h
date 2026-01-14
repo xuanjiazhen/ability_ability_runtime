@@ -108,6 +108,7 @@ public:
     void InsertKillThread(int32_t state, int32_t pid, int32_t uid, const std::string& bundleName);
     bool IsSkipDetect(int32_t pid, int32_t uid, const std::string& bundleName,
         const std::string& eventName);
+    std::string GetLineByPath(const std::string& path);
 
 private:
     struct PeerBinderInfo {
@@ -139,9 +140,9 @@ private:
 
     AppfreezeManager& operator=(const AppfreezeManager&) = delete;
     AppfreezeManager(const AppfreezeManager&) = delete;
-    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> BinderParser(std::ifstream& fin, std::string& stack,
+    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> BinderParser(FILE* fp, std::string& stack,
         std::set<int>& asyncPids) const;
-    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> BinderLineParser(std::ifstream& fin, std::string& stack,
+    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> BinderLineParser(FILE* fp, std::string& stack,
         std::map<uint32_t, uint32_t>& asyncBinderMap,
         std::vector<std::pair<uint32_t, uint64_t>>& freeAsyncSpacePairs) const;
     std::vector<std::string> GetFileToList(std::string line) const;
@@ -168,7 +169,6 @@ private:
     std::string GetHitraceInfo();
     AppFaultDataBySA GenerateFaultDataBySA(const ParamInfo& info, const FreezeUtil::LifecycleFlow& flow);
     void PerfStart(std::string eventName);
-    std::string GetFirstLine(const std::string &path);
     bool CheckThreadKilled(int32_t pid, int32_t uid, const std::string& bundleName);
     std::string GetCatcherStack(const std::string& fileName, const std::string& catcherStack);
     bool IsNeedIgnoreFreezeEvent(const std::string& key, const std::string& eventName,
