@@ -241,6 +241,14 @@ bool ExtensionRecordManager::IsHostSpecifiedProcessValid(const AAFwk::AbilityReq
             TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityName not match");
             return false;
         }
+        std::shared_ptr<AAFwk::AbilityRecord> callerRecord = AAFwk::Token::GetAbilityRecordByToken(abilityRequest.callerToken);
+        if (callerRecord != nullptr && callerRecord->GetApplicationInfo().bundleName == AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
+            if (abilityRequest.want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0) != iter.second->abilityRecord_->GetAppIndex()) {
+                return false;
+            }
+        } else if (record->abilityRecord_->GetAppIndex() != iter.second->abilityRecord_->GetAppIndex()) {
+            return false;
+        }
         return true;
     }
     TAG_LOGE(AAFwkTag::ABILITYMGR, "process not found, %{public}s", process.c_str());
