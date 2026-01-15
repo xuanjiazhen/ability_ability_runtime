@@ -385,6 +385,8 @@ group("fuzztest") {
     "extensionrecordfactory_fuzzer:fuzztest",
     "extensionrecordmanager_fuzzer:fuzztest",
     "extensionrecordmanagera_fuzzer:fuzztest",
+    "extensionrecordmanagerb_fuzzer:fuzztest",
+    "extractinsightintentprofile_fuzzer:fuzztest",
     "faultdata_fuzzer:fuzztest",
     "forcetimeoutfortest_fuzzer:fuzztest",
     "freeinstallabilityfromremote_fuzzer:fuzztest",
