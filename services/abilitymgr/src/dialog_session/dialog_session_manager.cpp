@@ -384,6 +384,22 @@ int DialogSessionManager::CreateJumpModalDialog(AbilityRequest &abilityRequest, 
     return CreateModalDialogCommon(replaceWant, abilityRequest.callerToken, dialogSessionId);
 }
 
+
+int DialogSessionManager::HandleExpiredCrowdTestApp(
+    AbilityRequest& abilityRequest, int32_t userId, const Want& replaceWant)
+{
+    AAFwk::WantParams parameters;
+    std::vector<DialogAppInfo> dialogAppInfos;
+    std::string dialogSessionId = GenerateDialogSessionRecordCommon(abilityRequest, userId, parameters,
+        dialogAppInfos, SelectorType::WITHOUT_SELECTOR);
+    if (dialogSessionId == "") {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "generation failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    return CreateModalDialogCommon(replaceWant, abilityRequest.callerToken, dialogSessionId);
+}
+
 int DialogSessionManager::CreateImplicitSelectorModalDialog(AbilityRequest &abilityRequest, const Want &want,
     int32_t userId, std::vector<DialogAppInfo> &dialogAppInfos, bool needGrantUriPermission)
 {

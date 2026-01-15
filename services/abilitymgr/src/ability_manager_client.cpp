@@ -146,7 +146,7 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, in
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility %{public}s/%{public}s, userId:%{public}d, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAbilityOne %{public}s/%{public}s, userId:%{public}d, "
         "appCloneIndex:%{public}d, specifiedFullTokenId:%{public}" PRIu64 "", want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
         specifiedFullTokenId);
@@ -173,7 +173,7 @@ ErrCode AbilityManagerClient::StartAbility(
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAbilityTwo:%{public}s/%{public}s, userId:%{public}d, "
         "appCloneIndex:%{public}d, specifiedFullTokenId:%{public}" PRIu64 "", want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
         specifiedFullTokenId);
@@ -199,7 +199,7 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, const AbilityStartS
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAbilityThree:%{public}s/%{public}s, userId:%{public}d, "
         "appCloneIndex:%{public}d", want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
     HandleDlpApp(const_cast<Want &>(want));
@@ -212,7 +212,7 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, const StartOptions 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAbilityFour:%{public}s/%{public}s, userId:%{public}d, "
         "appCloneIndex:%{public}d", want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
     HandleDlpApp(const_cast<Want &>(want));
@@ -581,7 +581,7 @@ ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConn
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d",
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh ConnectAbility name:%{public}s %{public}s, userId:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::SERVICE, userId,
         false, 0, loadTimeout);
@@ -594,7 +594,7 @@ ErrCode AbilityManagerClient::ConnectAbility(
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d, "
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "hanksh connect name:%{public}s %{public}s, userId:%{public}d, "
         "specifiedFullTokenId:%{public}" PRIu64 "", want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, specifiedFullTokenId);
     return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId,
