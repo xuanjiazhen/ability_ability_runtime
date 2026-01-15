@@ -569,10 +569,12 @@ void KeepAliveProcessManager::SaveAppSeriviceRestartAfterUpgrade(const std::stri
             restartAfterUpgradeList_.insert(uid);
             IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveAppService(bundleName, false, uid));
         }
+        if (info.uid_ == uid && info.isKeepAlive) {
+            restartAfterUpgradeList_.insert(uid);
+        }
     }
 }
 
-    
 bool KeepAliveProcessManager::CheckNeedRestartAfterUpgrade(int32_t uid)
 {
     std::lock_guard<std::mutex> lock(restartAfterUpgradeMutex_);
@@ -582,6 +584,12 @@ bool KeepAliveProcessManager::CheckNeedRestartAfterUpgrade(int32_t uid)
     }
     restartAfterUpgradeList_.erase(iter);
     return true;
+}
+
+bool KeepAliveProcessManager::IsRestartAfterUpdate(int32_t uid)
+{
+    std::lock_guard<std::mutex> lock(restartAfterUpgradeMutex_);
+    return restartAfterUpgradeList_.find(uid) != restartAfterUpgradeList_.end();
 }
 }  // namespace AAFwk
 }  // namespace OHOS

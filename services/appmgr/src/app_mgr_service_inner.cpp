@@ -8864,6 +8864,10 @@ void AppMgrServiceInner::ClearNonResidentKeepAliveAppRunningData(const std::shar
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "memory size sufficient");
+        if (KeepAliveProcessManager::GetInstance().IsRestartAfterUpdate(appRecord->GetUid())) {
+            TAG_LOGI(AAFwkTag::APPMGR, "IsRestartAfterUpdate %{public}d", appRecord->GetUid());
+            return;
+        }
         auto restartProcess = [appRecord, innerService = shared_from_this()]() {
             TAG_LOGI(AAFwkTag::APPMGR, "restarting keep-alive process.");
             innerService->RestartKeepAliveProcess(appRecord);

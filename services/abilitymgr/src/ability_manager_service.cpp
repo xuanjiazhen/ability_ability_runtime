@@ -3261,8 +3261,8 @@ void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType
 
     std::vector<AppExecFwk::BundleInfo> bundleInfos = { bundleInfo };
     if (type == KeepAliveType::THIRD_PARTY && installType == INSTALL_TYPE_UPGRADE) {
-        KeepAliveProcessManager::GetInstance().StartKeepAliveProcessWithMainElement(bundleInfos, userId);
         if (IN_PROCESS_CALL(KeepAliveProcessManager::GetInstance().CheckNeedRestartAfterUpgrade(uid))) {
+            KeepAliveProcessManager::GetInstance().StartKeepAliveProcessWithMainElement(bundleInfos, userId);
             IN_PROCESS_CALL_WITHOUT_RET(
                 KeepAliveProcessManager::GetInstance().StartKeepAliveAppServiceExtension(bundleInfos));
         }
