@@ -159,7 +159,10 @@ public:
 
     void SaveAppSeriviceRestartAfterUpgrade(const std::string &bundleName, int32_t uid);
 
+    void SaveKeepAliveAppRestartAfterUpgrade(const std::string &bundleName, int32_t uid);
+
     bool CheckNeedRestartAfterUpgrade(int32_t uid);
+    bool IsRestartAfterUpdate(int32_t uid);
 
     void FilterNeedRestartKeepAliveBundleInfos(std::vector<AppExecFwk::BundleInfo> &bundleInfos);
     void AddNeedRestartKeepAliveUid(int32_t uid);

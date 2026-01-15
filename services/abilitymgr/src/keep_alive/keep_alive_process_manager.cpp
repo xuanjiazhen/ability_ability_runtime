@@ -572,7 +572,32 @@ void KeepAliveProcessManager::SaveAppSeriviceRestartAfterUpgrade(const std::stri
     }
 }
 
-    
+void KeepAliveProcessManager::SaveKeepAliveAppRestartAfterUpgrade(const std::string &bundleName, int32_t uid)
+{
+    TAG_LOGD(AAFwkTag::KEEP_ALIVE, "call SaveKeepAliveAppRestartAfterUpgrade");
+    int32_t userId = uid / BASE_USER_RANGE;
+    if (!IsKeepAliveBundle(bundleName, userId)) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "bundle is not set keep-alive");
+        return;
+    }
+
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    CHECK_POINTER_LOG(appMgrClient, "appMgrClient nullptr");
+
+    bool isRunning = false;
+    int32_t result = IN_PROCESS_CALL(appMgrClient->IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning));
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "IsAppRunningByBundleNameAndUserId fail");
+        return;
+    }
+
+    if (isRunning) {
+        std::lock_guard<std::mutex> lock(restartAfterUpgradeMutex_);
+        TAG_LOGD(AAFwkTag::KEEP_ALIVE, "keepAliveApp is running while update. uid: %{public}d", uid);
+        restartAfterUpgradeList_.insert(uid);
+    }
+}
+
 bool KeepAliveProcessManager::CheckNeedRestartAfterUpgrade(int32_t uid)
 {
     std::lock_guard<std::mutex> lock(restartAfterUpgradeMutex_);
@@ -582,6 +607,12 @@ bool KeepAliveProcessManager::CheckNeedRestartAfterUpgrade(int32_t uid)
     }
     restartAfterUpgradeList_.erase(iter);
     return true;
+}
+
+bool KeepAliveProcessManager::IsRestartAfterUpdate(int32_t uid)
+{
+    std::lock_guard<std::mutex> lock(restartAfterUpgradeMutex_);
+    return restartAfterUpgradeList_.find(uid) != restartAfterUpgradeList_.end();
 }
 }  // namespace AAFwk
 }  // namespace OHOS
