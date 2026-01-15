@@ -667,7 +667,16 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
             CommandAbilityWindow(abilityRecord, abilityRequest.sessionInfo, WIN_CMD_FOREGROUND);
             return;
         } else {
-            abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+            if (abilityRecord->GetPendingState() == AbilityState::BACKGROUND &&
+                abilityRecord->GetAbilityState() == AbilityState::BACKGROUND) {
+                TAG_LOGI(AAFwkTag::UI_EXT, "pending state dropped START: %{public}d",
+                    static_cast<int32_t>(abilityRecord->GetPendingState()));
+                abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+                return;
+            } else {
+                TAG_LOGD(AAFwkTag::UI_EXT, "pending state is not FOREGROUND or BACKGROUND.");
+                abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+            }
             abilityRecord->SetWant(abilityRequest.want);
             abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken());
