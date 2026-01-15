@@ -1148,6 +1148,7 @@ int AbilityManagerService::CheckExtensionCallPermission(const Want& want, const 
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check permission failed");
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "testTag ret=%{public}d", result);
     return result;
 }
 
