@@ -3681,11 +3681,10 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
     return ERR_OK;
 }
 
-void UIAbilityLifecycleManager::SetProcessPrepareExit(int32_t pid, size_t remainingTokensSize,
-    size_t abilitysToTerminateSize, bool clear) const
+void UIAbilityLifecycleManager::SetProcessPrepareExit(int32_t pid, size_t amount,
+    size_t terminateSize, bool clear) const
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "remianningTokens %{public}zu, abilitysToTerminate %{public}zu",
-        remainingTokensSize, abilitysToTerminateSize);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "amount: %{public}zu, terminateSize: %{public}zu", amount, terminateSize);
     if (remainingTokensSize != 0 && remainingTokensSize == abilitysToTerminateSize && clear) {
         auto appMgr = AppMgrUtil::GetAppMgr();
         CHECK_POINTER(appMgr);
