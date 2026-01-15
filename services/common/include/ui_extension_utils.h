@@ -69,7 +69,8 @@ inline std::unordered_set<AppExecFwk::ExtensionAbilityType> GetUiExtensionSet()
         AppExecFwk::ExtensionAbilityType::FORM_EDIT,
         AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE,
         AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED,
-        AppExecFwk::ExtensionAbilityType::LIVE_FORM
+        AppExecFwk::ExtensionAbilityType::LIVE_FORM,
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_CASHIER
     };
 }
 
@@ -126,7 +127,8 @@ inline bool IsSystemCallerNeeded(const AppExecFwk::ExtensionAbilityType type)
         AppExecFwk::ExtensionAbilityType::STATUS_BAR_VIEW,
         AppExecFwk::ExtensionAbilityType::VOIP,
         AppExecFwk::ExtensionAbilityType::FORM_EDIT,
-        AppExecFwk::ExtensionAbilityType::LIVE_FORM
+        AppExecFwk::ExtensionAbilityType::LIVE_FORM,
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_CASHIER
     };
     return uiExtensionStartingSet.find(type) != uiExtensionStartingSet.end();
 }
