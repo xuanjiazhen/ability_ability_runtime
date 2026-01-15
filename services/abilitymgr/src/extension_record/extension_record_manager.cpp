@@ -241,6 +241,14 @@ bool ExtensionRecordManager::IsHostSpecifiedProcessValid(const AAFwk::AbilityReq
             TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityName not match");
             return false;
         }
+        std::shared_ptr<AAFwk::AbilityRecord> callerRecord = AAFwk::Token::GetAbilityRecordByToken(abilityRequest.callerToken);
+        if (callerRecord != nullptr && callerRecord->GetApplicationInfo().bundleName == AAFwk::AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
+            if (abilityRequest.want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0) != iter.second->abilityRecord_->GetAppIndex()) {
+                return false;
+            }
+        } else if (record->abilityRecord_->GetAppIndex() != iter.second->abilityRecord_->GetAppIndex()) {
+            return false;
+        }
         return true;
     }
     TAG_LOGE(AAFwkTag::ABILITYMGR, "process not found, %{public}s", process.c_str());
@@ -296,20 +304,6 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
                 processAppIndex = abilityRecord->GetAppIndex();
             }
 
-            if (processAppIndex > 0) {
-                auto isStrEndWith = [](const std::string &targetStr, const std::string &suffix) {
-                    if (targetStr.length() >= suffix.length()) {
-                        return targetStr.substr(targetStr.length() - suffix.length()) == suffix;
-                    }
-                    return false;
-                };
-                std::string suffix = ":" + std::to_string(processAppIndex);
-                if (!isStrEndWith(processName, suffix)) {
-                    TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid name, %{public}s", processName.c_str());
-                    return ERR_INVALID_VALUE;
-                }
-                processName = processName.substr(0, processName.size() - suffix.size());
-            }
             if (!IsHostSpecifiedProcessValid(abilityRequest, record, processName)) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid name, %{public}s", processName.c_str());
                 return ERR_INVALID_VALUE;
