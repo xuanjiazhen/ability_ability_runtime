@@ -21,6 +21,7 @@ namespace AppExecFwk {
 
 struct RunningProcessInfo {
     int32_t uid_ = -1;
+    bool isKeepAlive = false;
     bool isKeepAliveAppService = false;
 };
 }  // namespace AppExecFwk
