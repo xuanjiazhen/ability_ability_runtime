@@ -59,6 +59,10 @@ bool DllWrapper::InitDlSymbol(const char* name, const char* funcName)
         return true;
     }
     if (handle_ == nullptr) {
+        if (name == nullptr) {
+            TAG_LOGE(AAFwkTag::URIPERMMGR, "dlopen failed: name is nullptr");
+            return false;
+        }
         handle_ = dlopen(name, RTLD_NOW);
         if (handle_ == nullptr) {
             TAG_LOGE(AAFwkTag::URIPERMMGR, "dlopen failed %{public}s, %{public}s", name, dlerror());
@@ -181,7 +185,7 @@ std::vector<bool> FilePermissionManager::CheckUriPersistentPermission(std::vecto
         return resultCodes;
     }
     std::vector<bool> persistResultCodes;
-    int32_t ret = SandboxManagerKit::CheckPersistPolicy(callerTokenId, persistPolicys, persistResultCodes);
+    uint32_t ret = SandboxManagerKit::CheckPersistPolicy(callerTokenId, persistPolicys, persistResultCodes);
     if (ret == 0 && persistResultCodes.size() == resultIndex.size()) {
         for (size_t i = 0; i < persistResultCodes.size(); i++) {
             auto index = resultIndex[i];
