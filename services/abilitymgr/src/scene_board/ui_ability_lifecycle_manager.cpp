@@ -3686,7 +3686,7 @@ void UIAbilityLifecycleManager::SetProcessPrepareExit(int32_t pid, size_t remain
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "remianningTokens %{public}zu, abilitysToTerminate %{public}zu",
         remainingTokensSize, abilitysToTerminateSize);
-    if (remainingTokensSize == abilitysToTerminateSize && clear) {
+    if (remainingTokensSize != 0 && remainingTokensSize == abilitysToTerminateSize && clear) {
         auto appMgr = AppMgrUtil::GetAppMgr();
         CHECK_POINTER(appMgr);
         IN_PROCESS_CALL_WITHOUT_RET(appMgr->SetProcessPrepareExit(pid));
@@ -4466,6 +4466,17 @@ void UIAbilityLifecycleManager::SendAbilityEvent(const AppExecFwk::AbilityInfo &
     ffrt::submit([eventInfo]() {
         EventReport::SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
         }, ffrt::task_attr().timeout(AbilityRuntime::GlobalConstant::FFRT_TASK_TIMEOUT));
+}
+
+void UIAbilityLifecycleManager::HandleUIAbilityDiedByPid(int32_t pid)
+{
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    for (const auto &[key, abilityRecord] : sessionAbilityMap_) {
+        if (abilityRecord && pid == abilityRecord->GetPid()) {
+            abilityRecord->SetIsKeepAliveDied(true);
+            abilityRecord->OnProcessDied();
+        }
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS

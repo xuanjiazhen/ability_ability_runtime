@@ -34,6 +34,7 @@
 #include "extract_insight_intent_profile.h"
 #include "keep_alive_info.h"
 #include "keep_alive_process_manager.h"
+#include "insight_intent_profile.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -78,6 +79,40 @@ AppExecFwk::ElementName GenerateElementName(FuzzedDataProvider& fdp, AppExecFwk:
 
     return name;
 }
+
+ExecuteMode GetRandomExecuteMode(FuzzedDataProvider& fdp)
+{
+    return static_cast<ExecuteMode>(fdp.ConsumeIntegralInRange<int>(
+        static_cast<int>(ExecuteMode::UI_ABILITY_FOREGROUND),
+        static_cast<int>(ExecuteMode::SERVICE_EXTENSION_ABILITY)
+    ));
+}
+
+void GetRandomUIAbilityIntentInfo(FuzzedDataProvider& fdp, UIAbilityIntentInfo& info)
+{
+    info.abilityName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    size_t modeCount = fdp.ConsumeIntegralInRange<size_t>(0, 1);
+    for (size_t i = 0; i < modeCount; ++i) {
+        info.supportExecuteMode.push_back(GetRandomExecuteMode(fdp));
+    }
+}
+
+void GetRandomUIExtensionIntentInfo(FuzzedDataProvider& fdp, UIExtensionIntentInfo& info)
+{
+    info.abilityName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+}
+
+void GetRandomServiceExtensionIntentInfo(FuzzedDataProvider& fdp, ServiceExtensionIntentInfo& info)
+{
+    info.abilityName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+}
+
+void GetRandomFormIntentInfo(FuzzedDataProvider& fdp, FormIntentInfo& info)
+{
+    info.abilityName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.formName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+}
+
 
 void GetRandomExtractInsightIntentGenericInfo(FuzzedDataProvider& fdp, ExtractInsightIntentGenericInfo& info)
 {
@@ -148,6 +183,30 @@ void GetRandomInsightIntentExecuteParam(FuzzedDataProvider& fdp, InsightIntentEx
     info.pagePath_ = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.navigationId_ = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.navDestinationName_ = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+}
+
+void GetRandomInsightIntentInfo(FuzzedDataProvider& fdp, InsightIntentInfo& info)
+{
+    info.intentName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.intentDomain = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.intentVersion = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.srcEntry = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.arkTSMode = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.cfgEntities = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.displayName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.icon = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.displayDescription = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.moduleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+
+    info.inputParams = GenerateStringArray(fdp);
+    info.outputParams = GenerateStringArray(fdp);
+    info.keywords = GenerateStringArray(fdp);
+
+    GetRandomUIAbilityIntentInfo(fdp, info.uiAbilityIntentInfo);
+    GetRandomUIExtensionIntentInfo(fdp, info.uiExtensionIntentInfo);
+    GetRandomServiceExtensionIntentInfo(fdp, info.serviceExtensionIntentInfo);
+    GetRandomFormIntentInfo(fdp, info.formIntentInfo);
 }
 
 void GetRandomExtractInsightIntentProfileInfo(FuzzedDataProvider& fdp, ExtractInsightIntentProfileInfo& info)
@@ -555,69 +614,6 @@ std::vector<DisposedRule> GetRandomDisposedRulesList(FuzzedDataProvider& fdp, si
         DisposedRule disposedRule;
         GetRandomDisposedRule(fdp, disposedRule);
         result.emplace_back(disposedRule);
-    }
-
-    return result;
-}
-
-void GenerateBundleInfo(FuzzedDataProvider& fdp, BundleInfo& bundleInfo)
-{
-    bundleInfo.isNewVersion = fdp.ConsumeBool();
-    bundleInfo.isKeepAlive = fdp.ConsumeBool();
-    bundleInfo.singleton = fdp.ConsumeBool();
-    bundleInfo.isPreInstallApp = fdp.ConsumeBool();
-    bundleInfo.isNativeApp = fdp.ConsumeBool();
-    bundleInfo.entryInstallationFree = fdp.ConsumeBool();
-    bundleInfo.isDifferentName = fdp.ConsumeBool();
-    bundleInfo.versionCode = fdp.ConsumeIntegral<uint32_t>();
-    bundleInfo.minCompatibleVersionCode = fdp.ConsumeIntegral<uint32_t>();
-    bundleInfo.compatibleVersion = fdp.ConsumeIntegral<uint32_t>();
-    bundleInfo.targetVersion = fdp.ConsumeIntegral<uint32_t>();
-    bundleInfo.appIndex = fdp.ConsumeIntegral<int32_t>();
-    bundleInfo.minSdkVersion = fdp.ConsumeIntegral<int32_t>();
-    bundleInfo.maxSdkVersion = fdp.ConsumeIntegral<int32_t>();
-    bundleInfo.overlayType = fdp.ConsumeIntegralInRange<int32_t>(CODE_ONE, CODE_THREE);
-    bundleInfo.uid = fdp.ConsumeIntegral<int>();
-    bundleInfo.gid = fdp.ConsumeIntegral<int>();
-    bundleInfo.installTime = fdp.ConsumeIntegral<int64_t>();
-    bundleInfo.updateTime = fdp.ConsumeIntegral<int64_t>();
-    bundleInfo.firstInstallTime = fdp.ConsumeIntegral<int64_t>();
-    bundleInfo.name = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.versionName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.vendor = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.releaseType = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.mainEntry = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.entryModuleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.appId = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.cpuAbi = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.seInfo = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.label = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.description = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    bundleInfo.jointUserId = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-
-    GenerateSignatureInfo(fdp, bundleInfo.signatureInfo);
-
-    bundleInfo.oldAppIds = GenerateStringArray(fdp);
-    bundleInfo.hapModuleNames = GenerateStringArray(fdp);
-    bundleInfo.moduleNames = GenerateStringArray(fdp);
-    bundleInfo.modulePublicDirs = GenerateStringArray(fdp);
-    bundleInfo.moduleDirs = GenerateStringArray(fdp);
-    bundleInfo.moduleResPaths = GenerateStringArray(fdp);
-
-    bundleInfo.reqPermissions = GenerateStringArray(fdp);
-    bundleInfo.defPermissions = GenerateStringArray(fdp);
-}
-
-std::vector<AppExecFwk::BundleInfo> GenerateBundleInfoArray(FuzzedDataProvider& fdp, size_t arraySizeMax = CODE_TEN)
-{
-    std::vector<AppExecFwk::BundleInfo> result;
-    size_t arraySize = fdp.ConsumeIntegralInRange<size_t>(0, arraySizeMax);
-    result.reserve(arraySize);
-
-    for (size_t i = 0; i < arraySize; ++i) {
-        AppExecFwk::BundleInfo bundleInfo;
-        GenerateBundleInfo(fdp, bundleInfo);
-        result.emplace_back(bundleInfo);
     }
 
     return result;

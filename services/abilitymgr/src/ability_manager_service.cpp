@@ -4173,12 +4173,6 @@ int AbilityManagerService::CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage ui
         return ERR_INVALID_VALUE;
     }
 
-    if (AAFwk::UIExtensionUtils::IsOnlyForModal(extensionType) &&
-        uiExtensionUsage != UIExtensionUsage::MODAL) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "secureModal extension type error:%u.", extensionType);
-        return ERR_INVALID_VALUE;
-    }
-
     if (uiExtensionUsage == UIExtensionUsage::PRE_VIEW_EMBEDDED &&
         !AAFwk::UIExtensionUtils::IsSystemUIExtension(extensionType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target not system app");
@@ -6128,7 +6122,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
         if (isSpecifyUserId) {
             userId = wantSenderInfo.userId;
             appIndex = wantSenderInfo.appIndex;
-            appUid = (uid >= 0) ? uid : GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+            appUid = (uid >= 0) ? uid : GetUidByCloneBundleInfo(bundleName, callerUid, userId, appIndex);
         } else if (uid >= 0) {
             if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
                 GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
@@ -6138,11 +6132,11 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
             appUid = uid;
         } else {
             userId = callerUserId;
-            appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+            appUid = GetUidByCloneBundleInfo(bundleName, callerUid, userId, appIndex);
         }
     } else if (isSystemApp) {
         userId = isSpecifyUserId ? wantSenderInfo.userId : callerUserId;
-        appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+        appUid = GetUidByCloneBundleInfo(bundleName, callerUid, userId, appIndex);
     } else {
         userId = callerUserId;
         appUid = callerUid;
@@ -8985,7 +8979,7 @@ void AbilityManagerService::SubscribeUserUnlockedEvent()
         GetScreenUnlockCallback(), GetUserScreenUnlockCallback());
     bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(userUnlockSubscriber_);
     if (!subResult) {
-        RetrySubscribeUnlockedEvent(RETRY_COUNT, userUnlockSubscriber_);
+        RetrySubscribeUnlockedEvent(RETRY_COUNT, userUnlockSubscriber_, true);
     }
 }
 
@@ -9077,12 +9071,12 @@ void AbilityManagerService::UnSubscribeScreenUnlockedEvent()
 }
 
 void AbilityManagerService::RetrySubscribeUnlockedEvent(int32_t retryCount,
-    std::shared_ptr<EventFwk::CommonEventSubscriber> subscriber)
+    std::shared_ptr<EventFwk::CommonEventSubscriber> subscriber, bool isUserUnlockSubscriber)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "RetryCount: %{public}d.", retryCount);
     CHECK_POINTER_LOG(subscriber, "subscriber nullptr");
     auto retrySubscribeScreenUnlockedEventTask = [aams = weak_from_this(), unlockedEventSubscriber = subscriber,
-                                                     retryCount]() {
+                                                     retryCount, isUserUnlock = isUserUnlockSubscriber]() {
         CHECK_POINTER_LOG(unlockedEventSubscriber, "unlockedEventSubscriber nullptr");
         bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(unlockedEventSubscriber);
         auto obj = aams.lock();
@@ -9091,11 +9085,13 @@ void AbilityManagerService::RetrySubscribeUnlockedEvent(int32_t retryCount,
             return;
         }
         if (subResult) {
-            obj->isSubscribed_ = true;
+            if (!isUserUnlock) {
+                obj->isSubscribed_ = true;
+            }
             return;
         }
         if (retryCount > 0) {
-            obj->RetrySubscribeUnlockedEvent(retryCount - 1, unlockedEventSubscriber);
+            obj->RetrySubscribeUnlockedEvent(retryCount - 1, unlockedEventSubscriber, isUserUnlock);
         }
     };
     constexpr int32_t delaytime = 200 * 1000; // us
@@ -9604,6 +9600,8 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
 
     DelayedSingleton<AppScheduler>::GetInstance()->SetEnableStartProcessFlagByUserId(userId, true);
     auto oldUserId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(displayId);
+    // True indicates that a user has been created on this displayId, false indicates that no user has been created
+    auto hasDisplayId = AbilityRuntime::UserController::GetInstance().IsExistDisplayId(displayId);
     if (oldUserId != U0_USER_ID && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         // start freezing screen
         AbilityRuntime::UserController::GetInstance().SetFreezingNewUserId(userId);
@@ -9622,7 +9620,16 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
     }
 
     AbilityRuntime::UserController::GetInstance().SetForegroundUserId(userId, displayId);
-    return SwitchToUser(oldUserId, userId, displayId, callback, isAppRecovery);
+    auto ret = SwitchToUser(oldUserId, userId, displayId, callback, isAppRecovery);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SwitchToUser filed，oldUserId:%{public}d, hasDisplayId:%{public}d", oldUserId, hasDisplayId);
+        if (hasDisplayId) {
+            AbilityRuntime::UserController::GetInstance().SetForegroundUserId(oldUserId, displayId);
+        } else {
+            AbilityRuntime::UserController::GetInstance().ClearDisplayId(displayId);
+        }
+    }
+    return ret;
 }
 
 int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callback)
@@ -10344,22 +10351,19 @@ int AbilityManagerService::SwitchToUser(int32_t oldUserId, int32_t userId, uint6
         "%{public}s, oldUserId:%{public}d, newUserId:%{public}d, isAppRecovery:%{public}d", __func__,
         oldUserId, userId, isAppRecovery);
     SwitchManagers(userId);
-    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        PauseOldUser(oldUserId);
-        ConnectServices();
-        StartUserApps();
-    }
+    int32_t ret = ERR_OK;
 #ifndef DISABLE_LAUNCHER
-    bool isBoot = oldUserId == U0_USER_ID ? true : false;
-    auto ret = StartHighestPriorityAbility(userId, displayId, isBoot, isAppRecovery);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartHighestPriorityAbility failed: %{public}d", ret);
+    if (!StartUserApps(oldUserId)) {
+        bool isBoot = oldUserId == U0_USER_ID ? true : false;
+        ret = StartHighestPriorityAbility(userId, displayId, isBoot, isAppRecovery);
     }
-#else
-    auto ret = ERR_OK;
 #endif
     if (callback) {
         callback->OnStartUserDone(userId, ret);
+    }
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartHighestPriorityAbility failed: %{public}d", ret);
+        return ret;
     }
     if (taskHandler_) {
         taskHandler_->SubmitTask([abilityMs = shared_from_this(), userId]() {
@@ -10449,13 +10453,19 @@ void AbilityManagerService::PauseOldConnectManager(int32_t userId)
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s, PauseOldConnectManager:%{public}d-----end", __func__, userId);
 }
 
-void AbilityManagerService::StartUserApps()
+bool AbilityManagerService::StartUserApps(int32_t oldUserId)
 {
-    auto missionListManager = GetCurrentMissionListManager();
-    if (missionListManager && missionListManager->IsStarted()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "missionListManager ResumeManager");
-        missionListManager->ResumeManager();
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        PauseOldUser(oldUserId);
+        ConnectServices();
+        auto missionListManager = GetCurrentMissionListManager();
+        if (missionListManager && missionListManager->IsStarted()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "missionListManager ResumeManager");
+            missionListManager->ResumeManager();
+            return true;
+        }
     }
+    return false;
 }
 
 int32_t AbilityManagerService::GetValidUserId(int32_t userId)
@@ -13615,7 +13625,8 @@ void AbilityManagerService::NotifyStartResidentProcess(std::vector<AppExecFwk::B
     }
 }
 
-void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+    int32_t diedPid)
 {
     if (!system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
         return;
@@ -13643,6 +13654,10 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
             KeepAliveProcessManager::GetInstance().AddNeedRestartKeepAliveUid(item.uid);
         }
     }
+    if (diedPid != AppExecFwk::INVALID_DIED_PID) {
+        TimeSequenceKeepAliveRestart(userId, diedPid, bundleInfosMap, bundleInfosForU1);
+        return;
+    }
 
     for (auto search = bundleInfosMap.rbegin(); search != bundleInfosMap.rend(); ++search) {
         KeepAliveProcessManager::GetInstance().StartKeepAliveProcessWithMainElement(search->second, search->first);
@@ -13651,6 +13666,33 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
     if (bundleInfosForU1.size() != 0) {
         KeepAliveProcessManager::GetInstance().StartKeepAliveAppServiceExtension(bundleInfosForU1);
     }
+}
+
+void AbilityManagerService::TimeSequenceKeepAliveRestart(int32_t userId, int32_t pid,
+    std::map<int32_t, std::vector<AppExecFwk::BundleInfo>> &bundleInfosMap,
+    std::vector<AppExecFwk::BundleInfo> &bundleInfosForU1)
+{
+    CHECK_POINTER_LOG(taskHandler_, "taskHandler nullptr");
+    auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
+    CHECK_POINTER_LOG(uiAbilityManager, "uiAbilityManager nullptr");
+    uiAbilityManager->HandleUIAbilityDiedByPid(pid);
+    auto bundleInfosMapPtr =
+        std::make_shared<std::map<int32_t, std::vector<AppExecFwk::BundleInfo>>>(bundleInfosMap);
+    auto bundleInfosForU1Ptr = std::make_shared<std::vector<AppExecFwk::BundleInfo>>(bundleInfosForU1);
+    auto keepAliveRestartTask = [bundleInfosMapPtr, bundleInfosForU1Ptr]() {
+        CHECK_POINTER_LOG(bundleInfosMapPtr, "bundleInfosMapPtr nullptr");
+        CHECK_POINTER_LOG(bundleInfosForU1Ptr, "bundleInfosForU1Ptr nullptr");
+        auto bundleInfosMap = *bundleInfosMapPtr;
+        auto bundleInfosForU1 = *bundleInfosForU1Ptr;
+        for (auto search = bundleInfosMap.rbegin(); search != bundleInfosMap.rend(); ++search) {
+            KeepAliveProcessManager::GetInstance().StartKeepAliveProcessWithMainElement(search->second, search->first);
+        }
+
+        if (bundleInfosForU1.size() != 0) {
+            KeepAliveProcessManager::GetInstance().StartKeepAliveAppServiceExtension(bundleInfosForU1);
+        }
+    };
+    taskHandler_->SubmitTask(keepAliveRestartTask, "TimeSequenceKeepAliveRestartTask");
 }
 
 void AbilityManagerService::NotifyAppPreCache(int32_t pid, int32_t userId)

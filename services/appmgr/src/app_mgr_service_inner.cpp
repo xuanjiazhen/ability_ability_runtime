@@ -1541,7 +1541,7 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     ffrt::submit([appRecord, abilityInfo, innerServiceWeak = weak_from_this(), isStartupHide]() {
         auto innerService = innerServiceWeak.lock();
         CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
-        innerService->OnAppStateChanged(appRecord, ApplicationState::APP_STATE_SET_COLD_START, false, false);
+        innerService->OnAppStateChanged(appRecord, ApplicationState::APP_STATE_SET_COLD_START, false, false, false);
         if (appRecord && appRecord->IsAlreadyHaveAbility()) {
             AppStartReason startReason = isStartupHide ? AppStartReason::STARTUP_HIDE : AppStartReason::NONE;
             innerService->SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::COLD, startReason);
@@ -1927,7 +1927,7 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
         }
         appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
         bool needNotifyApp = appRunningManager_->IsApplicationFirstForeground(*appRecord);
-        OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, false);
+        OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, false, false);
         DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "app name(%{public}s), app state(%{public}d)",
@@ -1974,12 +1974,13 @@ void AppMgrServiceInner::ApplicationBackgrounded(const int32_t recordId)
     appRecord->SetApplicationScheduleState(ApplicationScheduleState::SCHEDULE_READY);
     if (appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
         appRecord->GetState() == ApplicationState::APP_STATE_READY) {
+        auto isByCall = appRecord->GetState() == ApplicationState::APP_STATE_READY;
         appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
         bool needNotifyApp = !AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
             && !AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())
             && appRunningManager_->IsApplicationBackground(*appRecord);
-        OnAppStateChanged(appRecord, ApplicationState::APP_STATE_BACKGROUND, needNotifyApp, false);
-        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord);
+        OnAppStateChanged(appRecord, ApplicationState::APP_STATE_BACKGROUND, needNotifyApp, false, isByCall);
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord, false, isByCall);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "app name(%{public}s), app state(%{public}d)",
             appRecord->GetName().c_str(), static_cast<ApplicationState>(appRecord->GetState()));
@@ -2047,7 +2048,7 @@ void AppMgrServiceInner::ApplicationTerminated(const int32_t recordId)
     appRecord->SetState(ApplicationState::APP_STATE_TERMINATED);
     appRecord->RemoveAppDeathRecipient();
     appRecord->SetProcessChangeReason(ProcessChangeReason::REASON_APP_TERMINATED);
-    OnAppStateChanged(appRecord, ApplicationState::APP_STATE_TERMINATED, false, false);
+    OnAppStateChanged(appRecord, ApplicationState::APP_STATE_TERMINATED, false, false, false);
     appRunningManager_->RemoveAppRunningRecordById(recordId);
     AAFwk::EventInfo eventInfo;
     auto applicationInfo = appRecord->GetApplicationInfo();
@@ -4047,7 +4048,7 @@ void AppMgrServiceInner::OnAppStateChanged(
     const std::shared_ptr<AppRunningRecord> &appRecord,
     const ApplicationState state,
     bool needNotifyApp,
-    bool isFromWindowFocusChanged)
+    bool isFromWindowFocusChanged, bool isByCall)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!appRecord) {
@@ -4067,7 +4068,7 @@ void AppMgrServiceInner::OnAppStateChanged(
     }
 
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnAppStateChanged(
-        appRecord, state, needNotifyApp, isFromWindowFocusChanged);
+        appRecord, state, needNotifyApp, isFromWindowFocusChanged, isByCall);
 }
 
 void AppMgrServiceInner::OnAppStarted(const std::shared_ptr<AppRunningRecord> &appRecord)
@@ -4748,8 +4749,9 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
         }
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
         errCode = remoteClientManager_->GetCJSpawnClient()->StartProcess(startMsg, pid);
-    } else if (appInfo != nullptr &&
-        (appInfo->arkTSMode == CODE_LANGUAGE_ARKTS_1_2 || appInfo->arkTSMode == CODE_LANGUAGE_ARKTS_HYBRID)) {
+    } else if ((appInfo != nullptr &&
+        (appInfo->arkTSMode == CODE_LANGUAGE_ARKTS_1_2 || appInfo->arkTSMode == CODE_LANGUAGE_ARKTS_HYBRID)) &&
+        !AAFwk::AppUtils::GetInstance().IsHybridSpawnUnified()) {
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
         startMsg.gids.push_back(SHADER_CACHE_GROUPID);
         errCode = remoteClientManager_->GetHybridSpawnClient()->StartProcess(startMsg, pid);
@@ -4781,7 +4783,7 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
         TAG_LOGD(AAFwkTag::APPMGR, "Add UIExtension LauncherItem.");
         AddUIExtensionLauncherItem(want, appRecord, token);
     }
-    OnAppStateChanged(appRecord, ApplicationState::APP_STATE_CREATE, false, false);
+    OnAppStateChanged(appRecord, ApplicationState::APP_STATE_CREATE, false, false, false);
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessCreated(appRecord, isPreload);
     if (AAFwk::UIExtensionUtils::IsUIExtension(extensionAbilityType)) {
         AddUIExtensionBindItem(want, appRecord, token);
@@ -5269,7 +5271,7 @@ void AppMgrServiceInner::TerminateApplication(const std::shared_ptr<AppRunningRe
     appRecord->SetState(ApplicationState::APP_STATE_TERMINATED);
     appRecord->RemoveAppDeathRecipient();
     appRecord->SetProcessChangeReason(ProcessChangeReason::REASON_APP_TERMINATED_TIMEOUT);
-    OnAppStateChanged(appRecord, ApplicationState::APP_STATE_TERMINATED, false, false);
+    OnAppStateChanged(appRecord, ApplicationState::APP_STATE_TERMINATED, false, false, false);
     pid_t pid = appRecord->GetPid();
     int32_t uid = appRecord->GetUid();
     if (pid > 0) {
@@ -5538,7 +5540,7 @@ void AppMgrServiceInner::RestartKeepAliveProcess(std::shared_ptr<AppRunningRecor
     std::vector<BundleInfo> infos;
     infos.emplace_back(bundleInfo);
     TAG_LOGI(AAFwkTag::APPMGR, "keepAliveProcess %{public}s", appRecord->GetProcessName().c_str());
-    NotifyStartKeepAliveProcess(infos);
+    NotifyStartKeepAliveProcess(infos, appRecord->GetPid());
 }
 
 void AppMgrServiceInner::RestartResidentProcess(std::shared_ptr<AppRunningRecord> appRecord)
@@ -7249,7 +7251,7 @@ void AppMgrServiceInner::HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> 
 
     bool needNotifyApp = appRunningManager_->IsApplicationFirstFocused(*appRecord);
     if (appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND) {
-        OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, true);
+        OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, true, false);
     }
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord, true);
 }
@@ -7281,7 +7283,7 @@ void AppMgrServiceInner::HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo
     }
 
     bool needNotifyApp = appRunningManager_->IsApplicationUnfocused(appRecord->GetUid());
-    OnAppStateChanged(appRecord, appRecord->GetState(), needNotifyApp, true);
+    OnAppStateChanged(appRecord, appRecord->GetState(), needNotifyApp, true, false);
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord, true);
 }
 
@@ -7735,7 +7737,7 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         return ERR_OK;
     }
 
-    if (appRunningManager_ && eventName.find("THREAD_BLOCK_") != std::string::npos) {
+    if (appRunningManager_ && AppExecFwk::AppfreezeManager::GetInstance()->CheckNeedRecordAppRunningUnquieId(eventName)) {
         std::string appRunningUniqueId;
         int32_t ret = appRunningManager_->GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);
         TAG_LOGI(AAFwkTag::APPDFR, "ret=%{public}d, appRunningUniqueId=%{public}s", ret, appRunningUniqueId.c_str());
@@ -7753,12 +7755,9 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     }
 
 #ifdef APP_NO_RESPONSE_DIALOG
-    // A dialog box is displayed when the PC appfreeze
-    bool isDialogExist = appRunningManager_ ?
-        appRunningManager_->CheckAppRunningRecordIsExist(APP_NO_RESPONSE_BUNDLENAME, APP_NO_RESPONSE_ABILITY) : false;
     auto killFaultApp = std::bind(&AppMgrServiceInner::KillFaultApp, this, pid, bundleName, faultData, false);
     ModalSystemAppFreezeUIExtension::GetInstance().ProcessAppFreeze(appRecord->GetFocusFlag(), faultData,
-        std::to_string(pid), bundleName, killFaultApp, isDialogExist);
+        std::to_string(pid), bundleName, killFaultApp);
 #else
     KillFaultApp(pid, bundleName, faultData);
 #endif
@@ -7811,12 +7810,9 @@ void AppMgrServiceInner::TimeoutNotifyApp(int32_t pid, int32_t uid,
     bool isNeedExit = (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK) ||
         (faultData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT);
 #ifdef APP_NO_RESPONSE_DIALOG
-    bool isDialogExist = appRunningManager_ ?
-        appRunningManager_->CheckAppRunningRecordIsExist(APP_NO_RESPONSE_BUNDLENAME, APP_NO_RESPONSE_ABILITY) :
-        false;
     auto killFaultApp = std::bind(&AppMgrServiceInner::KillFaultApp, this, pid, bundleName, faultData, isNeedExit);
     ModalSystemAppFreezeUIExtension::GetInstance().ProcessAppFreeze(true, faultData, std::to_string(pid),
-        bundleName, killFaultApp, isDialogExist);
+        bundleName, killFaultApp);
 #else
     KillFaultApp(pid, bundleName, faultData, isNeedExit);
 #endif
@@ -9918,12 +9914,12 @@ void AppMgrServiceInner::NotifyStartResidentProcess(std::vector<AppExecFwk::Bund
     }
 }
 
-void AppMgrServiceInner::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+void AppMgrServiceInner::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t diedPid)
 {
     std::lock_guard lock(appStateCallbacksLock_);
     for (const auto &item : appStateCallbacks_) {
         if (item.callback != nullptr) {
-            item.callback->NotifyStartKeepAliveProcess(bundleInfos);
+            item.callback->NotifyStartKeepAliveProcess(bundleInfos, diedPid);
         }
     }
 }
@@ -11086,7 +11082,7 @@ void AppMgrServiceInner::OnProcessDied(std::shared_ptr<AppRunningRecord> appReco
         return;
     }
     if (appRunningManager_->NeedNotifyAppStateChangeWhenProcessDied(appRecord)) {
-        OnAppStateChanged(appRecord, ApplicationState::APP_STATE_BACKGROUND, true, false);
+        OnAppStateChanged(appRecord, ApplicationState::APP_STATE_BACKGROUND, true, false, false);
     }
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessDied(appRecord);
 }
