@@ -84,6 +84,17 @@ public:
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
         AppExecFwk::PreloadMode preloadMode, int32_t appIndex) override;
 
+    virtual int32_t MakeImage(const std::string &bundleName, int32_t userId,
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0,
+        sptr<IImageErrorHandler> errorHandler = nullptr) override;
+    
+    virtual int32_t DestroyImage(const std::string &bundleName, int32_t userId, int32_t appIndex = 0,
+        sptr<IImageErrorHandler> errorHandler = nullptr) override;
+
+    virtual int32_t RemakeImage(const std::string &bundleName, int32_t userId,
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0,
+        sptr<IImageErrorHandler> errorHandler = nullptr) override;
+
     /**
      * ApplicationForegrounded, call ApplicationForegrounded() through proxy object,
      * set the application to Foreground State.
@@ -987,6 +998,10 @@ private:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnregisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer) override;
+
+    int32_t RegisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer) override;
+
+    int32_t UnregisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer) override;
 
     /**
      * Register application or process state observer.

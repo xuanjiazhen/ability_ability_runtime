@@ -221,7 +221,7 @@ void AppSchedulerProxy::ScheduleMemoryCommon(const int32_t level, const uint32_t
 }
 
 void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemoteObject> &token,
-    const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId)
+    const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId, const std::shared_ptr<AppUpdateInfo> updateInfo)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -255,6 +255,18 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
     if (!data.WriteInt32(abilityRecordId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write ability record id fail.");
         return;
+    }
+
+    if (updateInfo) {
+        if (!data.WriteBool(true) || !data.WriteParcelable(updateInfo.get())) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and updateInfo");
+            return;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag");
+            return;
+        }
     }
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LAUNCH_ABILITY_TRANSACTION), data, reply, option);
