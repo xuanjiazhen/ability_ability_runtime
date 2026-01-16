@@ -128,6 +128,11 @@ void JsContext::Finalizer(napi_env env, void* data, void* hint)
 
 napi_value CreateSendableContextObject(napi_env env, std::shared_ptr<Context> context)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return nullptr;
+    }
+    HandleEscape handleEscape(env);
     auto jsContext = std::make_unique<JsContext>(context);
     napi_value objValue = nullptr;
     auto status = napi_ok;
@@ -144,11 +149,16 @@ napi_value CreateSendableContextObject(napi_env env, std::shared_ptr<Context> co
         return nullptr;
     }
 
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 
 napi_value CreateJsBaseContextFromSendable(napi_env env, void* wrapped)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return nullptr;
+    }
+    HandleEscape handleEscape(env);
     JsContext *sendableContext = static_cast<JsContext*>(wrapped);
     if (sendableContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null sendableContext");
@@ -203,11 +213,16 @@ napi_value CreateJsBaseContextFromSendable(napi_env env, void* wrapped)
         return nullptr;
     }
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value CreateJsApplicationContextFromSendable(napi_env env, void* wrapped)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return nullptr;
+    }
+    HandleEscape handleEscape(env);
     JsContext *sendableContext = static_cast<JsContext*>(wrapped);
     if (sendableContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null sendableContext");
@@ -262,11 +277,16 @@ napi_value CreateJsApplicationContextFromSendable(napi_env env, void* wrapped)
         return nullptr;
     }
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value CreateJsAbilityStageContextFromSendable(napi_env env, void* wrapped)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return nullptr;
+    }
+    HandleEscape handleEscape(env);
     JsContext *sendableContext = static_cast<JsContext*>(wrapped);
     if (sendableContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null sendableContext");
@@ -321,11 +341,16 @@ napi_value CreateJsAbilityStageContextFromSendable(napi_env env, void* wrapped)
         return nullptr;
     }
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value CreateJsUIAbilityContextFromSendable(napi_env env, void* wrapped)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return nullptr;
+    }
+    HandleEscape handleEscape(env);
     JsContext *sendableContext = static_cast<JsContext*>(wrapped);
     if (sendableContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null sendableContext");
@@ -380,7 +405,7 @@ napi_value CreateJsUIAbilityContextFromSendable(napi_env env, void* wrapped)
         return nullptr;
     }
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 class JsSendableContextManager {
@@ -427,6 +452,11 @@ private:
     napi_value OnConvertFromContext(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::CONTEXT, "called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+            return nullptr;
+        }
+        HandleEscape handleEscape(env);
         if (info.argc != ARGC_ONE) {
             TAG_LOGE(AAFwkTag::CONTEXT, "invalid argc");
             ThrowInvalidParamError(env, "Parameter error: The number of parameter is invalid.");
@@ -457,12 +487,17 @@ private:
         }
 
         // create sendable context
-        return CreateSendableContextObject(env, contextPtr);
+        return handleEscape.Escape(CreateSendableContextObject(env, contextPtr));
     }
 
     napi_value OnConvertToContext(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::CONTEXT, "called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+            return nullptr;
+        }
+        HandleEscape handleEscape(env);
         if (info.argc != ARGC_ONE) {
             TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
             ThrowInvalidParamError(env, "Parameter error: The number of parameter is invalid.");
@@ -486,12 +521,17 @@ private:
             return CreateJsUndefined(env);
         }
 
-        return object;
+        return handleEscape.Escape(object);
     }
 
     napi_value OnConvertToApplicationContext(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::CONTEXT, "called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+            return nullptr;
+        }
+        HandleEscape handleEscape(env);
         if (info.argc != ARGC_ONE) {
             TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
             ThrowInvalidParamError(env, "Parameter error: The number of parameter is invalid.");
@@ -515,12 +555,17 @@ private:
             return CreateJsUndefined(env);
         }
 
-        return object;
+        return handleEscape.Escape(object);
     }
 
     napi_value OnConvertToAbilityStageContext(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::CONTEXT, "called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+            return nullptr;
+        }
+        HandleEscape handleEscape(env);
         if (info.argc != ARGC_ONE) {
             TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
             ThrowInvalidParamError(env, "Parameter error: The number of parameter is invalid.");
@@ -544,12 +589,17 @@ private:
             return CreateJsUndefined(env);
         }
 
-        return object;
+        return handleEscape.Escape(object);
     }
 
     napi_value OnConvertToUIAbilityContext(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::CONTEXT, "called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+            return nullptr;
+        }
+        HandleEscape handleEscape(env);
         if (info.argc != ARGC_ONE) {
             TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
             ThrowInvalidParamError(env, "Parameter error: The number of parameter is invalid.");
@@ -573,7 +623,7 @@ private:
             return CreateJsUndefined(env);
         }
 
-        return object;
+        return handleEscape.Escape(object);
     }
 };
 
@@ -584,6 +634,7 @@ napi_value CreateJsSendableContextManager(napi_env env, napi_value exportObj)
         TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
         return nullptr;
     }
+    HandleScope handleScope(env);
 
     napi_status status = napi_ok;
     std::unique_ptr<JsSendableContextManager> sendableMgr = std::make_unique<JsSendableContextManager>();
