@@ -27,6 +27,7 @@ napi_value CreateJsAbilityDelegator(napi_env env)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    HandleEscape handleEscape(env);
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue == nullptr) {
@@ -65,12 +66,14 @@ napi_value CreateJsAbilityDelegator(napi_env env)
     BindNativeFunction(env, objValue, "removeAbilityStageMonitorSync",
                        moduleName, JSAbilityDelegator::RemoveAbilityStageMonitorSync);
     BindNativeFunction(env, objValue, "setMockList", moduleName, JSAbilityDelegator::SetMockList);
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 
 napi_value SetAbilityDelegatorArgumentsPara(napi_env env, const std::map<std::string, std::string> &paras)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+
+    HandleEscape handleEscape(env);
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue == nullptr) {
@@ -83,7 +86,7 @@ napi_value SetAbilityDelegatorArgumentsPara(napi_env env, const std::map<std::st
         napi_set_named_property(env, objValue, iter->first.c_str(),
             CreateJsValue(env, iter->second));
     }
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 
 napi_value CreateJsAbilityDelegatorArguments(
@@ -91,6 +94,7 @@ napi_value CreateJsAbilityDelegatorArguments(
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    HandleEscape handleEscape(env);
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue == nullptr) {
@@ -107,13 +111,14 @@ napi_value CreateJsAbilityDelegatorArguments(
     napi_set_named_property(env, objValue, "testRunnerClassName",
         CreateJsValue(env, abilityDelegatorArgs->GetTestRunnerClassName()));
 
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 
 napi_value CreateJsShellCmdResult(napi_env env, std::unique_ptr<ShellCmdResult> &shellResult)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    HandleEscape handleEscape(env);
     if (!shellResult) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null shellResult");
         return nullptr;
@@ -129,7 +134,7 @@ napi_value CreateJsShellCmdResult(napi_env env, std::unique_ptr<ShellCmdResult> 
     napi_set_named_property(env, objValue, "stdResult", CreateJsValue(env, shellResult->GetStdResult()));
     napi_set_named_property(env, objValue, "exitCode", CreateJsValue(env, shellResult->GetExitCode()));
 
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 }  // namespace AbilityDelegatorJs
 }  // namespace OHOS
