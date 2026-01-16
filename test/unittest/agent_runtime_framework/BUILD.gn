@@ -21,5 +21,6 @@ group("unittest") {
     "agent_card_test:agent_card_test",
     "agent_load_callback_test:agent_load_callback_test",
     "agent_manager_client_test:agent_manager_client_test",
+    "agent_manager_service_test:agent_manager_service_test",
   ]
 }
