@@ -257,6 +257,8 @@ HWTEST_F(AbilityStageTest, AppExecFwk_AbilityStage_OnAcceptWant_001, Function | 
 {
     GTEST_LOG_(INFO) << "AppExecFwk_AbilityStage_OnAcceptWant_001 start";
     AAFwk::Want want;
+    abilityStage_->OnUpdate();
+    abilityStage_->OnPreAbilityCreate();
     EXPECT_TRUE(abilityStage_->OnAcceptWant(want).empty());
     bool isAsync = false;
     EXPECT_TRUE(abilityStage_->OnAcceptWant(want, nullptr, isAsync).empty());
@@ -350,6 +352,22 @@ HWTEST_F(AbilityStageTest, AppExecFwk_AbilityStage_RunAutoStartupTask_001, Funct
     std::shared_ptr<AbilityRuntime::Context> context = abilityStage_->GetContext();
     EXPECT_TRUE(abilityStage_->RunAutoStartupTask(callback, nullptr, isAsyncCallback, context, false) == ERR_OK);
     GTEST_LOG_(INFO) << "AppExecFwk_AbilityStage_RunAutoStartupTask_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_AbilityStage_MarkAbilityCreated_001
+ * @tc.name: MarkAbilityCreated
+ * @tc.desc: Test whether MarkAbilityCreated is called normally.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityStageTest, AppExecFwk_AbilityStage_MarkAbilityCreated_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_AbilityStage_MarkAbilityCreated_001 start";
+    EXPECT_FALSE(abilityStage_->IsAbilityCreated());
+    abilityStage_->MarkAbilityCreated();
+    EXPECT_TRUE(abilityStage_->IsAbilityCreated());
+    GTEST_LOG_(INFO) << "AppExecFwk_AbilityStage_MarkAbilityCreated_001 end";
 }
 }  // namespace AppExecFwk
 }
