@@ -31,6 +31,8 @@
 #include "iapplication_state_observer.h"
 #include "iapp_state_callback.h"
 #include "iconfiguration_observer.h"
+#include "image_error_handler_interface.h"
+#include "image_process_state_observer_interface.h"
 #include "iremote_object.h"
 #include "irender_scheduler.h"
 #include "irender_state_observer.h"
@@ -768,6 +770,10 @@ public:
      */
     int32_t UnregisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer);
 
+    int32_t RegisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer);
+
+    int32_t UnregisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer);
+
     /**
      * Register native child exit notify.
      * @param notify, callback to notify.
@@ -915,6 +921,15 @@ public:
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
         AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0);
+
+    int32_t MakeImage(const std::string &bundleName, int32_t userId,
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr);
+
+    int32_t DestroyImage(const std::string &bundleName, int32_t userId,
+        int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr);
+
+    int32_t RemakeImage(const std::string &bundleName, int32_t userId,
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr);
 
     /**
      * @brief set support process cache by self

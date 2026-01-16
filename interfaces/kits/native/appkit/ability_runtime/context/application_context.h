@@ -81,6 +81,8 @@ public:
     void DispatchMemoryLevel(const int level);
     void NotifyApplicationForeground();
     void NotifyApplicationBackground();
+    void NotifyApplicationUpdate();
+    void NotifyApplicationPreAbilityCreate();
     void DispatchOnWillNewWant(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnNewWant(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnAbilityWillCreate(const AbilityLifecycleCallbackArgs &ability);

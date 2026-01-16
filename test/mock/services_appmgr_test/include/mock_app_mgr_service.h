@@ -138,6 +138,14 @@ public:
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
     MOCK_METHOD2(QueryRunningSharedBundles, int32_t(pid_t pid, std::map<std::string, uint32_t> &sharedBundles));
     MOCK_METHOD1(SetProcessPrepareExit, void(int32_t));
+    MOCK_METHOD5(MakeImage, int32_t(const std::string &bundleName, int32_t userId, AppExecFwk::PreloadMode preloadMode,
+        int32_t appIndex, sptr<IImageErrorHandler>));
+    MOCK_METHOD4(DestroyImage, int32_t(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        sptr<IImageErrorHandler>));
+    MOCK_METHOD5(RemakeImage, int32_t(const std::string &bundleName, int32_t userId, AppExecFwk::PreloadMode preloadMode,
+        int32_t appIndex, sptr<IImageErrorHandler>));
+    MOCK_METHOD1(RegisterImageProcessStateObserver, int32_t(const sptr<IImageProcessStateObserver> &observer));
+    MOCK_METHOD1(UnregisterImageProcessStateObserver, int32_t(const sptr<IImageProcessStateObserver> &observer));
     virtual int StartUserTestProcess(
         const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)
     {
